@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import {FlatButton} from 'material-ui'
 import {globalStyles} from '../styles'
 
 import type {Props} from './clickable-box'
@@ -27,7 +26,7 @@ class ClickableBox
   render() {
     const {style, children, underlayColor, hoverColor, onClick, ...otherProps} = this.props
 
-    // FlatButton on desktop doesn't support onLongPress, but we allow the common
+    // div on desktop doesn't support onLongPress, but we allow the common
     // ClickableBox component to pass one down for mobile, so strip it out here.
     if (otherProps.onLongPress) {
       delete otherProps.onLongPress
@@ -60,6 +59,7 @@ class ClickableBox
         onMouseEnter={this._onMouseEnter}
         onMouseLeave={this._onMouseLeave}
         onMouseUp={this._onMouseUp}
+        onClick={onClick}
         style={{..._containerStyle, ...(onClick ? globalStyles.clickable : null), ...style}}
       >
         {underlay}
