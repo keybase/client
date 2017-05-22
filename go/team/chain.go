@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -22,13 +23,13 @@ import (
 type TeamName string
 
 type UserVersion struct {
-	Username    NormalizedUsername
-	EldestSeqno Seqno
+	Username    libkb.NormalizedUsername
+	EldestSeqno libkb.Seqno
 }
 
-func NewUserVersion(username string, eldestSeqno Seqno) UserVersion {
+func NewUserVersion(username string, eldestSeqno libkb.Seqno) UserVersion {
 	return UserVersion{
-		Username:    NewNormalizedUsername(username),
+		Username:    libkb.NewNormalizedUsername(username),
 		EldestSeqno: eldestSeqno,
 	}
 }
@@ -42,7 +43,7 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	if len(parts) != 2 {
 		return res, fmt.Errorf("invalid user version: %s", s)
 	}
-	username, err := ValidateNormalizedUsername(parts[0])
+	username, err := libkb.ValidateNormalizedUsername(parts[0])
 	if err != nil {
 		return res, err
 	}
@@ -52,7 +53,7 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	}
 	return UserVersion{
 		Username:    username,
-		EldestSeqno: Seqno(eldestSeqno),
+		EldestSeqno: libkb.Seqno(eldestSeqno),
 	}, nil
 }
 
@@ -102,7 +103,7 @@ type UserTeamRoleCheckpoint struct {
 	// The new role. Including NONE if the user left the team.
 	Role keybase1.TeamRole
 	// The seqno at which the user became this role.
-	Seqno Seqno
+	Seqno libkb.Seqno
 }
 
 type UserLog map[UserVersion][]UserTeamRoleCheckpoint
@@ -119,7 +120,7 @@ func (ul *UserLog) getUserRole(u UserVersion) keybase1.TeamRole {
 // Inform the UserLog of a user's role.
 // Doesn't check anything, don't screw up.
 // Idempotent if called correctly.
-func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno Seqno) {
+func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno libkb.Seqno) {
 	currentRole := ul.getUserRole(u)
 	if currentRole == role {
 		// no change in role, now new checkpoint needed
@@ -142,8 +143,8 @@ type TeamSigChainState struct {
 	// Latest name of the team
 	Name TeamName
 	// The last link procesed
-	LastSeqno  Seqno
-	LastLinkID LinkID
+	LastSeqno  libkb.Seqno
+	LastLinkID libkb.LinkID
 
 	// Present if a subteam
 	ParentID *keybase1.TeamID
@@ -157,12 +158,12 @@ type TeamSigChainState struct {
 	PerTeamKeys map[int]keybase1.PerTeamKey
 
 	// Set of types that were loaded stubbed-out and whose contents are missing.
-	StubbedTypes map[SigchainV2Type]bool
+	StubbedTypes map[libkb.SigchainV2Type]bool
 }
 
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 
-	stubbedTypes := make(map[SigchainV2Type]bool)
+	stubbedTypes := make(map[libkb.SigchainV2Type]bool)
 	for k, v := range t.StubbedTypes {
 		stubbedTypes[k] = v
 	}
@@ -198,7 +199,7 @@ func (t *TeamSigChainState) IsSubteam() bool {
 	return t.ParentID != nil
 }
 
-func (t *TeamSigChainState) GetLatestSeqno() Seqno {
+func (t *TeamSigChainState) GetLatestSeqno() libkb.Seqno {
 	return t.LastSeqno
 }
 
@@ -342,7 +343,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(prevState *TeamSigChainState, li
 }
 
 type checkOuterLinkResult struct {
-	outerLink   OuterLinkV2WithMetadata
+	outerLink   libkb.OuterLinkV2WithMetadata
 	signingUser UserVersion
 
 	// optional inner link info
@@ -372,7 +373,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(prevState *TeamSigChainState, link S
 	if len(link.Sig) == 0 {
 		return res, errors.New("link has empty sig")
 	}
-	outerLink, err := DecodeOuterLinkV2(link.Sig)
+	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
 		return res, err
 	}
@@ -519,7 +520,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			ParentID:     nil,
 			UserLog:      userLog,
 			PerTeamKeys:  perTeamKeys,
-			StubbedTypes: make(map[SigchainV2Type]bool),
+			StubbedTypes: make(map[libkb.SigchainV2Type]bool),
 		}
 
 		return res, nil
@@ -643,16 +644,16 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 }
 
 // check that the inner link matches the outer link
-func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash LinkID) (err error) {
-	var innerPrev LinkID
+func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink libkb.OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash libkb.LinkID) (err error) {
+	var innerPrev libkb.LinkID
 	if innerLink.Prev != nil {
-		innerPrev, err = LinkIDFromHex(*innerLink.Prev)
+		innerPrev, err = libkb.LinkIDFromHex(*innerLink.Prev)
 		if err != nil {
 			return err
 		}
 	}
 
-	innerLinkType, err := SigchainV2TypeFromV1TypeTeams(innerLink.Body.Type)
+	innerLinkType, err := libkb.SigchainV2TypeFromV1TypeTeams(innerLink.Body.Type)
 	if err != nil {
 		return err
 	}
@@ -794,7 +795,7 @@ func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRol
 // Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
 // Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
 // Users already in `userLog` who appear with a different role than before are updated to that new role.
-func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno Seqno) {
+func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno libkb.Seqno) {
 	// Set of users that were already processed
 	processed := make(map[UserVersion]bool)
 
