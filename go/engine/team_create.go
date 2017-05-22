@@ -96,7 +96,8 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
 
-	sigBodyForReverse, err := me.TeamRootSig(deviceSigningKey, teamSection)
+	creationTime := e.G().Clock().Now().Unix()
+	sigBodyForReverse, err := me.TeamRootSig(deviceSigningKey, teamSection, creationTime)
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 	teamSection.PerTeamKey.ReverseSig = &reverseSig
 
 	// Update the team section to include the reverse sig, format it again, and make a sigchain-v2-style sig out of it.
-	sigBodyAfterReverse, err := me.TeamRootSig(deviceSigningKey, teamSection)
+	sigBodyAfterReverse, err := me.TeamRootSig(deviceSigningKey, teamSection, creationTime)
 	if err != nil {
 		return err
 	}

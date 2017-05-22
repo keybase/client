@@ -8,7 +8,7 @@ class PgpAdd extends Component<void, Props, void> {
   render() {
     const nextDisabled = !this.props.email1 || !this.props.fullName || !!this.props.errorText
     return (
-      <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
+      <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
         <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
         <Text style={styleHeader} type="BodySemibold"> Fill in your public info.</Text>

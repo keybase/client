@@ -14,7 +14,7 @@ protocol block {
   record BlockReference {
     BlockIdCombo bid;
     BlockRefNonce nonce;
-    UID chargedTo;
+    UserOrTeamID chargedTo;
   }
 
   record BlockReferenceCount{

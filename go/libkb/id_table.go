@@ -729,6 +729,7 @@ type PerUserKeyChainLink struct {
 	generation keybase1.PerUserKeyGeneration
 }
 
+// TODO verify reverse sig
 func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err error) {
 	var sigKID, encKID keybase1.KID
 	var g int
