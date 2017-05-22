@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './clickable-box'
 import Box from './box'
-import {TouchableHighlight, TouchableWithoutFeedback} from 'react-native'
+import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import {globalColors} from '../styles'
 import {clickableVisible} from '../local-debug'
 
@@ -19,17 +19,18 @@ const ClickableBox = ({
   if (onClick) {
     if (feedback) {
       return (
-        <TouchableHighlight
+        <TouchableOpacity
           disabled={!onClick}
           onPress={onClick}
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onLongPress={onLongPress}
           style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
-          underlayColor={underlayColor || globalColors.black_10}
+          underlayColor={underlayColor || globalColors.white}
+          activeOpacity={0.7}
         >
           {children}
-        </TouchableHighlight>
+        </TouchableOpacity>
       )
     } else {
       return (
