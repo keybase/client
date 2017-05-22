@@ -111,6 +111,7 @@ const _middleContainerStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   height: '100%',
+  justifyContent: 'center',
 }
 
 const Right = ({showTrackerButton, onShowTracker}) => {
@@ -132,24 +133,34 @@ const Line = () => (
 
 const SearchResultRow = (props: Props) => {
   return (
-    <Box style={_rowStyle}>
-      <Left
-        leftFollowingState={props.leftFollowingState}
-        leftIcon={props.leftIcon}
-        leftService={props.leftService}
-        leftUsername={props.leftUsername}
-      />
-      <Middle
-        rightFollowingState={props.rightFollowingState}
-        rightFullname={props.rightFullname}
-        rightIcon={props.rightIcon}
-        rightService={props.rightService}
-        rightUsername={props.rightUsername}
-      />
-      <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
-      <Line />
-    </Box>
+    <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4}>
+      <Box style={_rowStyle}>
+        <Left
+          leftFollowingState={props.leftFollowingState}
+          leftIcon={props.leftIcon}
+          leftService={props.leftService}
+          leftUsername={props.leftUsername}
+        />
+        <Middle
+          rightFollowingState={props.rightFollowingState}
+          rightFullname={props.rightFullname}
+          rightIcon={props.rightIcon}
+          rightService={props.rightService}
+          rightUsername={props.rightUsername}
+        />
+        <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+        <Line />
+      </Box>
+    </ClickableBox>
   )
+}
+
+const _clickableBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+  maxHeight: globalMargins.large,
+  minHeight: globalMargins.large,
+  width: '100%',
 }
 
 const _rowStyle = {
