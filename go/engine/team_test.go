@@ -66,3 +66,36 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 
 	require.NoError(t, err)
 }
+
+func TestCreateSubteam(t *testing.T) {
+	tc := SetupEngineTest(t, "crypto")
+	defer tc.Cleanup()
+
+	// Magic to make the test user provision shared DH keys.
+	tc.Tp.UpgradePerUserKey = true
+	u := CreateAndSignupFakeUser(tc, "t")
+
+	parentTeamName := u.Username + "T"
+	parentEng := NewTeamCreateEngine(tc.G, parentTeamName)
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	err := parentEng.Run(ctx)
+	require.NoError(t, err)
+
+	subteamBasename := "mysubteam"
+	subteamEng := NewSubteamCreateEngine(tc.G, parentTeamName, subteamBasename)
+	err = subteamEng.Run(ctx)
+	require.NoError(t, err)
+
+	// TODO: Uncomment the rest here when Get() supports subteams.
+
+	// // Fetch the subteam we just created, to make sure it's there.
+	// subteamFQName := parentTeamName + "." + subteamBasename
+	// subteam, err := teams.Get(context.TODO(), tc.G, subteamFQName)
+	// require.NoError(t, err)
+
+	// require.Equal(t, subteamFQName, subteam.GetName())
+	// require.Equal(t, 1, subteam.GetLatestSeqno())
+}

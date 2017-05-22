@@ -193,6 +193,10 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	}
 }
 
+func (t *TeamSigChainState) GetID() keybase1.TeamID {
+	return t.ID
+}
+
 func (t *TeamSigChainState) GetName() TeamName {
 	return t.Name
 }
@@ -203,6 +207,10 @@ func (t *TeamSigChainState) IsSubteam() bool {
 
 func (t *TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.LastSeqno
+}
+
+func (t *TeamSigChainState) GetLatestLinkID() libkb.LinkID {
+	return t.LastLinkID
 }
 
 func (t *TeamSigChainState) GetUserRole(user UserVersion) (keybase1.TeamRole, error) {

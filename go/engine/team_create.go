@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	jsonw "github.com/keybase/go-jsonw"
 
 	"golang.org/x/crypto/nacl/box"
@@ -31,7 +32,7 @@ func NewTeamCreateEngine(g *libkb.GlobalContext, name string) *TeamCreateEngine 
 }
 
 func (e *TeamCreateEngine) Name() string {
-	return "NewTeam"
+	return "TeamCreate"
 }
 
 func (e *TeamCreateEngine) Prereqs() Prereqs {
@@ -83,7 +84,7 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	teamSection, err := makeRootTeamSectionNoReverse(e.name, me, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID())
+	teamSection, err := makeRootTeamSection(e.name, me, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID())
 	if err != nil {
 		return err
 	}
@@ -94,7 +95,7 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
 
-	sigBodyBeforeReverse, err := me.TeamRootSig(deviceSigningKey, teamSection)
+	sigBodyBeforeReverse, err := teams.TeamRootSig(me, deviceSigningKey, teamSection)
 	if err != nil {
 		return err
 	}
@@ -133,10 +134,12 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(libkb.LinkTypeTeamRoot),
 		SigInner:   string(sigJSONAfterReverse),
-		TeamID:     libkb.RootTeamIDFromName(e.name),
+		TeamID:     teams.RootTeamIDFromName(e.name),
+		PublicKeys: &libkb.SigMultiItemPublicKeys{
+			Encryption: perTeamEncryptionKey.GetKID(),
+			Signing:    perTeamSigningKey.GetKID(),
+		},
 	}
-	sigMultiItem.PublicKeys.Encryption = perTeamEncryptionKey.GetKID()
-	sigMultiItem.PublicKeys.Signing = perTeamSigningKey.GetKID()
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
@@ -228,9 +231,9 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 	}, nil
 }
 
-func makeRootTeamSectionNoReverse(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (libkb.TeamSection, error) {
-	teamID := libkb.RootTeamIDFromName(teamName)
-	teamSection := libkb.TeamSection{
+func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (teams.TeamSection, error) {
+	teamID := teams.RootTeamIDFromName(teamName)
+	teamSection := teams.TeamSection{
 		Name: teamName,
 		ID:   teamID,
 	}
@@ -285,7 +288,7 @@ func makeSigchainV2OuterSig(
 	outerLink := libkb.OuterLinkV2{
 		Version:  2,
 		Seqno:    seqno,
-		Prev:     nil,
+		Prev:     prevLinkID,
 		Curr:     linkID,
 		LinkType: v2LinkType,
 	}
