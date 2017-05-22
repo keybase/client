@@ -211,6 +211,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 type conversationLock struct {
+	count int
 	trace string
 	cb    chan struct{}
 }
@@ -248,6 +249,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	if lock, ok := c.convLocks[key]; ok {
 		if lock.trace == trace {
 			// Our request holds the lock on this conversation ID already, do just plow through it
+			lock.count++
 			return
 		}
 		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
@@ -259,6 +261,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	c.convLocks[key] = &conversationLock{
 		trace: trace,
 		cb:    make(chan struct{}),
+		count: 1,
 	}
 }
 
@@ -276,8 +279,11 @@ func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, conv
 		if lock.trace != trace {
 			c.Debug(ctx, "Release: different trace trying to free lock? convID: %s lock.trace: %s trace: %s", convID, lock.trace, trace)
 		} else {
-			close(lock.cb)
-			delete(c.convLocks, key)
+			lock.count--
+			if lock.count == 0 {
+				close(lock.cb)
+				delete(c.convLocks, key)
+			}
 		}
 	}
 }
