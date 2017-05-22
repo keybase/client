@@ -4,8 +4,10 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"regexp"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -803,4 +805,20 @@ func MakeNameWithEldestSeqno(name string, seqno Seqno) (NameWithEldestSeqno, err
 	} else {
 		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
 	}
+}
+
+func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
+	res := NormalizedUsername(username)
+	if len(username) < 2 {
+		return res, errors.New("username too short")
+	}
+	if len(username) > 16 {
+		return res, errors.New("username too long")
+	}
+	// underscores allowed, just not first or doubled
+	re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
+	if !re.MatchString(username) {
+		return res, errors.New("invalid username")
+	}
+	return res, nil
 }

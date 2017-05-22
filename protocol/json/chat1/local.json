@@ -786,7 +786,8 @@
       "symbols": [
         "VALID_1",
         "ERROR_2",
-        "OUTBOX_3"
+        "OUTBOX_3",
+        "PLACEHOLDER_4"
       ]
     },
     {
@@ -885,6 +886,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageUnboxedPlaceholder",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageUnboxed",
       "switch": {
@@ -912,6 +923,13 @@
             "def": false
           },
           "body": "OutboxRecord"
+        },
+        {
+          "label": {
+            "name": "PLACEHOLDER",
+            "def": false
+          },
+          "body": "MessageUnboxedPlaceholder"
         }
       ]
     },

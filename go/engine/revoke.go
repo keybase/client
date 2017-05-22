@@ -198,7 +198,8 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 	// Push the per-user-key sig
 	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
-		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey)
+		creationTime := e.G().Clock().Now().Unix()
+		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey, creationTime)
 		if err != nil {
 			return err
 		}

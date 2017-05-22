@@ -6,7 +6,15 @@ import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {isElectron, isIOS, isAndroid, appVersionName, appVersionCode, version} from '../constants/platform'
+import {
+  isElectron,
+  isIOS,
+  isAndroid,
+  appVersionName,
+  appVersionCode,
+  mobileOsVersion,
+  version,
+} from '../constants/platform'
 import {dumpLoggers, getLogger} from '../util/periodic-logger'
 import {writeStream, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
@@ -155,6 +163,7 @@ export default compose(
           username: state.config.username,
           uid: state.config.uid,
           deviceID: state.config.deviceID,
+          mobileOsVersion,
           platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
           version,
           appVersionName,

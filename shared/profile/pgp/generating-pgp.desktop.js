@@ -7,7 +7,7 @@ import type {Props} from './generating-pgp'
 class GeneratingPgp extends Component<void, Props, void> {
   render() {
     return (
-      <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
+      <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>
         <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
         <Text style={styleHeader} type="Header">Generating your unique key...</Text>
         <Text style={styleBody} type="Body">

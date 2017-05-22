@@ -38,7 +38,7 @@ const PostProof = (props: Props) => {
       }
 
   return (
-    <StandardScreen {...notification} onClose={onCancel}>
+    <StandardScreen {...notification} onCancel={onCancel}>
       <PlatformIcon
         style={stylePlatformIcon}
         platform={platform}
