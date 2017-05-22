@@ -19,12 +19,17 @@ import (
 )
 
 const (
-	UID_LEN          = 16
-	UID_SUFFIX       = 0x00
-	UID_SUFFIX_2     = 0x19
-	UID_SUFFIX_HEX   = "00"
-	UID_SUFFIX_2_HEX = "19"
-	PUBLIC_UID       = "ffffffffffffffffffffffffffffff00"
+	UID_LEN               = 16
+	UID_SUFFIX            = 0x00
+	UID_SUFFIX_2          = 0x19
+	UID_SUFFIX_HEX        = "00"
+	UID_SUFFIX_2_HEX      = "19"
+	TEAMID_LEN            = 16
+	TEAMID_SUFFIX         = 0x24
+	TEAMID_SUFFIX_HEX     = "24"
+	SUB_TEAMID_SUFFIX     = 0x25
+	SUB_TEAMID_SUFFIX_HEX = "25"
+	PUBLIC_UID            = "ffffffffffffffffffffffffffffff00"
 )
 
 // UID for the special "public" user.
@@ -301,6 +306,55 @@ func (u UID) GetShard(shardCount int) (int, error) {
 	}
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
+}
+
+func TeamIDFromString(s string) (TeamID, error) {
+	if len(s) != hex.EncodedLen(TEAMID_LEN) {
+		return "", fmt.Errorf("Bad TeamID '%s'; must be %d bytes long", s, TEAMID_LEN)
+	}
+	suffix := s[len(s)-2:]
+	if suffix != TEAMID_SUFFIX_HEX && suffix != SUB_TEAMID_SUFFIX_HEX {
+		return "", fmt.Errorf("Bad TeamID '%s': must end in 0x%x or 0x%x", s, TEAMID_SUFFIX, SUB_TEAMID_SUFFIX)
+	}
+	return TeamID(s), nil
+}
+
+// Can panic if invalid
+func (t TeamID) IsSubTeam() bool {
+	suffix := t[len(t)-2:]
+	return suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+func (t TeamID) String() string {
+	return string(t)
+}
+
+func (t TeamID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(t))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+func (t TeamID) IsNil() bool {
+	return len(t) == 0
+}
+
+func (t TeamID) Exists() bool {
+	return !t.IsNil()
+}
+
+func (t TeamID) Equal(v TeamID) bool {
+	return t == v
+}
+
+func (t TeamID) NotEqual(v TeamID) bool {
+	return !t.Equal(v)
+}
+
+func (t TeamID) Less(v TeamID) bool {
+	return t < v
 }
 
 func (s SigID) IsNil() bool {

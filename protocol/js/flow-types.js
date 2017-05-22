@@ -97,6 +97,14 @@ export const CommonMerkleTreeID = {
   kbfsPrivate: 2,
 }
 
+export const CommonTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -4784,6 +4792,13 @@ export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
 
+export type PerTeamKey = {
+  gen: int,
+  seqno: int,
+  sigKID: KID,
+  encKID: KID,
+}
+
 export type PerUserKey = {
   gen: int,
   seqno: int,
@@ -5455,6 +5470,13 @@ export type TLFQuery = {
 }
 
 export type TeamID = string
+
+export type TeamRole =
+    0 // NONE_0
+  | 1 // OWNER_1
+  | 2 // ADMIN_2
+  | 3 // WRITER_3
+  | 4 // READER_4
 
 export type Test = {
   reply: string,
