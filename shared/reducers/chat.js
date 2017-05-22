@@ -210,7 +210,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         return state
       }
 
-      const newMessages = origConversationState.get('messages').filter(m => m.messageState === 'pending')
+      const newMessages = origConversationState
+        .get('messages')
+        .filter(m => m.messageState === 'pending' || m.messageState === 'failed')
       const newSeenMessages = Set(newMessages.map(m => m.key))
 
       // $FlowIssue
