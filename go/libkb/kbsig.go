@@ -596,23 +596,17 @@ type TeamSection struct {
 		Generation    int          `json:"generation"`
 		EncryptionKID keybase1.KID `json:"encryption_kid"`
 		SigningKID    keybase1.KID `json:"signing_kid"`
-		// As with all reverse sigs, we have to be careful to avoid a ctime
-		// race condition. We take ctime as an argument in TeamRootSig below.
-		// If you use this struct outside of that function, be aware of that.
-		ReverseSig *string `json:"reverse_sig"`
+		// reverse_sig always gets set to null, and the caller has to overwrite it afterwards
 	} `json:"per_team_key"`
 }
 
-func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection, creationTime int64) (*jsonw.Wrapper, error) {
+func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeTeamRoot,
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: KeybaseSignatureV2,
-		// Taking the ctime explicitly prevents a race condition in the reverse
-		// sig, where it has a different ctime from the main sig.
-		CreationTime: creationTime,
 	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
@@ -622,6 +616,7 @@ func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection, creationTime
 	if err != nil {
 		return nil, err
 	}
+	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
 
 	body := ret.AtKey("body")
 	body.SetKey("team", teamSectionJSON)

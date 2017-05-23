@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 
 	"golang.org/x/crypto/nacl/box"
 )
@@ -93,23 +94,24 @@ func (e *TeamCreateEngine) Run(ctx *Context) (err error) {
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
 
-	creationTime := e.G().Clock().Now().Unix()
-	sigBodyForReverse, err := me.TeamRootSig(deviceSigningKey, teamSection, creationTime)
+	sigBodyBeforeReverse, err := me.TeamRootSig(deviceSigningKey, teamSection)
 	if err != nil {
 		return err
 	}
 	// Note that this (sigchain-v1-style) reverse sig is made with the derived *per-team* signing key.
-	reverseSig, _, _, err := libkb.SignJSON(sigBodyForReverse, perTeamSigningKey)
+	reverseSig, _, _, err := libkb.SignJSON(sigBodyBeforeReverse, perTeamSigningKey)
 	if err != nil {
 		return err
 	}
-	teamSection.PerTeamKey.ReverseSig = &reverseSig
 
-	// Update the team section to include the reverse sig, format it again, and make a sigchain-v2-style sig out of it.
-	sigBodyAfterReverse, err := me.TeamRootSig(deviceSigningKey, teamSection, creationTime)
-	if err != nil {
-		return err
-	}
+	// Update the team section to include the reverse sig, sign it again, and
+	// make a sigchain-v2-style sig out of it. Doing it this way, instead of
+	// generating it twice with different parameters, makes it less likely to
+	// accidentally capture different global state (like ctime and merkle
+	// seqno).
+	sigBodyAfterReverse := sigBodyBeforeReverse
+	sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+
 	sigJSONAfterReverse, err := sigBodyAfterReverse.Marshal()
 	if err != nil {
 		return err
