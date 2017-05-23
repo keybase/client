@@ -8,6 +8,46 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type TeamRole int
+
+const (
+	TeamRole_NONE   TeamRole = 0
+	TeamRole_OWNER  TeamRole = 1
+	TeamRole_ADMIN  TeamRole = 2
+	TeamRole_WRITER TeamRole = 3
+	TeamRole_READER TeamRole = 4
+)
+
+var TeamRoleMap = map[string]TeamRole{
+	"NONE":   0,
+	"OWNER":  1,
+	"ADMIN":  2,
+	"WRITER": 3,
+	"READER": 4,
+}
+
+var TeamRoleRevMap = map[TeamRole]string{
+	0: "NONE",
+	1: "OWNER",
+	2: "ADMIN",
+	3: "WRITER",
+	4: "READER",
+}
+
+func (e TeamRole) String() string {
+	if v, ok := TeamRoleRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PerTeamKey struct {
+	Gen    int   `codec:"gen" json:"gen"`
+	Seqno  Seqno `codec:"seqno" json:"seqno"`
+	SigKID KID   `codec:"sigKID" json:"sigKID"`
+	EncKID KID   `codec:"encKID" json:"encKID"`
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`

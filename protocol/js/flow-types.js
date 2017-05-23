@@ -97,14 +97,6 @@ export const CommonMerkleTreeID = {
   kbfsPrivate: 2,
 }
 
-export const CommonTeamRole = {
-  none: 0,
-  owner: 1,
-  admin: 2,
-  writer: 3,
-  reader: 4,
-}
-
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -499,6 +491,14 @@ export const SimpleFSOpenFlags = {
 export const SimpleFSPathType = {
   local: 0,
   kbfs: 1,
+}
+
+export const TeamsTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
