@@ -4829,14 +4829,14 @@ export type PathType =
 
 export type PerTeamKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
 
 export type PerUserKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
@@ -5181,6 +5181,8 @@ export type SelectKeyRes = {
   doSecretPush: boolean,
 }
 
+export type Seqno = int64
+
 export type ServiceStatus = {
   version: string,
   label: string,
@@ -5217,7 +5219,7 @@ export type SessionStatus = {
 export type SessionToken = string
 
 export type Sig = {
-  seqno: int,
+  seqno: Seqno,
   sigID: SigID,
   sigIDDisplay: string,
   type: string,
@@ -5626,7 +5628,7 @@ export type UserPlusAllKeys = {
 export type UserPlusKeys = {
   uid: UID,
   username: string,
-  eldestSeqno: int,
+  eldestSeqno: Seqno,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
