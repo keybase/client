@@ -452,6 +452,24 @@ function _serverCallMap(
     }
   }
 
+  // We queue up responses and handle them a couple at a time
+  let _idleResponseQueue = []
+
+  const addToIdleResponseQueue = (f: () => void) => {
+    _idleResponseQueue.push(f)
+    requestIdle(onRequestIdleQueueHandler)
+  }
+
+  const onRequestIdleQueueHandler = () => {
+    if (!_idleResponseQueue.length) {
+      return
+    }
+    const max = 5
+    const toHandle = _idleResponseQueue.slice(0, max)
+    _idleResponseQueue = _idleResponseQueue.slice(max)
+    toHandle.forEach(f => f())
+  }
+
   return {
     'keybase.1.identifyUi.start': (
       {username: currentUsername, sessionID, reason, forceDisplay},
@@ -514,7 +532,7 @@ function _serverCallMap(
 
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch({
           type: Constants.showNonUser,
           payload: {
@@ -530,7 +548,7 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.displayKey': ({key}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         if (key.breaksTracking) {
           dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
           dispatch({
@@ -549,7 +567,7 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.reportLastTrack': ({track}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch({
           type: Constants.reportLastTrack,
           payload: {username, track},
@@ -562,7 +580,7 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.launchNetworkChecks': ({identity}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         // This is the first spot that we have access to the user, so let's use that to get
         // The user information
 
@@ -582,7 +600,7 @@ function _serverCallMap(
 
     'keybase.1.identifyUi.dismiss': ({username, reason}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch({
           type: Constants.remoteDismiss,
           payload: {username, reason},
@@ -592,7 +610,7 @@ function _serverCallMap(
 
     'keybase.1.identifyUi.finishWebProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
@@ -603,7 +621,7 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.finishSocialProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
@@ -614,7 +632,7 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID, type, family}}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         if (family === 'zcash') {
           dispatch(_updateZcash(username, address, sigID))
         } else {
@@ -625,20 +643,19 @@ function _serverCallMap(
     },
     'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
       response.result()
-      requestIdle(() => {
-        if (isGetProfile) {
-          // cache profile calls
-          dispatch({
-            type: Constants.cacheIdentify,
-            payload: {uid: card.uid, goodTill: Date.now() + cachedIdentifyGoodUntil},
-          })
-        }
-        dispatch(_updateUserInfo(card, username, getState))
-      })
+      // run this immediately
+      if (isGetProfile) {
+        // cache profile calls
+        dispatch({
+          type: Constants.cacheIdentify,
+          payload: {uid: card.uid, goodTill: Date.now() + cachedIdentifyGoodUntil},
+        })
+      }
+      dispatch(_updateUserInfo(card, username, getState))
     },
     'keybase.1.identifyUi.reportTrackToken': ({trackToken}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
 
         const userState = getState().tracker.trackers[username]
@@ -666,7 +683,7 @@ function _serverCallMap(
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
       response.result()
 
-      requestIdleCallback(
+      addToIdleResponseQueue(
         () => {
           // Check if there were any errors in the proofs
           dispatch({type: Constants.updateProofState, payload: {username}})

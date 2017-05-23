@@ -135,7 +135,9 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickFollowers(username)}
               style={stylesFollowingLabel}
             >
-              <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followersCount}</Text>
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followersCount === -1 ? '' : userInfo.followersCount}
+              </Text>
               {' '}
               {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
             </Text>
@@ -147,7 +149,11 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickFollowing(username)}
               style={stylesFollowingLabel}
             >
-              Following <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followingCount}</Text>
+              Following
+              {' '}
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followingCount === -1 ? '' : userInfo.followingCount}
+              </Text>
             </Text>
           </Text>
           {!!userInfo.bio &&
