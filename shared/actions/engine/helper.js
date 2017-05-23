@@ -62,6 +62,10 @@ function _handleRPCDecorator(rpcNameKey, saga) {
   }
 }
 
+function passthroughResponseSaga() {
+  return rpcResult()
+}
+
 class EngineRpcCall {
   _subSagas: SagaTypes.SagaMap
   _chanConfig: SagaTypes.ChannelConfig<*>
@@ -92,6 +96,7 @@ class EngineRpcCall {
   *_cleanup(lastTask: ?any): Generator<any, any, any> {
     if (!this._cleanedUp) {
       this._cleanedUp = true
+      // TODO should we respond to the pending rpc with error if we hit this?
       lastTask && lastTask.cancel()
       this._engineChannel.close()
       yield put(Creators.waitingForRpc(this._rpcNameKey, false))
@@ -168,4 +173,13 @@ class EngineRpcCall {
   }
 }
 
-export {EngineRpcCall, isFinished, BailEarly, BailedEarly, rpcResult, rpcCancel, rpcError}
+export {
+  EngineRpcCall,
+  isFinished,
+  BailEarly,
+  BailedEarly,
+  rpcResult,
+  rpcCancel,
+  rpcError,
+  passthroughResponseSaga,
+}

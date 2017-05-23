@@ -7,6 +7,7 @@ import * as Inbox from './inbox'
 import * as Messages from './messages'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
+import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {Map} from 'immutable'
@@ -284,6 +285,28 @@ function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobi
   }
 }
 
+function* _updateThread({
+  payload: {yourName, thread, yourDeviceName, conversationIDKey},
+}: Constants.UpdateThread) {
+  const newMessages = ((thread && thread.messages) || [])
+    .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
+    .reverse()
+  const pagination = _threadToPagination(thread)
+  yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
+}
+
+function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
+  return function*({thread}) {
+    yield put(Creators.updateThread(thread, yourName, yourDeviceName, conversationIDKey))
+    return EngineRpc.rpcResult()
+  }
+}
+
+const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey) => ({
+  'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
+  'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
+})
+
 function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
@@ -347,51 +370,45 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       .map(k => ChatTypes.CommonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-    const updateThread = function*(thread: ChatTypes.ThreadView) {
-      const newMessages = ((thread && thread.messages) || [])
-        .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
-        .reverse()
-      const pagination = _threadToPagination(thread)
-      yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
-    }
-
-    const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap(
-      ['chat.1.chatUi.chatThreadCached', 'chat.1.chatUi.chatThreadFull', 'finished'],
-      {
-        param: {
-          conversationID,
-          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          pagination: {
-            last: false,
-            next,
-            num: Constants.maxMessagesToLoadAtATime,
-            previous: null,
-          },
-          query: {
-            disableResolveSupersedes: false,
-            markAsRead: true,
-            messageTypes,
-          },
-        },
-      }
+    const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
+      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey),
+      ChatTypes.localGetThreadNonblockRpcChannelMap,
+      'localGetThreadNonblock'
     )
 
-    while (true) {
-      const incoming = yield loadThreadChanMap.race({removeNs: true})
+    // Todo do we need to pass this context?
+    const result = yield call([loadThreadChanMapRpc, loadThreadChanMapRpc.run], {
+      param: {
+        conversationID,
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        pagination: {
+          last: false,
+          next,
+          num: Constants.maxMessagesToLoadAtATime,
+          previous: null,
+        },
+        query: {
+          disableResolveSupersedes: false,
+          markAsRead: true,
+          messageTypes,
+        },
+      },
+    })
 
-      if (incoming.chatThreadCached) {
-        incoming.chatThreadCached.response.result()
-        yield call(updateThread, incoming.chatThreadCached.params.thread)
-      } else if (incoming.chatThreadFull) {
-        incoming.chatThreadFull.response.result()
-        yield call(updateThread, incoming.chatThreadFull.params.thread)
-      } else if (incoming.finished) {
-        if (incoming.finished.params.offline) {
-          yield put(Creators.threadLoadedOffline(conversationIDKey))
-        }
-        yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
-        break
+    if (EngineRpc.isFinished(result)) {
+      const {payload: {params, error}} = result
+
+      if (error) {
+        console.warn('error in localGetThreadNonblock', error)
       }
+
+      if (params.offline) {
+        yield put(Creators.threadLoadedOffline(conversationIDKey))
+      }
+
+      yield put(Creators.setLoaded(conversationIDKey, !error)) // reset isLoaded on error
+    } else {
+      console.warn('localGetThreadNonblock rpc bailed early')
     }
 
     // Do this here because it's possible loading messages takes a while
@@ -983,6 +1000,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
+  yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)

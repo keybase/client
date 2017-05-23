@@ -153,9 +153,9 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
   'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
   'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
   'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretSaga(onBackSaga),
-  'keybase.1.provisionUi.DisplaySecretExchanged': passthroughResponseSaga,
+  'keybase.1.provisionUi.DisplaySecretExchanged': EngineRpc.passthroughResponseSaga,
   'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameSaga(onBackSaga),
-  'keybase.1.provisionUi.ProvisioneeSuccess': passthroughResponseSaga,
+  'keybase.1.provisionUi.ProvisioneeSuccess': EngineRpc.passthroughResponseSaga,
   'keybase.1.provisionUi.ProvisionerSuccess': provisionerSuccessSaga,
   'keybase.1.provisionUi.chooseDevice': chooseDeviceSaga(onBackSaga),
   'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodSaga(onBackSaga),
@@ -243,10 +243,6 @@ const getEmailOrUsernameSaga = onBackSaga =>
       return EngineRpc.rpcResult(usernameOrEmail)
     }
   }
-
-function* passthroughResponseSaga() {
-  return EngineRpc.rpcResult()
-}
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
@@ -451,7 +447,7 @@ function* handleProvisioningError(error) {
 }
 
 function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(cancelLogin, passthroughResponseSaga)
+  const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga)
 
   const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc')
 

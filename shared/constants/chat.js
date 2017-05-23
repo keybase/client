@@ -665,6 +665,16 @@ export type ShareAttachment = NoErrorTypedAction<
   }
 >
 
+export type UpdateThread = NoErrorTypedAction<
+  'chat:updateThread',
+  {
+    thread: ChatTypes.ThreadView,
+    yourName: string,
+    yourDeviceName: string,
+    conversationIDKey: string,
+  }
+>
+
 export type Actions =
   | AddPendingConversation
   | AppendMessages
