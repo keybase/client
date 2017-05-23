@@ -109,8 +109,8 @@ const Avatars = ({
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 18, minHeight: 18}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 18, minHeight: 18, position: 'relative'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 19, minHeight: 19}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 19, minHeight: 19, position: 'relative'}}>
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
