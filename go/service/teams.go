@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/team"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -39,6 +39,6 @@ func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreat
 
 // TODO: return something useful
 func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) error {
-	_, err := team.Get(netCtx, h.G(), arg.Name)
+	_, err := teams.Get(netCtx, h.G(), arg.Name)
 	return err
 }
