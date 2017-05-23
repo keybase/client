@@ -232,15 +232,16 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	defer func() {
 		lock.Release(ctx)
 
-		if !shouldReturnFullUser {
-			user = nil
-		}
 		if user != nil && err == nil {
 			// Update the full-self cacher after the lock is released, to avoid
 			// any circular locking.
 			if fs := u.G().GetFullSelfer(); fs != nil {
 				fs.Update(ctx, user)
 			}
+		}
+
+		if !shouldReturnFullUser {
+			user = nil
 		}
 	}()
 
