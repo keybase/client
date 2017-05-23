@@ -36,11 +36,11 @@ function metaColor(proof: Proof): string {
   }
 }
 
-function proofColor(proof: Proof): string {
+function proofColor(proof: Proof, forIcon: boolean): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
-      color = proof.isTracked ? globalColors.green : globalColors.blue
+      color = proof.isTracked ? (forIcon ? globalColors.green : globalColors.green2) : globalColors.blue
       break
     }
     case proofChecking:
@@ -101,7 +101,7 @@ function proofStatusIcon(proof: Proof): ?IconType {
 
 function proofNameStyle(proof: Proof) {
   return {
-    color: proofColor(proof),
+    color: proofColor(proof, false),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
     ...(['btc', 'pgp'].includes(proof.type) ? {fontSize: 13} : {}),
   }
