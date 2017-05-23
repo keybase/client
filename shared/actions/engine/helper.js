@@ -100,7 +100,8 @@ class EngineRpcCall {
   *_cleanup(lastTask: ?any): Generator<any, any, any> {
     if (!this._cleanedUp) {
       this._cleanedUp = true
-      // TODO should we respond to the pending rpc with error if we hit this?
+      // TODO(mm) should we respond to the pending rpc with error if we hit this?
+      // Nojima and Marco think it's okay for now - maybe discuss with core what we should do.
       lastTask && lastTask.cancel()
       this._engineChannel.close()
       yield put(Creators.waitingForRpc(this._rpcNameKey, false))
