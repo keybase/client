@@ -7,7 +7,7 @@ import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
 import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
-import {EngineRpcCall, isFinished, BailedEarly} from '../engine/helper'
+import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
@@ -75,21 +75,6 @@ const getAccounts = (): AsyncAction => dispatch =>
       },
     })
   })
-
-function sagaWaitingDecorator(saga) {
-  return function*(...args) {
-    yield put(Creators.waitingForResponse(false))
-    yield call(saga, ...args)
-    yield put(Creators.waitingForResponse(true))
-  }
-}
-
-function clearWaitingDecorator(saga) {
-  return function*(...args) {
-    yield put(Creators.waitingForResponse(false))
-    yield call(saga, ...args)
-  }
-}
 
 function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
@@ -163,37 +148,22 @@ function* navBasedOnLoginState() {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => {
-  const onBackSagaDecorated = clearWaitingDecorator(onBackSaga)
-  return {
-    'keybase.1.gpgUi.selectKey': sagaWaitingDecorator(selectKeySaga),
-    'keybase.1.loginUi.displayPrimaryPaperKey': sagaWaitingDecorator(
-      displayPrimaryPaperKeySaga(onBackSagaDecorated)
-    ),
-    'keybase.1.loginUi.getEmailOrUsername': sagaWaitingDecorator(getEmailOrUsernameSaga(onBackSagaDecorated)),
-    'keybase.1.provisionUi.DisplayAndPromptSecret': sagaWaitingDecorator(
-      displayAndPromptSecretSaga(onBackSagaDecorated)
-    ),
-    'keybase.1.provisionUi.DisplaySecretExchanged': sagaWaitingDecorator(passthroughResponseSaga),
-    'keybase.1.provisionUi.PromptNewDeviceName': sagaWaitingDecorator(
-      promptNewDeviceNameSaga(onBackSagaDecorated)
-    ),
-    'keybase.1.provisionUi.ProvisioneeSuccess': sagaWaitingDecorator(passthroughResponseSaga),
-    'keybase.1.provisionUi.ProvisionerSuccess': sagaWaitingDecorator(provisionerSuccessSaga),
-    'keybase.1.provisionUi.chooseDevice': sagaWaitingDecorator(chooseDeviceSaga(onBackSagaDecorated)),
-    'keybase.1.provisionUi.chooseGPGMethod': sagaWaitingDecorator(chooseGPGMethodSaga(onBackSagaDecorated)),
-    'keybase.1.secretUi.getPassphrase': sagaWaitingDecorator(getPassphraseSaga(onBackSagaDecorated)),
-  }
-}
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
+  'keybase.1.gpgUi.selectKey': selectKeySaga,
+  'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
+  'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
+  'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretSaga(onBackSaga),
+  'keybase.1.provisionUi.DisplaySecretExchanged': passthroughResponseSaga,
+  'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameSaga(onBackSaga),
+  'keybase.1.provisionUi.ProvisioneeSuccess': passthroughResponseSaga,
+  'keybase.1.provisionUi.ProvisionerSuccess': provisionerSuccessSaga,
+  'keybase.1.provisionUi.chooseDevice': chooseDeviceSaga(onBackSaga),
+  'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodSaga(onBackSaga),
+  'keybase.1.secretUi.getPassphrase': getPassphraseSaga(onBackSaga),
+})
 
-function* cancelLogin(response) {
+function* cancelLogin() {
   yield put(navigateTo(['login'], [loginTab]))
-  if (response) {
-    const engineInst = yield call(engine)
-    yield put(Creators.waitingForResponse(true))
-    yield call([engine, engineInst.cancelRPC], response, InputCancelError)
-    yield put(Creators.waitingForResponse(false))
-  }
 }
 
 function result(response, ...args) {
@@ -206,16 +176,12 @@ function* resultWithWaiting(response, ...args) {
   yield put(Creators.waitingForResponse(false))
 }
 
-function respondError(response, ...args) {
-  return call([response, response.error], ...args)
-}
-
-function* selectKeySaga({response}) {
-  yield respondError(response, new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
+function* selectKeySaga() {
+  return EngineRpc.rpcError(new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
 }
 
 const displayPrimaryPaperKeySaga = onBackSaga =>
-  function*({params: {phrase}, response}) {
+  function*({phrase}) {
     yield put(
       navigateAppend(
         [
@@ -239,14 +205,15 @@ const displayPrimaryPaperKeySaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onFinish) {
-      yield call(resultWithWaiting, response)
+      return EngineRpc.rpcResult()
     }
   }
 
 const getEmailOrUsernameSaga = onBackSaga =>
-  function*({response}) {
+  function*() {
     yield put(
       navigateAppend(
         [
@@ -266,24 +233,25 @@ const getEmailOrUsernameSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
       const usernameOrEmail = onSubmit.payload.usernameOrEmail
       if (!usernameOrEmail) {
         console.error('no email')
       }
-      yield call(resultWithWaiting, response, usernameOrEmail)
+      return EngineRpc.rpcResult(usernameOrEmail)
     }
   }
 
-function* passthroughResponseSaga({response}) {
-  yield call(resultWithWaiting, response)
+function* passthroughResponseSaga() {
+  return EngineRpc.rpcResult()
 }
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
 const displayAndPromptSecretSaga = onBackSaga =>
-  function*({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
+  function*({phrase, previousErr}: DisplayAndPromptSecretArgs) {
     yield put(Creators.setTextCode(phrase, previousErr))
     yield call(generateQRCode)
 
@@ -300,15 +268,16 @@ const displayAndPromptSecretSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (qrScanned || textEntered) {
       const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
-      yield call(resultWithWaiting, response, {phrase, secret: null})
+      return EngineRpc.rpcResult({phrase, secret: null})
     }
   }
 
 const promptNewDeviceNameSaga = onBackSaga =>
-  function*({params: {existingDevices, errorMessage}, response}) {
+  function*({existingDevices, errorMessage}) {
     yield put(
       navigateAppend(
         [
@@ -316,10 +285,6 @@ const promptNewDeviceNameSaga = onBackSaga =>
             props: {
               deviceNameError: errorMessage,
               existingDevices,
-              onBack: () => onBack(response),
-              onSubmit: deviceName => {
-                response.result(deviceName)
-              },
             },
             selected: 'setPublicName',
           },
@@ -335,20 +300,16 @@ const promptNewDeviceNameSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
-      yield call(resultWithWaiting, response, onSubmit.payload.deviceName)
+      return EngineRpc.rpcResult(onSubmit.payload.deviceName)
     }
   }
 
-function* provisionerSuccessInLoginSaga({response}) {
-  yield call(resultWithWaiting, response)
-  yield call(navBasedOnLoginState)
-}
-
 // TODO change types in flow-types to generate this
 const chooseDeviceSaga = onBackSaga =>
-  function*({params: {devices}, response}: {params: {devices: Array<Types.Device>}, response: any}) {
+  function*({devices}: {devices: Array<Types.Device>}) {
     yield put(
       navigateAppend(
         [
@@ -369,9 +330,10 @@ const chooseDeviceSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onWont) {
-      yield call(resultWithWaiting, response, '')
+      return EngineRpc.rpcResult('')
     } else if (onSelect) {
       const deviceID = onSelect.payload.deviceId
       const device = (devices || []).find(d => d.deviceID === deviceID)
@@ -381,13 +343,13 @@ const chooseDeviceSaga = onBackSaga =>
           mobile: Constants.codePageDeviceRoleExistingPhone,
         }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
         yield call(setCodePageOtherDeviceRole, role)
-        yield call(resultWithWaiting, response, deviceID)
+        return EngineRpc.rpcResult(deviceID)
       }
     }
   }
 
 const chooseGPGMethodSaga = onBackSaga =>
-  function*({response}) {
+  function*() {
     yield put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
     const {onBack, navUp, onSubmit} = yield race({
@@ -397,19 +359,19 @@ const chooseGPGMethodSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
       const exportKey = onSubmit.payload.exportKey
-      yield call(
-        resultWithWaiting,
-        response,
+
+      return EngineRpc.rpcResult(
         exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign
       )
     }
   }
 
 const getPassphraseSaga = onBackSaga =>
-  function*({params: {pinentry: {type, prompt, username, retryLabel}}, response}) {
+  function*({pinentry: {type, prompt, username, retryLabel}}) {
     switch (type) {
       case Types.PassphraseCommonPassphraseType.paperKey:
         const destination = {
@@ -444,8 +406,9 @@ const getPassphraseSaga = onBackSaga =>
         )
         break
       default:
-        response.error(new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound))
-        return
+        return EngineRpc.rpcError(
+          new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound)
+        )
     }
 
     const {onBack, navUp, onSubmit} = yield race({
@@ -455,24 +418,15 @@ const getPassphraseSaga = onBackSaga =>
     })
 
     if (onBack || navUp) {
-      yield call(onBackSaga, response)
+      yield call(onBackSaga)
+      return EngineRpc.rpcCancel(InputCancelError)
     } else if (onSubmit) {
       const passphrase = onSubmit.payload.passphrase.stringValue()
       // TODO why is store secret always false?
       const storeSecret = onSubmit.payload.storeSecret
-      yield call(resultWithWaiting, response, {passphrase, storeSecret})
+      return EngineRpc.rpcResult({passphrase, storeSecret})
     }
   }
-
-function loginRpc(channelConfig, usernameOrEmail) {
-  return Types.loginLoginRpcChannelMapOld(channelConfig, {
-    param: {
-      deviceType,
-      usernameOrEmail,
-      clientType: Types.CommonClientType.guiMain,
-    },
-  })
-}
 
 function addDeviceRpc(channelConfig) {
   return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
@@ -493,24 +447,13 @@ function* handleProvisioningError(error) {
     )
   )
   yield race({onBack: take(Constants.onBack), navUp: take(RouteConstants.navigateUp)})
-  yield call(navBasedOnLoginState)
-}
-
-function* finishLoginSaga({error, params}) {
-  if (error) {
-    console.log(error)
-    yield call(handleProvisioningError, error)
-  } else {
-    yield put(Creators.loginDone())
-    yield call(navBasedOnLoginState)
-  }
+  yield put(navigateTo(['login'], [loginTab]))
 }
 
 function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga)
+  const loginSagas = kex2Sagas(cancelLogin, passthroughResponseSaga)
 
-  // const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
-  const loginRpcCall = new EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc')
+  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc')
 
   try {
     const result = yield call([loginRpcCall, loginRpcCall.run], {
@@ -521,7 +464,7 @@ function* loginFlowSaga(usernameOrEmail) {
       },
     })
 
-    if (isFinished(result)) {
+    if (EngineRpc.isFinished(result)) {
       const {error} = result.payload
 
       if (error) {
@@ -531,7 +474,7 @@ function* loginFlowSaga(usernameOrEmail) {
         yield put(Creators.loginDone())
         yield call(navBasedOnLoginState)
       }
-    } else if (result === BailedEarly) {
+    } else if (result === EngineRpc.BailedEarly) {
       console.log('Bailed early')
       yield put(navigateTo(['login'], [loginTab]))
     } else {

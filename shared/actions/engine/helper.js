@@ -3,43 +3,78 @@
 import * as Creators from './creators'
 import {mapValues} from 'lodash'
 import {RPCTimeoutError} from '../../util/errors'
+import engine, {EngineChannel} from '../../engine'
 
 import * as Saga from '../../util/saga'
-import {channel} from 'redux-saga'
 import {call, put, cancelled, fork, join} from 'redux-saga/effects'
 
 import * as SagaTypes from '../../constants/types/saga'
+import * as FluxTypes from '../../constants/types/flux'
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailEarly = {type: '@@engineRPCCall:bailEarly'}
-const BailedEarly = {type: '@@engineRPCCall:bailedEarly'}
+const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
 
-const FinishedType = '@@engineRPCCall:finished'
-const finished = ({error, params}) => ({type: FinishedType, payload: {error, params}})
-const isFinished = a => a.type === FinishedType
+const rpcResult = (args: any) => ({type: '@@engineRPCCall:respondResult', payload: args})
+const rpcError = (args: any) => ({type: '@@engineRPCCall:respondError', payload: args})
+const rpcCancel = (args: any) => ({type: '@@engineRPCCall:respondCancel', payload: args})
+
+const _isResult = ({type} = {}) => type === '@@engineRPCCall:respondResult'
+const _isError = ({type} = {}) => type === '@@engineRPCCall:respondError'
+const _isCancel = ({type} = {}) => type === '@@engineRPCCall:respondCancel'
+
+type Finished = FluxTypes.NoErrorTypedAction<
+  '@@engineRPCCall:finished',
+  {
+    error: ?any,
+    params: ?any,
+  }
+>
+
+const finished = ({error, params}) => ({type: '@@engineRPCCall:finished', payload: {error, params}})
+const isFinished = (a: any) => a.type === '@@engineRPCCall:finished'
+
+type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
+
+function _sagaWaitingDecorator(rpcNameKey, saga) {
+  return function*(...args: any) {
+    yield put(Creators.waitingForRpc(rpcNameKey, false))
+    yield call(saga, ...args)
+    yield put(Creators.waitingForRpc(rpcNameKey, true))
+  }
+}
+
+// This decorator deals with responding to the rpc
+function _handleRPCDecorator(rpcNameKey, saga) {
+  return function*({params, response}) {
+    const returnVal = yield call(saga, params)
+    const payload = returnVal.payload
+    if (_isResult(returnVal)) {
+      yield call([response, response.result], payload)
+    } else if (_isCancel(returnVal)) {
+      const engineInst = yield call(engine)
+      yield call([engineInst, engineInst.cancelRPC], response, payload)
+    } else if (_isError(returnVal)) {
+      yield call([response, response.error], payload)
+    } else {
+      throw new Error(`SubSaga for ${rpcNameKey} did not return a response to the rpc!`)
+    }
+  }
+}
 
 class EngineRpcCall {
-  _subSagas: SagaTypes.SagaMap<*>
-  _chanMap: SagaTypes.ChannelMap<*>
+  _subSagas: SagaTypes.SagaMap
   _chanConfig: SagaTypes.ChannelConfig<*>
-  _sessionID: SessionID
-  _configKeys: Array<string>
   _rpc: Function
-  // TODO can we figure this out?
-  _rpcName: string
+  _rpcNameKey: string // Used for the waiting state and error messages.
 
-  _errorChan: Channel<Error>
-  _finishedChan: Channel<Error>
   _engineChannel: EngineChannel
-
   _cleanedUp: boolean
 
-  constructor(sagaMap: SagaTypes.SagaMap, rpc, rpcName) {
+  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
-    this._rpcName = rpcName
+    this._rpcNameKey = rpcNameKey
     this._rpc = rpc
-    this._errorChan = channel()
-    this._finishedChan = channel()
     this._cleanedUp = false
     const {finished: finishedSaga, ...subSagas} = sagaMap
     if (finishedSaga) {
@@ -47,53 +82,37 @@ class EngineRpcCall {
         'Passed in a finished saga that will never be used. Instead the result of .run() will give you finished'
       )
     }
-    const decoratedSubSagas = mapValues(subSagas, saga => this._sagaWaitingDecorator(rpcName, saga))
+    const decoratedSubSagas = mapValues(subSagas, saga =>
+      _sagaWaitingDecorator(rpcNameKey, _handleRPCDecorator(rpcNameKey, saga))
+    )
 
     this._subSagas = decoratedSubSagas
   }
 
-  *_handleErrorInSaga(error: Error) {
-    yield put(this._errorChan, error)
-  }
-
-  _sagaWaitingDecorator(rpcName, saga) {
-    return function*(...args) {
-      yield put(Creators.waitingForRpc(rpcName, false))
-      yield call(saga, ...args)
-      yield put(Creators.waitingForRpc(rpcName, true))
-    }
-  }
-
-  _finishedWithRpc({result, params}) {
-    // yield put(this._finishedChan, error)
-  }
-
-  *_cleanup(lastTask: ?any) {
+  *_cleanup(lastTask: ?any): Generator<any, any, any> {
     if (!this._cleanedUp) {
       this._cleanedUp = true
       lastTask && lastTask.cancel()
       this._engineChannel.close()
-      this._errorChan.close()
-      this._finishedChan.close()
-      yield put(Creators.waitingForRpc(this._rpcName, false))
+      yield put(Creators.waitingForRpc(this._rpcNameKey, false))
     } else {
       console.error('Already cleaned up')
     }
   }
 
-  *run(request, options: ?{timeout: number}) {
+  *run(request: any, options: ?{timeout: number}): Generator<any, RpcRunResult, any> {
+    const timeout = options && options.timeout
     this._engineChannel = yield call(this._rpc, [...Object.keys(this._subSagas), 'finished'], request)
 
     let lastTask: ?any = null
     while (true) {
       try {
-        // TODO what happens if lastTask throws an error?
-
         // If we have a lastTask, let's also race that.
         // We want to cancel that task if another message comes in
         // We also want to check to see if the last task tells us to bail early
         const incoming = yield call([this._engineChannel, this._engineChannel.race], {
-          ...options,
+          // If we have a task currently running, we don't want to race with the timeout
+          timeout: lastTask ? undefined : timeout,
           racers: lastTask ? {lastTask: join(lastTask)} : {},
         })
 
@@ -101,10 +120,7 @@ class EngineRpcCall {
 
         if (incoming.timeout) {
           yield call([this, this._cleanup], lastTask)
-          throw new RPCTimeoutError(
-            this._rpcName,
-            options && options.timeout ? options.timeout : 'Undefined ttl'
-          )
+          throw new RPCTimeoutError(this._rpcNameKey, options && options.timeout)
         }
 
         if (incoming.finished) {
@@ -117,7 +133,8 @@ class EngineRpcCall {
         const result = incoming[raceWinner]
 
         if (raceWinner === 'lastTask') {
-          if (incoming.lastTask === BailEarly) {
+          const result = incoming.lastTask
+          if (_isCancel(result) || _isError(result)) {
             yield call([this, this._cleanup], lastTask)
             return BailedEarly
           } else {
@@ -132,7 +149,6 @@ class EngineRpcCall {
 
         // Should be impossible
         if (!this._subSagas[raceWinner]) {
-          debugger
           throw new Error('No subSaga to handle the raceWinner', raceWinner)
         }
 
@@ -144,7 +160,12 @@ class EngineRpcCall {
         }
       }
     }
+
+    // This is here to make flow happy
+    // But it makes eslint sad, so let's tell disable eslint
+    // eslint-disable-next-line
+    return BailedEarly
   }
 }
 
-export {EngineRpcCall, isFinished, BailEarly, BailedEarly}
+export {EngineRpcCall, isFinished, BailEarly, BailedEarly, rpcResult, rpcCancel, rpcError}

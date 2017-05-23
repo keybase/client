@@ -15,7 +15,7 @@ import * as Saga from '../util/saga'
 import {delay} from 'redux-saga'
 import {call, race} from 'redux-saga/effects'
 
-import type {ChannelMap, ChannelConfig, SagaMap} from '../constants/types/saga'
+import type {ChannelMap} from '../constants/types/saga'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -469,7 +469,6 @@ export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
 export type ResponseType = {
-  cancel(...args: Array<any>): void,
   result(...args: Array<any>): void,
   error(...args: Array<any>): void,
 }

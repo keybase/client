@@ -27,7 +27,8 @@ export type ChannelMap<T> = {
 }
 
 export type SagaMap = {
-  [key: string]: SagaGenerator<*, *>,
+  // $FlowIssue with returning Generators from functions
+  [key: string]: Generator<*, *, *>,
 }
 
 type _AfterSelect<Out, SelectorFn: (state: TypedState) => Out> = Out // eslint-disable-line
