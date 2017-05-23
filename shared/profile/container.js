@@ -46,6 +46,9 @@ const mapDispatchToProps = (
   dispatch: any,
   {routeProps, setRouteState, navigateUp, username, myName}: OwnPropsPlusUsername
 ) => {
+  const onEditProfile = () => {
+    dispatch(navigateAppend(['editProfile']))
+  }
   return {
     getProfile: () => dispatch(TrackerActions.getProfile(username)),
     onAcceptProofs: () => {
@@ -72,9 +75,10 @@ const mapDispatchToProps = (
     onEditAvatar: () => {
       dispatch(navigateAppend(['editAvatar']))
     },
-    onEditProfile: () => {
-      dispatch(navigateAppend(['editProfile']))
-    },
+    onEditProfile,
+    onBioEdit: onEditProfile,
+    onLocationEdit: onEditProfile,
+    onNameEdit: onEditProfile,
     onFolderClick: folder => {
       dispatch(openInKBFS(folder.path))
     },

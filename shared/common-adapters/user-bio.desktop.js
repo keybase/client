@@ -77,9 +77,9 @@ class BioRender extends Component<void, Props, void> {
       locationLineClamp = {lineClamp: 1}
     }
 
-    const nameTweaks = onNameEdit ? {className: 'hover-underline', onClick: onNameEdit} : {}
-    const locationTweaks = onLocationEdit ? {className: 'hover-underline', onClick: onLocationEdit} : {}
-    const bioTweaks = onBioEdit ? {className: 'hover-underline', onClick: onBioEdit} : {}
+    const nameTweaks = isYou ? {className: 'hover-underline', onClick: onNameEdit} : {}
+    const locationTweaks = isYou ? {className: 'hover-underline', onClick: onLocationEdit} : {}
+    const bioTweaks = isYou ? {className: 'hover-underline', onClick: onBioEdit} : {}
 
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
@@ -175,7 +175,7 @@ class BioRender extends Component<void, Props, void> {
                 {userInfo.bio}
               </Text>}
             {!userInfo.bio &&
-              !!bioTweaks.onClick &&
+              isYou &&
               <Text
                 type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                 onClick={onBioEdit}
@@ -200,7 +200,7 @@ class BioRender extends Component<void, Props, void> {
               >
                 Wherever, Earth
               </Text>}
-            {!!onEditProfile &&
+            {isYou &&
               <Button
                 style={{marginTop: globalMargins.small}}
                 type="Primary"
