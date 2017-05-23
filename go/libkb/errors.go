@@ -1039,6 +1039,10 @@ func (r ReverseSigError) Error() string {
 	return fmt.Sprintf("Error in reverse signature: %s", r.msg)
 }
 
+func NewReverseSigError(msgf string, a ...interface{}) ReverseSigError {
+	return ReverseSigError{msg: fmt.Sprintf(msgf, a...)}
+}
+
 //=============================================================================
 
 type ConfigError struct {

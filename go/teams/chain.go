@@ -809,32 +809,14 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	}
 
 	// verify the reverse sig
-	// m1 is the signed reverse sig
-	m1, _, err := sigKey.VerifyStringAndExtract(t.G().Log, perTeamKey.ReverseSig)
-	if err != nil {
-		return res, fmt.Errorf("failed to verify/extract per-team-key reverse sig: %s", err)
-	}
-	m1, err = jsonw.Canonicalize(m1)
-	if err != nil {
-		return res, fmt.Errorf("failed to canonicalize json: %s", err)
-	}
-
-	// m2 is the expected reverse sig contents
+	// jw is the expected reverse sig contents
 	jw, err := jsonw.Unmarshal([]byte(link.Payload))
 	if err != nil {
-		return res, fmt.Errorf("failed to parse payload: %s", err)
+		return res, libkb.NewReverseSigError("per-team-key reverse sig: failed to parse payload: %s", err)
 	}
-	err = jw.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+	err = libkb.VerifyReverseSig(t.G(), sigKey, "body.team.per_team_key.reverse_sig", jw, perTeamKey.ReverseSig)
 	if err != nil {
-		return res, fmt.Errorf("checking reverse sig: %s", err)
-	}
-	m2, err := jw.Marshal()
-	if err != nil {
-		return res, fmt.Errorf("error marshaling reverse sig: %s", err)
-	}
-
-	if !libkb.FastByteArrayEq(m1, m2) {
-		return res, fmt.Errorf("reverse sig JSON mismatch: %s != %s", string(m1), string(m2))
+		return res, libkb.NewReverseSigError("per-team-key reverse sig: %s", err)
 	}
 
 	return keybase1.PerTeamKey{
