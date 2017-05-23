@@ -6,7 +6,7 @@ import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
-const makeCheckbox = (group: string, s: Foo, props: Props) => (
+const makeCheckbox = (group: string, s: {name: string, description: string, subscribed: boolean}, props: Props) => (
   <Checkbox
     style={{marginTop: globalMargins.small}}
     key={s.name}
@@ -17,34 +17,35 @@ const makeCheckbox = (group: string, s: Foo, props: Props) => (
   />
 )
 
-const Notifications = (props: Props) =>
-  !props.groups.email
+const Notifications = (props: Props) => {
+  console.warn('rops are', props)
+  return !props.groups.email
     ? <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
       </Box>
     : <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.small, flex: 1}}>
         <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Email me:</Text>
         <Box style={globalStyles.flexBoxColumn}>
-          {!!props.settings.email.settings && props.settings.email.settings.map(s => makeCheckbox('email', s, props))}
+          {!!props.groups.email.settings && props.groups.email.settings.map(s => makeCheckbox('email', s, props))}
         </Box>
         <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Or:</Text>
         <Checkbox
           style={{marginTop: globalMargins.small}}
           onCheck={() => props.onToggleUnsubscribeAll('email')}
           disabled={!props.allowEdit}
-          checked={!!props.settings.email.unsubscribedFromAll}
+          checked={!!props.groups.email && !!props.groups.email.unsubscribedFromAll}
           label="Unsubscribe me from all mail"
         />
-        {!!props.groups.app_push.settings &&
+        {!!props.groups.app_push && props.groups.app_push.settings &&
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="BodyBig" style={{marginTop: globalMargins.large}}>Push notifications:</Text>
-            {props.settings.app_push.settings.map(s => makeCheckbox('app_push', s, props))}
+            {props.groups.app_push.settings.map(s => makeCheckbox('app_push', s, props))}
             <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Or:</Text>
             <Checkbox
               style={{marginTop: globalMargins.small}}
               onCheck={() => props.onToggleUnsubscribeAll('app_push')}
               disabled={!props.allowEdit}
-              checked={!!props.groups.app_push.unsubscribedFromAll}
+              checked={!!props.groups.app_push && !!props.groups.app_push.unsubscribedFromAll}
               label="Unsubscribe me from all push notifications" />
           </Box>}
         <Button
@@ -56,5 +57,6 @@ const Notifications = (props: Props) =>
           waiting={props.waitingForResponse}
         />
       </Box>
+}
 
 export default (isMobile ? HeaderHoc(Notifications) : Notifications)

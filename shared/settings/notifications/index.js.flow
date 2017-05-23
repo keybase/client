@@ -1,22 +1,29 @@
 // @flow
 import {Component} from 'react'
 
-export type Settings = {
+export type Group = {
+  settings: Settings,
+  unsubscribedFromAll: boolean,
+}
+
+export type Settings = Array<{
   name: string,
   description: string,
   subscribed: boolean,
-}
+}>
 
 export type Props = {
   allowEdit: boolean,
   allowSave: boolean,
-  emailSettings: ?Array<Settings>,
+  groups: {
+    app_push?: Group,
+    email?: Group,
+    sms?: Group,
+  },
   onRefresh: () => void,
   onSave: () => void,
   onToggle: (name: string) => void,
   onToggleUnsubscribeAll: () => void,
-  pushSettings: ?Array<Settings>,
-  unsubscribedFromAll: ?boolean,
   waitingForResponse: boolean,
 }
 

@@ -27,8 +27,6 @@ export type NotificationsState = {
     description: string,
   }>,
   unsubscribedFromAll: ?boolean,
-  allowSave: boolean,
-  allowEdit: boolean,
 }
 
 export type PassphraseState = {
@@ -50,7 +48,15 @@ export type State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
   invites: InvitesState,
-  notifications: NotificationsState,
+  notifications: {
+    allowEdit: boolean,
+    allowSave: boolean,
+    groups: {
+      app_push?: NotificationsState,
+      email?: NotificationsState,
+      sms?: NotificationsState,
+    },
+  },
   email: EmailState,
   passphrase: PassphraseState,
 }

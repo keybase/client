@@ -20,10 +20,12 @@ const initialState: State = {
   notifications: {
     allowEdit: false,
     allowSave: false,
-    settings: {
-      email: null,
+    groups: {
+      email: {
+        settings: null,
+        unsubscribedFromAll: false,
+      },
     },
-    unsubscribedFromAll: null,
   },
   passphrase: {
     error: null,
@@ -52,7 +54,7 @@ function reducer(state: State = initialState, action: Actions): State {
         allowDeleteAccount: action.payload,
       }
     case Constants.notificationsToggle:
-      if (!state.notifications.settings.email) {
+      if (!state.notifications.groups.email) {
         console.log('Warning: trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
@@ -83,19 +85,20 @@ function reducer(state: State = initialState, action: Actions): State {
 
       let changed = {}
       console.warn('name is', name, 'group is', group)
-      const {settings, unsubscribedFromAll} = state.notifications.settings[group]
-      changed[group] = {
-        settings: settings.map(s => updateSubscribe(s, group)),
-        unsubscribedFromAll: !name && !unsubscribedFromAll,
+      if (group) {
+        const {settings, unsubscribedFromAll} = state.notifications.groups[group]
+        changed[group] = {
+          settings: settings.map(s => updateSubscribe(s, group)),
+          unsubscribedFromAll: !name && !unsubscribedFromAll,
+        }
       }
-
       return {
         ...state,
         notifications: {
           ...state.notifications,
           allowSave: true,
-          settings: {
-	          ...state.notifications.settings,
+          groups: {
+	          ...state.notifications.groups,
             ...changed,
 	        },
         },
@@ -121,11 +124,11 @@ function reducer(state: State = initialState, action: Actions): State {
       return {
         ...state,
         notifications: {
-          settings: {
-            ...action.payload,
-          },
           allowEdit: true,
           allowSave: false,
+          groups: {
+            ...action.payload,
+          },
         },
       }
     case Constants.invitesRefreshed:

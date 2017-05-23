@@ -170,13 +170,13 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
 
-    if (!current || !current.settings.email) {
+    if (!current || !current.groups.email) {
       throw new Error('No notifications loaded yet')
     }
 
     let JSONPayload = []
-    for (const groupName in current.settings) {
-      const group = current.settings[groupName]
+    for (const groupName in current.groups) {
+      const group = current.groups[groupName]
       for (const key in group.settings) {
         const setting = group.settings[key]
         JSONPayload.push({
@@ -389,36 +389,11 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
       description: s.description,
     } || [])
 
-  const labels = groupName => {
-    switch (groupName) {
-      case 'email':
-        return {
-          title: 'Email me',
-          unsub: 'Unsubscribe me from all email',
-        }
-      case 'app_push':
-        return {
-          title: 'Push notifications',
-          unsub: 'Unsubscribe me from all push notifications',
-        }
-      case 'sms':
-        return {
-          title: 'Phone text messages',
-          unsub: 'Unsubscribe me from all phone texts',
-        }
-      default:
-        return {
-          title: null,
-          unsub: null,
-        }
-    }
-  }
   console.warn(results.notifications)
   const groups = results.notifications
   const payload = mapValues(groups, group => {
     console.warn('in map', group)
     return {
-      labels: labels(group),
       settings: group.settings.map(settingsToPayload),
       unsub: group.unsub,
     }

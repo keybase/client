@@ -13,6 +13,7 @@ class NotificationsContainer extends Component {
   }
 
   render() {
+    console.warn('props are', this.props)
     return <Notifications {...this.props} />
   }
 }
