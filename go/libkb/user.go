@@ -98,14 +98,14 @@ func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
-func (u *User) GetSigChainLastKnownSeqno() Seqno {
+func (u *User) GetSigChainLastKnownSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		return 0
 	}
 	return u.sigChain().GetLastKnownSeqno()
 }
 
-func (u *User) GetCurrentEldestSeqno() Seqno {
+func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		// Note that NameWithEldestSeqno will return an error if you call it with zero.
 		return 0
@@ -709,7 +709,7 @@ func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string,
 	return string(json), nil
 }
 
-func (u *User) GetSigIDFromSeqno(seqno int) keybase1.SigID {
+func (u *User) GetSigIDFromSeqno(seqno keybase1.Seqno) keybase1.SigID {
 	if u.sigChain() == nil {
 		return ""
 	}
@@ -796,7 +796,7 @@ func (u User) PartialCopy() *User {
 
 type NameWithEldestSeqno string
 
-func MakeNameWithEldestSeqno(name string, seqno Seqno) (NameWithEldestSeqno, error) {
+func MakeNameWithEldestSeqno(name string, seqno keybase1.Seqno) (NameWithEldestSeqno, error) {
 	if seqno < 1 {
 		return "", EldestSeqnoMissingError{}
 	} else if seqno == 1 {

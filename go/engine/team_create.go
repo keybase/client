@@ -265,7 +265,7 @@ func derivedSecret(secret []byte, context string) []byte {
 func makeSigchainV2OuterSig(
 	signingKey libkb.GenericKey,
 	v1LinkType libkb.LinkType,
-	seqno libkb.Seqno,
+	seqno keybase1.Seqno,
 	innerLinkJSON []byte,
 	prevLinkID libkb.LinkID,
 	hasRevokes bool,

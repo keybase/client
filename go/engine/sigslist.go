@@ -88,7 +88,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 			key = fp.ToDisplayString(e.Verbose)
 		}
 		res[i] = keybase1.Sig{
-			Seqno:        int(s.GetSeqno()),
+			Seqno:        s.GetSeqno(),
 			SigIDDisplay: s.GetSigID().ToDisplayString(e.Verbose),
 			Type:         s.Type(),
 			CTime:        keybase1.ToTime(s.GetCTime()),
@@ -103,14 +103,14 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 
 // ugh
 type sigexp struct {
-	Seqno   int64  `json:"seqno"`
-	SigID   string `json:"sig_id"`
-	Type    string `json:"type"`
-	CTime   int64  `json:"ctime"`
-	Revoked bool   `json:"revoked"`
-	Active  bool   `json:"active"`
-	Key     string `json:"key_fingerprint,omitempty"`
-	Body    string `json:"statement"`
+	Seqno   keybase1.Seqno `json:"seqno"`
+	SigID   string         `json:"sig_id"`
+	Type    string         `json:"type"`
+	CTime   int64          `json:"ctime"`
+	Revoked bool           `json:"revoked"`
+	Active  bool           `json:"active"`
+	Key     string         `json:"key_fingerprint,omitempty"`
+	Body    string         `json:"statement"`
 }
 
 func (e *SigsList) JSON() (string, error) {
@@ -122,7 +122,7 @@ func (e *SigsList) JSON() (string, error) {
 			key = fp.ToDisplayString(true /* verbose */)
 		}
 		exp[i] = sigexp{
-			Seqno:   int64(s.GetSeqno()),
+			Seqno:   s.GetSeqno(),
 			SigID:   s.GetSigID().ToDisplayString(true /* verbose */),
 			Type:    s.Type(),
 			CTime:   s.GetCTime().Unix(),

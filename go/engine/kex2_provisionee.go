@@ -507,7 +507,7 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 		Expire:         libkb.NaclDHExpireIn,
 		EldestKID:      eldestKID,
 		Device:         e.device,
-		Seqno:          libkb.Seqno(seqno) + 1,
+		Seqno:          keybase1.Seqno(seqno) + 1,
 		PrevLinkID:     linkID,
 		SigningUser:    e,
 		Contextified:   libkb.NewContextified(e.G()),

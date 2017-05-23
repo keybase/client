@@ -34,8 +34,8 @@ type SCTeamMembers struct {
 }
 
 type SCTeamParent struct {
-	ID    SCTeamID `json:"id"`
-	Seqno int      `json:"seqno"`
+	ID    SCTeamID       `json:"id"`
+	Seqno keybase1.Seqno `json:"seqno"`
 }
 
 type SCSubteam struct {
@@ -54,8 +54,8 @@ type SCPerTeamKey struct {
 // -------------------------
 
 type SCChainLink struct {
-	Seqno libkb.Seqno `json:"seqno"`
-	Sig   string      `json:"sig"`
+	Seqno keybase1.Seqno `json:"seqno"`
+	Sig   string         `json:"sig"`
 	// string containing json of a SCChainLinkPayload.
 	Payload string `json:"payload_json"`
 	// uid of the signer
@@ -80,13 +80,13 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 }
 
 type SCChainLinkPayload struct {
-	Body     SCPayloadBody `json:"body,omitempty"`
-	Ctime    int           `json:"ctime,omitempty"`
-	ExpireIn int           `json:"expire_in,omitempty"`
-	Prev     *string       `json:"prev,omitempty"`
-	SeqType  int           `json:"seq_type,omitempty"`
-	Seqno    libkb.Seqno   `json:"seqno,omitempty"`
-	Tag      string        `json:"tag,omitempty"`
+	Body     SCPayloadBody  `json:"body,omitempty"`
+	Ctime    int            `json:"ctime,omitempty"`
+	ExpireIn int            `json:"expire_in,omitempty"`
+	Prev     *string        `json:"prev,omitempty"`
+	SeqType  int            `json:"seq_type,omitempty"`
+	Seqno    keybase1.Seqno `json:"seqno,omitempty"`
+	Tag      string         `json:"tag,omitempty"`
 }
 
 type SCPayloadBody struct {

@@ -30,6 +30,7 @@ type BinaryKID []byte
 type TLFID string
 type TeamID string
 type UserOrTeamID string
+type Seqno int64
 type Bytes32 [32]byte
 type Text struct {
 	Data   string `codec:"data" json:"data"`
@@ -190,23 +191,23 @@ type UserVersionVector struct {
 }
 
 type PerUserKey struct {
-	Gen    int `codec:"gen" json:"gen"`
-	Seqno  int `codec:"seqno" json:"seqno"`
-	SigKID KID `codec:"sigKID" json:"sigKID"`
-	EncKID KID `codec:"encKID" json:"encKID"`
+	Gen    int   `codec:"gen" json:"gen"`
+	Seqno  Seqno `codec:"seqno" json:"seqno"`
+	SigKID KID   `codec:"sigKID" json:"sigKID"`
+	EncKID KID   `codec:"encKID" json:"encKID"`
 }
 
 type PerTeamKey struct {
-	Gen    int `codec:"gen" json:"gen"`
-	Seqno  int `codec:"seqno" json:"seqno"`
-	SigKID KID `codec:"sigKID" json:"sigKID"`
-	EncKID KID `codec:"encKID" json:"encKID"`
+	Gen    int   `codec:"gen" json:"gen"`
+	Seqno  Seqno `codec:"seqno" json:"seqno"`
+	SigKID KID   `codec:"sigKID" json:"sigKID"`
+	EncKID KID   `codec:"encKID" json:"encKID"`
 }
 
 type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
-	EldestSeqno       int               `codec:"eldestSeqno" json:"eldestSeqno"`
+	EldestSeqno       Seqno             `codec:"eldestSeqno" json:"eldestSeqno"`
 	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`

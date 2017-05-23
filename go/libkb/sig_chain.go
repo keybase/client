@@ -63,7 +63,7 @@ type SigChain struct {
 	// a user who has never done a reset, this is 1. Note that if the user has
 	// done a reset (or just created a fresh account) but not yet made any
 	// signatures, this seqno refers to a link that doesn't yet exist.
-	currentSubchainStart Seqno
+	currentSubchainStart keybase1.Seqno
 }
 
 func (sc SigChain) Len() int {
@@ -181,7 +181,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 
 func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
 	low := sc.GetLastLoadedSeqno()
-	sc.loadedFromLinkOne = (low == Seqno(0) || low == Seqno(-1))
+	sc.loadedFromLinkOne = (low == keybase1.Seqno(0) || low == keybase1.Seqno(-1))
 
 	isSelf := selfUID.Equal(sc.uid)
 
@@ -260,7 +260,7 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 	return
 }
 
-func (sc *SigChain) getFirstSeqno() (ret Seqno) {
+func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 	if len(sc.chainLinks) > 0 {
 		ret = sc.chainLinks[0].GetSeqno()
 	}
@@ -333,7 +333,7 @@ func (sc SigChain) GetLastLink() *ChainLink {
 	return last(sc.chainLinks)
 }
 
-func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
+func (sc SigChain) GetLastKnownSeqno() (ret keybase1.Seqno) {
 	sc.G().Log.Debug("+ GetLastKnownSeqno()")
 	defer func() {
 		sc.G().Log.Debug("- GetLastKnownSeqno() -> %d", ret)
@@ -347,7 +347,7 @@ func (sc SigChain) GetLastKnownSeqno() (ret Seqno) {
 	return
 }
 
-func (sc SigChain) GetLastLoadedSeqno() (ret Seqno) {
+func (sc SigChain) GetLastLoadedSeqno() (ret keybase1.Seqno) {
 	sc.G().Log.Debug("+ GetLastLoadedSeqno()")
 	defer func() {
 		sc.G().Log.Debug("- GetLastLoadedSeqno() -> %d", ret)
@@ -610,7 +610,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	}
 
 	if sc.allKeys || sc.loadedFromLinkOne {
-		if first := sc.getFirstSeqno(); first > Seqno(1) {
+		if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
 			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
 			return
 		}
@@ -668,9 +668,9 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	return
 }
 
-func (sc *SigChain) GetLinkFromSeqno(seqno int) *ChainLink {
+func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSeqno() == Seqno(seqno) {
+		if link.GetSeqno() == keybase1.Seqno(seqno) {
 			return link
 		}
 	}
@@ -725,7 +725,7 @@ type SigChainLoader struct {
 	links                []*ChainLink
 	ckf                  ComputedKeyFamily
 	dirtyTail            *MerkleTriple
-	currentSubchainStart Seqno
+	currentSubchainStart keybase1.Seqno
 
 	// The preloaded sigchain; maybe we're loading a user that already was
 	// loaded, and here's the existing sigchain.
@@ -871,8 +871,8 @@ func (sc *SigChain) CheckFreshness(srv *MerkleTriple) (current bool, err error) 
 	Efn := NewServerChainError
 	sc.G().Log.Debug("+ CheckFreshness")
 	defer sc.G().Log.Debug("- CheckFreshness (%s) -> (%v,%s)", sc.uid, current, ErrToOk(err))
-	a := Seqno(-1)
-	b := Seqno(-1)
+	a := keybase1.Seqno(-1)
+	b := keybase1.Seqno(-1)
 
 	if srv != nil {
 		sc.G().Log.Debug("| Server triple: %v", srv)

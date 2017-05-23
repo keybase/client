@@ -26,7 +26,7 @@ type TypedChainLink interface {
 	IsRevocationIsh() bool
 	IsRevoked() bool
 	GetRole() KeyRole
-	GetSeqno() Seqno
+	GetSeqno() keybase1.Seqno
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
@@ -38,7 +38,7 @@ type TypedChainLink interface {
 	GetDelegatedKid() keybase1.KID
 	GetParentKid() keybase1.KID
 	VerifyReverseSig(ckf ComputedKeyFamily) error
-	GetMerkleSeqno() int
+	GetMerkleSeqno() keybase1.Seqno
 	GetDevice() *Device
 	DoOwnNewLinkFromServerNotifications(g *GlobalContext)
 }
@@ -72,7 +72,7 @@ func (g *GenericChainLink) VerifyReverseSig(ckf ComputedKeyFamily) error { retur
 func (g *GenericChainLink) IsRevocationIsh() bool                        { return false }
 func (g *GenericChainLink) GetRole() KeyRole                             { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                              { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno                              { return g.unpacked.seqno }
+func (g *GenericChainLink) GetSeqno() keybase1.Seqno                     { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
@@ -763,7 +763,7 @@ func (s *PerUserKeyChainLink) insertIntoTable(tab *IdentityTable) {
 func (s *PerUserKeyChainLink) ToPerUserKey() keybase1.PerUserKey {
 	return keybase1.PerUserKey{
 		Gen:    int(s.generation),
-		Seqno:  int(s.GetSeqno()),
+		Seqno:  s.GetSeqno(),
 		SigKID: s.sigKID,
 		EncKID: s.encKID,
 	}
