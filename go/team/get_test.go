@@ -9,6 +9,7 @@ import (
 )
 
 func TestTeamGet(t *testing.T) {
+	t.Skip("flake")
 	tc := libkb.SetupTest(t, "team", 1)
 	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
