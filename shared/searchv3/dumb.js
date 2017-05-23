@@ -37,7 +37,7 @@ const servicesFilterMap: DumbComponentMap<ServicesFilter> = {
   },
 }
 
-const commonServicesReultMapProps = {
+const commonServicesResultMapProps = {
   parentProps: {
     style: {
       width: 480,
@@ -48,8 +48,8 @@ const commonServicesReultMapProps = {
   onShowTracker: () => console.log('onShowTracker clicked'),
 }
 
-const commonServicesReultMapPropsKB = {
-  ...commonServicesReultMapProps,
+const commonServicesResultMapPropsKB = {
+  ...commonServicesResultMapProps,
   leftFollowingState: 'NoState',
   leftIcon: 'jzila',
   leftService: 'Keybase',
@@ -61,8 +61,8 @@ const commonServicesReultMapPropsKB = {
   rightUsername: null,
 }
 
-const commonServicesReultMapPropsService = {
-  ...commonServicesReultMapProps,
+const commonServicesResultMapPropsService = {
+  ...commonServicesResultMapProps,
   leftFollowingState: 'NoState',
   leftUsername: 'jzila',
   rightFollowingState: 'NoState',
@@ -77,55 +77,55 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
   component: ResultRow,
   mocks: {
     KeybaseNoService: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
     },
     KeybaseNoServiceFollowing: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       leftFollowingState: 'Following',
     },
     KeybaseNoServiceNotFollowing: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       leftFollowingState: 'NotFollowing',
     },
     KeybaseNoServiceYou: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       leftFollowingState: 'You',
     },
     KeybaseNoServiceNoFollow: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       leftFollowing: false,
     },
     KeybaseNoServiceShowTracker: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       showTrackerButton: true,
     },
     KeybaseGitHub: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       rightFullname: 'John Zila on GitHub',
       rightIcon: 'iconfont-identity-github',
       rightService: 'GitHub',
       rightUsername: 'jzilagithub',
     },
     KeybaseGitHubNoFullname: {
-      ...commonServicesReultMapPropsKB,
+      ...commonServicesResultMapPropsKB,
       rightIcon: 'iconfont-identity-github',
       rightService: 'GitHub',
       rightUsername: 'jzilagithub',
     },
     Twitter: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
     },
     TwitterKeybase: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightService: 'Keybase',
       rightUsername: 'jzila',
     },
     TwitterKeybaseFollowing: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'Following',
@@ -133,7 +133,7 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
       rightUsername: 'jzila',
     },
     TwitterKeybaseNotFollowing: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'NotFollowing',
@@ -141,7 +141,7 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
       rightUsername: 'jzila',
     },
     TwitterKeybaseYou: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-twitter-logo-24',
       leftService: 'Twitter',
       rightFollowingState: 'You',
@@ -149,22 +149,22 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
       rightUsername: 'jzila',
     },
     Facebook: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-facebook-logo-24',
       leftService: 'Facebook',
     },
     GitHub: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-github-logo-24',
       leftService: 'GitHub',
     },
     Reddit: {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-reddit-logo-24',
       leftService: 'Reddit',
     },
     'Hacker News': {
-      ...commonServicesReultMapPropsService,
+      ...commonServicesResultMapPropsService,
       leftIcon: 'icon-hacker-news-logo-24',
       leftService: 'Hacker News',
     },
