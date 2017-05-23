@@ -12,6 +12,7 @@ import {
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {mapValues} from 'lodash'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
 import {delay} from 'redux-saga'
@@ -352,12 +353,10 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   const delayThenEmptyTask = yield fork(function*() {
     yield call(delay, 500)
     yield put({
-      type: Constants.notificationsRefreshed,
       payload: {
-        emailSettings: null,
-        pushSettings: null,
-        unsubscribedFromAll: null,
+        email: null,
       },
+      type: Constants.notificationsRefreshed,
     })
   })
 
@@ -371,19 +370,15 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   yield cancel(delayThenEmptyTask)
 
   const results: {
-    notifications: {
-      email: {
-        settings: Array<{
-          name: string,
-          description: string,
-          subscribed: boolean,
-        }>,
-        unsub: boolean,
-      },
-    },
+    notifications: Array<{
+      settings: Array<{
+        name: string,
+        description: string,
+        subscribed: boolean,
+      }>,
+      unsub: boolean,
+    }>,
   } = JSON.parse((json && json.body) || '')
-
-  const unsubscribedFromAll = results.notifications.email.unsub
 
   const settingsToPayload = s =>
     ({
@@ -394,16 +389,16 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
 
   console.warn('foo')
   console.warn(results.notifications)
-  const {app_push, email} = results.notifications
-  const emailSettings = email.settings.map(settingsToPayload)
-  const pushSettings = app_push.settings.map(settingsToPayload)
-
+  const groups = results.notifications
+  const payload = mapValues(groups, group => {
+    console.warn('in map', group)
+    return group.settings.map(settingsToPayload)
+  })
+  console.warn('payload is', payload)
   yield put({
     type: Constants.notificationsRefreshed,
     payload: {
-      emailSettings,
-      pushSettings,
-      unsubscribedFromAll,
+      ...payload,
     },
   })
 }

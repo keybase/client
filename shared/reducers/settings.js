@@ -82,16 +82,17 @@ function reducer(state: State = initialState, action: Actions): State {
         }
       }
 
+      const changed = state.notifications.settings[group].map(s => updateSubscribe(s, group))
+
       return {
         ...state,
         notifications: {
           ...state.notifications,
           allowSave: true,
           settings: {
-            email: state.notifications.settings.email.map(s => updateSubscribe(s, 'email')),
-            app_push: state.notifications.settings.app_push.map(s => updateSubscribe(s, 'app_push')),
-	  },
-          unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
+	          ...state.notifications.settings,
+            ...changed,
+	        },
         },
       }
     case Constants.notificationsSave:
