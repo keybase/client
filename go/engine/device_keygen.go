@@ -177,10 +177,9 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 			return errors.New("missing new per user key")
 		}
 
-		creationTime := e.G().Clock().Now().Unix()
 		pukSigProducer = func() (libkb.JSONPayload, error) {
 			gen := keybase1.PerUserKeyGeneration(1)
-			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner, creationTime)
+			return libkb.PerUserKeyProofReverseSigned(e.args.Me, *e.perUserKeySeed, gen, encSigner)
 		}
 	}
 

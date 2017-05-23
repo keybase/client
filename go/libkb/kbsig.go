@@ -647,22 +647,16 @@ type SigMultiItem struct {
 
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.
 // `signingKey` is the key signing in this new key. Not to be confused with the derived per-user-key signing key.
-// `reverseSig` can be nil. A nil `reverseSig` can be used to produce the inner of the reverse sig.
 func PerUserKeyProof(me *User,
 	pukSigKID keybase1.KID,
 	pukEncKID keybase1.KID,
 	generation keybase1.PerUserKeyGeneration,
-	signingKey GenericKey,
-	reverseSig *string,
-	creationTime int64) (*jsonw.Wrapper, error) {
+	signingKey GenericKey) (*jsonw.Wrapper, error) {
 
 	ret, err := ProofMetadata{
 		Me:         me,
 		LinkType:   LinkTypePerUserKey,
 		SigningKey: signingKey,
-		// Taking the ctime explicitly prevents a race condition in the reverse
-		// sig, where it has a different ctime from the main sig.
-		CreationTime: creationTime,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -672,12 +666,8 @@ func PerUserKeyProof(me *User,
 	pukSection.SetKey("signing_kid", jsonw.NewString(pukSigKID.String()))
 	pukSection.SetKey("encryption_kid", jsonw.NewString(pukEncKID.String()))
 	pukSection.SetKey("generation", jsonw.NewInt(int(generation)))
-
-	if reverseSig != nil {
-		pukSection.SetKey("reverse_sig", jsonw.NewString(*reverseSig))
-	} else {
-		pukSection.SetKey("reverse_sig", jsonw.NewNil())
-	}
+	// The caller is responsible for overwriting reverse_sig after signing.
+	pukSection.SetKey("reverse_sig", jsonw.NewNil())
 
 	body := ret.AtKey("body")
 	body.SetKey("per_user_key", pukSection)
@@ -689,7 +679,7 @@ func PerUserKeyProof(me *User,
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
-	signer GenericKey, creationTime int64) (JSONPayload, error) {
+	signer GenericKey) (JSONPayload, error) {
 
 	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
 	if err != nil {
@@ -702,7 +692,7 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	}
 
 	// Make reverse sig
-	jwRev, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, nil, creationTime)
+	jwRev, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer)
 	if err != nil {
 		return nil, err
 	}
@@ -712,10 +702,8 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	}
 
 	// Make sig
-	jw, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer, &reverseSig, creationTime)
-	if err != nil {
-		return nil, err
-	}
+	jw := jwRev
+	jw.SetValueAtPath("body.per_user_key.reverse_sig", jsonw.NewString(reverseSig))
 	sig, sigID, linkID, err := SignJSON(jw, signer)
 	if err != nil {
 		return nil, err
