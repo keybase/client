@@ -1,8 +1,9 @@
 package teams
 
 import (
-	"context"
 	"encoding/json"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -24,7 +25,7 @@ func newFinder(g *libkb.GlobalContext) *finder {
 }
 
 func (f *finder) find(ctx context.Context, name string) (*TeamSigChainState, error) {
-	links, err := f.chainLinks(name)
+	links, err := f.chainLinks(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +43,9 @@ func (f *finder) find(ctx context.Context, name string) (*TeamSigChainState, err
 	return &state, nil
 }
 
-func (f *finder) chainLinks(name string) ([]SCChainLink, error) {
+func (f *finder) chainLinks(ctx context.Context, name string) ([]SCChainLink, error) {
 	arg := libkb.NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"name": libkb.S{Val: name},

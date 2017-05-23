@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"

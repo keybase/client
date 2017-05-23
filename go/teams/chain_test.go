@@ -1,10 +1,11 @@
 package teams
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"testing"
+
+	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
