@@ -3,28 +3,25 @@ import type {AvatarSize} from './avatar'
 import type {SimpleProofState, UserInfo} from '../constants/tracker'
 import {Component} from 'react'
 
-export type BioEditFns = {
-  onEditAvatarClick: () => void,
-  onNameEdit: () => void,
-  onBioEdit: () => void,
-  onLocationEdit: () => void,
-  onEditProfile: () => void,
-}
-
 export type Props = {
-  type: 'Tracker' | 'Profile',
-  loading: boolean,
   avatarSize: AvatarSize,
-  style?: Object,
-  username: ?string,
-  userInfo: ?UserInfo,
-  trackerState: SimpleProofState,
   currentlyFollowing: boolean,
-  editFns?: ?BioEditFns,
+  isYou: boolean,
+  loading: boolean,
   onAvatarLoaded?: () => void,
+  onBioEdit?: () => void,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
+  onEditAvatarClick?: () => void,
+  onEditProfile?: () => void,
+  onLocationEdit?: () => void,
+  onNameEdit?: () => void,
+  style?: Object,
+  trackerState: SimpleProofState,
+  type: 'Tracker' | 'Profile',
+  userInfo: ?UserInfo,
+  username: ?string,
 }
 
 export default class Render extends Component<void, Props, void> {}

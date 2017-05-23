@@ -46,7 +46,22 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
 
 class BioRender extends Component<void, Props, void> {
   render() {
-    const {avatarSize, username, userInfo, currentlyFollowing, editFns, loading} = this.props
+    const {
+      avatarSize,
+      currentlyFollowing,
+      loading,
+      isYou,
+      onBioEdit,
+      onEditAvatarClick,
+      onEditProfile,
+      onLocationEdit,
+      onNameEdit,
+      trackerState,
+      type,
+      userInfo,
+      username,
+    } = this.props
+
     if (!userInfo) {
       return null
     }
@@ -54,20 +69,17 @@ class BioRender extends Component<void, Props, void> {
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
 
-    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
+    const trackerStateColors = stateColors(currentlyFollowing, trackerState)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
-    if (this.props.type === 'Tracker') {
+    if (type === 'Tracker') {
       bioLineClamp = {lineClamp: userInfo.location ? 2 : 3}
       locationLineClamp = {lineClamp: 1}
     }
 
-    let [nameTweaks, locationTweaks, bioTweaks] = [{}, {}, {}]
-    if (editFns) {
-      nameTweaks = {className: 'hover-underline', onClick: editFns.onNameEdit}
-      locationTweaks = {className: 'hover-underline', onClick: editFns.onLocationEdit}
-      bioTweaks = {className: 'hover-underline', onClick: editFns.onBioEdit}
-    }
+    const nameTweaks = onNameEdit ? {className: 'hover-underline', onClick: onNameEdit} : {}
+    const locationTweaks = onLocationEdit ? {className: 'hover-underline', onClick: onLocationEdit} : {}
+    const bioTweaks = onBioEdit ? {className: 'hover-underline', onClick: onBioEdit} : {}
 
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
@@ -100,14 +112,14 @@ class BioRender extends Component<void, Props, void> {
               style={globalStyles.clickable}
               username={username}
               size={avatarSize}
-              following={currentlyFollowing && !editFns}
-              followsYou={followsYou && !editFns}
+              following={currentlyFollowing && !isYou}
+              followsYou={followsYou && !isYou}
             />
-            {editFns &&
+            {!!onEditAvatarClick &&
               <Box style={{height: 16, width: 0}}>
                 <Icon
                   type="iconfont-edit"
-                  onClick={editFns.onEditAvatarClick}
+                  onClick={onEditAvatarClick}
                   style={stylesEditAvatarIcon(avatarSize)}
                 />
               </Box>}
@@ -122,7 +134,7 @@ class BioRender extends Component<void, Props, void> {
             </Text>
             <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
             {!userInfo.fullname &&
-              editFns &&
+              !!nameTweaks.onClick &&
               <Text
                 type="BodySemibold"
                 style={{...stylesFullname, color: globalColors.black_20}}
@@ -130,7 +142,7 @@ class BioRender extends Component<void, Props, void> {
               >
                 Your full name
               </Text>}
-            {!editFns &&
+            {!isYou &&
               followLabel &&
               <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>}
             {userInfo.followersCount !== -1 &&
@@ -163,10 +175,10 @@ class BioRender extends Component<void, Props, void> {
                 {userInfo.bio}
               </Text>}
             {!userInfo.bio &&
-              editFns &&
+              !!bioTweaks.onClick &&
               <Text
                 type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
-                onClick={editFns.onBioEdit}
+                onClick={onBioEdit}
                 style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
                 {...bioTweaks}
                 {...bioLineClamp}
@@ -179,7 +191,7 @@ class BioRender extends Component<void, Props, void> {
                 {userInfo.location}
               </Text>}
             {!userInfo.location &&
-              editFns &&
+              isYou &&
               <Text
                 type="BodySmall"
                 style={{...stylesLocation, color: globalColors.black_20}}
@@ -188,12 +200,12 @@ class BioRender extends Component<void, Props, void> {
               >
                 Wherever, Earth
               </Text>}
-            {editFns &&
+            {!!onEditProfile &&
               <Button
                 style={{marginTop: globalMargins.small}}
                 type="Primary"
                 label="Edit profile"
-                onClick={editFns.onEditProfile}
+                onClick={onEditProfile}
               />}
           </Box>
         </Box>

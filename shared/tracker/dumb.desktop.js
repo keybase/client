@@ -171,6 +171,7 @@ const propsBase = {
   onClickFollowing: () => console.log('on click following'),
   error: null,
   myUsername: 'bob',
+  isYou: false,
 }
 
 const propsDefault: TrackerProps = {

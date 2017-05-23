@@ -64,6 +64,7 @@ export default class TrackerRender extends PureComponent<void, RenderProps, void
             type="Tracker"
             style={{marginTop: 50}}
             avatarSize={80}
+            isYou={this.props.isYou}
             loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}

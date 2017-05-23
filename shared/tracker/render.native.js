@@ -26,6 +26,7 @@ export default class TrackerRender extends Component<void, RenderProps, void> {
             type="Tracker"
             avatarSize={112}
             loading={this.props.loading}
+            isYou={this.props.isYou}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}

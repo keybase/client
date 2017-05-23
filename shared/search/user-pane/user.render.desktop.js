@@ -19,6 +19,7 @@ export default class UserRender extends Component<void, Props, void> {
             type="Tracker"
             avatarSize={AVATAR_SIZE}
             style={{marginTop: HEADER_TOP_SPACE, minHeight: 200}}
+            isYou={this.props.isYou}
             loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
