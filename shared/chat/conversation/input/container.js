@@ -74,7 +74,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
       dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
     }
   }
-  const wrappedTyping = throttle(updateTyping, 2000)
+  const wrappedTyping = throttle(updateTyping, 5000)
 
   return {
     ...stateProps,
