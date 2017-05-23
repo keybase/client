@@ -17,9 +17,8 @@ import (
 
 // There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
 
-// TODO CORE-5295 merkle existence
-// TODO CORE-5296 accept links from now-revoked keys if the sigs were made before their revocation.
-//      To check this, grab the merkle root previous to the revoke and make sure the link is in that tree.
+// TODO CORE-5311 merkle existence
+// TODO CORE-5313 CORE-5314 CORE-5315 accept links from now-revoked keys and now-reset users if the sigs were made before their revocation.
 
 type TeamName string
 
@@ -384,8 +383,8 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 
 	// TODO CORE-5297 verify the signers identity and authorization. Without this this is all crazy.
 
-	// TODO CORE-5298 support validating signatures even after account reset.
-	//                we need the specified eldest seqno from the server for this.
+	// TODO support validating signatures even after account reset.
+	//      we need the specified eldest seqno from the server for this.
 	signerUID, err := keybase1.UIDFromString(string(link.UID))
 	if err != nil {
 		return res, fmt.Errorf("outer link signer uid: %s", err)
@@ -394,7 +393,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 	if err != nil {
 		return res, err
 	}
-	// TODO CORE-5298 for now just assume seqno=1. Need to do something else to support links made by since-reset users.
+	// TODO for now just assume seqno=1. Need to do something else to support links made by since-reset users.
 	res.signingUser = NewUserVersion(username, 1)
 
 	// check that the outer link matches the server info
