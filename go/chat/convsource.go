@@ -254,7 +254,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	key := c.key(uid, convID)
 	if lock, ok := c.convLocks[key]; ok {
 		if lock.trace == trace {
-			// Our request holds the lock on this conversation ID already, do just plow through it
+			// Our request holds the lock on this conversation ID already, so just plow through it
 			lock.count++
 			return cb
 		}
