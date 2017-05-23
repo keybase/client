@@ -88,7 +88,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 			key = fp.ToDisplayString(e.Verbose)
 		}
 		res[i] = keybase1.Sig{
-			Seqno:        int(s.GetSeqno()),
+			Seqno:        s.GetSeqno(),
 			SigIDDisplay: s.GetSigID().ToDisplayString(e.Verbose),
 			Type:         s.Type(),
 			CTime:        keybase1.ToTime(s.GetCTime()),

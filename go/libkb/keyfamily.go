@@ -518,7 +518,7 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: tcl.GetMerkleSeqno(),
+		Chain: int(tcl.GetMerkleSeqno()),
 	}
 }
 

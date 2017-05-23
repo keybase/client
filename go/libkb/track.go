@@ -105,7 +105,7 @@ type TrackLookup struct {
 	link         *TrackChainLink     // The original chain link that I signed
 	set          *TrackSet           // The total set of tracked identities
 	ids          map[string][]string // A http -> [foo.com, boo.com] lookup
-	trackerSeqno Seqno               // The seqno in the tracker's sighcain
+	trackerSeqno keybase1.Seqno      // The seqno in the tracker's sighcain
 }
 
 func (l TrackLookup) ToSummary() TrackSummary {
@@ -120,7 +120,7 @@ func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
 	return l.set.GetProofState(id)
 }
 
-func (l TrackLookup) GetTrackerSeqno() Seqno {
+func (l TrackLookup) GetTrackerSeqno() keybase1.Seqno {
 	return l.trackerSeqno
 }
 

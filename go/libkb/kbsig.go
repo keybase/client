@@ -242,7 +242,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 type ProofMetadata struct {
 	Me             *User
 	SigningUser    UserBasic
-	Seqno          Seqno
+	Seqno          keybase1.Seqno
 	PrevLinkID     LinkID
 	LinkType       LinkType
 	SigningKey     GenericKey
@@ -730,7 +730,7 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	me.SigChainBump(linkID, sigID)
 	me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:    int(generation),
-		Seqno:  int(me.GetSigChainLastKnownSeqno()),
+		Seqno:  me.GetSigChainLastKnownSeqno(),
 		SigKID: pukSigKey.GetKID(),
 		EncKID: pukEncKey.GetKID(),
 	})

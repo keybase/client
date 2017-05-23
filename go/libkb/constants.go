@@ -527,7 +527,7 @@ const (
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
-var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
 type AppType string
 

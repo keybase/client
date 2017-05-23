@@ -24,10 +24,10 @@ type TeamName string
 
 type UserVersion struct {
 	Username    libkb.NormalizedUsername
-	EldestSeqno libkb.Seqno
+	EldestSeqno keybase1.Seqno
 }
 
-func NewUserVersion(username string, eldestSeqno libkb.Seqno) UserVersion {
+func NewUserVersion(username string, eldestSeqno keybase1.Seqno) UserVersion {
 	return UserVersion{
 		Username:    libkb.NewNormalizedUsername(username),
 		EldestSeqno: eldestSeqno,
@@ -53,7 +53,7 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	}
 	return UserVersion{
 		Username:    username,
-		EldestSeqno: libkb.Seqno(eldestSeqno),
+		EldestSeqno: keybase1.Seqno(eldestSeqno),
 	}, nil
 }
 
@@ -103,7 +103,7 @@ type UserTeamRoleCheckpoint struct {
 	// The new role. Including NONE if the user left the team.
 	Role keybase1.TeamRole
 	// The seqno at which the user became this role.
-	Seqno libkb.Seqno
+	Seqno keybase1.Seqno
 }
 
 type UserLog map[UserVersion][]UserTeamRoleCheckpoint
@@ -120,7 +120,7 @@ func (ul *UserLog) getUserRole(u UserVersion) keybase1.TeamRole {
 // Inform the UserLog of a user's role.
 // Doesn't check anything, don't screw up.
 // Idempotent if called correctly.
-func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno libkb.Seqno) {
+func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno keybase1.Seqno) {
 	currentRole := ul.getUserRole(u)
 	if currentRole == role {
 		// no change in role, now new checkpoint needed
@@ -143,7 +143,7 @@ type TeamSigChainState struct {
 	// Latest name of the team
 	Name TeamName
 	// The last link procesed
-	LastSeqno  libkb.Seqno
+	LastSeqno  keybase1.Seqno
 	LastLinkID libkb.LinkID
 
 	// Present if a subteam
@@ -199,7 +199,7 @@ func (t *TeamSigChainState) IsSubteam() bool {
 	return t.ParentID != nil
 }
 
-func (t *TeamSigChainState) GetLatestSeqno() libkb.Seqno {
+func (t *TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.LastSeqno
 }
 
@@ -795,7 +795,7 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 
 	return keybase1.PerTeamKey{
 		Gen:    perTeamKey.Generation,
-		Seqno:  int(link.Seqno),
+		Seqno:  link.Seqno,
 		SigKID: perTeamKey.SigKID,
 		EncKID: perTeamKey.EncKID,
 	}, nil
@@ -817,7 +817,7 @@ func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRol
 // Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
 // Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
 // Users already in `userLog` who appear with a different role than before are updated to that new role.
-func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno libkb.Seqno) {
+func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno keybase1.Seqno) {
 	// Set of users that were already processed
 	processed := make(map[UserVersion]bool)
 
