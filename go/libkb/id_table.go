@@ -645,7 +645,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	return verifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.payloadJSON, s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.payloadJSON, s.reverseSig)
 }
 
 //
@@ -746,7 +746,7 @@ func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) 
 		return fmt.Errorf("Invalid per-user signing KID: %s", s.sigKID)
 	}
 
-	return verifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.payloadJSON, s.reverseSig)
+	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.payloadJSON, s.reverseSig)
 }
 
 //
@@ -1483,10 +1483,10 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	return
 }
 
-// verifyReverseSig checks reverse signature using the key provided.
+// VerifyReverseSig checks reverse signature using the key provided.
 // does not modify `payload`.
 // `path` is the path to the reverse sig spot to null before checking.
-func verifyReverseSig(g *GlobalContext, key GenericKey, path string, payload *jsonw.Wrapper, reverseSig string) (err error) {
+func VerifyReverseSig(g *GlobalContext, key GenericKey, path string, payload *jsonw.Wrapper, reverseSig string) (err error) {
 	var p1, p2 []byte
 	if p1, _, err = key.VerifyStringAndExtract(g.Log, reverseSig); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}

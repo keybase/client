@@ -73,7 +73,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 	}
 
 	helper := &chainHelper{}
-	player := NewTeamSigChainPlayer(helper, NewUserVersion("a_1585f13b", 1), true)
+	player := NewTeamSigChainPlayer(tc.G, helper, NewUserVersion("a_1585f13b", 1), true)
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
@@ -122,7 +122,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(&chainHelper{}, NewUserVersion("a_f0259e08", 1), true)
+	player := NewTeamSigChainPlayer(tc.G, &chainHelper{}, NewUserVersion("a_f0259e08", 1), true)
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
