@@ -318,7 +318,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
-	defer s.Trace(ctx, func() error { return err }, "Pull")()
+	defer s.Trace(ctx, func() error { return err }, "Push")()
 	<-s.lockTab.Acquire(ctx, uid, convID)
 	defer s.lockTab.Release(ctx, uid, convID)
 
