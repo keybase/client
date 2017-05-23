@@ -9,7 +9,6 @@ import * as Types from '../../constants/types/flow-types'
 import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
-import engine from '../../engine'
 import {RPCError} from '../../util/errors'
 import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
 import {appLink} from '../app'
@@ -164,16 +163,6 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
 
 function* cancelLogin() {
   yield put(navigateTo(['login'], [loginTab]))
-}
-
-function result(response, ...args) {
-  return call([response, response.result], ...args)
-}
-
-function* resultWithWaiting(response, ...args) {
-  yield put(Creators.waitingForResponse(true))
-  yield result(response, ...args)
-  yield put(Creators.waitingForResponse(false))
 }
 
 function* selectKeySaga() {
@@ -424,10 +413,6 @@ const getPassphraseSaga = onBackSaga =>
     }
   }
 
-function addDeviceRpc(channelConfig) {
-  return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
-}
-
 function* handleProvisioningError(error) {
   yield put(
     navigateAppend(
@@ -449,16 +434,16 @@ function* handleProvisioningError(error) {
 function* loginFlowSaga(usernameOrEmail) {
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga)
 
-  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc')
+  const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
+    param: {
+      deviceType,
+      usernameOrEmail,
+      clientType: Types.CommonClientType.guiMain,
+    },
+  })
 
   try {
-    const result = yield call([loginRpcCall, loginRpcCall.run], {
-      param: {
-        deviceType,
-        usernameOrEmail,
-        clientType: Types.CommonClientType.guiMain,
-      },
-    })
+    const result = yield call(loginRpcCall.run)
 
     if (EngineRpc.isFinished(result)) {
       const {error} = result.payload
@@ -548,49 +533,47 @@ function* loginSuccess() {
   yield put(bootstrap())
 }
 
+const _deviceTypeMap: {[key: string]: any} = {
+  [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
+  [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
+}
+
+function chooseDeviceTypeSaga(role) {
+  return function*() {
+    const deviceType = _deviceTypeMap[role]
+    yield call(setCodePageOtherDeviceRole, role)
+    return EngineRpc.rpcResult(deviceType)
+  }
+}
+
 function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   yield put(setDevicesWaiting(true))
   yield call(initalizeMyCodeStateForAddingADevice)
 
-  const onBackSaga = function*(response) {
+  const onBackSaga = function*() {
     yield put(loadDevices())
     yield put(navigateTo(devicesTabLocation))
-    if (response) {
-      const engineInst = yield call(engine)
-      yield call([engine, engineInst.cancelRPC], response, InputCancelError)
-    }
-  }
-
-  const finishedSaga = function*() {
-    yield call(onBackSaga)
-  }
-
-  const chooseDeviceTypeSaga = function*({response}) {
-    const deviceTypeMap: {[key: string]: any} = {
-      [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
-      [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
-    }
-    const deviceType = deviceTypeMap[role]
-
-    yield call(setCodePageOtherDeviceRole, role)
-    yield call(resultWithWaiting, response, deviceType)
   }
 
   const addDeviceSagas = {
     ...kex2Sagas(onBackSaga, onBackSaga),
-    'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga,
+    'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga(role),
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(addDeviceSagas))
-  const addDeviceChanMap = yield call(addDeviceRpc, channelConfig)
-
-  // Returns an Array<Task>
-  yield Saga.mapSagasToChanMap(
-    (c, saga) => Saga.safeTakeLatestWithCatch(c, finishedSaga, saga),
+  const addDeviceRpc = new EngineRpc.EngineRpcCall(
     addDeviceSagas,
-    addDeviceChanMap
+    Types.deviceDeviceAddRpcChannelMap,
+    'addDeviceRpc',
+    {}
   )
 
+  try {
+    yield call(addDeviceRpc.run)
+  } catch (error) {
+    console.warn('error in adding device')
+  }
+
+  yield call(onBackSaga)
   yield put(setDevicesWaiting(false))
 }
 

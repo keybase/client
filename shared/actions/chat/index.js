@@ -373,27 +373,28 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
-      'localGetThreadNonblock'
+      'localGetThreadNonblock',
+      {
+        param: {
+          conversationID,
+          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+          pagination: {
+            last: false,
+            next,
+            num: Constants.maxMessagesToLoadAtATime,
+            previous: null,
+          },
+          query: {
+            disableResolveSupersedes: false,
+            markAsRead: true,
+            messageTypes,
+          },
+        },
+      }
     )
 
     // Todo do we need to pass this context?
-    const result = yield call([loadThreadChanMapRpc, loadThreadChanMapRpc.run], {
-      param: {
-        conversationID,
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        pagination: {
-          last: false,
-          next,
-          num: Constants.maxMessagesToLoadAtATime,
-          previous: null,
-        },
-        query: {
-          disableResolveSupersedes: false,
-          markAsRead: true,
-          messageTypes,
-        },
-      },
-    })
+    const result = yield call(loadThreadChanMapRpc.run)
 
     if (EngineRpc.isFinished(result)) {
       const {payload: {params, error}} = result

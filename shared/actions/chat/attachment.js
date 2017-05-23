@@ -191,11 +191,12 @@ function* onLoadAttachment({
   const downloadFileRpc = new EngineRpc.EngineRpcCall(
     loadAttachmentSagaMap(conversationIDKey, messageID, loadPreview),
     ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
-    `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`
+    `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
+    {param}
   )
 
   try {
-    const result = yield call([downloadFileRpc, downloadFileRpc.run], {param})
+    const result = yield call(downloadFileRpc.run)
     if (EngineRpc.isFinished(result)) {
       yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
     } else {

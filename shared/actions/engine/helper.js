@@ -71,15 +71,19 @@ class EngineRpcCall {
   _chanConfig: SagaTypes.ChannelConfig<*>
   _rpc: Function
   _rpcNameKey: string // Used for the waiting state and error messages.
+  _request: any
 
   _engineChannel: EngineChannel
   _cleanedUp: boolean
 
-  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string) {
+  constructor(sagaMap: SagaTypes.SagaMap, rpc: any, rpcNameKey: string, request: any) {
     this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
     this._rpc = rpc
     this._cleanedUp = false
+    this._request = request
+    // $FlowIssue with this
+    this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
     const {finished: finishedSaga, ...subSagas} = sagaMap
     if (finishedSaga) {
       throw new Error(
@@ -105,9 +109,8 @@ class EngineRpcCall {
     }
   }
 
-  *run(request: any, options: ?{timeout: number}): Generator<any, RpcRunResult, any> {
-    const timeout = options && options.timeout
-    this._engineChannel = yield call(this._rpc, [...Object.keys(this._subSagas), 'finished'], request)
+  *run(timeout: ?number): Generator<any, RpcRunResult, any> {
+    this._engineChannel = yield call(this._rpc, [...Object.keys(this._subSagas), 'finished'], this._request)
 
     let lastTask: ?any = null
     while (true) {
@@ -125,7 +128,7 @@ class EngineRpcCall {
 
         if (incoming.timeout) {
           yield call([this, this._cleanup], lastTask)
-          throw new RPCTimeoutError(this._rpcNameKey, options && options.timeout)
+          throw new RPCTimeoutError(this._rpcNameKey, timeout)
         }
 
         if (incoming.finished) {
