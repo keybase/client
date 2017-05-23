@@ -383,7 +383,8 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	return name, res.Ul.Id, nil
 }
 
-// LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceBase.
+// LoadUserPlusKeys implements the KeybaseService interface for
+// KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
@@ -398,6 +399,13 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 	}
 
 	return k.processUserPlusKeys(res)
+}
+
+// LoadTeamPlusKeys implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) LoadTeamPlusKeys(
+	ctx context.Context, tid keybase1.TeamID) (TeamInfo, error) {
+	panic("The Keybase service doesn't support LoadTeamPlusKeys yet")
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (

@@ -176,6 +176,11 @@ func (k *KBPKIClient) HasUnverifiedVerifyingKey(
 	return nil
 }
 
+func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
+	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
+	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(ctx, uid, pollForKID)
+}
+
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 	uid keybase1.UID) (keys []kbfscrypto.CryptPublicKey, err error) {
@@ -186,9 +191,15 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 	return userInfo.CryptPublicKeys, nil
 }
 
-func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context,
-	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
-	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(ctx, uid, pollForKID)
+// GetTeamTLFCryptKeys implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetTeamTLFCryptKeys(
+	ctx context.Context, tid keybase1.TeamID) (
+	map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(ctx, tid)
+	if err != nil {
+		return nil, 0, err
+	}
+	return teamInfo.CryptKeys, teamInfo.LatestKeyGen, nil
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.

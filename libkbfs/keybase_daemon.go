@@ -60,12 +60,12 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 	codec := config.Codec()
 
 	if params.LocalFavoriteStorage == memoryAddr {
-		return NewKeybaseDaemonMemory(localUID, localUsers, codec), nil
+		return NewKeybaseDaemonMemory(localUID, localUsers, nil, codec), nil
 	}
 
 	if serverRootDir, ok := parseRootDir(params.LocalFavoriteStorage); ok {
 		favPath := filepath.Join(serverRootDir, "kbfs_favs")
-		return NewKeybaseDaemonDisk(localUID, localUsers, favPath, codec)
+		return NewKeybaseDaemonDisk(localUID, localUsers, nil, favPath, codec)
 	}
 
 	return nil, errors.New("Can't user localuser without LocalFavoriteStorage being 'memory' or 'dir:/path/to/dir'")

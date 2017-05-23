@@ -1070,6 +1070,17 @@ func (_mr *_MockKeybaseServiceRecorder) LoadUnverifiedKeys(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUnverifiedKeys", arg0, arg1)
 }
 
+func (_m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID) (TeamInfo, error) {
+	ret := _m.ctrl.Call(_m, "LoadTeamPlusKeys", ctx, tid)
+	ret0, _ := ret[0].(TeamInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceRecorder) LoadTeamPlusKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadTeamPlusKeys", arg0, arg1)
+}
+
 func (_m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
@@ -1436,6 +1447,18 @@ func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 
 func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
+}
+
+func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamTLFCryptKeys", ctx, tid)
+	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(KeyGen)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKBPKIRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
 }
 
 func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {

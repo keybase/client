@@ -98,7 +98,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers,
+	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
 		config.Codec())
 	config.SetKeybaseService(daemon)
 
@@ -209,7 +209,7 @@ func configAsUserWithMode(config *ConfigLocal,
 	for _, u := range daemon.localUsers {
 		localUsers = append(localUsers, u)
 	}
-	newDaemon := NewKeybaseDaemonMemory(loggedInUID, localUsers, c.Codec())
+	newDaemon := NewKeybaseDaemonMemory(loggedInUID, localUsers, nil, c.Codec())
 	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
 

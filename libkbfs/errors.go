@@ -71,6 +71,16 @@ func (e NoSuchUserError) ToStatus() keybase1.Status {
 	}
 }
 
+// NoSuchTeamError indicates that the given team couldn't be resolved.
+type NoSuchTeamError struct {
+	Input string
+}
+
+// Error implements the error interface for NoSuchTeamError
+func (e NoSuchTeamError) Error() string {
+	return fmt.Sprintf("%s is not a Keybase team", e.Input)
+}
+
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {

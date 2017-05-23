@@ -60,7 +60,7 @@ func interposeDaemonKBPKI(
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers,
+	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
 		kbfscodec.NewMsgpack())
 	config.SetKeybaseService(daemon)
 

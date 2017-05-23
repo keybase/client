@@ -18,6 +18,7 @@ type KeybaseServiceMeasured struct {
 	resolveTimer            metrics.Timer
 	identifyTimer           metrics.Timer
 	loadUserPlusKeysTimer   metrics.Timer
+	loadTeamPlusKeysTimer   metrics.Timer
 	loadUnverifiedKeysTimer metrics.Timer
 	currentSessionTimer     metrics.Timer
 	favoriteAddTimer        metrics.Timer
@@ -34,6 +35,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	resolveTimer := metrics.GetOrRegisterTimer("KeybaseService.Resolve", r)
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Identify", r)
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
+	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseService.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
@@ -45,6 +47,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		resolveTimer:            resolveTimer,
 		identifyTimer:           identifyTimer,
 		loadUserPlusKeysTimer:   loadUserPlusKeysTimer,
+		loadTeamPlusKeysTimer:   loadTeamPlusKeysTimer,
 		loadUnverifiedKeysTimer: loadUnverifiedKeysTimer,
 		currentSessionTimer:     currentSessionTimer,
 		favoriteAddTimer:        favoriteAddTimer,
@@ -79,6 +82,15 @@ func (k KeybaseServiceMeasured) LoadUserPlusKeys(ctx context.Context,
 		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid, pollForKID)
 	})
 	return userInfo, err
+}
+
+// LoadTeamPlusKeys implements the KeybaseService interface for KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
+	tid keybase1.TeamID) (teamInfo TeamInfo, err error) {
+	k.loadTeamPlusKeysTimer.Time(func() {
+		teamInfo, err = k.delegate.LoadTeamPlusKeys(ctx, tid)
+	})
+	return teamInfo, err
 }
 
 // LoadUnverifiedKeys implements the KeybaseService interface for KeybaseServiceMeasured.

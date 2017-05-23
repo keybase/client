@@ -47,6 +47,18 @@ type UserInfo struct {
 	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime
 }
 
+// TeamInfo contains all the info about a keybase team that kbfs cares
+// about.
+type TeamInfo struct {
+	// Maybe this should be bare string?  The service doesn't give us
+	// a nice type, unfortunately.
+	Name         libkb.NormalizedUsername
+	TID          keybase1.TeamID
+	CryptKeys    map[KeyGen]kbfscrypto.TLFCryptKey
+	LatestKeyGen KeyGen
+	// TODO: full user log or current membership + roles?
+}
+
 // SessionInfo contains all the info about the keybase session that
 // kbfs cares about.
 type SessionInfo struct {

@@ -398,6 +398,10 @@ type KeybaseService interface {
 	LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 		[]keybase1.PublicKey, error)
 
+	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
+	// specified TeamID.
+	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID) (TeamInfo, error)
+
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
 	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
@@ -516,6 +520,12 @@ type KBPKI interface {
 	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 		[]kbfscrypto.CryptPublicKey, error)
+
+	// GetTeamTLFCryptKeys gets all of a team's secret crypt keys, by
+	// generation, as well as the latest key generation number for the
+	// team.
+	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (
+		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
 
 	// TODO: Split the methods below off into a separate
 	// FavoriteOps interface.

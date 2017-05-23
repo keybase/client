@@ -20,6 +20,14 @@ func (e NoSuchUserError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.ENOENT)
 }
 
+var _ fuse.ErrorNumber = NoSuchTeamError{""}
+
+// Errno implements the fuse.ErrorNumber interface for
+// NoSuchTeamError
+func (e NoSuchTeamError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOENT)
+}
+
 var _ fuse.ErrorNumber = DirNotEmptyError{""}
 
 // Errno implements the fuse.ErrorNumber interface for
