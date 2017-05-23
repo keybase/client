@@ -95,7 +95,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
         You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
       </p>
       <p>
-        Share this handy link: <span class="keybase-copy">https://keybase.io/reddit-crypto</span>
+        Share this handy link: <span class="keybase-copy">https://keybase.io/docs/extension</span>
       </p>
   `;
   let nudgeHTML = oobNudgeHTML;
@@ -321,7 +321,7 @@ function renderError(chatForm, msg) {
       return renderErrorFull(chatForm, `
         <p>Keybase needs to be running to send chat messages.</p>
         <p>
-          <a href="https://keybase.io/reddit-crypto" class="keybase-button" target="_blank">More details</a>
+          <a href="https://keybase.io/docs/extension" class="keybase-button" target="_blank">More details</a>
         </p>
       `);
     case "keybase is not logged in":
