@@ -168,7 +168,8 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	} else {
 		reason = fmt.Sprintf("You accessed a private folder with %s.", username.String())
 	}
-	resName, resID, err := identifier.Identify(ctx, username.String(), reason)
+	resultName, resultID, err :=
+		identifier.Identify(ctx, username.String(), reason)
 	if err != nil {
 		// Convert libkb.NoSigChainError into one we can report.  (See
 		// KBFS-1252).
@@ -177,13 +178,13 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 		}
 		return err
 	}
-	if resName != username {
+	if resultName != username {
 		return fmt.Errorf("Identify returned name=%s, expected %s",
-			resName, username)
+			resultName, username)
 	}
-	if resID != uid.AsUserOrTeam() {
+	if resultID != uid.AsUserOrTeam() {
 		return fmt.Errorf("Identify returned uid=%s, expected %s",
-			resID, uid)
+			resultID, uid)
 	}
 	return nil
 }
