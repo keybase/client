@@ -26,8 +26,7 @@ func TestTeamGet(t *testing.T) {
 }
 
 func TestTeamGetRepeat(t *testing.T) {
-	// t.Skip("flake")
-
+	t.Skip("not needed")
 	// in order to try to repro in CI, run this 10 times
 	for i := 0; i < 10; i++ {
 		tc := libkb.SetupTest(t, "team", 1)
@@ -66,7 +65,6 @@ func TestTeamGetWhileCreate(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
 }
 
 func TestTeamGetConcurrent(t *testing.T) {
