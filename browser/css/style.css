@@ -13,7 +13,7 @@ li.keybase-reply form, form.keybase-reply {
 .keybase-reply form, form.keybase-reply {
   display: block !important;
   background: #fff;
-  margin-top: 2em;
+  margin-top: 3em;
   width: 500px;
   background-color: #ffffff;
   white-space: normal !important;
@@ -155,7 +155,7 @@ a.keybase-button {
 .keybase-reply h3 img {
   height: 16px;
   width: 16px;
-  margin: 0 6px -2px 0;
+  margin: 0 2px -2px 0;
 }
 
 .keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
@@ -224,15 +224,25 @@ a.keybase-chat {
   font-size: 13px;
   font-weight: 600;
   border-radius: 4px;
-  line-height: 1;
   color: #fff !important;
   background-color: #33a0ff;
-  background-image: url("chrome-extension://__MSG_@@extension_id__/images/icon-keybase-logo-16@2x.png");
-  background-size: 16px 16px;
-  background-position: 4px;
-  background-repeat: no-repeat;
-  padding: 2px 8px 2px 24px;
   white-space: nowrap !important;
+
+  text-align: center;
+  display: inline-block;
+  height: 28px;
+  width: 134px;
+  line-height: 28px;
+  border-radius: 28px;
+}
+a.keybase-chat img {
+  height: 16px;
+  width: 16px;
+  margin-bottom: -2px;
+  margin-right: 4px;
+}
+a.keybase-chat:focus img {
+  border: 0;
 }
 
 a.keybase-chat:hover {
@@ -243,12 +253,13 @@ a.keybase-chat:hover {
 a.keybase-profile-chat {
   /* Chat button for keybase profile page. */
   background-color: #33a0ff;
-  background-image: url("chrome-extension://__MSG_@@extension_id__/images/icon-keybase-logo-16@2x.png");
-  background-size: 16px 16px;
-  background-position: 12px 8px;
-  background-repeat: no-repeat;
-  padding-left: 32px;
   color: rgb(255,255,255);
+}
+a.keybase-profile-chat img {
+  height: 16px;
+  width: 16px;
+  margin-bottom: 2px;
+  margin-right: 4px;
 }
 
 a.keybase-profile-chat:hover {

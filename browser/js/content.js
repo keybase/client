@@ -117,7 +117,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
            />
-      Keybase chat <span class="keybase-close"> </span>
+      Keybase Chat <span class="keybase-close"> </span>
     </h3>
     <div class="keybase-body">
       <div class="keybase-contact"></div>
@@ -268,7 +268,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
            />
-      Keybase chat <span class="keybase-close"> </span>
+      Keybase Chat <span class="keybase-close"> </span>
     </h3>
     <div class="keybase-body">
       <p>

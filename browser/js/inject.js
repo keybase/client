@@ -34,11 +34,8 @@ const profileInject = {
     if (!container) return;
 
     const button = renderProfileChatButton(user);
-    const wrapper = document.createElement("p");
-    wrapper.style = "line-height: 2em;";
-    wrapper.appendChild(button);
-
-    container.parentNode.insertBefore(wrapper, container.nextSibling);
+    button.style = "display: block; margin: 4px 0;";
+    container.parentNode.insertBefore(button, container.nextSibling);
   },
 
   "twitter": function twitterInjectProfile(user) {
@@ -46,7 +43,8 @@ const profileInject = {
     if (!container) return;
 
     const button = renderProfileChatButton(user);
-    container.appendChild(button);
+    button.style = "margin-top: 4px;";
+    container.appendChild(button, container);
   },
 
   "github": function githubInjectProfile(user) {
@@ -64,17 +62,23 @@ const profileInject = {
     // Add a "chat" button next to username
     const userLink = profileTable.children[0].children[1];
     const button = renderProfileChatButton(user);
-    button.style = "margin-left: 0.5em;"
+    button.style = "margin: 4px 0; display: block;"
 
     userLink.appendChild(button);
   },
 }
 
 function renderProfileChatButton(user) {
+  const icon = document.createElement("img");
+  icon.src = `${asset("images/icon-keybase-logo-16.png")}`;
+  icon.srcset = `${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x`;
+
   const button = document.createElement("a");
   button.className = "keybase-chat";
   button.href = `keybase://${user.query()}/`;
-  button.innerText = "keybase chat";
+  button.appendChild(icon);
+  button.appendChild(document.createTextNode("Keybase Chat"));
+
   installChatButton([button], user);
   return button;
 }
