@@ -555,4 +555,17 @@ func TestConversationLocking(t *testing.T) {
 	hcs.lockTab.Release(ctx, uid, conv.GetConvID())
 	<-cb
 	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("No trace")
+	select {
+	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	select {
+	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	require.Zero(t, len(hcs.lockTab.convLocks))
 }

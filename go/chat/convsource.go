@@ -236,6 +236,9 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 	return fmt.Sprintf("%s:%s", uid, convID)
 }
 
+// Acquire obtains a per user per conversation lock on a per trace basis. That is, the lock is a
+// shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
+// no chat trace, this is a no-op.
 func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) chan struct{} {
 	c.Lock()
 	defer c.Unlock()
