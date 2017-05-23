@@ -197,13 +197,6 @@ type PerUserKey struct {
 	EncKID KID   `codec:"encKID" json:"encKID"`
 }
 
-type PerTeamKey struct {
-	Gen    int   `codec:"gen" json:"gen"`
-	Seqno  Seqno `codec:"seqno" json:"seqno"`
-	SigKID KID   `codec:"sigKID" json:"sigKID"`
-	EncKID KID   `codec:"encKID" json:"encKID"`
-}
-
 type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
@@ -270,39 +263,6 @@ type SocialAssertion struct {
 type UserResolution struct {
 	Assertion SocialAssertion `codec:"assertion" json:"assertion"`
 	UserID    UID             `codec:"userID" json:"userID"`
-}
-
-type TeamRole int
-
-const (
-	TeamRole_NONE   TeamRole = 0
-	TeamRole_OWNER  TeamRole = 1
-	TeamRole_ADMIN  TeamRole = 2
-	TeamRole_WRITER TeamRole = 3
-	TeamRole_READER TeamRole = 4
-)
-
-var TeamRoleMap = map[string]TeamRole{
-	"NONE":   0,
-	"OWNER":  1,
-	"ADMIN":  2,
-	"WRITER": 3,
-	"READER": 4,
-}
-
-var TeamRoleRevMap = map[TeamRole]string{
-	0: "NONE",
-	1: "OWNER",
-	2: "ADMIN",
-	3: "WRITER",
-	4: "READER",
-}
-
-func (e TeamRole) String() string {
-	if v, ok := TeamRoleRevMap[e]; ok {
-		return v
-	}
-	return ""
 }
 
 type CommonInterface interface {
