@@ -22,7 +22,6 @@ const initialState: State = {
     allowSave: false,
     settings: {
       email: null,
-      app_push: null,
     },
     unsubscribedFromAll: null,
   },
@@ -53,7 +52,7 @@ function reducer(state: State = initialState, action: Actions): State {
         allowDeleteAccount: action.payload,
       }
     case Constants.notificationsToggle:
-      if (!state.notifications.emailSettings) {
+      if (!state.notifications.settings.email) {
         console.log('Warning: trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
@@ -82,7 +81,13 @@ function reducer(state: State = initialState, action: Actions): State {
         }
       }
 
-      const changed = state.notifications.settings[group].map(s => updateSubscribe(s, group))
+      let changed = {}
+      console.warn('name is', name, 'group is', group)
+      const {settings, unsubscribedFromAll} = state.notifications.settings[group]
+      changed[group] = {
+        settings: settings.map(s => updateSubscribe(s, group)),
+        unsubscribedFromAll: !name && !unsubscribedFromAll,
+      }
 
       return {
         ...state,
@@ -116,7 +121,9 @@ function reducer(state: State = initialState, action: Actions): State {
       return {
         ...state,
         notifications: {
-          ...action.payload,
+          settings: {
+            ...action.payload,
+          },
           allowEdit: true,
           allowSave: false,
         },

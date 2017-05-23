@@ -1,8 +1,5 @@
-// @flow
+import Immutable from 'immutable'
 import {forwardLogs, enableActionLogging, immediateStateLogging} from '../local-debug'
-import {noPayloadTransformer} from '../constants/types/flux'
-import {stateLogTransformer} from '../constants/reducer'
-import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
 function makeActionToLog(action, oldState) {
   if (action.logTransformer) {
@@ -12,30 +9,30 @@ function makeActionToLog(action, oldState) {
       console.warn('Action logger error', e)
     }
   }
-  return noPayloadTransformer(action, oldState)
 }
 
-const transform = (o: Array<any>) => {
-  return [JSON.stringify(immutableToJS(o), null, 2)]
+// Transform objects from Immutable on printing
+const objToJS = state => {
+  var newState = {}
+
+  Object.keys(state).forEach(i => {
+    if (Immutable.Iterable.isIterable(state[i])) {
+      newState[i] = state[i].toJS()
+    } else {
+      newState[i] = state[i]
+    }
+  })
+
+  return newState
 }
 
-const logger = enableActionLogging
-  ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50, true)
-  : {log: () => {}}
+export const actionLogger = store => next => action => {
+  console.groupCollapsed(`Dispatching action: ${action.type}`)
 
-export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const oldState = store.getState()
-  const actionToLog = makeActionToLog(action, oldState)
+  console.log(`Dispatching action: ${action.type}: ${JSON.stringify(action)} `)
+  let result = next(action)
 
-  const log1 = [
-    `Dispatching action: ${action.type}: `,
-    forwardLogs ? JSON.stringify(actionToLog) : actionToLog,
-  ]
-  console.log(log1)
-  logger.log('Action:', log1)
-
-  const result = next(action)
-  const logState = stateLogTransformer(store.getState())
-  logger.log('State:', logState)
+  console.log('Next state:', JSON.stringify(objToJS(store.getState())))
+  console.groupEnd()
   return result
 }

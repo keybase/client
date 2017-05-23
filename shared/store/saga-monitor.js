@@ -135,9 +135,9 @@ function effectTriggered(desc) {
     // console.log('Saga monitor: effectTriggered:', desc)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
+      //console.log('Saga monitor masked: effectTriggered:', effectTriggeredTransform(desc))
     } else {
-      console.log('Saga monitor: effectTriggered:', desc)
+      //console.log('Saga monitor: effectTriggered:', desc)
     }
     // KB END
   }
@@ -155,9 +155,9 @@ function effectResolved(effectId, result) {
     // console.log('Saga monitor: effectResolved:', effectId, result)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectResolved:', effectId, 'masked')
+      //console.log('Saga monitor masked: effectResolved:', effectId, 'masked')
     } else {
-      console.log('Saga monitor: effectResolved:', effectId, result)
+      //console.log('Saga monitor: effectResolved:', effectId, result)
     }
     // KB END
   }
@@ -169,9 +169,9 @@ function effectRejected(effectId, error) {
     // console.log('Saga monitor: effectRejected:', effectId, error)
     // KB START
     if (reduxSagaLoggerMasked) {
-      console.log('Saga monitor masked: effectRejected:', effectId, 'masked')
+      //console.log('Saga monitor masked: effectRejected:', effectId, 'masked')
     } else {
-      console.log('Saga monitor: effectRejected:', effectId, error)
+      //console.log('Saga monitor: effectRejected:', effectId, error)
     }
     // KB END
   }
@@ -180,7 +180,7 @@ function effectRejected(effectId, error) {
 
 function effectCancelled(effectId) {
   if (VERBOSE) {
-    console.log('Saga monitor: effectCancelled:', effectId)
+    //console.log('Saga monitor: effectCancelled:', effectId)
   }
   cancelEffect(effectId)
 }
