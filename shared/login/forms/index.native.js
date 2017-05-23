@@ -1,26 +1,48 @@
 // @flow
-import React from 'react'
-import {Box, Button, Icon, Text} from '../../common-adapters'
+import React, {Component} from 'react'
+import {Box, Button, HOCTimers, Icon, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
+import type {TimerProps} from '../../common-adapters/hoc-timers'
 
-const Splash = (props: Props) => (
-  <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-    <Icon type="icon-keybase-logo-80" />
-    <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text style={{marginTop: globalMargins.large}} type="BodySmall">
-        Keybase not starting up?
-      </Text>
-      <Button
-        label="Let us know"
-        onClick={props.onFeedback}
-        style={{marginTop: globalMargins.small}}
-        type="Primary"
-      />
-    </Box>
-  </Box>
+const Splash = HOCTimers(
+  class _Splash extends Component<void, Props & TimerProps, {showFeedback: boolean}> {
+    timeoutId: number
+    state = {
+      showFeedback: false,
+    }
+
+    componentWillMount() {
+      this.props.clearTimeout(this.timeoutId)
+      this.timeoutId = this.props.setTimeout(() => {
+        this.setState({
+          showFeedback: true,
+        })
+      }, 4000)
+    }
+
+    render() {
+      return (
+        <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+          <Icon type="icon-keybase-logo-80" />
+          <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
+          {this.state.showFeedback &&
+            <Box style={globalStyles.flexBoxColumn}>
+              <Text style={{marginTop: globalMargins.large}} type="BodySmall">
+                Keybase not starting up?
+              </Text>
+              <Button
+                label="Let us know"
+                onClick={this.props.onFeedback}
+                style={{marginTop: globalMargins.small}}
+                type="Primary"
+              />
+            </Box>}
+        </Box>
+      )
+    }
+  }
 )
 
 const Failure = (props: Props) => (
