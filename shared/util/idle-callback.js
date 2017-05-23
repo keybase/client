@@ -30,15 +30,7 @@ const requestIdleCallback = forceImmediateLogging
   : useFallback ? timeoutFallback : window.requestIdleCallback
 const cancelIdleCallback = useFallback ? cancelIdleCallbackFallback : window.cancelIdleCallback
 
-// TODO does this actually work like I think it does?
 const onIdlePromise = (timeout: number = 100) =>
-  new Promise(resolve =>
-    requestIdleCallback(
-      () => {
-        resolve()
-      },
-      {timeout}
-    )
-  )
+  new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, cancelIdleCallback, onIdlePromise}
