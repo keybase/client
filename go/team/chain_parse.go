@@ -34,8 +34,8 @@ type SCTeamMembers struct {
 }
 
 type SCTeamParent struct {
-	ID    SCTeamID `json:"id"`
-	Seqno int      `json:"seqno"`
+	ID    SCTeamID       `json:"id"`
+	Seqno keybase1.Seqno `json:"seqno"`
 }
 
 type SCSubteam struct {

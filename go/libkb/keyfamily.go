@@ -524,10 +524,10 @@ func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 
 // NowAsKeybaseTime makes a representation of now.  IF we don't know the MerkleTree
 // chain seqno, just use 0
-func NowAsKeybaseTime(seqno int) *KeybaseTime {
+func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: seqno,
+		Chain: int(seqno),
 	}
 }
 

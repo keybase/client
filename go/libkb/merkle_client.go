@@ -882,7 +882,7 @@ func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
 	if l > 3 {
 		return nil, fmt.Errorf("Bad merkle triple, with > 3 values")
 	}
-	seqno, err := jw.AtIndex(0).GetInt()
+	seqno, err := jw.AtIndex(0).GetInt64()
 	if err != nil {
 		return nil, err
 	}

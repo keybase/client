@@ -259,7 +259,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 		arg.SigningUser = arg.Me
 	}
 
-	var seqno int
+	var seqno keybase1.Seqno
 	var prev *jsonw.Wrapper
 
 	// sanity check the seqno and prev relationship
@@ -268,7 +268,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	}
 
 	if arg.Seqno > 0 {
-		seqno = int(arg.Seqno)
+		seqno = arg.Seqno
 		if arg.Seqno == 1 {
 			prev = jsonw.NewNil()
 		} else {
@@ -281,7 +281,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 			seqno = 1
 			prev = jsonw.NewNil()
 		} else {
-			seqno = int(lastSeqno) + 1
+			seqno = lastSeqno + 1
 			prev = jsonw.NewString(lastLink.String())
 		}
 	}
@@ -300,7 +300,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	ret.SetKey("tag", jsonw.NewString("signature"))
 	ret.SetKey("ctime", jsonw.NewInt64(ctime))
 	ret.SetKey("expire_in", jsonw.NewInt(ei))
-	ret.SetKey("seqno", jsonw.NewInt(seqno))
+	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
 	eldest := arg.Eldest
