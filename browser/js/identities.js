@@ -52,8 +52,8 @@ const identityMatchers = [
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.facebook\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.facebook\.com/[\\w]+[/]?$',
+    locationMatches: new RegExp('\.facebook\.com/([\\w\.]+)[/]?$'),
+    originAndPathMatches: '\.facebook\.com/[\\w\.]+[/]?$',
     css: ['body.timelineLayout']
   },
   {
