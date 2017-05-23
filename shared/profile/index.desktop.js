@@ -292,6 +292,11 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 onClickAvatar={this.props.onClickAvatar}
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
+                onBioEdit={this.props.onBioEdit}
+                onEditAvatarClick={this.props.onEditAvatarClick}
+                onEditProfile={this.props.onEditProfile}
+                onLocationEdit={this.props.onLocationEdit}
+                onNameEdit={this.props.onNameEdit}
               />
               {!this.props.isYou &&
                 !loading &&

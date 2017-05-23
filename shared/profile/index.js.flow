@@ -38,6 +38,11 @@ export type Props = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
+  onBioEdit?: () => void,
+  onEditAvatarClick?: () => void,
+  onEditProfile?: () => void,
+  onLocationEdit?: () => void,
+  onNameEdit?: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}
