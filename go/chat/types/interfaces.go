@@ -79,6 +79,9 @@ type InboxSource interface {
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 
+	GetInboxQueryLocalToRemote(ctx context.Context,
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *TLFInfo, error)
+
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }
@@ -103,12 +106,18 @@ type Syncer interface {
 	Shutdown()
 }
 
+type RetryDescription interface {
+	Fix(ctx context.Context, uid gregor1.UID) error
+	SendStale(ctx context.Context, uid gregor1.UID)
+	String() string
+}
+
 type FetchRetrier interface {
 	Offlinable
 	Resumable
 
-	Failure(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
-	Success(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, kind FetchType) error
+	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
+	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
 	Force(ctx context.Context)
 }
 

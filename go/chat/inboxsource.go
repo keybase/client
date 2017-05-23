@@ -249,7 +249,7 @@ func (b *baseInboxSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
 	b.tlfInfoSource = tlfInfoSource
 }
 
-func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
+func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.TLFInfo, err error) {
 
 	if lquery == nil {
@@ -264,7 +264,7 @@ func (b *baseInboxSource) getInboxQueryLocalToRemote(ctx context.Context,
 			return nil, nil, err
 		}
 		rquery.TlfID = &info.ID
-		b.Debug(ctx, "getInboxQueryLocalToRemote: mapped TLF %q to TLFID %v", *lquery.TlfName, info.ID)
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped TLF %q to TLFID %v", *lquery.TlfName, info.ID)
 	}
 
 	rquery.After = lquery.After
@@ -319,7 +319,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
-	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, query)
+	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
 		return chat1.Inbox{}, nil, err
 	}
@@ -467,7 +467,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
 
 	// Read unverified inbox
-	rquery, tlfInfo, err := s.getInboxQueryLocalToRemote(ctx, query)
+	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
 		return inbox, rl, err
 	}
