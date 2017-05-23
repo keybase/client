@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
@@ -489,4 +490,69 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
 	_, _, err = tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
 	require.Error(t, err)
+}
+
+func TestConversationLocking(t *testing.T) {
+	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+
+	conv := newConv(t, uid, ri, sender, tlf, u.Username)
+
+	t.Logf("Trace 1 can get multiple locks")
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewIdentifyNotifier(tc.Context()))
+	acquires := 5
+	for i := 0; i < acquires; i++ {
+		select {
+		case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "locked")
+		}
+	}
+	for i := 0; i < acquires; i++ {
+		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	}
+	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("Trace 2 properly blocked by Trace 1")
+	ctx2 := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		&breaks, NewIdentifyNotifier(tc.Context()))
+
+	select {
+	case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	select {
+	case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
+		require.Fail(t, "should have blocked")
+	default:
+	}
+
+	t.Logf("Trace 2 runs after Trace 1 gives up lock")
+	cb := make(chan struct{})
+	go func() {
+		select {
+		case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
+			hcs.lockTab.Release(ctx2, uid, conv.GetConvID())
+			close(cb)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no lock obtained")
+		}
+	}()
+	hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	<-cb
+	require.Zero(t, len(hcs.lockTab.convLocks))
 }
