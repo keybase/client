@@ -98,9 +98,9 @@ function reducer(state: State = initialState, action: Actions): State {
           ...state.notifications,
           allowSave: true,
           groups: {
-	          ...state.notifications.groups,
+            ...state.notifications.groups,
             ...changed,
-	        },
+          },
         },
       }
     case Constants.notificationsSave:

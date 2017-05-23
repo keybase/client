@@ -39,9 +39,12 @@ const logger = {}
 for (const method in console) {
   if (typeof console[method] === 'function') {
     logger[method] = (...args) => {
-      requestIdleCallback(() => {
-        console[method](...args)
-      }, {timeout: 1e3})
+      requestIdleCallback(
+        () => {
+          console[method](...args)
+        },
+        {timeout: 1e3}
+      )
     }
   }
 }
@@ -62,13 +65,15 @@ const crashHandler = error => {
   }
 }
 
-const loggerMiddleware: any = enableStoreLogging ? createLogger({
-  duration: true,
-  stateTransformer: objToJS,
-  actionTransformer: objToJS,
-  collapsed: true,
-  logger,
-}) : null
+const loggerMiddleware: any = enableStoreLogging
+  ? createLogger({
+      duration: true,
+      stateTransformer: objToJS,
+      actionTransformer: objToJS,
+      collapsed: true,
+      logger,
+    })
+  : null
 
 let lastError = new Error('')
 
