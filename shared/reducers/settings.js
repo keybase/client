@@ -20,8 +20,10 @@ const initialState: State = {
   notifications: {
     allowEdit: false,
     allowSave: false,
-    emailSettings: null,
-    pushSettings: null,
+    settings: {
+      email: null,
+      app_push: null,
+    },
     unsubscribedFromAll: null,
   },
   passphrase: {
@@ -59,6 +61,7 @@ function reducer(state: State = initialState, action: Actions): State {
         return state
       }
 
+      console.warn('in notificationsToggle reducer', action.payload)
       // No name means the unsubscribe option
       const {group, name} = action.payload
 
@@ -69,7 +72,7 @@ function reducer(state: State = initialState, action: Actions): State {
           // clicked unsub all
           subscribed = false
         } else if (name === setting.name && group === storeGroup) {
-          // flip if its the one we're looking for
+          // flip if it's the one we're looking for
           subscribed = !subscribed
         }
 
@@ -84,8 +87,10 @@ function reducer(state: State = initialState, action: Actions): State {
         notifications: {
           ...state.notifications,
           allowSave: true,
-          emailSettings: state.notifications.emailSettings.map(s => updateSubscribe(s, 'email')),
-          pushSettings: state.notifications.pushSettings.map(s => updateSubscribe(s, 'app_push')),
+          settings: {
+            email: state.notifications.settings.email.map(s => updateSubscribe(s, 'email')),
+            app_push: state.notifications.settings.app_push.map(s => updateSubscribe(s, 'app_push')),
+	  },
           unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
         },
       }
