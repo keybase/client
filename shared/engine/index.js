@@ -404,6 +404,15 @@ class Engine {
     this._onDisconnectHandlers[key] = f
   }
 
+  // Register a named callback when we fail to connect. Call if we're already disconnected
+  listenOnNotConnected(key: string, f: () => void) {
+    // If we've actually failed to connect already lets call this immediately
+    if (!this._hasConnected && this._rpcClient.transport.needsConnect) {
+      f()
+    }
+    this.listenOnDisconnect(key, f)
+  }
+
   // Register a named callback when we reconnect to the server. Call if we're already connected
   listenOnConnect(key: string, f: () => void) {
     if (!this._onConnectHandlers) {
@@ -440,6 +449,7 @@ class FakeEngine {
   setFailOnError() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
+  listenOnNotConnected() {}
   setIncomingHandler() {}
   createSession() {
     return new Session(0, {}, null, () => {}, () => {})
