@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as EngineRpc from '../engine/helper'
 import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -117,6 +118,23 @@ function* _saveAttachment(conversationIDKey: Constants.ConversationIDKey, messag
   return destPath
 }
 
+function downloadProgressSubSaga(conversationIDKey, messageID, loadPreview) {
+  return function*({bytesComplete, bytesTotal}) {
+    yield put(Creators.downloadProgress(conversationIDKey, messageID, loadPreview, bytesComplete, bytesTotal))
+    return EngineRpc.rpcResult()
+  }
+}
+
+const loadAttachmentSagaMap = (conversationIDKey, messageID, loadPreview) => ({
+  'chat.1.chatUi.chatAttachmentDownloadStart': EngineRpc.passthroughResponseSaga,
+  'chat.1.chatUi.chatAttachmentDownloadProgress': downloadProgressSubSaga(
+    conversationIDKey,
+    messageID,
+    loadPreview
+  ),
+  'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
+})
+
 function* onLoadAttachment({
   payload: {conversationIDKey, messageID, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
@@ -170,41 +188,20 @@ function* onLoadAttachment({
     identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig([
-    'chat.1.chatUi.chatAttachmentDownloadStart',
-    'chat.1.chatUi.chatAttachmentDownloadProgress',
-    'chat.1.chatUi.chatAttachmentDownloadDone',
-  ])
+  const downloadFileRpc = new EngineRpc.EngineRpcCall(
+    loadAttachmentSagaMap(conversationIDKey, messageID, loadPreview),
+    ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
+    `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`
+  )
 
   try {
-    const channelMap = (yield call(
-      ChatTypes.localDownloadFileAttachmentLocalRpcChannelMapOld,
-      channelConfig,
-      {param}
-    ): any)
-    const progressTask = yield Saga.effectOnChannelMap(
-      c =>
-        Saga.safeTakeEvery(c, function*({response}) {
-          const {bytesComplete, bytesTotal} = response.param
-          yield put(
-            Creators.downloadProgress(conversationIDKey, messageID, loadPreview, bytesComplete, bytesTotal)
-          )
-          response.result()
-        }),
-      channelMap,
-      'chat.1.chatUi.chatAttachmentDownloadProgress'
-    )
-
-    const start = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadStart')
-    start.response.result()
-
-    const done = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentDownloadDone')
-    done.response.result()
-
-    yield cancel(progressTask)
-    Saga.closeChannelMap(channelMap)
-
-    yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
+    const result = yield call([downloadFileRpc, downloadFileRpc.run], {param})
+    if (EngineRpc.isFinished(result)) {
+      yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
+    } else {
+      console.warn('downloadFileRpc bailed early')
+      yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
+    }
   } catch (err) {
     yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
   }

@@ -48,7 +48,7 @@ function _sagaWaitingDecorator(rpcNameKey, saga) {
 function _handleRPCDecorator(rpcNameKey, saga) {
   return function*({params, response}) {
     const returnVal = yield call(saga, params)
-    const payload = returnVal.payload
+    const payload = (returnVal || {}).payload
     if (_isResult(returnVal)) {
       yield call([response, response.result], payload)
     } else if (_isCancel(returnVal)) {
