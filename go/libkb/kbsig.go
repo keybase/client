@@ -328,15 +328,16 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 		return nil, err
 	}
 	body.SetKey("key", key)
+	// Capture the most recent Merkle Root, inside of "body"
+	// field.
+	if mr := merkleRootInfo(g); mr != nil {
+		body.SetKey("merkle_root", mr)
+	}
 
 	ret.SetKey("body", body)
 
-	// Capture the most recent Merkle Root and also what kind of client
-	// we're running.
+	// Save what kind of client we're running.
 	ret.SetKey("client", clientInfo(g))
-	if mr := merkleRootInfo(g); mr != nil {
-		ret.SetKey("merkle_root", mr)
-	}
 
 	return
 }
