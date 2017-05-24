@@ -49,7 +49,7 @@ const Notifications = (props: Props) =>
         {!!props.groups.app_push &&
           props.groups.app_push.settings &&
           <Box style={globalStyles.flexBoxColumn}>
-            <Text type="BodyBig" style={{marginTop: globalMargins.large}}>Push notifications:</Text>
+            <Text type="BodyBig" style={{marginTop: globalMargins.large}}>Phone - push notifications:</Text>
             {props.groups.app_push.settings.map(s => makeCheckbox('app_push', s, props))}
             <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Or:</Text>
             <Checkbox
