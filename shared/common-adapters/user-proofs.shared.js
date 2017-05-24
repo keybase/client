@@ -40,7 +40,9 @@ function proofColor(proof: Proof, forIcon: boolean): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
-      color = proof.isTracked ? (forIcon ? globalColors.green : globalColors.green2) : globalColors.blue
+      color = proof.isTracked
+        ? forIcon ? globalColors.green : globalColors.green2
+        : forIcon ? globalColors.blue2 : globalColors.blue
       break
     }
     case proofChecking:
