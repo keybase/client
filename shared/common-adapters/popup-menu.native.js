@@ -47,7 +47,7 @@ const styleRow = ({
   if (isHeader) {
     return {
       ...sharedStyle,
-      padding: globalMargins.medium,
+      paddingTop: globalMargins.medium,
       backgroundColor: danger ? globalColors.red : globalColors.white,
     }
   }
