@@ -28,9 +28,8 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   return <Text type="BodySmallSemibold" style={style}>{author}</Text>
 }
 
-const ActionButton = ({isRevoked, onAction}) => (
+const ActionButton = ({onAction}) => (
   <Box className="action-button">
-    {isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
     {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
   </Box>
 )
@@ -88,6 +87,7 @@ const MessageWrapper = (props: Props) => (
               <EditedMark isEdited={props.isEdited} />
             </Box>
             <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
+            {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
           </Box>
           <Failure
             failureDescription={props.failureDescription}
@@ -144,7 +144,7 @@ const _stylesSelected = {
 
 const _exclamationStyle = {
   color: globalColors.blue,
-  fontSize: 10,
+  fontSize: 11,
 }
 
 const _ellipsisStyle = {
@@ -155,6 +155,7 @@ const _ellipsisStyle = {
 
 const _textContainerStyle = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   borderRadius: 4,
   flex: 1,
   marginLeft: -globalMargins.xtiny,
