@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import {Box, Button, Checkbox, HeaderHoc, NativeScrollView, ProgressIndicator, Text} from '../../common-adapters'
-import {isMobile} from '../../constants/platform'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'
