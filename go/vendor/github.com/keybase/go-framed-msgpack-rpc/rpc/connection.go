@@ -616,6 +616,12 @@ func (c *Connection) Shutdown() {
 	}
 }
 
+// FastForwardInitialBackoffTimer causes any pending reconnect to happen
+// immediately.
+func (c *Connection) FastForwardInitialBackoffTimer() {
+	c.randomTimer.FireNow()
+}
+
 type connectionClient struct {
 	conn *Connection
 }
