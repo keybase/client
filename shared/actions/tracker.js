@@ -446,7 +446,7 @@ function _serverCallMap(
     if (!alreadyPending) {
       // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
-      requestIdleCallback(f, {timeout: 3e3})
+      requestIdleCallback(f, {timeout: 1e3})
     } else {
       console.log('skipped idle call due to already pending')
     }
