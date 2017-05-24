@@ -37,6 +37,11 @@ func TestMemberOwner(t *testing.T) {
 	if role != keybase1.TeamRole_OWNER {
 		t.Errorf("role: %s, expected OWNER", role)
 	}
+
+	aliceRole := usernameRole(tc, s, "t_alice")
+	if aliceRole != keybase1.TeamRole_NONE {
+		t.Errorf("role: %s, expected NONE", aliceRole)
+	}
 }
 
 func TestMemberAdd(t *testing.T) {
@@ -48,16 +53,31 @@ func TestMemberAdd(t *testing.T) {
 }
 
 func uidRole(tc libkb.TestContext, state *TeamSigChainState, uid keybase1.UID) keybase1.TeamRole {
-	upak, _, err := tc.G.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(context.Background(), tc.G, uid))
+	return uvRole(tc, state, userVersion(tc, uid))
+}
+
+func usernameRole(tc libkb.TestContext, state *TeamSigChainState, username string) keybase1.TeamRole {
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, username))
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+	return uvRole(tc, state, userVersion(tc, user.GetUID()))
+}
 
-	uv := NewUserVersion(upak.Base.Username, upak.Base.EldestSeqno)
-
+func uvRole(tc libkb.TestContext, state *TeamSigChainState, uv UserVersion) keybase1.TeamRole {
 	role, err := state.GetUserRole(uv)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 	return role
+}
+
+func userVersion(tc libkb.TestContext, uid keybase1.UID) UserVersion {
+	arg := libkb.NewLoadUserByUIDArg(context.Background(), tc.G, uid)
+	upak, _, err := tc.G.GetUPAKLoader().Load(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+
+	return NewUserVersion(upak.Base.Username, upak.Base.EldestSeqno)
 }
