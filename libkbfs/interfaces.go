@@ -402,6 +402,10 @@ type KeybaseService interface {
 	// specified TeamID.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID) (TeamInfo, error)
 
+	// GetCurrentMerkleSeqNo returns the current sequence number of the
+	// global Keybase Merkle tree.
+	GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error)
+
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
 	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
@@ -526,6 +530,10 @@ type KBPKI interface {
 	// team.
 	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (
 		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
+
+	// GetCurrentMerkleSeqNo returns the current sequence number of the
+	// global Keybase Merkle tree.
+	GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error)
 
 	// TODO: Split the methods below off into a separate
 	// FavoriteOps interface.

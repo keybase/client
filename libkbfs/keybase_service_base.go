@@ -408,6 +408,13 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	panic("The Keybase service doesn't support LoadTeamPlusKeys yet")
 }
 
+// GetCurrentMerkleSeqNo implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetCurrentMerkleSeqNo(ctx context.Context) (
+	MerkleSeqNo, error) {
+	panic("The Keybase service doesn't support GetCurrentMerkleSeqNo yet")
+}
+
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 	UserInfo, error) {
 	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(upk.DeviceKeys)

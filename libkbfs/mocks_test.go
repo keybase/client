@@ -1081,6 +1081,17 @@ func (_mr *_MockKeybaseServiceRecorder) LoadTeamPlusKeys(arg0, arg1 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadTeamPlusKeys", arg0, arg1)
 }
 
+func (_m *MockKeybaseService) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
+	ret0, _ := ret[0].(MerkleSeqNo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
+}
+
 func (_m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
@@ -1459,6 +1470,17 @@ func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamI
 
 func (_mr *_MockKBPKIRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
+}
+
+func (_m *MockKBPKI) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
+	ret0, _ := ret[0].(MerkleSeqNo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
 }
 
 func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {

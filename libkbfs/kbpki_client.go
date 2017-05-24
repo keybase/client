@@ -202,6 +202,12 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 	return teamInfo.CryptKeys, teamInfo.LatestKeyGen, nil
 }
 
+// GetCurrentMerkleSeqNo implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentMerkleSeqNo(ctx context.Context) (
+	MerkleSeqNo, error) {
+	return k.serviceOwner.KeybaseService().GetCurrentMerkleSeqNo(ctx)
+}
+
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
