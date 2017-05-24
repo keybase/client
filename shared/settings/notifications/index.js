@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
-import {Box, Button, Text, Checkbox, ProgressIndicator} from '../../common-adapters'
+import {Box, Button, Checkbox, HeaderHoc, ProgressIndicator, Text} from '../../common-adapters'
+import {isMobile} from '../../constants/platform'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'
@@ -10,7 +11,7 @@ const Notifications = (props: Props) =>
     ? <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <ProgressIndicator type="Small" style={{width: globalMargins.medium}} />
       </Box>
-    : <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flex: 1}}>
+    : <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.small, flex: 1}}>
         <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>Email me:</Text>
         <Box style={globalStyles.flexBoxColumn}>
           {!!props.settings &&
@@ -43,4 +44,4 @@ const Notifications = (props: Props) =>
         />
       </Box>
 
-export default Notifications
+export default (isMobile ? HeaderHoc(Notifications) : Notifications)
