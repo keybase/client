@@ -35,7 +35,7 @@ export type NotificationsState = {
   allowSave: boolean,
   allowEdit: boolean,
   groups: {
-    email: NotificationsGroupState,
+    email?: NotificationsGroupState,
     app_push?: NotificationsGroupState,
     sms?: NotificationsGroupState,
   },

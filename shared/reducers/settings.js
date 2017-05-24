@@ -83,7 +83,7 @@ function reducer(state: State = initialState, action: Actions): State {
 
       const {settings, unsubscribedFromAll} = state.notifications.groups[group]
       const changed = {
-        group: {
+        [group]: {
           settings: settings.map(s => updateSubscribe(s, group)),
           // No name means toggle the unsubscribe option
           unsubscribedFromAll: !name && !unsubscribedFromAll,
@@ -124,7 +124,9 @@ function reducer(state: State = initialState, action: Actions): State {
         notifications: {
           allowEdit: true,
           allowSave: false,
-          ...action.payload,
+          groups: {
+            ...action.payload,
+          },
         },
       }
     case Constants.invitesRefreshed:
