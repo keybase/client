@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -26,14 +27,17 @@ func (o keybaseServiceSelfOwner) KeybaseService() KeybaseService {
 }
 
 func makeTestKBPKIClient(t *testing.T) (
-	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
+	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser,
+	teams []TeamInfo) {
 	currentUID = keybase1.MakeTestUID(1)
 	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
+	teamNames := []libkb.NormalizedUsername{"test_team1", "test_team2"}
+	teams = MakeLocalTeams(teamNames)
 	codec := kbfscodec.NewMsgpack()
-	daemon := NewKeybaseDaemonMemory(currentUID, users, nil, codec)
+	daemon := NewKeybaseDaemonMemory(currentUID, users, teams, codec)
 	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
-		logger.NewTestLogger(t)), currentUID, users
+		logger.NewTestLogger(t)), currentUID, users, teams
 }
 
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
@@ -58,7 +62,7 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 }
 
 func TestKBPKIClientIdentify(t *testing.T) {
-	c, _, _ := makeTestKBPKIClient(t)
+	c, _, _, _ := makeTestKBPKIClient(t)
 
 	_, id, err := c.Identify(context.Background(), "test_name1", "")
 	if err != nil {
@@ -70,7 +74,7 @@ func TestKBPKIClientIdentify(t *testing.T) {
 }
 
 func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
-	c, _, _ := makeTestKBPKIClient(t)
+	c, _, _, _ := makeTestKBPKIClient(t)
 
 	name, err := c.GetNormalizedUsername(
 		context.Background(), keybase1.MakeTestUID(1).AsUserOrTeam())
@@ -83,7 +87,7 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 }
 
 func TestKBPKIClientHasVerifyingKey(t *testing.T) {
-	c, _, localUsers := makeTestKBPKIClient(t)
+	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
 		localUsers[0].VerifyingKeys[0], time.Now())
@@ -159,7 +163,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 }
 
 func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
-	c, _, localUsers := makeTestKBPKIClient(t)
+	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
 	cryptPublicKeys, err := c.GetCryptPublicKeys(context.Background(),
 		keybase1.MakeTestUID(1))
@@ -179,7 +183,7 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 }
 
 func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
-	c, _, localUsers := makeTestKBPKIClient(t)
+	c, _, localUsers, _ := makeTestKBPKIClient(t)
 
 	session, err := c.GetCurrentSession(context.Background())
 	if err != nil {
@@ -190,6 +194,29 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 	expectedKID := localUsers[0].GetCurrentCryptPublicKey().KID()
 	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
+	}
+}
+
+func TestKBPKIClientGetTeamTLFCryptKeys(t *testing.T) {
+	c, _, _, localTeams := makeTestKBPKIClient(t)
+
+	if len(localTeams) == 0 {
+		t.Error("No local teams were generated")
+	}
+
+	for _, team := range localTeams {
+		keys, keyGen, err := c.GetTeamTLFCryptKeys(
+			context.Background(), team.TID)
+		if err != nil {
+			t.Error(err)
+		}
+		if !reflect.DeepEqual(team.CryptKeys, keys) {
+			t.Errorf("Team TLF crypt keys don't match: %v vs %v",
+				team.CryptKeys, keys)
+		}
+		if keyGen != FirstValidKeyGen {
+			t.Errorf("Unexpected team key gen: %v", keyGen)
+		}
 	}
 }
 

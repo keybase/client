@@ -60,3 +60,12 @@ func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
 	k := MakeFakeCryptPrivateKeyOrBust(seed)
 	return k.GetPublicKey()
 }
+
+// MakeFakeTLFCryptKeyOrBust makes a TLF crypt key from the given
+// seed.
+func MakeFakeTLFCryptKeyOrBust(seed string) TLFCryptKey {
+	fakeRandomBytes := makeFakeRandomBytes(seed, 32)
+	var key [32]byte
+	copy(key[:], fakeRandomBytes[:32])
+	return MakeTLFCryptKey(key)
+}

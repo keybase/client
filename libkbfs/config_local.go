@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
@@ -208,6 +209,14 @@ func MakeLocalUserCryptPublicKeyOrBust(
 	return MakeLocalUserCryptPrivateKeyOrBust(name).GetPublicKey()
 }
 
+// MakeLocalTLFCryptKeyOrBust returns a unique private symmetric key
+// for a TLF.
+func MakeLocalTLFCryptKeyOrBust(
+	name string, keyGen KeyGen) kbfscrypto.TLFCryptKey {
+	return kbfscrypto.MakeFakeTLFCryptKeyOrBust(
+		string(name) + " crypt key " + string(keyGen))
+}
+
 // MakeLocalUsers is a helper function to generate a list of
 // LocalUsers suitable to use with KBPKILocal.
 func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
@@ -230,6 +239,26 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 		}
 	}
 	return localUsers
+}
+
+// MakeLocalTeams is a helper function to generate a list of
+// local teams suitable to use with KBPKILocal.
+func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
+	localTeams := make([]TeamInfo, len(teams))
+	for i := 0; i < len(teams); i++ {
+		cryptKey := MakeLocalTLFCryptKeyOrBust(
+			buildCanonicalPathForTlfType(tlf.SingleTeam, string(teams[i])),
+			FirstValidKeyGen)
+		localTeams[i] = TeamInfo{
+			Name: teams[i],
+			TID:  keybase1.MakeTestTeamID(uint32(i + 1)),
+			CryptKeys: map[KeyGen]kbfscrypto.TLFCryptKey{
+				FirstValidKeyGen: cryptKey,
+			},
+			LatestKeyGen: FirstValidKeyGen,
+		}
+	}
+	return localTeams
 }
 
 // getDefaultCleanBlockCacheCapacity returns the default clean block
