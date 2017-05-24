@@ -142,6 +142,9 @@ function updateStateWithMessageChanged(
     })
   )
 
+  // Note: this may be overly conservative: it updates messageMap with the
+  // latest key only, and does not remove the old key in case of a key change.
+  // We may find that deleting the old key is appropriate in the future.
   const newKey = toMerge.key || messageKey
   if (newKey) {
     newState = newState.set(
