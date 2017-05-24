@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, Checkbox, HeaderHoc, ProgressIndicator, Text} from '../../common-adapters'
+import {Box, Button, Checkbox, HeaderHoc, NativeScrollView, ProgressIndicator, Text} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -12,7 +12,7 @@ const makeCheckbox = (
   props: Props
 ) => (
   <Checkbox
-    style={{marginTop: globalMargins.small}}
+    style={{marginTop: globalMargins.small, marginRight: globalMargins.medium}}
     key={s.name}
     disabled={!props.allowEdit}
     onCheck={() => props.onToggle(group, s.name)}
@@ -20,6 +20,11 @@ const makeCheckbox = (
     label={s.description}
   />
 )
+
+const MobileNotifications = (props: Props) =>
+  <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Notifications {...props} />
+  </NativeScrollView>
 
 const Notifications = (props: Props) =>
   !props.groups.email
@@ -66,4 +71,4 @@ const Notifications = (props: Props) =>
         />
       </Box>
 
-export default (isMobile ? HeaderHoc(Notifications) : Notifications)
+export default (isMobile ? HeaderHoc(MobileNotifications) : Notifications)
