@@ -114,6 +114,7 @@ export default compose(
         input && input.setNativeProps({text: ''})
       },
       inputFocus: props => () => input && input.focus(),
+      inputBlur: props => () => input && input.blur(),
       inputSelections: props => () => (input && input.selections()) || {},
       inputSetRef: props => i => {
         input = i

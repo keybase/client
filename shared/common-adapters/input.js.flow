@@ -29,6 +29,7 @@ export type Props = {
   value?: ?string,
 
   // Mobile only
+  onEndEditing?: ?() => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoCorrect?: boolean,
   keyboardType?:
