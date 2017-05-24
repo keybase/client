@@ -1,15 +1,19 @@
 "strict";
 
+// Check if there is an inline button already available for us to swap. Used
+// before adding our own button.
+function installExistingButtons(user) {
+  const preinstalled = document.getElementsByClassName("keybase-chat-open");
+  if (!preinstalled.length) return false;
+
+  installChatButton(preinstalled, user);
+  return true;
+}
+
 // Site-specific DOM injectors, does not get used in the popup.
 
 const profileInject = {
   "keybase": function keybaseInjectProfile(user) {
-    const preinstalled = document.getElementsByClassName("keybase-chat-open");
-    if (preinstalled.length > 0) {
-      installChatButton(preinstalled, user);
-      return;
-    }
-
     // Keybase button is special to fit our UI until we get a placeholder to
     // install into. This should be removed when we get a native button to use.
     for (const wrapper of document.querySelectorAll(".track-action-wrapper")) {
@@ -110,6 +114,11 @@ function redditRenderChatButton(toUsername) {
 // Install chat button opening
 function installChatButton(buttons, user, nudgeSupported) {
   for (let b of buttons) {
+    if (b.style.display === "none") {
+      // Make the button visible if it's hidden
+      b.style = "display: inline-block !important;";
+    }
+
     b.addEventListener('click', function(e) {
       e.preventDefault();
       const chatParent = e.currentTarget.parentNode;

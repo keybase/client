@@ -49,7 +49,7 @@ function init() {
     // Inject profile chat buttons?
     if (options["profile-chat-buttons"] !== false && user) { // undefined defaults to true
       const injectFn = profileInject[user.origin];
-      if (injectFn !== undefined) {
+      if (injectFn !== undefined && !installExistingButtons(user)) {
         injectFn(user);
       }
     }
