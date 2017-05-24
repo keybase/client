@@ -452,7 +452,7 @@ function _serverCallMap(
     }
   }
 
-  // We queue up responses and handle them a couple at a time
+  // We queue up responses and handle them one at a time
   let _idleResponseQueue = []
 
   const addToIdleResponseQueue = (f: () => void) => {
@@ -464,11 +464,8 @@ function _serverCallMap(
     if (!_idleResponseQueue.length) {
       return
     }
-    const max = 2
-    const toHandle = _idleResponseQueue.slice(0, max)
-    _idleResponseQueue = _idleResponseQueue.slice(max)
-    console.log('aaaa', toHandle.length)
-    toHandle.forEach(f => f())
+    const toHandle = _idleResponseQueue.pop()
+    toHandle()
     if (_idleResponseQueue.length) {
       requestIdle(onRequestIdleQueueHandler)
     }
