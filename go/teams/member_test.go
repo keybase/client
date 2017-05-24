@@ -33,7 +33,17 @@ func TestMemberOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	role := s.UserLog.getUserRole(NewUserVersion(u.Username, 1))
+	upak, _, err := tc.G.GetUPAKLoader().Load(libkb.NewLoadUserByUIDArg(context.Background(), tc.G, u.User.GetUID()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	uv := NewUserVersion(upak.Base.Username, upak.Base.EldestSeqno)
+	t.Logf("user eldest seqno: %d", upak.Base.EldestSeqno)
+
+	role, err := s.GetUserRole(uv)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if role != keybase1.TeamRole_OWNER {
 		t.Errorf("role: %s, expected OWNER", role)
 	}
