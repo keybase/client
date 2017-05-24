@@ -396,7 +396,12 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 	arg.PublicKeyOptional = true
 	arg.NetContext = ctx
 
-	forcePollValues := []bool{false, true}
+	forcePollValues := []bool{}
+	if u.G().Env.GetRunMode() == DevelRunMode {
+		forcePollValues = []bool{true}
+	} else {
+		forcePollValues = []bool{false, true}
+	}
 
 	for _, fp := range forcePollValues {
 
