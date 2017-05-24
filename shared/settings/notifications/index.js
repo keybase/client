@@ -3,6 +3,7 @@ import React from 'react'
 import {Box, Button, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
+import type {NotificationsSettingsState} from '../../constants/settings'
 import type {Props} from './index'
 
 const SubscriptionCheckbox = (props: {
@@ -10,7 +11,7 @@ const SubscriptionCheckbox = (props: {
   description: string,
   groupName: string,
   name: string,
-  onToggle: () => void,
+  onToggle: (name: string) => void,
   subscribed: boolean,
 }) => (
   <Checkbox
@@ -23,7 +24,16 @@ const SubscriptionCheckbox = (props: {
   />
 )
 
-const Group = (props: any) => (
+const Group = (props: {
+  allowEdit: boolean,
+  groupName: string,
+  onToggle: (name: string) => void,
+  onToggleUnsubscribeAll: () => void,
+  settings: ?Array<NotificationsSettingsState>,
+  title: string,
+  unsub: string,
+  unsubscribedFromAll: boolean,
+}) => (
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
     <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>{props.title}</Text>
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
@@ -36,7 +46,7 @@ const Group = (props: any) => (
             key={props.groupName + s.name}
             name={s.name}
             onToggle={props.onToggle}
-            subscribed={s.name}
+            subscribed={s.subscribed}
           />
         ))}
     </Box>
