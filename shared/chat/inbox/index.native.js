@@ -178,7 +178,7 @@ const BottomLine = ({
     )
   } else if (snippet) {
     content = (
-      <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 12, lineHeight: 16}}>
+      <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 13, lineHeight: 17}}>
         {snippet}
       </Markdown>
     )
