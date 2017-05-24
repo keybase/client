@@ -6,7 +6,7 @@ const initialState: Constants.State = Constants.StateRecord()
 
 export default function(state: Constants.State = initialState, action: Constants.Actions) {
   if (action.type === CommonConstants.resetStore) {
-    return {...initialState}
+    return initialState
   }
 
   if (action.type === 'engine:waitingForRpc') {
