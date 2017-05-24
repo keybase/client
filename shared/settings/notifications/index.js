@@ -21,11 +21,6 @@ const makeCheckbox = (
   />
 )
 
-const MobileNotifications = (props: Props) =>
-  <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Notifications {...props} />
-  </NativeScrollView>
-
 const Notifications = (props: Props) =>
   !props.groups.email
     ? <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -71,4 +66,4 @@ const Notifications = (props: Props) =>
         />
       </Box>
 
-export default (isMobile ? HeaderHoc(MobileNotifications) : Notifications)
+export default Notifications
