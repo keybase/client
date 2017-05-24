@@ -297,17 +297,6 @@ func (u UID) Less(v UID) bool {
 	return u < v
 }
 
-// Returns a number in [0, shardCount) which can be treated as roughly
-// uniformly distributed. Used for things that need to shard by user.
-func (u UID) GetShard(shardCount int) (int, error) {
-	bytes, err := hex.DecodeString(string(u))
-	if err != nil {
-		return 0, err
-	}
-	n := binary.LittleEndian.Uint32(bytes)
-	return int(n % uint32(shardCount)), nil
-}
-
 func (u UID) AsUserOrTeam() UserOrTeamID {
 	return UserOrTeamID(u)
 }
@@ -321,6 +310,20 @@ func TeamIDFromString(s string) (TeamID, error) {
 		return "", fmt.Errorf("Bad TeamID '%s': must end in 0x%x or 0x%x", s, TEAMID_SUFFIX, SUB_TEAMID_SUFFIX)
 	}
 	return TeamID(s), nil
+}
+
+// Used by unit tests.
+func MakeTestTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
 }
 
 // Can panic if invalid
@@ -1131,4 +1134,15 @@ func (ut UserOrTeamID) IsSubteam() bool {
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
 	suffix := ut[len(ut)-2:]
 	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+// Returns a number in [0, shardCount) which can be treated as roughly
+// uniformly distributed. Used for things that need to shard by user.
+func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
+	bytes, err := hex.DecodeString(string(ut))
+	if err != nil {
+		return 0, err
+	}
+	n := binary.LittleEndian.Uint32(bytes)
+	return int(n % uint32(shardCount)), nil
 }
