@@ -241,9 +241,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
-	crypto cryptoPure, keyManager KeyManager, mdID kbfsmd.ID, isWriter bool) (
-	*RootMetadata, error) {
-
+	crypto cryptoPure, keyManager KeyManager, merkleGetter merkleSeqNoGetter,
+	mdID kbfsmd.ID, isWriter bool) (*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
@@ -286,6 +285,13 @@ func (md *RootMetadata) MakeSuccessor(
 		return nil, errors.New("MD with invalid revision")
 	}
 	newMd.SetRevision(md.Revision() + 1)
+
+	merkleSeqNo, err := merkleGetter.GetCurrentMerkleSeqNo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	newMd.SetMerkleSeqNo(merkleSeqNo)
+
 	return newMd, nil
 }
 
@@ -610,6 +616,12 @@ func (md *RootMetadata) Revision() kbfsmd.Revision {
 	return md.bareMd.RevisionNumber()
 }
 
+// MerkleSeqNo wraps the respective method of the underlying
+// BareRootMetadata for convenience.
+func (md *RootMetadata) MerkleSeqNo() MerkleSeqNo {
+	return md.bareMd.MerkleSeqNo()
+}
+
 // MergedStatus wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) MergedStatus() MergeStatus {
 	return md.bareMd.MergedStatus()
@@ -692,6 +704,12 @@ func (md *RootMetadata) SetWriterMetadataCopiedBit() {
 // SetRevision wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) SetRevision(revision kbfsmd.Revision) {
 	md.bareMd.SetRevision(revision)
+}
+
+// SetMerkleSeqNo wraps the respective method of the underlying
+// BareRootMetadata for convenience.
+func (md *RootMetadata) SetMerkleSeqNo(seqNo MerkleSeqNo) {
+	md.bareMd.SetMerkleSeqNo(seqNo)
 }
 
 // SetWriters wraps the respective method of the underlying BareRootMetadata for convenience.

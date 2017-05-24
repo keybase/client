@@ -1251,7 +1251,7 @@ func (fbo *folderBranchOps) getSuccessorMDForWriteLockedForFilename(
 	// or the changes will be lost.
 	return md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
 		fbo.config.Codec(), fbo.config.Crypto(),
-		fbo.config.KeyManager(), md.mdID, true)
+		fbo.config.KeyManager(), fbo.config.KBPKI(), md.mdID, true)
 }
 
 // getSuccessorMDForWriteLocked returns a new RootMetadata object with
@@ -1289,7 +1289,8 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 
 	newMd, err := md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
 		fbo.config.Codec(), fbo.config.Crypto(),
-		fbo.config.KeyManager(), md.mdID, handle.IsWriter(session.UID))
+		fbo.config.KeyManager(), fbo.config.KBPKI(), md.mdID,
+		handle.IsWriter(session.UID))
 	if err != nil {
 		return nil, kbfscrypto.VerifyingKey{}, false, err
 	}

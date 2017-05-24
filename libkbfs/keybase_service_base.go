@@ -412,7 +412,9 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetCurrentMerkleSeqNo(ctx context.Context) (
 	MerkleSeqNo, error) {
-	panic("The Keybase service doesn't support GetCurrentMerkleSeqNo yet")
+	// TODO: call into the service once they implement a way to get
+	// the current seqno.
+	return UnknownMerkleSeqNo, nil
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (

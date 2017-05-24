@@ -776,3 +776,12 @@ func (im InitMode) String() string {
 
 // MerkleSeqNo is a sequence number in the Keybase Merkle tree.
 type MerkleSeqNo uint64
+
+const (
+	// UnknownMerkleSeqNo represents an invalid sequence number
+	// indicating the correct seqno is not known (e.g., because the
+	// update pre-dates storing the seqno).
+	UnknownMerkleSeqNo MerkleSeqNo = 0
+	// FirstValidMerkleSeqNo is the smallest valid Merkle seqno.
+	FirstValidMerkleSeqNo MerkleSeqNo = 1
+)

@@ -1003,6 +1003,38 @@ func (_mr *_MockKBFSOpsRecorder) ForceFastForward(arg0 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ForceFastForward", arg0)
 }
 
+// Mock of merkleSeqNoGetter interface
+type MockmerkleSeqNoGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockmerkleSeqNoGetterRecorder
+}
+
+// Recorder for MockmerkleSeqNoGetter (not exported)
+type _MockmerkleSeqNoGetterRecorder struct {
+	mock *MockmerkleSeqNoGetter
+}
+
+func NewMockmerkleSeqNoGetter(ctrl *gomock.Controller) *MockmerkleSeqNoGetter {
+	mock := &MockmerkleSeqNoGetter{ctrl: ctrl}
+	mock.recorder = &_MockmerkleSeqNoGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockmerkleSeqNoGetter) EXPECT() *_MockmerkleSeqNoGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockmerkleSeqNoGetter) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
+	ret0, _ := ret[0].(MerkleSeqNo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmerkleSeqNoGetterRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
+}
+
 // Mock of KeybaseService interface
 type MockKeybaseService struct {
 	ctrl     *gomock.Controller
@@ -1022,6 +1054,17 @@ func NewMockKeybaseService(ctrl *gomock.Controller) *MockKeybaseService {
 
 func (_m *MockKeybaseService) EXPECT() *_MockKeybaseServiceRecorder {
 	return _m.recorder
+}
+
+func (_m *MockKeybaseService) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
+	ret0, _ := ret[0].(MerkleSeqNo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
 }
 
 func (_m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
@@ -1079,17 +1122,6 @@ func (_m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1
 
 func (_mr *_MockKeybaseServiceRecorder) LoadTeamPlusKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadTeamPlusKeys", arg0, arg1)
-}
-
-func (_m *MockKeybaseService) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
-	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
-	ret0, _ := ret[0].(MerkleSeqNo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeybaseServiceRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
 }
 
 func (_m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
@@ -1429,6 +1461,17 @@ func (_mr *_MockKBPKIRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
+func (_m *MockKBPKI) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
+	ret0, _ := ret[0].(MerkleSeqNo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
+}
+
 func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
 	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime)
 	ret0, _ := ret[0].(error)
@@ -1470,17 +1513,6 @@ func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamI
 
 func (_mr *_MockKBPKIRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
-}
-
-func (_m *MockKBPKI) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error) {
-	ret := _m.ctrl.Call(_m, "GetCurrentMerkleSeqNo", ctx)
-	ret0, _ := ret[0].(MerkleSeqNo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKBPKIRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
 }
 
 func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
@@ -5708,6 +5740,16 @@ func (_mr *_MockBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
 }
 
+func (_m *MockBareRootMetadata) MerkleSeqNo() MerkleSeqNo {
+	ret := _m.ctrl.Call(_m, "MerkleSeqNo")
+	ret0, _ := ret[0].(MerkleSeqNo)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) MerkleSeqNo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleSeqNo")
+}
+
 func (_m *MockBareRootMetadata) BID() BranchID {
 	ret := _m.ctrl.Call(_m, "BID")
 	ret0, _ := ret[0].(BranchID)
@@ -6144,6 +6186,16 @@ func (_mr *_MockMutableBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
 }
 
+func (_m *MockMutableBareRootMetadata) MerkleSeqNo() MerkleSeqNo {
+	ret := _m.ctrl.Call(_m, "MerkleSeqNo")
+	ret0, _ := ret[0].(MerkleSeqNo)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) MerkleSeqNo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleSeqNo")
+}
+
 func (_m *MockMutableBareRootMetadata) BID() BranchID {
 	ret := _m.ctrl.Call(_m, "BID")
 	ret0, _ := ret[0].(BranchID)
@@ -6459,6 +6511,14 @@ func (_m *MockMutableBareRootMetadata) SetRevision(revision kbfsmd.Revision) {
 
 func (_mr *_MockMutableBareRootMetadataRecorder) SetRevision(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRevision", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetMerkleSeqNo(seqNo MerkleSeqNo) {
+	_m.ctrl.Call(_m, "SetMerkleSeqNo", seqNo)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetMerkleSeqNo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMerkleSeqNo", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {

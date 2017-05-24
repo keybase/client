@@ -270,7 +270,7 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
+	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil, nil,
 		kbfsmd.FakeID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
@@ -393,7 +393,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(), config.Crypto(),
-		config.KeyManager(), kbfsmd.FakeID(1), true)
+		config.KeyManager(), config.KBPKI(), kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -484,7 +484,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		config.MetadataVersion(), config.Codec(), config.Crypto(),
-		config.KeyManager(), kbfsmd.FakeID(1), true)
+		config.KeyManager(), config.KBPKI(), kbfsmd.FakeID(1), true)
 	require.NoError(t, err)
 	require.Equal(t, PublicKeyGen, rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
@@ -610,7 +610,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	configReader.metadataVersion = SegregatedKeyBundlesVer
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		configReader.MetadataVersion(), configReader.Codec(),
-		configReader.Crypto(), configReader.KeyManager(),
+		configReader.Crypto(), configReader.KeyManager(), configReader.KBPKI(),
 		kbfsmd.FakeID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(1), rmd2.LatestKeyGeneration())

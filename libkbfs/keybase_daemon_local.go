@@ -590,6 +590,6 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		asserts:       asserts,
 		currentUID:    currentUID,
 		favoriteStore: favoriteStore,
-		merkleSeqNo:   1,
+		merkleSeqNo:   FirstValidMerkleSeqNo,
 	}
 }

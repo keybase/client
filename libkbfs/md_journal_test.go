@@ -105,6 +105,15 @@ func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	return md
 }
 
+type constMerkleRootGetter struct{}
+
+var _ merkleSeqNoGetter = constMerkleRootGetter{}
+
+func (cmrg constMerkleRootGetter) GetCurrentMerkleSeqNo(
+	ctx context.Context) (MerkleSeqNo, error) {
+	return FirstValidMerkleSeqNo, nil
+}
+
 func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	signer kbfscrypto.Signer, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mdCount int, uid keybase1.UID,
@@ -123,7 +132,7 @@ func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	prevRoot := mdID
 	for i := 1; i < mdCount; i++ {
 		md, err = md.MakeSuccessor(ctx, ver, codec, crypto,
-			nil, prevRoot, true)
+			nil, constMerkleRootGetter{}, prevRoot, true)
 		require.NoError(t, err)
 		mdID, err := putMD(ctx, md)
 		require.NoError(t, err)

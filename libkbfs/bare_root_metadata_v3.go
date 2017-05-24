@@ -88,6 +88,16 @@ type BareRootMetadataV3 struct {
 	// of writing to the given folder.
 	FinalizedInfo *tlf.HandleExtension `codec:"fi,omitempty"`
 
+	// The sequence number of the global Keybase Merkle tree at the
+	// time this update was created (from the writer's perspective).
+	// This field was added to V3 after it was live for a while, and
+	// older clients that don't know about this field yet might copy
+	// it into new updates via the unknown fields copier. Which means
+	// new MD updates might end up referring to older Merkle roots.
+	// That's ok since this is just a hint anyway, and shouldn't be
+	// fully trusted when checking MD updates against the Merkle tree.
+	KBMerkleSeqNo MerkleSeqNo `codec:"msn,omitempty"`
+
 	codec.UnknownFieldSetHandler
 }
 
@@ -968,6 +978,12 @@ func (md *BareRootMetadataV3) RevisionNumber() kbfsmd.Revision {
 	return md.Revision
 }
 
+// MerkleSeqNo implements the BareRootMetadata interface for
+// BareRootMetadataV3.
+func (md *BareRootMetadataV3) MerkleSeqNo() MerkleSeqNo {
+	return md.KBMerkleSeqNo
+}
+
 // BID implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) BID() BranchID {
 	return md.WriterMetadata.BID
@@ -1063,6 +1079,12 @@ func (md *BareRootMetadataV3) SetWriterMetadataCopiedBit() {
 // SetRevision implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) SetRevision(revision kbfsmd.Revision) {
 	md.Revision = revision
+}
+
+// SetMerkleSeqNo implements the MutableBareRootMetadata interface for
+// BareRootMetadataV3.
+func (md *BareRootMetadataV3) SetMerkleSeqNo(seqNo MerkleSeqNo) {
+	md.KBMerkleSeqNo = seqNo
 }
 
 func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
