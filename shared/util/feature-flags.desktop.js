@@ -19,7 +19,7 @@ const ff: FeatureFlags = {
   admin: false,
   plansEnabled: false,
   recentFilesEnabled: false,
-  searchv3Enabled: false,
+  searchv3Enabled: true,
   tabPeopleEnabled: false,
 }
 

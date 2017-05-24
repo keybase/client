@@ -541,6 +541,9 @@ function clearAttachmentPlaceholderPreview(
   return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
 }
 
+function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
+  return {payload: {filter}, type: 'chat:inboxFilter'}
+}
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
@@ -591,6 +594,7 @@ export {
   selectAttachment,
   selectConversation,
   setAttachmentPlaceholderPreview,
+  setInboxFilter,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,

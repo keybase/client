@@ -335,6 +335,7 @@ export type RekeyInfo = Record<{
 export const StateRecord = Record({
   messageMap: Map(),
   inbox: List(),
+  inboxFilter: List(),
   conversationStates: Map(),
   metaData: Map(),
   finalizedState: Map(),
@@ -358,6 +359,7 @@ export type State = Record<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
+  inboxFilter: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -481,6 +483,7 @@ export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
   'chat:setAttachmentPlaceholderPreview',
   {previewPath: string, outboxID: OutboxIDKey}
 >
+export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
   {inboxUntrustedState: UntrustedState}
