@@ -94,7 +94,10 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
           {proofStatusIconType &&
             (proof.state === proofChecking
               ? <ProgressIndicator style={styleSpinner} />
-              : <Icon type={proofStatusIconType} style={{fontSize: 32}} />)}
+              : <Icon
+                  type={proofStatusIconType}
+                  style={{fontSize: 32, color: shared.proofColor(proof, true)}}
+                />)}
           {hasMenu && <Icon type="iconfont-caret-down" />}
         </Box>
       </ClickableBox>
@@ -202,7 +205,7 @@ const styleService = {
   color: globalColors.black_75,
   fontSize: 20,
   marginRight: globalMargins.xtiny,
-  marginTop: globalMargins.tiny - 2,
+  marginTop: globalMargins.tiny - 1,
   textAlign: 'center',
 }
 const styleStatusIconTouchable = {

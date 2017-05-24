@@ -20,8 +20,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type Seqno int64
-
 const (
 	NodeHashLenLong  = sha512.Size // = 64
 	NodeHashLenShort = sha256.Size // = 32
@@ -200,7 +198,7 @@ type MerkleClient struct {
 	keyring *SpecialKeyRing
 
 	// Blocks that have been verified
-	verified map[Seqno]bool
+	verified map[keybase1.Seqno]bool
 
 	// The most recently-available root
 	lastRoot *MerkleRoot
@@ -222,7 +220,7 @@ type MerkleRoot struct {
 type SkipSequence []MerkleRootPayload
 
 type MerkleTriple struct {
-	Seqno  Seqno          `json:"seqno"`
+	Seqno  keybase1.Seqno `json:"seqno"`
 	LinkID LinkID         `json:"id"`
 	SigID  keybase1.SigID `json:"sigid,omitempty"`
 }
@@ -279,21 +277,21 @@ type MerkleRootPayloadUnpacked struct {
 			Fingerprint PGPFingerprint `json:"fingerprint"`
 			KeyID       string         `json:"key_id"`
 		} `json:"key"`
-		LegacyUIDRoot NodeHashShort `json:"legacy_uid_root"`
-		Prev          NodeHashLong  `json:"prev"`
-		Root          NodeHashLong  `json:"root"`
-		Seqno         Seqno         `json:"seqno"`
-		Skips         SkipTable     `json:"skips"`
-		Txid          string        `json:"txid"`
-		Type          string        `json:"type"`
-		Version       int           `json:"version"`
-		PvlHash       string        `json:"pvl_hash"`
+		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
+		Prev          NodeHashLong   `json:"prev"`
+		Root          NodeHashLong   `json:"root"`
+		Seqno         keybase1.Seqno `json:"seqno"`
+		Skips         SkipTable      `json:"skips"`
+		Txid          string         `json:"txid"`
+		Type          string         `json:"type"`
+		Version       int            `json:"version"`
+		PvlHash       string         `json:"pvl_hash"`
 	} `json:"body"`
 	Ctime int64  `json:"ctime"`
 	Tag   string `json:"tag"`
 }
 
-type SkipTable map[Seqno]NodeHashAny
+type SkipTable map[keybase1.Seqno]NodeHashAny
 
 type PathStep struct {
 	prefix string
@@ -341,7 +339,7 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 func NewMerkleClient(g *GlobalContext) *MerkleClient {
 	return &MerkleClient{
 		keyring:      NewSpecialKeyRing(g.Env.GetMerkleKIDs(), g),
-		verified:     make(map[Seqno]bool),
+		verified:     make(map[keybase1.Seqno]bool),
 		lastRoot:     nil,
 		Contextified: NewContextified(g),
 	}
@@ -710,7 +708,7 @@ func (mc *MerkleClient) storeRoot(ctx context.Context, root *MerkleRoot, storeFi
 	}
 }
 
-func (mc *MerkleClient) FirstSeqnoWithSkips() *Seqno {
+func (mc *MerkleClient) FirstSeqnoWithSkips() *keybase1.Seqno {
 
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
 		return &FirstProdMerkleSeqnoWithSkips
@@ -773,7 +771,7 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 // with the most recently returned root, and ending with the last root that we fetched. So for instance,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
-func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot Seqno, lastRoot Seqno) (err error) {
+func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
 	defer g.CTrace(ctx, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
@@ -811,7 +809,7 @@ func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot Se
 	return nil
 }
 
-func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *Seqno) error {
+func (mc *MerkleClient) verifyAndStoreRoot(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno) error {
 
 	// First make sure it's not a rollback
 	if seqnoWhenCalled != nil && *seqnoWhenCalled > *root.Seqno() {
@@ -884,7 +882,7 @@ func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
 	if l > 3 {
 		return nil, fmt.Errorf("Bad merkle triple, with > 3 values")
 	}
-	seqno, err := jw.AtIndex(0).GetInt()
+	seqno, err := jw.AtIndex(0).GetInt64()
 	if err != nil {
 		return nil, err
 	}
@@ -901,7 +899,7 @@ func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
 		}
 	}
 
-	return &MerkleTriple{Seqno(seqno), li, si}, nil
+	return &MerkleTriple{keybase1.Seqno(seqno), li, si}, nil
 
 }
 
@@ -1175,6 +1173,7 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 	ret.SetKey("seqno", jsonw.NewInt(int(*mr.Seqno())))
 	ret.SetKey("ctime", jsonw.NewInt64(int64(mr.Ctime())))
 	ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
+	ret.SetKey("hash_meta", jsonw.NewString(mr.ShortHash().String()))
 
 	return
 }
@@ -1243,7 +1242,7 @@ func (mr MerkleRoot) ShallowCopy() *MerkleRoot {
 	return &mr
 }
 
-func (mr *MerkleRoot) Seqno() *Seqno {
+func (mr *MerkleRoot) Seqno() *keybase1.Seqno {
 	if mr == nil {
 		return nil
 	}
@@ -1272,7 +1271,7 @@ func (mr *MerkleRoot) PvlHash() string {
 	return mr.payload.pvlHash()
 }
 
-func (mr *MerkleRoot) SkipToSeqno(s Seqno) NodeHash {
+func (mr *MerkleRoot) SkipToSeqno(s keybase1.Seqno) NodeHash {
 	if mr == nil {
 		return nil
 	}
@@ -1293,14 +1292,14 @@ func (mr *MerkleRoot) Fetched() time.Time {
 	return mr.fetched
 }
 
-func (mrp MerkleRootPayload) skipToSeqno(s Seqno) NodeHash {
+func (mrp MerkleRootPayload) skipToSeqno(s keybase1.Seqno) NodeHash {
 	if mrp.unpacked.Body.Skips == nil {
 		return nil
 	}
 	return mrp.unpacked.Body.Skips[s]
 }
 
-func (mrp MerkleRootPayload) seqno() Seqno                { return mrp.unpacked.Body.Seqno }
+func (mrp MerkleRootPayload) seqno() keybase1.Seqno       { return mrp.unpacked.Body.Seqno }
 func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.Body.Root }
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }

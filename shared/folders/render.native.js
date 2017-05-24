@@ -109,8 +109,8 @@ const styleItem = {
 }
 
 const styleBadgeNumber = {
-  lineHeight: '12px',
-  fontSize: 10,
+  lineHeight: '13px',
+  fontSize: 11,
 }
 
 const itemContainerStyle = {

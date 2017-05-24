@@ -162,7 +162,7 @@ const BottomLine = ({
           backgroundColor: globalColors.red,
           borderRadius: 2,
           color: globalColors.white,
-          fontSize: 10,
+          fontSize: 11,
           paddingLeft: 2,
           paddingRight: 2,
         }}

@@ -160,6 +160,7 @@ const userRowStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   height: 48,
+  width: '100%',
   alignItems: 'center',
 }
 

@@ -97,14 +97,6 @@ export const CommonMerkleTreeID = {
   kbfsPrivate: 2,
 }
 
-export const CommonTeamRole = {
-  none: 0,
-  owner: 1,
-  admin: 2,
-  writer: 3,
-  reader: 4,
-}
-
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -499,6 +491,14 @@ export const SimpleFSOpenFlags = {
 export const SimpleFSPathType = {
   local: 0,
   kbfs: 1,
+}
+
+export const TeamsTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -3427,6 +3427,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamGetRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamGet', request)
+}
+
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
+}
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing('keybase.1.test.panic', request)
 }
@@ -4814,14 +4829,14 @@ export type PathType =
 
 export type PerTeamKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
 
 export type PerUserKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
@@ -5166,6 +5181,8 @@ export type SelectKeyRes = {
   doSecretPush: boolean,
 }
 
+export type Seqno = int64
+
 export type ServiceStatus = {
   version: string,
   label: string,
@@ -5202,7 +5219,7 @@ export type SessionStatus = {
 export type SessionToken = string
 
 export type Sig = {
-  seqno: int,
+  seqno: Seqno,
   sigID: SigID,
   sigIDDisplay: string,
   type: string,
@@ -5611,7 +5628,7 @@ export type UserPlusAllKeys = {
 export type UserPlusKeys = {
   uid: UID,
   username: string,
-  eldestSeqno: int,
+  eldestSeqno: Seqno,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
@@ -6547,6 +6564,10 @@ export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamGetRpcParam = Exact<{
+  name: string
+}>
+
 export type testPanicRpcParam = Exact<{
   message: string
 }>
@@ -7001,6 +7022,7 @@ export type rpc =
   | sigsSigListJSONRpc
   | sigsSigListRpc
   | teamsTeamCreateRpc
+  | teamsTeamGetRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

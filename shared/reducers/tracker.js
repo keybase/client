@@ -654,8 +654,6 @@ function proofUrlToProfileUrl(proofType: number, name: string, key: ?string, hum
       return `https://github.com/${name}`
     case RPCTypes.ProveCommonProofType.reddit:
       return `https://reddit.com/user/${name}`
-    case RPCTypes.ProveCommonProofType.coinbase:
-      return `https://coinbase.com/${name}`
     case RPCTypes.ProveCommonProofType.hackernews:
       return `https://news.ycombinator.com/user?id=${name}`
     default:

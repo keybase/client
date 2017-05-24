@@ -87,7 +87,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 type OuterLinkV2 struct {
 	_struct  bool           `codec:",toarray"`
 	Version  int            `codec:"version"`
-	Seqno    Seqno          `codec:"seqno"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
 	Prev     LinkID         `codec:"prev"`
 	Curr     LinkID         `codec:"curr"`
 	LinkType SigchainV2Type `codec:"type"`
@@ -217,7 +217,7 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
-func (o OuterLinkV2) AssertFields(v int, s Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
+func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
@@ -239,7 +239,7 @@ func (o OuterLinkV2) AssertFields(v int, s Seqno, p LinkID, c LinkID, t Sigchain
 	return nil
 }
 
-func (o OuterLinkV2) AssertSomeFields(v int, s Seqno) (err error) {
+func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}

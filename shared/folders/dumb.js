@@ -355,7 +355,7 @@ const commonUnlock = {
   youCanUnlock: [
     {name: 'Work Computer', type: 'desktop', deviceID: '1'},
     {name: 'Home Computer', type: 'desktop', deviceID: '2'},
-    {name: "Cecil's iPhone", type: 'mobile', deviceID: '3'},
+    {name: "Cécile's iPhone", type: 'mobile', deviceID: '3'},
     {name: 'project green...', type: 'backup', deviceID: '4'},
     {name: 'gumball sparkles...', type: 'backup', deviceID: '5'},
   ],

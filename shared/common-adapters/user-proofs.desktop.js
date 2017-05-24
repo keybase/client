@@ -115,7 +115,8 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
-          {proofStatusIconType && <Icon type={proofStatusIconType} />}
+          {proofStatusIconType &&
+            <Icon type={proofStatusIconType} style={{color: shared.proofColor(proof, true)}} />}
           {hasMenu &&
             <Icon
               type="iconfont-caret-down"

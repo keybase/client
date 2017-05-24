@@ -78,9 +78,12 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 
 	// TODO: Make a real version of this that can distinguish UIDs and
 	// TeamIDs.  For now, only support UIDs.
-	uid, err := arg.Id.AsUser()
-	if err != nil {
-		return res, err
+	var uid keybase1.UID
+	if arg.Id.Exists() {
+		uid, err = arg.Id.AsUser()
+		if err != nil {
+			return res, err
+		}
 	}
 	id2arg := keybase1.Identify2Arg{
 		SessionID:             arg.SessionID,

@@ -186,7 +186,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "fsc")
 
-	var scv libkb.Seqno
+	var scv keybase1.Seqno
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()
@@ -226,7 +226,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	}
 	t.Logf("using username:%+v", fu.Username)
 
-	var scv libkb.Seqno
+	var scv keybase1.Seqno
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()

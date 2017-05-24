@@ -51,6 +51,9 @@ protocol Common {
   @typedef("string")
   record UserOrTeamID {}
 
+  @typedef("int64") @lint("ignore")
+  record Seqno {}
+
   fixed Bytes32(32);
 
   record Text {
@@ -150,15 +153,7 @@ protocol Common {
   @lint("ignore")
   record PerUserKey {
       int gen;
-      int seqno;
-      KID sigKID;
-      KID encKID;
-  }
-
-  @lint("ignore")
-  record PerTeamKey {
-      int gen;
-      int seqno;
+      Seqno seqno;
       KID sigKID;
       KID encKID;
   }
@@ -166,7 +161,7 @@ protocol Common {
   record UserPlusKeys {
       UID uid;
       string username;
-      int eldestSeqno;
+      Seqno eldestSeqno;
 
       // deviceKeys is a list of active device keys.  It does
       // not include PGP keys.
@@ -238,14 +233,6 @@ protocol Common {
   record UserResolution {
       SocialAssertion assertion;
       UID userID;
-  }
-
-  enum TeamRole {
-    NONE_0,
-    OWNER_1,
-    ADMIN_2,
-    WRITER_3,
-    READER_4
   }
 
 }

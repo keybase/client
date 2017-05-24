@@ -374,7 +374,7 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 	return t
 }
 
-func enumerateCurrentSubchain(chain *SigChain) (seqnoList []Seqno) {
+func enumerateCurrentSubchain(chain *SigChain) (seqnoList []keybase1.Seqno) {
 	for _, link := range chain.chainLinks {
 		if link.GetSeqno() < chain.currentSubchainStart {
 			continue

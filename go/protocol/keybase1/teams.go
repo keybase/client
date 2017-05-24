@@ -8,13 +8,59 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type TeamRole int
+
+const (
+	TeamRole_NONE   TeamRole = 0
+	TeamRole_OWNER  TeamRole = 1
+	TeamRole_ADMIN  TeamRole = 2
+	TeamRole_WRITER TeamRole = 3
+	TeamRole_READER TeamRole = 4
+)
+
+var TeamRoleMap = map[string]TeamRole{
+	"NONE":   0,
+	"OWNER":  1,
+	"ADMIN":  2,
+	"WRITER": 3,
+	"READER": 4,
+}
+
+var TeamRoleRevMap = map[TeamRole]string{
+	0: "NONE",
+	1: "OWNER",
+	2: "ADMIN",
+	3: "WRITER",
+	4: "READER",
+}
+
+func (e TeamRole) String() string {
+	if v, ok := TeamRoleRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type PerTeamKey struct {
+	Gen    int   `codec:"gen" json:"gen"`
+	Seqno  Seqno `codec:"seqno" json:"seqno"`
+	SigKID KID   `codec:"sigKID" json:"sigKID"`
+	EncKID KID   `codec:"encKID" json:"encKID"`
+}
+
 type TeamCreateArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+type TeamGetArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
 }
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
+	TeamGet(context.Context, TeamGetArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -37,6 +83,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamGet": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamGetArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamGetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamGetArg)(nil), args)
+						return
+					}
+					err = i.TeamGet(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -47,5 +109,10 @@ type TeamsClient struct {
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, nil)
 	return
 }
