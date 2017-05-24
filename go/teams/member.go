@@ -45,4 +45,8 @@ func usernamesWithRole(s *TeamSigChainState, role keybase1.TeamRole) ([]string, 
 		names[i] = uv.Username.String()
 	}
 	return names, nil
+)
+
+func AddWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	return nil
 }

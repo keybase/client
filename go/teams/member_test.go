@@ -44,12 +44,28 @@ func TestMemberOwner(t *testing.T) {
 	}
 }
 
-func TestMemberAdd(t *testing.T) {
+func TestMemberAddWriter(t *testing.T) {
 	tc, u, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	_ = u
-	_ = name
+	if err := AddWriter(context.TODO(), tc.G, name, "t_alice"); err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(tc, s, u.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	aliceRole := usernameRole(tc, s, "t_alice")
+	if aliceRole != keybase1.TeamRole_WRITER {
+		t.Errorf("role: %s, expected WRITER", aliceRole)
+	}
 }
 
 func uidRole(tc libkb.TestContext, state *TeamSigChainState, uid keybase1.UID) keybase1.TeamRole {
