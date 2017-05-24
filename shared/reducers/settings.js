@@ -20,8 +20,12 @@ const initialState: State = {
   notifications: {
     allowEdit: false,
     allowSave: false,
-    settings: null,
-    unsubscribedFromAll: null,
+    groups: {
+      email: {
+        settings: null,
+        unsubscribedFromAll: false,
+      },
+    },
   },
   passphrase: {
     error: null,
@@ -50,7 +54,7 @@ function reducer(state: State = initialState, action: Actions): State {
         allowDeleteAccount: action.payload,
       }
     case Constants.notificationsToggle:
-      if (!state.notifications.settings) {
+      if (!state.notifications.groups.email) {
         console.log('Warning: trying to toggle while not loaded')
         return state
       } else if (!state.notifications.allowEdit) {
@@ -58,17 +62,16 @@ function reducer(state: State = initialState, action: Actions): State {
         return state
       }
 
-      // No name means the unsubscribe option
-      const name = action.payload.name
+      const {group, name} = action.payload
 
-      const updateSubscribe = setting => {
+      const updateSubscribe = (setting, storeGroup) => {
         let subscribed = setting.subscribed
 
         if (!name) {
           // clicked unsub all
           subscribed = false
-        } else if (name === setting.name) {
-          // flip if its the one we're looking for
+        } else if (name === setting.name && group === storeGroup) {
+          // flip if it's the one we're looking for
           subscribed = !subscribed
         }
 
@@ -78,13 +81,24 @@ function reducer(state: State = initialState, action: Actions): State {
         }
       }
 
+      const {settings, unsubscribedFromAll} = state.notifications.groups[group]
+      const changed = {
+        group: {
+          settings: settings.map(s => updateSubscribe(s, group)),
+          // No name means toggle the unsubscribe option
+          unsubscribedFromAll: !name && !unsubscribedFromAll,
+        },
+      }
+
       return {
         ...state,
         notifications: {
           ...state.notifications,
           allowSave: true,
-          settings: state.notifications.settings.map(updateSubscribe),
-          unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
+          groups: {
+            ...state.notifications.groups,
+            ...changed,
+          },
         },
       }
     case Constants.notificationsSave:
@@ -108,9 +122,9 @@ function reducer(state: State = initialState, action: Actions): State {
       return {
         ...state,
         notifications: {
-          ...action.payload,
           allowEdit: true,
           allowSave: false,
+          ...action.payload,
         },
       }
     case Constants.invitesRefreshed:
