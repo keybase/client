@@ -28,7 +28,7 @@ const MessagePopupHeader = ({
   const whoRevoked = author === you ? 'You' : author
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Icon type={iconName} style={{marginTop: -6}} />
+      <Icon type={iconName} style={{marginBottom: globalMargins.tiny, marginTop: -6}} />
       <Box style={globalStyles.flexBoxRow}>
         <Text type="BodySmall" style={{color: globalColors.green2}}>ENCRYPTED</Text>
         <Text

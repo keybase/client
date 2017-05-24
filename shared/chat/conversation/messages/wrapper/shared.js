@@ -53,7 +53,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 }
 
 const MessageWrapper = (props: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
+  <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
     {props.timestamp && <Timestamp timestamp={props.timestamp} />}
     <Box
       style={{
@@ -110,6 +110,15 @@ const _flexOneColumn = {
   flex: 1,
 }
 
+const _containerNoHeaderStyle = {
+  ...globalStyles.flexBoxColumn,
+}
+
+const _containerWithHeaderStyle = {
+  ..._containerNoHeaderStyle,
+  marginTop: globalMargins.tiny,
+}
+
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
   paddingRight: globalMargins.tiny,
@@ -117,7 +126,7 @@ const _rightSideNoHeaderStyle = {
 
 const _rightSideWithHeaderStyle = {
   ..._rightSideNoHeaderStyle,
-  paddingTop: globalMargins.tiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const _stylesFirstNewMessage = {
@@ -166,7 +175,6 @@ const _leftMarkerStyle = {
 
 const _userAvatarStyle = {
   width: 32,
-  paddingTop: globalMargins.tiny,
 }
 
 const _failStyle = {

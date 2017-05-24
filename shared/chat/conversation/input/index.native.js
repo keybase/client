@@ -135,10 +135,10 @@ const styleActionText = {
   alignItems: 'center',
   alignSelf: isIOS ? 'flex-end' : 'center',
   justifyContent: 'center',
-  paddingBottom: 5,
+  paddingBottom: globalMargins.xtiny,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.small,
-  paddingTop: 5,
+  paddingTop: globalMargins.xtiny,
 }
 
 const styleActionButton = {
