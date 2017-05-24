@@ -115,6 +115,7 @@ export function Result({
     paddingLeft: 8,
     borderTop: 'solid 1px',
     borderTopColor: globalColors.black_10,
+    width: '100%',
   }
 
   return (

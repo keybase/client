@@ -184,9 +184,6 @@ function* _outputInstructionsActionLink(): SagaGenerator<any, any> {
   const getProfile = (state: TypedState) => state.profile
   const profile: Constants.State = (yield select(getProfile): any)
   switch (profile.platform) {
-    case 'coinbase':
-      yield call(openURL, `https://coinbase.com/${profile.username}#settings`)
-      break
     case 'twitter':
       yield call(
         _openURLIfNotNull,

@@ -1,18 +1,19 @@
 // @flow
 
-export type FeatureKeys =
-  | 'admin'
-  | 'chatAdminOnly'
-  | 'mobileAppsExist'
-  | 'plansEnabled'
-  | 'recentFilesEnabled'
-  | 'tabChatEnabled'
-  | 'tabPeopleEnabled'
-  | 'tabProfileEnabled'
-  | 'tabSettingsEnabled'
+export type FeatureFlags = {|
+  admin: boolean,
+  plansEnabled: boolean,
+  recentFilesEnabled: boolean,
+  searchv3Enabled: boolean,
+  tabPeopleEnabled: boolean,
+|}
 
-export type FeatureFlags = {[key: FeatureKeys]: boolean}
-
-const ff: FeatureFlags = {}
+const ff: FeatureFlags = {
+  admin: false,
+  plansEnabled: false,
+  recentFilesEnabled: false,
+  searchv3Enabled: false,
+  tabPeopleEnabled: false,
+}
 
 export default ff

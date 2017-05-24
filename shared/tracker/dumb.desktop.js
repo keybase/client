@@ -69,7 +69,6 @@ const proofReddit: Proof = proofMaker('reddit')
 const proofPgp: Proof = proofMaker('pgp')
 const proofHttps: Proof = proofMaker('https')
 const proofRooter: Proof = proofMaker('rooter')
-const proofCoinbase: Proof = proofMaker('coinbase')
 const proofDNS: Proof = proofMaker('dns')
 
 const proofsDefault: Array<Proof> = [
@@ -80,7 +79,6 @@ const proofsDefault: Array<Proof> = [
   proofRooter,
   proofReddit,
   proofPgp,
-  proofCoinbase,
   proofHttps,
   proofDNS,
   proofWeb,

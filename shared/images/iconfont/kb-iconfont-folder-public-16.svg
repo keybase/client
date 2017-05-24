@@ -1,17 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
-    <title>C2E32F9A-61C2-43A1-83CA-9582A6C7912A</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Style-guide---Desktop---Icons-2" transform="translate(-371.000000, -1116.000000)">
-            <g id="kb-iconfont-folder-public-16" transform="translate(371.000000, 1116.000000)">
-                <g id="kb-iconfont-folder-public">
-                    <rect id="icon-area" fill="#FFFFFF" opacity="0" x="0" y="0" width="16" height="16"></rect>
-                    <path d="M1.41753606,0.980720129 C0.58115436,0.980720129 0.0167988322,1.62468156 0.0167988322,2.37751021 L0.00143225899,13.0090731 C0.000641244199,13.5563469 0.444630861,13.9999674 1.00087166,13.9999267 L14.9991283,13.9989016 C15.5518945,13.9988611 15.9998983,13.5432173 15.9997779,13.0035474 L15.9979908,4.99528094 C15.9978681,4.44560245 15.5411692,4 14.9928968,4 L7.93484783,4 C7.66937256,4 6.96510205,3.05762443 6.77070617,2.79602639 L5.6309007,1.34574887 C5.45674864,1.11723005 5.1961316,0.980720129 4.93398692,0.980720129 L1.41753606,0.980720129 Z" id="Combined-Shape" fill="#000000"></path>
-                </g>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <path fill="#000" fill-rule="evenodd" d="M1.418.98C.58.98.017 1.626.017 2.379L0 13.009c0 .547.444.991 1 .99h13.998c.553 0 1-.456 1-.995l-.001-8.009c0-.55-.457-.995-1.005-.995H7.935c-.266 0-.97-.942-1.164-1.204l-1.14-1.45A.893.893 0 0 0 4.934.98H1.418z"/>
 </svg>

@@ -7,7 +7,7 @@ export type URLMap = {
   '40': string,
 }
 
-export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
 export type UserPictureSize = 360 | 200 | 40
 export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap

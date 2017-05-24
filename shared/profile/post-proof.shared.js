@@ -93,24 +93,6 @@ export function propsForPlatform(props: Props): MoreProps {
         onCompleteText: 'OK posted! Check for it!',
         noteText: null,
       }
-    case 'coinbase':
-      return {
-        ...base,
-        descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
-            Please paste the below text
-            {' '}
-            <Text type="BodySemiboldItalic" style={globalStyles.italic}>exactly as it appears</Text>
-            {' '}
-            as your "public key" on Coinbase.
-          </Text>
-        ),
-        proofActionText: 'Go to Coinbase to add as "public key"',
-        proofText: props.proofText,
-        proofActionIcon: 'iconfont-open-browser',
-        onCompleteText: 'OK posted! Check for it!',
-        noteText: null,
-      }
     case 'hackernews':
       return {
         ...base,
