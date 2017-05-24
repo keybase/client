@@ -446,7 +446,7 @@ function _serverCallMap(
     if (!alreadyPending) {
       // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
-      requestIdleCallback(f, {timeout: 1e3})
+      requestIdleCallback(f, {timeout: 3e3})
     } else {
       console.log('skipped idle call due to already pending')
     }
@@ -464,10 +464,14 @@ function _serverCallMap(
     if (!_idleResponseQueue.length) {
       return
     }
-    const max = 5
+    const max = 2
     const toHandle = _idleResponseQueue.slice(0, max)
     _idleResponseQueue = _idleResponseQueue.slice(max)
+    console.log('aaaa', toHandle.length)
     toHandle.forEach(f => f())
+    if (_idleResponseQueue.length) {
+      requestIdle(onRequestIdleQueueHandler)
+    }
   }
 
   return {

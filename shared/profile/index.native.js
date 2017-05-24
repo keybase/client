@@ -165,6 +165,7 @@ class Profile extends Component<void, Props, State> {
   }
 
   render() {
+    // return <Text type="Header">{this.props.userInfo && this.props.userInfo.fullname}</Text>
     if (this.props.error) {
       return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
     }
