@@ -86,7 +86,7 @@ const Notifications = (props: Props) =>
             onToggle={props.onToggle}
             onToggleUnsubscribeAll={() => props.onToggleUnsubscribeAll('app_push')}
             title="Phone - push notifications:"
-            unsub="push notifications"
+            unsub="push"
             settings={props.groups.app_push.settings}
             unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
           />}
