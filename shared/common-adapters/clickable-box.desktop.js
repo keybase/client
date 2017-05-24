@@ -5,7 +5,7 @@ import {FlatButton} from 'material-ui'
 import type {Props} from './clickable-box'
 
 const ClickableBox = (props: Props & {children: any}) => {
-  const {style, children, ...otherProps} = props
+  const {style, children, underlayColor, ...otherProps} = props
 
   // FlatButton on desktop doesn't support onLongPress, but we allow the common
   // ClickableBox component to pass one down for mobile, so strip it out here.
@@ -18,7 +18,7 @@ const ClickableBox = (props: Props & {children: any}) => {
       {...otherProps}
       disableTouchRipple={true}
       rippleColor={'transparent'}
-      hoverColor={'transparent'}
+      hoverColor={props.underlayColor || 'transparent'}
       style={{...styleFlatButton, ...style}}
     >
       {children}

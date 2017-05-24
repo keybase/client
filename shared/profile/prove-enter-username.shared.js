@@ -16,7 +16,6 @@ export const platformText: {
   reddit: standardText('Reddit'),
   facebook: standardText('Facebook'),
   github: standardText('GitHub'),
-  coinbase: standardText('Coinbase'),
   hackernews: standardText('Hacker News'),
   btc: {
     headerText: 'Set a Bitcoin address',

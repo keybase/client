@@ -1,8 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
-import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {platformText} from './prove-enter-username.shared'
 
@@ -29,22 +27,6 @@ type State = {
 }
 
 function customError(error: string, code: ?number) {
-  if (code === ConstantsStatusCode.scprofilenotpublic) {
-    return (
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
-        <Text style={styleErrorBannerText} type="BodySemibold">
-          You haven't set a public "Coinbase URL". You need to do that now.
-        </Text>
-        <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center'}}
-          onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}
-        >
-          <Text style={styleErrorBannerText} type="BodySemibold">Go to Coinbase</Text>
-          <Icon type="iconfont-open-browser" style={{color: globalColors.white_40, marginLeft: 4}} />
-        </Box>
-      </Box>
-    )
-  }
   return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
 }
 

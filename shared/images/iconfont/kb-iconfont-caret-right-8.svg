@@ -1,15 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="8px" height="8px" viewBox="0 0 8 8" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
-    <title>977359A4-10F2-4BD3-82AC-6018BBBDD4B6</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Style-guide---Desktop---Icons-2" transform="translate(-550.000000, -1030.000000)">
-            <g id="kb-iconfont-caret-right-8" transform="translate(550.000000, 1030.000000)">
-                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="8" height="8"></rect>
-                <path d="M1.49359751,3.63554001 C0.944848757,3.00839858 1.17118943,2.5 2.00167562,2.5 L5.99832438,2.5 C6.82767692,2.5 7.05672258,3.00660276 6.50640249,3.63554001 L4.99359751,5.36445999 C4.44484876,5.99160142 3.55672258,5.99339724 3.00640249,5.36445999 L1.49359751,3.63554001 Z" id="arrow-collapsed" fill="#000000" transform="translate(4.000000, 4.500000) rotate(-90.000000) translate(-4.000000, -4.500000) "></path>
-            </g>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8">
+    <path fill="#000" fill-rule="evenodd" d="M3.136 7.006C2.508 7.556 2 7.33 2 6.498V2.502c0-.83.507-1.059 1.136-.508l1.728 1.512c.628.55.63 1.437 0 1.988L3.136 7.006z"/>
 </svg>
