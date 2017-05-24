@@ -6499,6 +6499,14 @@ func (_mr *_MockMutableBareRootMetadataRecorder) AddKeyGeneration(arg0, arg1, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddKeyGeneration", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 }
 
+func (_m *MockMutableBareRootMetadata) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
+	_m.ctrl.Call(_m, "SetLatestKeyGenerationForTeamTLF", keyGen)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetLatestKeyGenerationForTeamTLF(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLatestKeyGenerationForTeamTLF", arg0)
+}
+
 func (_m *MockMutableBareRootMetadata) UpdateKeyBundles(crypto cryptoPure, extra ExtraMetadata, updatedWriterKeys UserDevicePublicKeys, updatedReaderKeys UserDevicePublicKeys, ePubKey kbfscrypto.TLFEphemeralPublicKey, ePrivKey kbfscrypto.TLFEphemeralPrivateKey, tlfCryptKeys []kbfscrypto.TLFCryptKey) ([]UserDeviceKeyServerHalves, error) {
 	ret := _m.ctrl.Call(_m, "UpdateKeyBundles", crypto, extra, updatedWriterKeys, updatedReaderKeys, ePubKey, ePrivKey, tlfCryptKeys)
 	ret0, _ := ret[0].([]UserDeviceKeyServerHalves)

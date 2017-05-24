@@ -1401,9 +1401,10 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	var expectedKeyGen KeyGen
 	var tlfCryptKey *kbfscrypto.TLFCryptKey
-	if md.TlfID().Type() == tlf.Public {
+	switch md.TlfID().Type() {
+	case tlf.Public:
 		expectedKeyGen = PublicKeyGen
-	} else {
+	case tlf.Private:
 		var rekeyDone bool
 		// create a new set of keys for this metadata
 		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md, false)
@@ -1415,6 +1416,29 @@ func (fbo *folderBranchOps) initMDLocked(
 				"private TLF %v", md.TlfID())
 		}
 		expectedKeyGen = FirstValidKeyGen
+	case tlf.SingleTeam:
+		// Teams get their crypt key from the service, no need to
+		// rekey in KBFS.
+		tid, err := md.GetTlfHandle().FirstResolvedWriter().AsTeam()
+		if err != nil {
+			return err
+		}
+		keys, keyGen, err := fbo.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid)
+		if err != nil {
+			return err
+		}
+		if keyGen < FirstValidKeyGen {
+			return errors.WithStack(
+				InvalidKeyGenerationError{md.TlfID(), keyGen})
+		}
+		expectedKeyGen = keyGen
+		md.bareMd.SetLatestKeyGenerationForTeamTLF(keyGen)
+		key, ok := keys[keyGen]
+		if !ok {
+			return errors.WithStack(
+				InvalidKeyGenerationError{md.TlfID(), keyGen})
+		}
+		tlfCryptKey = &key
 	}
 	keyGen := md.LatestKeyGeneration()
 	if keyGen != expectedKeyGen {
@@ -1482,7 +1506,8 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// cache any new TLF crypt key
 	if tlfCryptKey != nil {
-		err = fbo.config.KeyCache().PutTLFCryptKey(md.TlfID(), keyGen, *tlfCryptKey)
+		err = fbo.config.KeyCache().PutTLFCryptKey(
+			md.TlfID(), keyGen, *tlfCryptKey)
 		if err != nil {
 			return err
 		}

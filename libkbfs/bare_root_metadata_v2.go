@@ -1285,6 +1285,12 @@ func (md *BareRootMetadataV2) AddKeyGeneration(codec kbfscodec.Codec,
 	return nil, serverHalves, nil
 }
 
+// SetLatestKeyGenerationForTeamTLF implements the
+// MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
+	panic("BareRootMetadataV2 doesn't support team TLFs")
+}
+
 // UpdateKeyBundles implements the MutableBareRootMetadata interface
 // for BareRootMetadataV2.
 func (md *BareRootMetadataV2) UpdateKeyBundles(crypto cryptoPure,

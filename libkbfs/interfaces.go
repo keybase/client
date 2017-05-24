@@ -2035,6 +2035,11 @@ type MutableBareRootMetadata interface {
 		nextExtra ExtraMetadata,
 		serverHalves UserDeviceKeyServerHalves, err error)
 
+	// SetLatestKeyGenerationForTeamTLF sets the latest key generation
+	// number of a team TLF.  It is not valid to call this for
+	// anything but a team TLF.
+	SetLatestKeyGenerationForTeamTLF(keyGen KeyGen)
+
 	// UpdateKeyBundles ensures that every device for every writer
 	// and reader in the provided lists has complete TLF crypt key
 	// info, and uses the new ephemeral key pair to generate the

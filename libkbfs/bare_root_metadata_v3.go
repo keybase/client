@@ -1225,6 +1225,18 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 	return nextExtra, serverHalves, nil
 }
 
+// SetLatestKeyGenerationForTeamTLF implements the
+// MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
+	if md.TlfID().Type() != tlf.SingleTeam {
+		panic(fmt.Sprintf(
+			"Can't call SetLatestKeyGenerationForTeamTLF on a %s TLF",
+			md.TlfID().Type()))
+	}
+
+	md.WriterMetadata.LatestKeyGen = keyGen
+}
+
 // SetUnresolvedReaders implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {
 	md.UnresolvedReaders = readers
