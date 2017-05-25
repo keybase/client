@@ -67,8 +67,8 @@ class Profile extends Component<void, Props, State> {
     return (
       <UserBio
         type="Profile"
-        editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
+        isYou={this.props.isYou}
         loading={loading}
         username={this.props.username}
         userInfo={this.props.userInfo}
@@ -77,6 +77,11 @@ class Profile extends Component<void, Props, State> {
         onClickAvatar={this.props.onClickAvatar}
         onClickFollowers={this.props.onClickFollowers}
         onClickFollowing={this.props.onClickFollowing}
+        onBioEdit={this.props.onBioEdit}
+        onEditAvatarClick={this.props.onEditAvatarClick}
+        onEditProfile={this.props.onEditProfile}
+        onLocationEdit={this.props.onLocationEdit}
+        onNameEdit={this.props.onNameEdit}
       />
     )
   }
@@ -160,6 +165,7 @@ class Profile extends Component<void, Props, State> {
   }
 
   render() {
+    // return <Text type="Header">{this.props.userInfo && this.props.userInfo.fullname}</Text>
     if (this.props.error) {
       return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
     }

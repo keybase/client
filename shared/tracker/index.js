@@ -18,6 +18,7 @@ export type TrackerProps = {
   closed: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
+  isYou: boolean,
   isPrivate?: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loading: boolean,
@@ -79,6 +80,7 @@ export default connect(
     const trackerState = state.tracker.trackers[ownProps.username]
     return {
       ...state.tracker,
+      isYou: ownProps.username === state.config.username,
       actionBarReady: !trackerState.serverActive && !trackerState.error,
       errorMessage: trackerState.error,
       loading: isLoading(trackerState),

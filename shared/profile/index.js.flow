@@ -1,17 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-import type {SimpleProofState, UserInfo} from '../constants/tracker'
-import type {BioEditFns} from '../common-adapters/user-bio'
+import type {SimpleProofState, UserInfo, Proof} from '../constants/tracker'
 import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
 import type {Folder} from '../folders/list'
 
 export type Props = {
   isYou: boolean,
   loading: boolean,
-  bioEditFns: ?BioEditFns,
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   currentFriendshipsTab: FriendshipsTab,
@@ -41,6 +38,11 @@ export type Props = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
+  onBioEdit?: () => void,
+  onEditAvatarClick?: () => void,
+  onEditProfile?: () => void,
+  onLocationEdit?: () => void,
+  onNameEdit?: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

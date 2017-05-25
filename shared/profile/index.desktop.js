@@ -281,9 +281,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
             <Box style={styleBioColumn}>
               <UserBio
                 type="Profile"
-                editFns={this.props.bioEditFns}
                 loading={loading}
                 avatarSize={AVATAR_SIZE}
+                isYou={this.props.isYou}
                 style={{marginTop: HEADER_TOP_SPACE}}
                 username={this.props.username}
                 userInfo={this.props.userInfo}
@@ -292,6 +292,11 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 onClickAvatar={this.props.onClickAvatar}
                 onClickFollowers={this.props.onClickFollowers}
                 onClickFollowing={this.props.onClickFollowing}
+                onBioEdit={this.props.onBioEdit}
+                onEditAvatarClick={this.props.onEditAvatarClick}
+                onEditProfile={this.props.onEditProfile}
+                onLocationEdit={this.props.onLocationEdit}
+                onNameEdit={this.props.onNameEdit}
               />
               {!this.props.isYou &&
                 !loading &&

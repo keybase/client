@@ -1,8 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {SimpleProofState, UserInfo} from '../constants/tracker'
-import type {Proof} from '../constants/tracker'
+import type {SimpleProofState, UserInfo, Proof} from '../constants/tracker'
 import type {Exact} from '../constants/types/more'
 import type {ErrorProps} from './error'
 
@@ -11,6 +10,7 @@ export type RenderPropsUnshaped = {
   currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,
+  isYou: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loggedIn: boolean,
   name?: string,

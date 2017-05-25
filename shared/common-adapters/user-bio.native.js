@@ -72,7 +72,17 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
 
 class BioRender extends Component<void, Props, void> {
   render() {
-    const {avatarSize, currentlyFollowing, editFns, loading, userInfo, username} = this.props
+    const {
+      avatarSize,
+      currentlyFollowing,
+      loading,
+      userInfo,
+      username,
+      isYou,
+      onClickAvatar,
+      onEditAvatarClick,
+      onEditProfile,
+    } = this.props
     if (loading) {
       return (
         <Box style={{...stylesContainer, ...this.props.style}}>
@@ -101,7 +111,7 @@ class BioRender extends Component<void, Props, void> {
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
-            onClick={() => (editFns ? editFns.onEditAvatarClick() : this.props.onClickAvatar(username))}
+            onClick={() => (isYou ? onEditAvatarClick && onEditAvatarClick() : onClickAvatar(username))}
             username={username}
             size={avatarSize}
             following={currentlyFollowing}
@@ -125,7 +135,9 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickFollowers(username)}
               style={stylesFollowingLabel}
             >
-              <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followersCount}</Text>
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followersCount === -1 ? '' : userInfo.followersCount}
+              </Text>
               {' '}
               {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
             </Text>
@@ -137,7 +149,11 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickFollowing(username)}
               style={stylesFollowingLabel}
             >
-              Following <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followingCount}</Text>
+              Following
+              {' '}
+              <Text type="BodySmall" style={stylesFollowingCount}>
+                {userInfo.followingCount === -1 ? '' : userInfo.followingCount}
+              </Text>
             </Text>
           </Text>
           {!!userInfo.bio &&
@@ -150,10 +166,10 @@ class BioRender extends Component<void, Props, void> {
             </Text>}
           {!!userInfo.location &&
             <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
-          {editFns &&
+          {isYou &&
             <Button
               label="Edit profile"
-              onClick={editFns.onEditProfile}
+              onClick={onEditProfile}
               style={{marginTop: globalMargins.small}}
               type="Primary"
             />}
