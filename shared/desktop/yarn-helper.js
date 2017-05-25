@@ -3,7 +3,6 @@
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
-import deepdiff from 'deep-diff'
 
 const [, , command, ...rest] = process.argv
 
@@ -173,10 +172,6 @@ const commands = {
     help: 'Launch installed Keybase app with console output',
     shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
   },
-  'undiff-log': {
-    code: undiff,
-    help: 'Undiff log send',
-  },
   'updated-fonts': {
     code: updatedFonts,
     help: 'Update our font sizes automatically',
@@ -211,108 +206,6 @@ function setupDebugMain() {
   exec(
     `node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`
   )
-}
-
-// Edit this function to filter down the store in the undiff log
-function storeFilter(store: any) {
-  // Example
-  // try {
-  // return {mike: store.tracker.trackers.mike}
-  // } catch (_) {
-  // return {nullStore: null}
-  // }
-
-  return store
-}
-
-// Edit this function to filter down actions, return null to filter out entirely
-function actionFilter(action: any) {
-  // Example
-  // if (action.type.startsWith('gregor')) {
-  // return null
-  // }
-
-  return action
-}
-
-// Recreate the store from a log that has diffs (from log send)
-function undiff() {
-  let log
-  try {
-    console.log('Analyzing ./log.txt')
-    log = fs.readFileSync('./log.txt', 'utf8')
-  } catch (e) {
-    console.log('Undiff needs ./log.txt to analyze', e)
-    return
-  }
-  let store = {}
-
-  const lineFilter = line =>
-    (line.startsWith('From Keybase: ') && line.match(/ Diff: /)) || line.match(/ Dispatching action: /)
-  const lineToActionOrDiff = line => {
-    const diff = line.match(/ Diff: {2}(.*)/)
-    if (diff) {
-      const parsed = JSON.parse(diff[1])
-      if (parsed) {
-        return {diff: parsed}
-      }
-    } else {
-      const action = line.match(/ Dispatching action: (.*): {2}(\{.*\})/)
-      if (action) {
-        return {action: JSON.parse(action[2])}
-      }
-    }
-    return null
-  }
-
-  const buildStore = part => {
-    if (part && part.hasOwnProperty('action')) {
-      return part
-    }
-
-    part &&
-      part.diff &&
-      part.diff.forEach(diff => {
-        try {
-          deepdiff.applyChange(store, store, diff)
-        } catch (err) {
-          console.log(`Tried to apply change: ${diff} but failed, trying to continue. ${err}`)
-        }
-      })
-    return store
-  }
-
-  const filterStore = part => {
-    if (part && part.hasOwnProperty('action')) {
-      return part
-    }
-
-    return storeFilter(part)
-  }
-
-  const filterActions = part => {
-    if (part && part.hasOwnProperty('action')) {
-      // $FlowIssue
-      const action = actionFilter(part.action)
-      if (action) return {action}
-      return null
-    }
-
-    return part
-  }
-
-  const parts = log
-    .split('\n')
-    .filter(lineFilter)
-    .map(lineToActionOrDiff)
-    .filter(part => part)
-    .map(buildStore)
-    .map(filterStore)
-    .map(filterActions)
-    .filter(part => part)
-
-  fs.writeFileSync('./log.json', JSON.stringify(parts, null, 2))
-  console.log('Success! Wrote ./log.json')
 }
 
 function svgToGridMap() {
@@ -517,7 +410,7 @@ ${/* eslint-disable */
   },`
     })
     .join('\n')}/* eslint-enable */
-  
+
 }
 
 export type IconType = $Keys<typeof iconMeta_>

@@ -1,13 +1,12 @@
 // @flow
 // This is modified from https://github.com/mawie81/electron-window-state
-//
-
 import {app, screen} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
 import jsonfile from 'jsonfile'
-import deepEqual from 'deep-equal'
+import {isEqual} from 'lodash'
+
 import type {State, Options, Config, Managed} from './app-state'
 
 export default class AppState {
@@ -150,7 +149,7 @@ export default class AppState {
     }
     let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
-    return deepEqual(state.displayBounds, displayBounds, {strict: true})
+    return isEqual(state.displayBounds, displayBounds)
   }
 
   _loadStateSync() {

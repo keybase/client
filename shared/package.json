@@ -63,8 +63,6 @@
     "buffer": "5.0.3",
     "core-js": "2.4.1",
     "cross-env": "3.2.4",
-    "deep-diff": "0.3.4",
-    "deep-equal": "1.0.1",
     "emoji-datasource": "2.4.4",
     "emoji-mart": "0.3.7",
     "eslint-plugin-node": "4.2.2",
@@ -105,8 +103,6 @@
     "reselect": "3.0.0",
     "semver": "5.3.0",
     "shallowequal": "0.2.2",
-    "transit-immutable-js": "0.7.0",
-    "transit-js": "0.8.846",
     "util": "0.10.3"
   },
   "devDependencies": {
@@ -125,8 +121,6 @@
     "babel-preset-stage-1": "6.24.1",
     "babel-preset-stage-2": "6.24.1",
     "babel-runtime": "6.23.0",
-    "chai": "3.5.0",
-    "chai-as-promised": "6.0.0",
     "css-loader": "0.28.2",
     "del": "2.2.2",
     "devtron": "1.4.0",
