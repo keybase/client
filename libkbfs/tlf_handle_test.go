@@ -87,7 +87,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	name := "u2,u3"
 	_, err := ParseTlfHandle(ctx, kbpki, name, tlf.Private)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, ReadAccessError{User: "u1", Tlf: CanonicalTlfName(name), Public: false, Filename: "/keybase/private/u2,u3"}, err)
+	assert.Equal(t, ReadAccessError{User: "u1", Tlf: CanonicalTlfName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
 }
 
 func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {

@@ -164,17 +164,13 @@ type ReadAccessError struct {
 	User     libkb.NormalizedUsername
 	Filename string
 	Tlf      CanonicalTlfName
-	Public   bool
+	Type     tlf.Type
 }
 
 // Error implements the error interface for ReadAccessError
 func (e ReadAccessError) Error() string {
-	t := tlf.Private
-	if e.Public {
-		t = tlf.Public
-	}
 	return fmt.Sprintf("%s does not have read access to directory %s",
-		e.User, buildCanonicalPathForTlfName(t, e.Tlf))
+		e.User, buildCanonicalPathForTlfName(e.Type, e.Tlf))
 }
 
 // WriteAccessError indicates an error when trying to write a file
@@ -182,18 +178,14 @@ type WriteAccessError struct {
 	User     libkb.NormalizedUsername
 	Filename string
 	Tlf      CanonicalTlfName
-	Public   bool
+	Type     tlf.Type
 }
 
 // Error implements the error interface for WriteAccessError
 func (e WriteAccessError) Error() string {
 	if e.Tlf != "" {
-		t := tlf.Private
-		if e.Public {
-			t = tlf.Public
-		}
 		return fmt.Sprintf("%s does not have write access to directory %s",
-			e.User, buildCanonicalPathForTlfName(t, e.Tlf))
+			e.User, buildCanonicalPathForTlfName(e.Type, e.Tlf))
 	}
 	return fmt.Sprintf("%s does not have write access to %s", e.User, e.Filename)
 }
@@ -228,23 +220,23 @@ func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filenam
 		User:     username,
 		Filename: filename,
 		Tlf:      tlfname,
-		Public:   h.Type() == tlf.Public,
+		Type:     h.Type(),
 	}
 }
 
 // NewWriteAccessError is an access error trying to write a file
 func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
 	tlfName := CanonicalTlfName("")
-	public := false
+	t := tlf.Private
 	if h != nil {
 		tlfName = h.GetCanonicalName()
-		public = h.Type() == tlf.Public
+		t = h.Type()
 	}
 	return WriteAccessError{
 		User:     username,
 		Filename: filename,
 		Tlf:      tlfName,
-		Public:   public,
+		Type:     t,
 	}
 }
 
