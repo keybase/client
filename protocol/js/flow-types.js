@@ -6692,7 +6692,8 @@ export type userProfileEditRpcParam = Exact<{
 }>
 
 export type userSearchRpcParam = Exact<{
-  query: string
+  query: string,
+  service: string
 }>
 type Kex2Provisionee2Hello2Result = Hello2Res
 type Kex2ProvisioneeHelloResult = HelloRes
