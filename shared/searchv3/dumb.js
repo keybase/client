@@ -2,6 +2,7 @@
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
+import UserInput from './user-input'
 import {StateRecord as EntitiesStateRecord} from '../constants/entities'
 import {Map} from 'immutable'
 
@@ -253,8 +254,103 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
   },
 }
 
+const commonUserInputMapProps = {
+  showAddButton: true,
+  onChangeText: text => console.log(`username text change: ${text}`),
+  onRemoveUser: username => console.log(`user removed: ${username}`),
+  onClickAddButton: () => console.log('username input add button clicked'),
+}
+
+const maxUsers = [
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max'},
+  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'denormalize'},
+]
+
+const chrisUsers = [
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris'},
+  {
+    followingState: 'Following',
+    icon: 'icon-hacker-news-logo-16',
+    service: 'Hacker News',
+    username: 'cnojima',
+  },
+  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'chriscoyier'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-facebook-logo-16',
+    service: 'Facebook',
+    username: 'chrisevans',
+  },
+  {followingState: 'NotFollowing', icon: 'icon-github-logo-16', service: 'GitHub', username: 'defunkt'},
+  {followingState: 'NotFollowing', icon: 'icon-reddit-logo-16', service: 'Reddit', username: 'KeyserSosa'},
+]
+
+const userInputMap: DumbComponentMap<UserInput> = {
+  component: UserInput,
+  mocks: {
+    'Empty + Placeholder': {
+      ...commonUserInputMapProps,
+      userItems: [],
+      usernameText: '',
+      placeholder: 'Type someone',
+      showAddButton: false,
+    },
+    'Users + Add': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: '',
+    },
+    'Users + Text': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: 'ma',
+      showAddButton: false,
+    },
+    'Users (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: 480,
+          padding: 4,
+          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+        },
+      },
+      userItems: chrisUsers,
+      usernameText: '',
+    },
+    'Users (Wrap Add Button)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: 370,
+          padding: 4,
+          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+        },
+      },
+      userItems: maxUsers,
+      usernameText: '',
+    },
+    'Users + Text (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: 460,
+          padding: 4,
+          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+        },
+      },
+      userItems: chrisUsers,
+      usernameText: 'Chris Hemswor',
+      showAddButton: false,
+    },
+  },
+}
+
 export default {
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 result': servicesResultMap,
   'SearchV3 resultsList': servicesResultsListMap,
+  'SearchV3 user input': userInputMap,
 }
