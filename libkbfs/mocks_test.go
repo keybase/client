@@ -1394,46 +1394,46 @@ func (_mr *_MockCurrentSessionGetterRecorder) GetCurrentSession(arg0 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentSession", arg0)
 }
 
-// Mock of teamMembershipChecker interface
-type MockteamMembershipChecker struct {
+// Mock of TeamMembershipChecker interface
+type MockTeamMembershipChecker struct {
 	ctrl     *gomock.Controller
-	recorder *_MockteamMembershipCheckerRecorder
+	recorder *_MockTeamMembershipCheckerRecorder
 }
 
-// Recorder for MockteamMembershipChecker (not exported)
-type _MockteamMembershipCheckerRecorder struct {
-	mock *MockteamMembershipChecker
+// Recorder for MockTeamMembershipChecker (not exported)
+type _MockTeamMembershipCheckerRecorder struct {
+	mock *MockTeamMembershipChecker
 }
 
-func NewMockteamMembershipChecker(ctrl *gomock.Controller) *MockteamMembershipChecker {
-	mock := &MockteamMembershipChecker{ctrl: ctrl}
-	mock.recorder = &_MockteamMembershipCheckerRecorder{mock}
+func NewMockTeamMembershipChecker(ctrl *gomock.Controller) *MockTeamMembershipChecker {
+	mock := &MockTeamMembershipChecker{ctrl: ctrl}
+	mock.recorder = &_MockTeamMembershipCheckerRecorder{mock}
 	return mock
 }
 
-func (_m *MockteamMembershipChecker) EXPECT() *_MockteamMembershipCheckerRecorder {
+func (_m *MockTeamMembershipChecker) EXPECT() *_MockTeamMembershipCheckerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockteamMembershipChecker) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+func (_m *MockTeamMembershipChecker) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "IsTeamWriter", ctx, tid, uid)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockteamMembershipCheckerRecorder) IsTeamWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (_mr *_MockTeamMembershipCheckerRecorder) IsTeamWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamWriter", arg0, arg1, arg2)
 }
 
-func (_m *MockteamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+func (_m *MockTeamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "IsTeamReader", ctx, tid, uid)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockteamMembershipCheckerRecorder) IsTeamReader(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (_mr *_MockTeamMembershipCheckerRecorder) IsTeamReader(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamReader", arg0, arg1, arg2)
 }
 
@@ -1672,7 +1672,7 @@ func (_mr *_MockKeyMetadataRecorder) GetTlfHandle() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTlfHandle")
 }
 
-func (_m *MockKeyMetadata) IsWriter(ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (bool, error) {
+func (_m *MockKeyMetadata) IsWriter(ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "IsWriter", ctx, checker, uid)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)

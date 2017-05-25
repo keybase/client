@@ -857,7 +857,7 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 // IsWriter checks that the given user is a valid writer of the TLF
 // right now.  Implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) IsWriter(
-	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
 	bool, error) {
 	h := md.GetTlfHandle()
 	if h.Type() != tlf.SingleTeam {
@@ -875,7 +875,7 @@ func (md *RootMetadata) IsWriter(
 // IsReader checks that the given user is a valid reader of the TLF
 // right now.
 func (md *RootMetadata) IsReader(
-	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
 	bool, error) {
 	h := md.GetTlfHandle()
 	if h.Type() != tlf.SingleTeam {

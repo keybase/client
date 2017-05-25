@@ -502,7 +502,9 @@ type CurrentSessionGetter interface {
 	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
-type teamMembershipChecker interface {
+// TeamMembershipChecker is an interface for objects that can check
+// the writer/reader membership of teams.
+type TeamMembershipChecker interface {
 	// IsTeamWriter checks whether the given user is a writer of the
 	// given team right now.
 	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
@@ -525,7 +527,7 @@ type KBPKI interface {
 	identifier
 	normalizedUsernameGetter
 	merkleSeqNoGetter
-	teamMembershipChecker
+	TeamMembershipChecker
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
@@ -595,7 +597,7 @@ type KeyMetadata interface {
 	// IsWriter checks that the given user is a valid writer of the TLF
 	// right now.
 	IsWriter(
-		ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+		ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
 		bool, error)
 
 	// HasKeyForUser returns whether or not the given user has

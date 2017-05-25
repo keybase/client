@@ -171,7 +171,7 @@ func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
 }
 
 func (kmd emptyKeyMetadata) IsWriter(
-	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
 	bool, error) {
 	return false, nil
 }
