@@ -460,12 +460,16 @@ function _serverCallMap(
     requestIdle(onRequestIdleQueueHandler)
   }
 
-  const onRequestIdleQueueHandler = () => {
+  const onRequestIdleQueueHandler = deadline => {
     if (!_idleResponseQueue.length) {
       return
     }
-    const toHandle = _idleResponseQueue.pop()
-    toHandle()
+
+    do {
+      const toHandle = _idleResponseQueue.pop()
+      toHandle()
+    } while (deadline.timeRemaining() > 10 && _idleResponseQueue.length)
+
     if (_idleResponseQueue.length) {
       requestIdle(onRequestIdleQueueHandler)
     }
