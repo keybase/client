@@ -41,9 +41,8 @@ class EngineChannel {
     return yield Saga.takeFromChannelMap(this._map, key)
   }
 
-  *race(options: ?{timeout?: number, removeNs: boolean, racers?: Object}): Generator<any, any, any> {
+  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
     const timeout = options && options.timeout
-    const removeNs = (options && options.removeNs) || false
     const otherRacers = (options && options.racers) || {}
     const initMap = {
       ...(timeout
@@ -55,9 +54,7 @@ class EngineChannel {
     }
 
     const raceMap = this._configKeys.reduce((map, key) => {
-      const parts = key.split('.')
-      const name = removeNs ? parts[parts.length - 1] : key
-      map[name] = Saga.takeFromChannelMap(this._map, key)
+      map[key] = Saga.takeFromChannelMap(this._map, key)
       return map
     }, initMap)
 

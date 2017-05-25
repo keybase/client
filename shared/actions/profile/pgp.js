@@ -146,7 +146,6 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
 
   try {
     const incoming = yield generatePgpKeyChanMap.race({
-      removeNs: true,
       racers: {
         cancel: take(Constants.cancelPgpGen),
       },
@@ -158,8 +157,11 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
       return
     }
 
-    yield call([incoming.keyGenerated.response, incoming.keyGenerated.response.result])
-    const publicKey = incoming.keyGenerated.params.key.key
+    yield call([
+      incoming['keybase.1.pgpUi.keyGenerated'].response,
+      incoming['keybase.1.pgpUi.keyGenerated'].response.result,
+    ])
+    const publicKey = incoming['keybase.1.pgpUi.keyGenerated'].params.key.key
 
     yield put({payload: {publicKey}, type: Constants.updatePgpPublicKey})
     yield put(navigateAppend(['finished'], [profileTab, 'pgp']))

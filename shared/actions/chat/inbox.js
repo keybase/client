@@ -104,13 +104,16 @@ function* onInboxStale(): SagaGenerator<any, any> {
       }
     )
 
-    const incoming = yield loadInboxChanMap.race({removeNs: true})
-    if (!incoming.chatInboxUnverified || !incoming.chatInboxUnverified.response) {
+    const incoming = yield loadInboxChanMap.race()
+    if (
+      !incoming['chat.1.chatUi.chatInboxUnverified'] ||
+      !incoming['chat.1.chatUi.chatInboxUnverified'].response
+    ) {
       throw new Error("Can't load inbox")
     }
-    incoming.chatInboxUnverified.response.result()
+    incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
-    const inbox: ChatTypes.GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
+    const inbox: ChatTypes.GetInboxLocalRes = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)

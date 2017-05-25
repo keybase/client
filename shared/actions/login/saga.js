@@ -584,8 +584,8 @@ function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogi
   )
 
   while (true) {
-    const incoming = yield chanMap.race({removeNs: true})
-    if (incoming.getPassphrase) {
+    const incoming = yield chanMap.race()
+    if (incoming['keybase.1.secretUi.getPassphrase']) {
       const {response} = (incoming.getPassphrase: any)
       response.result({passphrase: passphrase.stringValue(), storeSecret: true})
     } else if (incoming.finished) {
