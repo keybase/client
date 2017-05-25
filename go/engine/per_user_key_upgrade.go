@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // PerUserKeyUpgrade creates a per-user-key for the active user
@@ -48,7 +48,6 @@ func (e *PerUserKeyUpgrade) Prereqs() Prereqs {
 func (e *PerUserKeyUpgrade) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
-		libkb.SecretUIKind,
 	}
 }
 

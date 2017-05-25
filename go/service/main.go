@@ -254,6 +254,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configurePath()
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
+	d.runBackgroundPerUserKeyUpgrade()
 }
 
 func (d *Service) startChatModules() {
@@ -468,6 +469,32 @@ func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
 	}
 	d.backgroundIdentifier = newBgi
 	d.G().AddUserChangedHandler(newBgi)
+}
+
+func (d *Service) runBackgroundPerUserKeyUpgrade() {
+	if !d.G().Env.GetUpgradePerUserKey() {
+		d.G().Log.Debug("PerUserKeyBackground disabled")
+		return
+	}
+
+	arg := &engine.PerUserKeyBackgroundArgs{
+		Settings: engine.PerUserKeyBackgroundDefaultSettings,
+	}
+	eng := engine.NewPerUserKeyBackground(d.G(), arg)
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		d.G().Log.Warning("per-user-key background upgrade error: %s", err)
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping per-user-key background upgrade")
+		eng.Shutdown()
+		return nil
+	})
+
+	// TODO consider other hooks
+	// d.G().AddUserChangedHandler(newBgi)
 }
 
 func (d *Service) OnLogin() error {
