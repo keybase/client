@@ -144,6 +144,7 @@ type ListTrackingJSONArg struct {
 type SearchArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Query     string `codec:"query" json:"query"`
+	Service   string `codec:"service" json:"service"`
 }
 
 type LoadAllPublicKeysUnverifiedArg struct {
