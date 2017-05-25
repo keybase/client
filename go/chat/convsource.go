@@ -265,7 +265,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 	// Add a lock conversation lock with our trace
 	c.convLocks[key] = &conversationLock{
 		trace: trace,
-		cb:    make(chan struct{}),
+		cb:    make(chan struct{}, 1),
 		count: 1,
 	}
 	return cb
@@ -287,7 +287,7 @@ func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, conv
 		} else {
 			lock.count--
 			if lock.count == 0 {
-				close(lock.cb)
+				lock.cb <- struct{}{}
 				delete(c.convLocks, key)
 			}
 		}
