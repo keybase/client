@@ -44,7 +44,9 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 // the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
 func RootTeamIDFromName(name string) keybase1.TeamID {
 	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	return keybase1.TeamID(hex.EncodeToString(sum[0:15]) + "24")
+	idBytes := sum[0:16]
+	idBytes[15] = libkb.RootTeamIDTag
+	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
 func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID) (*jsonw.Wrapper, error) {
@@ -106,9 +108,10 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 
 // 15 random bytes, followed by the byte 0x25, encoded as hex
 func NewSubteamID() keybase1.TeamID {
-	randBytes, err := libkb.RandBytes(15)
+	idBytes, err := libkb.RandBytes(16)
 	if err != nil {
 		panic("RandBytes failed: " + err.Error())
 	}
-	return keybase1.TeamID(hex.EncodeToString(randBytes) + "25")
+	idBytes[15] = libkb.SubteamIDTag
+	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
