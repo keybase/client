@@ -1,6 +1,10 @@
 // @flow
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
+import ResultsList from './results-list'
+import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {Map} from 'immutable'
+
 import type {DumbComponentMap} from '../constants/types/more'
 
 const commonServicesFilterMapProps = {
@@ -171,7 +175,86 @@ const servicesResultMap: DumbComponentMap<ResultRow> = {
   },
 }
 
+const servicesResultsListMapCommonRows = {
+  chris: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'Following',
+    leftUsername: 'chris',
+    rightFullname: 'chris on GitHub',
+    rightIcon: 'iconfont-identity-github',
+    rightService: 'GitHub',
+    rightUsername: 'chrisname',
+  },
+  cjb: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'NotFollowing',
+    leftUsername: 'cjb',
+    rightFullname: 'cjb on facebook',
+    rightIcon: 'iconfont-identity-facebook',
+    rightService: 'Facebook',
+    rightUsername: 'cjbname',
+  },
+  jzila: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'NoState',
+    leftUsername: 'jzila',
+    rightFullname: 'jzila on twitter',
+    rightIcon: 'iconfont-identity-twitter',
+    rightService: 'Twitter',
+    rightUsername: 'jzilatwit',
+  },
+}
+
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name + '-fb'] = {
+    ...servicesResultsListMapCommonRows[name],
+    leftFollowingState: 'NoState',
+    leftIcon: 'icon-facebook-logo-24',
+    leftService: 'Facebook',
+  }
+})
+
+const servicesResultsListMapCommon = {
+  mockStore: {
+    entities: new EntitiesStateRecord({
+      searchv3Chat: Map(servicesResultsListMapCommonRows),
+    }),
+  },
+  parentProps: {
+    style: {
+      width: 420,
+    },
+  },
+}
+
+const servicesResultsListMap: DumbComponentMap<ResultsList> = {
+  component: ResultsList,
+  mocks: {
+    keybaseResults: {
+      ...servicesResultsListMapCommon,
+      items: ['chris', 'cjb', 'jzila'],
+      keyPath: ['searchv3Chat'],
+    },
+    keybaseResultsOne: {
+      ...servicesResultsListMapCommon,
+      items: ['chris'],
+      keyPath: ['searchv3Chat'],
+    },
+    facebookResults: {
+      ...servicesResultsListMapCommon,
+      items: ['chris-fb', 'cjb-fb', 'jzila-fb'],
+      keyPath: ['searchv3Chat'],
+    },
+    noResults: {
+      ...servicesResultsListMapCommon,
+      items: [],
+      keyPath: ['searchv3Chat'],
+    },
+  },
+}
+
 export default {
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 result': servicesResultMap,
+  'SearchV3 resultsList': servicesResultsListMap,
 }
