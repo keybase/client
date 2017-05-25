@@ -11,7 +11,7 @@ import openUrl from '../util/open-url'
 import type {IconType} from './icon.constants'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {defaultColor} from './icon.shared'
+import {defaultColor} from './icon'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
