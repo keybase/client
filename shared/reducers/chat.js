@@ -606,6 +606,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:inboxFilter': {
       return state.set('inboxFilter', List(action.payload.filter))
     }
+    case 'chat:inboxSearch': {
+      return state.set('inboxSearch', List(action.payload.search))
+    }
   }
 
   return state

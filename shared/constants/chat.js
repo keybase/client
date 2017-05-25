@@ -338,6 +338,7 @@ export const StateRecord = Record({
   messageMap: Map(),
   inbox: List(),
   inboxFilter: List(),
+  inboxSearch: List(),
   conversationStates: Map(),
   metaData: Map(),
   finalizedState: Map(),
@@ -361,6 +362,7 @@ export type State = Record<{
   messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
   inboxFilter: List<string>,
+  inboxSearch: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -480,6 +482,7 @@ export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
   {previewPath: string, outboxID: OutboxIDKey}
 >
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
+export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
   {inboxUntrustedState: UntrustedState}

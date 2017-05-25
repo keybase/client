@@ -537,14 +537,12 @@ function setAttachmentPlaceholderPreview(
   return {payload: {previewPath, outboxID}, type: 'chat:setAttachmentPlaceholderPreview'}
 }
 
-function clearAttachmentPlaceholderPreview(
-  outboxID: Constants.OutboxIDKey
-): Constants.ClearAttachmentPlaceholderPreview {
-  return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
-}
-
 function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
+}
+
+function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
+  return {payload: {search}, type: 'chat:inboxSearch'}
 }
 
 function setInboxUntrustedState(
@@ -597,6 +595,7 @@ export {
   selectConversation,
   setAttachmentPlaceholderPreview,
   setInboxFilter,
+  setInboxSearch,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
