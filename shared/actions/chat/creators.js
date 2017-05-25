@@ -530,13 +530,6 @@ function setSelectedRouteState(
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
-function setAttachmentPlaceholderPreview(
-  outboxID: Constants.OutboxIDKey,
-  previewPath: string
-): Constants.SetAttachmentPlaceholderPreview {
-  return {payload: {previewPath, outboxID}, type: 'chat:setAttachmentPlaceholderPreview'}
-}
-
 function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
@@ -593,7 +586,6 @@ export {
   saveAttachment,
   selectAttachment,
   selectConversation,
-  setAttachmentPlaceholderPreview,
   setInboxFilter,
   setInboxSearch,
   setInboxUntrustedState,
