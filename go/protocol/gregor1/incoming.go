@@ -13,7 +13,6 @@ type SyncResult struct {
 	Hash []byte          `codec:"hash" json:"hash"`
 }
 
-<<<<<<< HEAD
 func (o SyncResult) DeepCopy() SyncResult {
 	return SyncResult{
 		Msgs: (func(x []InBandMessage) []InBandMessage {
@@ -26,7 +25,8 @@ func (o SyncResult) DeepCopy() SyncResult {
 		})(o.Msgs),
 		Hash: append([]byte(nil), o.Hash...),
 	}
-=======
+}
+
 // DescribeConnectedUsers will take a list of users, and return the list of users
 // which are connected to any Gregor in the cluster, and what devices (and device type)
 // those users are connected with.
@@ -37,10 +37,32 @@ type ConnectedDevice struct {
 	UserAgent      string   `codec:"userAgent" json:"userAgent"`
 }
 
+func (o ConnectedDevice) DeepCopy() ConnectedDevice {
+	return ConnectedDevice{
+		DeviceID:       o.DeviceID.DeepCopy(),
+		DeviceType:     o.DeviceType,
+		DevicePlatform: o.DevicePlatform,
+		UserAgent:      o.UserAgent,
+	}
+}
+
 type ConnectedUser struct {
 	Uid     UID               `codec:"uid" json:"uid"`
 	Devices []ConnectedDevice `codec:"devices" json:"devices"`
->>>>>>> new RPC for getting online devices
+}
+
+func (o ConnectedUser) DeepCopy() ConnectedUser {
+	return ConnectedUser{
+		Uid: o.Uid.DeepCopy(),
+		Devices: (func(x []ConnectedDevice) []ConnectedDevice {
+			var ret []ConnectedDevice
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Devices),
+	}
 }
 
 type SyncArg struct {
@@ -115,7 +137,6 @@ type StateByCategoryPrefixArg struct {
 	CategoryPrefix Category     `codec:"categoryPrefix" json:"categoryPrefix"`
 }
 
-<<<<<<< HEAD
 func (o StateByCategoryPrefixArg) DeepCopy() StateByCategoryPrefixArg {
 	return StateByCategoryPrefixArg{
 		Uid:            o.Uid.DeepCopy(),
@@ -123,14 +144,40 @@ func (o StateByCategoryPrefixArg) DeepCopy() StateByCategoryPrefixArg {
 		TimeOrOffset:   o.TimeOrOffset.DeepCopy(),
 		CategoryPrefix: o.CategoryPrefix.DeepCopy(),
 	}
-=======
+}
+
 type DescribeConnectedUsersArg struct {
 	Uids []UID `codec:"uids" json:"uids"`
 }
 
+func (o DescribeConnectedUsersArg) DeepCopy() DescribeConnectedUsersArg {
+	return DescribeConnectedUsersArg{
+		Uids: (func(x []UID) []UID {
+			var ret []UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Uids),
+	}
+}
+
 type DescribeConnectedUsersInternalArg struct {
 	Uids []UID `codec:"uids" json:"uids"`
->>>>>>> new RPC for getting online devices
+}
+
+func (o DescribeConnectedUsersInternalArg) DeepCopy() DescribeConnectedUsersInternalArg {
+	return DescribeConnectedUsersInternalArg{
+		Uids: (func(x []UID) []UID {
+			var ret []UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Uids),
+	}
 }
 
 type IncomingInterface interface {
