@@ -99,12 +99,11 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return err
 	}
 
-	// Get pukring
-	err = e.G().BumpPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return err
 	}
-	pukring, err := e.G().GetPerUserKeyring()
+	err = pukring.Sync(ctx.GetNetContext())
 	if err != nil {
 		return err
 	}
