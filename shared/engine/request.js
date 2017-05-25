@@ -57,11 +57,6 @@ class IncomingRequest extends Request {
     this.updateWaiting(true) // We just responded to the server so now we're waiting
   }
 
-  cancel(...args: Array<any>) {
-    this._response && this._response.cancel(...args)
-    this._cleanup()
-  }
-
   result(...args: Array<any>) {
     this._response && this._response.result(...args)
     this._cleanup()
