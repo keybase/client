@@ -35,10 +35,8 @@ func BuildCanonicalPath(pathType PathType, paths ...string) string {
 	switch pathType {
 	case KeybasePathType:
 		prefix = "/" + string(KeybasePathType)
-	case PublicPathType:
-		prefix = "/" + string(KeybasePathType) + "/" + string(PublicPathType)
-	case PrivatePathType:
-		prefix = "/" + string(KeybasePathType) + "/" + string(PrivatePathType)
+	default:
+		prefix = "/" + string(KeybasePathType) + "/" + string(pathType)
 	}
 	pathElements := []string{prefix}
 	for _, p := range paths {
