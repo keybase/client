@@ -25,8 +25,8 @@ export default connect(
   (dispatch: any, ownProps: {}) => ({
     onBack: () => dispatch(navigateUp()),
     onSave: () => dispatch(notificationsSave()),
-    onToggle: (name: string) => dispatch(notificationsToggle(name)),
-    onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
+    onToggle: (group: string, name?: string) => dispatch(notificationsToggle(group, name)),
+    onToggleUnsubscribeAll: (group: string) => dispatch(notificationsToggle(group)),
     onRefresh: () => dispatch(notificationsRefresh()),
     title: 'Notifications',
   })
