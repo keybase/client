@@ -37,7 +37,7 @@
     "start-hot": "yarn run _helper start-hot",
     "start-hot-debug": "yarn run _helper start-hot-debug",
     "start-prod": "yarn run _helper start-prod",
-    "test": "jest --config=desktop/test/jest-config.json --coverage",
+    "test": "jest --coverage",
     "undiff-log": "yarn run _helper undiff-log",
     "updated-fonts": "yarn run _helper updated-fonts",
     "vendor-install": "node yarn-vendor.js",
@@ -47,6 +47,13 @@
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
+  },
+  "jest": {
+      "modulePaths": ["<rootDir>/desktop/node_modules"],
+      "moduleFileExtensions": ["js", "json", "jsx", "node", "desktop.js"],
+      "globals": {
+        "__DEV__": true
+      }
   },
   "keywords": [],
   "author": "",
