@@ -705,11 +705,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-128.png'),
   },
-  'icon-keybase-logo-16 2': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-keybase-logo-16 2.png'),
-  },
   'icon-keybase-logo-16': {
     isFont: false,
     extension: 'png',
