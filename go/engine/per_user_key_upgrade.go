@@ -59,7 +59,7 @@ func (e *PerUserKeyUpgrade) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PerUserKeyUpgrade) Run(ctx *Context) (err error) {
-	defer e.G().CTrace(ctx.NetContext, "PerUserKeyUpgrade", func() error { return err })()
+	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyUpgrade", func() error { return err })()
 	return e.inner(ctx)
 }
 
@@ -68,29 +68,33 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return fmt.Errorf("per-user-key upgrade is disabled")
 	}
 
-	e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyUpgrade load self")
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade load self")
 
 	uid := e.G().GetMyUID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
 
-	loadArg := libkb.NewLoadUserArgBase(e.G()).WithNetContext(ctx.NetContext).WithUID(uid).WithPublicKeyOptional()
+	loadArg := libkb.NewLoadUserArgBase(e.G()).WithNetContext(ctx.GetNetContext()).WithUID(uid).WithPublicKeyOptional()
 	loadArg.LoginContext = e.args.LoginContext
 	upak, me, err := e.G().GetUPAKLoader().Load(*loadArg)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyUpgrade check for key")
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade check for key")
 	if len(upak.Base.PerUserKeys) > 0 {
-		e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyUpgrade already has per-user-key")
+		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade already has per-user-key")
 		e.DidNewKey = false
 		return nil
 	}
-	e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyUpgrade has no per-user-key")
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade has no per-user-key")
 
-	sigKey, encKey, err := e.getDeviceSecretKeys(ctx)
+	sigKey, err := e.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return err
+	}
+	encKey, err := e.G().ActiveDevice.EncryptionKey()
 	if err != nil {
 		return err
 	}
@@ -121,15 +125,13 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	}
 
 	// Create boxes of the new per-user-key
-	pukBoxes, err := pukring.PrepareBoxesForDevices(ctx.NetContext,
-		pukSeed, gen1, pukReceivers, *encKey)
+	pukBoxes, err := pukring.PrepareBoxesForDevices(ctx.GetNetContext(),
+		pukSeed, gen1, pukReceivers, encKey)
 	if err != nil {
 		return err
 	}
 
-	creationTime := e.G().Clock().Now().Unix()
-
-	sig1, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen1, sigKey, creationTime)
+	sig1, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen1, sigKey)
 	if err != nil {
 		return err
 	}
@@ -153,32 +155,13 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	e.DidNewKey = true
 
 	// Add the per-user-key locally
-	err = pukring.AddKey(ctx.NetContext, gen1, pukSeed)
+	err = pukring.AddKey(ctx.GetNetContext(), gen1, pukSeed)
 	if err != nil {
 		return err
 	}
 
 	e.G().UserChanged(uid)
 	return nil
-}
-
-// Get the full keys for this device.
-// Returns (sigKey, encKey, err)
-func (e *PerUserKeyUpgrade) getDeviceSecretKeys(ctx *Context) (libkb.GenericKey, *libkb.NaclDHKeyPair, error) {
-	ad := e.G().ActiveDevice
-	sigKey, err := ad.SigningKey()
-	if err != nil {
-		return nil, nil, err
-	}
-	encKeyGeneric, err := ad.EncryptionKey()
-	if err != nil {
-		return nil, nil, err
-	}
-	encKey, ok := encKeyGeneric.(libkb.NaclDHKeyPair)
-	if !ok {
-		return nil, nil, fmt.Errorf("Unexpected encryption key type: %T", encKeyGeneric)
-	}
-	return sigKey, &encKey, nil
 }
 
 // Get the receivers of the new per-user-key boxes.
