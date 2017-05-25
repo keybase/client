@@ -639,7 +639,7 @@ func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, ty)
 	if err != nil {
-		t.Fatalf("Couldn't parse %s (public=%s) into a TLF handle: %v",
+		t.Fatalf("Couldn't parse %s (type=%s) into a TLF handle: %v",
 			name, ty, err)
 	}
 	return h

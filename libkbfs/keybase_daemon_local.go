@@ -461,6 +461,54 @@ func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
 	return nil
 }
 
+func (k *KeybaseDaemonLocal) addTeamWriterForTest(
+	tid keybase1.TeamID, uid keybase1.UID) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	t, err := k.localTeams.getLocalTeam(tid)
+	if err != nil {
+		return err
+	}
+
+	if t.Writers == nil {
+		t.Writers = make(map[keybase1.UID]bool)
+	}
+	t.Writers[uid] = true
+	delete(t.Readers, uid)
+	k.localTeams[tid] = t
+	return nil
+}
+
+func (k *KeybaseDaemonLocal) addTeamReaderForTest(
+	tid keybase1.TeamID, uid keybase1.UID) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	t, err := k.localTeams.getLocalTeam(tid)
+	if err != nil {
+		return err
+	}
+
+	if t.Writers[uid] {
+		// Being a writer already implies being a reader.
+		return nil
+	}
+
+	if t.Readers == nil {
+		t.Readers = make(map[keybase1.UID]bool)
+	}
+	t.Readers[uid] = true
+	k.localTeams[tid] = t
+	return nil
+}
+
+func (k *KeybaseDaemonLocal) addTeamsForTest(teams []TeamInfo) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	for _, t := range teams {
+		k.localTeams[t.TID] = t
+	}
+}
+
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
 	ctx context.Context, folder keybase1.Folder) error {

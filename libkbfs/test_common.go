@@ -413,6 +413,74 @@ func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
+// AddTeamWriterForTest makes the given user a team writer.
+func AddTeamWriterForTest(
+	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return errors.New("Bad keybase daemon")
+	}
+
+	return kbd.addTeamWriterForTest(tid, uid)
+}
+
+// AddTeamWriterForTestOrBust is like AddTeamWriterForTest, but
+// dies if there's an error.
+func AddTeamWriterForTestOrBust(t logger.TestLogBackend, config Config,
+	tid keybase1.TeamID, uid keybase1.UID) {
+	err := AddTeamWriterForTest(config, tid, uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// AddTeamReaderForTest makes the given user a team reader.
+func AddTeamReaderForTest(
+	config Config, tid keybase1.TeamID, uid keybase1.UID) error {
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return errors.New("Bad keybase daemon")
+	}
+
+	return kbd.addTeamReaderForTest(tid, uid)
+}
+
+// AddTeamReaderForTestOrBust is like AddTeamWriterForTest, but
+// dies if there's an error.
+func AddTeamReaderForTestOrBust(t logger.TestLogBackend, config Config,
+	tid keybase1.TeamID, uid keybase1.UID) {
+	err := AddTeamReaderForTest(config, tid, uid)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// AddEmptyTeamsForTest creates teams for the given names with empty
+// membership lists.
+func AddEmptyTeamsForTest(
+	config Config, teams ...libkb.NormalizedUsername) ([]TeamInfo, error) {
+	teamInfos := MakeLocalTeams(teams)
+
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return nil, errors.New("Bad keybase daemon")
+	}
+
+	kbd.addTeamsForTest(teamInfos)
+	return teamInfos, nil
+}
+
+// AddEmptyTeamsForTestOrBust is like AddEmptyTeamsForTest, but dies
+// if there's an error.
+func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
+	config Config, teams ...libkb.NormalizedUsername) []TeamInfo {
+	teamInfos, err := AddEmptyTeamsForTest(config, teams...)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return teamInfos
+}
+
 func testRPCWithCanceledContext(t logger.TestLogBackend,
 	serverConn net.Conn, fn func(context.Context) error) {
 	ctx, cancel := context.WithCancel(context.Background())

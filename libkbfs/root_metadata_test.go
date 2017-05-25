@@ -639,6 +639,84 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Check writer/reader methods with teams
+func TestRootMetadataTeamMembership(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
+	ctx := context.Background()
+	defer config.Shutdown(ctx)
+
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
+	tid := teamInfos[0].TID
+
+	tlfID := tlf.FakeID(1, tlf.SingleTeam)
+	h := &TlfHandle{
+		tlfType: tlf.SingleTeam,
+		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			tid.AsUserOrTeam(): "t1",
+		},
+		name: "t1",
+	}
+	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
+	require.NoError(t, err)
+
+	getUID := func(name string) keybase1.UID {
+		_, id, err := config.KBPKI().Resolve(context.Background(), name)
+		require.NoError(t, err)
+		uid, err := id.AsUser()
+		require.NoError(t, err)
+		return uid
+	}
+	aliceUID := getUID("alice")
+	bobUID := getUID("bob")
+	charlieUID := getUID("charlie")
+
+	// No user should be able to read this yet.
+	checkWriter := func(uid keybase1.UID, expectedIsWriter bool) {
+		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), uid)
+		require.NoError(t, err)
+		require.Equal(t, expectedIsWriter, isWriter)
+	}
+	checkReader := func(uid keybase1.UID, expectedIsReader bool) {
+		isReader, err := rmd.IsReader(ctx, config.KBPKI(), uid)
+		require.NoError(t, err)
+		require.Equal(t, expectedIsReader, isReader)
+	}
+	checkWriter(aliceUID, false)
+	checkWriter(bobUID, false)
+	checkWriter(charlieUID, false)
+	checkReader(aliceUID, false)
+	checkReader(bobUID, false)
+	checkReader(charlieUID, false)
+
+	// Make bob a writer.
+	AddTeamWriterForTestOrBust(t, config, tid, bobUID)
+	checkWriter(aliceUID, false)
+	checkWriter(bobUID, true)
+	checkWriter(charlieUID, false)
+	checkReader(aliceUID, false)
+	checkReader(bobUID, true)
+	checkReader(charlieUID, false)
+
+	// Make alice a writer, and charlie a reader.
+	AddTeamWriterForTestOrBust(t, config, tid, aliceUID)
+	AddTeamReaderForTestOrBust(t, config, tid, charlieUID)
+	checkWriter(aliceUID, true)
+	checkWriter(bobUID, true)
+	checkWriter(charlieUID, false)
+	checkReader(aliceUID, true)
+	checkReader(bobUID, true)
+	checkReader(charlieUID, true)
+
+	// Promote charlie to writer.
+	AddTeamWriterForTestOrBust(t, config, tid, charlieUID)
+	checkWriter(aliceUID, true)
+	checkWriter(bobUID, true)
+	checkWriter(charlieUID, true)
+	checkReader(aliceUID, true)
+	checkReader(bobUID, true)
+	checkReader(charlieUID, true)
+}
+
 func TestRootMetadata(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testRootMetadataGetTlfHandlePublic,
