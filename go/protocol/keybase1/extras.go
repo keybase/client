@@ -949,27 +949,6 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
-func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
-	return UserPlusKeys{
-		Uid:               u.Uid,
-		Username:          u.Username,
-		DeviceKeys:        append([]PublicKey{}, u.DeviceKeys...),
-		RevokedDeviceKeys: append([]RevokedKey{}, u.RevokedDeviceKeys...),
-		PGPKeyCount:       u.PGPKeyCount,
-		Uvv:               u.Uvv,
-		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
-		PerUserKeys:       append([]PerUserKey{}, u.PerUserKeys...),
-	}
-}
-
-func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
-	return &UserPlusAllKeys{
-		Base:         u.Base.DeepCopy(),
-		PGPKeys:      append([]PublicKey{}, u.PGPKeys...),
-		RemoteTracks: append([]RemoteTrack{}, u.RemoteTracks...),
-	}
-}
-
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
 		return u.RemoteTracks[j].Username >= s
