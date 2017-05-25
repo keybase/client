@@ -16,30 +16,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type TeamSection struct {
-	Name    string          `json:"name"`
-	ID      keybase1.TeamID `json:"id"`
-	Members struct {
-		Owner  []libkb.NameWithEldestSeqno `json:"owner"`
-		Admin  []libkb.NameWithEldestSeqno `json:"admin"`
-		Writer []libkb.NameWithEldestSeqno `json:"writer"`
-		Reader []libkb.NameWithEldestSeqno `json:"reader"`
-	} `json:"members"`
-	PerTeamKey struct {
-		Generation    int          `json:"generation"`
-		EncryptionKID keybase1.KID `json:"encryption_kid"`
-		SigningKID    keybase1.KID `json:"signing_kid"`
-		// reverse_sig always gets set to null, and the caller has to overwrite it afterwards
-	} `json:"per_team_key"`
-	Parent *ParentSection `json:"parent,omitempty"`
-}
-
-type ParentSection struct {
-	ID    keybase1.TeamID `json:"id"`
-	Seqno keybase1.Seqno  `json:"seqno"`
-}
-
-func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection TeamSection) (*jsonw.Wrapper, error) {
+func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeTeamRoot,
@@ -70,7 +47,7 @@ func RootTeamIDFromName(name string) keybase1.TeamID {
 	return keybase1.TeamID(hex.EncodeToString(sum[0:15]) + "24")
 }
 
-func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamFQName string, subteamID keybase1.TeamID) (*jsonw.Wrapper, error) {
+func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeNewSubteam,
@@ -84,19 +61,23 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		return nil, err
 	}
 
-	subteamSection := jsonw.NewDictionary()
-	subteamSection.SetKey("id", jsonw.NewString(string(subteamID)))
-	subteamSection.SetKey("name", jsonw.NewString(subteamFQName))
-	teamSection := jsonw.NewDictionary()
-	teamSection.SetKey("id", jsonw.NewString(string(parentTeam.ID)))
-	teamSection.SetKey("subteam", subteamSection)
-	body := ret.AtKey("body")
-	body.SetKey("team", teamSection)
+	teamSection := SCTeamSection{
+		ID: (SCTeamID)(parentTeam.GetID()),
+		Subteam: &SCSubteam{
+			ID:   (SCTeamID)(subteamID),
+			Name: (SCTeamName)(subteamName),
+		},
+	}
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+	ret.SetValueAtPath("body.team", teamSectionJSON)
 
 	return ret, nil
 }
 
-func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection TeamSection) (*jsonw.Wrapper, error) {
+func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeSubteamHead,

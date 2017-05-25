@@ -18,7 +18,7 @@ type SCTeamID string
 type SCTeamMember string
 
 type SCTeamSection struct {
-	ID         *SCTeamID      `json:"id,omitempty"`
+	ID         SCTeamID       `json:"id"`
 	Name       *SCTeamName    `json:"name,omitempty"`
 	Members    *SCTeamMembers `json:"members,omitempty"`
 	Parent     *SCTeamParent  `json:"parent,omitempty"`

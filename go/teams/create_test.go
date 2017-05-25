@@ -1,16 +1,19 @@
 // Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package engine
+package teams
 
 import (
+	"context"
 	"testing"
 
+	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
-	tc := SetupEngineTest(t, "crypto")
+	tc := libkb.SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
@@ -19,22 +22,17 @@ func TestCreateTeam(t *testing.T) {
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
 	// underscore after the prefix.
-	u := CreateAndSignupFakeUser(tc, "t")
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
 
 	teamName := u.Username + "T"
-	eng := NewTeamCreateEngine(tc.G, teamName)
 
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		SecretUI: u.NewSecretUI(),
-	}
-	err := eng.Run(ctx)
-
+	err = CreateRootTeam(context.TODO(), tc.G, teamName)
 	require.NoError(t, err)
 }
 
 func TestCreateTeamAfterAccountReset(t *testing.T) {
-	tc := SetupEngineTest(t, "crypto")
+	tc := libkb.SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
@@ -43,57 +41,48 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
 	// underscore after the prefix.
-	u := CreateAndSignupFakeUser(tc, "t")
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
 
 	// Now the user's fully qualified username should be like user%seqno. If we
 	// don't format this properly, the server will reject the post.
-	ResetAccount(tc, u)
+	kbtest.ResetAccount(tc, u)
 
 	// this will reprovision as an eldest device:
-	u.LoginOrBust(tc)
-	if err := AssertProvisioned(tc); err != nil {
+	err = u.Login(tc.G)
+	require.NoError(t, err)
+	if err = kbtest.AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
 
 	teamName := u.Username + "T"
-	eng := NewTeamCreateEngine(tc.G, teamName)
-
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		SecretUI: u.NewSecretUI(),
-	}
-	err := eng.Run(ctx)
-
+	err = CreateRootTeam(context.TODO(), tc.G, teamName)
 	require.NoError(t, err)
 }
 
 func TestCreateSubteam(t *testing.T) {
-	tc := SetupEngineTest(t, "crypto")
+	tc := libkb.SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
 	tc.Tp.UpgradePerUserKey = true
-	u := CreateAndSignupFakeUser(tc, "t")
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
 
-	parentTeamName := u.Username + "T"
-	parentEng := NewTeamCreateEngine(tc.G, parentTeamName)
-	ctx := &Context{
-		LogUI:    tc.G.UI.GetLogUI(),
-		SecretUI: u.NewSecretUI(),
-	}
-	err := parentEng.Run(ctx)
+	parentTeamName, err := TeamNameFromString(u.Username + "T")
+	require.NoError(t, err)
+	err = CreateRootTeam(context.TODO(), tc.G, string(parentTeamName))
 	require.NoError(t, err)
 
 	subteamBasename := "mysubteam"
-	subteamEng := NewSubteamCreateEngine(tc.G, parentTeamName, subteamBasename)
-	err = subteamEng.Run(ctx)
+	err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
 	require.NoError(t, err)
 
 	// TODO: Uncomment the rest here when Get() supports subteams.
 
 	// // Fetch the subteam we just created, to make sure it's there.
 	// subteamFQName := parentTeamName + "." + subteamBasename
-	// subteam, err := teams.Get(context.TODO(), tc.G, subteamFQName)
+	// subteam, err := Get(context.TODO(), tc.G, subteamFQName)
 	// require.NoError(t, err)
 
 	// require.Equal(t, subteamFQName, subteam.GetName())

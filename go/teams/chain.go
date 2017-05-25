@@ -482,7 +482,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if prevState != nil {
 			return res, fmt.Errorf("link type 'team.root' unexpected at seqno:%v", prevState.LastSeqno+1)
 		}
-		if team.ID == nil {
+		if len(team.ID) == 0 {
 			return res, errors.New("missing team id")
 		}
 		if team.Name == nil {
@@ -501,7 +501,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, errors.New("per-team-key missing")
 		}
 
-		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		teamID, err := keybase1.TeamIDFromString(string(team.ID))
 		if err != nil {
 			return res, err
 		}
@@ -552,7 +552,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if prevState == nil {
 			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
 		}
-		if team.ID == nil {
+		if len(team.ID) == 0 {
 			return res, errors.New("missing team id")
 		}
 		if team.Name != nil {
@@ -571,7 +571,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, errors.New("unexpected missing")
 		}
 
-		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		teamID, err := keybase1.TeamIDFromString(string(team.ID))
 		if err != nil {
 			return res, err
 		}
@@ -620,7 +620,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if prevState == nil {
 			return res, fmt.Errorf("link type 'team.rotate_key' unexpected at beginning of chain")
 		}
-		if team.ID == nil {
+		if len(team.ID) == 0 {
 			return res, errors.New("missing team id")
 		}
 		if team.Name != nil {
