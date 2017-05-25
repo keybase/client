@@ -10,6 +10,8 @@ import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
+import {isMobile} from '../../constants/platform'
+import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -210,6 +212,52 @@ function* onLoadAttachment({
   }
 }
 
+function* _appendAttachmentPlaceholder(
+  conversationIDKey: Constants.ConversationIDKey,
+  outboxIDKey: Constants.OutboxIDKey,
+  preview: ChatTypes.MakePreviewRes,
+  title: string,
+  uploadPath: string
+) {
+  const author = yield select(usernameSelector)
+  const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxIDKey)
+  const message: Constants.AttachmentMessage = {
+    author,
+    conversationIDKey,
+    deviceName: '',
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    failureDescription: hasPendingFailure,
+    key: Constants.messageKey(conversationIDKey, 'outboxIDAttachment', outboxIDKey),
+    messageState: hasPendingFailure ? 'failed' : 'pending',
+    outboxID: outboxIDKey,
+    senderDeviceRevokedAt: null,
+    timestamp: Date.now(),
+    type: 'Attachment',
+    you: author,
+    ...Constants.getAttachmentInfo(preview),
+    previewPath: preview.filename,
+    title,
+    downloadedPath: null,
+    savedPath: null,
+    uploadPath,
+    previewProgress: null,
+    downloadProgress: null,
+    uploadProgress: null,
+  }
+
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  const appFocused = yield select(Shared.focusedSelector)
+
+  yield put(
+    Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, [
+      message,
+    ])
+  )
+  if (hasPendingFailure) {
+    yield put(Creators.removePendingFailure(outboxIDKey))
+  }
+}
+
 function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
@@ -255,20 +303,30 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   }): any)
   const outboxIDResp = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadOutboxID')
   const {outboxID} = outboxIDResp.params
-  yield put(Creators.setAttachmentPlaceholderPreview(Constants.outboxIDToKey(outboxID), preview.filename))
+  const outboxIDKey = Constants.outboxIDToKey(outboxID)
+  yield call(_appendAttachmentPlaceholder, conversationIDKey, outboxIDKey, preview, title, filename)
   outboxIDResp.response.result()
-
-  const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  const messageID = uploadStart.params.placeholderMsgID
-  uploadStart.response.result()
 
   const finishedTask = yield fork(function*() {
     const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
     if (finished.error) {
-      yield put(Creators.updateMessage(conversationIDKey, {messageState: 'failed'}, messageID))
+      yield put(
+        Creators.updateTempMessage(
+          conversationIDKey,
+          {
+            messageState: 'failed',
+            failureDescription: 'upload unsuccessful',
+          },
+          outboxIDKey
+        )
+      )
     }
     return finished
   })
+
+  const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
+  const messageID = uploadStart.params.placeholderMsgID
+  uploadStart.response.result()
 
   const progressTask = yield Saga.effectOnChannelMap(
     c =>
@@ -303,6 +361,13 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   return messageID
 }
 
+function* onRetryAttachment({
+  payload: {input, oldOutboxID},
+}: Constants.RetryAttachment): Generator<any, any, any> {
+  yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
+  yield call(onSelectAttachment, {payload: {input}})
+}
+
 function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
@@ -327,6 +392,7 @@ export {
   onLoadAttachment,
   onLoadAttachmentPreview,
   onOpenAttachmentPopup,
+  onRetryAttachment,
   onSaveAttachment,
   onSaveAttachmentNative,
   onShareAttachment,

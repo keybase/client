@@ -22,6 +22,7 @@ const factory = (
   switch (kind) {
     case 'header':
       return <Header messageKey={messageKey} />
+    case 'outboxIDAttachment': // fallthrough
     case 'messageIDAttachment':
       return (
         <Wrapper

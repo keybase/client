@@ -40,6 +40,7 @@ type MessageKeyKind =
   | 'messageIDError'
   | 'messageIDText'
   | 'messageIDUnhandled'
+  | 'outboxIDAttachment'
   | 'outboxIDText'
   | 'tempAttachment'
   | 'timestamp'
@@ -136,6 +137,7 @@ export type AttachmentMessage = {
   previewDurationMs: ?number,
   downloadedPath: ?string,
   savedPath: string | null | false,
+  uploadPath?: string,
   outboxID?: ?OutboxIDKey,
   previewProgress: number | null /* between 0 - 1 */,
   downloadProgress: number | null /* between 0 - 1 */,
@@ -348,7 +350,6 @@ export const StateRecord = Record({
   nowOverride: null,
   editingMessage: null,
   initialConversation: null,
-  attachmentPlaceholderPreviews: Map(),
   inboxUntrustedState: 'unloaded',
 })
 
@@ -371,7 +372,6 @@ export type State = Record<{
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
-  attachmentPlaceholderPreviews: Map<OutboxIDKey, string>,
   inboxUntrustedState: UntrustedState,
 }>
 
@@ -397,10 +397,6 @@ export type BlockConversation = NoErrorTypedAction<
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type ClearAttachmentPlaceholderPreview = NoErrorTypedAction<
-  'chat:clearAttachmentPlaceholderPreview',
-  {outboxID: OutboxIDKey}
->
 export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
   {failureDescription: string, outboxID: OutboxIDKey}
@@ -476,10 +472,6 @@ export type RetryMessage = NoErrorTypedAction<
 export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
->
-export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
-  'chat:setAttachmentPlaceholderPreview',
-  {previewPath: string, outboxID: OutboxIDKey}
 >
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
@@ -568,6 +560,10 @@ export type ThreadLoadedOffline = NoErrorTypedAction<
 >
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
+export type RetryAttachment = NoErrorTypedAction<
+  'chat:retryAttachment',
+  {input: AttachmentInput, oldOutboxID: OutboxIDKey}
+>
 export type UpdateBrokenTracker = NoErrorTypedAction<
   'chat:updateBrokenTracker',
   {userToBroken: {[username: string]: boolean}}
@@ -806,7 +802,7 @@ function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
   return null
 }
 
-function getAttachmentInfo(preview: ?Asset, object: ?Asset) {
+function getAttachmentInfo(preview: ?(Asset | ChatTypes.MakePreviewRes), object: ?Asset) {
   const filename = object && object.filename
   const title = object && object.title
 
@@ -922,6 +918,8 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
       return 'messageIDUnhandled'
     case 'outboxIDText':
       return 'outboxIDText'
+    case 'outboxIDAttachment':
+      return 'outboxIDAttachment'
     case 'tempAttachment':
       return 'tempAttachment'
     case 'timestamp':

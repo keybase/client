@@ -60,10 +60,13 @@ declare module 'react-native-camera' {
 declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' {
   declare var exports: any
 }
+declare module 'react-native/Libraries/StyleSheet/StyleSheetTypes' {
+  declare var exports: any
+}
 declare module 'react-navigation' {
   declare var exports: any
 }
-declare module 'react-navigation/lib/views/CardStackTransitioner' {
+declare module 'react-navigation/src/views/CardStackTransitioner' {
   declare var exports: any
 }
 declare module 'react-redux' {
