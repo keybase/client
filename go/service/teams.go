@@ -37,8 +37,6 @@ func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreat
 	return engine.RunEngine(eng, &ctx)
 }
 
-// TODO: return something useful
-func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) error {
-	_, err := teams.Get(netCtx, h.G(), arg.Name)
-	return err
+func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembers, error) {
+	return teams.Members(netCtx, h.G(), arg.Name)
 }

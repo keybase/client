@@ -3427,18 +3427,18 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamGetRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>) {
+export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamGet', request)
 }
 
-export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): EngineChannel {
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
 }
-export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
 }
 
-export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): Promise<void> {
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): Promise<teamsTeamGetResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -5508,6 +5508,13 @@ export type TLFQuery = {
 
 export type TeamID = string
 
+export type TeamMembers = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+}
+
 export type TeamRole =
     0 // NONE_0
   | 1 // OWNER_1
@@ -6802,6 +6809,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsTeamGetResult = TeamMembers
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks

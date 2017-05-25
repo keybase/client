@@ -18,6 +18,14 @@ protocol teams {
       KID encKID;
   }
 
+  record TeamMembers {
+    array<string> owners;
+    array<string> admins;
+    array<string> writers;
+    array<string> readers;
+  }
+
   void teamCreate(int sessionID, string name);
-  void teamGet(int sessionID, string name);
+
+  TeamMembers teamGet(int sessionID, string name);
 }
