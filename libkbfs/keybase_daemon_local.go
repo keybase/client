@@ -269,7 +269,12 @@ func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
 		return TeamInfo{}, err
 	}
 
-	return t, nil
+	// Copy the info since it contains a map that might be mutated.
+	var infoCopy TeamInfo
+	if err := kbfscodec.Update(k.codec, &infoCopy, t); err != nil {
+		return TeamInfo{}, err
+	}
+	return infoCopy, nil
 }
 
 // LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
