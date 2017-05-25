@@ -107,7 +107,8 @@ func (h TlfHandle) ResolvedWriters() []keybase1.UserOrTeamID {
 }
 
 // FirstResolvedWriter returns the handle's first resolved writer ID
-// (when sorted). This is used mostly for tests.
+// (when sorted).  For SingleTeam handles, this returns the team to
+// which the TLF belongs.
 func (h TlfHandle) FirstResolvedWriter() keybase1.UserOrTeamID {
 	return h.ResolvedWriters()[0]
 }
