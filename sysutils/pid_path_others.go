@@ -7,6 +7,6 @@
 package sysutils
 
 // GetExecPathFromPID returns the process's executable path for given PID.
-func GetExecPathFromPID(pid int) (string, error) {
+func GetExecPathFromPID(pid uint32) (string, error) {
 	return "", NotImplementedError{}
 }
