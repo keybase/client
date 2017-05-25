@@ -129,6 +129,36 @@ export function incomingConsumePublishMessageRpcPromise (request: $Exact<request
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.consumePublishMessage', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function incomingDescribeConnectedUsersInternalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersInternalResult) => void} & {param: incomingDescribeConnectedUsersInternalRpcParam}>) {
+  engineRpcOutgoing('gregor.1.incoming.describeConnectedUsersInternal', request)
+}
+
+export function incomingDescribeConnectedUsersInternalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersInternalResult) => void} & {param: incomingDescribeConnectedUsersInternalRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.describeConnectedUsersInternal', request)
+}
+export function incomingDescribeConnectedUsersInternalRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersInternalResult) => void} & {param: incomingDescribeConnectedUsersInternalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.describeConnectedUsersInternal', request, callback, incomingCallMap) })
+}
+
+export function incomingDescribeConnectedUsersInternalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersInternalResult) => void} & {param: incomingDescribeConnectedUsersInternalRpcParam}>): Promise<incomingDescribeConnectedUsersInternalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.describeConnectedUsersInternal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function incomingDescribeConnectedUsersRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersResult) => void} & {param: incomingDescribeConnectedUsersRpcParam}>) {
+  engineRpcOutgoing('gregor.1.incoming.describeConnectedUsers', request)
+}
+
+export function incomingDescribeConnectedUsersRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersResult) => void} & {param: incomingDescribeConnectedUsersRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.describeConnectedUsers', request)
+}
+export function incomingDescribeConnectedUsersRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersResult) => void} & {param: incomingDescribeConnectedUsersRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('gregor.1.incoming.describeConnectedUsers', request, callback, incomingCallMap) })
+}
+
+export function incomingDescribeConnectedUsersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingDescribeConnectedUsersResult) => void} & {param: incomingDescribeConnectedUsersRpcParam}>): Promise<incomingDescribeConnectedUsersResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.describeConnectedUsers', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function incomingPingRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>) {
   engineRpcOutgoing('gregor.1.incoming.ping', request)
 }
@@ -260,6 +290,17 @@ export type Body = bytes
 
 export type Category = string
 
+export type ConnectedDevice = {
+  deviceID: DeviceID,
+  deviceType: string,
+  devicePlatform: string,
+}
+
+export type ConnectedUser = {
+  uid: UID,
+  devices?: ?Array<ConnectedDevice>,
+}
+
 export type DeviceID = bytes
 
 export type Dismissal = {
@@ -379,6 +420,14 @@ export type incomingConsumePublishMessageRpcParam = Exact<{
   m: Message
 }>
 
+export type incomingDescribeConnectedUsersInternalRpcParam = Exact<{
+  uids?: ?Array<UID>
+}>
+
+export type incomingDescribeConnectedUsersRpcParam = Exact<{
+  uids?: ?Array<UID>
+}>
+
 export type incomingStateByCategoryPrefixRpcParam = Exact<{
   uid: UID,
   deviceid: DeviceID,
@@ -415,6 +464,8 @@ export type remindGetRemindersRpcParam = Exact<{
 }>
 type authAuthenticateSessionTokenResult = AuthResult
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
+type incomingDescribeConnectedUsersInternalResult = ?Array<ConnectedUser>
+type incomingDescribeConnectedUsersResult = ?Array<ConnectedUser>
 type incomingPingResult = string
 type incomingStateByCategoryPrefixResult = State
 type incomingStateResult = State
@@ -428,6 +479,8 @@ export type rpc =
   | authUpdateRevokeSessionIDsRpc
   | incomingConsumeMessageRpc
   | incomingConsumePublishMessageRpc
+  | incomingDescribeConnectedUsersInternalRpc
+  | incomingDescribeConnectedUsersRpc
   | incomingPingRpc
   | incomingStateByCategoryPrefixRpc
   | incomingStateRpc

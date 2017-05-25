@@ -13,6 +13,7 @@ type SyncResult struct {
 	Hash []byte          `codec:"hash" json:"hash"`
 }
 
+<<<<<<< HEAD
 func (o SyncResult) DeepCopy() SyncResult {
 	return SyncResult{
 		Msgs: (func(x []InBandMessage) []InBandMessage {
@@ -25,6 +26,20 @@ func (o SyncResult) DeepCopy() SyncResult {
 		})(o.Msgs),
 		Hash: append([]byte(nil), o.Hash...),
 	}
+=======
+// DescribeConnectedUsers will take a list of users, and return the list of users
+// which are connected to any Gregor in the cluster, and what devices (and device type)
+// those users are connected with.
+type ConnectedDevice struct {
+	DeviceID       DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceType     string   `codec:"deviceType" json:"deviceType"`
+	DevicePlatform string   `codec:"devicePlatform" json:"devicePlatform"`
+}
+
+type ConnectedUser struct {
+	Uid     UID               `codec:"uid" json:"uid"`
+	Devices []ConnectedDevice `codec:"devices" json:"devices"`
+>>>>>>> new RPC for getting online devices
 }
 
 type SyncArg struct {
@@ -99,6 +114,7 @@ type StateByCategoryPrefixArg struct {
 	CategoryPrefix Category     `codec:"categoryPrefix" json:"categoryPrefix"`
 }
 
+<<<<<<< HEAD
 func (o StateByCategoryPrefixArg) DeepCopy() StateByCategoryPrefixArg {
 	return StateByCategoryPrefixArg{
 		Uid:            o.Uid.DeepCopy(),
@@ -106,6 +122,14 @@ func (o StateByCategoryPrefixArg) DeepCopy() StateByCategoryPrefixArg {
 		TimeOrOffset:   o.TimeOrOffset.DeepCopy(),
 		CategoryPrefix: o.CategoryPrefix.DeepCopy(),
 	}
+=======
+type DescribeConnectedUsersArg struct {
+	Uids []UID `codec:"uids" json:"uids"`
+}
+
+type DescribeConnectedUsersInternalArg struct {
+	Uids []UID `codec:"uids" json:"uids"`
+>>>>>>> new RPC for getting online devices
 }
 
 type IncomingInterface interface {
@@ -118,6 +142,8 @@ type IncomingInterface interface {
 	// StateByCategoryPrefix loads the messages of the user's state whose
 	// categories are prefixed by the given prefix
 	StateByCategoryPrefix(context.Context, StateByCategoryPrefixArg) (State, error)
+	DescribeConnectedUsers(context.Context, []UID) ([]ConnectedUser, error)
+	DescribeConnectedUsersInternal(context.Context, []UID) ([]ConnectedUser, error)
 }
 
 func IncomingProtocol(i IncomingInterface) rpc.Protocol {
@@ -231,6 +257,38 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"describeConnectedUsers": {
+				MakeArg: func() interface{} {
+					ret := make([]DescribeConnectedUsersArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DescribeConnectedUsersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DescribeConnectedUsersArg)(nil), args)
+						return
+					}
+					ret, err = i.DescribeConnectedUsers(ctx, (*typedArgs)[0].Uids)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"describeConnectedUsersInternal": {
+				MakeArg: func() interface{} {
+					ret := make([]DescribeConnectedUsersInternalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DescribeConnectedUsersInternalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DescribeConnectedUsersInternalArg)(nil), args)
+						return
+					}
+					ret, err = i.DescribeConnectedUsersInternal(ctx, (*typedArgs)[0].Uids)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -276,5 +334,17 @@ func (c IncomingClient) State(ctx context.Context, __arg StateArg) (res State, e
 // categories are prefixed by the given prefix
 func (c IncomingClient) StateByCategoryPrefix(ctx context.Context, __arg StateByCategoryPrefixArg) (res State, err error) {
 	err = c.Cli.Call(ctx, "gregor.1.incoming.stateByCategoryPrefix", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IncomingClient) DescribeConnectedUsers(ctx context.Context, uids []UID) (res []ConnectedUser, err error) {
+	__arg := DescribeConnectedUsersArg{Uids: uids}
+	err = c.Cli.Call(ctx, "gregor.1.incoming.describeConnectedUsers", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IncomingClient) DescribeConnectedUsersInternal(ctx context.Context, uids []UID) (res []ConnectedUser, err error) {
+	__arg := DescribeConnectedUsersInternalArg{Uids: uids}
+	err = c.Cli.Call(ctx, "gregor.1.incoming.describeConnectedUsersInternal", []interface{}{__arg}, &res)
 	return
 }
