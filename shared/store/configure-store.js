@@ -1,11 +1,11 @@
 // @flow
-import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {convertToError} from '../util/errors'
+import {createLogger} from 'redux-logger'
 import {createStore} from 'redux'
 import {
   enableStoreLogging,
