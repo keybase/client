@@ -18,6 +18,7 @@ export type Props = {
   refresh: () => void,
   onAvatarLoaded?: () => void,
   onBack: ?() => void,
+  onChat: () => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
@@ -42,4 +43,4 @@ export type Props = {
   onClickFollowing: () => void,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

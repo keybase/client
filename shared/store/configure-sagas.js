@@ -13,42 +13,44 @@ import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
-import {call} from 'redux-saga/effects'
+import {fork} from 'redux-saga/effects'
+import sagaMonitor from './saga-monitor'
+import {reduxSagaLogger} from '../local-debug'
+import appStateSaga from '../actions/app'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
-function * mainSaga (): SagaGenerator<any, any> {
-  yield [
-    call(chatSaga),
-    call(deviceSaga),
-    call(favoriteSaga),
-    call(gregorSaga),
-    call(kbfsSaga),
-    call(loginSaga),
-    call(notificationsSaga),
-    call(pgpSaga),
-    call(planBillingSaga),
-    call(profileSaga),
-    call(pushSaga),
-    call(routeSaga),
-    call(settingsSaga),
-  ]
+function* mainSaga(): SagaGenerator<any, any> {
+  yield fork(chatSaga)
+  yield fork(deviceSaga)
+  yield fork(favoriteSaga)
+  yield fork(gregorSaga)
+  yield fork(kbfsSaga)
+  yield fork(loginSaga)
+  yield fork(notificationsSaga)
+  yield fork(pgpSaga)
+  yield fork(planBillingSaga)
+  yield fork(profileSaga)
+  yield fork(pushSaga)
+  yield fork(routeSaga)
+  yield fork(settingsSaga)
+  yield fork(appStateSaga)
 }
 
 let middleWare
-function create (crashHandler: (err: any) => void) {
+function create(crashHandler: (err: any) => void) {
   if (middleWare) {
     throw new Error('Only create one saga middleware!')
   }
-  middleWare = createSagaMiddleware({onError: crashHandler})
+  middleWare = createSagaMiddleware({
+    onError: crashHandler,
+    sagaMonitor: reduxSagaLogger ? sagaMonitor : undefined,
+  })
   return middleWare
 }
 
-function run () {
+function run() {
   middleWare.run(mainSaga)
 }
 
-export {
-  create,
-  run,
-}
+export {create, run}

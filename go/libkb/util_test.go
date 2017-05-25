@@ -68,6 +68,25 @@ func TestWhitespaceNormalize(t *testing.T) {
 
 }
 
+func TestMakeByte24(t *testing.T) {
+	var x1 [24]byte
+	var x2 [31]byte
+	var x3 [33]byte
+
+	x1[3] = 5
+
+	y := MakeByte24(x1[:])
+	require.Equal(t, x1, y)
+
+	require.Panics(t, func() {
+		MakeByte24(x2[:])
+	})
+
+	require.Panics(t, func() {
+		MakeByte24(x3[:])
+	})
+}
+
 func TestMakeByte32(t *testing.T) {
 	var x1 [32]byte
 	var x2 [31]byte
@@ -75,13 +94,14 @@ func TestMakeByte32(t *testing.T) {
 
 	x1[3] = 5
 
-	y, err := MakeByte32(x1[:])
-	require.NoError(t, err)
+	y := MakeByte32(x1[:])
 	require.Equal(t, x1, y)
 
-	y, err = MakeByte32(x2[:])
-	require.Error(t, err)
+	require.Panics(t, func() {
+		MakeByte32(x2[:])
+	})
 
-	y, err = MakeByte32(x3[:])
-	require.Error(t, err)
+	require.Panics(t, func() {
+		MakeByte32(x3[:])
+	})
 }

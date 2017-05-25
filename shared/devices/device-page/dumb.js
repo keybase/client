@@ -14,7 +14,9 @@ const common = {
   icon: 'icon-computer-64',
   lastUsed: 1444423192001,
   name: 'Home Computer',
-  onBack: () => { console.log('onBack') },
+  onBack: () => {
+    console.log('onBack')
+  },
   provisionedAt: null,
   provisioner: null,
   revokeName: 'device',
@@ -26,7 +28,7 @@ const common = {
 const map: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': {
+    Normal: {
       ...common,
       bannerBackgroundColor: globalColors.yellow,
       bannerColor: globalColors.brown_60,
@@ -47,7 +49,7 @@ const map: DumbComponentMap<Render> = {
         },
       ],
     },
-    'Paper': {
+    Paper: {
       ...common,
       device: common,
       deviceID: 'dddddddddddddddddddddddddddddddd',
@@ -63,7 +65,7 @@ const map: DumbComponentMap<Render> = {
       ],
       type: 'backup',
     },
-    'Revoked': {
+    Revoked: {
       ...common,
       currentDevice: false,
       device: common,
@@ -88,7 +90,7 @@ const map: DumbComponentMap<Render> = {
         },
       ],
     },
-    'Unlock': {
+    Unlock: {
       ...common,
       bannerBackgroundColor: globalColors.blue,
       bannerColor: globalColors.white,
@@ -96,7 +98,7 @@ const map: DumbComponentMap<Render> = {
       device: common,
       deviceID: 'cccccccccccccccccccccccccccccccc',
       icon: 'icon-phone-64',
-      name: 'Chris\'s iPhone',
+      name: "Chris's iPhone",
       timeline: [
         {
           desc: 'Last used Mar 25, 2016',
@@ -115,5 +117,5 @@ const map: DumbComponentMap<Render> = {
 }
 
 export default {
-  'Device Page': map,
+  'Devices: Device Page': map,
 }

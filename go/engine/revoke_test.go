@@ -4,10 +4,12 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
@@ -66,8 +68,17 @@ func assertNumDevicesAndKeys(tc libkb.TestContext, u *FakeUser, numDevices, numK
 }
 
 func TestRevokeDevice(t *testing.T) {
+	testRevokeDevice(t, false)
+}
+
+func TestRevokeDevicePUK(t *testing.T) {
+	testRevokeDevice(t, true)
+}
+
+func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
 
 	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
@@ -96,6 +107,100 @@ func TestRevokeDevice(t *testing.T) {
 	}
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
+}
+
+func TestRevokePaperDevice(t *testing.T) {
+	testRevokePaperDevice(t, false)
+}
+
+func TestRevokePaperDevicePUK(t *testing.T) {
+	testRevokePaperDevice(t, true)
+}
+
+func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
+
+	t.Logf("username: %s", u.Username)
+
+	assertNumDevicesAndKeys(tc, u, 2, 4)
+
+	assertNumDevicesAndKeys(tc, u, 2, 4)
+
+	revokeAnyPaperKey(tc, u)
+
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	if tc.G.Env.GetSupportPerUserKey() {
+		checkPerUserKeyring(t, tc.G, 2)
+	}
+}
+
+func TestRevokerPaperDeviceTwice(t *testing.T) {
+	testRevokerPaperDeviceTwice(t, false)
+}
+
+func TestRevokerPaperDeviceTwicePUK(t *testing.T) {
+	testRevokerPaperDeviceTwice(t, true)
+}
+
+func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
+
+	t.Logf("username: %s", u.Username)
+
+	t.Logf("generate second paper key")
+	{
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+	}
+
+	t.Logf("check")
+	assertNumDevicesAndKeys(tc, u, 3, 6)
+
+	t.Logf("revoke paper key 1")
+	revokeAnyPaperKey(tc, u)
+
+	t.Logf("revoke paper key 2")
+	revokeAnyPaperKey(tc, u)
+
+	t.Logf("check")
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	if tc.G.Env.GetSupportPerUserKey() {
+		checkPerUserKeyring(t, tc.G, 3)
+	}
+}
+
+func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
+	// if there is an existing keyring, it should be up to date
+	pukring, err := g.GetPerUserKeyring()
+	if err == nil {
+		require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
+	}
+	pukring = nil
+
+	// double check that the per-user-keyring is correct
+	g.ClearPerUserKeyring()
+	require.NoError(t, g.BumpPerUserKeyring())
+	pukring, err = g.GetPerUserKeyring()
+	require.NoError(t, err)
+	require.NoError(t, pukring.Sync(context.TODO()))
+	require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
 }
 
 func TestRevokeKey(t *testing.T) {
@@ -281,4 +386,21 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
+}
+
+func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
+	t := tc.T
+	t.Logf("revoke a paper key")
+	devices, _ := getActiveDevicesAndKeys(tc, fu)
+	var revokeDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type == libkb.DeviceTypePaper {
+			revokeDevice = device
+		}
+	}
+	require.NotNil(t, revokeDevice, "no paper key found to revoke")
+	t.Logf("revoke %s", revokeDevice.ID)
+	err := doRevokeDevice(tc, fu, revokeDevice.ID, false)
+	require.NoError(t, err)
+	return revokeDevice
 }

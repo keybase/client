@@ -663,6 +663,10 @@
         {
           "name": "ctime",
           "type": "gregor1.Time"
+        },
+        {
+          "name": "fresh",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult"
@@ -745,6 +749,27 @@
         {
           "name": "status",
           "type": "ConversationStatus"
+        }
+      ],
+      "response": null
+    },
+    "updateTypingRemote": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "deviceID",
+          "type": "gregor1.DeviceID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "typing",
+          "type": "boolean"
         }
       ],
       "response": null

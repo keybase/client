@@ -1,10 +1,8 @@
 // @flow
-
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'
-import type {BillingState, Actions} from '../constants/plan-billing'
 
-const initialState: BillingState = {
+const initialState: Constants.State = {
   availablePlans: null,
   errorMessage: null,
   paymentInfo: null,
@@ -12,7 +10,7 @@ const initialState: BillingState = {
   usage: null,
 }
 
-export default function (state: BillingState = initialState, action: Actions): BillingState {
+export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

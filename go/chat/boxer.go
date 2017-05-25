@@ -17,6 +17,7 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -43,7 +44,7 @@ func init() {
 
 type Boxer struct {
 	utils.DebugLabeler
-	libkb.Contextified
+	globals.Contextified
 
 	boxWithVersion chat1.MessageBoxedVersion
 
@@ -62,12 +63,12 @@ type Boxer struct {
 	testingSignatureMangle func([]byte) []byte
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlfInfoSource types.TLFInfoSource) *Boxer {
+func NewBoxer(g *globals.Context, tlfInfoSource types.TLFInfoSource) *Boxer {
 	return &Boxer{
 		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
 		boxWithVersion: chat1.MessageBoxedVersion_V1,
 		hashV1:         hashSha256V1,
-		Contextified:   libkb.NewContextified(g),
+		Contextified:   globals.NewContextified(g),
 		tlfInfoSource:  tlfInfoSource,
 	}
 }
@@ -84,6 +85,15 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 		MessageType: msg.GetMessageType(),
 		Ctime:       msg.ServerHeader.Ctime,
 	})
+}
+
+func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
+	// Banned folders are only detectable by the error string currently, hopefully
+	// we can do something better in the future.
+	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
+		return true
+	}
+	return false
 }
 
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
@@ -112,6 +122,10 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName, tlfPublic)
 	if err != nil {
+		// Check to see if this is a permanent error from the server
+		if b.detectKBFSPermanentServerError(err) {
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		}
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}

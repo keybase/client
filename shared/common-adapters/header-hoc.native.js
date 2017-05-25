@@ -8,28 +8,41 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../sty
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P> (WrappedComponent: ReactClass<P>) {
-  return ({onBack, onCancel, headerStyle, title, ...restProps}: Props & P) => (
+function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
+  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
-      <Box style={{..._headerStyle, ...headerStyle}}>
+      <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
         <Box style={_titleStyle}>
-          <Text type='Header'>{title}</Text>
+          <Text type="Header">{title}</Text>
         </Box>
-        {onCancel && <Text type='BodyBigLink' onClick={onCancel}>Cancel</Text>}
-        {onBack && <BackButton iconStyle={_backButtonIconStyle} onClick={onBack} />}
+        {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
+        {onBack &&
+          <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />}
       </Box>
-      {<WrappedComponent {...restProps} />}
+      <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
   )
 }
 
-const _backButtonIconStyle = {
-  color: globalColors.blue,
+const _backButtonIconStyleThemed = {
+  dark: {
+    color: globalColors.white,
+  },
+  light: {
+    color: globalColors.black_40,
+  },
 }
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+}
+
+const _buttonStyle = {
+  paddingBottom: 8,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  paddingTop: 8,
 }
 
 const _headerStyle = {
@@ -40,9 +53,17 @@ const _headerStyle = {
   justifyContent: 'flex-start',
   marginTop: statusBarHeight,
   minHeight: globalMargins.xlarge - statusBarHeight,
-  paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   position: 'relative',
+}
+
+const _headerStyleThemed = {
+  dark: {
+    backgroundColor: globalColors.darkBlue3,
+  },
+  light: {
+    backgroundColor: globalColors.white,
+  },
 }
 
 const _titleStyle = {

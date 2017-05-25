@@ -13,11 +13,11 @@ type State = {
 }
 
 class Input extends Component<void, Props, State> {
-  state: State;
-  _input: any;
-  _isComposingIME: bool
+  state: State
+  _input: any
+  _isComposingIME: boolean
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this._isComposingIME = false
@@ -28,33 +28,37 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  componentDidMount () {
+  setNativeProps(props: Object) {
+    throw new Error('Only implemented on RN')
+  }
+
+  componentDidMount() {
     this._autoResize()
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.hasOwnProperty('value')) {
       this.setState({value: nextProps.value || ''})
     }
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this._autoResize()
   }
 
-  getValue (): string {
+  getValue(): string {
     return this.state.value || ''
   }
 
-  setValue (value: string) {
+  setValue(value: string) {
     this.setState({value: value || ''})
   }
 
-  clearValue () {
+  clearValue() {
     this._onChange({target: {value: ''}})
   }
 
-  selections () {
+  selections() {
     const node = this._input && this._inputNode()
     if (node) {
       const {selectionStart, selectionEnd} = node
@@ -69,7 +73,7 @@ class Input extends Component<void, Props, State> {
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
-  _autoResize () {
+  _autoResize() {
     if (!this.props.multiline) {
       return
     }
@@ -83,19 +87,19 @@ class Input extends Component<void, Props, State> {
     node.style.height = `${node.scrollHeight}px`
   }
 
-  _inputNode () {
+  _inputNode() {
     return findDOMNode(this._input)
   }
 
-  focus () {
+  focus() {
     this._input && this._inputNode().focus()
   }
 
-  select () {
+  select() {
     this._input && this._inputNode().select()
   }
 
-  blur () {
+  blur() {
     this._input && this._inputNode().blur()
   }
 
@@ -126,7 +130,7 @@ class Input extends Component<void, Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
-  _underlineColor () {
+  _underlineColor() {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -138,27 +142,26 @@ class Input extends Component<void, Props, State> {
     return this.state.focused ? globalColors.blue : globalColors.black_10
   }
 
-  _rowsToHeight (rows) {
-    return rows * _lineHeight +
-      1 // border
+  _rowsToHeight(rows) {
+    return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle (underlineColor) {
+  _containerStyle(underlineColor) {
     return this.props.small
-    ? {
-      ...globalStyles.flexBoxRow,
-      borderBottom: `1px solid ${underlineColor}`,
-      flex: 1,
-    }
-    : {
-      ...globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      marginBottom: globalMargins.small,
-      marginTop: globalMargins.small,
-    }
+      ? {
+          ...globalStyles.flexBoxRow,
+          borderBottom: `1px solid ${underlineColor}`,
+          width: '100%',
+        }
+      : {
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          marginBottom: globalMargins.small,
+          marginTop: globalMargins.small,
+        }
   }
 
-  _propTypeToSingleLineType () {
+  _propTypeToSingleLineType() {
     switch (this.props.type) {
       case 'password':
         return 'password'
@@ -167,7 +170,7 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  render () {
+  render() {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
@@ -180,20 +183,20 @@ class Input extends Component<void, Props, State> {
       border: 'none',
       outlineWidth: 0,
       ...(this.props.small
-      ? {
-        textAlign: 'left',
-        fontSize: _bodyTextStyle.fontSize,
-        fontWeight: _bodyTextStyle.fontWeight,
-        lineHeight: _bodyTextStyle.lineHeight,
-      }
-      : {
-        textAlign: 'center',
-        fontSize: _headerTextStyle.fontSize,
-        fontWeight: _headerTextStyle.fontWeight,
-        lineHeight: _headerTextStyle.lineHeight,
-        minWidth: 333,
-        borderBottom: `1px solid ${underlineColor}`,
-      }),
+        ? {
+            textAlign: 'left',
+            fontSize: _bodyTextStyle.fontSize,
+            fontWeight: _bodyTextStyle.fontWeight,
+            lineHeight: _bodyTextStyle.lineHeight,
+          }
+        : {
+            textAlign: 'center',
+            fontSize: _headerTextStyle.fontSize,
+            fontWeight: _headerTextStyle.fontWeight,
+            lineHeight: _headerTextStyle.lineHeight,
+            minWidth: 333,
+            borderBottom: `1px solid ${underlineColor}`,
+          }),
     }
 
     const inputStyle = {
@@ -211,15 +214,14 @@ class Input extends Component<void, Props, State> {
       paddingTop: 0,
       paddingBottom: 0,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
-      ...(this.props.rowsMax
-        ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
-        : {overflowY: 'hidden'}),
+      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
-    const floatingHintText = !!this.state.value.length &&
+    const floatingHintText =
+      !!this.state.value.length &&
       (this.props.hasOwnProperty('floatingHintTextOverride')
-       ? this.props.floatingHintTextOverride
-       : this.props.hintText || ' ')
+        ? this.props.floatingHintTextOverride
+        : this.props.hintText || ' ')
 
     const commonProps = {
       autoFocus: this.props.autoFocus,
@@ -231,7 +233,9 @@ class Input extends Component<void, Props, State> {
       onCompositionStart: this._onCompositionStart,
       onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
-      ref: r => { this._input = r },
+      ref: r => {
+        this._input = r
+      },
       value: this.state.value,
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
@@ -262,12 +266,16 @@ class Input extends Component<void, Props, State> {
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
         <style>{inputRealCSS}</style>
-        {!this.props.small && <Text type='BodySmallSemibold' style={_floatingStyle}>{floatingHintText}</Text>}
-        {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
-        {this.props.multiline
-          ? <textarea {...multilineProps} />
-          : <input {...singlelineProps} />}
-        {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
+        {!this.props.small && <Text type="BodySmallSemibold" style={_floatingStyle}>{floatingHintText}</Text>}
+        {!!this.props.small &&
+          !!this.props.smallLabel &&
+          <Text type="BodySmall" style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+        {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
+        {!!this.props.errorText &&
+          !this.props.small &&
+          <Text type="BodyError" style={{..._errorStyle, ...this.props.errorStyle}}>
+            {this.props.errorText}
+          </Text>}
       </Box>
     )
   }

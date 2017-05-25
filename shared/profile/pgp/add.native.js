@@ -6,7 +6,7 @@ import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
-  render () {
+  render() {
     const nextDisabled = !this.props.email1 || !this.props.fullName
     const emailInputProps = {
       small: true,
@@ -14,67 +14,62 @@ class PgpAdd extends Component<void, Props, void> {
       autoCapitalize: 'none',
     }
     return (
-      <NativeKeyboardAvoidingView behavior='position'>
-        <StandardScreen
-          style={styleContainer}
-          onClose={this.props.onCancel}>
+      <NativeKeyboardAvoidingView behavior="position">
+        <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
           {/* TODO(MM) when we get the pgp icon, put it in here */}
-          <PlatformIcon
-            platform='pgp'
-            overlay='icon-proof-unfinished'
-            style={styleIcon} />
-          <Text
-            style={styleHeader}
-            type='Body'>
+          <PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
+          <Text style={styleHeader} type="Body">
             Fill in your public info:
           </Text>
           <Input
             small={true}
-            floatingHintTextOverride='Your full name'
-            hintText='Your full name'
+            floatingHintTextOverride="Your full name"
+            hintText="Your full name"
             value={this.props.fullName}
-            onChangeText={this.props.onChangeFullName} />
+            onChangeText={this.props.onChangeFullName}
+          />
           <Input
             {...emailInputProps}
-            smallLabel='Email 1:'
-            hintText='(required)'
+            smallLabel="Email 1:"
+            hintText="(required)"
             onChangeText={this.props.onChangeEmail1}
             value={this.props.email1}
-            errorText={this.props.errorEmail1 ? 'error' : null} />
+            errorText={this.props.errorEmail1 ? 'error' : null}
+          />
           <Input
             {...emailInputProps}
-            smallLabel='Email 2:'
-            hintText='(optional)'
+            smallLabel="Email 2:"
+            hintText="(optional)"
             onChangeText={this.props.onChangeEmail2}
             value={this.props.email2}
-            errorText={this.props.errorEmail2 ? 'error' : null} />
+            errorText={this.props.errorEmail2 ? 'error' : null}
+          />
           <Input
             {...emailInputProps}
-            smallLabel='Email 3:'
-            hintText='(optional)'
+            smallLabel="Email 3:"
+            hintText="(optional)"
             onChangeText={this.props.onChangeEmail3}
             value={this.props.email3}
-            errorText={this.props.errorEmail3 ? 'error' : null} />
-          <Text
-            style={styleInfoMessage(!!this.props.errorText)}
-            type='Body'>
+            errorText={this.props.errorEmail3 ? 'error' : null}
+          />
+          <Text style={styleInfoMessage(!!this.props.errorText)} type="Body">
             {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
           </Text>
           <Button
             style={styleAction}
-            type='Primary'
+            type="Primary"
             fullWidth={true}
-            label='Let the math begin'
+            label="Let the math begin"
             disabled={nextDisabled}
-            onClick={this.props.onNext} />
+            onClick={this.props.onNext}
+          />
         </StandardScreen>
       </NativeKeyboardAvoidingView>
     )
   }
 }
 
-const styleContainer = {
-}
+const styleContainer = {}
 
 const styleIcon = {
   alignSelf: 'center',

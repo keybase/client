@@ -1,15 +1,24 @@
 // @flow
 
 import React from 'react'
-import {globalStyles} from '../styles'
-import {Box, Icon, Text} from '../common-adapters'
+import {globalStyles, globalMargins} from '../styles'
+import {Box, Icon, Text} from '../common-adapters/index.native'
 
 import type {Props} from './about'
 
-const About = ({version}: Props) => (
+const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-    <Icon type='icon-keybase-logo-128' />
-    <Text style={{textAlign: 'center'}} type='Body'>You are running <Text type='BodySemibold'>Version {version}</Text></Text>
+    <Icon type="icon-keybase-logo-64" />
+    <Text
+      style={{textAlign: 'center', paddingTop: globalMargins.large, marginBottom: globalMargins.large}}
+      type="Body"
+    >
+      You are running version <Text type="BodySemibold">{version}</Text>
+    </Text>
+    <Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
+      Terms and Conditions
+    </Text>
+    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>Privacy Policy</Text>
   </Box>
 )
 

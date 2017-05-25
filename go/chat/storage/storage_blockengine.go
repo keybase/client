@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -15,13 +16,13 @@ const blockIndexVersion = 6
 const blockSize = 100
 
 type blockEngine struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 }
 
-func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
+func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockEngine", true),
 	}
 }
@@ -402,9 +403,18 @@ func (be *blockEngine) ReadMessages(ctx context.Context, res ResultCollector,
 
 		msg := b.Msgs[index]
 		if msg.GetMessageID() == 0 {
-			be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
-				b.BlockID, be.getMsgID(b.BlockID, index))
-			return MissError{}
+			if res.PushPlaceholder(be.getMsgID(b.BlockID, index)) {
+				// If the result collector is happy to receive this blank entry, then don't complain
+				// and proceed as if this was a hit
+				lastAdded = be.getMsgID(b.BlockID, index)
+				be.Debug(ctx, "readMessages: adding placeholder: %d (blockid: %d pos: %d)",
+					lastAdded, b.BlockID, index)
+				continue
+			} else {
+				be.Debug(ctx, "readMessages: cache entry empty: index: %d block: %d msgID: %d", index,
+					b.BlockID, be.getMsgID(b.BlockID, index))
+				return MissError{}
+			}
 		}
 		bMsgID := msg.GetMessageID()
 

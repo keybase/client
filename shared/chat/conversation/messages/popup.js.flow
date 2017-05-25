@@ -15,7 +15,7 @@ export type TextProps = {
   onShowEditor: (message: TextMessage) => void,
 } & BaseProps
 
-export class TextPopupMenu extends Component<void, TextProps, void> { }
+export class TextPopupMenu extends Component<void, TextProps, void> {}
 
 export type AttachmentProps = {
   message: AttachmentMessage,
@@ -26,4 +26,4 @@ export type AttachmentProps = {
   onSaveAttachment?: () => void,
 } & BaseProps
 
-export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> { }
+export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> {}

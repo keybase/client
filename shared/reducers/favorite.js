@@ -1,9 +1,8 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
-import type {FavoriteAction, FavoriteState} from '../constants/favorite'
 
-const initialState: FavoriteState = {
+const initialState: Constants.State = {
   folderState: {
     private: {
       isPublic: false,
@@ -26,15 +25,21 @@ const initialState: FavoriteState = {
   },
 }
 
-export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
+export default function(
+  state: Constants.State = initialState,
+  action: Constants.FavoriteAction
+): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
 
     case Constants.markTLFCreated: {
-      if (action.error) { break }
+      if (action.error) {
+        break
+      }
       const folderCreated = action.payload.folder
-      const stripMetaForCreatedFolder = f => f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
+      const stripMetaForCreatedFolder = f =>
+        f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
       // TODO(mm) this is ugly. Would be cleaner with immutable
       if (folderCreated.isPublic) {
         return {
@@ -90,8 +95,12 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
         ...state,
         viewState: {
           ...state.viewState,
-          privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
-          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
+          privateIgnoredOpen: action.payload.isPrivate
+            ? !state.viewState.privateIgnoredOpen
+            : state.viewState.privateIgnoredOpen,
+          publicIgnoredOpen: action.payload.isPrivate
+            ? state.viewState.publicIgnoredOpen
+            : !state.viewState.publicIgnoredOpen,
         },
       }
 

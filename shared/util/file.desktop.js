@@ -4,18 +4,18 @@ import fs from 'fs'
 import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
-
+import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 
-function tmpDir (): string {
+function tmpDir(): string {
   return cacheRoot
 }
 
-function tmpFile (suffix: string): string {
+function tmpFile(suffix: string): string {
   return path.join(tmpDir(), suffix)
 }
 
-function tmpRandFile (suffix: string): Promise<string> {
+function tmpRandFile(suffix: string): Promise<string> {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(16, (err, buf) => {
       if (err) {
@@ -30,11 +30,11 @@ function tmpRandFile (suffix: string): Promise<string> {
 // TODO make this a user setting
 const downloadFolder = path.join(os.homedir(), 'Downloads')
 
-function downloadFilePath (suffix: string): string {
-  return _findAvailableFilename(path.join(downloadFolder, suffix))
+function downloadFilePath(suffix: string): Promise<string> {
+  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
 }
 
-function exists (filepath: string): Promise<boolean> {
+function exists(filepath: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     fs.access(filepath, fs.constants.F_OK, err => {
       resolve(!err)
@@ -42,34 +42,16 @@ function exists (filepath: string): Promise<boolean> {
   })
 }
 
-function _findAvailableFilename (filepath: string): string {
-  const {name, ext, dir} = path.parse(filepath)
-  for (let i = 1; i < 1000; i++) {
-    if (fs.existsSync(filepath)) {
-      filepath = path.format({
-        dir,
-        ext,
-        name: `${name} (${i})`,
-      })
-    } else {
-      return filepath
-    }
-  }
-
-  // They have more than 1k of the same file??
-  return filepath
-}
-
-function copy (from: string, to: string) {
+function copy(from: string, to: string) {
   fsExtra.copySync(from, to)
 }
 
 // TODO implemented for mobile, not here
-function writeFile (filepath: string, contents: string, encoding?: string): Promise<void> {
+function writeFile(filepath: string, contents: string, encoding?: string): Promise<void> {
   return Promise.reject(new Error('not implemented'))
 }
 
-function writeStream (filepath: string, encoding: string, append?: boolean): Promise<*> {
+function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
   return Promise.reject(new Error('not implemented'))
 }
 

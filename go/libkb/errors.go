@@ -1039,6 +1039,10 @@ func (r ReverseSigError) Error() string {
 	return fmt.Sprintf("Error in reverse signature: %s", r.msg)
 }
 
+func NewReverseSigError(msgf string, a ...interface{}) ReverseSigError {
+	return ReverseSigError{msg: fmt.Sprintf(msgf, a...)}
+}
+
 //=============================================================================
 
 type ConfigError struct {
@@ -1876,12 +1880,18 @@ var _ error = (*PseudonymGetError)(nil)
 
 //=============================================================================
 
-type SharedDHImportError struct {
+type PerUserKeyImportError struct {
 	msg string
 }
 
-func (e SharedDHImportError) Error() string {
-	return fmt.Sprintf("shared DH import error: %s", e.msg)
+func (e PerUserKeyImportError) Error() string {
+	return fmt.Sprintf("per-user-key import error: %s", e.msg)
+}
+
+func NewPerUserKeyImportError(format string, args ...interface{}) PerUserKeyImportError {
+	return PerUserKeyImportError{
+		msg: fmt.Sprintf(format, args...),
+	}
 }
 
 //=============================================================================
@@ -1896,4 +1906,12 @@ func NewLoginOfflineError(msg string) LoginOfflineError {
 
 func (e LoginOfflineError) Error() string {
 	return "LoginOffline error: " + e.msg
+}
+
+//=============================================================================
+
+type EldestSeqnoMissingError struct{}
+
+func (e EldestSeqnoMissingError) Error() string {
+	return "user's eldest seqno has not been loaded"
 }

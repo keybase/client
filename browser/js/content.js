@@ -1,28 +1,57 @@
+// This code gets included just for when the extension injects the
+// widget-rendering code into some page.
 "use strict";
 
-function init() {
-  // Only do work on reddit.
-  if (!location.hostname.endsWith('.reddit.com')) return;
+const asset = chrome.runtime.getURL;
 
-  // FIXME: This can be more declarative in the future.
-  if (checkCompose.test(location.pathname)) injectCompose();
-  else if (checkProfile.test(location.pathname)) injectProfile();
-  else if (checkThread.test(location.pathname)) injectThread();
+function init() {
+  // Passive queries?
+  chrome.storage.sync.get("profile-passive-queries", function(options) {
+    if (options["profile-passive-queries"] !== true) return; // Default false
+
+    if (location.hostname.endsWith('twitter.com')) {
+      // Twitter hack: Monitor location for changes and re-init. Twitter does
+      // weird single-page-app stuff that makes it difficult to hook into.
+      // FIXME: This is sad. An alternative would be very desireable.
+      // Subscribing to `popstate` does not work.
+      let loc = window.location.pathname;
+      function twitterMonitor() {
+        if (window.location.pathname == loc) {
+          requestAnimationFrame(function() {
+            // We use RAF to avoid spamming checks when the tab is not active.
+            setTimeout(twitterMonitor, 1000);
+          });
+          return;
+        }
+        // Path changed, force fresh init
+        init();
+      }
+      setTimeout(twitterMonitor, 1000);
+    }
+
+    const user = matchService(window.location, document);
+    if (!user) return;
+
+    chrome.runtime.sendMessage({
+      "method": "passivequery",
+      "to": user.query(),
+    }, function(response) {
+      if (response.status !== "ok") return;
+      user.services["keybase"] = safeHTML(response.result["username"]);
+    });
+  });
+
+  // Inject Reddit thread DOM changes?
+  if (location.hostname.endsWith('.reddit.com') && checkThread.test(location.pathname)) {
+    chrome.storage.sync.get("reddit-thread-reply", function(options) {
+      // Is thread replies enabled?
+      if (options["reddit-thread-reply"] === false) return; // Default true
+
+      injectThread();
+    });
+  }
 }
 window.addEventListener('load', init);
-
-
-const checkCompose = /^\/message\/compose$/
-function injectCompose() {
-  // /message/compose
-  // TODO: ...
-}
-
-const checkProfile = /^\/user\//;
-function injectProfile() {
-  // /user/<user>
-  // TODO: ...
-}
 
 const checkThread = /^\/r\/\w+\/comments\/\w+\//;
 function injectThread() {
@@ -32,7 +61,7 @@ function injectThread() {
     if (author == "") continue; // Empty
     const buttons = c.getElementsByClassName("buttons")[0];
 
-    renderChatButton(buttons, author);
+    renderRedditChatButton(buttons, author);
   }
 }
 
@@ -40,52 +69,80 @@ function injectThread() {
 let openChat = null;
 
 // Render the "keybase chat reply" button with handlers.
-function renderChatButton(parent, toUsername) {
-    const li = document.createElement("li");
-    li.className = "keybase-reply";
-    li.innerHTML = `<a href="keybase://${toUsername}@reddit/">keybase chat reply</a>`;
+function renderRedditChatButton(parent, toUsername) {
+  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
+  const user = new User(toUsername, "reddit");
+  const li = document.createElement("li");
+  li.className = "keybase-reply";
+  li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
 
-    li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
-      e.preventDefault();
-      const chatParent = e.currentTarget.parentNode;
+  li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
+    e.preventDefault();
+    const chatParent = e.currentTarget.parentNode;
 
-      if (chatParent.getElementsByTagName("form").length > 0) {
-        // Current chat widget is already open, toggle it and exit
-        if (removeChat(openChat)) {
-          openChat = null;
-        }
-        return
-      } else if (openChat) {
-        // A different chat widget is open, close it and open the new one
-        if (!removeChat(openChat)) {
-          // Aborted
-          return
-        }
+    if (chatParent.getElementsByTagName("form").length > 0) {
+      // Current chat widget is already open, toggle it and exit
+      if (removeChat(openChat)) {
+        openChat = null;
       }
+      return
+    } else if (openChat) {
+      // A different chat widget is open, close it and open the new one
+      if (!removeChat(openChat)) {
+        // Aborted
+        return
+      }
+    }
 
-      openChat = renderChat(chatParent, toUsername);
-    });
+    openChat = renderChat(chatParent, user, isLoggedIn /* nudgeSupported */);
+  });
 
-    parent.appendChild(li);
+  parent.appendChild(li);
+}
+
+// Render the "Encrypt to..." contact header for the chat widget.
+function renderChatContact(el, user) {
+  const keybaseUsername = user.services["keybase"];
+  let queryStatus, iconSrc;
+  if (keybaseUsername) {
+    queryStatus = `<a class="keybase-user" href="https://keybase.io/${keybaseUsername}" target="_blank"><span>${keybaseUsername}</span></a> on Keybase`;
+    iconSrc = `<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
+  } else {
+    queryStatus = "Searching...";
+    if (keybaseUsername === null) {
+      queryStatus = "(Not yet on Keybase)";
+    }
+    iconSrc = `
+      <img class="keybase-icon"
+           src="${asset("images/icon-placeholder-avatar-32.png")}"
+           srcset="${asset("images/icon-placeholder-avatar-32@2x.png")} 2x, ${asset("images/icon-placeholder-avatar-32@3x.png")} 3x"
+           />
+    `;
+  }
+  el.innerHTML = `
+    <div>${iconSrc}</div>
+    Encrypt to <a class="keybase-user ${user.origin}" href="${user.href()}" target="_blank">${user.display()}</a>
+    <small>${queryStatus}</small>
+  `;
 }
 
 // Render the Keybase chat reply widget
-function renderChat(parent, toUsername) {
-  // TODO: Replace hardcoded HTML with some posh templating tech?
-  // TODO: Prevent navigation?
-  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
-
-  let nudgeHTML = `
-    <p>
-      <label><input type="checkbox" name="keybase-nudgecheck" checked /> Nudge publicly (reply in thread so they know about Keybase)</label>
-      <textarea name="keybase-nudgetext">/u/${toUsername} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
-    </p>
+function renderChat(parent, user, nudgeSupported, closeCallback) {
+  const oobNudgeHTML = `
+      <p>
+        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
+      </p>
+      <p>
+        Share this handy link: <span class="keybase-copy">https://keybase.io/reddit-crypto</span>
+      </p>
   `;
-  if (!isLoggedIn) {
-    // FIXME: Won't need this if we have a KeybaseBot PM'ing people?
+  let nudgeHTML = oobNudgeHTML;
+  if (nudgeSupported) {
     nudgeHTML = `
-      <p>You will need to let <a target="_blank" href="/u/${toUsername}" class="reddit-user">/u/${toUsername}</a> know that they have a Keybase message waiting for them.</p>
-      <p>Share this handy link: <a target="_blank" href="https://keybase.io/reddit-crypto">https://keybase.io/reddit-crypto</a></p>
+      <p>
+        <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
+        <textarea name="keybase-nudgetext">${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
+      </p>
     `;
   }
 
@@ -93,36 +150,57 @@ function renderChat(parent, toUsername) {
   const f = document.createElement("form");
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
-    <h3><img src="${chrome.runtime.getURL("images/icon-keybase-logo-48.png")}" />Keybase chat <span class="keybase-close"> </span></h3>
+    <h3>
+      <img src="${asset("images/icon-keybase-logo-16.png")}"
+           srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
+           />
+      Keybase chat <span class="keybase-close"> </span>
+    </h3>
     <div class="keybase-body">
-      <input type="hidden" name="keybase-to" value="${toUsername}" />
+      <div class="keybase-contact"></div>
+      <input type="hidden" name="keybase-to" value="${user.query()}" />
       <label>
-        Encrypt to ${renderUser(toUsername, "reddit.com/u")}</span>:
-        <textarea name="keybase-chat" rows="6" placeholder="Write a message"></textarea>
+        <textarea name="keybase-chat" rows="6" placeholder="Write a message" autofocus></textarea>
       </label>
-      <div class="keybase-nudge">
-        <p>Checking Keybase...</p>
-      </div>
-      <p style="text-align: center;"><input type="submit" value="Send" name="keybase-submit" /></p>
+      <div class="keybase-nudge" style="display: none;"></div>
+      <p style="text-align: center; clear: both;"><input type="submit" value="Send" name="keybase-submit" /></p>
     </div>
   `;
-  f.addEventListener("submit", submitChat);
+
+  function successCallback() {
+    let successHTML;
+    if (!nudgeSupported && !user.services["keybase"]) {
+      successHTML = oobNudgeHTML;
+    }
+    renderSuccess(f, closeCallback, successHTML);
+  }
+
+  f.addEventListener("submit", submitChat.bind(null, successCallback));
   parent.insertBefore(f, parent.firstChild);
+
+  const contactDiv = f.getElementsByClassName("keybase-contact")[0];
+  renderChatContact(contactDiv, user);
 
   // Find user
   const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
   chrome.runtime.sendMessage({
     "method": "query",
-    "to": toUsername + "@reddit"
+    "to": user.query(),
   }, function(response) {
     if (response.status == "ok") {
-      const keybaseUsername = safeHTML(response.result["username"]);
-      nudgePlaceholder.innerHTML = `<p><img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" /> ${renderUser(toUsername, "reddit.com/u")} is ${renderUser(keybaseUsername, "keybase.io")}</p>`;
+      user.services["keybase"] = safeHTML(response.result["username"]);
+      renderChatContact(contactDiv, user);
       return;
     } else if (response.message != "user not found") {
       renderError(f, response.message);
     }
+    user.services["keybase"] = null;
+    renderChatContact(contactDiv, user);
     nudgePlaceholder.innerHTML = nudgeHTML;
+    nudgePlaceholder.style = "display: block;";
+
+    // Install copypasta selector
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
 
     // Install nudge toggle
     const nudgeCheck = f["keybase-nudgecheck"];
@@ -136,7 +214,9 @@ function renderChat(parent, toUsername) {
   // Install closing button (the "x" in the corner)
   const closer = f.getElementsByClassName("keybase-close")[0];
   closer.addEventListener("click", function(e) {
-    removeChat(f);
+    if (removeChat(f)) {
+      typeof closeCallback === "function" && closeCallback();
+    }
   });
 
   // Install submit button disabler/enabler
@@ -149,7 +229,7 @@ function renderChat(parent, toUsername) {
   chatBody.addEventListener("change", chatChangeCallback);
   chatBody.addEventListener("keyup", chatChangeCallback);
 
-  // Focus the chat textarea
+  // Force focus the chat textarea (should already be done by autofocus)
   f["keybase-chat"].focus();
 
   // TODO: Also add an onbeforeunload check if chat has text written in it.
@@ -171,7 +251,7 @@ function removeChat(chatForm, skipCheck) {
 
 
 // Submit the chat widget
-function submitChat(e) {
+function submitChat(successCallback, e) {
   e.preventDefault();
 
   const f = e.currentTarget; // The form.
@@ -192,7 +272,7 @@ function submitChat(e) {
     const commentNode = findParentByClass(originalParent, "comment");
     if (!commentNode) return; // Not found
 
-    postReply(commentNode, nudgeText);
+    postRedditReply(commentNode, nudgeText);
   }
 
   const submitButton = f["keybase-submit"];
@@ -201,7 +281,7 @@ function submitChat(e) {
 
   chrome.runtime.sendMessage({
     "method": "chat",
-    "to": to + "@reddit",
+    "to": to,
     "body": body
   }, function(response) {
     if (response.status != "ok") {
@@ -211,9 +291,40 @@ function submitChat(e) {
       return;
     }
 
-    removeChat(f, true /* skipCheck */);
+    // Success!
     nudgeCallback();
+    typeof successCallback === "function" && successCallback();
+    installCopypasta(f.getElementsByClassName("keybase-copy"));
   });
+}
+
+// Render a success screen which replaces the body of the widget.
+function renderSuccess(el, closeCallback, extraHTML) {
+  el.innerHTML = `
+    <h3>
+      <img src="${asset("images/icon-keybase-logo-16.png")}"
+           srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
+           />
+      Keybase chat <span class="keybase-close"> </span>
+    </h3>
+    <div class="keybase-body">
+      <p>
+        <img src="${asset("images/icon-fancy-chat-72-x-52.png")}" style="width: 72px; height: 52px;"
+             srcset="${asset("images/icon-fancy-chat-72-x-52@2x.png")} 2x, ${asset("images/icon-fancy-chat-72-x-52@3x.png")} 3x"
+             />
+      </p>
+      <p>
+        Chat sent! You can continue the coversation in your Keybase app.
+      </p>
+      ${extraHTML || ""}
+      <p>
+        <input type="button" class="keybase-close" value="Close" />
+      </p>
+    </div>
+  `;
+  el.className = "keybase-success";
+
+  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */, closeCallback);
 }
 
 // Render an error that replaces the body of the widget.
@@ -221,17 +332,13 @@ function renderErrorFull(el, bodyHTML) {
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
-      <img src="${chrome.runtime.getURL("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px;" />
+      <img src="${asset("images/icon-keybase-logo-128.png")}" style="height: 64px; width: 64px;" />
     </p>
     ${bodyHTML}
   `;
   el.className = "keybase-error";
-  //
-  // Install closing button (the "x" in the corner)
-  const closer = el.getElementsByClassName("keybase-close")[0];
-  closer.addEventListener("click", function(e) {
-    removeChat(el, true /* skipCheck */);
-  });
+
+  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */);
 }
 
 // Render error message inside our chat widget.
@@ -264,16 +371,8 @@ function renderError(chatForm, msg) {
   el.appendChild(err);
 }
 
-// Render a formatted user@service string.
-function renderUser(username, service) {
-  if (service=="undefined") {
-    service = "keybase.io";
-  }
-  return `<a class="keybase-user" href="https://${service}/${username}" target="_blank">${service}/<span>${username}</span></a>`;
-}
-
 // Post a Reddit thread reply on the given comment node.
-function postReply(commentNode, text) {
+function postRedditReply(commentNode, text) {
   // This will break if there is no reply button.
   const commentID = commentNode.getAttribute("data-fullname");
   const replyLink = commentNode.getElementsByClassName("reply-button")[0].firstChild;
@@ -292,6 +391,43 @@ function postReply(commentNode, text) {
   // Note: Calling replyForm.submit() bypasses the onsubmit handler, so we
   // need to dispatch an event or click a submit button.
   replyForm.dispatchEvent(new Event("submit"));
+}
+
+// Install closing button (usually the little "x" in the corner)
+function installCloser(buttons, closeTarget, skipCheck, closeCallback) {
+  for (let closer of buttons) {
+    closer.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (removeChat(closeTarget, skipCheck)) {
+        typeof closeCallback === "function" && closeCallback();
+      }
+    });
+  };
+}
+
+// Install select-and-copy functionality for elements. If successfully copied,
+// the element will get the CSS class "copied" briefly.
+function installCopypasta(elements) {
+  for (let el of elements) {
+    el.addEventListener("click", function(e) {
+      const target = e.currentTarget;
+      const range = document.createRange();
+      range.selectNode(target);
+
+      // Apply range selection
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      // Attempt to copy to clipboard
+      if(document.execCommand("copy")) {
+        target.classList.add("copied");
+        setTimeout(function() {
+          target.classList.remove("copied");
+        }, 500);
+      }
+    });
+  }
 }
 
 
@@ -314,7 +450,7 @@ function findParentByClass(el, className) {
 
 // Convert a user input into a string that is safe for inlining into HTML.
 function safeHTML(s) {
-  if (s===undefined) return "";
+  if (!s) return "";
   return s.replace(/[&'"<>\/]/g, function (c) {
     // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
     return {

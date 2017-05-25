@@ -10,8 +10,10 @@ import type {SearchPlatforms} from '../../constants/search'
 import type {Props} from './search-bar'
 
 const ServiceIcon = ({serviceName, iconType, selected, onClickService}) => (
-  <ClickableBox style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
-    onClick={() => onClickService(serviceName)}>
+  <ClickableBox
+    style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
+    onClick={() => onClickService(serviceName)}
+  >
     <Box>
       <Icon type={iconType} style={{opacity: selected ? 1 : 0.6}} />
     </Box>
@@ -28,7 +30,7 @@ class SearchBar extends Component<void, Props, State> {
     overridePlatform: null,
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.searchTextClearTrigger !== nextProps.searchTextClearTrigger) {
       this._clear()
     }
@@ -63,9 +65,9 @@ class SearchBar extends Component<void, Props, State> {
     this._search = r
   }
 
-  render () {
+  render() {
     const services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Reddit', 'Hackernews']
-    const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
+    const tooltips: {[key: string]: ?string} = {Hackernews: 'Hacker News'}
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
@@ -78,24 +80,26 @@ class SearchBar extends Component<void, Props, State> {
               iconType={platformToLogo24(s)}
               selected={this.props.selectedService === s}
               onClickService={this._onClickService}
-              />
+            />
           ))}
         </Box>
         <Box style={stylesInputContainer}>
           <Input
             small={true}
             hideUnderline={true}
-            type='text'
-            autoFocus={true}
+            type="text"
             ref={this._setSearchRef}
-            onEnterKeyDown={() => this._onSearch()}
-            onChangeText={() => this._onDebouncedSearch()}
+            onEnterKeyDown={this._onSearch}
+            onChangeText={this._onDebouncedSearch}
             hintText={this.props.searchHintText}
             style={{paddingLeft: 20}}
             inputStyle={stylesInput}
           />
-          <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
-            onClick={this._clear} />
+          <Icon
+            type="iconfont-remove"
+            style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
+            onClick={this._clear}
+          />
         </Box>
       </Box>
     )

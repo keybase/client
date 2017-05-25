@@ -8,34 +8,36 @@ import type {PropsOf, DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles'
 import {pathFromFolder} from '../constants/favorite'
 
-function createFolder (partialFolder: $Shape<Folder>) {
+function createFolder(partialFolder: $Shape<Folder>) {
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
+const mockUsers = [
+  {username: 'cecileb', you: true},
+  {username: 'jeresig', broken: true},
+  {username: 'throughnothing'},
+  {username: 'cdixon'},
+  {username: 'bob'},
+  {username: 'aliceb'},
+  {username: 'lmorchard'},
+  {username: 'chris'},
+  {username: 'chris1'},
+  {username: 'chris2'},
+  {username: 'chris3'},
+  {username: 'chris4'},
+  {username: 'chris5'},
+  {username: 'chris6'},
+  {username: 'chris7'},
+  {username: 'chris8'},
+  {username: 'chris9'},
+  {username: 'chris10'},
+  {username: 'chris11'},
+  {username: 'chris12'},
+  {username: 'chris13'},
+]
+
 const f1: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true},
-    {username: 'throughnothing'},
-    {username: 'cdixon'},
-    {username: 'bob'},
-    {username: 'aliceb'},
-    {username: 'lmorchard'},
-    {username: 'chris'},
-    {username: 'chris1'},
-    {username: 'chris2'},
-    {username: 'chris3'},
-    {username: 'chris4'},
-    {username: 'chris5'},
-    {username: 'chris6'},
-    {username: 'chris7'},
-    {username: 'chris8'},
-    {username: 'chris9'},
-    {username: 'chris10'},
-    {username: 'chris11'},
-    {username: 'chris12'},
-    {username: 'chris13'},
-  ],
+  users: mockUsers,
   meta: 'new',
   ignored: false,
   isPublic: false,
@@ -68,10 +70,7 @@ const f2: Folder = createFolder({
 })
 
 const f3: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'bob'},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'bob'}],
   modified: {
     when: '3 hours ago',
     username: 'bob',
@@ -87,10 +86,7 @@ const f3: Folder = createFolder({
 })
 
 const f4: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jenbee'},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'jenbee'}],
   ignored: false,
   isPublic: false,
   hasData: false,
@@ -102,9 +98,7 @@ const f4: Folder = createFolder({
 })
 
 const f5: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-  ],
+  users: [{username: 'cecileb', you: true}],
   ignored: false,
   isPublic: false,
   hasData: true,
@@ -117,10 +111,7 @@ const f5: Folder = createFolder({
 
 const f6: Folder = createFolder({
   path: '/keybase/private/cecileb,jenbeeb',
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jenbeeb'},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'jenbeeb'}],
   meta: 'rekey',
   ignored: false,
   isPublic: false,
@@ -135,11 +126,7 @@ const f6: Folder = createFolder({
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5, f6]
 
 const i1: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true},
-    {username: 'cdixon'},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'jeresig', broken: true}, {username: 'cdixon'}],
   ignored: true,
   isPublic: false,
   hasData: true,
@@ -151,10 +138,7 @@ const i1: Folder = createFolder({
 })
 
 const i2: Folder = createFolder({
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true},
-  ],
+  users: [{username: 'cecileb', you: true}, {username: 'jeresig', broken: true}],
   ignored: true,
   isPublic: false,
   hasData: false,
@@ -186,7 +170,16 @@ const commonFolders = {
   onToggleShowIgnored,
   username: 'cecileb',
   private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
-  public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps, onToggleShowIgnored, showIgnored: false},
+  public: {
+    tlfs: [f2, f3, f4, f5],
+    ignored,
+    isPublic: true,
+    privateBadge: 1,
+    publicBadge: 222,
+    parentProps,
+    onToggleShowIgnored,
+    showIgnored: false,
+  },
   showingPrivate: true,
   showingIgnored: true,
 }
@@ -195,6 +188,8 @@ const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
     'Normal Private': {...commonFolders},
+    'Normal Private - Hide Ignored': {...commonFolders, showingIgnored: false},
+    'Normal Public - Hide Ignored': {...commonFolders, showingPrivate: false, showingIgnored: false},
     'Normal Public': {
       ...commonFolders,
       showingPrivate: false,
@@ -202,7 +197,8 @@ const map: DumbComponentMap<Folders> = {
   },
 }
 
-const longFile = 'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
+const longFile =
+  'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
 
 const commonFile = {
   theme: 'private',
@@ -250,11 +246,37 @@ const file: DumbComponentMap<File> = {
   },
 }
 
-function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
-  const adjs = ['tiresome', 'longing', 'marvelous', 'bloody', 'cruel', 'descriptive', 'cooperative', 'parallel', 'discreet', 'wry', 'lovely', 'mysterious']
-  const nouns = ['maid', 'river', 'pan', longFile, 'transport', 'reason', 'dog', 'food', 'ice', 'wilderness', 'level', 'horse']
+function genFiles(offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
+  const adjs = [
+    'tiresome',
+    'longing',
+    'marvelous',
+    'bloody',
+    'cruel',
+    'descriptive',
+    'cooperative',
+    'parallel',
+    'discreet',
+    'wry',
+    'lovely',
+    'mysterious',
+  ]
+  const nouns = [
+    'maid',
+    'river',
+    'pan',
+    longFile,
+    'transport',
+    'reason',
+    'dog',
+    'food',
+    'ice',
+    'wilderness',
+    'level',
+    'horse',
+  ]
 
-  const wordGen = (i: number) => `${adjs[Math.floor(i/12)%(12*12)]}-${nouns[i%12]}.jpg` // eslint-disable-line
+  const wordGen = (i: number) => `${adjs[Math.floor(i / 12) % (12 * 12)]}-${nouns[i % 12]}.jpg` // eslint-disable-line
 
   const results = []
   for (let i = offsetNumber; i < fileCount + offsetNumber; i++) {
@@ -280,8 +302,18 @@ const filesMenuItems = [
   {...popupItemCommon, title: 'Open in Finder'},
   {...popupItemCommon, title: 'Ignore'},
   'Divider',
-  {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
-  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true},
+  {
+    ...popupItemCommon,
+    title: 'Clear history (3.24 MB)',
+    subTitle: 'Deletes old copies of files.',
+    danger: true,
+  },
+  {
+    ...popupItemCommon,
+    title: 'Delete files and clear history (5.17GB)',
+    subTitle: 'Deletes everything in this folder, including its backup versions',
+    danger: true,
+  },
 ]
 
 const commonFiles = (isPrivate): FilesProps => ({
@@ -292,9 +324,7 @@ const commonFiles = (isPrivate): FilesProps => ({
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
-  users: [
-    {username: 'cecileb', you: true},
-    {username: 'aliceb'}],
+  users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
   onBack: () => console.log('onBack:files'),
@@ -314,8 +344,8 @@ const commonFiles = (isPrivate): FilesProps => ({
 const commonParticipant = {
   recentFilesSection: [],
   waitingForParticipantUnlock: [
-    {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.'},
-    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone'},
+    {name: 'throughnothing', devices: "Tell them to turn on: Home Computer, ben's iPhone or Work laptop."},
+    {name: 'bob', devices: "Tell them to turn on bob's Android phone"},
   ],
 }
 
@@ -325,7 +355,7 @@ const commonUnlock = {
   youCanUnlock: [
     {name: 'Work Computer', type: 'desktop', deviceID: '1'},
     {name: 'Home Computer', type: 'desktop', deviceID: '2'},
-    {name: 'Cecil\'s iPhone', type: 'mobile', deviceID: '3'},
+    {name: "Cécile's iPhone", type: 'mobile', deviceID: '3'},
     {name: 'project green...', type: 'backup', deviceID: '4'},
     {name: 'gumball sparkles...', type: 'backup', deviceID: '5'},
   ],
@@ -337,12 +367,26 @@ const files: DumbComponentMap<Files> = {
     'Normal - Public': {
       ...commonFiles(false),
     },
+    'Not Implemented - Public': {
+      ...commonFiles(false),
+    },
+    'Not Implemented - Public - lotsa users': {
+      ...commonFiles(false),
+      users: mockUsers,
+    },
     'Popup - Public': {
       ...commonFiles(false),
       visiblePopupMenu: true,
     },
     'Normal - Private': {
       ...commonFiles(true),
+    },
+    'Not Implemented - Private': {
+      ...commonFiles(true),
+    },
+    'Not Implemented - Private - lotsa users': {
+      ...commonFiles(true),
+      users: mockUsers,
     },
     'Popup - Private': {
       ...commonFiles(true),
@@ -393,14 +437,9 @@ const files: DumbComponentMap<Files> = {
 }
 
 export default {
-  'Folders TLF': map,
-  Files: files,
-  File: file,
+  'Folders: TLF': map,
+  'Folders: Files': files,
+  'Folders: File': file,
 }
 
-export {
-  createFolder,
-  map,
-  file,
-  files,
-}
+export {createFolder, map, file, files}

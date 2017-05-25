@@ -82,7 +82,7 @@ type AvailablePlanAPI = {
 }
 
 // TODO: handle apple pay payment info
-export type BillingState = {
+export type State = {
   availablePlans: ?AvailablePlans,
   plan: ?PlanInfo,
   usage: ?UsageInfo,
@@ -90,7 +90,12 @@ export type BillingState = {
   errorMessage: ?string,
 }
 
-export function parseAvailablePlan ({plan_name, gigabytes, plan_id, price_pennies}: AvailablePlanAPI): AvailablePlan {
+export function parseAvailablePlan({
+  plan_name,
+  gigabytes,
+  plan_id,
+  price_pennies,
+}: AvailablePlanAPI): AvailablePlan {
   return {
     planLevel: capitalize(plan_name.toLowerCase()),
     planId: plan_id,
@@ -99,7 +104,7 @@ export function parseAvailablePlan ({plan_name, gigabytes, plan_id, price_pennie
   }
 }
 
-export function parsePaymentInfo ({last4, name, cvc_check}: PaymentInfoAPI): PaymentInfo {
+export function parsePaymentInfo({last4, name, cvc_check}: PaymentInfoAPI): PaymentInfo {
   return {
     name,
     isBroken: cvc_check !== 'pass', // eslint-disable-line
@@ -108,9 +113,13 @@ export function parsePaymentInfo ({last4, name, cvc_check}: PaymentInfoAPI): Pay
 }
 
 // We are expecting the string to be in the format of MM/YYYY
-export function parseExpiration (expirationString: string): {month: string, year: string, error?: string} {
+export function parseExpiration(expirationString: string): {month: string, year: string, error?: string} {
   if (expirationString.length !== 7) {
-    return {error: 'Not the right size. should be MM/YYYY. E.g. Jan 2018 -> 01/2018', month: '00', year: '0000'}
+    return {
+      error: 'Not the right size. should be MM/YYYY. E.g. Jan 2018 -> 01/2018',
+      month: '00',
+      year: '0000',
+    }
   }
 
   return {
@@ -119,7 +128,7 @@ export function parseExpiration (expirationString: string): {month: string, year
   }
 }
 
-export function billingAndQuotaAPIToOurBillingAndQuota ({plan, usage}: BillingAndQuotaAPI): BillingAndQuota {
+export function billingAndQuotaAPIToOurBillingAndQuota({plan, usage}: BillingAndQuotaAPI): BillingAndQuota {
   return {
     plan: {
       gigabytes: plan.gigabytes,
@@ -148,27 +157,45 @@ export const fetchBillingOverview = 'plan-billing:fetchBillingOverview'
 export type FetchBillingOverview = NoErrorTypedAction<'plan-billing:fetchBillingOverview', void>
 
 export const updateAvailablePlans = 'plan-billing:updateAvailablePlans'
-export type UpdateAvailablePlans = NoErrorTypedAction<'plan-billing:updateAvailablePlans', {availablePlans: AvailablePlans}>
+export type UpdateAvailablePlans = NoErrorTypedAction<
+  'plan-billing:updateAvailablePlans',
+  {availablePlans: AvailablePlans}
+>
 
 export const updatePaymentInfo = 'plan-billing:updatePaymentInfo'
-export type UpdatePaymentInfo = TypedAction<'plan-billing:updatePaymentInfo', {paymentInfo: PaymentInfo}, {error: any}>
+export type UpdatePaymentInfo = TypedAction<
+  'plan-billing:updatePaymentInfo',
+  {paymentInfo: PaymentInfo},
+  {error: any}
+>
 
 export const updateBillingAndQuota = 'plan-billing:updateBillingAndQuota'
-export type UpdateBillingAndQuota = TypedAction<'plan-billing:updateBillingAndQuota', BillingAndQuota, {error: any}>
+export type UpdateBillingAndQuota = TypedAction<
+  'plan-billing:updateBillingAndQuota',
+  BillingAndQuota,
+  {error: any}
+>
 
-export type Actions = UpdateBilling | FetchBillingAndQuota | FetchBillingOverview | UpdateAvailablePlans | UpdateBillingAndQuota
+export type Actions =
+  | UpdateBilling
+  | FetchBillingAndQuota
+  | FetchBillingOverview
+  | UpdateAvailablePlans
+  | UpdateBillingAndQuota
 
-export function planToStars (plan: string): number {
-  return {
-    'Basic': 1,
-    'Gold': 3,
-    'Friend': 5,
-  }[plan] || 0
+export function planToStars(plan: string): number {
+  return (
+    {
+      Basic: 1,
+      Gold: 3,
+      Friend: 5,
+    }[plan] || 0
+  )
 }
 
 export type ChangeType = 'change' | 'upgrade' | 'downgrade'
 
-export function comparePlans (from: AvailablePlan, to: AvailablePlan): ChangeType {
+export function comparePlans(from: AvailablePlan, to: AvailablePlan): ChangeType {
   if (!from.price_pennies && to.price_pennies) {
     return 'upgrade'
   }
@@ -179,7 +206,7 @@ export function comparePlans (from: AvailablePlan, to: AvailablePlan): ChangeTyp
   return 'change'
 }
 
-export function priceToString (pennies: number): string {
+export function priceToString(pennies: number): string {
   if (!pennies) {
     return 'Free'
   } else {

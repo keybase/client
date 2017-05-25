@@ -3,18 +3,20 @@ import {compose, withState, withProps} from 'recompose'
 import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
-import {downloadFilePath} from '../../../util/file'
 import * as Constants from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey, LoadAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
+import type {ConversationIDKey, SaveAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 
-type AttachmentPopupRouteProps = RouteProps<{
-  conversationIDKey: ConversationIDKey,
-  messageID: MessageID,
-}, {}>
+type AttachmentPopupRouteProps = RouteProps<
+  {
+    conversationIDKey: ConversationIDKey,
+    messageID: MessageID,
+  },
+  {}
+>
 type OwnProps = AttachmentPopupRouteProps & {
   isZoomed: boolean,
   detailsPopupShowing: boolean,
@@ -52,7 +54,8 @@ export default compose(
       }
     },
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
-      _onMessageAction: (message: Constants.ServerMessage) => dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
+      _onMessageAction: (message: Constants.ServerMessage) =>
+        dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
@@ -60,21 +63,23 @@ export default compose(
         if (!messageID || !message.filename) {
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
-        dispatch(({
-          type: 'chat:loadAttachment',
-          payload: {
-            conversationIDKey: message.conversationIDKey,
-            filename: downloadFilePath(message.filename),
-            loadPreview: false,
-            isHdPreview: false,
-            messageID,
-          },
-        }: LoadAttachment))
+        dispatch(
+          ({
+            type: 'chat:saveAttachment',
+            payload: {
+              conversationIDKey: message.conversationIDKey,
+              messageID,
+            },
+          }: SaveAttachment)
+        )
       },
-      onOpenInFileUI: (path: string) => dispatch(({
-        type: 'fs:openInFileUI',
-        payload: {path},
-      }: OpenInFileUI)),
+      onOpenInFileUI: (path: string) =>
+        dispatch(
+          ({
+            type: 'fs:openInFileUI',
+            payload: {path},
+          }: OpenInFileUI)
+        ),
     }),
     (stateProps, dispatchProps) => {
       const {message} = stateProps
@@ -87,8 +92,8 @@ export default compose(
         },
         onMessageAction: () => dispatchProps._onMessageAction(message),
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.downloadedPath),
+        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.savedPath),
       }
-    },
-  ),
+    }
+  )
 )(RenderAttachmentPopup)

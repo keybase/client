@@ -1,16 +1,7 @@
 // @flow
 import Render from '.'
-import {isMobile} from '../../constants/platform'
 
 import type {DumbComponentMap} from '../../constants/types/more'
-
-const parent = isMobile ? {
-  parentProps: {
-    style: {
-      height: 667,
-    },
-  },
-} : {}
 
 const common = {
   created: 1444423192000,
@@ -19,13 +10,16 @@ const common = {
   icon: 'icon-computer-revoke-48',
   lastUsed: 1444423192001,
   name: 'Home Computer',
-  onCancel: () => { console.log('device revoke on cancel') },
-  onSubmit: () => { console.log('device revoke on submit') },
+  onCancel: () => {
+    console.log('device revoke on cancel')
+  },
+  onSubmit: () => {
+    console.log('device revoke on submit')
+  },
   provisionedAt: null,
   provisioner: null,
   revokedAt: null,
   type: 'desktop',
-  ...parent,
 }
 
 const endangeredTLFs = [
@@ -40,14 +34,14 @@ const endangeredTLFs = [
 const map: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': {
+    Normal: {
       ...common,
       device: common,
       endangeredTLFs: [],
       icon: 'icon-phone-revoke-48',
       type: 'mobile',
     },
-    'Current': {
+    Current: {
       ...common,
       currentDevice: true,
       device: common,
@@ -68,5 +62,5 @@ const map: DumbComponentMap<Render> = {
 }
 
 export default {
-  'Device Revoke': map,
+  'Devices: Device Revoke': map,
 }

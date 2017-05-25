@@ -63,6 +63,56 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	return res, err
 }
 
+func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
+	netCtx = libkb.WithLogTag(netCtx, "IDL")
+	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
+
+	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
+	logui := h.getLogUI(arg.SessionID)
+	ctx := engine.Context{
+		LogUI:      logui,
+		IdentifyUI: iui,
+		SessionID:  arg.SessionID,
+		NetContext: netCtx,
+	}
+
+	// TODO: Make a real version of this that can distinguish UIDs and
+	// TeamIDs.  For now, only support UIDs.
+	var uid keybase1.UID
+	if arg.Id.Exists() {
+		uid, err = arg.Id.AsUser()
+		if err != nil {
+			return res, err
+		}
+	}
+	id2arg := keybase1.Identify2Arg{
+		SessionID:             arg.SessionID,
+		Uid:                   uid,
+		UserAssertion:         arg.Assertion,
+		Reason:                arg.Reason,
+		UseDelegateUI:         arg.UseDelegateUI,
+		AlwaysBlock:           arg.AlwaysBlock,
+		NoErrorOnTrackFailure: arg.NoErrorOnTrackFailure,
+		ForceRemoteCheck:      arg.ForceRemoteCheck,
+		NeedProofSet:          arg.NeedProofSet,
+		AllowEmptySelfID:      arg.AllowEmptySelfID,
+		NoSkipSelf:            arg.NoSkipSelf,
+		CanSuppressUI:         arg.CanSuppressUI,
+		IdentifyBehavior:      arg.IdentifyBehavior,
+		ForceDisplay:          arg.ForceDisplay,
+	}
+
+	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
+	err = engine.RunEngine(eng, &ctx)
+	resp := eng.Result()
+	if resp != nil {
+		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
+		res.Ul.Name = resp.Upk.Username
+	}
+	res.TrackBreaks = resp.TrackBreaks
+	return res, err
+}
+
 func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1.UID, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve(%s)", arg), func() error { return err })()

@@ -117,14 +117,14 @@ func TestPassphraseChangeKnown(t *testing.T) {
 	assertLoadSecretKeys(tc, u, "passphrase change known")
 }
 
-// Test error when trying to change passphrase to shorter than 12
+// Test error when trying to change passphrase to shorter than 6
 // chars long.
 func TestPassphraseChangeShort(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseChange")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	newPassphrase := "password"
+	newPassphrase := "pass"
 	arg := &keybase1.PassphraseChangeArg{
 		OldPassphrase: u.Passphrase,
 		Passphrase:    newPassphrase,

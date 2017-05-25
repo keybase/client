@@ -10,16 +10,6 @@ import RevokeContainer from './revoke/container'
 import PostProof from './post-proof-container'
 import ConfirmOrPending from './confirm-or-pending-container'
 
-export const profileRoute = new RouteDefNode({
-  component: Profile,
-  title: 'Profile',
-  initialState: {currentFriendshipsTab: 'Followers'},
-  tags: {underStatusBar: true},
-  children: {
-    profile: () => profileRoute,
-  },
-})
-
 const proveEnterUsername = new RouteDefNode({
   component: ProveEnterUsername,
   children: {
@@ -31,13 +21,19 @@ const proveEnterUsername = new RouteDefNode({
         },
       },
     },
+    confirmOrPending: {
+      component: ConfirmOrPending,
+    },
   },
 })
 
-const routeTree = new RouteDefNode({
-  ...profileRoute.toJS(),
+export const profileRoute = new RouteDefNode({
+  component: Profile,
+  title: 'Profile',
+  initialState: {currentFriendshipsTab: 'Followers'},
+  tags: {underStatusBar: true},
   children: {
-    ...profileRoute.children.toJS(),
+    profile: () => profileRoute,
     editProfile: {
       component: EditProfile,
     },
@@ -58,4 +54,4 @@ const routeTree = new RouteDefNode({
   },
 })
 
-export default routeTree
+export default profileRoute

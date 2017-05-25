@@ -3,9 +3,11 @@
     -   id: eslint
         name: eslint
         entry: shared/node_modules/.bin/eslint
-        language: system
+        language: node
         files: \.js$
-        args: [--quiet]
+        args: [
+            '--quiet'
+        ]
     -   id: flow
         name: flow
         entry: sh

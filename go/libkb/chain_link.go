@@ -87,7 +87,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 
 type ChainLinkUnpacked struct {
 	prev           LinkID
-	seqno          Seqno
+	seqno          keybase1.Seqno
 	payloadJSONStr string
 	ctime, etime   int64
 	pgpFingerprint *PGPFingerprint
@@ -302,7 +302,7 @@ func (c *ChainLink) Pack() error {
 	return nil
 }
 
-func (c *ChainLink) GetMerkleSeqno() int {
+func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 	if c.IsStubbed() {
 		return 0
 	}
@@ -310,7 +310,7 @@ func (c *ChainLink) GetMerkleSeqno() int {
 	if err != nil {
 		i = 0
 	}
-	return i
+	return keybase1.Seqno(i)
 }
 
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
@@ -413,7 +413,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 		return
 	}
 
-	tmp.seqno = Seqno(sq)
+	tmp.seqno = keybase1.Seqno(sq)
 	tmp.etime = tmp.ctime + ei
 	tmp.payloadJSONStr = payloadJSONStr
 
@@ -458,7 +458,7 @@ func (c *ChainLink) unpackStubbed(raw string, err error) error {
 	if err != nil {
 		return err
 	}
-	c.id = ol.Curr
+	c.id = ol.LinkID()
 	c.unpacked = &ChainLinkUnpacked{
 		prev:        ol.Prev,
 		seqno:       ol.Seqno,
@@ -512,13 +512,6 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 		ol2, err = DecodeOuterLinkV2(tmp.sig)
 		if err != nil {
 			return err
-		}
-		linkID := ol2.Curr
-		if c.id != nil && !c.id.Eq(linkID) {
-			return SigchainV2MismatchedHashError{}
-		}
-		if c.id == nil {
-			c.id = linkID
 		}
 		tmp.outerLinkV2 = ol2
 		sigKID = ol2.kid
@@ -620,14 +613,37 @@ func ComputeLinkID(d []byte) LinkID {
 	return LinkID(h[:])
 }
 
-func (c *ChainLink) verifyHash() error {
+func (c *ChainLink) getPayloadHash() LinkID {
+	if c.unpacked == nil || c.unpacked.payloadJSONStr == "" {
+		return nil
+	}
+	h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
+	return h[:]
+}
+
+func (c *ChainLink) verifyHashV2() error {
 	if c.hashVerified {
 		return nil
 	}
+	ol := c.unpacked.outerLinkV2
+	if ol == nil {
+		return fmt.Errorf("nil outer link V2 unpacking")
+	}
+	if h := ol.LinkID(); !FastByteArrayEq(h, c.id) {
+		return SigchainV2MismatchedHashError{}
+	}
+	c.hashVerified = true
+	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
+	return nil
+}
 
-	h := sha256.Sum256([]byte(c.unpacked.payloadJSONStr))
+func (c *ChainLink) verifyHashV1() error {
+	if c.hashVerified {
+		return nil
+	}
+	h := c.getPayloadHash()
 	if !FastByteArrayEq(h[:], c.id) {
-		return fmt.Errorf("hash mismatch")
+		return fmt.Errorf("hash mismatch in verifyHashV1")
 	}
 	c.hashVerified = true
 	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
@@ -666,12 +682,6 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return nil
 	}
 
-	// If we didn't get a payload, there's nothing to verify, we just accept the
-	// outer link as is.
-	if c.IsStubbed() {
-		return nil
-	}
-
 	ol := c.unpacked.outerLinkV2
 
 	if ol == nil {
@@ -681,7 +691,7 @@ func (c *ChainLink) verifyPayloadV2() error {
 	version := 2
 	seqno := c.getSeqnoFromPayload()
 	prev := c.getPrevFromPayload()
-	curr := c.id
+	curr := c.getPayloadHash()
 	linkType, err := c.GetSigchainV2Type()
 
 	if err != nil {
@@ -714,14 +724,14 @@ func (c *ChainLink) verifyPayloadV1() error {
 	return nil
 }
 
-func (c *ChainLink) getSeqnoFromPayload() Seqno {
+func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
 	}
-	return Seqno(-1)
+	return keybase1.Seqno(-1)
 }
 
-func (c *ChainLink) GetSeqno() Seqno {
+func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
 }
 
@@ -829,16 +839,41 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 }
 
 func (c *ChainLink) VerifyLink() error {
+	v := c.unpacked.sigVersion
+	switch v {
+	case 1:
+		return c.verifyLinkV1()
+	case 2:
+		return c.verifyLinkV2()
+	default:
+		return ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", v)}
+	}
+}
+
+func (c *ChainLink) verifyLinkV1() error {
+
+	if err := c.verifyHashV1(); err != nil {
+		return err
+	}
+	if err := c.verifyPayloadV1(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *ChainLink) verifyLinkV2() error {
+
+	if err := c.verifyHashV2(); err != nil {
+		return err
+	}
 
 	// We might not have an unpacked payload at all, if it's a V2 link
 	// without a body (for BW savings)
 	if c.IsStubbed() {
 		return nil
 	}
-	if err := c.verifyHash(); err != nil {
-		return err
-	}
-	if err := c.verifyPayload(); err != nil {
+
+	if err := c.verifyPayloadV2(); err != nil {
 		return err
 	}
 	return nil
@@ -854,18 +889,6 @@ func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 		return SigchainV2TypeNone, err
 	}
 	return SigchainV2TypeFromV1TypeAndRevocations(t, c.HasRevocations())
-}
-
-func (c *ChainLink) verifyPayload() error {
-	v := c.unpacked.sigVersion
-	switch v {
-	case 1:
-		return c.verifyPayloadV1()
-	case 2:
-		return c.verifyPayloadV2()
-	default:
-		return ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", v)}
-	}
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {

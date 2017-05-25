@@ -18,6 +18,7 @@ import (
 
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
+const retryAttempts = 10
 
 // ErrAbortOnPartMismatch is returned when there is a mismatch between a current
 // part and a previous attempt part.  If ErrAbortOnPartMismatch is returned,
@@ -81,11 +82,11 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 	}
 	sr := bytes.NewReader(buf)
 
-	progWriter := newProgressWriter(progress, int(size))
+	progWriter := newProgressWriter(progress, size)
 	tee := io.TeeReader(sr, progWriter)
 
 	var lastErr error
-	for i := 0; i < 10; i++ {
+	for i := 0; i < retryAttempts; i++ {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
@@ -103,7 +104,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 
 		// move back to beginning of sr buffer for retry
 		sr.Seek(0, io.SeekStart)
-		progWriter = newProgressWriter(progress, int(size))
+		progWriter = newProgressWriter(progress, size)
 		tee = io.TeeReader(sr, progWriter)
 	}
 	return NewErrorWrapper("failed putSingle, last error", lastErr)
@@ -169,7 +170,7 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 	}()
 
 	var parts []s3.Part
-	progWriter := newProgressWriter(task.Progress, int(size))
+	progWriter := newProgressWriter(task.Progress, size)
 	for p := range retCh {
 		parts = append(parts, p)
 		progWriter.Update(int(p.Size))
@@ -184,11 +185,31 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 
 	a.log.Debug("s3 putMulti all parts uploaded, completing request")
 
-	if err := multi.Complete(ctx, parts); err != nil {
-		a.log.Debug("multi.Complete error: %s", err)
-		return "", err
+	// retry this request up to retryAttempts times
+	var lastErr error
+	for i := 0; i < retryAttempts; i++ {
+		select {
+		case <-ctx.Done():
+			a.log.Debug("multi.Complete retry loop, context canceled (attempt %d)", i+1)
+			return "", ctx.Err()
+		case <-time.After(libkb.BackoffDefault.Duration(i)):
+		}
+		a.log.Debug("attempt %d to run multi.Complete", i+1)
+		if err := multi.Complete(ctx, parts); err == nil {
+			a.log.Debug("success in attempt %d to run multi.Complete", i+1)
+			break
+		} else {
+			a.log.Debug("attempt %d multi.Complete error: %s", i+1, err)
+			lastErr = err
+		}
 	}
+	if lastErr != nil {
+		a.log.Debug("all retry attempts for multi.Complete failed")
+		return "", lastErr
+	}
+
 	a.log.Debug("s3 putMulti success, %d parts", len(parts))
+
 	// Just to make sure the UI gets the 100% call
 	progWriter.Finish()
 
@@ -318,6 +339,7 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 	select {
 	case retCh <- part:
 	case <-ctx.Done():
+		a.log.Debug("upload part %d, context canceled", b.index)
 		return ctx.Err()
 	}
 
@@ -325,10 +347,10 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 	return nil
 }
 
-// putRetry sends a block to S3, retrying 10 times w/ backoff.
+// putRetry sends a block to S3, retrying retryAttempts times w/ backoff.
 func (a *AttachmentStore) putRetry(ctx context.Context, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
 	var lastErr error
-	for i := 0; i < 10; i++ {
+	for i := 0; i < retryAttempts; i++ {
 		select {
 		case <-ctx.Done():
 			return s3.Part{}, ctx.Err()

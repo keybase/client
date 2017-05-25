@@ -1,7 +1,9 @@
 // @flow
+import * as Constants from '../../constants/config'
 import {Splash, Intro, Failure} from '.'
 import {connect} from 'react-redux'
-import {loginTab} from '../../constants/tabs'
+import {feedbackTab} from '../../constants/settings'
+import {loginTab, settingsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
 import * as Creators from '../../actions/login/creators'
@@ -17,8 +19,12 @@ export default compose(
       justDeletedSelf: state.login.justDeletedSelf,
       justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
       justRevokedSelf: state.login.justRevokedSelf,
+      retrying: state.config.bootstrapTriesRemaining !== Constants.MAX_BOOTSTRAP_TRIES,
     }),
     (dispatch: Dispatch) => ({
+      onFeedback: () => {
+        dispatch(navigateTo([settingsTab, feedbackTab]))
+      },
       onLogin: () => {
         dispatch(Creators.setLoginFromRevokedDevice(''))
         dispatch(Creators.setRevokedSelf(''))
@@ -37,12 +43,6 @@ export default compose(
       },
     })
   ),
-  branch(
-    props => props.bootStatus === 'bootStatusLoading',
-    renderComponent(Splash)
-  ),
-  branch(
-    props => props.bootStatus === 'bootStatusFailure',
-    renderComponent(Failure)
-  ),
+  branch(props => props.bootStatus === 'bootStatusLoading', renderComponent(Splash)),
+  branch(props => props.bootStatus === 'bootStatusFailure', renderComponent(Failure))
 )(Intro)

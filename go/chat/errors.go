@@ -1,11 +1,16 @@
 package chat
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/net/context"
 )
+
+var ErrChatServerTimeout = errors.New("timeout calling chat server")
+var ErrDuplicateConnection = errors.New("duplicate chat server connection established, failing")
 
 type UnboxingError interface {
 	Error() string
@@ -219,4 +224,15 @@ type OfflineError struct {
 
 func (e OfflineError) Error() string {
 	return "operation failed: no connection to chat server"
+}
+
+type OfflineClient struct {
+}
+
+func (e OfflineClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return OfflineError{}
+}
+
+func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}) error {
+	return OfflineError{}
 }

@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  autoFocus?: bool,
+  autoFocus?: boolean,
   blur?: () => void,
   errorStyle?: ?Object,
   errorText?: ?string,
@@ -11,7 +11,7 @@ export type Props = {
   hideUnderline?: boolean,
   hintText?: ?string,
   inputStyle?: Object,
-  multiline?: bool,
+  multiline?: boolean,
   onBlur?: () => void,
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
@@ -21,7 +21,7 @@ export type Props = {
   maxLength?: number,
   rowsMin?: number,
   select?: () => void,
-  small?: bool,
+  small?: boolean,
   smallLabel?: string,
   smallLabelStyle?: ?Object,
   style?: Object,
@@ -29,10 +29,25 @@ export type Props = {
   value?: ?string,
 
   // Mobile only
+  onEndEditing?: ?() => void,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
-  autoCorrect?: bool,
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
-  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
+  autoCorrect?: boolean,
+  keyboardType?:
+    | 'default'
+    | 'email-address'
+    | 'numeric'
+    | 'phone-pad'
+    | 'ascii-capable'
+    | 'numbers-and-punctuation'
+    | 'url'
+    | 'number-pad'
+    | 'name-phone-pad'
+    | 'decimal-pad'
+    | 'twitter'
+    | 'web-search',
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
 }
 
-declare export default class Input extends Component<void, Props, void> { }
+declare export default class Input extends Component<void, Props, void> {
+  setNativeProps(props: Object): {},
+}

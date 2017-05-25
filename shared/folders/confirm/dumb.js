@@ -5,7 +5,9 @@ import ConfirmIgnore from './ignore.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 import {isMobile} from '../../constants/platform'
 
-const parentPropsCommon = isMobile ? {} : {style: {display: 'flex', width: 640, height: 580, outline: '1px solid lightgray'}}
+const parentPropsCommon = isMobile
+  ? {}
+  : {style: {display: 'flex', width: 640, height: 580, outline: '1px solid lightgray'}}
 
 const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
   component: ConfirmClearHistory,
@@ -14,10 +16,7 @@ const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
       parentProps: parentPropsCommon,
       isPrivate: false,
       folderSize: '3.14 MB',
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
     },
@@ -25,10 +24,7 @@ const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
       parentProps: parentPropsCommon,
       isPrivate: true,
       folderSize: '3.14 MB',
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
     },
@@ -63,10 +59,7 @@ const deleteMap: DumbComponentMap<ConfirmDelete> = {
       parentProps: parentPropsCommon,
       isPrivate: false,
       folderSize: '5.17 GB',
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
     },
@@ -74,10 +67,7 @@ const deleteMap: DumbComponentMap<ConfirmDelete> = {
       parentProps: parentPropsCommon,
       isPrivate: true,
       folderSize: '5.17 GB',
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
     },
@@ -90,10 +80,7 @@ const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
     'Normal - Public': {
       parentProps: parentPropsCommon,
       isPrivate: false,
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       avatar: 'cecileb',
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
@@ -101,10 +88,7 @@ const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
     'Normal - Private': {
       parentProps: parentPropsCommon,
       isPrivate: true,
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'},
-      ],
+      users: [{username: 'cecileb', you: true}, {username: 'aliceb'}],
       avatar: 'cecileb',
       onSubmit: () => console.log('onSubmit'),
       onCancel: () => console.log('onCancel'),
@@ -113,13 +97,9 @@ const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
 }
 
 export default {
-  'Folders Clear History Confirmation': clearHistoryMap,
-  'Folders Delete Confirmation': deleteMap,
-  'Folders Ignore Confirmation': ignoreMap,
+  'Folders: Clear History Confirmation': clearHistoryMap,
+  'Folders: Delete Confirmation': deleteMap,
+  'Folders: Ignore Confirmation': ignoreMap,
 }
 
-export {
-  clearHistoryMap,
-  deleteMap,
-  ignoreMap,
-}
+export {clearHistoryMap, deleteMap, ignoreMap}

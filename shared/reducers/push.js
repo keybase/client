@@ -4,7 +4,7 @@ import * as Constants from '../constants/push'
 
 import type {State} from '../constants/push'
 
-function reducer (state: State = Constants.initialState, action: any): State {
+function reducer(state: State = Constants.initialState, action: any): State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...Constants.initialState}

@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -21,12 +22,12 @@ import (
 )
 
 type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error)
 }
 
 type BlockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	boxer *Boxer
@@ -34,10 +35,10 @@ type BlockingSender struct {
 	getRi func() chat1.RemoteInterface
 }
 
-func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, store *AttachmentStore,
+func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
 		getRi:        getRi,
 		boxer:        boxer,
@@ -368,7 +369,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(ctx, s.G(), storage.DefaultSecretUI,
+	signingKey, err := engine.GetMySecretKey(ctx, s.G().ExternalG(), storage.DefaultSecretUI,
 		libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
 		return libkb.NaclSigningKeyPair{}, err
@@ -423,18 +424,19 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, pendingAssetDeletes, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 
 	ri := s.getRi()
 	if ri == nil {
-		return chat1.OutboxID{}, 0, nil, fmt.Errorf("Send(): no remote client found")
+		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
 	// Delete assets associated with a delete operation.
@@ -442,9 +444,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if len(pendingAssetDeletes) > 0 {
 		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
 		if err != nil {
-			return chat1.OutboxID{}, 0, nil, err
+			return chat1.OutboxID{}, nil, nil, err
 		}
 	}
+
+	// Log some useful information about the message we are sending
+	obidstr := "(none)"
+	if boxed.ClientHeader.OutboxID != nil {
+		obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+	}
+	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
 
 	rarg := chat1.PostRemoteArg{
 		ConversationID: convID,
@@ -452,29 +461,31 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
+	s.Debug(ctx, "sending local updates to chat sources")
 	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
-		return chat1.OutboxID{}, 0, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 
-	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
+	return []byte{}, boxed, plres.RateLimit, nil
 }
 
 const deliverMaxAttempts = 5
+const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 minutes before auto failing a send
 
 type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
 }
 
 type Deliverer struct {
-	libkb.Contextified
+	globals.Contextified
 	sync.Mutex
 	utils.DebugLabeler
 
@@ -486,12 +497,15 @@ type Deliverer struct {
 	reconnectCh   chan struct{}
 	delivering    bool
 	connected     bool
+	disconnTime   time.Time
 	clock         clockwork.Clock
 }
 
-func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
+var _ types.MessageDeliverer = (*Deliverer)(nil)
+
+func NewDeliverer(g *globals.Context, sender Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
@@ -565,6 +579,14 @@ func (s *Deliverer) Connected(ctx context.Context) {
 func (s *Deliverer) Disconnected(ctx context.Context) {
 	s.Debug(ctx, "disconnected: all errors from now on will be permanent")
 	s.connected = false
+	s.disconnTime = s.clock.Now()
+}
+
+func (s *Deliverer) disconnectedTime() time.Duration {
+	if s.connected {
+		return 0
+	}
+	return s.clock.Now().Sub(s.disconnTime)
 }
 
 func (s *Deliverer) IsOffline() bool {
@@ -572,16 +594,16 @@ func (s *Deliverer) IsOffline() bool {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
-	identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error) {
-
-	s.Debug(ctx, "queued new message: convID: %s uid: %s ident: %v", convID, s.outbox.GetUID(),
-		identifyBehavior)
+	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
 	// Push onto outbox and immediatley return
-	obr, err := s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
+	obr, err = s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
 	if err != nil {
 		return obr, err
 	}
+	s.Debug(ctx, "queued new message: convID: %s outboxID: %s uid: %s ident: %v", convID,
+		obr.OutboxID, s.outbox.GetUID(), identifyBehavior)
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
@@ -589,10 +611,18 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	return obr, nil
 }
 
-func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
+func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, bool) {
 
 	if !s.connected {
-		return chat1.OutboxErrorType_OFFLINE, true
+		// Check to see how long we have been disconnected to see if this should be retried
+		disconnTime := s.disconnectedTime()
+		noretry := false
+		if disconnTime.Minutes() > deliverDisconnectLimitMinutes {
+			noretry = true
+			s.Debug(ctx, "doNotRetryFailure: not retrying offline failure, disconnected for: %v",
+				disconnTime)
+		}
+		return chat1.OutboxErrorType_OFFLINE, noretry
 	}
 
 	// Check for an identify error
@@ -603,7 +633,7 @@ func (s *Deliverer) doNotRetryFailure(obr chat1.OutboxRecord, err error) (chat1.
 	}
 
 	// Check attempts otherwise
-	if obr.State.Sending() > deliverMaxAttempts {
+	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_MISC, true
 	}
 
@@ -664,21 +694,22 @@ func (s *Deliverer) deliverLoop() {
 		var breaks []keybase1.TLFIdentifyFailure
 		for _, obr := range obrs {
 
-			bctx := Context(context.Background(), obr.IdentifyBehavior, &breaks, s.identNotifier)
+			bctx := Context(context.Background(), s.G().GetEnv(), obr.IdentifyBehavior, &breaks,
+				s.identNotifier)
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {
 				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
 			}
 			if err != nil {
-				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s err: %s attempts: %d",
-					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
+				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s obid: %s err: %s attempts: %d",
+					s.outbox.GetUID(), obr.ConvID, obr.OutboxID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
-				if errTyp, ok := s.doNotRetryFailure(obr, err); ok {
+				if errTyp, ok := s.doNotRetryFailure(bgctx, obr, err); ok {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
-					s.Debug(bgctx, "failure condition reached, marking all as errors and notifying: errTyp: %v attempts: %d", errTyp, obr.State.Sending())
+					s.Debug(bgctx, "failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
 
 					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
 						Message: err.Error(),
@@ -699,13 +730,13 @@ func (s *Deliverer) deliverLoop() {
 }
 
 type NonblockingSender struct {
-	libkb.Contextified
+	globals.Contextified
 	sender Sender
 }
 
-func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSender {
+func NewNonblockingSender(g *globals.Context, sender Sender) *NonblockingSender {
 	s := &NonblockingSender{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		sender:       sender,
 	}
 	return s
@@ -716,14 +747,14 @@ func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.Message
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
 
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev:        clientPrev,
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
 
-	identifyBehavior, _, _ := types.IdentifyMode(ctx)
+	identifyBehavior, _, _ := IdentifyMode(ctx)
 	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
-	return obr.OutboxID, 0, &chat1.RateLimit{}, err
+	return obr.OutboxID, nil, &chat1.RateLimit{}, err
 }

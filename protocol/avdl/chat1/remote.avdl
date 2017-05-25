@@ -197,7 +197,7 @@ protocol remote {
     UnreadUpdateFull badge;
   }
 
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
@@ -209,4 +209,7 @@ protocol remote {
   // Pubsub endpoints
   void publishReadMessage(gregor1.UID uid, ConversationID convID, MessageID msgID);
   void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
+
+  // Typing endpoints
+  void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
 }

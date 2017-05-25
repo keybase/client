@@ -51,8 +51,6 @@ client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
 
-"$client_dir/packaging/slack/send.sh" "Starting build $platform"
-
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"

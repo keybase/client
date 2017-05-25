@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -273,13 +274,12 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	if e.G().Env.GetEnableSharedDH() {
-		sdhBoxes, err := e.makeSdhBoxes(key)
+	if e.G().Env.GetSupportPerUserKey() {
+		pukBox, err := e.makePukBox(key)
 		if err != nil {
 			return output, err
 		}
-		output.SdhBoxes = sdhBoxes
-		// TODO if SDH_UPGRADE: may want to add a key here.
+		output.PukBox = pukBox
 	}
 
 	return output, err
@@ -382,23 +382,30 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	return nil
 }
 
-func (e *Kex2Provisioner) makeSdhBoxes(receiverKeyGeneric libkb.GenericKey) (res []keybase1.SharedDHSecretKeyBox, err error) {
+// Returns nil box if there are no per-user-keys.
+func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
+	if !e.G().Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
+	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
-		return res, fmt.Errorf("Unexpected receiver key type")
+		return nil, fmt.Errorf("Unexpected receiver key type")
 	}
 
-	sdhk, err := e.G().GetSharedDHKeyring()
+	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	err = sdhk.Sync(e.ctx.NetContext)
+	err = pukring.Sync(e.ctx.NetContext)
 	if err != nil {
-		return res, err
+		return nil, err
+	}
+	if !pukring.HasAnyKeys() {
+		return nil, nil
 	}
 
-	sdhBoxes, err := sdhk.PrepareBoxesForNewDevice(e.ctx.NetContext,
+	pukBox, err := pukring.PrepareBoxForNewDevice(e.ctx.NetContext,
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
-	return sdhBoxes, err
+	return &pukBox, err
 }

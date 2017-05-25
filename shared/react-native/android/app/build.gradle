@@ -93,7 +93,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode timestamp()
-        versionName "1.0.0-alpha-2"
+        versionName "1.0.3"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }

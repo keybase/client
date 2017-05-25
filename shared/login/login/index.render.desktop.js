@@ -5,7 +5,7 @@ import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../com
 import {globalStyles, globalColors} from '../../styles'
 
 class LoginRender extends Component<void, Props, void> {
-  render () {
+  render() {
     const inputProps = {
       hintText: 'Passphrase',
       floatingHintTextOverride: '',
@@ -19,18 +19,25 @@ class LoginRender extends Component<void, Props, void> {
     }
 
     const checkboxProps = [
-      {label: 'Show typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
+      {
+        label: 'Show typing',
+        checked: this.props.showTyping,
+        onCheck: check => {
+          this.props.showTypingChange(check)
+        },
+      },
     ]
 
     return (
       <Box style={stylesContainer}>
         <UserCard username={this.props.selectedUser}>
           <Dropdown
-            type='Username'
+            type="Username"
             value={this.props.selectedUser}
             onClick={selectedUser => this.props.selectedUserChange(selectedUser)}
             onOther={() => this.props.onSomeoneElse()}
-            options={this.props.users} />
+            options={this.props.users}
+          />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
@@ -39,12 +46,22 @@ class LoginRender extends Component<void, Props, void> {
           <Button
             waiting={this.props.waitingForResponse}
             style={{marginTop: 0}}
-            type='Primary'
-            label='Log in'
-            onClick={() => this.props.onSubmit()} />
-          <Text link={true} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
+            type="Primary"
+            label="Log in"
+            onClick={() => this.props.onSubmit()}
+          />
+          <Text
+            link={true}
+            type="BodySmallSecondaryLink"
+            onClick={this.props.onForgotPassphrase}
+            style={{marginTop: 24}}
+          >
+            Forgot passphrase?
+          </Text>
         </UserCard>
-        <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
+        <Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
+          Create an account
+        </Text>
       </Box>
     )
   }

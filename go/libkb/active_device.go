@@ -90,13 +90,20 @@ func (a *ActiveDevice) internalUpdateUIDDeviceID(acct *Account, uid keybase1.UID
 	if acct == nil {
 		return errors.New("ActiveDevice.set funcs must be called from inside a LoginState account request")
 	}
+	if uid.IsNil() {
+		return errors.New("ActiveDevice.set with nil uid")
+	}
+	if deviceID.IsNil() {
+		return errors.New("ActiveDevice.set with nil deviceID")
+	}
+
 	if a.uid.IsNil() && a.deviceID.IsNil() {
 		a.uid = uid
 		a.deviceID = deviceID
 	} else if a.uid.NotEqual(uid) {
-		return errors.New("ActiveDevice.setEncryptionKey uid mismatch")
+		return errors.New("ActiveDevice.set uid mismatch")
 	} else if !a.deviceID.Eq(deviceID) {
-		return errors.New("ActiveDevice.setEncryptionKey deviceID mismatch")
+		return errors.New("ActiveDevice.set deviceID mismatch")
 	}
 
 	return nil
@@ -174,11 +181,11 @@ func (a *ActiveDevice) KeyByType(t SecretKeyType) (GenericKey, error) {
 
 // AllFields returns all the ActiveDevice fields via one lock for consistency.
 // Safe for use by concurrent goroutines.
-func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, sigKey GenericKey, encKey GenericKey) {
+func (a *ActiveDevice) AllFields() (uid keybase1.UID, deviceID keybase1.DeviceID, deviceName string, sigKey GenericKey, encKey GenericKey) {
 	a.RLock()
 	defer a.RUnlock()
 
-	return a.uid, a.deviceID, a.signingKey, a.encryptionKey
+	return a.uid, a.deviceID, a.deviceName, a.signingKey, a.encryptionKey
 }
 
 func (a *ActiveDevice) Name() string {
@@ -186,4 +193,18 @@ func (a *ActiveDevice) Name() string {
 	defer a.RUnlock()
 
 	return a.deviceName
+}
+
+func (a *ActiveDevice) HaveKeys() bool {
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.signingKey != nil && a.encryptionKey != nil
+}
+
+func (a *ActiveDevice) Valid() bool {
+	a.RLock()
+	defer a.RUnlock()
+
+	return a.signingKey != nil && a.encryptionKey != nil && !a.uid.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
 }

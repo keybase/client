@@ -1,18 +1,7 @@
 // @flow
-import Avatar from './avatar'
 import {Component} from 'react'
 import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
-
-export type Props = Exact<{
-  style?: ?Object,
-  styleTabBar?: Object,
-  children?: Array<React$Element<ItemProps>>,
-  tabBarOnBottom?: boolean,
-  underlined?: boolean,
-}>
-
-export default class TabBar extends Component<void, Props, void> { }
 
 export type ItemProps = Exact<{
   tabBarButton?: React$Element<*>,
@@ -28,9 +17,22 @@ export type ItemProps = Exact<{
   underlined?: boolean,
 }>
 
-export class TabBarItem extends Component<void, ItemProps, void> { }
+export type Props = Exact<{
+  style?: ?Object,
+  styleTabBar?: Object,
+  children?: Array<React$Element<ItemProps>>,
+  tabBarOnBottom?: boolean,
+  underlined?: boolean,
+}>
 
-export type TabBarButtonSource = {type: 'icon', icon: IconType} | {type: 'avatar', avatar: React$Element<*>} | {type: 'nav', icon: IconType}
+export default class TabBar extends Component<void, Props, void> {}
+
+export class TabBarItem extends Component<void, ItemProps, void> {}
+
+export type TabBarButtonSource =
+  | {type: 'icon', icon: IconType}
+  | {type: 'avatar', username: ?string}
+  | {type: 'nav', icon: IconType}
 
 export type TabBadgePosition = 'top-right'
 
@@ -49,4 +51,4 @@ export type TabBarButtonProps = Exact<{
   styleLabel?: Object,
 }>
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+export class TabBarButton extends Component<void, TabBarButtonProps, void> {}

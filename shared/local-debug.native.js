@@ -10,6 +10,7 @@ const nativeBridge = NativeModules.KeybaseEngine
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
+  clickableVisible: false,
   devStoreChangingFunctions: false,
   dumbChatOnly: false,
   dumbSheetOnly: false,
@@ -27,12 +28,15 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printRoutes: false,
   reactPerf: false,
+  reduxSagaLogger: false,
+  reduxSagaLoggerMasked: true,
   redirectOnLogout: true,
   showAllTrackers: false,
 }
 
 if (__DEV__ && true) {
   config.isDevApplePushToken = true
+  config.clickableVisible = true
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
@@ -45,11 +49,14 @@ if (__DEV__ && true) {
   config.printRoutes = true
   config.reactPerf = false
   config.redirectOnLogout = false
+  config.reduxSagaLogger = true
+  config.reduxSagaLoggerMasked = false
   config.showAllTrackers = false
 }
 
 export const {
   actionStatFrequency,
+  clickableVisible,
   devStoreChangingFunctions,
   dumbChatOnly,
   dumbSheetOnly,
@@ -68,11 +75,13 @@ export const {
   printRoutes,
   reactPerf,
   reduxDevToolsSelect,
+  reduxSagaLoggerMasked,
+  reduxSagaLogger,
   showAllTrackers,
   showDevTools,
 } = config
 
-export function setup (store: any) {
+export function setup(store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
@@ -81,6 +90,6 @@ export function setup (store: any) {
   updateLiveConfig()
 }
 
-export function envVarDebugJson () {
+export function envVarDebugJson() {
   return null
 }

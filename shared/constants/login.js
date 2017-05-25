@@ -1,30 +1,37 @@
 // @flow
-// constants
 
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import HiddenString from '../util/hidden-string'
 
-export type Mode = 'codePageModeScanCode'
-| 'codePageModeShowCode'
-| 'codePageModeEnterText'
-| 'codePageModeShowText'
+export type Mode =
+  | 'codePageModeScanCode'
+  | 'codePageModeShowCode'
+  | 'codePageModeEnterText'
+  | 'codePageModeShowText'
 
-export type DeviceRole = 'codePageDeviceRoleExistingPhone'
-| 'codePageDeviceRoleNewPhone'
-| 'codePageDeviceRoleExistingComputer'
-| 'codePageDeviceRoleNewComputer'
+export type DeviceRole =
+  | 'codePageDeviceRoleExistingPhone'
+  | 'codePageDeviceRoleNewPhone'
+  | 'codePageDeviceRoleExistingComputer'
+  | 'codePageDeviceRoleNewComputer'
 
 export const startLogin = 'login:startLogin'
 export type StartLogin = NoErrorTypedAction<'login:startLogin', null>
 
 export const submitUsernameOrEmail = 'login:submitUsernameOrEmail'
-export type SubmitUsernameOrEmail = NoErrorTypedAction<'login:submitUsernameOrEmail', {usernameOrEmail: string}>
+export type SubmitUsernameOrEmail = NoErrorTypedAction<
+  'login:submitUsernameOrEmail',
+  {usernameOrEmail: string}
+>
 
 export const relogin = 'login:relogin'
 export type Relogin = NoErrorTypedAction<'login:relogin', {usernameOrEmail: string, passphrase: HiddenString}>
 
 export const submitPassphrase = 'login:submitPassphrase'
-export type SubmitPassphrase = NoErrorTypedAction<'login:submitPassphrase', {passphrase: HiddenString, storeSecret: boolean}>
+export type SubmitPassphrase = NoErrorTypedAction<
+  'login:submitPassphrase',
+  {passphrase: HiddenString, storeSecret: boolean}
+>
 
 export const someoneElse = 'login:someoneElse'
 export type SomeoneElse = NoErrorTypedAction<'login:someoneElse', {}>
@@ -68,11 +75,11 @@ export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCo
 export const loginDone = 'login:loginDone'
 export type LoginDone = TypedAction<'login:relogin', {}, Error>
 
-export const submitForgotPassword = 'login:submitForgotPassword'
-export type SubmitForgotPassword = NoErrorTypedAction<'login:submitForgotPassword', {}>
-
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
-export type UpdateForgotPasswordEmail = NoErrorTypedAction<'login:actionUpdateForgotPasswordEmailAddress', string>
+export type UpdateForgotPasswordEmail = NoErrorTypedAction<
+  'login:actionUpdateForgotPasswordEmailAddress',
+  string
+>
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
 export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
@@ -107,3 +114,33 @@ export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
 export const navBasedOnLoginState = 'login:navBasedOnLoginState'
+
+// It's the b64 encoded value used to render the image
+type QRCode = HiddenString
+
+export type State = {
+  codePage: {
+    cameraBrokenMode: boolean,
+    codeCountDown: number,
+    enterCodeErrorText: string,
+    mode: ?Mode,
+    myDeviceRole: ?DeviceRole,
+    otherDeviceRole: ?DeviceRole,
+    qrCode: ?QRCode,
+    qrCodeScanned: boolean,
+    qrScanned: ?QRCode,
+    textCode: ?HiddenString,
+  },
+  configuredAccounts: ?Array<{hasStoredSecret: boolean, username: string}>,
+  forgotPasswordEmailAddress: string | '',
+  forgotPasswordError: ?Error,
+  forgotPasswordSubmitting: boolean,
+  forgotPasswordSuccess: boolean,
+  justDeletedSelf: ?string,
+  justLoginFromRevokedDevice: ?boolean,
+  justRevokedSelf: ?string,
+  loginError: ?string,
+  registerUserPassError: ?string,
+  registerUserPassLoading: boolean,
+  waitingForResponse: boolean,
+}

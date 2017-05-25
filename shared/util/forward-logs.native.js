@@ -8,7 +8,7 @@ const localLog = window.console.log.bind(window.console)
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
-function setupSource () {
+function setupSource() {
   if (!forwardLogs) {
     return
   }
@@ -20,23 +20,18 @@ function setupSource () {
 
   window.console.log = (...args) => {
     localLog(...args)
-    logger.info(args.join(', '))
+    logger.info(...args)
   }
 
   window.console.warn = (...args) => {
     localWarn(...args)
-    logger.warn(args.join(', '))
+    logger.warn(...args)
   }
 
   window.console.error = (...args) => {
     localError(...args)
-    logger.error(args.join(', '))
+    logger.error(...args)
   }
 }
 
-export {
-  setupSource,
-  localLog,
-  localWarn,
-  localError,
-}
+export {setupSource, localLog, localWarn, localError}

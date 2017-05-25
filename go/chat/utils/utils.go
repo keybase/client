@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -41,7 +42,7 @@ func ParseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
+func ParseTimeFromRFC3339OrDurationFromPast(g *globals.Context, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -194,6 +195,7 @@ type ConversationStatusBehavior struct {
 	ShowBadges bool
 }
 
+// GetConversationStatusBehavior gives information about what is allowed for a conversation status.
 // When changing these, be sure to update gregor's postMessage as well
 func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatusBehavior {
 	switch s {
@@ -224,6 +226,8 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 			PushNotifications:     true,
 			ShowBadges:            true,
 		}
+	case chat1.ConversationStatus_REPORTED:
+		fallthrough
 	case chat1.ConversationStatus_BLOCKED:
 		return ConversationStatusBehavior{
 			ShowInInbox:           false,
@@ -288,14 +292,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 }
 
 type DebugLabeler struct {
-	libkb.Contextified
+	globals.Contextified
 	label   string
 	verbose bool
 }
 
-func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(g *globals.Context, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		label:        label,
 		verbose:      verbose,
 	}
@@ -330,7 +334,7 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) fun
 	return func() {}
 }
 
-func GetUnverifiedConv(ctx context.Context, g *libkb.GlobalContext, uid gregor1.UID,
+func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
 
 	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{

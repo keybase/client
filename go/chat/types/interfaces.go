@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -11,6 +12,11 @@ type Offlinable interface {
 	IsOffline() bool
 	Connected(ctx context.Context)
 	Disconnected(ctx context.Context)
+}
+
+type Resumable interface {
+	Start(ctx context.Context, uid gregor1.UID)
+	Stop(ctx context.Context) chan struct{}
 }
 
 type TLFInfoSource interface {
@@ -41,11 +47,10 @@ type ConversationSource interface {
 
 type MessageDeliverer interface {
 	Offlinable
+	Resumable
 
 	Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 		identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.OutboxRecord, error)
-	Start(ctx context.Context, uid gregor1.UID)
-	Stop(ctx context.Context) chan struct{}
 	ForceDeliverLoop(ctx context.Context)
 }
 
@@ -74,6 +79,9 @@ type InboxSource interface {
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 
+	GetInboxQueryLocalToRemote(ctx context.Context,
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *TLFInfo, error)
+
 	SetRemoteInterface(func() chat1.RemoteInterface)
 	SetTLFInfoSource(tlfInfoSource TLFInfoSource)
 }
@@ -95,6 +103,38 @@ type Syncer interface {
 	RegisterOfflinable(offlinable Offlinable)
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
 		immediate bool)
-	AddStaleConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	Shutdown()
+}
+
+type RetryDescription interface {
+	Fix(ctx context.Context, uid gregor1.UID) error
+	SendStale(ctx context.Context, uid gregor1.UID)
+	String() string
+}
+
+type FetchRetrier interface {
+	Offlinable
+	Resumable
+
+	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
+	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
+	Force(ctx context.Context)
+}
+
+type ConvLoader interface {
+	Resumable
+
+	Queue(ctx context.Context, convID chat1.ConversationID) error
+}
+
+type PushHandler interface {
+	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
+	TlfResolve(context.Context, gregor.OutOfBandMessage) error
+	Activity(context.Context, gregor.OutOfBandMessage) error
+	Typing(context.Context, gregor.OutOfBandMessage) error
+}
+
+type AppState interface {
+	State() keybase1.AppState
+	NextUpdate() chan keybase1.AppState
 }

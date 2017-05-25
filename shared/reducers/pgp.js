@@ -1,17 +1,12 @@
 // @flow
 import * as Constants from '../constants/pgp'
 import * as CommonConstants from '../constants/common'
-import type {Actions} from '../constants/pgp'
 
-export type State = {
-  open: boolean,
-}
-
-const initialState: State = {
+const initialState: Constants.State = {
   open: false,
 }
 
-export default function (state: State = initialState, action: Actions): State {
+export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

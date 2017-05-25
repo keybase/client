@@ -1,24 +1,20 @@
 package storage
 
 import (
-	"context"
+	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
-
+	"sort"
 	"time"
 
-	"bytes"
-
-	"sort"
-
-	"crypto/sha1"
-
-	"encoding/hex"
-
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"golang.org/x/net/context"
 )
 
 const inboxVersion = 11
@@ -75,18 +71,18 @@ type inboxDiskData struct {
 }
 
 type Inbox struct {
-	libkb.Contextified
+	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
 	uid gregor1.UID
 }
 
-func NewInbox(g *libkb.GlobalContext, uid gregor1.UID) *Inbox {
+func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	return &Inbox{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
-		baseBox:      newBaseBox(g),
+		baseBox:      newBaseBox(g, true),
 		uid:          uid,
 	}
 }
@@ -953,4 +949,18 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 
 	return nil
+}
+
+type InboxVersionSource struct {
+	globals.Contextified
+}
+
+func NewInboxVersionSource(g *globals.Context) *InboxVersionSource {
+	return &InboxVersionSource{
+		Contextified: globals.NewContextified(g),
+	}
+}
+
+func (i *InboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
+	return NewInbox(i.G(), uid).Version(ctx)
 }

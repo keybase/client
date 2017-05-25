@@ -9,7 +9,7 @@ import (
 )
 
 type Sig struct {
-	Seqno        int    `codec:"seqno" json:"seqno"`
+	Seqno        Seqno  `codec:"seqno" json:"seqno"`
 	SigID        SigID  `codec:"sigID" json:"sigID"`
 	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
 	Type         string `codec:"type" json:"type"`

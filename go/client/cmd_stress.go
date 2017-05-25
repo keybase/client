@@ -194,7 +194,7 @@ func (c *CmdStress) trackSomeone() {
 
 	tcli := keybase1.TrackClient{Cli: cli}
 	options := keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}
-	err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
+	_, err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
 		G.Log.Warning("follow %s error: %s", username, err)
 

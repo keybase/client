@@ -79,10 +79,10 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
-func (n NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
-	ret.Public = n.Public
-	if n.Private != nil {
-		tmp := *n.Private
+func (k NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
+	ret.Public = k.Public
+	if k.Private != nil {
+		tmp := *k.Private
 		ret.Private = &tmp
 	}
 	return ret
@@ -569,6 +569,15 @@ func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretSize]byte) (Na
 	return kp, err
 }
 
+func MakeNaclSigningKeyPairFromSecretBytes(secret []byte) (NaclSigningKeyPair, error) {
+	if len(secret) != NaclSigningKeySecretSize {
+		return NaclSigningKeyPair{}, fmt.Errorf("Bad NaCl signing key size: %d", len(secret))
+	}
+	var fixed [NaclSigningKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclSigningKeyPairFromSecret(fixed)
+}
+
 func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 	return makeNaclSigningKeyPair(rand.Reader)
 }
@@ -793,6 +802,29 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 	return outKey, nil
 }
 
+// Derive a key from another.
+// Uses HMAC(key=reason, data=key)
+// Not to be confused with DeriveSymmetricKey which has hmac inputs swapped.
+// This one makes sense for derivation from secrets used only to derive from.
+func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
+	if len(reason) < 8 {
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, inKey[:])
+	_, err = mac.Write([]byte(reason))
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
+}
+
 // ToPacket implements the Packetable interface.
 func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
 	return NewKeybasePacket(k, TagEncryption, KeybasePacketV1)
@@ -859,4 +891,13 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	}
 	sender = senderDH.GetKID()
 	return
+}
+
+func GeneratePerUserKeySeed() (res PerUserKeySeed, err error) {
+	bs, err := RandBytes(32)
+	if err != nil {
+		return res, err
+	}
+	seed := PerUserKeySeed(MakeByte32(bs))
+	return seed, nil
 }

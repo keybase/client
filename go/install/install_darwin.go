@@ -565,25 +565,31 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	return nil
 }
 
-// kbnmManifestPath returns where the NativeMessaging host manifest lives on this platform.
-func kbnmManifestPath(u *user.User) string {
-	const rootPath = "/Library/Google/Chrome/NativeMessagingHosts"
-	const homePath = "Library/Application Support/Google/Chrome/NativeMessagingHosts"
+// kbnmManifestPath returns where the NativeMessaging host manifest lives on
+// this platform. Will return paths for both Chrome and Chromium.
+func kbnmManifestPaths(u *user.User) []string {
+	// Paths per https://developer.chrome.com/extensions/nativeMessaging#native-messaging-host-location-nix
 
 	if u.Uid == "0" {
 		// Installing as root
-		return rootPath
+		return []string{
+			"/Library/Google/Chrome/NativeMessagingHosts",
+			"/Library/Application Support/Chromium/NativeMessagingHosts",
+		}
 	}
 
-	return filepath.Join(u.HomeDir, homePath)
+	// Install as local user
+	return []string{
+		filepath.Join(u.HomeDir, "Library/Application Support/Google/Chrome/NativeMessagingHosts"),
+		filepath.Join(u.HomeDir, "Library/Application Support/Chromium/NativeMessagingHosts"),
+	}
 }
 
 // kbnmWrapError adds additional instructions to errors when possible.
-func kbnmWrapError(err error, u *user.User) error {
+func kbnmWrapError(err error, u *user.User, hostsPath string) error {
 	if !os.IsPermission(err) {
 		return err
 	}
-	hostsPath := kbnmManifestPath(u)
 	return fmt.Errorf("%s: Make sure the directory is owned by %s. "+
 		"You can run:\n "+
 		"  sudo chown -R %s:staff %q", err, u.Username, u.Username, hostsPath)
@@ -632,25 +638,30 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 		return err
 	}
 
-	hostsPath := kbnmManifestPath(u)
-	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+	hostsPaths := kbnmManifestPaths(u)
+	for _, hostsPath := range hostsPaths {
+		jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	// Make the path if it doesn't exist
-	if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
-		return kbnmWrapError(err, u)
+		// Make the path if it doesn't exist
+		if err := os.MkdirAll(hostsPath, os.ModePerm); err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
+
+		// Write the file
+		log.Debug("Installing KBNM host manifest: %s", jsonPath)
+		fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
+		defer fp.Close()
+
+		encoder := json.NewEncoder(fp)
+		encoder.SetIndent("", "    ")
+		if err := encoder.Encode(&hostManifest); err != nil {
+			return kbnmWrapError(err, u, hostsPath)
+		}
 	}
-
-	// Write the file
-	log.Debug("Installing KBNM host manifest: %s", jsonPath)
-	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return kbnmWrapError(err, u)
-	}
-	defer fp.Close()
-
-	encoder := json.NewEncoder(fp)
-	encoder.SetIndent("", "    ")
-	return encoder.Encode(&hostManifest)
+	return nil
 }
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
@@ -660,13 +671,15 @@ func UninstallKBNM(log Log) error {
 		return err
 	}
 
-	hostsPath := kbnmManifestPath(u)
-	jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
+	hostsPaths := kbnmManifestPaths(u)
+	for _, hostsPath := range hostsPaths {
+		jsonPath := filepath.Join(hostsPath, kbnmHostName+".json")
 
-	log.Info("Uninstalling KBNM host manifest: %s", jsonPath)
-	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
-		// We don't care if it doesn't exist, but other errors should escalate
-		return err
+		log.Info("Uninstalling KBNM host manifest: %s", jsonPath)
+		if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
+			// We don't care if it doesn't exist, but other errors should escalate
+			return err
+		}
 	}
 	return nil
 }
@@ -682,7 +695,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		var mountDir string
 		mountDir, err = context.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(context.GetRunMode(), mountDir, true, false, log)
+			err = UninstallKBFS(context.GetRunMode(), mountDir, true, log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
@@ -764,11 +777,21 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	if err != nil {
 		return err
 	}
-	return UninstallKBFS(runMode, mountDir, false, true, log)
+
+	if err := UninstallKBFS(runMode, mountDir, false, log); err != nil {
+		return err
+	}
+
+	log.Info("Uninstall mount: %s", mountDir)
+	if err := uninstallMountDir(runMode, log); err != nil {
+		return fmt.Errorf("Error uninstalling mount: %s", err)
+	}
+
+	return nil
 }
 
 // UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, removeMountDir bool, log Log) error {
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
 	err := UninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
@@ -795,13 +818,6 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, re
 	}
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
-	}
-
-	if removeMountDir {
-		log.Info("Removing %s", mountDir)
-		if err := uninstallMountDir(runMode, log); err != nil {
-			return fmt.Errorf("Error removing mount dir: %s", err)
-		}
 	}
 
 	return nil
@@ -855,7 +871,7 @@ func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) e
 	if err != nil {
 		return err
 	}
-	includeArgs := []string{fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
+	includeArgs := []string{"--debug", fmt.Sprintf("--run-mode=%s", runMode), fmt.Sprintf("--app-path=%s", appPath), fmt.Sprintf("--timeout=10")}
 	args = append(includeArgs, args...)
 	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), args...)
 	output, err := cmd.CombinedOutput()

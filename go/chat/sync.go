@@ -2,14 +2,13 @@ package chat
 
 import (
 	"encoding/hex"
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -18,7 +17,7 @@ import (
 )
 
 type Syncer struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
 
@@ -32,11 +31,12 @@ type Syncer struct {
 	fullReloadCh      chan gregor1.UID
 	flushCh           chan struct{}
 	notificationQueue map[string][]chat1.ConversationID
+	fullReload        map[string]bool
 }
 
-func NewSyncer(g *libkb.GlobalContext) *Syncer {
+func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
-		Contextified:      libkb.NewContextified(g),
+		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g, "Syncer", false),
 		isConnected:       false,
 		clock:             clockwork.NewRealClock(),
@@ -44,6 +44,7 @@ func NewSyncer(g *libkb.GlobalContext) *Syncer {
 		fullReloadCh:      make(chan gregor1.UID),
 		flushCh:           make(chan struct{}),
 		notificationQueue: make(map[string][]chat1.ConversationID),
+		fullReload:        make(map[string]bool),
 		sendDelay:         time.Millisecond * 1000,
 	}
 
@@ -75,12 +76,30 @@ func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.Conve
 func (s *Syncer) sendNotificationsOnce() {
 	s.notificationLock.Lock()
 	defer s.notificationLock.Unlock()
-	for uid, convIDs := range s.notificationQueue {
-		convIDs = s.dedupConvIDs(convIDs)
-		s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
-		s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+
+	state := s.G().AppState.State()
+	// Only actually flush notifications if the state of the app is in the foreground. In the desktop
+	// app this is always true, but on the mobile app this might not be.
+	if state == keybase1.AppState_FOREGROUND {
+		// Broadcast full reloads
+		for uid := range s.fullReload {
+			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
+			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), keybase1.UID(uid))
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), nil)
+		}
+		s.fullReload = make(map[string]bool)
+
+		// Broadcast conversation stales
+		for uid, convIDs := range s.notificationQueue {
+			convIDs = s.dedupConvIDs(convIDs)
+			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
+			for _, convID := range convIDs {
+				s.Debug(context.Background(), "flushing: uid: %s convID: %s", uid, convID)
+			}
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+		}
+		s.notificationQueue = make(map[string][]chat1.ConversationID)
 	}
-	s.notificationQueue = make(map[string][]chat1.ConversationID)
 }
 
 func (s *Syncer) sendNotificationLoop() {
@@ -91,15 +110,20 @@ func (s *Syncer) sendNotificationLoop() {
 			return
 		case uid := <-s.fullReloadCh:
 			s.notificationLock.Lock()
-			kuid := keybase1.UID(uid.String())
-			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), kuid)
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), kuid, nil)
-			s.notificationQueue[uid.String()] = nil
+			s.fullReload[uid.String()] = true
+			delete(s.notificationQueue, uid.String())
 			s.notificationLock.Unlock()
+			s.sendNotificationsOnce()
 		case <-s.clock.After(s.sendDelay):
 			s.sendNotificationsOnce()
 		case <-s.flushCh:
 			s.sendNotificationsOnce()
+		case state := <-s.G().AppState.NextUpdate():
+			// If we receive an update that app state has moved to the foreground, then trigger
+			// flushing these notifications
+			if state == keybase1.AppState_FOREGROUND {
+				s.sendNotificationsOnce()
+			}
 		}
 	}
 
@@ -112,43 +136,20 @@ func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.Conversatio
 	return res
 }
 
-func (s *Syncer) dbKey(uid gregor1.UID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatSyncer,
-		Key: fmt.Sprintf("%s", uid),
-	}
-}
-
-func (s *Syncer) AddStaleConversation(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID) {
-	s.Lock()
-	defer s.Unlock()
-	defer s.Trace(ctx, func() error { return nil }, fmt.Sprintf("AddStaleConversation(%s)", convID))()
-
-	// Read current data (if any)
-	var convIDs []chat1.ConversationID
-	key := s.dbKey(uid)
-	_, err := s.G().LocalChatDb.GetInto(&convIDs, key)
-	if err != nil {
-		s.Debug(ctx, "AddStaleConversation: failed to get current stale list, using empty: %s",
-			err.Error())
-	}
-	convIDs = append(convIDs, convID)
-
-	if err := s.G().LocalChatDb.PutObj(key, nil, convIDs); err != nil {
-		s.Debug(ctx, "AddStaleConversation: failed to write stale list: %s", err.Error())
-	}
-}
-
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID, immediate bool) {
 	if len(convIDs) == 0 {
 		s.Debug(ctx, "sending inbox stale message")
 		s.fullReloadCh <- uid
 	} else {
-		s.Debug(ctx, "sending threads stale message: len: %d", len(convIDs))
+		s.Debug(ctx, "sending thread stale messages: len: %d", len(convIDs))
+		for _, convID := range convIDs {
+			s.Debug(ctx, "sending thread stale message: convID: %s", convID)
+		}
 		s.notificationLock.Lock()
-		s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+		if !s.fullReload[uid.String()] {
+			s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+		}
 		s.notificationLock.Unlock()
 		if immediate {
 			s.flushCh <- struct{}{}
@@ -171,28 +172,9 @@ func (s *Syncer) IsConnected(ctx context.Context) bool {
 	return s.isConnected
 }
 
-func (s *Syncer) sendStoredStaleNotifications(ctx context.Context, uid gregor1.UID) {
-	var convIDs []chat1.ConversationID
-	key := s.dbKey(uid)
-	found, err := s.G().LocalChatDb.GetInto(&convIDs, key)
-	if err != nil {
-		s.Debug(ctx, "sendStoredStaleNotifications: failed to read stale notifications: %s", err.Error())
-	}
-	if !found {
-		s.Debug(ctx, "sendStoredStaleNotifications: no notifications found, skipping")
-		return
-	}
-	s.Debug(ctx, "sendStoredStaleNotifications: sending %d stale notifications", len(convIDs))
-	s.SendChatStaleNotifications(ctx, uid, convIDs, false)
-
-	if err := s.G().LocalChatDb.Delete(key); err != nil {
-		s.Debug(ctx, "sendStoredStaleNotifications: error deleting record: %s", err.Error())
-	}
-}
-
 func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
-	ctx = CtxAddLogTags(ctx)
+	ctx = CtxAddLogTags(ctx, s.G().GetEnv())
 	s.Lock()
 	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "Connected")()
@@ -203,9 +185,6 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	for _, o := range s.offlinables {
 		o.Connected(ctx)
 	}
-
-	// Send stale notifications that have been registered with us
-	s.sendStoredStaleNotifications(ctx, uid)
 
 	// Run sync against the server
 	s.sync(ctx, cli, uid, syncRes)
@@ -305,6 +284,13 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		} else {
 			// Send notifications for a successful partial sync
 			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs), true)
+		}
+
+		// Queue background conversation loads
+		for _, convID := range s.getConvIDs(incr.Convs) {
+			if err := s.G().ConvLoader.Queue(ctx, convID); err != nil {
+				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
+			}
 		}
 	}
 

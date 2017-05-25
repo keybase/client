@@ -164,7 +164,7 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 	if err := codec.NewDecoderBytes(tmp, &mh).Decode(&sphp); err != nil {
 		return false
 	}
-	if sphp.FormatName != saltpack.SaltpackFormatName {
+	if sphp.FormatName != saltpack.FormatName {
 		return false
 	}
 	switch sphp.Type {

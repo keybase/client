@@ -7,7 +7,9 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -87,10 +89,10 @@ type ComputedKeyInfos struct {
 	// Map of KID -> DeviceID
 	KIDToDeviceID map[keybase1.KID]keybase1.DeviceID
 
-	// For each generation, the public KID that corresponds to the shared
-	// DH key. We're not keeping these in ComputedKeyFamily for now. For generation=0,
-	// we expect a nil KID
-	SharedDHKeys map[keybase1.SharedDHKeyGeneration]keybase1.KID
+	// For each generation, the public KIDs that correspond to the
+	// per-user-key for a given generation.
+	// Starts at gen=1.
+	PerUserKeys map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey
 }
 
 // As returned by user/lookup.json
@@ -207,7 +209,7 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID, len(cki.KIDToDeviceID)),
-		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
+		PerUserKeys:   make(map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey),
 	}
 	for k, v := range cki.Infos {
 		ret.Infos[k] = v
@@ -225,8 +227,8 @@ func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 		ret.KIDToDeviceID[k] = v
 	}
 
-	for k, v := range cki.SharedDHKeys {
-		ret.SharedDHKeys[k] = v
+	for k, v := range cki.PerUserKeys {
+		ret.PerUserKeys[k] = v
 	}
 
 	return ret
@@ -285,7 +287,7 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
 		KIDToDeviceID: make(map[keybase1.KID]keybase1.DeviceID),
-		SharedDHKeys:  make(map[keybase1.SharedDHKeyGeneration]keybase1.KID),
+		PerUserKeys:   make(map[keybase1.PerUserKeyGeneration]keybase1.PerUserKey),
 	}
 }
 
@@ -516,16 +518,16 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: tcl.GetMerkleSeqno(),
+		Chain: int(tcl.GetMerkleSeqno()),
 	}
 }
 
 // NowAsKeybaseTime makes a representation of now.  IF we don't know the MerkleTree
 // chain seqno, just use 0
-func NowAsKeybaseTime(seqno int) *KeybaseTime {
+func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: seqno,
+		Chain: int(seqno),
 	}
 }
 
@@ -533,13 +535,14 @@ func NowAsKeybaseTime(seqno int) *KeybaseTime {
 // This maybe be a sub- or sibkey delegation.
 func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
-	if sdhk, ok := tcl.(*SharedDHKeyChainLink); ok {
-		return ckf.cki.DelegateSharedDHKey(sdhk)
-	}
-
 	kid := tcl.GetDelegatedKid()
 	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
+
+	if kid.IsNil() {
+		debug.PrintStack()
+		return KeyFamilyError{fmt.Sprintf("Delegated KID is nil %T", tcl)}
+	}
 
 	if _, err := ckf.FindKeyWithKIDUnsafe(kid); err != nil {
 		return KeyFamilyError{fmt.Sprintf("Delegated KID %s is not in the key family", kid.String())}
@@ -547,6 +550,10 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
 	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime())
 	return
+}
+
+func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey) (err error) {
+	return ckf.cki.DelegatePerUserKey(perUserKey)
 }
 
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
@@ -579,10 +586,18 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 	return
 }
 
-// DelegateSharedDHKey inserts the new shared DH public key into the
-// list of known generations of DH public keys.
-func (cki *ComputedKeyInfos) DelegateSharedDHKey(s *SharedDHKeyChainLink) (err error) {
-	cki.SharedDHKeys[s.generation] = s.GetDelegatedKid()
+// DelegatePerUserKey inserts the new per-user key into the list of known per-user keys.
+func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) (err error) {
+	if perUserKey.Gen <= 0 {
+		return fmt.Errorf("invalid per-user-key generation %v", perUserKey.Gen)
+	}
+	if perUserKey.SigKID.IsNil() {
+		return errors.New("nil per-user-key sig kid")
+	}
+	if perUserKey.EncKID.IsNil() {
+		return errors.New("nil per-user-key enc kid")
+	}
+	cki.PerUserKeys[keybase1.PerUserKeyGeneration(perUserKey.Gen)] = perUserKey
 	return nil
 }
 
@@ -974,9 +989,7 @@ func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error
 	return dev, nil
 }
 
-// GetEncryptionSubkeyForDevice gets the current encryption subkey for the given
-// device.  Note that many devices might share an encryption public key but
-// might have different secret keys.
+// GetEncryptionSubkeyForDevice gets the current encryption subkey for the given device.
 func (ckf *ComputedKeyFamily) GetEncryptionSubkeyForDevice(did keybase1.DeviceID) (key GenericKey, err error) {
 	var kid keybase1.KID
 	if kid, err = ckf.getSibkeyKidForDevice(did); err != nil {
@@ -1096,4 +1109,19 @@ func (ckf ComputedKeyFamily) GetSaltpackSenderTypeIfInactive(kid keybase1.KID) (
 	// This also shouldn't happen without a server bug or a very unlikely race
 	// condition.
 	return nil, fmt.Errorf("Key %s neither active nor revoked (%d)", kid.String(), info.Status)
+}
+
+// If there aren't any per-user-keys for the user, return nil.
+func (ckf *ComputedKeyFamily) GetLatestPerUserKey() *keybase1.PerUserKey {
+	var currentGeneration keybase1.PerUserKeyGeneration
+	var ret *keybase1.PerUserKey
+	for generation, key := range ckf.cki.PerUserKeys {
+		if generation > currentGeneration {
+			currentGeneration = generation
+			// Avoid taking references to the loop variable.
+			currentKey := key
+			ret = &currentKey
+		}
+	}
+	return ret
 }

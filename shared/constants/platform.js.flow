@@ -4,6 +4,7 @@ export const runMode: string = ''
 export const isMobile: boolean = false
 export const isAndroid: boolean = false
 export const isIOS: boolean = false
+export const isLargeScreen: boolean = false
 
 export const isElectron: boolean = false
 export const isDarwin: boolean = false
@@ -11,3 +12,7 @@ export const isWindows: boolean = false
 export const isLinux: boolean = false
 declare export var fileUIName: string
 declare export var version: string
+declare export var appVersionName: string
+declare export var appVersionCode: string
+declare export var mobileOsVersion: string
+

@@ -133,6 +133,9 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageID
 		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return m.Placeholder().MessageID
+		}
 	}
 	return 0
 }
@@ -147,6 +150,11 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		}
 		if state == MessageUnboxedState_OUTBOX {
 			return m.Outbox().Msg.ClientHeader.MessageType
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			// All we know about a place holder is the ID, so just
+			// call it type NONE
+			return MessageType_NONE
 		}
 	}
 	return MessageType_NONE
@@ -182,6 +190,7 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_IGNORED:  "ignored",
 	ConversationStatus_BLOCKED:  "blocked",
 	ConversationStatus_MUTED:    "muted",
+	ConversationStatus_REPORTED: "reported",
 }
 
 var ConversationStatusGregorRevMap = map[string]ConversationStatus{
@@ -190,6 +199,7 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"ignored":  ConversationStatus_IGNORED,
 	"blocked":  ConversationStatus_BLOCKED,
 	"muted":    ConversationStatus_MUTED,
+	"reported": ConversationStatus_REPORTED,
 }
 
 func (t ConversationIDTriple) Hash() []byte {
@@ -510,4 +520,8 @@ func (r *DownloadAttachmentLocalRes) SetOffline() {
 
 func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
+}
+
+func (t TyperInfo) String() string {
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }

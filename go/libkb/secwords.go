@@ -38,6 +38,11 @@ func secWordListN(n int) ([]string, error) {
 func validPhrase(p string, entropy int) error {
 	numWords := secWordCount(entropy)
 	words := strings.Split(p, " ")
+
+	if words[len(words)-1] == kexPhraseVersion {
+		words = words[:len(words)-1]
+	}
+
 	if len(words) != numWords {
 		return fmt.Errorf("phrase had %d words, expected %d", len(words), numWords)
 	}

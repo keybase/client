@@ -12,11 +12,13 @@ export type Props = {
   cameraBrokenMode: boolean,
   setCodePageMode: (requestedMode: Mode) => void,
   qrScanned: Function,
+  qrCodeScanned: boolean,
   setCameraBrokenMode: Function,
   textEntered: Function,
   onChangeText: Function,
   onBack: Function,
-  enterText: string
+  enterText: string,
+  enterCodeErrorText: string,
 }
 
 export default class CodePageRender extends Component<void, Props, void> {}

@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return getProps(state, messageKey)
 }
 
-const mergeProps = (stateProps, dispatchProps, {measure}, OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
@@ -31,7 +31,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}, OwnProps) => ({
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
   lifecycle({
-    componentWillReceiveProps: function (nextProps: Props) {
+    componentWillReceiveProps: function(nextProps: Props) {
       if (this.props.measure && this.props.type !== nextProps.type) {
         this.props.measure()
       }

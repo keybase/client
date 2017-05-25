@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 )
 
 const (
@@ -136,17 +137,22 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
-const (
-	KeybaseKIDV1       = 1 // Uses SHA-256
-	KeybaseSignatureV1 = 1
-	OneYearInSeconds   = 24 * 60 * 60 * 365
+type SigVersion int
 
-	SigExpireIn       = OneYearInSeconds * 16 // 16 years
-	NaclEdDSAExpireIn = OneYearInSeconds * 16 // 16 years
-	NaclDHExpireIn    = OneYearInSeconds * 16 // 16 years
-	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
-	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
-	AuthExpireIn      = OneYearInSeconds      // 1 year
+const KeybaseSignatureV1 SigVersion = 1
+const KeybaseSignatureV2 SigVersion = 2
+
+const (
+	KeybaseKIDV1     = 1 // Uses SHA-256
+	OneYearInSeconds = 24 * 60 * 60 * 365
+
+	SigExpireIn            = OneYearInSeconds * 16 // 16 years
+	NaclEdDSAExpireIn      = OneYearInSeconds * 16 // 16 years
+	NaclDHExpireIn         = OneYearInSeconds * 16 // 16 years
+	NaclPerUserKeyExpireIn = OneYearInSeconds * 16 // 16 years
+	KeyExpireIn            = OneYearInSeconds * 16 // 16 years
+	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
+	AuthExpireIn           = OneYearInSeconds      // 1 year
 
 	PaperKeyMemoryTimeout = time.Hour
 )
@@ -258,12 +264,15 @@ const (
 	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
 	LinkTypeUpdateSettings             = "update_settings"
 	LinkTypeWebServiceBinding          = "web_service_binding"
+	LinkTypePerUserKey                 = "per_user_key"
 
-	DelegationTypeEldest      DelegationType = "eldest"
-	DelegationTypePGPUpdate                  = "pgp_update"
-	DelegationTypeSibkey                     = "sibkey"
-	DelegationTypeSubkey                     = "subkey"
-	DelegationTypeSharedDHKey                = "shared_dh_key"
+	// team links
+	LinkTypeTeamRoot LinkType = "team.root"
+
+	DelegationTypeEldest    DelegationType = "eldest"
+	DelegationTypePGPUpdate                = "pgp_update"
+	DelegationTypeSibkey                   = "sibkey"
+	DelegationTypeSubkey                   = "subkey"
 )
 
 const (
@@ -417,7 +426,7 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
-	DLGSharedDHKey
+	DLGPerUserKey
 )
 
 const (
@@ -454,7 +463,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 12
+const MinPassphraseLength = 6
 
 const TrackingRateLimitSeconds = 50
 
@@ -507,9 +516,18 @@ const (
 	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
 )
 
+type DeriveReason string
+
+const (
+	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
+	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
+	// Context used for chaining generations of PerUserKeys.
+	DeriveReasonPUKPrev DeriveReason = "Derived-User-NaCl-SecretBox-1"
+)
+
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
-var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
 type AppType string
 
@@ -546,3 +564,18 @@ type PvlUnparsed struct {
 	Hash PvlKitHash
 	Pvl  PvlString
 }
+
+const SharedTeamKeyBoxVersion1 = 1
+
+const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
+const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+
+func CurrentSaltpackVersion() saltpack.Version {
+	return saltpack.Version1()
+}
+
+const (
+	SeqTypePublic      int = 1
+	SeqTypePrivate         = 2
+	SeqTypeSemiprivate     = 3
+)

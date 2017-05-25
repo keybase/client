@@ -5,29 +5,31 @@ import "time"
 // desktop requested 1 update per second:
 const durationBetweenUpdates = 1 * time.Second
 
-type ProgressReporter func(bytesCompleted, bytesTotal int)
+type ProgressReporter func(bytesCompleted, bytesTotal int64)
 
 type progressWriter struct {
-	complete       int
-	total          int
-	lastReport     int
+	complete       int64
+	total          int64
+	lastReport     int64
 	lastReportTime time.Time
 	progress       ProgressReporter
 }
 
-func newProgressWriter(p ProgressReporter, size int) *progressWriter {
-	return &progressWriter{progress: p, total: size}
+func newProgressWriter(p ProgressReporter, size int64) *progressWriter {
+	pw := &progressWriter{progress: p, total: size}
+	pw.initialReport()
+	return pw
 }
 
 func (p *progressWriter) Write(data []byte) (n int, err error) {
 	n = len(data)
-	p.complete += n
+	p.complete += int64(n)
 	p.report()
 	return n, nil
 }
 
 func (p *progressWriter) Update(n int) {
-	p.complete += n
+	p.complete += int64(n)
 	p.report()
 }
 
@@ -47,6 +49,15 @@ func (p *progressWriter) report() {
 
 	p.lastReport = percent
 	p.lastReportTime = now
+}
+
+// send 0% progress
+func (p *progressWriter) initialReport() {
+	if p.progress == nil {
+		return
+	}
+
+	p.progress(0, p.total)
 }
 
 func (p *progressWriter) Finish() {

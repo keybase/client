@@ -17,7 +17,12 @@ export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden,
   if (message.author === you) {
     items = [
       {onClick: () => onShowEditor(message), title: 'Edit'},
-      {danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'},
+      {
+        danger: true,
+        onClick: () => onDeleteMessage(message),
+        subTitle: 'Deletes for everyone',
+        title: 'Delete',
+      },
     ]
 
     if (!message.senderDeviceRevokedAt) {
@@ -31,14 +36,34 @@ export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden,
   return <PopupMenu header={header} items={items} onHidden={onHidden} style={{...stylePopup, ...style}} />
 }
 
-export const AttachmentPopupMenu = ({message, onDeleteMessage, onOpenInFileUI, onDownloadAttachment, onHidden, style, you}: AttachmentProps) => {
+export const AttachmentPopupMenu = ({
+  message,
+  onDeleteMessage,
+  onOpenInFileUI,
+  onDownloadAttachment,
+  onHidden,
+  style,
+  you,
+}: AttachmentProps) => {
+  let downloadItem
+  if (message.messageState === 'placeholder') {
+    downloadItem = {disabled: true, title: `${message.author} is uploading…`}
+  } else {
+    downloadItem = {onClick: onDownloadAttachment, title: 'Download'}
+  }
+
   const items = [
     'Divider',
-      (message.downloadedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null),
-      {onClick: onDownloadAttachment, title: 'Download'},
+    message.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
+    downloadItem,
   ]
   if (message.author === you) {
-    items.push({danger: true, onClick: () => onDeleteMessage(message), subTitle: 'Deletes for everyone', title: 'Delete'})
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessage(message),
+      subTitle: 'Deletes for everyone',
+      title: 'Delete',
+    })
   }
   const header = {
     title: 'header',

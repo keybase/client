@@ -44,17 +44,9 @@ helpers.rootLinuxNode(env, {
     def glibcImage = docker.image("keybaseprivate/glibc")
     def clientImage = null
 
-    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
-    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
-    def kbwebNodePublicIP = readFile('public.txt')
-    def kbwebNodePrivateIP = readFile('private.txt')
-    sh "rm public.txt"
-    sh "rm private.txt"
-    def httpRequestPublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
-    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+    def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
-    println "Running on host $kbwebNodePublicIP ($kbwebNodePrivateIP)"
-    println "httpRequest says host $httpRequestPublicIP ($httpRequestPrivateIP)"
+    println "Running on host $kbwebNodePrivateIP"
     println "Setting up build: ${env.BUILD_TAG}"
 
     def cause = helpers.getCauseString(currentBuild)
@@ -105,70 +97,89 @@ helpers.rootLinuxNode(env, {
 
         stage("Test") {
             helpers.withKbweb() {
-                // Build the client docker first so we can immediately kick off KBFS
-                dir('go') {
-                    sh "go install github.com/keybase/client/go/keybase"
-                    sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                    clientImage = docker.build("keybaseprivate/kbclient")
-                    sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                    archive("kbclient.tar.gz")
-                    sh "rm kbclient.tar.gz"
-                }
                 parallel (
-                    test_linux: {
-                        dir("protocol") {
-                            sh "./diff_test.sh"
+                    test_linux_deps: {
+                        // Build the client docker first so we can immediately kick off KBFS
+                        dir('go') {
+                            sh "go install github.com/keybase/client/go/keybase"
+                            sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                            clientImage = docker.build("keybaseprivate/kbclient")
+                            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                            archive("kbclient.tar.gz")
+                            sh "rm kbclient.tar.gz"
                         }
                         parallel (
-                            test_linux_go: { withEnv([
-                                "PATH=${env.PATH}:${env.GOPATH}/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                            ]) {
-                                testNixGo("Linux")
-                            }},
-                            test_linux_js: { withEnv([
-                                "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                            ]) {
-                                dir("shared") {
-                                    stage("JS tests") {
-                                        sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                    }
+                            test_linux: {
+                                dir("protocol") {
+                                    sh "./diff_test.sh"
                                 }
-                                // Only run visdiff for PRs
-                                if (env.CHANGE_ID) {
-                                    wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
-                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                            credentialsId: 'visdiff-aws-creds',
-                                            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                        ],[$class: 'StringBinding',
-                                            credentialsId: 'visdiff-github-token',
-                                            variable: 'VISDIFF_GH_TOKEN',
-                                    ]]) {
-                                    withEnv([
-                                        "VISDIFF_S3_BUCKET=keybase-jenkins-visdiff",
-                                        "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
-                                        "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                parallel (
+                                    test_linux_go: { withEnv([
+                                        "PATH=${env.PATH}:${env.GOPATH}/bin",
+                                        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                    ]) {
+                                        testNixGo("Linux")
+                                    }},
+                                    test_linux_js: { withEnv([
+                                        "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                     ]) {
                                         dir("shared") {
-                                            sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                        }
-                                        try {
-                                            timeout(time: 10, unit: 'MINUTES') {
-                                                dir("shared") {
-                                                    stage("js visdiff") {
-                                                        sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                                    }
-                                                }
+                                            stage("JS tests") {
+                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                             }
-                                        } catch (e) {
-                                            helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                         }
-                                    }}}
-                                }
-                            }},
+                                        // Only run visdiff for PRs
+                                        if (env.CHANGE_ID) {
+                                            wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
+                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                    credentialsId: 'visdiff-aws-creds',
+                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                ],[$class: 'StringBinding',
+                                                    credentialsId: 'visdiff-github-token',
+                                                    variable: 'VISDIFF_GH_TOKEN',
+                                            ]]) {
+                                            withEnv([
+                                                "VISDIFF_S3_BUCKET=keybase-jenkins-visdiff",
+                                                "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
+                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                            ]) {
+                                                dir("shared") {
+                                                    sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                }
+                                                try {
+                                                    timeout(time: 10, unit: 'MINUTES') {
+                                                        dir("shared") {
+                                                            stage("js visdiff") {
+                                                                sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                            }
+                                                        }
+                                                    }
+                                                } catch (e) {
+                                                    helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
+                                                }
+                                            }}}
+                                        }
+                                    }},
+                                )
+                            },
+                            test_kbfs: {
+                                build([
+                                    job: "/kbfs/master",
+                                    parameters: [
+                                        string(
+                                            name: 'clientProjectName',
+                                            value: env.JOB_NAME,
+                                        ),
+                                        string(
+                                            name: 'kbwebNodePrivateIP',
+                                            value: kbwebNodePrivateIP,
+                                        ),
+                                    ]
+                                ])
+                            },
                         )
                     },
                     test_windows: {
@@ -239,15 +250,23 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_osx: {
-                        helpers.nodeWithCleanup('osx', {}, {}) {
+                        def mountDir='/Volumes/untitled/client'
+                        helpers.nodeWithCleanup('macstadium', {}, {
+                                sh "rm -rf ${mountDir}"
+                            }) {
                             def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                             def GOPATH="${BASEDIR}/go"
+                            dir(mountDir) {
+                                // Ensure that the mountDir exists
+                                sh "touch test.txt"
+                            }
                             withEnv([
                                 "GOPATH=${GOPATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                 "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                "TMPDIR=${mountDir}",
                             ]) {
                             ws("$GOPATH/src/github.com/keybase/client") {
                                 println "Checkout OS X"
@@ -272,25 +291,6 @@ helpers.rootLinuxNode(env, {
                                 )
                             }}
                         }
-                    },
-                    test_kbfs: {
-                        build([
-                            job: "/kbfs/master",
-                            parameters: [
-                                [$class: 'StringParameterValue',
-                                    name: 'clientProjectName',
-                                    value: env.JOB_NAME,
-                                ],
-                                [$class: 'StringParameterValue',
-                                    name: 'kbwebNodePrivateIP',
-                                    value: kbwebNodePrivateIP,
-                                ],
-                                [$class: 'StringParameterValue',
-                                    name: 'kbwebNodePublicIP',
-                                    value: kbwebNodePublicIP,
-                                ],
-                            ]
-                        ])
                     },
                 )
             }

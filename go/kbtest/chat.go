@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
@@ -22,11 +23,19 @@ import (
 
 type ChatTestContext struct {
 	libkb.TestContext
+	ChatG *globals.ChatContext
+}
+
+func (c ChatTestContext) Context() *globals.Context {
+	return globals.NewContext(c.G, c.ChatG)
 }
 
 func (c ChatTestContext) Cleanup() {
-	if c.G.MessageDeliverer != nil {
-		<-c.G.MessageDeliverer.Stop(context.TODO())
+	if c.ChatG.MessageDeliverer != nil {
+		<-c.ChatG.MessageDeliverer.Stop(context.TODO())
+	}
+	if c.ChatG.FetchRetrier != nil {
+		<-c.ChatG.FetchRetrier.Stop(context.TODO())
 	}
 	c.TestContext.Cleanup()
 }
@@ -61,6 +70,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		kbTc := externals.SetupTest(t, "chat_"+name, 0)
 		tc := ChatTestContext{
 			TestContext: kbTc,
+			ChatG:       &globals.ChatContext{},
 		}
 		tc.G.SetClock(world.Fc)
 		u, err := CreateAndSignupFakeUser("chat", tc.G)
@@ -576,6 +586,10 @@ func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res
 	return chat1.SyncAllResult{
 		Chat: cres,
 	}, nil
+}
+
+func (m *ChatRemoteMock) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateTypingRemoteArg) error {
+	return nil
 }
 
 type convByNewlyUpdated struct {

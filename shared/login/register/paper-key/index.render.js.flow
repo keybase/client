@@ -7,7 +7,7 @@ export type Props = {
   onChangePaperKey: (val: string) => void,
   paperKey: string,
   error: string,
-  waitingForResponse?: ?boolean
+  waitingForResponse?: ?boolean,
 }
 
-export default class PaperKey extends Component<void, Props, void> { }
+export default class PaperKey extends Component<void, Props, void> {}

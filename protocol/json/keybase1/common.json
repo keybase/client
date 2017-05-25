@@ -96,6 +96,25 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "TeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Seqno",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
       "type": "fixed",
       "name": "Bytes32",
       "size": "32"
@@ -352,15 +371,23 @@
     },
     {
       "type": "record",
-      "name": "SharedDHKey",
+      "name": "PerUserKey",
       "fields": [
         {
           "type": "int",
           "name": "gen"
         },
         {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
           "type": "KID",
-          "name": "kid"
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
         }
       ],
       "lint": "ignore"
@@ -376,6 +403,10 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
         },
         {
           "type": {
@@ -409,10 +440,24 @@
         {
           "type": {
             "type": "array",
-            "items": "SharedDHKey"
+            "items": "PerUserKey"
           },
-          "name": "sharedDHKeys",
+          "name": "perUserKeys",
           "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamLite",
+      "fields": [
+        {
+          "type": "UserOrTeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
         }
       ]
     },

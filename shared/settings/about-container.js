@@ -7,16 +7,28 @@ import {defaultProps, compose} from 'recompose'
 
 import type {Dispatch} from '../constants/types/flux'
 
-const connectedHeaderHoc = compose(
-  connect(
-    null,
-    (dispatch: Dispatch, {navigateUp}) => ({
-      title: 'About',
-      onBack: () => dispatch(navigateUp()),
-    })
-  ),
-  HeaderHoc,
-  defaultProps({version})
-)(About)
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
+  onBack: () => dispatch(navigateUp()),
+  onShowPrivacyPolicy: () =>
+    dispatch(
+      navigateAppend([
+        {
+          selected: 'privacyPolicy',
+          props: {title: 'Privacy Policy', source: {uri: 'https://keybase.io/_/webview/privacypolicy'}},
+        },
+      ])
+    ),
+  onShowTerms: () =>
+    dispatch(
+      navigateAppend([
+        {selected: 'terms', props: {title: 'Terms', source: {uri: 'https://keybase.io/_/webview/terms'}}},
+      ])
+    ),
+  title: 'About',
+})
+
+const connectedHeaderHoc = compose(connect(null, mapDispatchToProps), HeaderHoc, defaultProps({version}))(
+  About
+)
 
 export default connectedHeaderHoc

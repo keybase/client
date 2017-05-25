@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -46,40 +48,45 @@ func (e *Bootstrap) SubConsumers() []libkb.UIConsumer {
 func (e *Bootstrap) Run(ctx *Context) error {
 	e.status.Registered = e.signedUp()
 
-	var gerr error
-	e.G().LoginState().Account(func(a *libkb.Account) {
-		var in bool
-		in, gerr = a.LoggedInProvisioned()
-		if gerr != nil {
-			e.G().Log.Debug("Bootstrap: LoggedInProvisioned error: %s", gerr)
-			return
-		}
+	// if any Login engine worked previously, then ActiveDevice will
+	// be valid:
+	validActiveDevice := e.G().ActiveDevice.Valid()
 
-		e.status.LoggedIn = in
-		if !e.status.LoggedIn {
-			e.G().Log.Debug("Bootstrap: not logged in")
-			return
-		}
-
-		e.status.Uid = e.G().ActiveDevice.UID()
-		e.G().Log.Debug("Bootstrap: uid = %s", e.status.Uid)
-		e.status.Username = e.G().Env.GetUsername().String()
-		e.G().Log.Debug("Bootstrap: username = %s", e.status.Username)
-
-		e.status.DeviceID = a.GetDeviceID()
-		e.status.DeviceName = e.G().ActiveDevice.Name()
-
-		ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
-		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
-			gerr = err
-			return
-		}
-		e.usums = ts.Result()
-
-	}, "Bootstrap")
-	if gerr != nil {
-		return gerr
+	// the only way for ActiveDevice to be valid is to be logged in
+	// (and provisioned)
+	e.status.LoggedIn = validActiveDevice
+	if !e.status.LoggedIn {
+		e.G().Log.Debug("Bootstrap: not logged in")
+		return nil
 	}
+	e.G().Log.Debug("Bootstrap: logged in (valid active device)")
+
+	e.status.Uid, e.status.DeviceID, e.status.DeviceName, _, _ = e.G().ActiveDevice.AllFields()
+	e.status.Username = e.G().Env.GetUsername().String()
+	e.G().Log.Debug("Bootstrap status: uid=%s, username=%s, deviceID=%s, deviceName=%s", e.status.Uid, e.status.Username, e.status.DeviceID, e.status.DeviceName)
+
+	// get user summaries
+	ts := libkb.NewTracker2Syncer(e.G(), e.status.Uid, true)
+	if e.G().ConnectivityMonitor.IsConnected(context.Background()) == libkb.ConnectivityMonitorYes {
+		e.G().Log.Debug("connected, loading self user upak for cache")
+		arg := libkb.NewLoadUserByUIDArg(context.Background(), e.G(), e.status.Uid)
+		if _, _, err := e.G().GetUPAKLoader().Load(arg); err != nil {
+			e.G().Log.Debug("Bootstrap: error loading upak user for cache priming: %s", err)
+		}
+
+		e.G().Log.Debug("connected, running full tracker2 syncer")
+		if err := libkb.RunSyncer(ts, e.status.Uid, false, nil); err != nil {
+			e.G().Log.Warning("error running Tracker2Syncer: %s", err)
+			return nil
+		}
+	} else {
+		e.G().Log.Debug("not connected, running cached tracker2 syncer")
+		if err := libkb.RunSyncerCached(ts, e.status.Uid); err != nil {
+			e.G().Log.Warning("error running Tracker2Syncer (cached): %s", err)
+			return nil
+		}
+	}
+	e.usums = ts.Result()
 
 	// filter usums into followers, following
 	for _, u := range e.usums.Users {

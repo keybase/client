@@ -3,7 +3,12 @@ import * as Constants from '../constants/favorite'
 import _ from 'lodash'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
+import {
+  apiserverGetWithSessionRpcPromise,
+  favoriteFavoriteAddRpcPromise,
+  favoriteFavoriteIgnoreRpcPromise,
+  NotifyFSRequestFSSyncStatusRequestRpcPromise,
+} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {navigateUp} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
@@ -11,42 +16,56 @@ import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 import {isMobile} from '../constants/platform'
 
 import type {Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated, SetupKBFSChangedHandler} from '../constants/favorite'
+import type {
+  FavoriteAdd,
+  FavoriteAdded,
+  FavoriteList,
+  FavoriteListed,
+  FavoriteIgnore,
+  FavoriteIgnored,
+  FolderState,
+  FavoriteSwitchTab,
+  FavoriteToggleIgnored,
+  MarkTLFCreated,
+  SetupKBFSChangedHandler,
+} from '../constants/favorite'
 import type {FolderRPCWithMeta} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
 const {folderFromFolderRPCWithMeta, folderRPCFromPath} = Constants
 
-function setupKBFSChangedHandler (): SetupKBFSChangedHandler {
+function setupKBFSChangedHandler(): SetupKBFSChangedHandler {
   return {type: Constants.setupKBFSChangedHandler, payload: undefined}
 }
 
-function favoriteSwitchTab (showingPrivate: boolean): FavoriteSwitchTab {
+function favoriteSwitchTab(showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
 }
 
-function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
+function toggleShowIgnored(isPrivate: boolean): FavoriteToggleIgnored {
   return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
 }
 
-function favoriteList (): FavoriteList {
+function favoriteList(): FavoriteList {
   return {type: Constants.favoriteList, payload: undefined}
 }
 
-function favoriteFolder (path: string): FavoriteAdd {
+function favoriteFolder(path: string): FavoriteAdd {
   return {type: Constants.favoriteAdd, payload: {path}}
 }
 
-function ignoreFolder (path: string): FavoriteIgnore {
+function ignoreFolder(path: string): FavoriteIgnore {
   return {type: Constants.favoriteIgnore, payload: {path}}
 }
 
 // TODO(mm) type properly
-function markTLFCreated (folder: any): MarkTLFCreated {
+function markTLFCreated(folder: any): MarkTLFCreated {
   return {type: Constants.markTLFCreated, payload: {folder}}
 }
 
-const injectMeta = type => f => { f.meta = type }
+const injectMeta = type => f => {
+  f.meta = type
+}
 
 const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
   const folderSets = [json.favorites, json.ignored, json.new]
@@ -87,7 +106,7 @@ const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
   return _.flatten(folderSets)
 }
 
-function _folderSort (username, a, b) {
+function _folderSort(username, a, b) {
   // New first
   if (a.meta !== b.meta) {
     if (a.meta === 'new') return -1
@@ -101,14 +120,16 @@ function _folderSort (username, a, b) {
   return a.sortName.localeCompare(b.sortName)
 }
 
-function _folderToState (txt: string = '', username: string, loggedIn: boolean): FolderState {
+function _folderToState(txt: string = '', username: string, loggedIn: boolean): FolderState {
   const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
-  const converted = folders.map(f => folderFromFolderRPCWithMeta(username, f)).sort((a, b) => _folderSort(username, a, b))
+  const converted = folders
+    .map(f => folderFromFolderRPCWithMeta(username, f))
+    .sort((a, b) => _folderSort(username, a, b))
 
   const newFolders = converted.filter(f => f.meta === 'new')
-  const privateBadge = newFolders.reduce((acc, f) => !f.isPublic ? acc + 1 : acc, 0)
-  const publicBadge = newFolders.reduce((acc, f) => f.isPublic ? acc + 1 : acc, 0)
+  const privateBadge = newFolders.reduce((acc, f) => (!f.isPublic ? acc + 1 : acc), 0)
+  const publicBadge = newFolders.reduce((acc, f) => (f.isPublic ? acc + 1 : acc), 0)
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
@@ -129,7 +150,11 @@ function _folderToState (txt: string = '', username: string, loggedIn: boolean):
   }
 }
 
-function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn: boolean): Array<FolderRPCWithMeta> {
+function _getFavoritesRPCToFolders(
+  txt: string,
+  username: string = '',
+  loggedIn: boolean
+): Array<FolderRPCWithMeta> {
   let json
   try {
     json = JSON.parse(txt)
@@ -150,7 +175,7 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
 
   // Ensure private/public folders exist for us
   if (username && loggedIn) {
-    [true, false].forEach(isPrivate => {
+    ;[true, false].forEach(isPrivate => {
       const idx = folders.findIndex(f => f.name === username && f.private === isPrivate)
       let toAdd = {
         meta: null,
@@ -174,10 +199,14 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
   return folders
 }
 
-function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
-    const action: FavoriteAdded = {type: Constants.favoriteAdded, error: true, payload: {errorText: 'No folder specified'}}
+    const action: FavoriteAdded = {
+      type: Constants.favoriteAdded,
+      error: true,
+      payload: {errorText: 'No folder specified'},
+    }
     yield put(action)
   } else {
     try {
@@ -192,10 +221,14 @@ function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
-    const action: FavoriteIgnored = {type: Constants.favoriteIgnored, error: true, payload: {errorText: 'No folder specified'}}
+    const action: FavoriteIgnored = {
+      type: Constants.favoriteIgnored,
+      error: true,
+      payload: {errorText: 'No folder specified'},
+    }
     yield put(action)
   } else {
     try {
@@ -210,14 +243,14 @@ function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-function * _listSaga (): SagaGenerator<any, any> {
+function* _listSaga(): SagaGenerator<any, any> {
   const bail = yield select(({dev: {reloading = false} = {}}) => reloading)
   if (bail) {
     return
   }
 
   try {
-    const results = yield call(apiserverGetRpcPromise, {
+    const results = yield call(apiserverGetWithSessionRpcPromise, {
       param: {
         endpoint: 'kbfs/favorite/list',
         args: [{key: 'problems', value: '1'}],
@@ -239,15 +272,17 @@ function * _listSaga (): SagaGenerator<any, any> {
 // If the notify data has changed, show a popup
 let previousNotifyState = null
 
-function _notify (state) {
+function _notify(state) {
   const total = state.publicBadge + state.privateBadge
 
   if (!total) {
     return
   }
 
-  const newNotifyState = [].concat(state.private.tlfs || [], state.public.tlfs || [])
-    .filter(t => t.meta === 'new').map(t => t.path)
+  const newNotifyState = []
+    .concat(state.private.tlfs || [], state.public.tlfs || [])
+    .filter(t => t.meta === 'new')
+    .map(t => t.path)
 
   if (_.difference(newNotifyState, previousNotifyState).length) {
     let body
@@ -265,7 +300,7 @@ function _notify (state) {
 
 // Don't send duplicates else we get high cpu usage
 let _kbfsUploadingState = false
-function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
+function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     const debouncedKBFSStopped = _.debounce(() => {
       if (_kbfsUploadingState === true) {
@@ -295,13 +330,11 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
   yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
 }
 
-function * favoriteSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeLatest(Constants.favoriteList, _listSaga),
-    safeTakeEvery(Constants.favoriteAdd, _addSaga),
-    safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga),
-    safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
-  ]
+function* favoriteSaga(): SagaGenerator<any, any> {
+  yield safeTakeLatest(Constants.favoriteList, _listSaga)
+  yield safeTakeEvery(Constants.favoriteAdd, _addSaga)
+  yield safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)
+  yield safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler)
 }
 
 export {

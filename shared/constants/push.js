@@ -12,8 +12,9 @@ export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 export type PushNotification = {
   payload?: {
     userInteraction: boolean,
-    convID?: string,  // Android variant
-    data?: {  // iOS variant
+    convID?: string, // Android variant
+    data?: {
+      // iOS variant
       convID?: string,
     },
   },
@@ -25,16 +26,16 @@ export const configurePush = 'push:configurePush'
 export type ConfigurePush = NoErrorTypedAction<'push:configurePush', void>
 
 export const permissionsRequest = 'push:permissionsRequest'
-export type PushPermissionsRequestAction = NoErrorTypedAction<'push:permissionsRequest', void>
+export type PushPermissionsRequest = NoErrorTypedAction<'push:permissionsRequest', void>
 
 export const permissionsRequesting = 'push:permissionsRequesting'
-export type PushPermissionsRequestingAction = NoErrorTypedAction<'push:permissionsRequesting', boolean>
+export type PushPermissionsRequesting = NoErrorTypedAction<'push:permissionsRequesting', boolean>
 
 export const permissionsPrompt = 'push:permissionsPrompt'
-export type PushPermissionsPromptAction = NoErrorTypedAction<'push:permissionsPrompt', boolean>
+export type PushPermissionsPrompt = NoErrorTypedAction<'push:permissionsPrompt', boolean>
 
 export const pushToken = 'push:pushToken'
-export type PushTokenAction = NoErrorTypedAction<'push:pushToken', {token: string, tokenType: TokenType}>
+export type PushToken = NoErrorTypedAction<'push:pushToken', {token: string, tokenType: TokenType}>
 
 export const pushRegistrationError = 'push:registrationError'
 export type PushRegistrationError = NoErrorTypedAction<'push:registrationError', {error: Error}>
@@ -43,10 +44,13 @@ export const pushError = 'push:error'
 export type PushError = NoErrorTypedAction<'push:error', {error: Error}>
 
 export const updatePushToken = 'push:updatePushToken'
-export type UpdatePushTokenAction = NoErrorTypedAction<'push:updatePushToken', {token: string, tokenType: TokenType}>
+export type UpdatePushToken = NoErrorTypedAction<
+  'push:updatePushToken',
+  {token: string, tokenType: TokenType}
+>
 
 export const savePushToken = 'push:savePushToken'
-export type SavePushTokenAction = NoErrorTypedAction<'push:savePushToken', void>
+export type SavePushToken = NoErrorTypedAction<'push:savePushToken', void>
 
 export const pushNotification = 'push:notification'
 export type PushNotificationAction = NoErrorTypedAction<'push:notification', PushNotification>

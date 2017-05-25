@@ -16,10 +16,10 @@ const RemotePinentry = (props: any) => (
 )
 
 // Trying not to touch the store yet so we convert the native thing in the store into something simple over the wire
-const mapReduxToSimpleProps = (prop) => {
+const mapReduxToSimpleProps = prop => {
   // return {
-    // ...prop,
-    // id: parse
+  // ...prop,
+  // id: parse
   // }
   return prop
 }
@@ -43,7 +43,8 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: any) => ({
   onCancel: (sid: number) => dispatch(onCancel(sid)),
-  onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) => dispatch(onSubmit(sid, passphrase, features)),
+  onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) =>
+    dispatch(onSubmit(sid, passphrase, features)),
   registerPinentryListener: () => dispatch(registerPinentryListener()),
 })
 
@@ -52,14 +53,15 @@ const mergeProps = (stateProps, dispatchProps) => ({
   remoteProps: stateProps.remoteProps.map(s => ({
     ...s,
     onCancel: () => dispatchProps.onCancel(s.sessionID),
-    onSubmit: (passphrase: string, features: GUIEntryFeatures) => dispatchProps.onSubmit(s.sessionID, passphrase, features),
+    onSubmit: (passphrase: string, features: GUIEntryFeatures) =>
+      dispatchProps.onSubmit(s.sessionID, passphrase, features),
   })),
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentWillMount: function () {
+    componentWillMount: function() {
       this.props.registerPinentryListener()
     },
   })

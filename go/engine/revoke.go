@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -99,12 +100,14 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 }
 
 func (e *RevokeEngine) Run(ctx *Context) error {
+	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run (mode:%v)", e.mode)
+
 	currentDevice := e.G().Env.GetDeviceID()
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
 		if e.deviceID == currentDevice && !e.force {
-			return fmt.Errorf("Can't revoke the current device.")
+			return errors.New("Can't revoke the current device.")
 		}
 	}
 
@@ -122,38 +125,208 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		ctx.LogUI.Info("  %s", kid)
 	}
 
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke another key"))
+	sigKey, encKey, err := e.getDeviceSecretKeys(ctx, me)
 	if err != nil {
-		return err
-	}
-	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
 
-	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
+	if e.G().Env.GetSupportPerUserKey() {
+		if encKey == nil {
+			return errors.New("Missing encryption key")
+		}
+	}
+
+	var pukBoxes []keybase1.PerUserKeyBox
+	var pukPrev *libkb.PerUserKeyPrev
+
+	// Whether this run is creating a new per-user-key. Set later.
+	addingNewPUK := false
+
+	// Only used if addingNewPUK
+	var newPukGeneration keybase1.PerUserKeyGeneration
+	var newPukSeed *libkb.PerUserKeySeed
+
+	if e.G().Env.GetSupportPerUserKey() {
+		err = e.G().BumpPerUserKeyring()
+		if err != nil {
+			return err
+		}
+		pukring, err := e.G().GetPerUserKeyring()
+		if err != nil {
+			return err
+		}
+		err = pukring.Sync(ctx.NetContext)
+		if err != nil {
+			return err
+		}
+
+		if pukring.HasAnyKeys() {
+			addingNewPUK = true
+			newPukGeneration = pukring.CurrentGeneration() + 1
+
+			// Make a new per-user-key
+			newPukSeedInner, err := libkb.GeneratePerUserKeySeed()
+			if err != nil {
+				return err
+			}
+			newPukSeed = &newPukSeedInner
+
+			// Create a prev secretbox containing the previous generation seed
+			pukPrevInner, err := pukring.PreparePrev(ctx.NetContext, *newPukSeed, newPukGeneration)
+			if err != nil {
+				return err
+			}
+			pukPrev = &pukPrevInner
+
+			// Get the receivers who will be able to decrypt the new per-user-key
+			pukReceivers, err := e.getPukReceivers(ctx, me, kidsToRevoke)
+			if err != nil {
+				return err
+			}
+
+			// Create boxes of the new per-user-key
+			pukBoxesInner, err := pukring.PrepareBoxesForDevices(ctx.NetContext,
+				*newPukSeed, newPukGeneration, pukReceivers, *encKey)
+			if err != nil {
+				return err
+			}
+			pukBoxes = pukBoxesInner
+		}
+	}
+
+	var sigsList []libkb.JSONPayload
+
+	// Push the per-user-key sig
+	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
+		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey)
+		if err != nil {
+			return err
+		}
+		sigsList = append(sigsList, sig1)
+	}
+
+	// Push the revoke sig
+	sig2, err := e.makeRevokeSig(ctx, me, sigKey, kidsToRevoke, deviceID)
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
-	if err != nil {
-		return err
+	sigsList = append(sigsList, sig2)
+
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = sigsList
+
+	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v",
+		len(pukBoxes), pukPrev != nil, newPukGeneration)
+	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
+		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
 	}
-	kid := sigKey.GetKID()
-	_, err = e.G().API.Post(libkb.APIArg{
-		Endpoint:    "sig/revoke",
+
+	_, err = e.G().API.PostJSON(libkb.APIArg{
+		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"signing_kid": libkb.S{Val: kid.String()},
-			"sig":         libkb.S{Val: sig},
-		},
+		JSONPayload: payload,
 	})
 	if err != nil {
 		return err
 	}
+
+	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
+		// Add the per-user-key locally
+		pukring, err := e.G().GetPerUserKeyring()
+		if err != nil {
+			return err
+		}
+		err = pukring.AddKey(ctx.NetContext, newPukGeneration, *newPukSeed)
+		if err != nil {
+			return err
+		}
+	}
+
 	e.G().UserChanged(me.GetUID())
+
 	return nil
+}
+
+// Get the full keys for this device.
+// Returns (sigKey, encKey, err)
+// encKey will be nil iff SharedDH is disabled
+func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.GenericKey, *libkb.NaclDHKeyPair, error) {
+	skaSig := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaSig, "to revoke another key"))
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = sigKey.CheckSecretKey(); err != nil {
+		return nil, nil, err
+	}
+
+	var encKey *libkb.NaclDHKeyPair
+	if e.G().Env.GetSupportPerUserKey() {
+		skaEnc := libkb.SecretKeyArg{
+			Me:      me,
+			KeyType: libkb.DeviceEncryptionKeyType,
+		}
+		encKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaEnc, "to revoke another key"))
+		if err != nil {
+			return nil, nil, err
+		}
+		encKey2, ok := encKeyGeneric.(libkb.NaclDHKeyPair)
+		if !ok {
+			return nil, nil, fmt.Errorf("Unexpected encryption key type: %T", encKeyGeneric)
+		}
+		encKey = &encKey2
+		if err = encKey.CheckSecretKey(); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return sigKey, encKey, err
+}
+
+func (e *RevokeEngine) makeRevokeSig(ctx *Context, me *libkb.User, sigKey libkb.GenericKey,
+	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID) (libkb.JSONPayload, error) {
+
+	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	sig1 := make(libkb.JSONPayload)
+	sig1["sig"] = sig
+	sig1["signing_kid"] = sigKey.GetKID().String()
+	sig1["type"] = libkb.LinkTypeRevoke
+	return sig1, nil
+}
+
+// Get the receivers of the new per-user-key boxes.
+// Includes all device subkeys except any being revoked by this engine.
+func (e *RevokeEngine) getPukReceivers(ctx *Context, me *libkb.User, exclude []keybase1.KID) (res []libkb.NaclDHKeyPair, err error) {
+	excludeMap := make(map[keybase1.KID]bool)
+	for _, kid := range exclude {
+		excludeMap[kid] = true
+	}
+
+	ckf := me.GetComputedKeyFamily()
+
+	for _, dev := range ckf.GetAllActiveDevices() {
+		keyGeneric, err := ckf.GetEncryptionSubkeyForDevice(dev.ID)
+		if err != nil {
+			return nil, err
+		}
+		if !excludeMap[keyGeneric.GetKID()] {
+			key, ok := keyGeneric.(libkb.NaclDHKeyPair)
+			if !ok {
+				return nil, fmt.Errorf("Unexpected encryption key type: %T", keyGeneric)
+			}
+			res = append(res, key)
+		}
+	}
+	return res, nil
 }

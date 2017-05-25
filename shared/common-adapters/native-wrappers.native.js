@@ -10,6 +10,7 @@ import {
   FlatList as NativeFlatList,
   Image as NativeImage,
   KeyboardAvoidingView as NativeKeyboardAvoidingView,
+  Keyboard as NativeKeyboard,
   Linking as NativeLinking,
   ListView as NativeListView,
   Modal as NativeModal,
@@ -22,9 +23,11 @@ import {
   TouchableNativeFeedback as NativeTouchableNativeFeedback,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
+  WebView as NativeWebView,
 } from 'react-native'
 import ScrollView from './scroll-view.native'
 
+// We set some useful default here
 export {
   NativeActivityIndicator,
   NativeAnimated,
@@ -35,13 +38,14 @@ export {
   NativeEasing,
   NativeFlatList,
   NativeImage,
+  NativeKeyboard,
   NativeKeyboardAvoidingView,
   NativeLinking,
   NativeListView,
   NativeModal,
   NativeNavigator,
   NativePicker,
-  ScrollView as NativeScrollView, // We set some useful default here
+  ScrollView as NativeScrollView,
   NativeStyleSheet,
   NativeSwitch,
   NativeText,
@@ -49,4 +53,5 @@ export {
   NativeTouchableNativeFeedback,
   NativeTouchableWithoutFeedback,
   NativeTouchableHighlight,
+  NativeWebView,
 }

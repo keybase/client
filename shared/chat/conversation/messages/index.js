@@ -22,29 +22,36 @@ const factory = (
   switch (kind) {
     case 'header':
       return <Header messageKey={messageKey} />
+    case 'outboxIDAttachment': // fallthrough
     case 'messageIDAttachment':
-      return <Wrapper
-        innerClass={Attachment}
-        isSelected={isSelected}
-        measure={measure}
-        messageKey={messageKey}
-        onAction={onAction}
-        onShowEditor={onShowEditor}
-        prevMessageKey={prevMessageKey} />
+      return (
+        <Wrapper
+          innerClass={Attachment}
+          isSelected={isSelected}
+          measure={measure}
+          messageKey={messageKey}
+          onAction={onAction}
+          onShowEditor={onShowEditor}
+          prevMessageKey={prevMessageKey}
+        />
+      )
     case 'error': // fallthrough
     case 'errorInvisible': // fallthrough
     case 'messageIDError':
       return <ErrorMessage messageKey={messageKey} />
     case 'outboxIDText': // fallthrough
     case 'messageIDText':
-      return <Wrapper
-        innerClass={TextMessage}
-        isSelected={isSelected}
-        measure={measure}
-        messageKey={messageKey}
-        onAction={onAction}
-        onShowEditor={onShowEditor}
-        prevMessageKey={prevMessageKey} />
+      return (
+        <Wrapper
+          innerClass={TextMessage}
+          isSelected={isSelected}
+          measure={measure}
+          messageKey={messageKey}
+          onAction={onAction}
+          onShowEditor={onShowEditor}
+          prevMessageKey={prevMessageKey}
+        />
+      )
     case 'supersedes':
       return <ProfileResetNotice />
     case 'timestamp':

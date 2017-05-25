@@ -1,8 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import openURL from '../util/open-url'
-import {Box, Icon, Text, Button, Input, HeaderHoc, PlatformIcon, StandardScreen} from '../common-adapters'
-import {ConstantsStatusCode} from '../constants/types/flow-types'
+import {Box, Text, Button, Input, HeaderHoc, PlatformIcon, StandardScreen} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {platformText} from './prove-enter-username.shared'
 
@@ -13,12 +11,14 @@ type State = {
   username: string,
 }
 
-function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
+function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must have karma &ge; 2</Text>
-        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must enter your uSeRName with exact case</Text>
+        <Text backgroundMode="Information" type="BodySemibold">&bull; You must have karma &ge; 2</Text>
+        <Text backgroundMode="Information" type="BodySemibold">
+          &bull; You must enter your uSeRName with exact case
+        </Text>
       </Box>
     )
   }
@@ -26,46 +26,44 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   return null
 }
 
-function customError (error: string, code: ?number) {
-  if (code === ConstantsStatusCode.scprofilenotpublic) {
-    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
-        <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
-        <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
-      </Box>
-    </Box>
-  }
-  return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
+function customError(error: string, code: ?number) {
+  return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       username: '',
     }
   }
 
-  handleUsernameChange (username: string) {
+  handleUsernameChange(username: string) {
     if (this.props.onUsernameChange) {
       this.props.onUsernameChange(username)
     }
     this.setState({username})
   }
 
-  handleContinue () {
+  handleContinue() {
     this.props.onContinue(this.state.username)
   }
 
-  render () {
+  render() {
     const {floatingLabelText, hintText} = platformText[this.props.platform]
-    const notification = this.props.errorText ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}} : {}
+    const notification = this.props.errorText
+      ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}}
+      : {}
     return (
       <StandardScreen {...notification}>
-        <PlatformIcon style={styleIcon} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} />
+        <PlatformIcon
+          style={styleIcon}
+          platform={this.props.platform}
+          overlay={'icon-proof-pending'}
+          overlayColor={globalColors.grey}
+        />
         <Input
           style={styleInput}
           autoFocus={true}
@@ -73,15 +71,17 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
           hintText={hintText}
           value={this.state.username}
           onChangeText={username => this.handleUsernameChange(username)}
-          onEnterKeyDown={() => this.handleContinue()} />
+          onEnterKeyDown={() => this.handleContinue()}
+        />
         <UsernameTips platform={this.props.platform} />
         <Button
           style={styleButton}
-          type='Primary'
+          type="Primary"
           fullWidth={true}
           disabled={!this.props.canContinue}
           onClick={() => this.handleContinue()}
-          label='Continue' />
+          label="Continue"
+        />
       </StandardScreen>
     )
   }
@@ -104,8 +104,13 @@ const styleInfoBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,
-  padding: globalMargins.small,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   marginTop: globalMargins.large,
+  marginLeft: -globalMargins.medium,
+  marginRight: -globalMargins.medium,
 }
 
 const styleButton = {

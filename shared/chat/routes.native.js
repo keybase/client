@@ -31,14 +31,13 @@ const conversationRoute = new RouteDefNode({
     },
     messageAction: {
       component: MessagePopup,
-      tags: {layerOnTop: true},
+      tags: {keepKeyboardOnLeave: true, layerOnTop: true},
     },
     showBlockConversationDialog: {
       component: BlockConversationWarning,
       tags: {layerOnTop: true},
       children: {},
     },
-
   },
 })
 

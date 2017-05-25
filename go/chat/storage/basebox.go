@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -16,7 +17,8 @@ type boxedData struct {
 }
 
 type baseBox struct {
-	libkb.Contextified
+	globals.Contextified
+	encrypted bool
 }
 
 type SecretUI struct {
@@ -28,9 +30,10 @@ func (d SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase
 
 var DefaultSecretUI = func() libkb.SecretUI { return SecretUI{} }
 
-func newBaseBox(g *libkb.GlobalContext) *baseBox {
+func newBaseBox(g *globals.Context, encrypted bool) *baseBox {
 	return &baseBox{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
+		encrypted:    encrypted,
 	}
 }
 
@@ -45,22 +48,29 @@ func (i *baseBox) readDiskBox(ctx context.Context, key libkb.DbKey, res interfac
 	}
 
 	// Decode encrypted box
-	var boxed boxedData
-	if err := decode(b, &boxed); err != nil {
-		return true, err
+	var pt []byte
+	if i.encrypted {
+		var boxed boxedData
+		if err := decode(b, &boxed); err != nil {
+			return true, err
+		}
+		if boxed.V > cryptoVersion {
+			return true, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
+				cryptoVersion)
+		}
+		enckey, err := getSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+		if err != nil {
+			return true, err
+		}
+		var ok bool
+		pt, ok = secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
+		if !ok {
+			return true, fmt.Errorf("failed to decrypt inxbox")
+		}
+	} else {
+		pt = b
 	}
-	if boxed.V > cryptoVersion {
-		return true, fmt.Errorf("bad crypto version: %d current: %d", boxed.V,
-			cryptoVersion)
-	}
-	enckey, err := getSecretBoxKey(ctx, i.G(), DefaultSecretUI)
-	if err != nil {
-		return true, err
-	}
-	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
-	if !ok {
-		return true, fmt.Errorf("failed to decrypt inxbox")
-	}
+
 	if err = decode(pt, res); err != nil {
 		return true, err
 	}
@@ -76,28 +86,30 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interf
 		return err
 	}
 
-	// Encrypt outbox
-	enckey, err := getSecretBoxKey(ctx, i.G(), DefaultSecretUI)
-	if err != nil {
-		return err
-	}
-	var nonce []byte
-	nonce, err = libkb.RandBytes(24)
-	if err != nil {
-		return err
-	}
-	var fnonce [24]byte
-	copy(fnonce[:], nonce)
-	sealed := secretbox.Seal(nil, dat, &fnonce, &enckey)
-	boxed := boxedBlock{
-		V: cryptoVersion,
-		E: sealed,
-		N: fnonce,
-	}
+	if i.encrypted {
+		// Encrypt outbox if configure as such
+		enckey, err := getSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+		if err != nil {
+			return err
+		}
+		var nonce []byte
+		nonce, err = libkb.RandBytes(24)
+		if err != nil {
+			return err
+		}
+		var fnonce [24]byte
+		copy(fnonce[:], nonce)
+		sealed := secretbox.Seal(nil, dat, &fnonce, &enckey)
+		boxed := boxedBlock{
+			V: cryptoVersion,
+			E: sealed,
+			N: fnonce,
+		}
 
-	// Encode encrypted outbox
-	if dat, err = encode(boxed); err != nil {
-		return err
+		// Encode encrypted outbox
+		if dat, err = encode(boxed); err != nil {
+			return err
+		}
 	}
 
 	// Write out

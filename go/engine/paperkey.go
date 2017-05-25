@@ -134,12 +134,12 @@ func (e *PaperKey) Run(ctx *Context) error {
 	}
 
 	kgarg := &PaperKeyGenArg{
-		Passphrase:      e.passphrase,
-		Me:              me,
-		SigningKey:      signingKey,
-		EncryptionKey:   encryptionKey,
-		LoginContext:    nil,
-		SharedDHKeyring: nil,
+		Passphrase:     e.passphrase,
+		Me:             me,
+		SigningKey:     signingKey,
+		EncryptionKey:  encryptionKey,
+		LoginContext:   nil,
+		PerUserKeyring: nil,
 	}
 	e.gen = NewPaperKeyGen(kgarg, e.G())
 	if err := RunEngine(e.gen, ctx); err != nil {

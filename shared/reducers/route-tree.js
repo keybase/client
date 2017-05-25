@@ -13,14 +13,9 @@ import {
   checkRouteState,
 } from '../route-tree'
 
-export const State = I.Record({
-  routeDef: null,
-  routeState: null,
-})
+const initialState = Constants.State()
 
-const initialState = State()
-
-function routeDefReducer (routeDef, action) {
+function routeDefReducer(routeDef, action) {
   switch (action.type) {
     case Constants.setRouteDef:
       return action.payload.routeDef
@@ -30,7 +25,7 @@ function routeDefReducer (routeDef, action) {
   }
 }
 
-function routeStateReducer (routeDef, routeState, action) {
+function routeStateReducer(routeDef, routeState, action) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return routeSetProps(routeDef, null, [])
@@ -75,7 +70,10 @@ function routeStateReducer (routeDef, routeState, action) {
   }
 }
 
-export default function routeTreeReducer (state: State = initialState, action: any): State {
+export default function routeTreeReducer(
+  state: Constants.State = initialState,
+  action: any
+): Constants.State {
   let {routeDef, routeState} = state
 
   let newRouteDef
@@ -85,9 +83,13 @@ export default function routeTreeReducer (state: State = initialState, action: a
     newRouteState = routeStateReducer(routeDef, routeState, action)
   } catch (err) {
     if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
-      console.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
+      console.warn(
+        'New route tree mismatches current state. Not updating (please reload manually if needed).'
+      )
     } else {
-      console.error(`Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`)
+      console.error(
+        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`
+      )
     }
     return state
   }
@@ -96,7 +98,9 @@ export default function routeTreeReducer (state: State = initialState, action: a
     // If we changed something, sanity check new state for errors.
     const routeError = checkRouteState(newRouteDef, newRouteState)
     if (routeError) {
-      console.error(`Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`)
+      console.error(
+        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
+      )
       return state
     }
   }

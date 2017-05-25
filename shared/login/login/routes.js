@@ -8,7 +8,7 @@ import Passphrase from '../register/passphrase'
 import PaperKey from '../register/paper-key'
 import CodePage from '../register/code-page'
 import SetPublicName from '../register/set-public-name'
-import Success from '../signup/success'
+import Success from '../register/success'
 import RegisterError from '../register/error'
 import GPGSign from '../register/gpg-sign'
 
@@ -44,15 +44,15 @@ const recursiveLazyRoutes = I.Seq({
     component: Success,
   },
 })
-  .map(routeData => new RouteDefNode({
-    ...routeData,
-    children: name => recursiveLazyRoutes.get(name),
-  }))
+  .map(
+    routeData =>
+      new RouteDefNode({
+        ...routeData,
+        children: name => recursiveLazyRoutes.get(name),
+      })
+  )
   .toMap()
 
-const routeTree = new RouteDefNode({
-  defaultSelected: 'login',
-  children: recursiveLazyRoutes,
-})
+const routeTree = recursiveLazyRoutes.get('login')
 
 export default routeTree

@@ -4,7 +4,11 @@ import QRCodeGen from 'qrcode-generator'
 
 import type {DeviceRole, Mode} from '../../constants/login'
 
-export function defaultModeForDeviceRoles (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, brokenMode: boolean): ?Mode {
+export function defaultModeForDeviceRoles(
+  myDeviceRole: DeviceRole,
+  otherDeviceRole: DeviceRole,
+  brokenMode: boolean
+): ?Mode {
   switch (myDeviceRole + otherDeviceRole) {
     case Constants.codePageDeviceRoleExistingComputer + Constants.codePageDeviceRoleNewComputer:
       return Constants.codePageModeEnterText
@@ -29,7 +33,7 @@ export function defaultModeForDeviceRoles (myDeviceRole: DeviceRole, otherDevice
   return null
 }
 
-export function qrGenerate (code: string): string {
+export function qrGenerate(code: string): string {
   const qr = QRCodeGen(4, 'L')
   qr.addData(code)
   qr.make()

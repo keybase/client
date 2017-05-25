@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -18,12 +19,14 @@ import (
 type KBFSHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	globals.ChatContextified
 }
 
-func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSHandler {
+func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext) *KBFSHandler {
 	return &KBFSHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
+		BaseHandler:      NewBaseHandler(xp),
+		Contextified:     libkb.NewContextified(g),
+		ChatContextified: globals.NewChatContextified(cg),
 	}
 }
 
@@ -92,7 +95,7 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string, publ
 	}
 
 	h.G().Log.Debug("sending ChatThreadsStale notification (conversations: %d)", len(convIDs))
-	h.G().ChatSyncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), convIDs, false)
+	h.ChatG().Syncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), convIDs, false)
 }
 
 func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool) ([]chat1.ConversationID, error) {
@@ -109,9 +112,9 @@ func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool)
 	}
 
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx := chat.Context(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
-		chat.NewIdentifyNotifier(h.G()))
-	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
+	ctx := chat.Context(context.Background(), h.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, chat.NewIdentifyNotifier(globals.NewContext(h.G(), h.ChatG())))
+	ib, _, err := h.ChatG().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {
 		return nil, err
 	}

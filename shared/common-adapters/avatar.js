@@ -18,6 +18,7 @@ type State = {
 
 const placeHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
+  '12': 'icon-placeholder-avatar-24',
   '16': 'icon-placeholder-avatar-24',
   '176': 'icon-placeholder-avatar-176',
   '24': 'icon-placeholder-avatar-24',
@@ -30,47 +31,47 @@ const placeHolders: {[key: string]: IconType} = {
 
 const followStateToType = I.fromJS({
   '112': {
-    'theyNo': {'youYes': 'icon-following-28'},
-    'theyYes': {'youNo': 'icon-follow-me-28', 'youYes': 'icon-mutual-follow-28'},
+    theyNo: {youYes: 'icon-following-28'},
+    theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
   },
   '176': {
-    'theyNo': {'youYes': 'icon-following-32'},
-    'theyYes': {'youNo': 'icon-follow-me-32', 'youYes': 'icon-mutual-follow-32'},
+    theyNo: {youYes: 'icon-following-32'},
+    theyYes: {youNo: 'icon-follow-me-32', youYes: 'icon-mutual-follow-32'},
   },
   '48': {
-    'theyNo': {'youYes': 'icon-following-21'},
-    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+    theyNo: {youYes: 'icon-following-21'},
+    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
   },
   '64': {
-    'theyNo': {'youYes': 'icon-following-21'},
-    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+    theyNo: {youYes: 'icon-following-21'},
+    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
   },
   '80': {
-    'theyNo': {'youYes': 'icon-following-21'},
-    'theyYes': {'youNo': 'icon-follow-me-21', 'youYes': 'icon-mutual-follow-21'},
+    theyNo: {youYes: 'icon-following-21'},
+    theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
   },
 })
 
 const followStateToSize = I.fromJS({
   '112': {
-    'theyNo': {'youYes': 28},
-    'theyYes': {'youNo': 28, 'youYes': 28},
+    theyNo: {youYes: 28},
+    theyYes: {youNo: 28, youYes: 28},
   },
   '176': {
-    'theyNo': {'youYes': 32},
-    'theyYes': {'youNo': 32, 'youYes': 32},
+    theyNo: {youYes: 32},
+    theyYes: {youNo: 32, youYes: 32},
   },
   '48': {
-    'theyNo': {'youYes': 21},
-    'theyYes': {'youNo': 21, 'youYes': 21},
+    theyNo: {youYes: 21},
+    theyYes: {youNo: 21, youYes: 21},
   },
   '64': {
-    'theyNo': {'youYes': 21},
-    'theyYes': {'youNo': 21, 'youYes': 21},
+    theyNo: {youYes: 21},
+    theyYes: {youNo: 21, youYes: 21},
   },
   '80': {
-    'theyNo': {'youYes': 21},
-    'theyYes': {'youNo': 21, 'youYes': 21},
+    theyNo: {youYes: 21},
+    theyYes: {youNo: 21, youYes: 21},
   },
 })
 
@@ -87,14 +88,17 @@ class Avatar extends Component<void, Props, State> {
   _mounted: boolean = false
   _onURLLoaded = (username: string, urlMap: ?URLMap) => {
     // Mounted and still looking at the same username?
-    requestIdleCallback(() => {
-      if (this._mounted && this.props.username === username) {
-        this.setState({url: this._urlMapsToUrl(urlMap)})
-      }
-    }, {timeout: 300})
+    requestIdleCallback(
+      () => {
+        if (this._mounted && this.props.username === username) {
+          this.setState({url: this._urlMapsToUrl(urlMap)})
+        }
+      },
+      {timeout: 300}
+    )
   }
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     if (props.url && props.username) {
       console.warn('Recieved both url and username to avatar!')
@@ -103,7 +107,7 @@ class Avatar extends Component<void, Props, State> {
     this.state = this._getRawURLState(props.url, props.size)
   }
 
-  _getRawURLState (url: ?string, size: number): {url: any} {
+  _getRawURLState(url: ?string, size: number): {url: any} {
     if (url) {
       return {url: urlsToImgSet({[String(size)]: url}, size)}
     } else {
@@ -111,30 +115,31 @@ class Avatar extends Component<void, Props, State> {
     }
   }
 
-  componentWillMount () {
+  componentWillMount() {
     if (this.props.url) {
       this.setState(this._getRawURLState(this.props.url, this.props.size))
       // Just let it load the url, prefer this over username
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
-    } else { // Just show the no avatar state
+    } else {
+      // Just show the no avatar state
       this.setState({url: this._noAvatar()})
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this._mounted = true
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this._mounted = false
   }
 
-  _noAvatar () {
+  _noAvatar() {
     return iconTypeToImgSet(placeHolders[String(this.props.size)], this.props.size)
   }
 
-  _urlMapsToUrl (urlMap: ?URLMap) {
+  _urlMapsToUrl(urlMap: ?URLMap) {
     if (!urlMap || !Object.keys(urlMap).length) {
       return this._noAvatar()
     }
@@ -142,19 +147,20 @@ class Avatar extends Component<void, Props, State> {
     return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
   }
 
-  _loadUsername (username: string) {
+  _loadUsername(username: string) {
     const urlMap = _avatarToURL ? _avatarToURL(username) : null
     const url = this._urlMapsToUrl(urlMap)
     this.setState({url})
 
-    if (!urlMap && _loadAvatarToURL) { // Have to load it
+    if (!urlMap && _loadAvatarToURL) {
+      // Have to load it
       _loadAvatarToURL(username, (username: string, urlMap: ?URLMap) => {
         this._onURLLoaded(username, urlMap)
       })
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (nextProps.url && nextProps.username) {
       console.warn('Recieved both url and username to avatar!')
       return
@@ -166,7 +172,8 @@ class Avatar extends Component<void, Props, State> {
       // Just show the url
       if (nextProps.url) {
         this.setState(this._getRawURLState(nextProps.url, nextProps.size))
-      } else if (nextProps.username) {  // We need to convert a username to a url
+      } else if (nextProps.username) {
+        // We need to convert a username to a url
         this._loadUsername(nextProps.username)
       } else {
         this.setState({url: this._noAvatar()})
@@ -174,39 +181,52 @@ class Avatar extends Component<void, Props, State> {
     }
   }
 
-  _followIconType () {
-    return followStateToType.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  _followIconType() {
+    return followStateToType.getIn([
+      String(this.props.size),
+      `they${this.props.followsYou ? 'Yes' : 'No'}`,
+      `you${this.props.following ? 'Yes' : 'No'}`,
+    ])
   }
 
-  _followIconSize () {
-    return followStateToSize.getIn([String(this.props.size), `they${this.props.followsYou ? 'Yes' : 'No'}`, `you${this.props.following ? 'Yes' : 'No'}`])
+  _followIconSize() {
+    return followStateToSize.getIn([
+      String(this.props.size),
+      `they${this.props.followsYou ? 'Yes' : 'No'}`,
+      `you${this.props.following ? 'Yes' : 'No'}`,
+    ])
   }
 
-  shouldComponentUpdate (nextProps: Props, nextState: any): boolean {
-    return (this.state.url !== nextState.url) ||
+  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
+    return (
+      this.state.url !== nextState.url ||
       !shallowEqual(this.props, nextProps, (obj, oth, key) => {
         if (key === 'style') {
           return shallowEqual(obj, oth)
         }
         return undefined
       })
+    )
   }
 
-  render () {
-    const url = (__SCREENSHOT__ || isTesting) ? this._noAvatar() : this.state.url
+  render() {
+    const url = __SCREENSHOT__ || isTesting ? this._noAvatar() : this.state.url
 
-    return <Render
-      borderColor={this.props.borderColor}
-      children={this.props.children}
-      followIconType={this._followIconType()}
-      followIconSize={this._followIconSize()}
-      followIconStyle={followSizeToStyle[this.props.size]}
-      loadingColor={this.props.loadingColor}
-      onClick={this.props.onClick}
-      opacity={this.props.opacity}
-      size={this.props.size}
-      style={this.props.style}
-      url={url} />
+    return (
+      <Render
+        borderColor={this.props.borderColor}
+        children={this.props.children}
+        followIconType={this._followIconType()}
+        followIconSize={this._followIconSize()}
+        followIconStyle={followSizeToStyle[this.props.size]}
+        loadingColor={this.props.loadingColor}
+        onClick={this.props.onClick}
+        opacity={this.props.opacity}
+        size={this.props.size}
+        style={this.props.style}
+        url={url}
+      />
+    )
   }
 }
 
@@ -223,7 +243,4 @@ const initLoad = (load: AvatarLoad) => {
 }
 
 export default Avatar
-export {
-  initLoad,
-  initLookup,
-}
+export {initLoad, initLookup}

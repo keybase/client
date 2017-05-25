@@ -9,11 +9,14 @@ import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {List, Map} from 'immutable'
+import {Map} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
-import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior, ConstantsStatusCode} from '../../constants/types/flow-types'
-import {badgeApp} from '../notifications'
-import {call, put, take, select, race, fork, join} from 'redux-saga/effects'
+import {
+  apiserverGetRpcPromise,
+  TlfKeysTLFIdentifyBehavior,
+  ConstantsStatusCode,
+} from '../../constants/types/flow-types'
+import {call, put, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -24,17 +27,16 @@ import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '..
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
-import {tmpFile} from '../../util/file'
 import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<any, any> {
+function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
@@ -50,7 +52,8 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
           const outboxID = Constants.outboxIDToKey(outboxRecord.outboxID)
           // $FlowIssue
-          const failureDescription = _decodeFailureDescription(outboxRecord.state.error.typ)
+          const errTyp = outboxRecord.state.error.typ
+          const failureDescription = _decodeFailureDescription(errTyp)
           // There's an RPC race condition here.  Two possibilities:
           //
           // Either we've already finished in _postMessage() and have recorded
@@ -66,15 +69,17 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
 
           const pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, outboxID)
           if (pendingMessage) {
-            yield put(Creators.updateTempMessage(
-              conversationIDKey,
-              {
-                ...pendingMessage,
-                failureDescription,
-                messageState: 'failed',
-              },
-              outboxID
-            ))
+            yield put(
+              Creators.updateTempMessage(
+                conversationIDKey,
+                {
+                  ...pendingMessage,
+                  failureDescription,
+                  messageState: 'failed',
+                },
+                outboxID
+              )
+            )
           } else {
             yield put(Creators.createPendingFailure(failureDescription, outboxID))
           }
@@ -92,7 +97,11 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
         // private one, which is what we were doing before this change.
-        if (incomingMessage.conv && incomingMessage.conv.info && incomingMessage.conv.info.visibility !== ChatTypes.CommonTLFVisibility.private) {
+        if (
+          incomingMessage.conv &&
+          incomingMessage.conv.info &&
+          incomingMessage.conv.info.visibility !== ChatTypes.CommonTLFVisibility.private
+        ) {
           return
         }
 
@@ -119,8 +128,9 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
         const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
         const appFocused = yield select(Shared.focusedSelector)
         const selectedTab = yield select(Shared.routeSelector)
-        const chatTabSelected = (selectedTab === chatTab)
-        const conversationIsFocused = conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+        const chatTabSelected = selectedTab === chatTab
+        const conversationIsFocused =
+          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
 
         if (message && message.messageID && conversationIsFocused) {
           yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
@@ -131,67 +141,79 @@ function * _incomingMessage (action: Constants.IncomingMessage): SagaGenerator<a
           })
         }
 
-        const messageFromYou = message.deviceName === yourDeviceName && message.author && yourName === message.author
+        const messageFromYou =
+          message.deviceName === yourDeviceName && message.author && yourName === message.author
 
-        if (message.type === 'Attachment' && messageFromYou) {
-          const outboxID = message.outboxID
-          if (outboxID) {  // const + inner if to satisfy flow
-            const previewPath = yield select(Shared.attachmentPlaceholderPreviewSelector, outboxID)
-            if (previewPath) {
-              message.previewPath = previewPath
-              yield put(Creators.clearAttachmentPlaceholderPreview(outboxID))
-            }
+        if (
+          (message.type === 'Text' || message.type === 'Attachment') &&
+          message.outboxID &&
+          messageFromYou
+        ) {
+          if (message.type === 'Attachment') {
+            const pendingMessage = yield select(
+              Shared.messageOutboxIDSelector,
+              conversationIDKey,
+              message.outboxID
+            )
+            message.previewPath = pendingMessage.previewPath
           }
-        }
 
-        const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-        if (message.type === 'Text' && message.outboxID && messageFromYou) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
-          yield put(Creators.updateTempMessage(
-            conversationIDKey,
-            {
-              ...message,
-              messageState: 'sent',
-            },
-            message.outboxID
-          ))
+          yield put(Creators.updateTempMessage(conversationIDKey, message, message.outboxID))
 
           const messageID = message.messageID
           if (messageID) {
-            yield put(Creators.markSeenMessage(conversationIDKey, Constants.messageKey(conversationIDKey, 'messageIDText', messageID)))
+            yield put(
+              Creators.markSeenMessage(
+                conversationIDKey,
+                Constants.messageKey(
+                  conversationIDKey,
+                  message.type === 'Text' ? 'messageIDText' : 'messageIDAttachment',
+                  messageID
+                )
+              )
+            )
           }
         } else {
-          // How long was it between the previous message and this one?
-          if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
-            const timestamp = Shared.maybeAddTimestamp(conversationIDKey, message, conversationState.messages.toArray(), conversationState.messages.size - 1)
-            if (timestamp !== null) {
-              yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [timestamp]))
-            }
-          }
-
-          yield put(Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversationIDKey, appFocused, [message]))
-
-          if ((message.type === 'Attachment' || message.type === 'UpdateAttachment') && !message.previewPath && message.messageID) {
-            const messageID = message.type === 'UpdateAttachment' ? message.targetMessageID : message.messageID
-            const filename = message.type === 'UpdateAttachment' ? message.updates.filename : message.filename
-            if (filename) {
-              yield put(Creators.loadAttachment(conversationIDKey, messageID, tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)), true, false))
-            }
-          }
+          yield put(
+            Creators.appendMessages(
+              conversationIDKey,
+              conversationIDKey === selectedConversationIDKey,
+              appFocused,
+              [message]
+            )
+          )
         }
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat of type:', action.payload.activity.activityType)
+      console.warn(
+        'Unsupported incoming message type for Chat of type:',
+        action.payload.activity.activityType
+      )
   }
 }
 
-function * _setupChatHandlers (): SagaGenerator<any, any> {
+function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, any> {
+  // $FlowIssue
+  for (const activity of action.payload.activity) {
+    const conversationIDKey = Constants.conversationIDToKey(activity.convID)
+    const typers = activity.typers || []
+    const typing = typers.map(typer => typer.username)
+    yield put(Creators.setTypers(conversationIDKey, typing))
+  }
+}
+
+function* _setupChatHandlers(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch(Creators.incomingMessage(activity))
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => {
+      dispatch(Creators.incomingTyping(typingUpdates))
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
@@ -226,7 +248,7 @@ function * _setupChatHandlers (): SagaGenerator<any, any> {
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
-function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
+function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
   // Mobile doesn't auto select a conversation
   if (isMobile && !forceSelectOnMobile) {
     return
@@ -258,148 +280,130 @@ function * _ensureValidSelectedChat (onlyIfNoSelection: boolean, forceSelectOnMo
   }
 }
 
-function * _loadMoreMessages (action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
+function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
-  if (!conversationIDKey) {
-    return
-  }
-
-  if (Constants.isPendingConversationIDKey(conversationIDKey)) {
-    __DEV__ && console.log('Bailing on selected pending conversation no matching inbox')
-    return
-  }
-
-  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
-
-  if (inboxConvo && inboxConvo.state !== 'unboxed') {
-    __DEV__ && console.log('Bailing on not yet unboxed conversation')
-    return
-  }
-
-  const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
-    return state.chat.get('rekeyInfos').get(conversationIDKey)
-  }
-  const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
-
-  if (rekeyInfo) {
-    __DEV__ && console.log('Bailing on chat due to rekey info')
-    return
-  }
-
-  const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-
-  let next
-  if (oldConversationState) {
-    if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
-      __DEV__ && console.log('Bailing on chat load more due to already has initial load')
+  try {
+    if (!conversationIDKey) {
       return
     }
 
-    if (oldConversationState.get('isRequesting')) {
-      __DEV__ && console.log('Bailing on chat load more due to isRequesting already')
+    if (Constants.isPendingConversationIDKey(conversationIDKey)) {
+      console.log('Bailing on selected pending conversation no matching inbox')
       return
     }
 
-    if (!oldConversationState.get('moreToLoad')) {
-      __DEV__ && console.log('Bailing on chat load more due to no more to load')
+    const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+
+    if (inboxConvo && inboxConvo.state !== 'unboxed') {
+      console.log('Bailing on not yet unboxed conversation')
       return
     }
 
-    next = oldConversationState.get('paginationNext', undefined)
-  }
+    const rekeyInfoSelector = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) => {
+      return state.chat.get('rekeyInfos').get(conversationIDKey)
+    }
+    const rekeyInfo = yield select(rekeyInfoSelector, conversationIDKey)
 
-  yield put(Creators.loadingMessages(conversationIDKey, true))
+    if (rekeyInfo) {
+      console.log('Bailing on chat due to rekey info')
+      return
+    }
 
-  const yourName = yield select(usernameSelector)
-  const yourDeviceName = yield select(Shared.devicenameSelector)
+    const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
-  // We receive the list with edit/delete/etc already applied so lets filter that out
-  const messageTypes = Object.keys(ChatTypes.CommonMessageType).filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k)).map(k => ChatTypes.CommonMessageType[k])
-  const conversationID = Constants.keyToConversationID(conversationIDKey)
+    let next
+    if (oldConversationState) {
+      if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
+        console.log('Bailing on chat load more due to already has initial load')
+        return
+      }
 
-  const updateThread = function * (thread: ChatTypes.ThreadView) {
-    const messages = (thread && thread.messages || []).map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey)).reverse()
-    let newMessages = []
-    messages.forEach((message, idx) => {
-      if (idx > 0) {
-        const timestamp = Shared.maybeAddTimestamp(conversationIDKey, messages[idx], messages, idx - 1)
-        if (timestamp !== null) {
-          newMessages.push(timestamp)
+      if (oldConversationState.get('isRequesting')) {
+        console.log('Bailing on chat load more due to isRequesting already')
+        return
+      }
+
+      if (!oldConversationState.get('moreToLoad')) {
+        console.log('Bailing on chat load more due to no more to load')
+        return
+      }
+
+      next = oldConversationState.get('paginationNext', undefined)
+    }
+
+    yield put(Creators.loadingMessages(conversationIDKey, true))
+
+    const yourName = yield select(usernameSelector)
+    const yourDeviceName = yield select(Shared.devicenameSelector)
+
+    // We receive the list with edit/delete/etc already applied so lets filter that out
+    const messageTypes = Object.keys(ChatTypes.CommonMessageType)
+      .filter(k => !['edit', 'delete', 'headline', 'attachmentuploaded'].includes(k))
+      .map(k => ChatTypes.CommonMessageType[k])
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+
+    const updateThread = function*(thread: ChatTypes.ThreadView) {
+      const newMessages = ((thread && thread.messages) || [])
+        .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
+        .reverse()
+      const pagination = _threadToPagination(thread)
+      yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
+    }
+
+    const loadThreadChanMap = ChatTypes.localGetThreadNonblockRpcChannelMap(
+      ['chat.1.chatUi.chatThreadCached', 'chat.1.chatUi.chatThreadFull', 'finished'],
+      {
+        param: {
+          conversationID,
+          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+          pagination: {
+            last: false,
+            next,
+            num: Constants.maxMessagesToLoadAtATime,
+            previous: null,
+          },
+          query: {
+            disableResolveSupersedes: false,
+            markAsRead: true,
+            messageTypes,
+          },
+        },
+      }
+    )
+
+    while (true) {
+      const incoming = yield loadThreadChanMap.race()
+
+      if (incoming.chatThreadCached) {
+        incoming.chatThreadCached.response.result()
+        yield call(updateThread, incoming.chatThreadCached.params.thread)
+      } else if (incoming.chatThreadFull) {
+        incoming.chatThreadFull.response.result()
+        yield call(updateThread, incoming.chatThreadFull.params.thread)
+      } else if (incoming.finished) {
+        if (incoming.finished.params.offline) {
+          yield put(Creators.threadLoadedOffline(conversationIDKey))
         }
+        yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
+        break
       }
-      newMessages.push(message)
-    })
-
-    const pagination = _threadToPagination(thread)
-
-    yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
-
-    // Load previews for attachments
-    const attachmentsOnly = messages.reduce((acc: List<Constants.AttachmentMessage>, m) => m && m.type === 'Attachment' && m.messageID ? acc.push(m) : acc, new List())
-    yield attachmentsOnly.map(({conversationIDKey, messageID, filename}: Constants.AttachmentMessage) => {
-      if (messageID && filename) {
-        return put(Creators.loadAttachment(
-          conversationIDKey,
-          messageID,
-          tmpFile(Shared.tmpFileName(false, conversationIDKey, messageID, filename)),
-          true,
-          false)
-        )
-      }
-    }).toArray().filter(Boolean)
-  }
-
-  const channelConfig = Saga.singleFixedChannelConfig([
-    'chat.1.chatUi.chatThreadCached',
-    'chat.1.chatUi.chatThreadFull',
-    'finished',
-  ])
-
-  const loadThreadChanMap: ChannelMap<any> = ChatTypes.localGetThreadNonblockRpcChannelMap(channelConfig, {
-    param: {
-      conversationID,
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      pagination: {
-        last: false,
-        next,
-        num: Constants.maxMessagesToLoadAtATime,
-        previous: null,
-      },
-      query: {
-        disableResolveSupersedes: false,
-        markAsRead: true,
-        messageTypes,
-      },
-    },
-  })
-
-  while (true) {
-    const incoming: {[key: string]: any} = yield race({
-      chatThreadCached: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadCached'),
-      chatThreadFull: Saga.takeFromChannelMap(loadThreadChanMap, 'chat.1.chatUi.chatThreadFull'),
-      finished: Saga.takeFromChannelMap(loadThreadChanMap, 'finished'),
-    })
-
-    if (incoming.chatThreadCached) {
-      incoming.chatThreadCached.response.result()
-      yield call(updateThread, incoming.chatThreadCached.params.thread)
-    } else if (incoming.chatThreadFull) {
-      incoming.chatThreadFull.response.result()
-      yield call(updateThread, incoming.chatThreadFull.params.thread)
-    } else if (incoming.finished) {
-      yield put(Creators.loadingMessages(conversationIDKey, false))
-
-      if (incoming.finished.params.offline) {
-        yield put(Creators.threadLoadedOffline(conversationIDKey))
-      }
-      yield put(Creators.setLoaded(conversationIDKey, !incoming.finished.error)) // reset isLoaded on error
-      break
     }
+
+    // Do this here because it's possible loading messages takes a while
+    // If this is the selected conversation and this was a result of user action
+    // We can assume the messages we've loaded have been seen.
+    const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+    if (selectedConversationIDKey === conversationIDKey && action.payload.fromUser) {
+      yield put(Creators.updateBadging(conversationIDKey))
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  } finally {
+    yield put(Creators.loadingMessages(conversationIDKey, false))
   }
 }
 
-function _threadToPagination (thread): {last: any, next: any} {
+function _threadToPagination(thread): {last: any, next: any} {
   if (thread && thread.pagination) {
     return thread.pagination
   }
@@ -412,7 +416,7 @@ function _threadToPagination (thread): {last: any, next: any} {
 // used to key errors
 let errorIdx = 1
 
-function _decodeFailureDescription (typ: ChatTypes.OutboxErrorType): string {
+function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
   switch (typ) {
     case ChatTypes.LocalOutboxErrorType.misc:
       return 'unknown error'
@@ -426,16 +430,27 @@ function _decodeFailureDescription (typ: ChatTypes.OutboxErrorType): string {
   return `unknown error type ${typ}`
 }
 
-function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDeviceName, conversationIDKey: Constants.ConversationIDKey): Constants.Message {
+function _unboxedToMessage(
+  message: ChatTypes.MessageUnboxed,
+  yourName,
+  yourDeviceName,
+  conversationIDKey: Constants.ConversationIDKey
+): Constants.Message {
   if (message && message.state === ChatTypes.LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.OutboxRecord = message.outbox
-    const messageState: Constants.MessageState = (payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error) ? 'failed' : 'pending'
+    const messageState: Constants.MessageState = payload &&
+      payload.state &&
+      payload.state.state === ChatTypes.LocalOutboxStateType.error
+      ? 'failed'
+      : 'pending'
     const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
-    // $FlowIssue
-    const failureDescription = messageState === 'failed' ? _decodeFailureDescription(payload.state.error.typ) : null
+    const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
+      ? _decodeFailureDescription(payload.state.error.typ)
+      : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
+    const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
 
     return {
       author: yourName,
@@ -444,10 +459,10 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey(conversationIDKey, 'outboxIDText', payload.outboxID),
-      message: new HiddenString(messageText && messageText.body || ''),
+      key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
+      message: new HiddenString((messageText && messageText.body) || ''),
       messageState,
-      outboxID: Constants.outboxIDToKey(payload.outboxID),
+      outboxID: outboxIDKey,
       senderDeviceRevokedAt: null,
       timestamp: payload.ctime,
       type: 'Text',
@@ -472,9 +487,12 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
 
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
-          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID =
+            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           const p: any = payload
-          const message = new HiddenString(p.messageBody && p.messageBody.text && p.messageBody.text.body || '')
+          const message = new HiddenString(
+            (p.messageBody && p.messageBody.text && p.messageBody.text.body) || ''
+          )
           // end to del
           return {
             type: 'Text',
@@ -486,12 +504,14 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
-          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID =
+            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
           const attachment: ChatTypes.MessageAttachment = payload.messageBody.attachment
-          const preview = attachment && (attachment.preview || attachment.previews && attachment.previews[0])
+          const preview =
+            attachment && (attachment.preview || (attachment.previews && attachment.previews[0]))
           const attachmentInfo = Constants.getAttachmentInfo(preview, attachment && attachment.object)
 
           let messageState
@@ -507,8 +527,11 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             ...attachmentInfo,
             messageState,
             previewPath: null,
-            hdPreviewPath: null,
             downloadedPath: null,
+            savedPath: null,
+            previewProgress: null,
+            downloadProgress: null,
+            uploadProgress: null,
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
@@ -517,25 +540,34 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
           if (!payload.messageBody.attachmentuploaded) {
             throw new Error('empty attachmentuploaded body')
           }
-          const attachmentUploaded: ChatTypes.MessageAttachmentUploaded = payload.messageBody.attachmentuploaded
+          const attachmentUploaded: ChatTypes.MessageAttachmentUploaded =
+            payload.messageBody.attachmentuploaded
           const previews = attachmentUploaded && attachmentUploaded.previews
           const preview = previews && previews[0]
-          const attachmentInfo = Constants.getAttachmentInfo(preview, attachmentUploaded && attachmentUploaded.object)
+          const attachmentInfo = Constants.getAttachmentInfo(
+            preview,
+            attachmentUploaded && attachmentUploaded.object
+          )
 
           return {
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachmentUpdate', common.messageID),
+            key: Constants.messageKey(
+              common.conversationIDKey,
+              'messageIDAttachmentUpdate',
+              common.messageID
+            ),
             messageID: common.messageID,
             targetMessageID: attachmentUploaded.messageID,
             timestamp: common.timestamp,
             type: 'UpdateAttachment',
             updates: {
               ...attachmentInfo,
+              uploadProgress: null,
               messageState: 'sent',
             },
           }
         }
         case ChatTypes.CommonMessageType.delete:
-          const deletedIDs = payload.messageBody.delete && payload.messageBody.delete.messageIDs || []
+          const deletedIDs = (payload.messageBody.delete && payload.messageBody.delete.messageIDs) || []
           return {
             type: 'Deleted',
             timestamp: payload.serverHeader.ctime,
@@ -544,8 +576,11 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
             deletedIDs,
           }
         case ChatTypes.CommonMessageType.edit: {
-          const message = new HiddenString(payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body || '')
-          const outboxID = payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const message = new HiddenString(
+            (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
+          )
+          const outboxID =
+            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
           const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
           return {
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
@@ -605,7 +640,7 @@ function _unboxedToMessage (message: ChatTypes.MessageUnboxed, yourName, yourDev
   }
 }
 
-function * _openTlfInChat (action: Constants.OpenTlfInChat): SagaGenerator<any, any> {
+function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, any> {
   const tlf = action.payload
   const me = yield select(usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
@@ -617,8 +652,13 @@ function * _openTlfInChat (action: Constants.OpenTlfInChat): SagaGenerator<any, 
   yield put(Creators.startConversation(users))
 }
 
-function * _startConversation (action: Constants.StartConversation): SagaGenerator<any, any> {
+function* _startConversation(action: Constants.StartConversation): SagaGenerator<any, any> {
   const {users, forceImmediate} = action.payload
+  const me = yield select(usernameSelector)
+
+  if (!users.includes(me)) {
+    throw new Error('Attempted to start a chat without the current user')
+  }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
     return state.chat.get('inbox').find(convo => convo.get('participants').sort().join(',') === tlfName)
@@ -627,8 +667,10 @@ function * _startConversation (action: Constants.StartConversation): SagaGenerat
   const existing = yield select(inboxSelector, tlfName)
 
   if (forceImmediate && existing) {
-    yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
-  } else if (existing) { // Select existing conversations
+    const newID = yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
+    yield put(Creators.selectConversation(newID, false))
+  } else if (existing) {
+    // Select existing conversations
     yield put(Creators.selectConversation(existing.get('conversationIDKey'), false))
     yield put(switchTo([chatTab]))
   } else {
@@ -640,12 +682,14 @@ function * _startConversation (action: Constants.StartConversation): SagaGenerat
   }
 }
 
-function * _openFolder (): SagaGenerator<any, any> {
+function* _openFolder(): SagaGenerator<any, any> {
   const conversationIDKey = yield select(Constants.getSelectedConversation)
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
+    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
+      ? publicFolderWithUsers
+      : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
     yield put(openInKBFS(path))
   } else {
@@ -653,28 +697,34 @@ function * _openFolder (): SagaGenerator<any, any> {
   }
 }
 
-function * _newChat (action: Constants.NewChat): SagaGenerator<any, any> {
+function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   yield put(searchReset())
 
-  const metaData = ((yield select(Shared.metaDataSelector)): any)
+  const metaData = (yield select(Shared.metaDataSelector): any)
   const following = (yield select(Shared.followingSelector)) || {}
 
-  yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(username => ({
-    service: 'keybase',
-    username,
-    isFollowing: !!following[username],
-    extraInfo: {
-      service: 'none',
-      fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
-    },
-  }))))
+  yield put(
+    searchAddUsersToGroup(
+      action.payload.existingParticipants.map(username => ({
+        service: 'keybase',
+        username,
+        isFollowing: !!following[username],
+        extraInfo: {
+          service: 'none',
+          fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
+        },
+      }))
+    )
+  )
   yield put(switchTo([searchTab]))
 }
 
-function * _updateMetadata (action: Constants.UpdateMetadata): SagaGenerator<any, any> {
+function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(Shared.metaDataSelector)
-  const usernames = action.payload.users.filter(name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1)
+  const usernames = action.payload.users.filter(
+    name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1
+  )
   if (!usernames.length) {
     return
   }
@@ -683,10 +733,7 @@ function * _updateMetadata (action: Constants.UpdateMetadata): SagaGenerator<any
     const results: any = yield call(apiserverGetRpcPromise, {
       param: {
         endpoint: 'user/lookup',
-        args: [
-          {key: 'usernames', value: usernames.join(',')},
-          {key: 'fields', value: 'profile'},
-        ],
+        args: [{key: 'usernames', value: usernames.join(',')}, {key: 'fields', value: 'profile'}],
       },
     })
 
@@ -708,16 +755,21 @@ function * _updateMetadata (action: Constants.UpdateMetadata): SagaGenerator<any
   }
 }
 
-function * _selectConversation (action: Constants.SelectConversation): SagaGenerator<any, any> {
+function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+
+  // Load the inbox item always
+  if (conversationIDKey) {
+    yield put(Creators.getInboxAndUnbox([conversationIDKey]))
+  }
+
   const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  let loadMoreTask
   if (conversationIDKey) {
-    loadMoreTask = yield fork(Saga.cancelWhen(_threadIsCleared, _loadMoreMessages), Creators.loadMoreMessages(conversationIDKey, true))
+    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
@@ -728,28 +780,29 @@ function * _selectConversation (action: Constants.SelectConversation): SagaGener
     yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
   }
 
-  if (inbox && inbox.get('state') !== 'unboxed') {
-    return
-  }
-
+  // Do this here because it's possible loadMoreMessages bails early
+  // but there are still unread messages that need to be marked as read
   if (fromUser && conversationIDKey) {
-    yield join(loadMoreTask)
     yield put(Creators.updateBadging(conversationIDKey))
     yield put(Creators.updateLatestMessage(conversationIDKey))
   }
 }
 
-function * _blockConversation (action: Constants.BlockConversation): SagaGenerator<any, any> {
-  const {blocked, conversationIDKey} = action.payload
+function* _blockConversation(action: Constants.BlockConversation): SagaGenerator<any, any> {
+  const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  const status = blocked ? ChatTypes.CommonConversationStatus.blocked : ChatTypes.CommonConversationStatus.unfiled
-  const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
-  yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
-    param: {conversationID, identifyBehavior, status},
-  })
+  if (blocked) {
+    const status = reportUser
+      ? ChatTypes.CommonConversationStatus.reported
+      : ChatTypes.CommonConversationStatus.blocked
+    const identifyBehavior: TLFIdentifyBehavior = TlfKeysTLFIdentifyBehavior.chatGui
+    yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+      param: {conversationID, identifyBehavior, status},
+    })
+  }
 }
 
-function * _muteConversation (action: Constants.MuteConversation): SagaGenerator<any, any> {
+function* _muteConversation(action: Constants.MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   const status = muted ? ChatTypes.CommonConversationStatus.muted : ChatTypes.CommonConversationStatus.unfiled
@@ -759,7 +812,7 @@ function * _muteConversation (action: Constants.MuteConversation): SagaGenerator
   })
 }
 
-function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, any> {
+function* _updateBadging(action: Constants.UpdateBadging): SagaGenerator<any, any> {
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
@@ -772,37 +825,24 @@ function * _updateBadging (action: Constants.UpdateBadging): SagaGenerator<any, 
   }
 }
 
-function * _changedFocus (action: ChangedFocus): SagaGenerator<any, any> {
+function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
   const selectedTab = yield select(Shared.routeSelector)
-  const chatTabSelected = (selectedTab === chatTab)
-
-  if (conversationIDKey && appFocused && chatTabSelected) {
-    yield put(Creators.updateBadging(conversationIDKey))
-    yield put(Creators.updateLatestMessage(conversationIDKey))
+  const chatTabSelected = selectedTab === chatTab
+  if (conversationIDKey && chatTabSelected) {
+    if (appFocused) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when focus leaves the app.
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
   }
 }
 
-function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
+function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  const appFocused = yield select(Shared.focusedSelector)
-
-  const newConversations = conversations.reduce((acc, conv) => {
-    // Badge this conversation if it's unread and either the app doesn't have
-    // focus (so the user didn't see the message) or the conversation isn't
-    // selected (same).
-    const unread = conv.get('UnreadMessages') > 0
-    const selected = (Constants.conversationIDToKey(conv.get('convID')) === selectedConversationIDKey)
-    const addThisConv = (unread && (!selected || !appFocused))
-    // Desktop shows number of thread unread. Mobile shows number of messages unread
-    const toAdd = isMobile ? conv.get('UnreadMessages') : 1
-    return addThisConv ? acc + toAdd : acc
-  }, 0)
-  yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
-
   let conversationsWithKeys = {}
   conversations.map(conv => {
     conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
@@ -818,20 +858,22 @@ function * _badgeAppForChat (action: Constants.BadgeAppForChat): SagaGenerator<a
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
 }
 
-function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<any, any> {
+function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(Shared.focusedSelector)
   const selectedTab = yield select(Shared.routeSelector)
-  const chatTabSelected = (selectedTab === chatTab)
+  const chatTabSelected = selectedTab === chatTab
   const convoIsSelected = action.payload.isSelected
 
+  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
   // Only send if you're not looking at it
   if (!convoIsSelected || !appFocused || !chatTabSelected) {
     const me = yield select(usernameSelector)
-    const message = (action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me))
+    const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
     const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
+        console.log('Sending Chat notification')
         const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
@@ -845,7 +887,7 @@ function * _sendNotifications (action: Constants.AppendMessages): SagaGenerator<
   }
 }
 
-function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
+function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {convIDs} = action.payload
   yield call(Inbox.unboxConversations, convIDs)
@@ -859,17 +901,30 @@ function * _markThreadsStale (action: Constants.MarkThreadsStale): SagaGenerator
   yield put(Creators.loadMoreMessages(selectedConversation, false))
 }
 
-function _threadIsCleared (originalAction: Action, checkAction: Action): boolean {
-  return originalAction.type === 'chat:loadMoreMessages' && checkAction.type === 'chat:clearMessages' && originalAction.conversationIDKey === checkAction.conversationIDKey
+function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {
+  return (
+    originalAction.type === 'chat:loadMoreMessages' &&
+    checkAction.type === 'chat:clearMessages' &&
+    originalAction.conversationIDKey === checkAction.conversationIDKey
+  )
 }
 
-function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConversation): SagaGenerator<any, any> {
+function* _openConversation({
+  payload: {conversationIDKey},
+}: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
-  const validInbox = inbox.find(c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed')
+  const validInbox = inbox.find(
+    c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed'
+  )
   if (!validInbox) {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
     const raceResult: {[key: string]: any} = yield race({
-      updateInbox: take(a => a.type === 'chat:updateInbox' && a.payload.conversation && a.payload.conversation.conversationIDKey === conversationIDKey),
+      updateInbox: take(
+        a =>
+          a.type === 'chat:updateInbox' &&
+          a.payload.conversation &&
+          a.payload.conversation.conversationIDKey === conversationIDKey
+      ),
       timeout: call(delay, 10e3),
     })
     if (raceResult.updateInbox) {
@@ -880,41 +935,56 @@ function * _openConversation ({payload: {conversationIDKey}}: Constants.OpenConv
   }
 }
 
-function * chatSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeSerially('chat:loadInbox', Inbox.onInitialInboxLoad),
-    Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale),
-    Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages)),
-    Saga.safeTakeLatest('chat:selectConversation', _selectConversation),
-    Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible),
-    Saga.safeTakeEvery('chat:updateBadging', _updateBadging),
-    Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers),
-    Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage),
-    Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale),
-    Saga.safeTakeEvery('chat:muteConversation', _muteConversation),
-    Saga.safeTakeEvery('chat:blockConversation', _blockConversation),
-    Saga.safeTakeEvery('chat:newChat', _newChat),
-    Saga.safeTakeEvery('chat:postMessage', Messages.postMessage),
-    Saga.safeTakeEvery('chat:editMessage', Messages.editMessage),
-    Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage),
-    Saga.safeTakeEvery('chat:startConversation', _startConversation),
-    Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata),
-    Saga.safeTakeEvery('chat:appendMessages', _sendNotifications),
-    Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment),
-    Saga.safeTakeEvery('chat:openConversation', _openConversation),
-    Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox),
-    Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment),
-    Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup),
-    Saga.safeTakeLatest('chat:openFolder', _openFolder),
-    Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat),
-    Saga.safeTakeEvery('app:changedFocus', _changedFocus),
-    Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage),
-    Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat),
-    Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false),
-    Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false),
-    Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative),
-    Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment),
-  ]
+function* _updateTyping({
+  payload: {conversationIDKey, typing},
+}: Constants.UpdateTyping): SagaGenerator<any, any> {
+  // Send we-are-typing info up to Gregor.
+  if (!Constants.isPendingConversationIDKey(conversationIDKey)) {
+    const conversationID = Constants.keyToConversationID(conversationIDKey)
+    yield call(ChatTypes.localUpdateTypingRpcPromise, {
+      param: {conversationID, typing},
+    })
+  }
+}
+
+function* chatSaga(): SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
+  yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
+  yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
+  yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
+  yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
+  yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
+  yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
+  yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
+  yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
+  yield Saga.safeTakeEvery('chat:newChat', _newChat)
+  yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)
+  yield Saga.safeTakeEvery('chat:openConversation', _openConversation)
+  yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
+  yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
+  yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
+  yield Saga.safeTakeEvery('chat:retryAttachment', Attachment.onRetryAttachment)
+  yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
+  yield Saga.safeTakeEvery('chat:saveAttachment', Attachment.onSaveAttachment)
+  yield Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative)
+  yield Saga.safeTakeEvery('chat:selectAttachment', Attachment.onSelectAttachment)
+  yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
+  yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
+  yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
+  yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
+  yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
+  yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
+  yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
+  yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
+  yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
+  yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
+  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
+  yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
 }
 
 export default chatSaga

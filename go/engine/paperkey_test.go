@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device) {
@@ -24,12 +25,15 @@ func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device
 	return u, cki.PaperDevices()
 }
 
+func hasZeroPaperDev(tc libkb.TestContext, fu *FakeUser) {
+	_, bdevs := paperDevs(tc, fu)
+	require.Equal(tc.T, 0, len(bdevs), "num backup devices")
+}
+
 func hasOnePaperDev(tc libkb.TestContext, fu *FakeUser) keybase1.DeviceID {
 	u, bdevs := paperDevs(tc, fu)
 
-	if len(bdevs) != 1 {
-		tc.T.Fatalf("num backup devices: %d, expected 1", len(bdevs))
-	}
+	require.Equal(tc.T, 1, len(bdevs), "num backup devices")
 
 	devid := bdevs[0].ID
 	sibkey, err := u.GetComputedKeyFamily().GetSibkeyForDevice(devid)
@@ -106,6 +110,46 @@ func TestPaperKey(t *testing.T) {
 	}
 }
 
+func TestPaperKeyMulti(t *testing.T) {
+	testPaperKeyMulti(t, false)
+}
+
+func TestPaperKeyMultiPUK(t *testing.T) {
+	testPaperKeyMulti(t, true)
+}
+
+// Generate multiple paper keys
+func testPaperKeyMulti(t *testing.T, upgradePerUserKey bool) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+
+	f := func(arg *SignupEngineRunArg) {
+		arg.SkipPaper = true
+	}
+
+	fu, _, _ := CreateAndSignupFakeUserCustomArg(tc, "login", f)
+
+	for i := 0; i < 3; i++ {
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+		if len(eng.Passphrase()) == 0 {
+			t.Fatal("empty passphrase")
+		}
+
+		// check for the backup key
+		_, bdevs := paperDevs(tc, fu)
+		require.Equal(tc.T, i+1, len(bdevs), "num backup devices")
+	}
+}
+
 // tests revoking of existing backup keys
 func TestPaperKeyRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
@@ -147,6 +191,40 @@ func TestPaperKeyRevoke(t *testing.T) {
 	if len(bdevs) != 1 {
 		t.Errorf("num backup devices: %d, expected 1", len(bdevs))
 	}
+}
+
+// make a paperkey after revoking a previous one
+func TestPaperKeyAfterRevokePUK(t *testing.T) {
+	tc := SetupEngineTest(t, "backup")
+	defer tc.Cleanup()
+	tc.Tp.UpgradePerUserKey = true
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+
+	gen := func() {
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			LoginUI:  &libkb.TestLoginUI{},
+			SecretUI: &libkb.TestSecretUI{},
+		}
+		eng := NewPaperKey(tc.G)
+		err := RunEngine(eng, ctx)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+	}
+
+	revoke := func(devid keybase1.DeviceID) {
+		err := doRevokeDevice(tc, fu, devid, false)
+		require.NoError(t, err)
+	}
+
+	hasZeroPaperDev(tc, fu)
+	gen()
+	devid := hasOnePaperDev(tc, fu)
+	revoke(devid)
+	hasZeroPaperDev(tc, fu)
+	gen()
+	hasOnePaperDev(tc, fu)
 }
 
 // tests not revoking existing backup keys

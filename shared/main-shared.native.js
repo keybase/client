@@ -1,7 +1,6 @@
 // @flow
 import DumbSheet from './dev/dumb-sheet'
 import Push from './push/push.native'
-import RNPN from 'react-native-push-notification'
 import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
 import loadPerf from './util/load-perf'
@@ -11,15 +10,16 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {debounce} from 'lodash'
 import {getUserImageMap, loadUserImageMap} from './util/pictures'
-import {initAvatarLookup, initAvatarLoad} from './common-adapters'
+import {initAvatarLookup, initAvatarLoad} from './common-adapters/index.native'
 import {listenForNotifications} from './actions/notifications'
 import {persistRouteState, loadRouteState} from './actions/platform-specific.native'
 import {navigateUp, setRouteState} from './actions/route-tree'
 
+import type {TypedState} from './constants/reducer'
+
 type Props = {
   dumbFullscreen: boolean,
   folderBadge: number,
-  menuBadgeCount: number,
   mountPush: boolean,
   routeDef: any,
   routeState: any,
@@ -33,14 +33,20 @@ type Props = {
   navigateUp: () => void,
 }
 
+type OwnProps = {
+  platform: string,
+  version: string,
+}
+
 class Main extends Component<void, any, void> {
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     if (!global.mainLoaded) {
       global.mainLoaded = true
       initAvatarLookup(getUserImageMap)
       initAvatarLoad(loadUserImageMap)
+
       this.props.loadRouteState()
       this.props.bootstrap()
       this.props.listenForNotifications()
@@ -53,17 +59,13 @@ class Main extends Component<void, any, void> {
     this.props.persistRouteState()
   }, 200)
 
-  componentWillReceiveProps (nextProps: Props) {
+  componentWillReceiveProps(nextProps: Props) {
     if (this.props.routeState !== nextProps.routeState) {
       this._persistRoute()
     }
-
-    if (this.props.menuBadgeCount !== nextProps.menuBadgeCount) {
-      RNPN.setApplicationIconBadgeNumber(nextProps.menuBadgeCount)
-    }
   }
 
-  render () {
+  render() {
     if (this.props.dumbFullscreen) {
       return <DumbSheet />
     }
@@ -77,44 +79,36 @@ class Main extends Component<void, any, void> {
             routeDef={this.props.routeDef}
             routeState={this.props.routeState}
             setRouteState={this.props.setRouteState}
-          />
-        }
+          />}
         {mountPush && <Push prompt={showPushPrompt} />}
       </Box>
     )
   }
 }
 
-// $FlowIssue
-const connector = connect(
-  ({
-    config: {extendedConfig, bootStatus, loggedIn},
-    dev: {debugConfig: {dumbFullscreen}},
-    favorite: {privateBadge, publicBadge},
-    push: {permissionsPrompt},
-    routeTree: {routeDef, routeState},
-    notifications: {menuBadgeCount},
-  }) => ({
-    dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
-    menuBadgeCount,
-    mountPush: loggedIn && bootStatus === 'bootStatusBootstrapped',
-    routeDef,
-    routeState,
-    showPushPrompt: permissionsPrompt,
-  }),
-  (dispatch, {platform, version}) => ({
-    bootstrap: () => dispatch(bootstrap()),
-    hello: () => hello(0, platform, [], version, true), // TODO real version
-    listenForNotifications: () => dispatch(listenForNotifications()),
-    loadRouteState: () => dispatch(loadRouteState()),
-    persistRouteState: () => dispatch(persistRouteState()),
-    setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
-    navigateUp: () => { dispatch(navigateUp()) },
-  })
-)
+const mapStateToProps = (state: TypedState) => ({
+  dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
+  folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
+  mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
+  routeDef: state.routeTree.routeDef,
+  routeState: state.routeTree.routeState,
+  showPushPrompt: state.push.permissionsPrompt,
+})
 
-export {
-  connector,
-  Main,
-}
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  bootstrap: () => dispatch(bootstrap()),
+  hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
+  listenForNotifications: () => dispatch(listenForNotifications()),
+  loadRouteState: () => dispatch(loadRouteState()),
+  navigateUp: () => {
+    dispatch(navigateUp())
+  },
+  persistRouteState: () => dispatch(persistRouteState()),
+  setRouteState: (path, partialState) => {
+    dispatch(setRouteState(path, partialState))
+  },
+})
+
+const connector = connect(mapStateToProps, mapDispatchToProps)
+
+export {connector, Main}

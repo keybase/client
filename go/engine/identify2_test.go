@@ -1048,6 +1048,24 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 	runTest(keybase1.TLFIdentifyBehavior_CHAT_GUI, true, true, libkb.ProofCheckerModeActive)
 }
 
+func TestSkipExternalChecks(t *testing.T) {
+	arg := &keybase1.Identify2Arg{
+		Uid:           tracyUID,
+		CanSuppressUI: true,
+	}
+	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_KBFS_REKEY
+	_, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	require.NoError(t, err)
+
+	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_KBFS_QR
+	_, err = identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	require.NoError(t, err)
+
+	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
+	_, err = identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+	require.Error(t, err)
+}
+
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 var trackingUID = keybase1.UID("92b3b3dbe457059f28c9f74e8e6b9419")

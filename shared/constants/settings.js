@@ -67,10 +67,13 @@ export const invitesRefreshed = 'settings:invitesRefreshed'
 export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
 
 export const invitesSend = 'settings:invitesSend'
-export type InvitesSend = NoErrorTypedAction<'settings:invitesSend', {
-  email: string,
-  message: ?string,
-}>
+export type InvitesSend = NoErrorTypedAction<
+  'settings:invitesSend',
+  {
+    email: string,
+    message: ?string,
+  }
+>
 
 export const invitesSent = 'settings:invitesSent'
 export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {error: Error}>
@@ -95,10 +98,16 @@ export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
 export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
-export type OnChangeNewPassphrase = NoErrorTypedAction<'settings:onChangeNewPassphrase', {passphrase: HiddenString}>
+export type OnChangeNewPassphrase = NoErrorTypedAction<
+  'settings:onChangeNewPassphrase',
+  {passphrase: HiddenString}
+>
 
 export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
-export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<'settings:onChangeNewPassphraseConfirm', {passphrase: HiddenString}>
+export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<
+  'settings:onChangeNewPassphraseConfirm',
+  {passphrase: HiddenString}
+>
 
 export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
 export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
@@ -152,13 +161,29 @@ export const devicesTab = 'settingsTabs:devicesTab'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 
-export type Tab = LandingTab | UpdatePaymentTab | InvitationsTab | NotificationsTab | DeleteMeTab | DevMenuTab
-  | FeedbackTab | AboutTab | DevicesTab | ScreenprotectorTab
+export type Tab =
+  | LandingTab
+  | UpdatePaymentTab
+  | InvitationsTab
+  | NotificationsTab
+  | DeleteMeTab
+  | DevMenuTab
+  | FeedbackTab
+  | AboutTab
+  | DevicesTab
+  | ScreenprotectorTab
 
-export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+export type Actions =
+  | InvitesRefresh
+  | NotificationsRefresh
+  | NotificationsRefreshed
+  | NotificationsSave
+  | NotificationsSaved
+  | NotificationsToggle
+  | SetAllowDeleteAccount
 
 export const waitingForResponse = 'settings:waitingForResponse'
-export function waiting (waiting: boolean) : TypedAction<'settings:waitingForResponse', boolean, void> {
+export function waiting(waiting: boolean): TypedAction<'settings:waitingForResponse', boolean, void> {
   return {
     type: 'settings:waitingForResponse',
     payload: waiting,

@@ -198,6 +198,19 @@ func NewChatActivityWithFailedMessage(v FailedMessageInfo) ChatActivity {
 	}
 }
 
+type TyperInfo struct {
+	Uid        keybase1.UID      `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName string            `codec:"deviceName" json:"deviceName"`
+	DeviceType string            `codec:"deviceType" json:"deviceType"`
+}
+
+type ConvTypingUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Typers []TyperInfo    `codec:"typers" json:"typers"`
+}
+
 type NewChatActivityArg struct {
 	Uid      keybase1.UID `codec:"uid" json:"uid"`
 	Activity ChatActivity `codec:"activity" json:"activity"`
@@ -229,6 +242,10 @@ type ChatThreadsStaleArg struct {
 	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
 }
 
+type ChatTypingUpdateArg struct {
+	TypingUpdates []ConvTypingUpdate `codec:"typingUpdates" json:"typingUpdates"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -236,6 +253,7 @@ type NotifyChatInterface interface {
 	ChatTLFResolve(context.Context, ChatTLFResolveArg) error
 	ChatInboxStale(context.Context, keybase1.UID) error
 	ChatThreadsStale(context.Context, ChatThreadsStaleArg) error
+	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -338,6 +356,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatTypingUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatTypingUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatTypingUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatTypingUpdateArg)(nil), args)
+						return
+					}
+					err = i.ChatTypingUpdate(ctx, (*typedArgs)[0].TypingUpdates)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -375,5 +409,11 @@ func (c NotifyChatClient) ChatInboxStale(ctx context.Context, uid keybase1.UID) 
 
 func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThreadsStaleArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []ConvTypingUpdate) (err error) {
+	__arg := ChatTypingUpdateArg{TypingUpdates: typingUpdates}
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []interface{}{__arg})
 	return
 }

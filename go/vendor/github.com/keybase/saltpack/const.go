@@ -28,9 +28,20 @@ const MessageTypeDetachedSignature MessageType = 2
 // signcrypted message.
 const MessageTypeSigncryption MessageType = 3
 
-var SaltpackVersion1 = Version{Major: 1, Minor: 0}
-var SaltpackVersion2 = Version{Major: 2, Minor: 0}
-var SaltpackCurrentVersion = SaltpackVersion1
+func Version1() Version {
+	return Version{Major: 1, Minor: 0}
+}
+func Version2() Version {
+	return Version{Major: 2, Minor: 0}
+}
+
+func CurrentVersion() Version {
+	return Version1()
+}
+
+func KnownVersions() []Version {
+	return []Version{Version1(), Version2()}
+}
 
 // encryptionBlockSize is by default 1MB and can't currently be tweaked.
 const encryptionBlockSize int = 1048576
@@ -44,9 +55,9 @@ const SignedArmorString = "SIGNED MESSAGE"
 // DetachedSignatureArmorString is included in armor headers for detached signatures.
 const DetachedSignatureArmorString = "DETACHED SIGNATURE"
 
-// SaltpackFormatName is the publicly advertised name of the format,
-// used in the header of the message and also in Nonce creation.
-const SaltpackFormatName = "saltpack"
+// FormatName is the publicly advertised name of the format, used in
+// the header of the message and also in Nonce creation.
+const FormatName = "saltpack"
 
 // signatureBlockSize is by default 1MB and can't currently be tweaked.
 const signatureBlockSize int = 1048576
@@ -63,21 +74,18 @@ const signatureDetachedString = "saltpack detached signature\x00"
 // a signcryption signature.
 const signatureEncryptedString = "saltpack encrypted signature\x00"
 
-// signcryptionSymmetricKeyContext gets mixed in with the long term symmetric
-// key and ephemeral key inputs
-const signcryptionSymmetricKeyContext = "saltpack signcryption derived symmetric key\x00"
+// signcryptionDerivedSymmetricKeyContext gets mixed in with the long term symmetric
+// key and ephemeral key inputs, as an HMAC key
+const signcryptionSymmetricKeyContext = "saltpack signcryption derived symmetric key"
+
+// signcryptionBoxKeyIdentifierContext gets mixed in with the DH shared secret
+// as an HMAC key, to make an opaque identifier
+const signcryptionBoxKeyIdentifierContext = "saltpack signcryption box key identifier"
 
 // We truncate HMAC512 to the same link that NaCl's crypto_auth function does.
 const cryptoAuthBytes = 32
 
 const cryptoAuthKeyBytes = 32
-
-type readState int
-
-const (
-	stateBody readState = iota
-	stateEndOfStream
-)
 
 func (m MessageType) String() string {
 	switch m {

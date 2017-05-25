@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 
 import * as CommonConstants from '../../constants/common'
+import * as RouteConstants from '../../constants/route-tree'
 import * as Constants from '../../constants/login'
 import * as DeviceConstants from '../../constants/devices'
 import * as Types from '../../constants/types/flow-types'
@@ -9,12 +10,15 @@ import * as Creators from './creators'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus} from '../config'
+import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {devicesTab, loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
+import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {load as loadDevices} from '../devices'
+import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
+import {deletePushTokenSaga} from '../push'
+import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -23,16 +27,19 @@ import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, AsyncAction, TypedAction} from '../../constants/types/flux'
+import type {Dispatch, AsyncAction} from '../../constants/types/flux'
 import type {SagaGenerator, AfterSelect} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-const InputCancelError = {code: Types.ConstantsStatusCode.scinputcanceled, desc: 'Cancel Login'}
+const InputCancelError = {
+  code: Types.ConstantsStatusCode.scinputcanceled,
+  desc: 'Cancel Login',
+}
 
 const codePageSelector = ({login: {codePage}}: TypedState) => codePage
 
-function * generateQRCode () {
+function* generateQRCode() {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
 
   if (codePage.textCode) {
@@ -42,21 +49,23 @@ function * generateQRCode () {
 
 // TODO add waiting handlers
 // TODO sagaize
-const waitingForResponse = (waiting: boolean) : TypedAction<'login:waitingForResponse', boolean, void> => (
-  {payload: waiting, type: Constants.waitingForResponse}
-)
+const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} => ({
+  waitingHandler: (waiting: boolean) => {
+    dispatch(Creators.waitingForResponse(waiting))
+  },
+})
 
-const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} => (
-  {waitingHandler: (waiting: boolean) => { dispatch(waitingForResponse(waiting)) }}
-)
-
-const getAccounts = (): AsyncAction => dispatch => (
+const getAccounts = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     Types.loginGetConfiguredAccountsRpc({
       ...makeWaitingHandler(dispatch),
       callback: (error, accounts) => {
         if (error) {
-          dispatch({error: true, payload: error, type: Constants.configuredAccounts})
+          dispatch({
+            error: true,
+            payload: error,
+            type: Constants.configuredAccounts,
+          })
           reject(error)
           return
         }
@@ -65,9 +74,23 @@ const getAccounts = (): AsyncAction => dispatch => (
       },
     })
   })
-)
 
-function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
+function sagaWaitingDecorator(saga) {
+  return function*(...args) {
+    yield put(Creators.waitingForResponse(false))
+    yield call(saga, ...args)
+    yield put(Creators.waitingForResponse(true))
+  }
+}
+
+function clearWaitingDecorator(saga) {
+  return function*(...args) {
+    yield put(Creators.waitingForResponse(false))
+    yield call(saga, ...args)
+  }
+}
+
+function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
@@ -84,21 +107,28 @@ function * setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function * navBasedOnLoginState () {
-  const selector = ({config: {loggedIn, registered, initialTab, launchedViaPush}, login: {justDeletedSelf}}: TypedState) => ({
+function* navBasedOnLoginState() {
+  const selector = ({
+    config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
+    login: {justDeletedSelf, loginError},
+  }: TypedState) => ({
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
+    loginError,
   })
 
   const {
     loggedIn,
     registered,
     initialTab,
+    initialLink,
     justDeletedSelf,
     launchedViaPush,
+    loginError,
   } = yield select(selector)
 
   if (justDeletedSelf) {
@@ -107,6 +137,9 @@ function * navBasedOnLoginState () {
     if (overrideLoggedInTab) {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
+    } else if (initialLink) {
+      yield put(setInitialLink(null))
+      yield put(appLink(initialLink))
     } else if (initialTab && isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))
@@ -116,268 +149,368 @@ function * navBasedOnLoginState () {
     } else {
       yield put(navigateTo([profileTab]))
     }
-  } else if (registered) { // relogging in
+  } else if (registered) {
+    // relogging in
     yield [put.resolve(getExtendedStatus()), put.resolve(getAccounts())]
     yield put(navigateTo(['login'], [loginTab]))
-  } else { // no idea
+  } else if (loginError) {
+    // show error on login screen
+    yield put(navigateTo(['login'], [loginTab]))
+  } else {
+    // no idea
     yield put(navigateTo([loginTab]))
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => ({
-  'keybase.1.gpgUi.selectKey': selectKeySaga,
-  'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
-  'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
-  'keybase.1.provisionUi.DisplayAndPromptSecret': displayAndPromptSecretSaga(onBackSaga),
-  'keybase.1.provisionUi.DisplaySecretExchanged': passthroughResponseSaga,
-  'keybase.1.provisionUi.PromptNewDeviceName': promptNewDeviceNameSaga(onBackSaga),
-  'keybase.1.provisionUi.ProvisioneeSuccess': passthroughResponseSaga,
-  'keybase.1.provisionUi.ProvisionerSuccess': provisionerSuccessSaga,
-  'keybase.1.provisionUi.chooseDevice': chooseDeviceSaga(onBackSaga),
-  'keybase.1.provisionUi.chooseGPGMethod': chooseGPGMethodSaga(onBackSaga),
-  'keybase.1.secretUi.getPassphrase': getPassphraseSaga(onBackSaga),
-  'finished': finishedSaga,
-})
-
-function * cancelLogin (response) {
-  yield call(navBasedOnLoginState)
-  if (response) {
-    const engineInst = yield call(engine)
-    yield call([engine, engineInst.cancelRPC], response, InputCancelError)
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga, finishedSaga) => {
+  const onBackSagaDecorated = clearWaitingDecorator(onBackSaga)
+  return {
+    'keybase.1.gpgUi.selectKey': sagaWaitingDecorator(selectKeySaga),
+    'keybase.1.loginUi.displayPrimaryPaperKey': sagaWaitingDecorator(
+      displayPrimaryPaperKeySaga(onBackSagaDecorated)
+    ),
+    'keybase.1.loginUi.getEmailOrUsername': sagaWaitingDecorator(getEmailOrUsernameSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.DisplayAndPromptSecret': sagaWaitingDecorator(
+      displayAndPromptSecretSaga(onBackSagaDecorated)
+    ),
+    'keybase.1.provisionUi.DisplaySecretExchanged': sagaWaitingDecorator(passthroughResponseSaga),
+    'keybase.1.provisionUi.PromptNewDeviceName': sagaWaitingDecorator(
+      promptNewDeviceNameSaga(onBackSagaDecorated)
+    ),
+    'keybase.1.provisionUi.ProvisioneeSuccess': sagaWaitingDecorator(passthroughResponseSaga),
+    'keybase.1.provisionUi.ProvisionerSuccess': sagaWaitingDecorator(provisionerSuccessSaga),
+    'keybase.1.provisionUi.chooseDevice': sagaWaitingDecorator(chooseDeviceSaga(onBackSagaDecorated)),
+    'keybase.1.provisionUi.chooseGPGMethod': sagaWaitingDecorator(chooseGPGMethodSaga(onBackSagaDecorated)),
+    'keybase.1.secretUi.getPassphrase': sagaWaitingDecorator(getPassphraseSaga(onBackSagaDecorated)),
+    finished: clearWaitingDecorator(finishedSaga),
   }
 }
 
-function result (response, ...args) {
+function* cancelLogin(response) {
+  yield put(navigateTo(['login'], [loginTab]))
+  if (response) {
+    const engineInst = yield call(engine)
+    yield put(Creators.waitingForResponse(true))
+    yield call([engine, engineInst.cancelRPC], response, InputCancelError)
+    yield put(Creators.waitingForResponse(false))
+  }
+}
+
+function result(response, ...args) {
   return call([response, response.result], ...args)
 }
 
-function respondError (response, ...args) {
+function* resultWithWaiting(response, ...args) {
+  yield put(Creators.waitingForResponse(true))
+  yield result(response, ...args)
+  yield put(Creators.waitingForResponse(false))
+}
+
+function respondError(response, ...args) {
   return call([response, response.error], ...args)
 }
 
-function * selectKeySaga ({response}) {
+function* selectKeySaga({response}) {
   yield respondError(response, new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
 }
 
-const displayPrimaryPaperKeySaga = (onBackSaga) => function * ({params: {phrase}, response}) {
-  yield put(navigateAppend([{
-    props: {
-      paperkey: new HiddenString(phrase),
-      title: 'Your new paper key!',
-      waiting: false,
-    },
-    selected: 'success',
-  }], [loginTab, 'login']))
+const displayPrimaryPaperKeySaga = onBackSaga =>
+  function*({params: {phrase}, response}) {
+    yield put(
+      navigateAppend(
+        [
+          {
+            props: {
+              paperkey: new HiddenString(phrase),
+              title: 'Your new paper key!',
+              waiting: false,
+            },
+            selected: 'success',
+          },
+        ],
+        [loginTab, 'login']
+      )
+    )
 
-  const {onBack, onFinish} = yield race({
-    onBack: take(Constants.onBack),
-    onFinish: take(Constants.onFinish),
-  })
+    const {onBack, navUp, onFinish} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onFinish: take(Constants.onFinish),
+    })
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onFinish) {
-    yield result(response)
-  }
-}
-
-const getEmailOrUsernameSaga = (onBackSaga) => function * ({response}) {
-  yield put(navigateAppend([{
-    props: {},
-    selected: 'usernameOrEmail',
-  }], [loginTab, 'login']))
-
-  const {onBack, onSubmit} = yield race({
-    onBack: take(Constants.onBack),
-    onSubmit: take(Constants.submitUsernameOrEmail),
-  })
-
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onSubmit) {
-    const usernameOrEmail = onSubmit.payload.usernameOrEmail
-    if (!usernameOrEmail) {
-      console.error('no email')
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onFinish) {
+      yield call(resultWithWaiting, response)
     }
-    yield result(response, usernameOrEmail)
   }
-}
 
-function * passthroughResponseSaga ({response}) {
-  yield result(response)
+const getEmailOrUsernameSaga = onBackSaga =>
+  function*({response}) {
+    yield put(
+      navigateAppend(
+        [
+          {
+            props: {},
+            selected: 'usernameOrEmail',
+          },
+        ],
+        [loginTab, 'login']
+      )
+    )
+
+    const {onBack, navUp, onSubmit} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onSubmit: take(Constants.submitUsernameOrEmail),
+    })
+
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onSubmit) {
+      const usernameOrEmail = onSubmit.payload.usernameOrEmail
+      if (!usernameOrEmail) {
+        console.error('no email')
+      }
+      yield call(resultWithWaiting, response, usernameOrEmail)
+    }
+  }
+
+function* passthroughResponseSaga({response}) {
+  yield call(resultWithWaiting, response)
 }
 
 // TODO type this
 type DisplayAndPromptSecretArgs = any
-const displayAndPromptSecretSaga = (onBackSaga) => function * ({params: {phrase}, response}: DisplayAndPromptSecretArgs) {
-  yield put(Creators.setTextCode(phrase))
-  yield call(generateQRCode)
-  yield put(navigateAppend(['codePage']))
+const displayAndPromptSecretSaga = onBackSaga =>
+  function*({params: {phrase, previousErr}, response}: DisplayAndPromptSecretArgs) {
+    yield put(Creators.setTextCode(phrase, previousErr))
+    yield call(generateQRCode)
 
-  const {textEntered, qrScanned, onBack} = yield race({
-    onBack: take(Constants.onBack),
-    qrScanned: take(Constants.qrScanned),
-    textEntered: take(Constants.provisionTextCodeEntered),
-  })
+    // If we have an error, we're already on the right page.
+    if (!previousErr) {
+      yield put(navigateAppend(['codePage']))
+    }
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (qrScanned || textEntered) {
-    const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
-    yield result(response, {phrase, secret: null})
+    const {textEntered, qrScanned, onBack, navUp} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      qrScanned: take(Constants.qrScanned),
+      textEntered: take(Constants.provisionTextCodeEntered),
+    })
+
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (qrScanned || textEntered) {
+      const phrase = qrScanned ? qrScanned.payload.phrase : textEntered.payload.phrase
+      yield call(resultWithWaiting, response, {phrase, secret: null})
+    }
   }
-}
 
-const promptNewDeviceNameSaga = (onBackSaga) => function * ({params: {existingDevices, errorMessage}, response}) {
-  yield put(navigateAppend([{
-    props: {
-      deviceNameError: errorMessage,
-      existingDevices,
-      onBack: () => onBack(response),
-      onSubmit: deviceName => { response.result(deviceName) },
-    },
-    selected: 'setPublicName',
-  }], [loginTab, 'login']))
+const promptNewDeviceNameSaga = onBackSaga =>
+  function*({params: {existingDevices, errorMessage}, response}) {
+    yield put(
+      navigateAppend(
+        [
+          {
+            props: {
+              deviceNameError: errorMessage,
+              existingDevices,
+              onBack: () => onBack(response),
+              onSubmit: deviceName => {
+                response.result(deviceName)
+              },
+            },
+            selected: 'setPublicName',
+          },
+        ],
+        [loginTab, 'login']
+      )
+    )
 
-  const {onBack, onSubmit} = yield race({
-    onBack: take(Constants.onBack),
-    onSubmit: take(Constants.submitDeviceName),
-  })
+    const {onBack, navUp, onSubmit} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onSubmit: take(Constants.submitDeviceName),
+    })
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onSubmit) {
-    yield result(response, onSubmit.payload.deviceName)
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onSubmit) {
+      yield call(resultWithWaiting, response, onSubmit.payload.deviceName)
+    }
   }
-}
 
-function * provisionerSuccessInLoginSaga ({response}) {
-  yield result(response)
+function* provisionerSuccessInLoginSaga({response}) {
+  yield call(resultWithWaiting, response)
   yield call(navBasedOnLoginState)
 }
 
 // TODO change types in flow-types to generate this
-const chooseDeviceSaga = (onBackSaga) => function * ({params: {devices}, response}: {params: {devices: Array<Types.Device>}, response: any}) {
-  yield put(navigateAppend([{
-    props: {devices},
-    selected: 'selectOtherDevice',
-  }], [loginTab, 'login']))
+const chooseDeviceSaga = onBackSaga =>
+  function*({params: {devices}, response}: {params: {devices: Array<Types.Device>}, response: any}) {
+    yield put(
+      navigateAppend(
+        [
+          {
+            props: {devices},
+            selected: 'selectOtherDevice',
+          },
+        ],
+        [loginTab, 'login']
+      )
+    )
 
-  const {onBack, onWont, onSelect} = yield race({
-    onBack: take(Constants.onBack),
-    onWont: take(Constants.onWont),
-    onSelect: take(Constants.selectDeviceId),
-  })
+    const {onBack, navUp, onWont, onSelect} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onWont: take(Constants.onWont),
+      onSelect: take(Constants.selectDeviceId),
+    })
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onWont) {
-    yield result(response, '')
-  } else if (onSelect) {
-    const deviceID = onSelect.payload.deviceId
-    const device = (devices || []).find(d => d.deviceID === deviceID)
-    if (device) {
-      const role = ({
-        desktop: Constants.codePageDeviceRoleExistingComputer,
-        mobile: Constants.codePageDeviceRoleExistingPhone,
-      }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
-      yield call(setCodePageOtherDeviceRole, role)
-      yield result(response, deviceID)
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onWont) {
+      yield call(resultWithWaiting, response, '')
+    } else if (onSelect) {
+      const deviceID = onSelect.payload.deviceId
+      const device = (devices || []).find(d => d.deviceID === deviceID)
+      if (device) {
+        const role = ({
+          desktop: Constants.codePageDeviceRoleExistingComputer,
+          mobile: Constants.codePageDeviceRoleExistingPhone,
+        }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
+        yield call(setCodePageOtherDeviceRole, role)
+        yield call(resultWithWaiting, response, deviceID)
+      }
     }
   }
-}
 
-const chooseGPGMethodSaga = (onBackSaga) => function * ({response}) {
-  yield put(navigateAppend(['gpgSign'], [loginTab, 'login']))
+const chooseGPGMethodSaga = onBackSaga =>
+  function*({response}) {
+    yield put(navigateAppend(['gpgSign'], [loginTab, 'login']))
 
-  const {onBack, onSubmit} = yield race({
-    onBack: take(Constants.onBack),
-    onSubmit: take(Constants.chooseGPGMethod),
-  })
+    const {onBack, navUp, onSubmit} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onSubmit: take(Constants.chooseGPGMethod),
+    })
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onSubmit) {
-    const exportKey = onSubmit.payload.exportKey
-    yield result(response, exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign)
-  }
-}
-
-const getPassphraseSaga = (onBackSaga) => function * ({params: {pinentry: {type, prompt, username, retryLabel}}, response}) {
-  switch (type) {
-    case Types.PassphraseCommonPassphraseType.paperKey:
-      const destination = {
-        props: {
-          error: retryLabel,
-        },
-        selected: 'paperkey',
-      }
-
-      const currentPath = yield select(pathSelector)
-      if (currentPath.last() === 'paperkey') {
-        yield put(navigateTo(currentPath.pop(1).push(destination)))
-      } else {
-        yield put(navigateAppend([destination], [loginTab, 'login']))
-      }
-      break
-    case Types.PassphraseCommonPassphraseType.passPhrase:
-      yield put(navigateAppend([{
-        props: {
-          error: retryLabel,
-          prompt,
-          username,
-        },
-        selected: 'passphrase',
-      }], [loginTab, 'login']))
-      break
-    default:
-      response.error(new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound))
-      return
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onSubmit) {
+      const exportKey = onSubmit.payload.exportKey
+      yield call(
+        resultWithWaiting,
+        response,
+        exportKey ? Types.ProvisionUiGPGMethod.gpgImport : Types.ProvisionUiGPGMethod.gpgSign
+      )
+    }
   }
 
-  const {onBack, onSubmit} = yield race({
-    onBack: take(Constants.onBack),
-    onSubmit: take(Constants.submitPassphrase),
-  })
+const getPassphraseSaga = onBackSaga =>
+  function*({params: {pinentry: {type, prompt, username, retryLabel}}, response}) {
+    switch (type) {
+      case Types.PassphraseCommonPassphraseType.paperKey:
+        const destination = {
+          props: {
+            error: retryLabel,
+          },
+          selected: 'paperkey',
+        }
 
-  if (onBack) {
-    yield call(onBackSaga, response)
-  } else if (onSubmit) {
-    const passphrase = onSubmit.payload.passphrase.stringValue()
-    // TODO why is store secret always false?
-    const storeSecret = onSubmit.payload.storeSecret
-    yield result(response, {passphrase, storeSecret})
+        const currentPath = yield select(pathSelector)
+        if (currentPath.last() === 'paperkey') {
+          yield put(navigateTo(currentPath.pop(1).push(destination)))
+        } else {
+          yield put(navigateAppend([destination], [loginTab, 'login']))
+        }
+        break
+      case Types.PassphraseCommonPassphraseType.passPhrase:
+        yield put(
+          navigateAppend(
+            [
+              {
+                props: {
+                  error: retryLabel,
+                  prompt,
+                  username,
+                },
+                selected: 'passphrase',
+              },
+            ],
+            [loginTab, 'login']
+          )
+        )
+        break
+      default:
+        response.error(new RPCError('Unknown getPassphrase type', Types.ConstantsStatusCode.scnotfound))
+        return
+    }
+
+    const {onBack, navUp, onSubmit} = yield race({
+      onBack: take(Constants.onBack),
+      navUp: take(RouteConstants.navigateUp),
+      onSubmit: take(Constants.submitPassphrase),
+    })
+
+    if (onBack || navUp) {
+      yield call(onBackSaga, response)
+    } else if (onSubmit) {
+      const passphrase = onSubmit.payload.passphrase.stringValue()
+      // TODO why is store secret always false?
+      const storeSecret = onSubmit.payload.storeSecret
+      yield call(resultWithWaiting, response, {passphrase, storeSecret})
+    }
   }
-}
 
-function loginRpc (channelConfig, usernameOrEmail) {
-  return Types.loginLoginRpcChannelMap(
-    channelConfig,
-    {param: {
+function loginRpc(channelConfig, usernameOrEmail) {
+  return Types.loginLoginRpcChannelMapOld(channelConfig, {
+    param: {
       deviceType,
       usernameOrEmail,
       clientType: Types.CommonClientType.guiMain,
-    }}
+    },
+  })
+}
+
+function addDeviceRpc(channelConfig) {
+  return Types.deviceDeviceAddRpcChannelMapOld(channelConfig, {})
+}
+
+function* handleProvisioningError(error) {
+  yield put(
+    navigateAppend(
+      [
+        {
+          props: {
+            error,
+          },
+          selected: 'error',
+        },
+      ],
+      [loginTab, 'login']
+    )
   )
-}
-
-function addDeviceRpc (channelConfig) {
-  return Types.deviceDeviceAddRpcChannelMap(channelConfig, {})
-}
-
-function * finishLoginSaga ({error, params}) {
-  if (error) {
-    console.log(error)
-    yield put(Creators.loginDone(error))
-  } else {
-    yield put(Creators.loginDone())
-  }
+  yield race({onBack: take(Constants.onBack), navUp: take(RouteConstants.navigateUp)})
   yield call(navBasedOnLoginState)
 }
 
-function * loginFlowSaga (usernameOrEmail) {
+function* finishLoginSaga({error, params}) {
+  if (error) {
+    console.log(error)
+    yield call(handleProvisioningError, error)
+  } else {
+    yield put(Creators.loginDone())
+    yield call(navBasedOnLoginState)
+  }
+}
+
+function* loginFlowSaga(usernameOrEmail) {
   const loginSagas = kex2Sagas(cancelLogin, provisionerSuccessInLoginSaga, finishLoginSaga)
-  const catchError = function * () { yield call(cancelLogin) }
+  const catchError = clearWaitingDecorator(function*() {
+    yield call(cancelLogin)
+  })
 
   const channelConfig = Saga.singleFixedChannelConfig(Object.keys(loginSagas))
   const loginChanMap = yield call(loginRpc, channelConfig, usernameOrEmail)
@@ -391,33 +524,38 @@ function * loginFlowSaga (usernameOrEmail) {
   )
 }
 
-function * initalizeMyCodeStateForLogin () {
+function* initalizeMyCodeStateForLogin() {
   // We can either be a newDevice or an existingDevice. Here in the login
   // flow, let's set ourselves to be a newDevice
-  yield put(Creators.setMyDeviceCodeState(
-    isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer,
-  ))
+  yield put(
+    Creators.setMyDeviceCodeState(
+      isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer
+    )
+  )
 }
 
-function * initalizeMyCodeStateForAddingADevice () {
+function* initalizeMyCodeStateForAddingADevice() {
   // We can either be a newDevice or an existingDevice. Here in the adding a device
   // flow, let's set ourselves to be an existing device
-  yield put(Creators.setMyDeviceCodeState(
-    isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer,
-  ))
+  yield put(
+    Creators.setMyDeviceCodeState(
+      isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer
+    )
+  )
 }
 
-function * startLoginSaga () {
+function* startLoginSaga() {
   yield put(navigateAppend(['usernameOrEmail'], [loginTab, 'login']))
 
   yield call(initalizeMyCodeStateForLogin)
 
-  const {onBack, onSubmit} = yield race({
+  const {onBack, navUp, onSubmit} = yield race({
     onBack: take(Constants.onBack),
+    navUp: take(RouteConstants.navigateUp),
     onSubmit: take(Constants.submitUsernameOrEmail),
   })
 
-  if (onBack) {
+  if (onBack || navUp) {
     yield call(cancelLogin)
   } else if (onSubmit) {
     const usernameOrEmail = onSubmit.payload.usernameOrEmail
@@ -425,7 +563,7 @@ function * startLoginSaga () {
   }
 }
 
-function * cameraBrokenModeSaga ({payload: {broken}}) {
+function* cameraBrokenModeSaga({payload: {broken}}) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
@@ -445,29 +583,31 @@ function * cameraBrokenModeSaga ({payload: {broken}}) {
   yield put(Creators.setCodePageMode(mode))
 }
 
-function * loginSuccess () {
+function* loginSuccess() {
   yield put(Creators.loginDone())
+  yield put(configurePush())
   yield put(loadDevices())
   yield put(bootstrap())
 }
 
-function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
+function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
+  yield put(setDevicesWaiting(true))
   yield call(initalizeMyCodeStateForAddingADevice)
 
-  const onBackSaga = function * (response) {
+  const onBackSaga = function*(response) {
     yield put(loadDevices())
-    yield put(navigateTo([devicesTab]))
+    yield put(navigateTo(devicesTabLocation))
     if (response) {
       const engineInst = yield call(engine)
       yield call([engine, engineInst.cancelRPC], response, InputCancelError)
     }
   }
 
-  const finishedSaga = function * () {
+  const finishedSaga = function*() {
     yield call(onBackSaga)
   }
 
-  const chooseDeviceTypeSaga = function * ({response}) {
+  const chooseDeviceTypeSaga = function*({response}) {
     const deviceTypeMap: {[key: string]: any} = {
       [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
       [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
@@ -475,7 +615,7 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
     const deviceType = deviceTypeMap[role]
 
     yield call(setCodePageOtherDeviceRole, role)
-    yield result(response, deviceType)
+    yield call(resultWithWaiting, response, deviceType)
   }
 
   const addDeviceSagas = {
@@ -492,104 +632,72 @@ function * addNewDeviceSaga ({payload: {role}}: DeviceConstants.AddNewDevice) {
     addDeviceSagas,
     addDeviceChanMap
   )
+
+  yield put(setDevicesWaiting(false))
 }
 
-function * reloginSaga ({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  const finishedSaga = function * ({error}) {
-    if (error) {
-      const message = 'This device is no longer provisioned.'
-      yield put(Creators.loginDone({message}))
-      yield put(Creators.setLoginFromRevokedDevice(message))
-      yield put(navigateTo([loginTab]))
-    } else {
-      yield call(loginSuccess)
-    }
-  }
-
-  const reloginSagas = {
-    'keybase.1.secretUi.getPassphrase': function * ({response}) {
-      yield result(response, {passphrase: passphrase.stringValue(), storeSecret: true})
-    },
-    'finished': finishedSaga,
-  }
-
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(reloginSagas))
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
-    channelConfig,
-    {param: {noPassphrasePrompt: false, username: usernameOrEmail}},
+    ['keybase.1.secretUi.getPassphrase', 'finished'],
+    {param: {noPassphrasePrompt: false, username: usernameOrEmail}}
   )
 
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, reloginSagas, chanMap)
-}
-
-function * submitForgotPasswordSaga () {
-  yield put({payload: undefined, type: Constants.actionSetForgotPasswordSubmitting})
-
-  const sagas = {
-    finished: function * ({error}) {
+  while (true) {
+    const incoming = yield chanMap.race()
+    if (incoming.getPassphrase) {
+      const {response} = (incoming.getPassphrase: any)
+      response.result({passphrase: passphrase.stringValue(), storeSecret: true})
+    } else if (incoming.finished) {
+      const {error} = (incoming.finished: any)
       if (error) {
-        yield put({
-          error: true,
-          payload: error,
-          type: Constants.actionForgotPasswordDone,
-        })
+        const message = error.toString()
+        yield put(Creators.loginDone({message}))
+        if (error.desc === 'No device provisioned locally for this user') {
+          yield put(Creators.setLoginFromRevokedDevice(message))
+          yield put(navigateTo([loginTab]))
+        }
       } else {
-        yield put({
-          error: false,
-          payload: undefined,
-          type: Constants.actionForgotPasswordDone,
-        })
+        yield call(loginSuccess)
       }
-    },
+      break
+    }
   }
-
-  const email = yield select(state => state.login.forgotPasswordEmailAddress)
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginRecoverAccountFromEmailAddressRpcChannelMap(channelConfig, {param: {email}})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
 }
 
-function * openAccountResetPageSaga () {
+function* openAccountResetPageSaga() {
   yield call(openURL, 'https://keybase.io/#password-reset')
 }
 
-function * logoutDoneSaga () {
+function* logoutDoneSaga() {
   yield put({payload: undefined, type: CommonConstants.resetStore})
 
   yield call(navBasedOnLoginState)
   yield put(bootstrap())
 }
 
-function * logoutSaga () {
-  const sagas = {
-    finished: function * ({error}) {
-      if (error) {
-        console.log(error)
-      } else {
-        yield put(Creators.logoutDone())
-      }
-    },
-  }
+function* logoutSaga() {
+  yield call(deletePushTokenSaga)
 
   // Add waiting handler
-  const channelConfig = Saga.singleFixedChannelConfig(Object.keys(sagas))
-  const chanMap = Types.loginLogoutRpcChannelMap(channelConfig, {})
-  yield Saga.mapSagasToChanMap(Saga.safeTakeLatest, sagas, chanMap)
+  const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
+  const incoming = yield chanMap.take('finished')
+  if (incoming.error) {
+    console.log(incoming.error)
+  } else {
+    yield put(Creators.logoutDone())
+  }
 }
 
-function * loginSaga (): SagaGenerator<any, any> {
-  yield [
-    Saga.safeTakeLatest(Constants.startLogin, startLoginSaga),
-    Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga),
-    Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode),
-    Saga.safeTakeLatest(Constants.relogin, reloginSaga),
-    Saga.safeTakeLatest(Constants.submitForgotPassword, submitForgotPasswordSaga),
-    Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga),
-    Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState),
-    Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga),
-    Saga.safeTakeLatest(Constants.logout, logoutSaga),
-    Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga),
-  ]
+function* loginSaga(): SagaGenerator<any, any> {
+  yield Saga.safeTakeLatest(Constants.startLogin, startLoginSaga)
+  yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
+  yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
+  yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
+  yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
+  yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
+  yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)
 }
 
 export default loginSaga

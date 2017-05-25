@@ -13,12 +13,28 @@ import type {Props} from './index'
 
 const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    {props.threadLoadedOffline && (
-      <Box style={{...globalStyles.flexBoxCenter, backgroundColor: globalColors.black_10, flex: 1, maxHeight: globalMargins.large}}>
-        <Text style={{textAlign: 'center'}} type='BodySmallSemibold'>Couldn't load all chat messages due to network connectivity. Retrying...</Text>
-      </Box>
-    )}
-    <Header sidePanelOpen={props.sidePanelOpen} onToggleSidePanel={props.onToggleSidePanel} onBack={props.onBack} />
+    {props.threadLoadedOffline &&
+      <Box
+        style={{
+          ...globalStyles.flexBoxCenter,
+          backgroundColor: globalColors.grey,
+          flex: 1,
+          maxHeight: 48,
+          paddingBottom: globalMargins.tiny,
+          paddingLeft: globalMargins.medium,
+          paddingRight: globalMargins.medium,
+          paddingTop: globalMargins.tiny,
+        }}
+      >
+        <Text style={{textAlign: 'center', color: globalColors.black_40}} type="BodySemibold">
+          Couldn't load all chat messages due to network connectivity. Retrying...
+        </Text>
+      </Box>}
+    <Header
+      sidePanelOpen={props.sidePanelOpen}
+      onToggleSidePanel={props.onToggleSidePanel}
+      onBack={props.onBack}
+    />
     <List
       focusInputCounter={props.focusInputCounter}
       listScrollDownCounter={props.listScrollDownCounter}
@@ -32,10 +48,10 @@ const Conversation = (props: Props) => (
     {props.finalizeInfo
       ? <OldProfileResetNotice />
       : <Input
-        focusInputCounter={props.focusInputCounter}
-        onEditLastMessage={props.onEditLastMessage}
-        onScrollDown={props.onScrollDown}
-      /> }
+          focusInputCounter={props.focusInputCounter}
+          onEditLastMessage={props.onEditLastMessage}
+          onScrollDown={props.onScrollDown}
+        />}
 
     {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
   </Box>

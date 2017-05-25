@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/badges"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
@@ -47,7 +48,8 @@ func TestGregorHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 	h.testingEvents = newTestingEvents()
 	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
 
@@ -117,6 +119,8 @@ func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversation
 		require.Fail(n.t, "thread send timeout")
 	}
 }
+func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
+}
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
 	case n.badgeState <- badgeState:
@@ -181,7 +185,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 	h.testingEvents = newTestingEvents()
 
 	h.PushHandler(idhandler)
@@ -376,7 +381,8 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 	h.testingEvents = newTestingEvents()
 
 	server := newGregordMock(tc.G.Log)
@@ -475,7 +481,7 @@ func TestSyncNonFresh(t *testing.T) {
 	}
 
 	// Turn off fresh replay
-	h.freshReplay = false
+	h.firstConnect = false
 
 	// We should only get half of the messages on a non-fresh sync
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -518,7 +524,8 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -562,10 +569,11 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 
 	// Turn off fresh replay
-	h.freshReplay = false
+	h.firstConnect = false
 
 	// Sync from the server
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
@@ -596,6 +604,14 @@ func TestSyncDismissal(t *testing.T) {
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
 
+type dummyRemoteClient struct {
+	chat1.RemoteClient
+}
+
+func (d dummyRemoteClient) GetUnreadUpdateFull(ctx context.Context, vers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
+	return chat1.UnreadUpdateFull{}, nil
+}
+
 func TestGregorBadgesIBM(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
@@ -622,6 +638,11 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
+	ri := func() chat1.RemoteInterface {
+		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
+	}
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
@@ -633,6 +654,8 @@ func TestGregorBadgesIBM(t *testing.T) {
 	_, _, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
+
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
@@ -720,7 +743,7 @@ func TestSyncDismissalExistingState(t *testing.T) {
 	refConsumeMsgs = append(refConsumeMsgs, dismissal.ToInBandMessage())
 
 	// Sync from the server
-	h.freshReplay = false
+	h.firstConnect = false
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
@@ -755,7 +778,7 @@ func TestSyncFutureDismissals(t *testing.T) {
 	server.ConsumeMessage(context.TODO(), dismissal)
 
 	// Sync from the server
-	h.freshReplay = false
+	h.firstConnect = false
 	replayedMessages, consumedMessages := doServerSync(t, h, server)
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
@@ -774,7 +797,8 @@ func TestBroadcastRepeat(t *testing.T) {
 	}
 
 	var h *gregorHandler
-	h = newGregorHandler(tc.G)
+	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h.Init()
 	h.testingEvents = newTestingEvents()
 
 	m, err := h.templateMessage()

@@ -1,9 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-export type Options =
-    'file'
-  | 'dns'
+export type Options = 'file' | 'dns'
 
 export type Props = {
   onOptionClick: (type: Options) => void,

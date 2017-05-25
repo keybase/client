@@ -13,8 +13,10 @@
 #import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
+#import "RCTLinkingManager.h"
 
 @interface AppDelegate ()
+@property UIBackgroundTaskIdentifier backgroundTask;
 @end
 
 #if TARGET_OS_SIMULATOR
@@ -31,6 +33,7 @@ const BOOL isDebug = NO;
 
 @implementation AppDelegate
 
+
 - (BOOL)addSkipBackupAttributeToItemAtPath:(NSString *) filePathString
 {
   NSURL * URL = [NSURL fileURLWithPath: filePathString];
@@ -40,6 +43,19 @@ const BOOL isDebug = NO;
     NSLog(@"Error excluding %@ from backup %@", [URL lastPathComponent], error);
   }
   return success;
+}
+
+- (void) createBackgroundReadableDirectory:(NSString*) path
+{
+  NSFileManager* fm = [NSFileManager defaultManager];
+  // Setting NSFileProtectionCompleteUntilFirstUserAuthentication makes the directory accessible as long as the user has
+  // unlocked the phone once. The files are still stored on the disk encrypted (note for the chat database, it
+  // means we are encrypting it twice), and are inaccessible otherwise.
+  NSDictionary* noProt = [NSDictionary dictionaryWithObject:NSFileProtectionCompleteUntilFirstUserAuthentication forKey:NSFileProtectionKey];
+  [fm createDirectoryAtPath:path withIntermediateDirectories:YES
+                 attributes:noProt
+                      error:nil];
+  [fm setAttributes:noProt ofItemAtPath:path error:nil];
 }
 
 - (void) setupGo
@@ -54,16 +70,24 @@ const BOOL isDebug = NO;
   NSString * home = NSHomeDirectory();
 
   NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [@"~/Library/Caches/Keybase/ios.log" stringByExpandingTildeInPath];
-  NSString * rnLogFile = [@"~/Library/Caches/Keybase/rn.log" stringByExpandingTildeInPath];
-
+  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
+  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
+  NSString * rnLogFile = [logPath stringByAppendingString:@"/rn.log"];
+  NSFileManager* fm = [NSFileManager defaultManager];
+  
   // Make keybasePath if it doesn't exist
-  [[NSFileManager defaultManager] createDirectoryAtPath:keybasePath
+  [fm createDirectoryAtPath:keybasePath
                             withIntermediateDirectories:YES
-                                             attributes:nil
-                                                  error:nil];
+                            attributes:nil
+                            error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
+  
+  // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
+  [self createBackgroundReadableDirectory:chatLevelDBPath];
+  [self createBackgroundReadableDirectory:levelDBPath];
+  [self createBackgroundReadableDirectory:logPath];
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
@@ -96,7 +120,17 @@ const BOOL isDebug = NO;
   rootViewController.bridge = rootView.bridge;
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
+
   [self.window makeKeyAndVisible];
+
+  // To simplify the cover animation raciness
+  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
+  self.resignImageView.contentMode = UIViewContentModeCenter;
+  self.resignImageView.alpha = 0;
+  self.resignImageView.backgroundColor = [UIColor whiteColor];
+  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
+  [self.window addSubview:self.resignImageView];
+
   return YES;
 }
 
@@ -120,33 +154,78 @@ const BOOL isDebug = NO;
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
 }
+// Require for handling silent notifications
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+
+  // Mark a background task so we don't get insta killed by the OS
+  if (!self.backgroundTask || self.backgroundTask == UIBackgroundTaskInvalid) {
+    self.backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+      [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTask];
+      self.backgroundTask = UIBackgroundTaskInvalid;
+    }];
+  }
+  
+  [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+  completionHandler(UIBackgroundFetchResultNewData);
+  }
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application
-{
-  self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
-  self.resignImageView.contentMode = UIViewContentModeCenter;
-  self.resignImageView.alpha = 0;
-  self.resignImageView.backgroundColor = [UIColor whiteColor];
-  [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
-  [self.window addSubview:self.resignImageView];
+- (void)applicationWillTerminate:(UIApplication *)application {
+  self.window.rootViewController.view.hidden = YES;
+}
 
-  [UIView animateWithDuration:0.5 delay:0.1 options:0 animations:^{
+- (void) hideCover {
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+    self.resignImageView.alpha = 0;
+  } completion:nil];
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application {
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  // Try a nice animation out
+  [UIView animateWithDuration:0.3 delay:0.1 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
     self.resignImageView.alpha = 1;
   } completion:nil];
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+  // Throw away any saved screenshot just in case anyways
+  [application ignoreSnapshotOnNextApplicationLaunch];
+  // Always cancel outstanding animations else they can fight and the timing is very weird
+  [self.resignImageView.layer removeAllAnimations];
+  // Snapshot happens right after this call, force alpha immediately w/o animation else you'll get a half animated overlay
+  self.resignImageView.alpha = 1;
+}
+
+// Sometimes these lifecycle calls can be skipped so try and catch them all
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+  [self hideCover];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+  [self hideCover];
+}
+
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-  [UIView animateWithDuration:0.5 animations:^{
-    self.resignImageView.alpha = 0;
-  } completion:^(BOOL finished) {
-    [self.resignImageView removeFromSuperview];
-  }];
+  return [RCTLinkingManager application:application openURL:url
+                      sourceApplication:sourceApplication annotation:annotation];
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
+ restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
+{
+  return [RCTLinkingManager application:application
+                   continueUserActivity:userActivity
+                     restorationHandler:restorationHandler];
 }
 
 @end

@@ -14,19 +14,34 @@ type Props = {
     broken: boolean,
     isYou: boolean,
   }>,
+  style?: ?Object,
 }
 
-const Participants = ({participants, onShowProfile, onAddParticipant}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
+const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
     {participants.map(info => {
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>
           <Box style={rowStyle}>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                flex: 1,
+                marginRight: globalMargins.tiny,
+              }}
+            >
               <Avatar size={32} username={username} />
-              <Usernames colorFollowing={true} type='BodySemibold' users={[{username, you: isYou, following, broken}]} containerStyle={{marginLeft: 12}} />
-              <Text type='BodySmall' style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>{fullname}</Text>
+              <Usernames
+                colorFollowing={true}
+                type="BodySemibold"
+                users={[{username, you: isYou, following, broken}]}
+                containerStyle={{marginLeft: 12}}
+              />
+              <Text type="BodySmall" style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>
+                {fullname}
+              </Text>
             </Box>
             <Divider style={{marginLeft: 44}} />
           </Box>
@@ -35,8 +50,8 @@ const Participants = ({participants, onShowProfile, onAddParticipant}: Props) =>
     })}
     <ClickableBox onClick={() => onAddParticipant()}>
       <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Icon type='icon-user-add-32' style={{marginRight: 12}} />
-        <Text type='BodyPrimaryLink' onClick={() => onAddParticipant()}>Add another participant</Text>
+        <Icon type="icon-user-add-32" style={{marginRight: 12}} />
+        <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>Add another participant</Text>
       </Box>
     </ClickableBox>
   </Box>

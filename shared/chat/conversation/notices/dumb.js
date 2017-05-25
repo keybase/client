@@ -16,7 +16,7 @@ const baseMock = {
 const oldProfileResetNoticeMap = {
   component: OldProfileResetNotice,
   mocks: {
-    'Normal': {
+    Normal: {
       ...baseMock,
       onOpenNewerConversation: () => console.log('onOpenNewerConversation'),
     },
@@ -26,7 +26,7 @@ const oldProfileResetNoticeMap = {
 const profileResetNoticeMap = {
   component: ProfileResetNotice,
   mocks: {
-    'Normal': {
+    Normal: {
       ...baseMock,
       onOpenOlderConversation: () => console.log('onOpenOlderConversation'),
     },
@@ -36,14 +36,14 @@ const profileResetNoticeMap = {
 const followNoticeMap = {
   component: FollowNotice,
   mocks: {
-    'Normal': baseMock,
+    Normal: baseMock,
   },
 }
 
 const unfollowNoticeMap = {
   component: UnfollowNotice,
   mocks: {
-    'Normal': baseMock,
+    Normal: baseMock,
   },
 }
 

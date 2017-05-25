@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -13,8 +14,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+var maxFetchNum = 10000
+
 type ResultCollector interface {
 	Push(msg chat1.MessageUnboxed)
+	PushPlaceholder(msgID chat1.MessageID) bool
 	Done() bool
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
@@ -24,7 +28,7 @@ type ResultCollector interface {
 }
 
 type Storage struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 
 	engine       storageEngine
@@ -41,9 +45,9 @@ type storageEngine interface {
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) Error
 }
 
-func New(g *libkb.GlobalContext) *Storage {
+func New(g *globals.Context) *Storage {
 	return &Storage{
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
 		breakTracker: newBreakTracker(g),
@@ -79,11 +83,13 @@ func decode(data []byte, res interface{}) error {
 	return err
 }
 
-// simpleResultCollector aggregates all results in a the basic way. It is not thread safe.
+// SimpleResultCollector aggregates all results in a the basic way. It is not thread safe.
 type SimpleResultCollector struct {
 	res    []chat1.MessageUnboxed
 	target int
 }
+
+var _ ResultCollector = (*SimpleResultCollector)(nil)
 
 func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	s.res = append(s.res, msg)
@@ -118,18 +124,24 @@ func (s *SimpleResultCollector) Error(err Error) Error {
 	return err
 }
 
+func (s *SimpleResultCollector) PushPlaceholder(chat1.MessageID) bool {
+	return false
+}
+
 func NewSimpleResultCollector(num int) *SimpleResultCollector {
 	return &SimpleResultCollector{
 		target: num,
 	}
 }
 
-// typedResultCollector aggregates results with a type contraints. It is not thread safe.
+// TypedResultCollector aggregates results with a type contraints. It is not thread safe.
 type TypedResultCollector struct {
 	res         []chat1.MessageUnboxed
 	target, cur int
 	typmap      map[chat1.MessageType]bool
 }
+
+var _ ResultCollector = (*TypedResultCollector)(nil)
 
 func NewTypedResultCollector(num int, typs []chat1.MessageType) *TypedResultCollector {
 	c := TypedResultCollector{
@@ -178,6 +190,41 @@ func (t *TypedResultCollector) Error(err Error) Error {
 	return err
 }
 
+func (t *TypedResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
+	return false
+}
+
+type HoleyResultCollector struct {
+	ResultCollector
+
+	maxHoles, holes int
+}
+
+var _ ResultCollector = (*HoleyResultCollector)(nil)
+
+func NewHoleyResultCollector(maxHoles int, rc ResultCollector) *HoleyResultCollector {
+	return &HoleyResultCollector{
+		ResultCollector: rc,
+		maxHoles:        maxHoles,
+	}
+}
+
+func (h *HoleyResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
+	if h.holes >= h.maxHoles {
+		return false
+	}
+
+	h.ResultCollector.Push(chat1.NewMessageUnboxedWithPlaceholder(chat1.MessageUnboxedPlaceholder{
+		MessageID: msgID,
+	}))
+	h.holes++
+	return true
+}
+
+func (h *HoleyResultCollector) Holes() int {
+	return h.holes
+}
+
 func (s *Storage) MaybeNuke(force bool, err Error, convID chat1.ConversationID, uid gregor1.UID) Error {
 	// Clear index
 	if force || err.ShouldClear() {
@@ -213,7 +260,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	s.Debug(ctx, "Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(ctx, s.G(), DefaultSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -308,11 +355,27 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
+func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination) ResultCollector {
+	var num int
+	if pagination != nil {
+		num = pagination.Num
+	} else {
+		num = maxFetchNum
+	}
+
+	if query != nil && len(query.MessageTypes) > 0 {
+		s.Debug(ctx, "ResultCollectorFromQuery: types: %v", query.MessageTypes)
+		return NewTypedResultCollector(num, query.MessageTypes)
+	}
+	return NewSimpleResultCollector(num)
+}
+
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery,
 	pagination *chat1.Pagination) (chat1.ThreadView, Error) {
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(ctx, s.G(), DefaultSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
 			MiscError{Msg: "unable to get secret key: " + ierr.Error()}
@@ -330,7 +393,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 	var num int
 	if pagination == nil {
 		maxID = msgID
-		num = 10000
+		num = maxFetchNum
 	} else {
 		var pid chat1.MessageID
 		num = pagination.Num
@@ -356,12 +419,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, rc ResultCollector,
 
 	// Figure out how to determine we are done seeking (unless client tells us how to)
 	if rc == nil {
-		if query != nil && len(query.MessageTypes) > 0 {
-			s.Debug(ctx, "Fetch: types: %v", query.MessageTypes)
-			rc = NewTypedResultCollector(num, query.MessageTypes)
-		} else {
-			rc = NewSimpleResultCollector(num)
-		}
+		rc = s.ResultCollectorFromQuery(ctx, query, pagination)
 	}
 	s.Debug(ctx, "Fetch: using result collector: %s", rc)
 
@@ -420,7 +478,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
 
 	// Fetch secret key
-	key, ierr := getSecretBoxKey(ctx, s.G(), DefaultSecretUI)
+	key, ierr := getSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
 	if ierr != nil {
 		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}

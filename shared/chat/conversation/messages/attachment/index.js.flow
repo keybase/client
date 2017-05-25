@@ -21,10 +21,10 @@ export type Props = {
   message: Constants.AttachmentMessage,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
-  onLoadAttachment: () => void,
+  onDownloadAttachment: () => void,
   onAction: (event: any) => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: () => void,
 }
 
-export default class AttachmentMessageComponent extends Component<void, Props, void> { }
+export default class AttachmentMessageComponent extends Component<void, Props, void> {}

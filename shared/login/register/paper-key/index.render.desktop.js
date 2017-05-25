@@ -6,27 +6,24 @@ import {Text, Icon, Input, Button} from '../../../common-adapters'
 
 const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingForResponse}: Props) => {
   return (
-    <Container
-      style={styles.container}
-      onBack={() => onBack()}>
-      <Text type='Header' style={styles.header}>Type in your paper key:</Text>
-      <Icon type='icon-paper-key-48' style={styles.icon} />
+    <Container style={styles.container} onBack={() => onBack()}>
+      <Text type="Header" style={styles.header}>Type in your paper key:</Text>
+      <Icon type="icon-paper-key-48" style={styles.icon} />
       <Input
         autoFocus={true}
         multiline={true}
         rowsMax={3}
         style={styles.input}
         errorText={error}
-        floatingHintTextOverride='Paper key'
-        hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+        floatingHintTextOverride="Paper key"
+        hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
         onEnterKeyDown={() => onSubmit()}
         onChangeText={text => onChangePaperKey(text)}
         value={paperKey}
       />
       <Button
-        label='Continue'
-        type='Primary'
-        style={{alignSelf: 'flex-end'}}
+        label="Continue"
+        type="Primary"
         onClick={() => onSubmit()}
         enabled={paperKey}
         waiting={waitingForResponse}

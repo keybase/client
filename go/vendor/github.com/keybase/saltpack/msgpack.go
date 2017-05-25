@@ -42,5 +42,5 @@ func (r *msgpackStream) Read(i interface{}) (ret packetSeqno, err error) {
 	}
 	ret = r.seqno
 	r.seqno++
-	return ret, err
+	return ret, nil
 }

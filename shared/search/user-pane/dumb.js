@@ -22,6 +22,7 @@ const userPaneBase: UserRenderProps = {
   proofs: proofsDefault,
   trackerState: normal,
   currentlyFollowing: false,
+  onChat: () => console.log('onChat'),
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
@@ -34,8 +35,8 @@ const userPaneBase: UserRenderProps = {
 const dumbMapUser: DumbComponentMap<UserPane> = {
   component: UserPane,
   mocks: {
-    'Unfollowed': userPaneBase,
-    'Loading': {...userPaneBase, loading: true},
+    Unfollowed: userPaneBase,
+    Loading: {...userPaneBase, loading: true},
     'Unfollowed Scrolling': {
       ...userPaneBase,
       parentProps: {
@@ -57,12 +58,12 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
         },
       },
     },
-    'Followed': {
+    Followed: {
       ...userPaneBase,
       proofs: proofsTracked,
       currentlyFollowing: true,
     },
-    'Changed': {
+    Changed: {
       ...userPaneBase,
       proofs: proofsChanged,
       trackerState: error,
@@ -74,7 +75,7 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
 const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
   component: NonUserPane,
   mocks: {
-    'Normal': {
+    Normal: {
       avatar: 'https://pbs.twimg.com/profile_images/648888480974508032/66_cUYfj_400x400.jpg',
       username: 'Snowden',
       fullname: 'Edward Snowden',
@@ -123,14 +124,14 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
 const helpUserPane: DumbComponentMap<Help> = {
   component: Help,
   mocks: {
-    'help': {parentProps: {style: {height: 300}}},
+    help: {parentProps: {style: {height: 300}}},
   },
 }
 
 const loadingPane: DumbComponentMap<Loading> = {
   component: Loading,
   mocks: {
-    'Normal': {
+    Normal: {
       username: 'marcopolo',
     },
   },

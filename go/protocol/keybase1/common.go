@@ -28,6 +28,9 @@ type KID string
 type LinkID string
 type BinaryKID []byte
 type TLFID string
+type TeamID string
+type UserOrTeamID string
+type Seqno int64
 type Bytes32 [32]byte
 type Text struct {
 	Data   string `codec:"data" json:"data"`
@@ -187,20 +190,28 @@ type UserVersionVector struct {
 	LastIdentifiedAt Time  `codec:"lastIdentifiedAt" json:"lastIdentifiedAt"`
 }
 
-type SharedDHKey struct {
-	Gen int `codec:"gen" json:"gen"`
-	Kid KID `codec:"kid" json:"kid"`
+type PerUserKey struct {
+	Gen    int   `codec:"gen" json:"gen"`
+	Seqno  Seqno `codec:"seqno" json:"seqno"`
+	SigKID KID   `codec:"sigKID" json:"sigKID"`
+	EncKID KID   `codec:"encKID" json:"encKID"`
 }
 
 type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
+	EldestSeqno       Seqno             `codec:"eldestSeqno" json:"eldestSeqno"`
 	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 	DeletedDeviceKeys []PublicKey       `codec:"deletedDeviceKeys" json:"deletedDeviceKeys"`
-	SharedDHKeys      []SharedDHKey     `codec:"sharedDHKeys" json:"sharedDHKeys"`
+	PerUserKeys       []PerUserKey      `codec:"perUserKeys" json:"perUserKeys"`
+}
+
+type UserOrTeamLite struct {
+	Id   UserOrTeamID `codec:"id" json:"id"`
+	Name string       `codec:"name" json:"name"`
 }
 
 type RemoteTrack struct {

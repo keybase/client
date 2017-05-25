@@ -5,7 +5,9 @@ package saltpack
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha512"
+	"fmt"
 	"io"
 
 	"golang.org/x/crypto/ed25519"
@@ -13,16 +15,15 @@ import (
 )
 
 type signcryptSealStream struct {
+	version         Version
 	output          io.Writer
 	encoder         encoder
-	header          *SigncryptionHeader
 	encryptionKey   SymmetricKey
 	signingKey      SigningSecretKey
 	senderAnonymous bool
 	keyring         Keyring
 	buffer          bytes.Buffer
-	inblock         []byte
-	headerHash      []byte
+	headerHash      headerHash
 
 	numBlocks encryptionBlockNumber // the lower 64 bits of the nonce
 
@@ -41,8 +42,8 @@ func (sss *signcryptSealStream) Write(plaintext []byte) (int, error) {
 	if ret, sss.err = sss.buffer.Write(plaintext); sss.err != nil {
 		return 0, sss.err
 	}
-	for sss.buffer.Len() >= encryptionBlockSize {
-		sss.err = sss.signcryptBlock()
+	for sss.buffer.Len() > encryptionBlockSize {
+		sss.err = sss.signcryptBlock(false)
 		if sss.err != nil {
 			return 0, sss.err
 		}
@@ -50,30 +51,19 @@ func (sss *signcryptSealStream) Write(plaintext []byte) (int, error) {
 	return ret, nil
 }
 
-func (sss *signcryptSealStream) signcryptBlock() error {
-	var n int
-	var err error
-	n, err = sss.buffer.Read(sss.inblock[:])
-	if err != nil {
-		return err
+func (sss *signcryptSealStream) signcryptBlock(isFinal bool) error {
+	// NOTE: plaintext is a slice into sss.buffer's buffer, so
+	// make sure not to stash it anywhere.
+	plaintext := sss.buffer.Next(encryptionBlockSize)
+	if isFinal && (sss.buffer.Len() != 0) {
+		panic(fmt.Sprintf("isFinal=true and (sss.buffer.Len()=%d != 0)", sss.buffer.Len()))
 	}
-	return sss.signcryptBytes(sss.inblock[0:n])
-}
-
-func (sss *signcryptSealStream) signcryptBytes(b []byte) error {
 
 	if err := sss.numBlocks.check(); err != nil {
 		return err
 	}
 
-	nonce := nonceForChunkSigncryption(sss.numBlocks)
-
-	plaintextHash := sha512.Sum512(b)
-
-	signatureInput := []byte(signatureEncryptedString)
-	signatureInput = append(signatureInput, sss.headerHash...)
-	signatureInput = append(signatureInput, nonce[:]...)
-	signatureInput = append(signatureInput, plaintextHash[:]...)
+	nonce := nonceForChunkSigncryption(sss.headerHash, isFinal, sss.numBlocks)
 
 	// Handle regular signing mode and anonymous mode (where we don't actually
 	// sign anything).
@@ -81,6 +71,8 @@ func (sss *signcryptSealStream) signcryptBytes(b []byte) error {
 	if sss.signingKey == nil {
 		detachedSig = make([]byte, ed25519.SignatureSize)
 	} else {
+		signatureInput := computeSigncryptionSignatureInput(sss.headerHash, nonce, isFinal, plaintext)
+
 		var err error
 		detachedSig, err = sss.signingKey.Sign(signatureInput)
 		if err != nil {
@@ -88,11 +80,16 @@ func (sss *signcryptSealStream) signcryptBytes(b []byte) error {
 		}
 	}
 
-	attachedSig := append(detachedSig, b...)
+	attachedSig := append(detachedSig, plaintext...)
 
-	ciphertext := secretbox.Seal([]byte{}, attachedSig, (*[24]byte)(nonce), (*[32]byte)(&sss.encryptionKey))
+	ciphertext := secretbox.Seal([]byte{}, attachedSig, (*[24]byte)(&nonce), (*[32]byte)(&sss.encryptionKey))
 
-	block := []interface{}{ciphertext}
+	assertEncodedChunkState(sss.version, ciphertext, secretbox.Overhead, uint64(sss.numBlocks), isFinal)
+
+	block := signcryptionBlock{
+		PayloadCiphertext: ciphertext,
+		IsFinal:           isFinal,
+	}
 
 	if err := sss.encoder.Encode(block); err != nil {
 		return err
@@ -126,21 +123,32 @@ func derivedEphemeralKeyFromBoxKeys(public BoxPublicKey, private BoxSecretKey) *
 // and see if it works, but including them adds a bit to anonymity by making
 // box key recipients indistinguishable from symmetric key recipients.
 func keyIdentifierFromDerivedKey(derivedKey *SymmetricKey, recipientIndex uint64) []byte {
-	keyIdentifierDigest := sha512.New()
-	keyIdentifierDigest.Write([]byte("saltpack signcryption derived key identifier\x00"))
+	keyIdentifierDigest := hmac.New(sha512.New, []byte(signcryptionBoxKeyIdentifierContext))
 	keyIdentifierDigest.Write(derivedKey[:])
-	keyIdentifierDigest.Write(nonceForPayloadKeyBoxV2(recipientIndex)[:])
+	nonce := nonceForPayloadKeyBoxV2(recipientIndex)
+	keyIdentifierDigest.Write(nonce[:])
 	return keyIdentifierDigest.Sum(nil)[0:32]
 }
 
-func receiverEntryForBoxKey(receiverBoxKey BoxPublicKey, ephemeralPriv BoxSecretKey, payloadKey SymmetricKey, index uint64) receiverKeys {
-	derivedKey := derivedEphemeralKeyFromBoxKeys(receiverBoxKey, ephemeralPriv)
+// A receiverKeysMaker is either a (wrapped) BoxPublicKey or a
+// ReceiverSymmetricKey.
+type receiverKeysMaker interface {
+	makeReceiverKeys(ephemeralPriv BoxSecretKey, payloadKey SymmetricKey, index uint64) receiverKeys
+}
+
+type receiverBoxKey struct {
+	pk BoxPublicKey
+}
+
+func (r receiverBoxKey) makeReceiverKeys(ephemeralPriv BoxSecretKey, payloadKey SymmetricKey, index uint64) receiverKeys {
+	derivedKey := derivedEphemeralKeyFromBoxKeys(r.pk, ephemeralPriv)
 	identifier := keyIdentifierFromDerivedKey(derivedKey, index)
 
+	nonce := nonceForPayloadKeyBoxV2(index)
 	payloadKeyBox := secretbox.Seal(
 		nil,
 		payloadKey[:],
-		(*[24]byte)(nonceForPayloadKeyBoxV2(index)),
+		(*[24]byte)(&nonce),
 		(*[32]byte)(derivedKey))
 
 	return receiverKeys{
@@ -156,50 +164,63 @@ type ReceiverSymmetricKey struct {
 	Identifier []byte
 }
 
-func receiverEntryForSymmetricKey(receiverSymmetricKey ReceiverSymmetricKey, ephemeralPub BoxPublicKey, payloadKey SymmetricKey, index uint64) receiverKeys {
+func (r ReceiverSymmetricKey) makeReceiverKeys(ephemeralPriv BoxSecretKey, payloadKey SymmetricKey, index uint64) receiverKeys {
 	// Derive a message-specific shared secret by hashing the symmetric key and
 	// the ephemeral public key together. This lets us use nonces that are
 	// simple counters.
-	derivedKeyDigest := sha512.New()
-	derivedKeyDigest.Write([]byte(signcryptionSymmetricKeyContext))
-	derivedKeyDigest.Write(ephemeralPub.ToKID())
-	derivedKeyDigest.Write(receiverSymmetricKey.Key[:])
+	derivedKeyDigest := hmac.New(sha512.New, []byte(signcryptionSymmetricKeyContext))
+	derivedKeyDigest.Write(ephemeralPriv.GetPublicKey().ToKID())
+	derivedKeyDigest.Write(r.Key[:])
 	derivedKey, err := rawBoxKeyFromSlice(derivedKeyDigest.Sum(nil)[0:32])
 	if err != nil {
 		panic(err) // should be statically impossible, if the slice above is the right length
 	}
 
+	nonce := nonceForPayloadKeyBoxV2(index)
 	payloadKeyBox := secretbox.Seal(
 		nil,
 		payloadKey[:],
-		(*[24]byte)(nonceForPayloadKeyBoxV2(index)),
+		(*[24]byte)(&nonce),
 		(*[32]byte)(derivedKey))
 
 	// Unlike the box key case, the identifier is supplied by the caller rather
 	// than computed. (These will be KBFS TLF pseudonyms.)
 	return receiverKeys{
-		ReceiverKID:   receiverSymmetricKey.Identifier,
+		ReceiverKID:   r.Identifier,
 		PayloadKeyBox: payloadKeyBox,
 	}
+}
+
+func shuffleSigncryptionReceivers(receiverBoxKeys []BoxPublicKey, receiverSymmetricKeys []ReceiverSymmetricKey) []receiverKeysMaker {
+	totalLen := len(receiverBoxKeys) + len(receiverSymmetricKeys)
+	order := randomPerm(totalLen)
+	receivers := make([]receiverKeysMaker, totalLen)
+	for i, r := range receiverBoxKeys {
+		receivers[order[i]] = receiverBoxKey{r}
+	}
+
+	for i, r := range receiverSymmetricKeys {
+		receivers[order[len(receiverBoxKeys)+i]] = r
+	}
+	return receivers
 }
 
 // This generates the payload key, and encrypts it for all the different
 // recipients of the two different types. Symmetric key recipients and DH key
 // recipients use different types of identifiers, but they are the same length,
 // and should both be indistinguishable from random noise.
-func (sss *signcryptSealStream) init(receiverBoxKeys []BoxPublicKey, receiverSymmetricKeys []ReceiverSymmetricKey) error {
+func (sss *signcryptSealStream) init(receivers []receiverKeysMaker) error {
 	ephemeralKey, err := sss.keyring.CreateEphemeralKey()
 	if err != nil {
 		return err
 	}
 
-	eh := &SigncryptionHeader{
-		FormatName: SaltpackFormatName,
-		Version:    SaltpackVersion2,
+	eh := SigncryptionHeader{
+		FormatName: FormatName,
+		Version:    sss.version,
 		Type:       MessageTypeSigncryption,
 		Ephemeral:  ephemeralKey.GetPublicKey().ToKID(),
 	}
-	sss.header = eh
 	if err := randomFill(sss.encryptionKey[:]); err != nil {
 		return err
 	}
@@ -207,37 +228,31 @@ func (sss *signcryptSealStream) init(receiverBoxKeys []BoxPublicKey, receiverSym
 	// Prepare the secretbox that contains the sender's public key. If the
 	// sender is anonymous, use an all-zeros key, so that the anonymity bit
 	// doesn't leak out.
+	nonce := nonceForSenderKeySecretBox()
 	if sss.signingKey == nil {
 		// anonymous sender mode, all zeros
-		eh.SenderSecretbox = secretbox.Seal([]byte{}, make([]byte, ed25519.PublicKeySize), (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&sss.encryptionKey))
+		eh.SenderSecretbox = secretbox.Seal([]byte{}, make([]byte, ed25519.PublicKeySize), (*[24]byte)(&nonce), (*[32]byte)(&sss.encryptionKey))
 	} else {
 		// regular sender mode, an actual key
 		signingPublicKeyBytes := sss.signingKey.GetPublicKey().ToKID()
 		if len(signingPublicKeyBytes) != ed25519.PublicKeySize {
 			panic("unexpected signing key length, anonymity bit will leak")
 		}
-		eh.SenderSecretbox = secretbox.Seal([]byte{}, sss.signingKey.GetPublicKey().ToKID(), (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(&sss.encryptionKey))
+		eh.SenderSecretbox = secretbox.Seal([]byte{}, sss.signingKey.GetPublicKey().ToKID(), (*[24]byte)(&nonce), (*[32]byte)(&sss.encryptionKey))
 	}
 
 	// Collect all the recipient identifiers, and encrypt the payload key for
 	// all of them.
-	var recipientIndex uint64
-	for _, receiverBoxKey := range receiverBoxKeys {
-		eh.Receivers = append(eh.Receivers, receiverEntryForBoxKey(receiverBoxKey, ephemeralKey, sss.encryptionKey, recipientIndex))
-		recipientIndex++
-	}
-	for _, receiverSymmetricKey := range receiverSymmetricKeys {
-		eh.Receivers = append(eh.Receivers, receiverEntryForSymmetricKey(receiverSymmetricKey, ephemeralKey.GetPublicKey(), sss.encryptionKey, recipientIndex))
-		recipientIndex++
+	for i, r := range receivers {
+		eh.Receivers = append(eh.Receivers, r.makeReceiverKeys(ephemeralKey, sss.encryptionKey, uint64(i)))
 	}
 
 	// Encode the header to bytes, hash it, then double encode it.
-	headerBytes, err := encodeToBytes(sss.header)
+	headerBytes, err := encodeToBytes(eh)
 	if err != nil {
 		return err
 	}
-	headerHash := sha512.Sum512(headerBytes)
-	sss.headerHash = headerHash[:]
+	sss.headerHash = sha512.Sum512(headerBytes)
 	err = sss.encoder.Encode(headerBytes)
 	if err != nil {
 		return err
@@ -247,17 +262,16 @@ func (sss *signcryptSealStream) init(receiverBoxKeys []BoxPublicKey, receiverSym
 }
 
 func (sss *signcryptSealStream) Close() error {
-	for sss.buffer.Len() > 0 {
-		err := sss.signcryptBlock()
-		if err != nil {
-			return err
-		}
+	err := sss.signcryptBlock(true)
+	if err != nil {
+		return err
 	}
-	return sss.writeFooter()
-}
 
-func (sss *signcryptSealStream) writeFooter() error {
-	return sss.signcryptBytes([]byte{})
+	if sss.buffer.Len() > 0 {
+		panic(fmt.Sprintf("sss.buffer.Len()=%d > 0", sss.buffer.Len()))
+	}
+
+	return nil
 }
 
 // NewSigncryptSealStream creates a stream that consumes plaintext data. It
@@ -269,13 +283,14 @@ func (sss *signcryptSealStream) writeFooter() error {
 // also returns an error if initialization failed.
 func NewSigncryptSealStream(ciphertext io.Writer, keyring Keyring, sender SigningSecretKey, receiverBoxKeys []BoxPublicKey, receiverSymmetricKeys []ReceiverSymmetricKey) (io.WriteCloser, error) {
 	sss := &signcryptSealStream{
+		version:    Version2(),
 		output:     ciphertext,
 		encoder:    newEncoder(ciphertext),
-		inblock:    make([]byte, encryptionBlockSize),
 		signingKey: sender,
 		keyring:    keyring,
 	}
-	err := sss.init(receiverBoxKeys, receiverSymmetricKeys)
+	receivers := shuffleSigncryptionReceivers(receiverBoxKeys, receiverSymmetricKeys)
+	err := sss.init(receivers)
 	return sss, err
 }
 

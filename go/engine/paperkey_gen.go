@@ -23,8 +23,8 @@ type PaperKeyGenArg struct {
 	SigningKey    libkb.GenericKey
 	EncryptionKey libkb.NaclDHKeyPair
 
-	LoginContext    libkb.LoginContext     // optional
-	SharedDHKeyring *libkb.SharedDHKeyring // optional
+	LoginContext   libkb.LoginContext    // optional
+	PerUserKeyring *libkb.PerUserKeyring // optional
 }
 
 // PaperKeyGen is an engine.
@@ -73,14 +73,14 @@ func (e *PaperKeyGen) SigKey() libkb.GenericKey {
 	return e.sigKey
 }
 
-func (e *PaperKeyGen) EncKey() libkb.GenericKey {
+func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 	return e.encKey
 }
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
-	if e.G().Env.GetEnableSharedDH() {
-		err := e.syncSDH(ctx)
+	if e.G().Env.GetSupportPerUserKey() && !e.arg.SkipPush {
+		err := e.syncPUK(ctx)
 		if err != nil {
 			return err
 		}
@@ -119,9 +119,9 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *PaperKeyGen) syncSDH(ctx *Context) error {
-	// Sync the sdh keyring before updating other things.
-	sdhk, err := e.getSharedDHKeyring()
+func (e *PaperKeyGen) syncPUK(ctx *Context) error {
+	// Sync the per-user-key keyring before updating other things.
+	pukring, err := e.getPerUserKeyring()
 	if err != nil {
 		return err
 	}
@@ -130,11 +130,10 @@ func (e *PaperKeyGen) syncSDH(ctx *Context) error {
 		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
 		upak = &tmp
 	}
-	err = sdhk.SyncDuringSignup(ctx.NetContext, e.arg.LoginContext, upak)
+	err = pukring.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)
 	if err != nil {
 		return err
 	}
-	// TODO if SDH_UPGRADE: may want to add a key here.
 	return nil
 }
 
@@ -212,6 +211,7 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, lib
 }
 
 func (e *PaperKeyGen) push(ctx *Context) error {
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push")
 	if e.arg.SkipPush {
 		return nil
 	}
@@ -298,42 +298,52 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	sdhBoxes, err := e.makeSharedDHSecretKeyBoxes(ctx)
-	if err != nil {
-		return err
+	var pukBoxes = []keybase1.PerUserKeyBox{}
+	if e.G().Env.GetSupportPerUserKey() {
+		boxes, err := e.makePerUserKeyBoxes(ctx)
+		if err != nil {
+			return err
+		}
+		pukBoxes = boxes
 	}
 
-	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, sdhBoxes)
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push running delegators")
+	return libkb.DelegatorAggregator(ctx.LoginContext, []libkb.Delegator{sigDel, sigEnc}, nil, pukBoxes, nil)
 }
 
-func (e *PaperKeyGen) makeSharedDHSecretKeyBoxes(ctx *Context) ([]keybase1.SharedDHSecretKeyBox, error) {
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makeSharedDHSecretKeyBoxes(enabled:%v)", e.G().Env.GetEnableSharedDH())
-	var sdhBoxes = []keybase1.SharedDHSecretKeyBox{}
-	if e.G().Env.GetEnableSharedDH() {
-		sdhk, err := e.getSharedDHKeyring()
+func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes(enabled:%v)", e.G().Env.GetSupportPerUserKey())
+	var pukBoxes []keybase1.PerUserKeyBox
+	if e.G().Env.GetSupportPerUserKey() {
+		pukring, err := e.getPerUserKeyring()
 		if err != nil {
 			return nil, err
 		}
-		if !sdhk.HasAnyKeys() {
-			// TODO if SDH_UPGRADE: may want to add a key here.
-		} else {
-			sdhBoxes, err = sdhk.PrepareBoxesForNewDevice(ctx.NetContext,
+		if pukring.HasAnyKeys() {
+			if e.arg.EncryptionKey.IsNil() {
+				return nil, errors.New("missing encryption key for creating paper key")
+			}
+			pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
 				e.encKey,            // receiver key: new paper key enc
 				e.arg.EncryptionKey) // sender key: this device enc
 			if err != nil {
 				return nil, err
 			}
+			pukBoxes = append(pukBoxes, pukBox)
 		}
 	}
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makeSharedDHSecretKeyBoxes -> %v", len(sdhBoxes))
-	return sdhBoxes, nil
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
+	return pukBoxes, nil
 }
 
-func (e *PaperKeyGen) getSharedDHKeyring() (ret *libkb.SharedDHKeyring, err error) {
-	ret = e.arg.SharedDHKeyring
+func (e *PaperKeyGen) getPerUserKeyring() (ret *libkb.PerUserKeyring, err error) {
+	if !e.G().Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
+	}
+	ret = e.arg.PerUserKeyring
 	if ret != nil {
 		return
 	}
-	ret, err = e.G().GetSharedDHKeyring()
+	ret, err = e.G().GetPerUserKeyring()
 	return
 }

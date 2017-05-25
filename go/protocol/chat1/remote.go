@@ -368,6 +368,7 @@ type SyncAllArg struct {
 	Session   gregor1.SessionToken `codec:"session" json:"session"`
 	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
 	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
+	Fresh     bool                 `codec:"fresh" json:"fresh"`
 }
 
 type TlfFinalizeArg struct {
@@ -396,6 +397,13 @@ type PublishSetConversationStatusArg struct {
 	Status ConversationStatus `codec:"status" json:"status"`
 }
 
+type UpdateTypingRemoteArg struct {
+	Uid      gregor1.UID      `codec:"uid" json:"uid"`
+	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Typing   bool             `codec:"typing" json:"typing"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -417,6 +425,7 @@ type RemoteInterface interface {
 	TlfResolve(context.Context, TlfResolveArg) error
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
+	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -743,6 +752,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"updateTypingRemote": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateTypingRemoteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateTypingRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateTypingRemoteArg)(nil), args)
+						return
+					}
+					err = i.UpdateTypingRemote(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -854,5 +879,10 @@ func (c RemoteClient) PublishReadMessage(ctx context.Context, __arg PublishReadM
 
 func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg PublishSetConversationStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.publishSetConversationStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTypingRemoteArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil)
 	return
 }

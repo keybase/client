@@ -6,6 +6,7 @@ import createCachedSelector from 're-reselect'
 import {compose, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {Map} from 'immutable'
+import {formatTimeForMessages} from '../../../../util/timestamp'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'
@@ -13,7 +14,7 @@ import type {OwnProps, StateProps, DispatchProps} from './container'
 
 const getMessage = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.TextMessage) => message,
+  (message: Constants.TextMessage) => message
 )((state, messageKey) => messageKey)
 
 // TODO more reselect?
@@ -35,10 +36,24 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const isFollowing = !!Constants.getFollowingMap(state)[author]
   const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
 
-  const isFirstNewMessage = !!(conversationState && message && conversationState.get('firstNewMessageID') === message.messageID)
+  const isFirstNewMessage = !!(conversationState &&
+    message &&
+    message.messageID &&
+    conversationState.get('firstNewMessageID') === message.messageID)
   const prevMessage = getMessage(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
-  const includeHeader = isFirstNewMessage || !skipMsgHeader
+
+  const firstMessageEver = !prevMessage
+  const firstVisibleMessage = prevMessage && Constants.messageKeyValue(prevMessage.key) === '1'
+  const oldEnough =
+    prevMessage &&
+    prevMessage.timestamp &&
+    message.timestamp &&
+    message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
+  const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
+    ? formatTimeForMessages(message.timestamp)
+    : null
+  const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
   const isEditing = message === Constants.getEditingMessage(state)
 
   return {
@@ -56,12 +71,14 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     isFollowing,
     isRevoked,
     isYou,
+    timestamp,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
-  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) => dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
+    dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
@@ -90,6 +107,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
       dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
     }
   },
+  timestamp: stateProps.timestamp,
 })
 
 export default compose(
@@ -99,9 +117,13 @@ export default compose(
     onShowEditor: props => event => props._onShowEditor(props._message, event),
   }),
   lifecycle({
-    componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props.measure && this.props._editedCount !== prevProps._editedCount) {
-        this.props.measure()
+    componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
+      if (
+        this.props._editedCount !== prevProps._editedCount ||
+        this.props.isFirstNewMessage !== prevProps.isFirstNewMessage ||
+        this.props.timestamp !== prevProps.timestamp
+      ) {
+        this.props.measure && this.props.measure()
       }
     },
   })

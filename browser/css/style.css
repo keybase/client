@@ -1,20 +1,17 @@
-/* Consistent with keybase branding but maybe too obnoxious for reddit users?
-.entry .buttons .keybase-reply a {
-  color: #33a0ff;
-}
-*/
-
-.keybase-reply form {
+li.keybase-reply form {
   overflow: hidden;
   z-index: 9999;
   position: absolute;
+  box-shadow: 3px 3px 13px 0 #a29e9e;
+  border-radius: 4px;
+}
+
+.keybase-reply form {
   display: block !important;
   background: #fff;
   margin-top: 2em;
   width: 500px;
-  border-radius: 4px;
   background-color: #ffffff;
-  box-shadow: 3px 3px 13px 0 #a29e9e;
   white-space: normal !important;
   font-family: 'Open Sans', sans-serif !important;
   font-size: 13px;
@@ -31,7 +28,10 @@
 }
 
 .keybase-reply a {
+  text-decoration: none;
+  font-weight: 600;
   font-size: inherit !important;
+  color: rgba(0, 0, 0, 0.6);
 }
 .keybase-reply a:hover {
   text-decoration: none !important;
@@ -40,6 +40,14 @@
 .keybase-body {
   margin: 24px;
   color: rgba(0, 0, 0, 0.75);
+}
+
+.keybase-success {
+  text-align: center;
+}
+
+.keybase-reply .keybase-success h3 {
+  background: #3dcc8e;
 }
 
 .keybase-error {
@@ -58,13 +66,17 @@
   color: #ff4d61;
 }
 
-.keybase-user {
-  font-weight: bold;
-  padding: 1px;
+.keybase-contact {
+  font-weight: 600;
+  text-align: center;
+}
+.keybase-contact small {
+  display: block;
+  font-weight: inherit;
+  color: rgba(0, 0, 0, 0.4);
 }
 img.keybase-icon {
   height: 32px;
-  margin-bottom: -11px;
   border-radius: 16px;
 }
 .keybase-user span {
@@ -76,8 +88,7 @@ img.keybase-icon {
   color: #888;
 }
 
-.keybase-reply a.reddit-user {
-  /* Mimic normal reddit user tag */
+.keybase-reply a.external-user {
   color: #0079d3 !important;
   padding: 0 !important;
   font-weight: normal !important;
@@ -86,6 +97,10 @@ img.keybase-icon {
 .keybase-reply em {
   font-weight: bold;
   font-style: italic;
+}
+
+.keybase-reply strong {
+  font-weight: 600;
 }
 
 .keybase-reply textarea {
@@ -122,9 +137,8 @@ a.keybase-button {
   color: #fff;
   height: 40px;
   line-height: 40px;
-  font-weight: normal;
+  font-weight: 600;
   font-size: 13px;
-  letter-spacing: 0.3px;
   margin-bottom: 16px;
 }
 
@@ -134,10 +148,11 @@ a.keybase-button {
 
 .keybase-reply h3 img {
   height: 16px;
+  width: 16px;
   margin: 0 6px -2px 0;
 }
 
-.keybase-reply input[type="submit"] {
+.keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
   width: 116px;
   height: 32px;
   border: 0;
@@ -147,28 +162,48 @@ a.keybase-button {
   font-size: 14px;
   font-style: normal;
   font-stretch: normal;
+  font-weight: 600;
   line-height: normal;
-  letter-spacing: 0.3px;
+  cursor: pointer;
 }
 
 .keybase-reply input[type="submit"]:disabled {
   opacity: 0.3;
 }
 
-.keybase-close {
-  display: inline-block;
-  font-size: 20px;
-  font-weight: bold;
+.keybase-reply input[type="button"] {
+  background: #e6e6e6;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+span.keybase-close:hover {
+  color: rgba(0,0,0,0.3);
+}
+span.keybase-close {
   position: absolute;
   padding: 5px;
   top: -10px;
   right: 5px;
+  display: inline-block;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 5px;
   color: rgba(0,0,0,0.2);
   cursor: pointer;
 }
-.keybase-close:hover {
-  color: rgba(0,0,0,0.3);
+span.keybase-close::before {
+  content: "\00d7"; /* multiply sign */
 }
-.keybase-close::before {
-  content: "×";
+
+.keybase-copy {
+  font-family: monospace;
+  white-space: pre;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 2px 2px;
+  cursor: pointer;
+}
+.keybase-copy.copied::after {
+  position: absolute;
+  margin: 3px 0 0 2px;
+  content: "\1f4cb"; /* clipboard */
 }

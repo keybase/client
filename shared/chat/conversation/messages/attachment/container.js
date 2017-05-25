@@ -8,7 +8,6 @@ import {List} from 'immutable'
 import {chatTab} from '../../../../constants/tabs'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
-import {downloadFilePath} from '../../../../util/file'
 import {getPath} from '../../../../route-tree'
 
 import type {OpenInFileUI} from '../../../../constants/kbfs'
@@ -26,39 +25,65 @@ const getProps = createCachedSelector(
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return {
     ...getProps(state, messageKey),
-    routePath: getPath(state.routeTree.routeState, [chatTab]),
+    // We derive the route path instead of having it passed in. We have to ensure its the path of this chat view and not any children so
+    // lets just extract the root path. This makes sure the openInPopup doesn't try and push multiple attachment views if you click quickly
+    routePath: getPath(state.routeTree.routeState, [chatTab]).slice(0, 2),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onLoadAttachment: (selectedConversation, messageID, filename) => {
-    if (selectedConversation && messageID && filename) {
-      dispatch(Creators.loadAttachment(selectedConversation, messageID, downloadFilePath(filename), false, false))
+  _onDownloadAttachment: (selectedConversation, messageID) => {
+    if (selectedConversation && messageID) {
+      dispatch(Creators.saveAttachment(selectedConversation, messageID))
     }
   },
+  _onEnsurePreviewLoaded: (message: Constants.AttachmentMessage) =>
+    dispatch(Creators.loadAttachmentPreview(message)),
   _onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) => dispatch(Creators.openAttachmentPopup(message, routePath)),
+  _onOpenInPopup: (message: Constants.AttachmentMessage, routePath: List<string>) =>
+    dispatch(Creators.openAttachmentPopup(message, routePath)),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure, onAction}, OwnProps) => ({
+const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
   measure,
   onAction,
-  onLoadAttachment: () => { dispatchProps._onLoadAttachment(stateProps.selectedConversation, stateProps.message.messageID, stateProps.message.filename) },
-  onOpenInFileUI: () => { dispatchProps._onOpenInFileUI(stateProps.message.downloadedPath) },
-  onOpenInPopup: () => { dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath) },
+  onEnsurePreviewLoaded: () => {
+    const {message} = stateProps
+    if (message && message.filename && !message.previewPath) {
+      setImmediate(() => dispatchProps._onEnsurePreviewLoaded(message))
+    }
+  },
+  onDownloadAttachment: () => {
+    dispatchProps._onDownloadAttachment(stateProps.selectedConversation, stateProps.message.messageID)
+  },
+  onOpenInFileUI: () => {
+    dispatchProps._onOpenInFileUI(stateProps.message.savedPath)
+  },
+  onOpenInPopup: () => {
+    dispatchProps._onOpenInPopup(stateProps.message, stateProps.routePath)
+  },
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
-    componentDidUpdate: function (prevProps: Props & {_editedCount: number}) {
-      if (this.props.measure &&
-        this.props.message.previewPath !== prevProps.message.previewPath &&
-        !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize)) {
+    componentDidMount: function() {
+      this.props.onEnsurePreviewLoaded()
+    },
+
+    componentDidUpdate: function(prevProps: Props) {
+      if (
+        this.props.measure &&
+        (this.props.message.failureDescription !== prevProps.message.failureDescription ||
+          this.props.message.previewPath !== prevProps.message.previewPath ||
+          !shallowEqual(this.props.message.previewSize !== prevProps.message.previewSize))
+      ) {
         this.props.measure()
       }
+
+      this.props.onEnsurePreviewLoaded()
     },
   })
 )(Attachment)

@@ -38,7 +38,8 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetEnableSharedDH() (bool, bool)
+	GetSupportPerUserKey() (bool, bool)
+	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -247,6 +248,7 @@ type API interface {
 	PostJSON(APIArg) (*APIRes, error)
 	PostDecode(APIArg, APIResponseWrapper) error
 	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
+	Delete(APIArg) (*APIRes, error)
 }
 
 type ExternalAPI interface {

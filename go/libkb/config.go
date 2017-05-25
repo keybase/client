@@ -113,7 +113,11 @@ func (f JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 	return d, true
 }
 
-func (f JSONConfigFile) GetEnableSharedDH() (bool, bool) {
+func (f JSONConfigFile) GetSupportPerUserKey() (bool, bool) {
+	return false, false
+}
+
+func (f JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
 	return false, false
 }
 

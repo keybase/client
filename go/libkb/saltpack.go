@@ -66,18 +66,18 @@ type naclBoxPrecomputedSharedKey [32]byte
 
 var _ saltpack.BoxPrecomputedSharedKey = naclBoxPrecomputedSharedKey{}
 
-func (k naclBoxPrecomputedSharedKey) Unbox(nonce *saltpack.Nonce, msg []byte) (
+func (k naclBoxPrecomputedSharedKey) Unbox(nonce saltpack.Nonce, msg []byte) (
 	[]byte, error) {
 	ret, ok := box.OpenAfterPrecomputation(
-		[]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
+		[]byte{}, msg, (*[24]byte)(&nonce), (*[32]byte)(&k))
 	if !ok {
 		return nil, DecryptionError{}
 	}
 	return ret, nil
 }
 
-func (k naclBoxPrecomputedSharedKey) Box(nonce *saltpack.Nonce, msg []byte) []byte {
-	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(nonce), (*[32]byte)(&k))
+func (k naclBoxPrecomputedSharedKey) Box(nonce saltpack.Nonce, msg []byte) []byte {
+	ret := box.SealAfterPrecomputation([]byte{}, msg, (*[24]byte)(&nonce), (*[32]byte)(&k))
 	return ret
 }
 
@@ -86,17 +86,17 @@ type naclBoxSecretKey NaclDHKeyPair
 var _ saltpack.BoxSecretKey = naclBoxSecretKey{}
 
 func (n naclBoxSecretKey) Box(
-	receiver saltpack.BoxPublicKey, nonce *saltpack.Nonce, msg []byte) []byte {
-	ret := box.Seal([]byte{}, msg, (*[24]byte)(nonce),
+	receiver saltpack.BoxPublicKey, nonce saltpack.Nonce, msg []byte) []byte {
+	ret := box.Seal([]byte{}, msg, (*[24]byte)(&nonce),
 		(*[32]byte)(receiver.ToRawBoxKeyPointer()),
 		(*[32]byte)(n.Private))
 	return ret
 }
 
 func (n naclBoxSecretKey) Unbox(
-	sender saltpack.BoxPublicKey, nonce *saltpack.Nonce, msg []byte) (
+	sender saltpack.BoxPublicKey, nonce saltpack.Nonce, msg []byte) (
 	[]byte, error) {
-	ret, ok := box.Open([]byte{}, msg, (*[24]byte)(nonce),
+	ret, ok := box.Open([]byte{}, msg, (*[24]byte)(&nonce),
 		(*[32]byte)(sender.ToRawBoxKeyPointer()),
 		(*[32]byte)(n.Private))
 	if !ok {

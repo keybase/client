@@ -25,7 +25,8 @@
         "FILE_CREATED_7",
         "FILE_MODIFIED_8",
         "FILE_DELETED_9",
-        "FILE_RENAMED_10"
+        "FILE_RENAMED_10",
+        "INITIALIZED_11"
       ]
     },
     {
@@ -44,7 +45,9 @@
         "OVER_QUOTA_9",
         "NO_SIG_CHAIN_10",
         "TOO_MANY_FOLDERS_11",
-        "EXDEV_NOT_SUPPORTED_12"
+        "EXDEV_NOT_SUPPORTED_12",
+        "DISK_LIMIT_REACHED_13",
+        "DISK_CACHE_ERROR_LOG_SEND_14"
       ]
     },
     {

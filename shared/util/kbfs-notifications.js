@@ -1,6 +1,10 @@
 // @flow
 import _ from 'lodash'
-import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
+import {
+  KbfsCommonFSErrorType,
+  KbfsCommonFSNotificationType,
+  KbfsCommonFSStatusCode,
+} from '../constants/types/flow-types'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
 import type {FSNotification} from '../constants/types/flow-types'
@@ -10,18 +14,20 @@ type DecodedKBFSError = {
   'body': string,
 }
 
-function usernamesForNotification (notification: FSNotification) {
-  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3] || notification.filename).map(i => i.username)
+function usernamesForNotification(notification: FSNotification) {
+  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3] || notification.filename).map(
+    i => i.username
+  )
 }
 
-function tlfForNotification (notification: FSNotification): string {
+function tlfForNotification(notification: FSNotification): string {
   // The notification.filename is canonical platform independent path.
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
   return notification.filename.split(path.sep).slice(0, 4).join(path.sep)
 }
 
-export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
+export function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
   console.log('Notification (kbfs error):', notification)
   const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
@@ -57,22 +63,40 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       }
 
     case KbfsCommonFSErrorType.rekeyNeeded:
-      return notification.params.rekeyself === 'true' ? {
-        title: 'Keybase: Files need to be rekeyed',
-        body: `Please open one of your other computers to unlock ${tlf}`,
-      } : {
-        title: 'Keybase: Friends needed',
-        body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
-      }
-
+      return notification.params.rekeyself === 'true'
+        ? {
+            title: 'Keybase: Files need to be rekeyed',
+            body: `Please open one of your other computers to unlock ${tlf}`,
+          }
+        : {
+            title: 'Keybase: Friends needed',
+            body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
+          }
+    // Aggregate these cases together since they both use the usage/limit calc
     case KbfsCommonFSErrorType.overQuota:
+    case KbfsCommonFSErrorType.diskLimitReached:
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
       const usedPercent = Math.round(100 * usageBytes / limitBytes)
-      return {
-        title: 'Keybase: Out of space',
-        body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+      if (notification.errorType === KbfsCommonFSErrorType.overQuota) {
+        return {
+          title: 'Keybase: Out of space',
+          body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+        }
+      } else {
+        // diskLimitReached
+        if (usageBytes >= 0.99 * limitBytes) {
+          return {
+            title: 'Keybase: Out of temporary space',
+            body: `Keybase is using ${usedPercent}% of its temporary write space (${usedGB}GB), and writes will fail until the data syncs to the remote server.`,
+          }
+        } else {
+          return {
+            title: 'Keybase: Out of temporary space',
+            body: 'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+          }
+        }
       }
 
     default:
@@ -84,31 +108,31 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
 
   // This code came from the kbfs team but this isn't plumbed through the protocol. Leaving this for now
   // if (notification.errorType === KbfsCommonFSErrorType.notImplemented) {
-    // if (notification.feature === '2gbFileLimit') {
-      // return ({
-        // title: 'Keybase: Not yet implemented',
-        // body: `You just tried to write a file larger than 2GB in ${tlf}. This limitation will be removed soon.`
-      // })
-    // } else if (notification.feature === '512kbDirLimit') {
-      // return ({
-        // title: 'Keybase: Not yet implemented',
-        // body: `You just tried to write too many files into ${tlf}. This limitation will be removed soon.`
-      // })
-    // } else {
-      // return ({
-        // title: 'Keybase: Not yet implemented',
-        // body: `You just hit a ${notification.feature} limitation in KBFS. It will be fixed soon.`
-      // })
-    // }
+  // if (notification.feature === '2gbFileLimit') {
+  // return ({
+  // title: 'Keybase: Not yet implemented',
+  // body: `You just tried to write a file larger than 2GB in ${tlf}. This limitation will be removed soon.`
+  // })
+  // } else if (notification.feature === '512kbDirLimit') {
+  // return ({
+  // title: 'Keybase: Not yet implemented',
+  // body: `You just tried to write too many files into ${tlf}. This limitation will be removed soon.`
+  // })
   // } else {
-    // return ({
-      // title: 'Keybase: KBFS error',
-      // body: `${notification.status}`
-    // })
+  // return ({
+  // title: 'Keybase: Not yet implemented',
+  // body: `You just hit a ${notification.feature} limitation in KBFS. It will be fixed soon.`
+  // })
+  // }
+  // } else {
+  // return ({
+  // title: 'Keybase: KBFS error',
+  // body: `${notification.status}`
+  // })
   // }
 }
 
-export function kbfsNotification (notification: FSNotification, notify: any, getState: any) {
+export function kbfsNotification(notification: FSNotification, notify: any, getState: any) {
   const action = {
     [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
     [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
@@ -122,10 +146,24 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     return
   }
 
+  // KBFS fires a notification when it initializes. We prompt the user to log
+  // send if there is an error.
+  if (
+    notification.notificationType === KbfsCommonFSNotificationType.initialized &&
+    notification.statusCode === KbfsCommonFSStatusCode.error &&
+    notification.errorType === KbfsCommonFSErrorType.diskCacheErrorLogSend
+  ) {
+    console.log(`KBFS failed to initialize its disk cache. Please send logs.`)
+    let title = `KBFS: Disk cache not initialized`
+    let body = `Please Send Feedback to Keybase`
+    let rateLimitKey = body
+    notify(title, {body}, 10, rateLimitKey)
+  }
+
   // KBFS fires a notification when it changes state between connected
   // and disconnected (to the mdserver).  For now we just log it.
   if (notification.notificationType === KbfsCommonFSNotificationType.connection) {
-    const state = (notification.statusCode === KbfsCommonFSStatusCode.start) ? 'connected' : 'disconnected'
+    const state = notification.statusCode === KbfsCommonFSStatusCode.start ? 'connected' : 'disconnected'
     console.log(`KBFS is ${state}`)
     return
   }
@@ -140,7 +178,13 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   const isError = notification.statusCode === KbfsCommonFSStatusCode.error
   // Don't show starting or finished, but do show error.
   if (isError) {
-    ({title, body} = decodeKBFSError(user, notification))
+    if (notification.errorType === KbfsCommonFSErrorType.exdevNotSupported) {
+      // Ignored for now.
+      // TODO: implement the special popup window (DESKTOP-3637)
+      return
+    }
+
+    ;({title, body} = decodeKBFSError(user, notification))
     rateLimitKey = body // show unique errors
   } else {
     switch (action) {

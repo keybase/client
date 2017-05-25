@@ -1,0 +1,23 @@
+@namespace("keybase.1")
+
+protocol teams {
+
+  enum TeamRole {
+    NONE_0,
+    OWNER_1,
+    ADMIN_2,
+    WRITER_3,
+    READER_4
+  }
+
+  @lint("ignore")
+  record PerTeamKey {
+      int gen;
+      Seqno seqno;
+      KID sigKID;
+      KID encKID;
+  }
+
+  void teamCreate(int sessionID, string name);
+  void teamGet(int sessionID, string name);
+}

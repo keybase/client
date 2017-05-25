@@ -9,8 +9,10 @@ package libkb
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -32,14 +34,14 @@ func merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
 }
 
 type KeySection struct {
-	Key                   GenericKey
-	EldestKID             keybase1.KID
-	ParentKID             keybase1.KID
-	HasRevSig             bool
-	RevSig                string
-	SigningUser           UserBasic
-	IncludePGPHash        bool
-	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
+	Key                  GenericKey
+	EldestKID            keybase1.KID
+	ParentKID            keybase1.KID
+	HasRevSig            bool
+	RevSig               string
+	SigningUser          UserBasic
+	IncludePGPHash       bool
+	PerUserKeyGeneration keybase1.PerUserKeyGeneration
 }
 
 func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
@@ -71,8 +73,8 @@ func (arg KeySection) ToJSON() (*jsonw.Wrapper, error) {
 		ret.SetKey("username", jsonw.NewString(arg.SigningUser.GetName()))
 	}
 
-	if arg.SharedDHKeyGeneration != 0 {
-		ret.SetKey("generation", jsonw.NewInt(int(arg.SharedDHKeyGeneration)))
+	if arg.PerUserKeyGeneration != 0 {
+		ret.SetKey("generation", jsonw.NewInt(int(arg.PerUserKeyGeneration)))
 	}
 
 	if pgp, ok := arg.Key.(*PGPKeyBundle); ok {
@@ -240,7 +242,7 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 type ProofMetadata struct {
 	Me             *User
 	SigningUser    UserBasic
-	LastSeqno      Seqno
+	Seqno          keybase1.Seqno
 	PrevLinkID     LinkID
 	LinkType       LinkType
 	SigningKey     GenericKey
@@ -248,6 +250,7 @@ type ProofMetadata struct {
 	CreationTime   int64
 	ExpireIn       int
 	IncludePGPHash bool
+	SigVersion     SigVersion
 }
 
 func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error) {
@@ -256,12 +259,21 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 		arg.SigningUser = arg.Me
 	}
 
-	var seqno int
+	var seqno keybase1.Seqno
 	var prev *jsonw.Wrapper
 
-	if arg.LastSeqno > 0 {
-		seqno = int(arg.LastSeqno) + 1
-		prev = jsonw.NewString(arg.PrevLinkID.String())
+	// sanity check the seqno and prev relationship
+	if arg.Seqno > 1 && len(arg.PrevLinkID) == 0 {
+		return nil, fmt.Errorf("can't have a seqno > 1 without a prev value")
+	}
+
+	if arg.Seqno > 0 {
+		seqno = arg.Seqno
+		if arg.Seqno == 1 {
+			prev = jsonw.NewNil()
+		} else {
+			prev = jsonw.NewString(arg.PrevLinkID.String())
+		}
 	} else {
 		lastSeqno := arg.Me.sigChain().GetLastKnownSeqno()
 		lastLink := arg.Me.sigChain().GetLastKnownID()
@@ -269,7 +281,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 			seqno = 1
 			prev = jsonw.NewNil()
 		} else {
-			seqno = int(lastSeqno) + 1
+			seqno = lastSeqno + 1
 			prev = jsonw.NewString(lastLink.String())
 		}
 	}
@@ -288,7 +300,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	ret.SetKey("tag", jsonw.NewString("signature"))
 	ret.SetKey("ctime", jsonw.NewInt64(ctime))
 	ret.SetKey("expire_in", jsonw.NewInt(ei))
-	ret.SetKey("seqno", jsonw.NewInt(seqno))
+	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
 	eldest := arg.Eldest
@@ -298,7 +310,12 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 
 	body := jsonw.NewDictionary()
 
-	body.SetKey("version", jsonw.NewInt(KeybaseSignatureV1))
+	if arg.SigVersion != 0 {
+		body.SetKey("version", jsonw.NewInt(int(arg.SigVersion)))
+	} else {
+		body.SetKey("version", jsonw.NewInt(int(KeybaseSignatureV1)))
+	}
+
 	body.SetKey("type", jsonw.NewString(string(arg.LinkType)))
 
 	key, err := KeySection{
@@ -311,15 +328,16 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 		return nil, err
 	}
 	body.SetKey("key", key)
+	// Capture the most recent Merkle Root, inside of "body"
+	// field.
+	if mr := merkleRootInfo(g); mr != nil {
+		body.SetKey("merkle_root", mr)
+	}
 
 	ret.SetKey("body", body)
 
-	// Capture the most recent Merkle Root and also what kind of client
-	// we're running.
+	// Save what kind of client we're running.
 	ret.SetKey("client", clientInfo(g))
-	if mr := merkleRootInfo(g); mr != nil {
-		ret.SetKey("merkle_root", mr)
-	}
 
 	return
 }
@@ -349,7 +367,7 @@ func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.W
 }
 
 // arg.Me user is used to get the last known seqno in ProofMetadata.
-// If arg.Me == nil, set arg.LastSeqno.
+// If arg.Me == nil, set arg.Seqno.
 func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
@@ -367,8 +385,6 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
-		case DelegationTypeSharedDHKey:
-			keySection.SharedDHKeyGeneration = arg.SharedDHKeyGeneration
 		default:
 			keySection.ParentKID = arg.ExistingKey.GetKID()
 		}
@@ -387,7 +403,7 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 		Eldest:         arg.EldestKID,
 		CreationTime:   arg.Ctime,
 		IncludePGPHash: includePGPHash,
-		LastSeqno:      arg.LastSeqno,
+		Seqno:          arg.Seqno,
 		PrevLinkID:     arg.PrevLinkID,
 	}.ToJSON(arg.G())
 
@@ -566,4 +582,151 @@ func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper
 	settings.SetKey("email", jsonw.NewString(newEmail))
 	body.SetKey("update_settings", settings)
 	return ret, nil
+}
+
+type TeamSection struct {
+	Name    string          `json:"name"`
+	ID      keybase1.TeamID `json:"id"`
+	Members struct {
+		Owner  []NameWithEldestSeqno `json:"owner"`
+		Admin  []NameWithEldestSeqno `json:"admin"`
+		Writer []NameWithEldestSeqno `json:"writer"`
+		Reader []NameWithEldestSeqno `json:"reader"`
+	} `json:"members"`
+	PerTeamKey struct {
+		Generation    int          `json:"generation"`
+		EncryptionKID keybase1.KID `json:"encryption_kid"`
+		SigningKID    keybase1.KID `json:"signing_kid"`
+		// reverse_sig always gets set to null, and the caller has to overwrite it afterwards
+	} `json:"per_team_key"`
+}
+
+func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection) (*jsonw.Wrapper, error) {
+	ret, err := ProofMetadata{
+		Me:         u,
+		LinkType:   LinkTypeTeamRoot,
+		SigningKey: key,
+		Seqno:      1,
+		SigVersion: KeybaseSignatureV2,
+	}.ToJSON(u.G())
+	if err != nil {
+		return nil, err
+	}
+
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
+
+	body := ret.AtKey("body")
+	body.SetKey("team", teamSectionJSON)
+
+	// Non-public links need to explicitly specify a seq_type.
+	ret.SetKey("seq_type", jsonw.NewInt(SeqTypeSemiprivate))
+
+	return ret, nil
+}
+
+// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
+func RootTeamIDFromName(name string) keybase1.TeamID {
+	sum := sha256.Sum256([]byte(strings.ToLower(name)))
+	return keybase1.TeamID(hex.EncodeToString(sum[0:15]) + "24")
+}
+
+type SigMultiItem struct {
+	Sig        string          `json:"sig"`
+	SigningKID keybase1.KID    `json:"signing_kid"`
+	Type       string          `json:"type"`
+	SigInner   string          `json:"sig_inner"`
+	TeamID     keybase1.TeamID `json:"team_id"`
+	PublicKeys struct {
+		Encryption keybase1.KID `json:"encryption"`
+		Signing    keybase1.KID `json:"signing"`
+	} `json:"public_keys"`
+}
+
+// PerUserKeyProof creates a proof introducing a new per-user-key generation.
+// `signingKey` is the key signing in this new key. Not to be confused with the derived per-user-key signing key.
+func PerUserKeyProof(me *User,
+	pukSigKID keybase1.KID,
+	pukEncKID keybase1.KID,
+	generation keybase1.PerUserKeyGeneration,
+	signingKey GenericKey) (*jsonw.Wrapper, error) {
+
+	ret, err := ProofMetadata{
+		Me:         me,
+		LinkType:   LinkTypePerUserKey,
+		SigningKey: signingKey,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	pukSection := jsonw.NewDictionary()
+	pukSection.SetKey("signing_kid", jsonw.NewString(pukSigKID.String()))
+	pukSection.SetKey("encryption_kid", jsonw.NewString(pukEncKID.String()))
+	pukSection.SetKey("generation", jsonw.NewInt(int(generation)))
+	// The caller is responsible for overwriting reverse_sig after signing.
+	pukSection.SetKey("reverse_sig", jsonw.NewNil())
+
+	body := ret.AtKey("body")
+	body.SetKey("per_user_key", pukSection)
+
+	return ret, nil
+}
+
+// Make a per-user key proof with a reverse sig.
+// Modifies the User `me` with a sigchain bump and key delegation.
+// Returns a JSONPayload ready for use in "sigs" in sig/multi.
+func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, generation keybase1.PerUserKeyGeneration,
+	signer GenericKey) (JSONPayload, error) {
+
+	pukSigKey, err := perUserKeySeed.DeriveSigningKey()
+	if err != nil {
+		return nil, err
+	}
+
+	pukEncKey, err := perUserKeySeed.DeriveDHKey()
+	if err != nil {
+		return nil, err
+	}
+
+	// Make reverse sig
+	jwRev, err := PerUserKeyProof(me, pukSigKey.GetKID(), pukEncKey.GetKID(), generation, signer)
+	if err != nil {
+		return nil, err
+	}
+	reverseSig, _, _, err := SignJSON(jwRev, pukSigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sig
+	jw := jwRev
+	jw.SetValueAtPath("body.per_user_key.reverse_sig", jsonw.NewString(reverseSig))
+	sig, sigID, linkID, err := SignJSON(jw, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user locally
+	me.SigChainBump(linkID, sigID)
+	me.localDelegatePerUserKey(keybase1.PerUserKey{
+		Gen:    int(generation),
+		Seqno:  me.GetSigChainLastKnownSeqno(),
+		SigKID: pukSigKey.GetKID(),
+		EncKID: pukEncKey.GetKID(),
+	})
+
+	publicKeysEntry := make(JSONPayload)
+	publicKeysEntry["signing"] = pukSigKey.GetKID().String()
+	publicKeysEntry["encryption"] = pukEncKey.GetKID().String()
+
+	res := make(JSONPayload)
+	res["sig"] = sig
+	res["signing_kid"] = signer.GetKID().String()
+	res["type"] = LinkTypePerUserKey
+	res["public_keys"] = publicKeysEntry
+	return res, nil
 }

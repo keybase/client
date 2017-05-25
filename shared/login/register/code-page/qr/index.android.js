@@ -5,15 +5,18 @@ import React, {Component} from 'react'
 import type {Props} from './index'
 import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
+import {throttle} from 'lodash'
+
+type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 
 type State = {
   permissionGranted: ?boolean,
 }
 
 class QR extends Component<void, Props, State> {
-  state: State;
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
     this.state = {
       permissionGranted: null,
@@ -22,46 +25,59 @@ class QR extends Component<void, Props, State> {
     this.requestCameraPermission()
   }
 
-  async requestCameraPermission () {
+  async requestCameraPermission() {
     try {
-      const granted = await PermissionsAndroid.requestPermission(
-        PermissionsAndroid.PERMISSIONS.CAMERA, {
-          'title': 'Keybase Camera Permission',
-          'message': 'Keybase needs access to your camera so we can scan your codes',
+      const status: PermissionStatus = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Keybase Camera Permission',
+          message: 'Keybase needs access to your camera so we can scan your codes',
         }
       )
 
-      this.setState({permissionGranted: granted})
+      this.setState({permissionGranted: status === 'granted'})
     } catch (err) {
       console.warn(err)
       this.setState({permissionGranted: false})
     }
   }
 
-  render () {
+  _onBarCodeRead = throttle(data => {
+    this.props.onBarCodeRead(data)
+  }, 1000)
+
+  render() {
     if (this.props.scanning) {
       if (this.state.permissionGranted) {
         return (
           <Camera
             style={{...cameraStyle, ...this.props.style}}
             captureAudio={false}
-            ref='cam'
-            onBarCodeRead={data => this.props.onBarCodeRead(data)}>
+            ref="cam"
+            onBarCodeRead={this._onBarCodeRead}
+          >
             {this.props.children}
           </Camera>
         )
       } else {
         if (this.state.permissionGranted === false) {
-          return <Text type='Body'>Couldn't get camera permissions</Text>
+          return (
+            <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
+              <Text type="BodyError" style={{textAlign: 'center'}}>Couldn't get camera permissions.</Text>
+            </Box>
+          )
         } else {
-          return <Text type='Body'>Waiting for permissions</Text>
+          return <Text type="Body">Waiting for permissions</Text>
         }
       }
     } else {
       return (
         <Box style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
           {this.props.children}
-          <NativeImage style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+          <NativeImage
+            style={[{width: 300, height: 300}, this.props.imageStyle]}
+            source={{uri: this.props.qrCode}}
+          />
         </Box>
       )
     }

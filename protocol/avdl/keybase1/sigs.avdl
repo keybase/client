@@ -3,7 +3,7 @@ protocol sigs {
   import idl "common.avdl";
 
   record Sig {
-    int seqno;
+    Seqno seqno;
     SigID sigID;
     string sigIDDisplay;
     string type;

@@ -1,9 +1,8 @@
 // @flow
-
 import {Component} from 'react'
-import type {State} from '../reducers/unlock-folders'
-import type {Device} from '../constants/unlock-folders'
 import HiddenString from '../util/hidden-string'
+
+import type {State, Device} from '../constants/unlock-folders'
 
 export type Props = {
   phase: $PropertyType<State, 'phase'>,
@@ -14,7 +13,7 @@ export type Props = {
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
   paperkeyError: ?string,
   waiting: boolean,
-  onFinish: () => void
+  onFinish: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

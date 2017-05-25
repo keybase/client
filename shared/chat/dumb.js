@@ -80,10 +80,10 @@ const users = [
 ]
 
 const metaData = {
-  'cjb': MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
-  'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
-  'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
-  'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
+  cjb: MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
+  chris: MetaDataRecord({fullname: 'Chris Coyne'}),
+  chrisnojima: MetaDataRecord({fullname: 'Chris Nojima'}),
+  oconnor663: MetaDataRecord({fullname: `Jack O'Connor`}),
 }
 
 const followingMap = {
@@ -217,10 +217,10 @@ const emptyConversationsProps = {
 const header = {
   component: ConversationHeader,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonConvoProps,
     },
-    'Muted': {
+    Muted: {
       ...commonConvoProps,
       muted: true,
     },
@@ -230,7 +230,7 @@ const header = {
 const input = {
   component: ConversationInput,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonConvoProps,
     },
     /* FIXME: causes flaky visdiff
@@ -247,7 +247,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    height: isMobile ? undefined : 500,
+    ...(isMobile ? {flex: 1} : {height: 500}),
   },
 }
 
@@ -260,7 +260,25 @@ const rekeyConvo = (convo, youCanRekey) => ({
         youCanRekey,
       }),
       convo3: new RekeyInfoRecord({
-        rekeyParticipants: List(youCanRekey ? [] : ['jzila', 'cjb', 'oconnor663', 'mpch', '0123456789012', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']),
+        rekeyParticipants: List(
+          youCanRekey
+            ? []
+            : [
+                'jzila',
+                'cjb',
+                'oconnor663',
+                'mpch',
+                '0123456789012',
+                'one',
+                'two',
+                'three',
+                'four',
+                'five',
+                'six',
+                'seven',
+                'eight',
+              ]
+        ),
         youCanRekey,
       }),
     }),
@@ -270,9 +288,11 @@ const rekeyConvo = (convo, youCanRekey) => ({
 const participantRekey = {
   component: ParticipantRekey,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonConvoProps,
-      onUsernameClicked: (user: string) => { console.log(user, 'clicked') },
+      onUsernameClicked: (user: string) => {
+        console.log(user, 'clicked')
+      },
       parentProps: listParentProps,
       rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
@@ -282,9 +302,11 @@ const participantRekey = {
 const youRekey = {
   component: YouRekey,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonConvoProps,
-      onRekey: () => { console.log('Reykey clicked') },
+      onRekey: () => {
+        console.log('Reykey clicked')
+      },
       parentProps: listParentProps,
       rekeyInfo: rekeyConvo(null, false).mockStore.chat.rekeyInfos.get('convo3'),
     },
@@ -294,11 +316,11 @@ const youRekey = {
 const list = {
   component: ConversationList,
   mocks: {
-    'Empty': {
+    Empty: {
       ...emptyConvoProps,
       parentProps: listParentProps,
     },
-    'Normal': {
+    Normal: {
       ...commonConvoProps,
       parentProps: listParentProps,
     },
@@ -311,22 +333,24 @@ const commonSidePanel = {
       width: 320,
     },
   },
-  participants: List(participants.map(p => ({
-    broken: metaData[p].get('brokenTracker'),
-    following: !!followingMap[p],
-    fullname: metaData[p].get('fullname'),
-    isYou: p === 'chris',
-    username: p,
-  }))),
+  participants: List(
+    participants.map(p => ({
+      broken: metaData[p].get('brokenTracker'),
+      following: !!followingMap[p],
+      fullname: metaData[p].get('fullname'),
+      isYou: p === 'chris',
+      username: p,
+    }))
+  ),
 }
 
 const sidePanel = {
   component: ConversationSidePanel,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonSidePanel,
     },
-    'Muted': {
+    Muted: {
       ...commonSidePanel,
       muted: true,
     },
@@ -344,7 +368,7 @@ const inboxParentProps = {
 const conversationsList = {
   component: Inbox,
   mocks: {
-    'Normal': {
+    Normal: {
       ...commonConversationsProps({}),
       parentProps: inboxParentProps,
     },
@@ -352,38 +376,49 @@ const conversationsList = {
       ...commonConversationsProps({selected: 'convo1'}),
       parentProps: inboxParentProps,
     },
-    'SelectedMuted': {
+    SelectedMuted: {
       ...commonConversationsProps({selected: 'convo3'}),
       parentProps: inboxParentProps,
     },
-    'Empty': {
+    Empty: {
       ...emptyConversationsProps,
       parentProps: inboxParentProps,
     },
-    'PartRekey': {
+    PartRekey: {
       ...rekeyConvo('convo3', false),
       parentProps: inboxParentProps,
     },
-    'PartRekeySelected': {
+    PartRekeySelected: {
       ...rekeyConvo('convo1', false),
       parentProps: inboxParentProps,
     },
-    'YouRekey': {
+    YouRekey: {
       ...rekeyConvo('convo3', true),
       parentProps: inboxParentProps,
     },
-    'YouRekeySelected': {
+    YouRekeySelected: {
       ...rekeyConvo('convo1', true),
       parentProps: inboxParentProps,
     },
-    'LongTop': {
+    LongTop: {
       ...commonConversationsProps({
         inbox: List([
           new InboxStateRecord({
             conversationIDKey: 'convo1',
             info: null,
             status: 'unfiled',
-            participants: List(['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']),
+            participants: List([
+              'one',
+              'two',
+              'three',
+              'four',
+              'five',
+              'six',
+              'seven',
+              'eight',
+              'nine',
+              'ten',
+            ]),
             snippet: 'look up!',
             time: now,
             unreadCount: 3,
@@ -392,7 +427,7 @@ const conversationsList = {
       }),
       parentProps: inboxParentProps,
     },
-    'LongBottom': {
+    LongBottom: {
       ...commonConversationsProps({
         inbox: List([
           new InboxStateRecord({
@@ -416,15 +451,21 @@ const brokenTrackerBanner = {
   mocks: {
     'BrokenTracker 1': {
       users: ['jzila'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      onClick: (user: string) => {
+        console.log('Clicked on ', user)
+      },
     },
     'BrokenTracker 2': {
       users: ['jzila', 'cjb'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      onClick: (user: string) => {
+        console.log('Clicked on ', user)
+      },
     },
     'BrokenTracker 3': {
       users: ['jzila', 'cjb', 'bob'],
-      onClick: (user: string) => { console.log('Clicked on ', user) },
+      onClick: (user: string) => {
+        console.log('Clicked on ', user)
+      },
     },
   },
 }
@@ -432,10 +473,12 @@ const brokenTrackerBanner = {
 const errorBanner = {
   component: ErrorBanner,
   mocks: {
-    'Error': {
+    Error: {
       text: 'Some error',
       textLink: 'Some link',
-      textLinkOnClick: () => { console.log('Clicked the text link') },
+      textLinkOnClick: () => {
+        console.log('Clicked the text link')
+      },
     },
   },
 }
@@ -443,9 +486,11 @@ const errorBanner = {
 const inviteBanner = {
   component: InviteBanner,
   mocks: {
-    'Invite': {
+    Invite: {
       inviteLink: 'keybase.io/inv/9999999999',
-      onClickInviteLink: () => { console.log('Clicked the invite link') },
+      onClickInviteLink: () => {
+        console.log('Clicked the invite link')
+      },
       users: ['malg@twitter'],
     },
   },
@@ -454,22 +499,22 @@ const inviteBanner = {
 const infoBanner = {
   component: InfoBanner,
   mocks: {
-    'Info': {
+    Info: {
       text: 'Some info',
     },
   },
 }
 
 export default {
-  'ChatBannerBroken': brokenTrackerBanner,
-  'ChatBannerError': errorBanner,
-  'ChatBannerInfo': infoBanner,
-  'ChatBannerInvite': inviteBanner,
-  'ChatConversationsList': conversationsList,
-  'ChatHeader': header,
-  'ChatInput': input,
-  'ChatList': list,
-  'ChatParticipantRekey': participantRekey,
-  'ChatSidePanel': sidePanel,
-  'YouRekey': youRekey,
+  ChatBannerBroken: brokenTrackerBanner,
+  ChatBannerError: errorBanner,
+  ChatBannerInfo: infoBanner,
+  ChatBannerInvite: inviteBanner,
+  ChatConversationsList: conversationsList,
+  ChatHeader: header,
+  ChatInput: input,
+  ChatList: list,
+  ChatParticipantRekey: participantRekey,
+  ChatSidePanel: sidePanel,
+  YouRekey: youRekey,
 }

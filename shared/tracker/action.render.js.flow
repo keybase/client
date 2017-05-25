@@ -10,6 +10,7 @@ export type ActionProps = {
   currentlyFollowing: boolean,
   username: string,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  onChat: () => void,
   onClose: () => void,
   onIgnore: () => void,
   onFollow: () => void,
@@ -17,4 +18,4 @@ export type ActionProps = {
   onUnfollow: () => void,
 }
 
-export default class ActionRender extends Component<void, ActionProps, void> { }
+export default class ActionRender extends Component<void, ActionProps, void> {}

@@ -1,4 +1,6 @@
 // @flow
+import {mapValues} from 'lodash'
+
 import type {Folder} from '../folders/list'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -70,12 +72,24 @@ export const rpcUpdateTimerSeconds = 60 * 1000
 export const showNonUser = 'tracker:showNonUser'
 
 export const updateFolders = 'tracker:updateFolders'
-export type UpdateFolders = TypedAction<'tracker:updateFolders', {username: string, tlfs: Array<Folder>}, void>
+export type UpdateFolders = TypedAction<
+  'tracker:updateFolders',
+  {username: string, tlfs: Array<Folder>},
+  void
+>
 
-export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpcParam, void>
+export type ShowNonUser = TypedAction<
+  'tracker:showNonUser',
+  identifyUiDisplayTLFCreateWithInviteRpcParam,
+  void
+>
 
 export const pendingIdentify = 'tracker:pendingIdentify'
-export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
+export type PendingIdentify = TypedAction<
+  'tracker:pendingIdentify',
+  {username: string, pending: boolean},
+  void
+>
 export const cacheIdentify = 'tracker:cacheIdentify'
 export type CacheIdentify = TypedAction<'tracker:cacheIdentify', {username: string, goodTill: number}, void>
 
@@ -83,7 +97,11 @@ export const identifyStarted = 'tracker:identifyStarted'
 export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
 
 export const identifyFinished = 'tracker:identifyFinished'
-export type IdentifyFinished = TypedAction<'tracker:identifyFinished', {username: string}, {username: string, error: string}>
+export type IdentifyFinished = TypedAction<
+  'tracker:identifyFinished',
+  {username: string},
+  {username: string, error: string}
+>
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
@@ -96,7 +114,7 @@ export type Proof = {
   profileUrl: ?string,
   name: string,
   state: SimpleProofState,
-  isTracked: bool,
+  isTracked: boolean,
 }
 
 export type OverviewProofState = {
@@ -158,7 +176,7 @@ export type NonUserState = {
 
 export type TrackerOrNonUserState = TrackerState | NonUserState
 
-function isLoading (state: ?TrackerOrNonUserState): boolean {
+function isLoading(state: ?TrackerOrNonUserState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
   // Same with proofs (instead of empty array). So we know the difference between
   // not having data and having empty data.
@@ -175,17 +193,78 @@ function isLoading (state: ?TrackerOrNonUserState): boolean {
   return !state.userInfo || state.userInfo.followersCount === -1
 }
 
-function bufferToNiceHexString (fingerPrint: Buffer): string {
+function bufferToNiceHexString(fingerPrint: Buffer): string {
   try {
     // $FlowIssue
-    return fingerPrint.toString('hex').slice(-16).toUpperCase().match(/(.{4})(.{4})(.{4})(.{4})/).slice(1).join(' ')
+    return fingerPrint
+      .toString('hex')
+      .slice(-16)
+      .toUpperCase()
+      .match(/(.{4})(.{4})(.{4})(.{4})/)
+      .slice(1)
+      .join(' ')
   } catch (_) {
     return ''
   }
 }
 
-export {
-  cachedIdentifyGoodUntil,
-  bufferToNiceHexString,
-  isLoading,
+export type State = {
+  cachedIdentifies: {[key: string]: number}, // good until unix timestamp
+  pendingIdentifies: {[key: string]: boolean},
+  serverStarted: boolean,
+  timerActive: number,
+  trackers: {[key: string]: TrackerOrNonUserState},
+  tracking: Array<{
+    username: string,
+    fullname: string,
+    followsYou: boolean,
+    following: boolean,
+  }>,
 }
+
+const transformProof = p => ({
+  id: p.id,
+  isTracked: p.isTracked,
+  meta: p.meta,
+  state: p.state,
+  type: p.type,
+})
+
+const transformTracker = (state: TrackerOrNonUserState) => {
+  if (state.type === 'tracker') {
+    const s: TrackerState = state
+    return {
+      eldestKidChanged: s.eldestKidChanged,
+      closed: s.closed,
+      currentlyFollowing: s.currentlyFollowing,
+      error: s.error,
+      lastAction: s.lastAction,
+      needTrackTokenDismiss: s.needTrackTokenDismiss,
+      proofs: mapValues(s.proofs, transformProof),
+      reason: s.reason,
+      serverActive: s.serverActive,
+      type: s.type,
+      waiting: s.waiting,
+    }
+  } else {
+    const s: NonUserState = state
+    return {
+      type: s.type,
+      error: s.error,
+      closed: s.closed,
+      reason: s.reason,
+    }
+  }
+}
+
+const stateLoggerTransform = (state: State) => {
+  const out = {
+    ...state,
+    trackers: mapValues(state.trackers, transformTracker),
+    tracking: undefined,
+  }
+
+  return out
+}
+
+export {stateLoggerTransform, cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}

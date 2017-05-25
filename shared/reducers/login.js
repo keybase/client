@@ -2,47 +2,18 @@
 import * as CommonConstants from '../constants/common'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
-import HiddenString from '../util/hidden-string'
-import type {DeviceRole, Mode} from '../constants/login'
 import {fromJS} from 'immutable'
 
-// It's the b64 encoded value used to render the image
-type QRCode = HiddenString
-type Error = string
-
-export type LoginState = {
-  codePage: {
-    cameraBrokenMode: boolean,
-    codeCountDown: number,
-    mode: ?Mode,
-    myDeviceRole: ?DeviceRole,
-    otherDeviceRole: ?DeviceRole,
-    qrCode: ?QRCode,
-    qrScanned: ?QRCode,
-    textCode: ?HiddenString,
-  },
-  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  forgotPasswordEmailAddress: string | '',
-  forgotPasswordError: ?Error,
-  forgotPasswordSubmitting: boolean,
-  forgotPasswordSuccess: boolean,
-  justDeletedSelf: ?string,
-  justLoginFromRevokedDevice: ?boolean,
-  justRevokedSelf: ?string,
-  loginError: ?string,
-  registerUserPassError: ?Error,
-  registerUserPassLoading: boolean,
-  waitingForResponse: boolean,
-}
-
-const initialState: LoginState = {
+const initialState: Constants.State = {
   codePage: {
     cameraBrokenMode: false,
     codeCountDown: 0,
+    enterCodeErrorText: '',
     mode: null,
     myDeviceRole: null,
     otherDeviceRole: null,
     qrCode: null,
+    qrCodeScanned: false,
     qrScanned: null,
     textCode: null,
   },
@@ -65,7 +36,7 @@ const initialState: LoginState = {
   waitingForResponse: false,
 }
 
-export default function (state: LoginState = initialState, action: any): LoginState {
+export default function(state: Constants.State = initialState, action: any): Constants.State {
   let toMerge = null
 
   switch (action.type) {
@@ -87,13 +58,15 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {codePage: {mode: action.payload}}
       break
     case Constants.setTextCode:
-      toMerge = {codePage: {textCode: action.payload.textCode}}
+      toMerge = {
+        codePage: {enterCodeErrorText: action.payload.enterCodeErrorText, textCode: action.payload.textCode},
+      }
       break
     case Constants.setQRCode:
       toMerge = {codePage: {qrCode: action.payload.qrCode}}
       break
     case Constants.qrScanned:
-      toMerge = {codePage: {qrScanned: action.payload}}
+      toMerge = {codePage: {qrCodeScanned: true, qrScanned: action.payload}}
       break
     case Constants.actionUpdateForgotPasswordEmailAddress:
       toMerge = {

@@ -19,24 +19,24 @@ type Delegator struct {
 	Contextified
 
 	// Set these fields
-	NewKey                GenericKey
-	ExistingKey           GenericKey
-	EldestKID             keybase1.KID
-	Me                    *User
-	Expire                int
-	Device                *Device
-	RevSig                string
-	ServerHalf            []byte
-	EncodedPrivateKey     string
-	Ctime                 int64
-	DelegationType        DelegationType
-	Aggregated            bool // During aggregation we skip some steps (posting, updating some state)
-	SharedDHKeyGeneration keybase1.SharedDHKeyGeneration
+	NewKey               GenericKey
+	ExistingKey          GenericKey
+	EldestKID            keybase1.KID
+	Me                   *User
+	Expire               int
+	Device               *Device
+	RevSig               string
+	ServerHalf           []byte
+	EncodedPrivateKey    string
+	Ctime                int64
+	DelegationType       DelegationType
+	Aggregated           bool // During aggregation we skip some steps (posting, updating some state)
+	PerUserKeyGeneration keybase1.PerUserKeyGeneration
 
 	// Optional precalculated values used by KeyProof
-	LastSeqno   Seqno     // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
-	PrevLinkID  LinkID    // kex2 HandleDidCounterSign calculates previous link id without a user
-	SigningUser UserBasic // kex2 doesn't have a full user, but does have basic user info
+	Seqno       keybase1.Seqno // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
+	PrevLinkID  LinkID         // kex2 HandleDidCounterSign calculates previous link id without a user
+	SigningUser UserBasic      // kex2 doesn't have a full user, but does have basic user info
 
 	// Internal fields
 	sig          string
@@ -75,13 +75,13 @@ func (d *Delegator) CheckArgs() (err error) {
 
 	G.Log.Debug("+ Delegator::checkArgs()")
 
+	if d.DelegationType == "" {
+		err = MissingDelegationTypeError{}
+	}
+
 	if d.NewKey == nil {
 		err = NoSecretKeyError{}
 		return
-	}
-
-	if d.DelegationType == "" {
-		err = MissingDelegationTypeError{}
 	}
 
 	if d.ExistingKey != nil {

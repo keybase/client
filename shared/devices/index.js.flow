@@ -14,6 +14,7 @@ export type Props = {
   showRemoveDevicePage: (device: Device) => void,
   showingMenu: boolean,
   showingRevoked: boolean,
+  waitingForServer: boolean,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

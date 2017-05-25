@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import {Box, HeaderHoc} from '../common-adapters/index'
 import SearchBar from './user-search/search-bar'
 import UserGroup from './user-search/user-group'
@@ -13,21 +13,19 @@ import type {Props as UserSearchProps} from './user-search/render'
 import type {Props as UserGroupProps} from './user-search/user-group'
 import type {Props as SearchBarProps} from './user-search/search-bar'
 
-class SearchRender extends Component<void, Props, void> {
-  render () {
-    const userSearchProps: UserSearchProps = this.props
-    const userGroupProps: UserGroupProps = this.props
-    const searchBarProps: SearchBarProps = this.props
+const SearchRender = (props: Props) => {
+  const userSearchProps: UserSearchProps = props
+  const userGroupProps: UserGroupProps = props
+  const searchBarProps: SearchBarProps = props
 
-    return (
-      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <SearchBar {...searchBarProps} />
-          {this.props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
-        </Box>
+  return (
+    <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <SearchBar {...searchBarProps} />
+        {props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
       </Box>
-    )
-  }
+    </Box>
+  )
 }
 
 export default compose(
@@ -40,5 +38,5 @@ export default compose(
       Keyboard.dismiss()
     },
   })),
-  HeaderHoc,
+  HeaderHoc
 )(SearchRender)

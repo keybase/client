@@ -5,10 +5,10 @@ import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-choice'
 
 class ProvePgpChoice extends Component<void, Props, void> {
-  render () {
+  render() {
     return (
-      <StandardScreen onClose={this.props.onCancel} style={{maxWidth: 512}}>
-        <Text style={styleTitle} type='Header'>Add a PGP key</Text>
+      <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>
+        <Text style={styleTitle} type="Header">Add a PGP key</Text>
         <ChoiceList
           options={[
             {
@@ -25,7 +25,12 @@ class ProvePgpChoice extends Component<void, Props, void> {
             },
           ]}
         />
-        <Button style={styleCancelButton} type='Secondary' onClick={() => this.props.onCancel()} label={'Cancel'} />
+        <Button
+          style={styleCancelButton}
+          type="Secondary"
+          onClick={() => this.props.onCancel()}
+          label={'Cancel'}
+        />
       </StandardScreen>
     )
   }

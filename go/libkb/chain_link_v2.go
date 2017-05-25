@@ -3,6 +3,7 @@ package libkb
 import (
 	"encoding/base64"
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -11,6 +12,7 @@ import (
 
 type SigchainV2Type int
 
+// These values must match constants.iced in the proofs library.
 const (
 	SigchainV2TypeNone                        SigchainV2Type = 0
 	SigchainV2TypeEldest                      SigchainV2Type = 1
@@ -26,6 +28,15 @@ const (
 	SigchainV2TypeSibkey                      SigchainV2Type = 11
 	SigchainV2TypeSubkey                      SigchainV2Type = 12
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
+
+	// teams link types
+	SigchainV2TypeTeamRoot             SigchainV2Type = 33
+	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
+	SigchainV2TypeTeamChangeMembership SigchainV2Type = 35
+	SigchainV2TypeTeamRotateKey        SigchainV2Type = 36
+	SigchainV2TypeTeamLeave            SigchainV2Type = 37
+	SigchainV2TypeTeamSubteamHead      SigchainV2Type = 38
+	SigchainV2TypeTeamRenameSubteam    SigchainV2Type = 39
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -37,11 +48,46 @@ func (t SigchainV2Type) NeedsSignature() bool {
 	}
 }
 
+func (t SigchainV2Type) IsTeamType() bool {
+	switch t {
+	case SigchainV2TypeTeamRoot,
+		SigchainV2TypeTeamNewSubteam,
+		SigchainV2TypeTeamChangeMembership,
+		SigchainV2TypeTeamRotateKey,
+		SigchainV2TypeTeamLeave,
+		SigchainV2TypeTeamSubteamHead,
+		SigchainV2TypeTeamRenameSubteam:
+		return true
+	default:
+		return false
+	}
+}
+
+// whether the type can be stubbed for a team member with role
+func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
+	switch role {
+	case keybase1.TeamRole_OWNER:
+		return false
+	case keybase1.TeamRole_ADMIN:
+		return false
+	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
+		switch t {
+		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam:
+			return true
+		default:
+			// disallow stubbing of other including unknown links
+			return false
+		}
+	}
+	// Should never happen. Just disallow stubs.
+	return false
+}
+
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
 	_struct  bool           `codec:",toarray"`
 	Version  int            `codec:"version"`
-	Seqno    Seqno          `codec:"seqno"`
+	Seqno    keybase1.Seqno `codec:"seqno"`
 	Prev     LinkID         `codec:"prev"`
 	Curr     LinkID         `codec:"curr"`
 	LinkType SigchainV2Type `codec:"type"`
@@ -73,6 +119,10 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 
 func (o OuterLinkV2WithMetadata) EncodeStubbed() string {
 	return base64.StdEncoding.EncodeToString(o.raw)
+}
+
+func (o OuterLinkV2WithMetadata) LinkID() LinkID {
+	return ComputeLinkID(o.raw)
 }
 
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
@@ -128,8 +178,13 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 	case "pgp_update":
 		ret = SigchainV2TypePGPUpdate
 	default:
-		ret = SigchainV2TypeNone
-		err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
+		if teamErr == nil {
+			ret = teamRes
+		} else {
+			ret = SigchainV2TypeNone
+			err = ChainLinkError{fmt.Sprintf("Unknown sig v1 type: %s", s)}
+		}
 	}
 
 	if !ret.NeedsSignature() && hasRevocations {
@@ -139,7 +194,30 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 	return ret, err
 }
 
-func (o OuterLinkV2) AssertFields(v int, s Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
+func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
+	switch s {
+	case "team.root":
+		ret = SigchainV2TypeTeamRoot
+	case "team.new_subteam":
+		ret = SigchainV2TypeTeamNewSubteam
+	case "team.change_membership":
+		ret = SigchainV2TypeTeamChangeMembership
+	case "team.rotate_key":
+		ret = SigchainV2TypeTeamRotateKey
+	case "team.leave":
+		ret = SigchainV2TypeTeamLeave
+	case "team.subteam_head":
+		ret = SigchainV2TypeTeamSubteamHead
+	case "team.rename_subteam":
+		ret = SigchainV2TypeTeamRenameSubteam
+	default:
+		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
+	}
+
+	return ret, err
+}
+
+func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
@@ -157,6 +235,19 @@ func (o OuterLinkV2) AssertFields(v int, s Seqno, p LinkID, c LinkID, t Sigchain
 	}
 	if o.LinkType != t {
 		return mkErr("link type: (%d != %d)", o.LinkType, t)
+	}
+	return nil
+}
+
+func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
+	mkErr := func(format string, arg ...interface{}) error {
+		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
+	}
+	if o.Version != v {
+		return mkErr("version field (%d != %d)", o.Version, v)
+	}
+	if o.Seqno != s {
+		return mkErr("seqno field: (%d != %d)", o.Seqno, s)
 	}
 	return nil
 }

@@ -3,7 +3,10 @@ package chat
 import (
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/keybase/client/go/auth"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
@@ -16,14 +19,14 @@ import (
 )
 
 type KBFSTLFInfoSource struct {
+	globals.Contextified
 	utils.DebugLabeler
-	libkb.Contextified
 }
 
-func NewKBFSTLFInfoSource(g *libkb.GlobalContext) *KBFSTLFInfoSource {
+func NewKBFSTLFInfoSource(g *globals.Context) *KBFSTLFInfoSource {
 	return &KBFSTLFInfoSource{
 		DebugLabeler: utils.NewDebugLabeler(g, "KBFSTLFInfoSource", false),
-		Contextified: libkb.NewContextified(g),
+		Contextified: globals.NewContextified(g),
 	}
 }
 
@@ -40,20 +43,32 @@ func (t *KBFSTLFInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 
 func (t *KBFSTLFInfoSource) Lookup(ctx context.Context, tlfName string,
 	visibility chat1.TLFVisibility) (*types.TLFInfo, error) {
-	res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
-	if err != nil {
-		return nil, err
+	var lastErr error
+	for i := 0; i < 5; i++ {
+		res, err := CtxKeyFinder(ctx).Find(ctx, t, tlfName, visibility == chat1.TLFVisibility_PUBLIC)
+		if err != nil {
+			if _, ok := err.(auth.BadKeyError); ok {
+				// BadKeyError could be returned if there is a rekey race, so
+				// we are retrying a few times when that happens
+				lastErr = err
+				time.Sleep(500 * time.Millisecond)
+				continue
+			}
+			return nil, err
+		}
+		info := &types.TLFInfo{
+			ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
+			CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
+			IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
+		}
+		return info, nil
 	}
-	info := &types.TLFInfo{
-		ID:               chat1.TLFID(res.NameIDBreaks.TlfID.ToBytes()),
-		CanonicalName:    res.NameIDBreaks.CanonicalName.String(),
-		IdentifyFailures: res.NameIDBreaks.Breaks.Breaks,
-	}
-	return info, nil
+
+	return nil, lastErr
 }
 
 func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
-	identBehavior, breaks, ok := types.IdentifyMode(ctx)
+	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -61,7 +76,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and GetTLFCryptKeys concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -106,7 +121,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 }
 
 func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
-	identBehavior, breaks, ok := types.IdentifyMode(ctx)
+	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}
@@ -114,7 +129,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
 	// call identifyTLF and CanonicalTLFNameAndIDWithBreaks concurrently:
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 
 	var ib []keybase1.TLFIdentifyFailure
 	group.Go(func() error {
@@ -185,7 +200,7 @@ func (t *KBFSTLFInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.Co
 
 func (t *KBFSTLFInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
 	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx))
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G().GetEnv()))
 	assertions := make(chan string)
 
 	group.Go(func() error {
@@ -258,7 +273,7 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 		NetContext: ctx,
 	}
 
-	eng := engine.NewResolveThenIdentify2(t.G(), &arg)
+	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
 	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {

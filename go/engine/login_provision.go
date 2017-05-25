@@ -19,17 +19,17 @@ import (
 // device.  Only the Login engine should run it.
 type loginProvision struct {
 	libkb.Contextified
-	arg             *loginProvisionArg
-	lks             *libkb.LKSec
-	signingKey      libkb.GenericKey
-	encryptionKey   libkb.NaclDHKeyPair
-	gpgCli          gpgInterface
-	username        string
-	devname         string
-	cleanupOnErr    bool
-	hasPGP          bool
-	hasDevice       bool
-	sharedDHKeyring *libkb.SharedDHKeyring // Created after provisioning. Sent to paperkey gen.
+	arg            *loginProvisionArg
+	lks            *libkb.LKSec
+	signingKey     libkb.GenericKey
+	encryptionKey  libkb.NaclDHKeyPair
+	gpgCli         gpgInterface
+	username       string
+	devname        string
+	cleanupOnErr   bool
+	hasPGP         bool
+	hasDevice      bool
+	perUserKeyring *libkb.PerUserKeyring
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -101,6 +101,13 @@ func (e *loginProvision) Run(ctx *Context) error {
 		}
 	}()
 
+	if e.G().Env.GetSupportPerUserKey() {
+		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
+		if err != nil {
+			return err
+		}
+	}
+
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
 	// through the provisioning options
@@ -119,10 +126,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	if err := e.ensurePaperKey(ctx); err != nil {
-		return err
-	}
-
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
 	}
@@ -130,17 +133,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	e.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	return nil
-}
-
-func saveToSecretStoreWithPassphrase(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, uid keybase1.UID) (err error) {
-	lksec, err := lctx.PassphraseStreamCache().PassphraseStream().ToLKSec(g, uid)
-	if err != nil {
-		return err
-	}
-	if lksec == nil {
-		return errors.New("empty LKSec after login")
-	}
-	return saveToSecretStore(g, lctx, nun, lksec)
 }
 
 func saveToSecretStore(g *libkb.GlobalContext, lctx libkb.LoginContext, nun libkb.NormalizedUsername, lks *libkb.LKSec) (err error) {
@@ -220,6 +212,11 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 					provisionee.AddSecret(ks.Secret())
 				}
 				break
+			} else {
+				// empty secret, so must have been a display-only case.
+				// ok to stop the loop
+				e.G().Log.Debug("login provision DisplayAndPromptSecret returned empty secret, stopping retry loop")
+				break
 			}
 		}
 	}()
@@ -235,10 +232,30 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		// run provisionee
 		ctx.LoginContext = lctx
 		err := RunEngine(provisionee, ctx)
-		if err == nil {
-			saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+		if err != nil {
+			return err
 		}
-		return err
+
+		// TODO this error is being ignored... k?
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), provisionee.GetLKSec())
+
+		e.signingKey, err = provisionee.SigningKey()
+		if err != nil {
+			return err
+		}
+		e.encryptionKey, err = provisionee.EncryptionKey()
+		if err != nil {
+			return err
+		}
+
+		// Load me again so that keys will be up to date.
+		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(*loadArg)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
@@ -358,7 +375,7 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 		}
 
 		u := e.arg.User
-		tmpErr := saveToSecretStoreWithPassphrase(e.G(), lctx, u.GetNormalizedName(), u.GetUID())
+		tmpErr := saveToSecretStore(e.G(), lctx, u.GetNormalizedName(), e.lks)
 		if tmpErr != nil {
 			e.G().Log.Warning("pgpProvision: %s", tmpErr)
 		}
@@ -398,10 +415,11 @@ func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:         e.arg.User,
-		DeviceName: e.devname,
-		DeviceType: e.arg.DeviceType,
-		Lks:        e.lks,
+		Me:             e.arg.User,
+		DeviceName:     e.devname,
+		DeviceType:     e.arg.DeviceType,
+		Lks:            e.lks,
+		PerUserKeyring: e.perUserKeyring,
 	}, nil
 }
 
@@ -481,12 +499,6 @@ func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
-
-	var err error
-	e.sharedDHKeyring, err = libkb.NewSharedDHKeyring(e.G(), e.arg.User.GetUID(), e.G().Env.GetDeviceID())
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -708,6 +720,8 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 			}
 		}
 
+		saveToSecretStore(e.G(), lctx, e.arg.User.GetNormalizedName(), e.lks)
+
 		return nil
 	}
 
@@ -907,6 +921,13 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 
 		// save provisioned device id in the session
 		err = a.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceIDForUsername(e.arg.User.GetNormalizedName()))
+		if err != nil {
+			return
+		}
+
+		// Store the secret.
+		// It is not stored in login_state.go/passphraseLogin because there is no device id at that time.
+		saveToSecretStore(e.G(), a, e.arg.User.GetNormalizedName(), e.lks)
 	}, "makeEldestDevice")
 	if err != nil {
 		return err
@@ -915,29 +936,6 @@ func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 		return aerr
 	}
 	return nil
-}
-
-// ensurePaperKey checks to see if e.user has any paper keys.  If
-// not, it makes one.
-func (e *loginProvision) ensurePaperKey(ctx *Context) error {
-	// see if they have a paper key already
-	cki := e.arg.User.GetComputedKeyInfos()
-	if cki != nil {
-		if len(cki.PaperDevices()) > 0 {
-			return nil
-		}
-	}
-
-	// make one
-	args := &PaperKeyPrimaryArgs{
-		Me:              e.arg.User,
-		SigningKey:      e.signingKey,
-		EncryptionKey:   e.encryptionKey,
-		LoginContext:    nil,
-		SharedDHKeyring: e.sharedDHKeyring,
-	}
-	eng := NewPaperKeyPrimary(e.G(), args)
-	return RunEngine(eng, ctx)
 }
 
 // This is used by SaltpackDecrypt as well.

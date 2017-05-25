@@ -37,9 +37,9 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 	var vs io.Reader
 	var frame saltpack.Frame
 	if sc.Armored {
-		skey, vs, frame, err = saltpack.NewDearmor62VerifyStream(source, kr)
+		skey, vs, frame, err = saltpack.NewDearmor62VerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	} else {
-		skey, vs, err = saltpack.NewVerifyStream(source, kr)
+		skey, vs, err = saltpack.NewVerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
@@ -92,7 +92,7 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 	var skey saltpack.SigningPublicKey
 	if sc.Armored {
 		var brand string
-		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
+		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, string(signature), kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
 			return err
@@ -101,7 +101,7 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 			return err
 		}
 	} else {
-		skey, err = saltpack.VerifyDetachedReader(message, signature, kr)
+		skey, err = saltpack.VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, signature, kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
 			return err

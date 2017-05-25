@@ -289,7 +289,23 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if info != nil {
 			info.LoadedLeaf = true
 		}
-		if leaf.public != nil && leaf.public.Seqno == Seqno(upak.Base.Uvv.SigChain) {
+
+		if leaf.eldest == "" {
+			g.Log.CDebugf(ctx, "%s: cache-hit; but user is nuked, evicting", culDebug(arg.UID))
+
+			// Our cached user turned out to be in reset state (without
+			// current sigchain), remove from cache, and then fall
+			// through. LoadUser shall return an error, which we will
+			// return to the caller.
+			u.Lock()
+			delete(u.m, arg.UID.String())
+			u.Unlock()
+
+			err := u.G().LocalDb.Delete(culDBKey(arg.UID))
+			if err != nil {
+				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.UID, err)
+			}
+		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Base.Uvv.SigChain) {
 			g.Log.CDebugf(ctx, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
 			upak.Base.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
@@ -305,6 +321,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 		arg.SigHints = sigHints
 		arg.MerkleLeaf = leaf
+	} else if arg.CachedOnly {
+		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "no cached user found"}
 	}
 
 	g.Log.CDebugf(ctx, "%s: LoadUser", culDebug(arg.UID))

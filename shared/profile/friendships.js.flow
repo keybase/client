@@ -13,13 +13,14 @@ export type FriendshipUserInfo = {
 export type Tab = 'Followers' | 'Following'
 
 export type Props = {
+  username: string,
   isYou: boolean,
   style?: ?Object,
   currentTab: Tab,
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,
   followers: Array<FriendshipUserInfo>,
-  following: Array<FriendshipUserInfo>
+  following: Array<FriendshipUserInfo>,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> {}

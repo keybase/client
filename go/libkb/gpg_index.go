@@ -302,6 +302,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 		case "uat", "grp": // ignore
 		case "sub", "ssb":
 			err = k.AddSubkey(l)
+		case "rvk": // designated revoker (ignore)
 		default:
 			err = GpgIndexError{l.lineno, fmt.Sprintf("Unknown subfield: %s", f)}
 		}

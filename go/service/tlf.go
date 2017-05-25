@@ -9,9 +9,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -19,15 +19,15 @@ import (
 type tlfHandler struct {
 	*BaseHandler
 	utils.DebugLabeler
-	libkb.Contextified
+	globals.Contextified
 
 	tlfInfoSource types.TLFInfoSource
 }
 
-func newTlfHandler(xp rpc.Transporter, g *libkb.GlobalContext) *tlfHandler {
+func newTlfHandler(xp rpc.Transporter, g *globals.Context) *tlfHandler {
 	return &tlfHandler{
 		BaseHandler:   NewBaseHandler(xp),
-		Contextified:  libkb.NewContextified(g),
+		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "TlfHandler", false),
 		tlfInfoSource: chat.NewKBFSTLFInfoSource(g),
 	}
@@ -37,7 +37,7 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res 
 	defer h.Trace(ctx, func() error { return err },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", arg.TlfName, arg.IdentifyBehavior))()
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
+	ctx = chat.Context(ctx, h.G().GetEnv(), arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
 	return h.tlfInfoSource.CryptKeys(ctx, arg.TlfName)
 }
 
@@ -46,7 +46,7 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", arg.TlfName,
 			arg.IdentifyBehavior))()
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
+	ctx = chat.Context(ctx, h.G().GetEnv(), arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
 	return h.tlfInfoSource.PublicCanonicalTLFNameAndID(ctx, arg.TlfName)
 }
 
@@ -55,6 +55,6 @@ func (h *tlfHandler) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, 
 		fmt.Sprintf("CompleteAndCanonicalizePrivateTlfName(tlf=%s,mode=%v)", arg.TlfName,
 			arg.IdentifyBehavior))()
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
+	ctx = chat.Context(ctx, h.G().GetEnv(), arg.IdentifyBehavior, &breaks, chat.NewIdentifyNotifier(h.G()))
 	return h.tlfInfoSource.CompleteAndCanonicalizePrivateTlfName(ctx, arg.TlfName)
 }

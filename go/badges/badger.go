@@ -6,12 +6,23 @@ package badges
 import (
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/storage"
+	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+type InboxVersionSource interface {
+	GetInboxVersion(context.Context, gregor1.UID) (chat1.InboxVers, error)
+}
+
+type nullInboxVersionSource struct {
+}
+
+func (n nullInboxVersionSource) GetInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
+	return chat1.InboxVers(0), nil
+}
 
 // Badger keeps a BadgeState up to date and broadcasts it to electron.
 // This is the client-specific glue.
@@ -21,14 +32,20 @@ import (
 // - Logout
 type Badger struct {
 	libkb.Contextified
-	badgeState *BadgeState
+	badgeState     *BadgeState
+	iboxVersSource InboxVersionSource
 }
 
 func NewBadger(g *libkb.GlobalContext) *Badger {
 	return &Badger{
-		Contextified: libkb.NewContextified(g),
-		badgeState:   NewBadgeState(g.Log),
+		Contextified:   libkb.NewContextified(g),
+		badgeState:     NewBadgeState(g.Log),
+		iboxVersSource: nullInboxVersionSource{},
 	}
+}
+
+func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
+	b.iboxVersSource = s
 }
 
 func (b *Badger) PushState(state gregor1.State) {
@@ -51,7 +68,7 @@ func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.Inbox
 
 func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	uid := b.G().Env.GetUID()
-	vers, err := storage.NewInbox(b.G(), uid.ToBytes()).Version(ctx)
+	vers, err := b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
 	if err != nil {
 		b.G().Log.Debug("Badger: inboxVersion error: %s", err.Error())
 		return chat1.InboxVers(0)
@@ -59,8 +76,8 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	return vers
 }
 
-func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
-	update *chat1.UnreadUpdateFull) error {
+func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInterface,
+	gcli *grclient.Client, update *chat1.UnreadUpdateFull) error {
 	b.G().Log.Debug("Badger resync req")
 
 	var err error
@@ -68,7 +85,7 @@ func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
 		iboxVersion := b.inboxVersion(ctx)
 		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
 		update = new(chat1.UnreadUpdateFull)
-		*update, err = remoteClient.GetUnreadUpdateFull(ctx, iboxVersion)
+		*update, err = chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
 		if err != nil {
 			b.G().Log.Warning("Badger resync failed: %v", err)
 			return err
@@ -77,7 +94,13 @@ func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient,
 		b.G().Log.Debug("Badger: Resync(): skipping remote call, data previously obtained")
 	}
 
+	state, err := gcli.StateMachineState(nil)
+	if err != nil {
+		b.G().Log.Debug("Badger: Resync(): unable to get state: %s", err.Error())
+		state = gregor1.State{}
+	}
 	b.badgeState.UpdateWithChatFull(*update)
+	b.badgeState.UpdateWithGregor(state)
 	err = b.Send()
 	if err != nil {
 		b.G().Log.Warning("Badger send (resync) failed: %v", err)

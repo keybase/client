@@ -48,6 +48,7 @@ const (
 	FSNotificationType_FILE_MODIFIED   FSNotificationType = 8
 	FSNotificationType_FILE_DELETED    FSNotificationType = 9
 	FSNotificationType_FILE_RENAMED    FSNotificationType = 10
+	FSNotificationType_INITIALIZED     FSNotificationType = 11
 )
 
 var FSNotificationTypeMap = map[string]FSNotificationType{
@@ -62,6 +63,7 @@ var FSNotificationTypeMap = map[string]FSNotificationType{
 	"FILE_MODIFIED":   8,
 	"FILE_DELETED":    9,
 	"FILE_RENAMED":    10,
+	"INITIALIZED":     11,
 }
 
 var FSNotificationTypeRevMap = map[FSNotificationType]string{
@@ -76,6 +78,7 @@ var FSNotificationTypeRevMap = map[FSNotificationType]string{
 	8:  "FILE_MODIFIED",
 	9:  "FILE_DELETED",
 	10: "FILE_RENAMED",
+	11: "INITIALIZED",
 }
 
 func (e FSNotificationType) String() string {
@@ -88,35 +91,39 @@ func (e FSNotificationType) String() string {
 type FSErrorType int
 
 const (
-	FSErrorType_ACCESS_DENIED         FSErrorType = 0
-	FSErrorType_USER_NOT_FOUND        FSErrorType = 1
-	FSErrorType_REVOKED_DATA_DETECTED FSErrorType = 2
-	FSErrorType_NOT_LOGGED_IN         FSErrorType = 3
-	FSErrorType_TIMEOUT               FSErrorType = 4
-	FSErrorType_REKEY_NEEDED          FSErrorType = 5
-	FSErrorType_BAD_FOLDER            FSErrorType = 6
-	FSErrorType_NOT_IMPLEMENTED       FSErrorType = 7
-	FSErrorType_OLD_VERSION           FSErrorType = 8
-	FSErrorType_OVER_QUOTA            FSErrorType = 9
-	FSErrorType_NO_SIG_CHAIN          FSErrorType = 10
-	FSErrorType_TOO_MANY_FOLDERS      FSErrorType = 11
-	FSErrorType_EXDEV_NOT_SUPPORTED   FSErrorType = 12
+	FSErrorType_ACCESS_DENIED             FSErrorType = 0
+	FSErrorType_USER_NOT_FOUND            FSErrorType = 1
+	FSErrorType_REVOKED_DATA_DETECTED     FSErrorType = 2
+	FSErrorType_NOT_LOGGED_IN             FSErrorType = 3
+	FSErrorType_TIMEOUT                   FSErrorType = 4
+	FSErrorType_REKEY_NEEDED              FSErrorType = 5
+	FSErrorType_BAD_FOLDER                FSErrorType = 6
+	FSErrorType_NOT_IMPLEMENTED           FSErrorType = 7
+	FSErrorType_OLD_VERSION               FSErrorType = 8
+	FSErrorType_OVER_QUOTA                FSErrorType = 9
+	FSErrorType_NO_SIG_CHAIN              FSErrorType = 10
+	FSErrorType_TOO_MANY_FOLDERS          FSErrorType = 11
+	FSErrorType_EXDEV_NOT_SUPPORTED       FSErrorType = 12
+	FSErrorType_DISK_LIMIT_REACHED        FSErrorType = 13
+	FSErrorType_DISK_CACHE_ERROR_LOG_SEND FSErrorType = 14
 )
 
 var FSErrorTypeMap = map[string]FSErrorType{
-	"ACCESS_DENIED":         0,
-	"USER_NOT_FOUND":        1,
-	"REVOKED_DATA_DETECTED": 2,
-	"NOT_LOGGED_IN":         3,
-	"TIMEOUT":               4,
-	"REKEY_NEEDED":          5,
-	"BAD_FOLDER":            6,
-	"NOT_IMPLEMENTED":       7,
-	"OLD_VERSION":           8,
-	"OVER_QUOTA":            9,
-	"NO_SIG_CHAIN":          10,
-	"TOO_MANY_FOLDERS":      11,
-	"EXDEV_NOT_SUPPORTED":   12,
+	"ACCESS_DENIED":             0,
+	"USER_NOT_FOUND":            1,
+	"REVOKED_DATA_DETECTED":     2,
+	"NOT_LOGGED_IN":             3,
+	"TIMEOUT":                   4,
+	"REKEY_NEEDED":              5,
+	"BAD_FOLDER":                6,
+	"NOT_IMPLEMENTED":           7,
+	"OLD_VERSION":               8,
+	"OVER_QUOTA":                9,
+	"NO_SIG_CHAIN":              10,
+	"TOO_MANY_FOLDERS":          11,
+	"EXDEV_NOT_SUPPORTED":       12,
+	"DISK_LIMIT_REACHED":        13,
+	"DISK_CACHE_ERROR_LOG_SEND": 14,
 }
 
 var FSErrorTypeRevMap = map[FSErrorType]string{
@@ -133,6 +140,8 @@ var FSErrorTypeRevMap = map[FSErrorType]string{
 	10: "NO_SIG_CHAIN",
 	11: "TOO_MANY_FOLDERS",
 	12: "EXDEV_NOT_SUPPORTED",
+	13: "DISK_LIMIT_REACHED",
+	14: "DISK_CACHE_ERROR_LOG_SEND",
 }
 
 func (e FSErrorType) String() string {

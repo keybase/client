@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,7 +17,7 @@ import (
 func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error) {
 	arg := libkb.DefaultPassphraseArg(g)
 	arg.WindowTitle = "Passphrase"
-	arg.Prompt = "Pick a strong passphrase (12+ characters)"
+	arg.Prompt = fmt.Sprintf("Pick a strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	return promptPassphraseWithArg(g, arg, "Please reenter your passphrase for confirmation")
 }
@@ -25,7 +27,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 	arg := libkb.DefaultPassphraseArg(g)
 	arg.WindowTitle = "Pick a new passphrase"
-	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
+	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
 	res, err := promptPassphraseWithArg(g, arg, "Please reenter your new passphrase for confirmation")
 	if err != nil {
