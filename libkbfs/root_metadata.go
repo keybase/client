@@ -864,7 +864,9 @@ func (md *RootMetadata) IsWriter(
 		return h.IsWriter(uid), nil
 	}
 
-	// Team membership needs to be checked with the service.
+	// Team membership needs to be checked with the service.  For a
+	// SingleTeam TLF, there is always only a single writer in the
+	// handle.
 	tid, err := h.FirstResolvedWriter().AsTeam()
 	if err != nil {
 		return false, err
@@ -882,7 +884,9 @@ func (md *RootMetadata) IsReader(
 		return h.IsReader(uid), nil
 	}
 
-	// Team membership needs to be checked with the service.
+	// Team membership needs to be checked with the service.  For a
+	// SingleTeam TLF, there is always only a single writer in the
+	// handle.
 	tid, err := h.FirstResolvedWriter().AsTeam()
 	if err != nil {
 		return false, err
