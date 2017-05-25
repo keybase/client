@@ -11,7 +11,6 @@ import (
 )
 
 func TestTeamGet(t *testing.T) {
-	t.Skip("Flaky: CORE-5309")
 	tc := libkb.SetupTest(t, "team", 1)
 	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
