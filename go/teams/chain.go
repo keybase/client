@@ -477,13 +477,22 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	}
 	team := payload.Body.Team
 
+	if len(team.ID) == 0 {
+		return res, errors.New("missing team id")
+	}
+	teamID, err := keybase1.TeamIDFromString(string(team.ID))
+	if err != nil {
+		return res, err
+	}
+
+	if prevState != nil && !prevState.ID.Equal(teamID) {
+		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+	}
+
 	switch payload.Body.Type {
 	case "team.root":
 		if prevState != nil {
 			return res, fmt.Errorf("link type 'team.root' unexpected at seqno:%v", prevState.LastSeqno+1)
-		}
-		if len(team.ID) == 0 {
-			return res, errors.New("missing team id")
 		}
 		if team.Name == nil {
 			return res, errors.New("missing name")
@@ -501,10 +510,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, errors.New("per-team-key missing")
 		}
 
-		teamID, err := keybase1.TeamIDFromString(string(team.ID))
-		if err != nil {
-			return res, err
-		}
 		teamName, err := TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
@@ -550,10 +555,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		return res, nil
 	case "team.change_membership":
 		if prevState == nil {
-			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
-		}
-		if len(team.ID) == 0 {
-			return res, errors.New("missing team id")
+			return res, fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
 		}
 		if team.Name != nil {
 			return res, errors.New("unexpected name")
@@ -566,15 +568,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 		if team.Subteam != nil {
 			return res, errors.New("unexpected subteam")
-		}
-
-		teamID, err := keybase1.TeamIDFromString(string(team.ID))
-		if err != nil {
-			return res, err
-		}
-
-		if !prevState.ID.Equal(teamID) {
-			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
 		}
 
 		// Check that the signer is an admin or owner to have permission to make this link.
@@ -615,10 +608,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		return res, nil
 	case "team.rotate_key":
 		if prevState == nil {
-			return res, fmt.Errorf("link type 'team.rotate_key' unexpected at beginning of chain")
-		}
-		if len(team.ID) == 0 {
-			return res, errors.New("missing team id")
+			return res, fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
 		}
 		if team.Name != nil {
 			return res, errors.New("unexpected name")
@@ -665,9 +655,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if prevState == nil {
 			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
 		}
-		if len(team.ID) == 0 {
-			return res, errors.New("missing team id")
-		}
 		if team.Name != nil {
 			return res, errors.New("unexpected name")
 		}
@@ -679,14 +666,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 		if team.Subteam != nil {
 			return res, errors.New("unexpected subteam")
-		}
-
-		teamID, err := keybase1.TeamIDFromString(string(team.ID))
-		if err != nil {
-			return res, err
-		}
-		if !prevState.ID.Equal(teamID) {
-			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
 		}
 
 		// Check that the signer is at least a reader.
