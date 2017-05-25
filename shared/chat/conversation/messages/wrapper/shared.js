@@ -145,6 +145,8 @@ const _stylesSelected = {
 const _exclamationStyle = {
   color: globalColors.blue,
   fontSize: 11,
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const _ellipsisStyle = {
@@ -155,7 +157,6 @@ const _ellipsisStyle = {
 
 const _textContainerStyle = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
   borderRadius: 4,
   flex: 1,
   marginLeft: -globalMargins.xtiny,
