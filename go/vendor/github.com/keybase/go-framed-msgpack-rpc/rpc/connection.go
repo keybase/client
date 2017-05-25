@@ -434,6 +434,9 @@ func (c *Connection) connect(ctx context.Context) error {
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
 func (c *Connection) DoCommand(ctx context.Context, name string,
 	rpcFunc func(GenericClient) error) error {
+	if c.initialReconnectBackoffWindow != 0 && isWithFireNow(ctx) {
+		c.randomTimer.FireNow()
+	}
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
@@ -629,9 +632,6 @@ type connectionClient struct {
 var _ GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
-	if c.conn.initialReconnectBackoffWindow != 0 && isWithFireNow(ctx) {
-		c.conn.randomTimer.FireNow()
-	}
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
 		return rawClient.Call(ctx, s, args, res)
 	})
