@@ -3,7 +3,7 @@ import {globalColors} from '../../../styles'
 
 const marginColor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
-    return 'transparent'
+    return globalColors.transparent
   } else if (isBroken) {
     return globalColors.red
   }
