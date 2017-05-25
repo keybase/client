@@ -208,7 +208,7 @@ func noopFinisher() {}
 
 // doRequestShared returns an http.Response, which is a live streaming object that
 // escapes the function in which it was created.  It therefore also returns
-// a `finished func()` that *must always be called* after the response is no longer
+// a `finisher func()` that *must always be called* after the response is no longer
 // needed. This finisher is always non-nil (and just a noop in some cases),
 // so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
