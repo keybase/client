@@ -35,6 +35,7 @@ dependencies:
     - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     - sudo apt-get update -qq
+    - apt-cache search yarn
     - sudo apt-get install -y -qq yarn=0.21.3
   cache_directories:
     - /usr/local/android-sdk-linux/tools
