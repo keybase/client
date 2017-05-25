@@ -25,6 +25,7 @@ class Confirm extends Component<void, Props, void> {
             label="Cancel"
           />
           <Button
+            style={{marginLeft: globalMargins.tiny}}
             type={this.props.danger ? 'Danger' : 'Primary'}
             onClick={this.props.onSubmit}
             label={this.props.submitLabel}
