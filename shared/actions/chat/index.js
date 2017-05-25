@@ -144,39 +144,35 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const messageFromYou =
           message.deviceName === yourDeviceName && message.author && yourName === message.author
 
-        if (message.type === 'Attachment' && messageFromYou) {
-          const outboxID = message.outboxID
-          if (outboxID) {
-            // const + inner if to satisfy flow
-            const previewPath = yield select(Shared.attachmentPlaceholderPreviewSelector, outboxID)
-            if (previewPath) {
-              message.previewPath = previewPath
-              yield put(Creators.clearAttachmentPlaceholderPreview(outboxID))
-            }
+        if (
+          (message.type === 'Text' || message.type === 'Attachment') &&
+          message.outboxID &&
+          messageFromYou
+        ) {
+          if (message.type === 'Attachment') {
+            const pendingMessage = yield select(
+              Shared.messageOutboxIDSelector,
+              conversationIDKey,
+              message.outboxID
+            )
+            message.previewPath = pendingMessage.previewPath
           }
-        }
 
-        if (message.type === 'Text' && message.outboxID && messageFromYou) {
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
           // need to mark it as sent.
-          yield put(
-            Creators.updateTempMessage(
-              conversationIDKey,
-              {
-                ...message,
-                messageState: 'sent',
-              },
-              message.outboxID
-            )
-          )
+          yield put(Creators.updateTempMessage(conversationIDKey, message, message.outboxID))
 
           const messageID = message.messageID
           if (messageID) {
             yield put(
               Creators.markSeenMessage(
                 conversationIDKey,
-                Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
+                Constants.messageKey(
+                  conversationIDKey,
+                  message.type === 'Text' ? 'messageIDText' : 'messageIDAttachment',
+                  messageID
+                )
               )
             )
           }
@@ -972,6 +968,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:openFolder', _openFolder)
   yield Saga.safeTakeEvery('chat:openTlfInChat', _openTlfInChat)
   yield Saga.safeTakeEvery('chat:postMessage', Messages.postMessage)
+  yield Saga.safeTakeEvery('chat:retryAttachment', Attachment.onRetryAttachment)
   yield Saga.safeTakeEvery('chat:retryMessage', Messages.retryMessage)
   yield Saga.safeTakeEvery('chat:saveAttachment', Attachment.onSaveAttachment)
   yield Saga.safeTakeEvery('chat:saveAttachmentNative', Attachment.onSaveAttachmentNative)

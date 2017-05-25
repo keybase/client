@@ -210,7 +210,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         return state
       }
 
-      const newMessages = origConversationState.get('messages').filter(m => m.messageState === 'pending')
+      const newMessages = origConversationState
+        .get('messages')
+        .filter(m => m.messageState === 'pending' || m.messageState === 'failed')
       const newSeenMessages = Set(newMessages.map(m => m.key))
 
       // $FlowIssue
@@ -587,16 +589,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           conversation.set('loadedOffline', true)
         )
       return state.set('conversationStates', newConversationStates)
-    }
-    case 'chat:setAttachmentPlaceholderPreview': {
-      const {outboxID, previewPath} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.set(outboxID, previewPath))
-    }
-    case 'chat:clearAttachmentPlaceholderPreview': {
-      const {outboxID} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.delete(outboxID))
     }
     case 'gregor:updateReachability': {
       // reset this when we go online
