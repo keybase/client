@@ -1048,7 +1048,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	if err != nil {
 		return err
 	}
-	if !head.GetTlfHandle().IsWriter(session.UID) {
+	isWriter, err := head.IsWriter(ctx, fbm.config.KBPKI(), session.UID)
+	if err != nil {
+		return err
+	}
+	if !isWriter {
 		return NewWriteAccessError(head.GetTlfHandle(), session.Name,
 			head.GetTlfHandle().GetCanonicalPath())
 	}

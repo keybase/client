@@ -1128,7 +1128,11 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
-		if !md.GetTlfHandle().IsReader(session.UID) {
+		isReader, err := md.IsReader(ctx, fbo.config.KBPKI(), session.UID)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
+		if !isReader {
 			return ImmutableRootMetadata{}, NewReadAccessError(
 				md.GetTlfHandle(), session.Name, md.GetTlfHandle().GetCanonicalPath())
 		}
@@ -1205,7 +1209,8 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentifyOnMaybeFirstAccess(
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
-		if !md.GetTlfHandle().IsReader(session.UID) {
+		isReader, err := md.IsReader(ctx, fbo.config.KBPKI(), session.UID)
+		if !isReader {
 			return ImmutableRootMetadata{}, NewReadAccessError(
 				md.GetTlfHandle(), session.Name, md.GetTlfHandle().GetCanonicalPath())
 		}
@@ -1228,7 +1233,11 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	if !md.GetTlfHandle().IsWriter(session.UID) {
+	isWriter, err := md.IsWriter(ctx, fbo.config.KBPKI(), session.UID)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	if !isWriter {
 		return ImmutableRootMetadata{}, NewWriteAccessError(
 			md.GetTlfHandle(), session.Name, filename)
 	}
@@ -1395,7 +1404,11 @@ func (fbo *folderBranchOps) initMDLocked(
 	handle := md.GetTlfHandle()
 
 	// make sure we're a writer before rekeying or putting any blocks.
-	if !handle.IsWriter(session.UID) {
+	isWriter, err := md.IsWriter(ctx, fbo.config.KBPKI(), session.UID)
+	if err != nil {
+		return err
+	}
+	if !isWriter {
 		return NewWriteAccessError(
 			handle, session.Name, handle.GetCanonicalPath())
 	}
@@ -1420,7 +1433,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	case tlf.SingleTeam:
 		// Teams get their crypt key from the service, no need to
 		// rekey in KBFS.
-		tid, err := md.GetTlfHandle().FirstResolvedWriter().AsTeam()
+		tid, err := handle.FirstResolvedWriter().AsTeam()
 		if err != nil {
 			return err
 		}

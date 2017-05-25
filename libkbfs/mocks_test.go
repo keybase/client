@@ -1672,6 +1672,17 @@ func (_mr *_MockKeyMetadataRecorder) GetTlfHandle() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTlfHandle")
 }
 
+func (_m *MockKeyMetadata) IsWriter(ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsWriter", ctx, checker, uid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeyMetadataRecorder) IsWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2)
+}
+
 func (_m *MockKeyMetadata) HasKeyForUser(user keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "HasKeyForUser", user)
 	ret0, _ := ret[0].(bool)

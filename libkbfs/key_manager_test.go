@@ -170,6 +170,12 @@ func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
 	return nil
 }
 
+func (kmd emptyKeyMetadata) IsWriter(
+	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	bool, error) {
+	return false, nil
+}
+
 func (kmd emptyKeyMetadata) LatestKeyGeneration() KeyGen {
 	return kmd.keyGen
 }

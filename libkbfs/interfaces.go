@@ -592,6 +592,12 @@ type KeyMetadata interface {
 	// fully.
 	GetTlfHandle() *TlfHandle
 
+	// IsWriter checks that the given user is a valid writer of the TLF
+	// right now.
+	IsWriter(
+		ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+		bool, error)
+
 	// HasKeyForUser returns whether or not the given user has
 	// keys for at least one device. Returns an error if the TLF
 	// is public.

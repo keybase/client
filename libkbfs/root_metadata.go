@@ -854,6 +854,42 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 		crypto, keyGen, currentKey, md.extra)
 }
 
+// IsWriter checks that the given user is a valid writer of the TLF
+// right now.  Implements the KeyMetadata interface for RootMetadata.
+func (md *RootMetadata) IsWriter(
+	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	bool, error) {
+	h := md.GetTlfHandle()
+	if h.Type() != tlf.SingleTeam {
+		return h.IsWriter(uid), nil
+	}
+
+	// Team membership needs to be checked with the service.
+	tid, err := h.FirstResolvedWriter().AsTeam()
+	if err != nil {
+		return false, err
+	}
+	return checker.IsTeamWriter(ctx, tid, uid)
+}
+
+// IsReader checks that the given user is a valid reader of the TLF
+// right now.
+func (md *RootMetadata) IsReader(
+	ctx context.Context, checker teamMembershipChecker, uid keybase1.UID) (
+	bool, error) {
+	h := md.GetTlfHandle()
+	if h.Type() != tlf.SingleTeam {
+		return h.IsReader(uid), nil
+	}
+
+	// Team membership needs to be checked with the service.
+	tid, err := h.FirstResolvedWriter().AsTeam()
+	if err != nil {
+		return false, err
+	}
+	return checker.IsTeamReader(ctx, tid, uid)
+}
+
 // A ReadOnlyRootMetadata is a thin wrapper around a
 // *RootMetadata. Functions that take a ReadOnlyRootMetadata parameter
 // must not modify it, and therefore code that passes a

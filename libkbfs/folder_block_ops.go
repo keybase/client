@@ -1874,7 +1874,11 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 	if err != nil {
 		return nil, "", err
 	}
-	if !kmd.GetTlfHandle().IsWriter(session.UID) {
+	isWriter, err := kmd.IsWriter(ctx, fbo.config.KBPKI(), session.UID)
+	if err != nil {
+		return nil, "", err
+	}
+	if !isWriter {
 		return nil, "", NewWriteAccessError(kmd.GetTlfHandle(),
 			session.Name, file.String())
 	}
