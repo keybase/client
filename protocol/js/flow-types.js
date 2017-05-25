@@ -287,6 +287,7 @@ export const KbfsCommonFSErrorType = {
   tooManyFolders: 11,
   exdevNotSupported: 12,
   diskLimitReached: 13,
+  diskCacheErrorLogSend: 14,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -301,6 +302,7 @@ export const KbfsCommonFSNotificationType = {
   fileModified: 8,
   fileDeleted: 9,
   fileRenamed: 10,
+  initialized: 11,
 }
 
 export const KbfsCommonFSStatusCode = {
@@ -489,6 +491,14 @@ export const SimpleFSOpenFlags = {
 export const SimpleFSPathType = {
   local: 0,
   kbfs: 1,
+}
+
+export const TeamsTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -1105,6 +1115,21 @@ export function appStateUpdateAppStateRpcChannelMapOld (channelConfig: ChannelCo
 
 export function appStateUpdateAppStateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: appStateUpdateAppStateRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.appState.updateAppState', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function badgerGetBadgeStateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>) {
+  engineRpcOutgoing('keybase.1.badger.getBadgeState', request)
+}
+
+export function badgerGetBadgeStateRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.badger.getBadgeState', request)
+}
+export function badgerGetBadgeStateRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.badger.getBadgeState', request, callback, incomingCallMap) })
+}
+
+export function badgerGetBadgeStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: badgerGetBadgeStateResult) => void}>): Promise<badgerGetBadgeStateResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.badger.getBadgeState', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function blockAddReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
@@ -1945,6 +1970,21 @@ export function identifyIdentify2RpcChannelMapOld (channelConfig: ChannelConfig<
 
 export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): Promise<identifyIdentify2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify2', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function identifyIdentifyLiteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.identifyLite', request)
+}
+
+export function identifyIdentifyLiteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
+}
+export function identifyIdentifyLiteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.identifyLite', request, callback, incomingCallMap) })
+}
+
+export function identifyIdentifyLiteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): Promise<identifyIdentifyLiteResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function identifyIdentifyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
@@ -3387,6 +3427,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamGetRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamGet', request)
+}
+
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
+}
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing('keybase.1.test.panic', request)
 }
@@ -3881,7 +3936,7 @@ export type BinaryKID = bytes
 
 export type BlockIdCombo = {
   blockHash: string,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
   blockType: BlockType,
 }
 
@@ -3892,7 +3947,7 @@ export type BlockRefNonce = any
 export type BlockReference = {
   bid: BlockIdCombo,
   nonce: BlockRefNonce,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
 }
 
 export type BlockReferenceCount = {
@@ -4178,6 +4233,7 @@ export type FSErrorType =
   | 11 // TOO_MANY_FOLDERS_11
   | 12 // EXDEV_NOT_SUPPORTED_12
   | 13 // DISK_LIMIT_REACHED_13
+  | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
@@ -4203,6 +4259,7 @@ export type FSNotificationType =
   | 8 // FILE_MODIFIED_8
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
+  | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
   publicTopLevelFolder: boolean,
@@ -4366,6 +4423,11 @@ export type IdentifyKey = {
   KID: KID,
   trackDiff?: ?TrackDiff,
   breaksTracking: boolean,
+}
+
+export type IdentifyLiteRes = {
+  ul: UserOrTeamLite,
+  trackBreaks?: ?IdentifyTrackBreaks,
 }
 
 export type IdentifyOutcome = {
@@ -4765,9 +4827,16 @@ export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
 
+export type PerTeamKey = {
+  gen: int,
+  seqno: Seqno,
+  sigKID: KID,
+  encKID: KID,
+}
+
 export type PerUserKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
@@ -5112,6 +5181,8 @@ export type SelectKeyRes = {
   doSecretPush: boolean,
 }
 
+export type Seqno = int64
+
 export type ServiceStatus = {
   version: string,
   label: string,
@@ -5148,7 +5219,7 @@ export type SessionStatus = {
 export type SessionToken = string
 
 export type Sig = {
-  seqno: int,
+  seqno: Seqno,
   sigID: SigID,
   sigIDDisplay: string,
   type: string,
@@ -5435,6 +5506,15 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamID = string
+
+export type TeamRole =
+    0 // NONE_0
+  | 1 // OWNER_1
+  | 2 // ADMIN_2
+  | 3 // WRITER_3
+  | 4 // READER_4
+
 export type Test = {
   reply: string,
 }
@@ -5532,6 +5612,13 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserOrTeamID = string
+
+export type UserOrTeamLite = {
+  id: UserOrTeamID,
+  name: string,
+}
+
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
@@ -5541,7 +5628,7 @@ export type UserPlusAllKeys = {
 export type UserPlusKeys = {
   uid: UID,
   username: string,
-  eldestSeqno: int,
+  eldestSeqno: Seqno,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
@@ -5848,6 +5935,22 @@ export type gregorUIPushStateRpcParam = Exact<{
 export type identifyIdentify2RpcParam = Exact<{
   uid: UID,
   userAssertion: string,
+  reason: IdentifyReason,
+  useDelegateUI?: boolean,
+  alwaysBlock?: boolean,
+  noErrorOnTrackFailure?: boolean,
+  forceRemoteCheck?: boolean,
+  needProofSet?: boolean,
+  allowEmptySelfID?: boolean,
+  noSkipSelf?: boolean,
+  canSuppressUI?: boolean,
+  identifyBehavior?: TLFIdentifyBehavior,
+  forceDisplay?: boolean
+}>
+
+export type identifyIdentifyLiteRpcParam = Exact<{
+  id: UserOrTeamID,
+  assertion: string,
   reason: IdentifyReason,
   useDelegateUI?: boolean,
   alwaysBlock?: boolean,
@@ -6461,6 +6564,10 @@ export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamGetRpcParam = Exact<{
+  name: string
+}>
+
 export type testPanicRpcParam = Exact<{
   message: string
 }>
@@ -6596,6 +6703,7 @@ type apiserverGetResult = APIRes
 type apiserverGetWithSessionResult = APIRes
 type apiserverPostJSONResult = APIRes
 type apiserverPostResult = APIRes
+type badgerGetBadgeStateResult = BadgeState
 type blockArchiveReferenceResult = ?Array<BlockReference>
 type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 type blockBlockPingResult = BlockPingResponse
@@ -6633,6 +6741,7 @@ type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
+type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
 type identifyResolveResult = UID
@@ -6759,6 +6868,7 @@ export type rpc =
   | apiserverPostJSONRpc
   | apiserverPostRpc
   | appStateUpdateAppStateRpc
+  | badgerGetBadgeStateRpc
   | blockAddReferenceRpc
   | blockArchiveReferenceRpc
   | blockArchiveReferenceWithCountRpc
@@ -6815,6 +6925,7 @@ export type rpc =
   | fsListRpc
   | gregorGetStateRpc
   | identifyIdentify2Rpc
+  | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
   | identifyResolveRpc
@@ -6911,6 +7022,7 @@ export type rpc =
   | sigsSigListJSONRpc
   | sigsSigListRpc
   | teamsTeamCreateRpc
+  | teamsTeamGetRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

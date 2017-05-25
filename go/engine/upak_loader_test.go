@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -185,7 +186,7 @@ func TestFullSelfCacherFlushSingleMachine(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "fsc")
 
-	var scv libkb.Seqno
+	var scv keybase1.Seqno
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()
@@ -225,7 +226,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 	}
 	t.Logf("using username:%+v", fu.Username)
 
-	var scv libkb.Seqno
+	var scv keybase1.Seqno
 	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
 		require.NotNil(t, u)
 		scv = u.GetSigChainLastKnownSeqno()
@@ -328,5 +329,120 @@ func TestUPAKDeadlock(t *testing.T) {
 		break
 	case <-time.After(20 * time.Second):
 		t.Fatal("deadlocked!")
+	}
+}
+
+func TestLoadAfterAcctReset1(t *testing.T) {
+	// One context for user that will be doing LoadUser, and another
+	// for user that will sign up and reset itself.
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	resetUserTC := SetupEngineTest(t, "clu2")
+	defer resetUserTC.Cleanup()
+
+	t.Logf("create new user")
+	fu := CreateAndSignupFakeUser(resetUserTC, "res")
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	loadUpak := func() error {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G)
+		loadArg.UID = fu.UID()
+		loadArg.PublicKeyOptional = false
+		loadArg.NetContext = context.TODO()
+		loadArg.StaleOK = false
+
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if err != nil {
+			return err
+		}
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return nil
+	}
+
+	err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
+
+	ResetAccount(resetUserTC, fu)
+
+	loadUpakExpectFailure := func() {
+		err := loadUpak()
+		if err == nil {
+			t.Fatalf("Expected UPAKLoader.Load to fail on nuked account.")
+		} else if _, ok := err.(libkb.NoKeyError); !ok {
+			t.Fatalf("Expected UPAKLoader.Load to fail with NoKeyError, instead failed with: %+v", err)
+		}
+	}
+
+	// advance the clock past the cache timeout
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
+
+	// Try again, see if still errors out (this time user should not
+	// be in cache at all).
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	loadUpakExpectFailure()
+}
+
+func TestLoadAfterAcctReset2(t *testing.T) {
+	// One context for user that will be doing LoadUser, and another
+	// for user that will sign up and reset itself.
+	tc := SetupEngineTest(t, "clu")
+	defer tc.Cleanup()
+
+	resetUserTC := SetupEngineTest(t, "clu2")
+	defer resetUserTC.Cleanup()
+
+	t.Logf("create new user")
+	fu := CreateAndSignupFakeUser(resetUserTC, "res")
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
+		t.Logf("loadUpak: using username:%+v", fu.Username)
+		loadArg := libkb.NewLoadUserArg(tc.G)
+		loadArg.UID = fu.UID()
+		loadArg.PublicKeyOptional = false
+		loadArg.NetContext = context.TODO()
+		loadArg.StaleOK = false
+
+		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
+		if err != nil {
+			return nil, err
+		}
+
+		t.Logf("loadUpak done: using username:%+v uid: %+v keys: %d", upak.Base.Username, upak.Base.Uid, len(upak.Base.DeviceKeys))
+		return upak, nil
+	}
+
+	upak1, err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user: %+v", err)
+	}
+
+	// Reset account and then login again to establish new eldest and
+	// add new device keys.
+	ResetAccount(resetUserTC, fu)
+	tcp := SetupEngineTest(t, "login")
+	fu.LoginOrBust(tcp)
+	if err := AssertProvisioned(tcp); err != nil {
+		t.Fatal(err)
+	}
+
+	fakeClock.Advance(libkb.CachedUserTimeout * 10)
+	upak2, err := loadUpak()
+	if err != nil {
+		t.Fatalf("Failed to load user after reset+login with: %+v", err)
+	}
+
+	if upak1.Base.DeviceKeys[0].KID == upak2.Base.DeviceKeys[0].KID {
+		t.Fatal("Found old device key after LoadUser.")
 	}
 }

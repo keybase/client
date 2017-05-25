@@ -61,6 +61,23 @@
           "name": "trackBreaks"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyLiteRes",
+      "fields": [
+        {
+          "type": "UserOrTeamLite",
+          "name": "ul"
+        },
+        {
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "trackBreaks"
+        }
+      ]
     }
   ],
   "messages": {
@@ -188,6 +205,77 @@
         }
       ],
       "response": "Identify2Res"
+    },
+    "identifyLite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "UserOrTeamID"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "IdentifyReason"
+        },
+        {
+          "name": "useDelegateUI",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "alwaysBlock",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "noErrorOnTrackFailure",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "forceRemoteCheck",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "needProofSet",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "allowEmptySelfID",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "noSkipSelf",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "canSuppressUI",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "TLFIdentifyBehavior",
+          "default": 0
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "response": "IdentifyLiteRes"
     }
   },
   "namespace": "keybase.1"

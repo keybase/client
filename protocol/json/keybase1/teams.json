@@ -1,0 +1,69 @@
+{
+  "protocol": "teams",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "TeamRole",
+      "symbols": [
+        "NONE_0",
+        "OWNER_1",
+        "ADMIN_2",
+        "WRITER_3",
+        "READER_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "gen"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "KID",
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
+        }
+      ],
+      "lint": "ignore"
+    }
+  ],
+  "messages": {
+    "teamCreate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamGet": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

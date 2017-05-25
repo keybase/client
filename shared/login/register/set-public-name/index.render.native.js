@@ -17,7 +17,7 @@ const SetPublicName = ({
   submitEnabled = submitEnabled == null ? true : submitEnabled
   return (
     <Container style={stylesContainer} onBack={onBack}>
-      <Text type="Header">Set a public name for this device:</Text>
+      <Text type="Header" style={{textAlign: 'center'}}>Set a public name for this device:</Text>
       <Icon type="icon-phone-32" style={stylesIcon} />
       <Input
         autoFocus={true}

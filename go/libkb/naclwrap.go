@@ -79,10 +79,10 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
-func (n NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
-	ret.Public = n.Public
-	if n.Private != nil {
-		tmp := *n.Private
+func (k NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
+	ret.Public = k.Public
+	if k.Private != nil {
+		tmp := *k.Private
 		ret.Private = &tmp
 	}
 	return ret
@@ -567,6 +567,15 @@ func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretSize]byte) (Na
 	}
 
 	return kp, err
+}
+
+func MakeNaclSigningKeyPairFromSecretBytes(secret []byte) (NaclSigningKeyPair, error) {
+	if len(secret) != NaclSigningKeySecretSize {
+		return NaclSigningKeyPair{}, fmt.Errorf("Bad NaCl signing key size: %d", len(secret))
+	}
+	var fixed [NaclSigningKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclSigningKeyPairFromSecret(fixed)
 }
 
 func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {

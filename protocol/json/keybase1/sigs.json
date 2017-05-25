@@ -12,7 +12,7 @@
       "name": "Sig",
       "fields": [
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "seqno"
         },
         {

@@ -32,9 +32,9 @@ func (e BlockType) String() string {
 }
 
 type BlockIdCombo struct {
-	BlockHash string    `codec:"blockHash" json:"blockHash"`
-	ChargedTo UID       `codec:"chargedTo" json:"chargedTo"`
-	BlockType BlockType `codec:"blockType" json:"blockType"`
+	BlockHash string       `codec:"blockHash" json:"blockHash"`
+	ChargedTo UserOrTeamID `codec:"chargedTo" json:"chargedTo"`
+	BlockType BlockType    `codec:"blockType" json:"blockType"`
 }
 
 type ChallengeInfo struct {

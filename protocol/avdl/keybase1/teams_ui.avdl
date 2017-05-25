@@ -1,5 +1,0 @@
-@namespace("keybase.1")
-
-protocol teams {
-  void teamCreate(int sessionID, string name);
-}

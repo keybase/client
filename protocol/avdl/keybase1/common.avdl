@@ -45,6 +45,15 @@ protocol Common {
   @typedef("string")
   record TLFID {}
 
+  @typedef("string")
+  record TeamID {}
+
+  @typedef("string")
+  record UserOrTeamID {}
+
+  @typedef("int64") @lint("ignore")
+  record Seqno {}
+
   fixed Bytes32(32);
 
   record Text {
@@ -144,7 +153,7 @@ protocol Common {
   @lint("ignore")
   record PerUserKey {
       int gen;
-      int seqno;
+      Seqno seqno;
       KID sigKID;
       KID encKID;
   }
@@ -152,7 +161,7 @@ protocol Common {
   record UserPlusKeys {
       UID uid;
       string username;
-      int eldestSeqno;
+      Seqno eldestSeqno;
 
       // deviceKeys is a list of active device keys.  It does
       // not include PGP keys.
@@ -174,6 +183,11 @@ protocol Common {
       // per-user secrets one for every generation.
       @lint("ignore")
       array<PerUserKey> perUserKeys;
+  }
+
+  record UserOrTeamLite {
+      UserOrTeamID id;
+      string name;
   }
 
   record RemoteTrack {

@@ -10,6 +10,8 @@ import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
 class ConversationInput extends Component<void, Props, void> {
+  _waitingOnEndEditing: boolean = false
+
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
@@ -30,23 +32,10 @@ class ConversationInput extends Component<void, Props, void> {
   }
 
   _onSubmit = () => {
-    const text = this.props.text
-    if (!text) {
-      return
-    }
-
-    if (this.props.isLoading) {
-      console.log('Ignoring chat submit while still loading')
-      return
-    }
-
-    this.props.setText('')
-    this.props.inputClear()
-    if (this.props.editingMessage) {
-      this.props.onEditMessage(this.props.editingMessage, text)
-    } else {
-      this.props.onPostMessage(text)
-    }
+    // Force autocorrect
+    this._waitingOnEndEditing = true
+    // We want autocorrect to work when we click send, so we just blur the input and wait for it to be done updating its value
+    this.props.inputBlur()
   }
 
   _openFilePicker = () => {
@@ -67,6 +56,32 @@ class ConversationInput extends Component<void, Props, void> {
       }
     })
   }
+  _onEndEditing = (...args) => {
+    // We only submit when it got blurred and we're waiting for submission
+    if (!this._waitingOnEndEditing) {
+      return
+    }
+
+    this._waitingOnEndEditing = false
+
+    const text = this.props.text
+    if (!text) {
+      return
+    }
+
+    if (this.props.isLoading) {
+      console.log('Ignoring chat submit while still loading')
+      return
+    }
+
+    this.props.setText('')
+    this.props.inputClear()
+    if (this.props.editingMessage) {
+      this.props.onEditMessage(this.props.editingMessage, text)
+    } else {
+      this.props.onPostMessage(text)
+    }
+  }
 
   render() {
     // Auto-growing multiline doesn't work smoothly on Android yet.
@@ -84,6 +99,7 @@ class ConversationInput extends Component<void, Props, void> {
           multiline={true}
           onBlur={this._onBlur}
           onChangeText={this.props.setText}
+          onEndEditing={this._onEndEditing}
           ref={this.props.inputSetRef}
           small={true}
           style={styleInput}
@@ -108,7 +124,6 @@ const Typing = ({typing}) => (
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: globalColors.black_05,
       borderRadius: 10,
       height: 20,
       justifyContent: 'center',
@@ -151,8 +166,8 @@ const styleActionButton = {
 
 const styleInputText = {
   ...globalStyles.fontRegular,
-  fontSize: 14,
-  lineHeight: 18,
+  fontSize: 15,
+  lineHeight: 19,
 }
 
 const styleContainer = {

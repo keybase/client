@@ -1,9 +1,13 @@
 package chat
 
 import (
+	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -397,4 +401,171 @@ func TestGetThreadCaching(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
+}
+
+type noGetThreadRemote struct {
+	*kbtest.ChatRemoteMock
+}
+
+func newNoGetThreadRemote(mock *kbtest.ChatRemoteMock) *noGetThreadRemote {
+	return &noGetThreadRemote{
+		ChatRemoteMock: mock,
+	}
+}
+
+func (n *noGetThreadRemote) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
+	return chat1.GetThreadRemoteRes{}, errors.New("GetThreadRemote banned")
+}
+
+func TestGetThreadHoleResolution(t *testing.T) {
+	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+
+	conv := newConv(t, uid, ri, sender, tlf, u.Username)
+	convID := conv.GetConvID()
+	pt := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HIHI",
+		}),
+	}
+
+	var msg *chat1.MessageBoxed
+	var err error
+	holes := 3
+	for i := 0; i < holes; i++ {
+		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: fmt.Sprintf("MIKE: %d", i),
+		})
+		msg, _, err = sender.Prepare(context.TODO(), pt, &convID)
+		require.NoError(t, err)
+		require.NotNil(t, msg)
+
+		res, err := ri.PostRemote(context.TODO(), chat1.PostRemoteArg{
+			ConversationID: conv.GetConvID(),
+			MessageBoxed:   *msg,
+		})
+		require.NoError(t, err)
+		msg.ServerHeader = &res.MsgHeader
+	}
+
+	conv.MaxMsgs = []chat1.MessageBoxed{*msg}
+	conv.MaxMsgSummaries = []chat1.MessageSummary{msg.Summary()}
+	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  vers + 1,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+
+	localThread, err := tc.Context().ConvSource.PullLocalOnly(context.TODO(), convID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(localThread.Messages))
+
+	tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+		return newNoGetThreadRemote(ri)
+	})
+	thread, _, err := tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, holes+2, len(thread.Messages))
+	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
+	require.Equal(t, "MIKE: 2", thread.Messages[0].Valid().MessageBody.Text().Body)
+
+	// Make sure we don't consider it a hit if we end the fetch with a hole
+	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
+	_, _, err = tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	require.Error(t, err)
+}
+
+func TestConversationLocking(t *testing.T) {
+	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+
+	conv := newConv(t, uid, ri, sender, tlf, u.Username)
+
+	t.Logf("Trace 1 can get multiple locks")
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewIdentifyNotifier(tc.Context()))
+	acquires := 5
+	for i := 0; i < acquires; i++ {
+		select {
+		case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "locked")
+		}
+	}
+	for i := 0; i < acquires; i++ {
+		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	}
+	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("Trace 2 properly blocked by Trace 1")
+	ctx2 := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		&breaks, NewIdentifyNotifier(tc.Context()))
+
+	select {
+	case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	select {
+	case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
+		require.Fail(t, "should have blocked")
+	default:
+	}
+
+	t.Logf("Trace 2 runs after Trace 1 gives up lock")
+	cb := make(chan struct{})
+	go func() {
+		select {
+		case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
+			hcs.lockTab.Release(ctx2, uid, conv.GetConvID())
+			close(cb)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no lock obtained")
+		}
+	}()
+	hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	<-cb
+	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("No trace")
+	select {
+	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	select {
+	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "locked")
+	}
+	require.Zero(t, len(hcs.lockTab.convLocks))
 }

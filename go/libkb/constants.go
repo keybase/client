@@ -527,7 +527,7 @@ const (
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
-var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
 type AppType string
 
@@ -567,6 +567,15 @@ type PvlUnparsed struct {
 
 const SharedTeamKeyBoxVersion1 = 1
 
+const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
+const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+
 func CurrentSaltpackVersion() saltpack.Version {
 	return saltpack.Version1()
 }
+
+const (
+	SeqTypePublic      int = 1
+	SeqTypePrivate         = 2
+	SeqTypeSemiprivate     = 3
+)

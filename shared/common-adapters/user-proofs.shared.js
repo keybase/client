@@ -36,11 +36,13 @@ function metaColor(proof: Proof): string {
   }
 }
 
-function proofColor(proof: Proof): string {
+function proofColor(proof: Proof, forIcon: boolean): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
-      color = proof.isTracked ? globalColors.green2 : globalColors.blue
+      color = proof.isTracked
+        ? forIcon ? globalColors.green : globalColors.green2
+        : forIcon ? globalColors.blue2 : globalColors.blue
       break
     }
     case proofChecking:
@@ -67,7 +69,6 @@ function iconNameForProof({type}: {type: PlatformsExpandedType}): IconType {
     github: 'iconfont-identity-github',
     reddit: 'iconfont-identity-reddit',
     pgp: 'iconfont-identity-pgp',
-    coinbase: 'iconfont-identity-coinbase',
     hackernews: 'iconfont-identity-hn',
     rooter: 'iconfont-thunderbolt',
     btc: 'iconfont-identity-bitcoin',
@@ -88,7 +89,7 @@ function proofStatusIcon(proof: Proof): ?IconType {
       return 'iconfont-proof-pending'
 
     case proofNormal:
-      return proof.isTracked ? 'iconfont-proof-followed' : 'iconfont-proof-new'
+      return 'iconfont-proof-good'
 
     case proofWarning:
     case proofError:
@@ -102,7 +103,7 @@ function proofStatusIcon(proof: Proof): ?IconType {
 
 function proofNameStyle(proof: Proof) {
   return {
-    color: proofColor(proof),
+    color: proofColor(proof, false),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
     ...(['btc', 'pgp'].includes(proof.type) ? {fontSize: 13} : {}),
   }

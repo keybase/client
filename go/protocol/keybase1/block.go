@@ -17,7 +17,7 @@ type BlockRefNonce [8]byte
 type BlockReference struct {
 	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
 	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
-	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+	ChargedTo UserOrTeamID  `codec:"chargedTo" json:"chargedTo"`
 }
 
 type BlockReferenceCount struct {

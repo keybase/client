@@ -322,7 +322,7 @@ const stylesTextCode = {
   ...globalStyles.selectable,
   ...globalStyles.fontTerminalSemibold,
   paddingTop: globalMargins.tiny,
-  fontSize: 18,
+  fontSize: 19,
   color: globalColors.darkBlue,
   textAlign: 'center',
 }

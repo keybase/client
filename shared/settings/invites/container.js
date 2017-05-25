@@ -1,13 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Invites from './index'
-import {
-  invitesReclaim,
-  invitesRefresh,
-  invitesSend,
-  notificationsSave,
-  notificationsToggle,
-} from '../../actions/settings'
+import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
 import {openURLWithHelper} from '../../util/open-url'
 
 import {navigateAppend} from '../../actions/route-tree'
@@ -48,11 +42,6 @@ export default connector.connect((state, dispatch, ownProps) => {
     onReclaimInvitation: (inviteId: string) => {
       dispatch(invitesReclaim(inviteId))
     },
-    onSave: () => {
-      dispatch(notificationsSave())
-    },
-    onToggle: (name: string) => dispatch(notificationsToggle(name)),
-    onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
     onSelectUser: (username: string) => {
       openURLWithHelper('user', {username})
     },

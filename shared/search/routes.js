@@ -8,12 +8,13 @@ import NonUser from './user-pane/non-user.container'
 const routeTree = new RouteDefNode({
   children: {
     profile: profileRoute,
-    ...(isMobile ? {
-      nonProfile: {
-        component: NonUser,
-      },
-    } : {}),
-
+    ...(isMobile
+      ? {
+          nonProfile: {
+            component: NonUser,
+          },
+        }
+      : {}),
   },
   component: Search,
 })

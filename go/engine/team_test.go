@@ -9,8 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostNewTeam(t *testing.T) {
-	t.Skip()
+func TestCreateTeam(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto")
 	defer tc.Cleanup()
 
@@ -23,7 +22,7 @@ func TestPostNewTeam(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "t")
 
 	teamName := u.Username + "T"
-	eng := NewNewTeamEngine(tc.G, teamName)
+	eng := NewTeamCreateEngine(tc.G, teamName)
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -34,8 +33,7 @@ func TestPostNewTeam(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestPostNewTeamAfterAccountReset(t *testing.T) {
-	t.Skip()
+func TestCreateTeamAfterAccountReset(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto")
 	defer tc.Cleanup()
 
@@ -58,7 +56,7 @@ func TestPostNewTeamAfterAccountReset(t *testing.T) {
 	}
 
 	teamName := u.Username + "T"
-	eng := NewNewTeamEngine(tc.G, teamName)
+	eng := NewTeamCreateEngine(tc.G, teamName)
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),

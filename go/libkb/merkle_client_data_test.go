@@ -1,5 +1,7 @@
 package libkb
 
+import "github.com/keybase/client/go/protocol/keybase1"
+
 var merkleSkipTestVectors = []struct {
 	name string
 	e    merkleClientErrorType
@@ -88,5 +90,5 @@ var merkleSkipTestVectors = []struct {
 	},
 }
 
-const skipTestVectorsThisRoot Seqno = 45155
-const skipTestVectorsLastRoot Seqno = 44900
+const skipTestVectorsThisRoot keybase1.Seqno = 45155
+const skipTestVectorsLastRoot keybase1.Seqno = 44900

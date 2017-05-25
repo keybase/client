@@ -87,6 +87,15 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err UnboxingError) chat
 	})
 }
 
+func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
+	// Banned folders are only detectable by the error string currently, hopefully
+	// we can do something better in the future.
+	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
+		return true
+	}
+	return false
+}
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -113,6 +122,10 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := CtxKeyFinder(ctx).Find(ctx, b.tlfInfoSource, tlfName, tlfPublic)
 	if err != nil {
+		// Check to see if this is a permanent error from the server
+		if b.detectKBFSPermanentServerError(err) {
+			return chat1.MessageUnboxed{}, NewPermanentUnboxingError(err)
+		}
 		// transient error. Rekey errors come through here
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}

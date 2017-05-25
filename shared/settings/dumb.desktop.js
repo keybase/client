@@ -276,29 +276,43 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
 }
 
 const commonSettings = {
-  settings: [
-    {
-      name: 'follow',
-      subscribed: true,
-      description: 'when someone follows me',
+  groups: {
+    app_push: {
+      settings: [
+        {
+          name: 'follow',
+          description: 'when someone follows me',
+          subscribed: true,
+        },
+      ],
+      unsubscribedFromAll: false,
     },
-    {
-      name: 'twitter_friend_joined',
-      subscribed: true,
-      description: 'when someone I follow on Twitter joins',
+    email: {
+      settings: [
+        {
+          name: 'follow',
+          description: 'when someone follows me',
+          subscribed: true,
+        },
+        {
+          name: 'twitter_friend_joined',
+          description: 'when someone I follow on Twitter joins',
+          subscribed: true,
+        },
+        {
+          name: 'filesystem_attention',
+          description: 'when the Keybase filesystem needs my attention',
+          subscribed: true,
+        },
+        {
+          name: 'newsletter',
+          description: 'Keybase news, once in a great while',
+          subscribed: true,
+        },
+      ],
+      unsubscribedFromAll: false,
     },
-    {
-      name: 'filesystem_attention',
-      subscribed: true,
-      description: 'when the Keybase filesystem needs my attention',
-    },
-    {
-      name: 'newsletter',
-      subscribed: true,
-      description: 'Keybase news, once in a great while',
-    },
-  ],
-  unsubscribedFromAll: false,
+  },
   allowSave: true,
   allowEdit: true,
   waitingForResponse: false,
@@ -308,6 +322,9 @@ const commonSettings = {
   onToggleUnsubscribeAll: () => console.log('on subscribe all'),
 }
 
+let unsubSettings = commonSettings
+unsubSettings.groups.email.unsubscribedFromAll = true
+
 const notificationsMap: DumbComponentMap<Notifications> = {
   component: Notifications,
   mocks: {
@@ -315,8 +332,7 @@ const notificationsMap: DumbComponentMap<Notifications> = {
       ...commonSettings,
     },
     UnsubAll: {
-      ...commonSettings,
-      unsubscribedFromAll: true,
+      ...unsubSettings,
     },
   },
 }

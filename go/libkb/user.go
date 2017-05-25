@@ -4,8 +4,10 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"regexp"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -96,14 +98,14 @@ func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
-func (u *User) GetSigChainLastKnownSeqno() Seqno {
+func (u *User) GetSigChainLastKnownSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		return 0
 	}
 	return u.sigChain().GetLastKnownSeqno()
 }
 
-func (u *User) GetCurrentEldestSeqno() Seqno {
+func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		// Note that NameWithEldestSeqno will return an error if you call it with zero.
 		return 0
@@ -707,7 +709,7 @@ func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string,
 	return string(json), nil
 }
 
-func (u *User) GetSigIDFromSeqno(seqno int) keybase1.SigID {
+func (u *User) GetSigIDFromSeqno(seqno keybase1.Seqno) keybase1.SigID {
 	if u.sigChain() == nil {
 		return ""
 	}
@@ -792,13 +794,31 @@ func (u User) PartialCopy() *User {
 	return ret
 }
 
-func NameWithEldestSeqno(name string, seqno Seqno) (string, error) {
+type NameWithEldestSeqno string
+
+func MakeNameWithEldestSeqno(name string, seqno keybase1.Seqno) (NameWithEldestSeqno, error) {
 	if seqno < 1 {
 		return "", EldestSeqnoMissingError{}
 	} else if seqno == 1 {
 		// For users that have never reset, we use their name unmodified.
-		return name, nil
+		return NameWithEldestSeqno(name), nil
 	} else {
-		return fmt.Sprintf("%s%%%d", name, seqno), nil
+		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
 	}
+}
+
+func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
+	res := NormalizedUsername(username)
+	if len(username) < 2 {
+		return res, errors.New("username too short")
+	}
+	if len(username) > 16 {
+		return res, errors.New("username too long")
+	}
+	// underscores allowed, just not first or doubled
+	re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
+	if !re.MatchString(username) {
+		return res, errors.New("invalid username")
+	}
+	return res, nil
 }

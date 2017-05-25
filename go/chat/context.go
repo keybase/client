@@ -62,6 +62,16 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 	return nil
 }
 
+func CtxTrace(ctx context.Context) (string, bool) {
+	var trace string
+	var ok bool
+	val := ctx.Value(chatTraceKey)
+	if trace, ok = val.(string); ok {
+		return trace, true
+	}
+	return "", false
+}
+
 func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 
 	// Add trace context value

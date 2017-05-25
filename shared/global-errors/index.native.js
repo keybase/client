@@ -144,8 +144,8 @@ const summaryRowStyle = {
 const detailStyle = {
   ...globalStyles.selectable,
   color: globalColors.white_75,
-  fontSize: 10,
-  lineHeight: 12,
+  fontSize: 13,
+  lineHeight: 17,
   padding: globalMargins.xtiny,
   paddingTop: globalMargins.tiny,
 }

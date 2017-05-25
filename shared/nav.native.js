@@ -7,7 +7,7 @@ import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
-import CardStackTransitioner from 'react-navigation/lib/views/CardStackTransitioner'
+import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
 import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
@@ -23,7 +23,7 @@ import type {RouteProps} from './route-tree/render-route'
 type OwnProps = RouteProps<{}, {}>
 
 class CardStackShim extends Component {
-  getScreenOptions = () => ({})
+  getScreenOptions = () => ({transitionInteractivityThreshold: 0.9})
   getStateForAction = () => ({})
   getActionForPathAndParams = () => ({})
   getPathAndParamsForState = () => ({})

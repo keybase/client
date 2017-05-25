@@ -518,16 +518,16 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: tcl.GetMerkleSeqno(),
+		Chain: int(tcl.GetMerkleSeqno()),
 	}
 }
 
 // NowAsKeybaseTime makes a representation of now.  IF we don't know the MerkleTree
 // chain seqno, just use 0
-func NowAsKeybaseTime(seqno int) *KeybaseTime {
+func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: seqno,
+		Chain: int(seqno),
 	}
 }
 

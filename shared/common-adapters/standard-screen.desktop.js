@@ -1,13 +1,11 @@
 // @flow
 import React from 'react'
-import {BackButton, Box, Text, Icon} from '../common-adapters'
+import {Box, Text, HeaderHoc} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
-const StandardScreen = (props: Props) => {
+const StandardScreen = ({theme = 'light', ...props}: Props) => {
   const topStack = [
-    !!props.onBack &&
-      <BackButton key="back" onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
     !!props.notification &&
       <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
         {typeof props.notification.message === 'string'
@@ -17,13 +15,11 @@ const StandardScreen = (props: Props) => {
   ]
   const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
-    <Box style={{...styleContainer, ...props.styleOuter}}>
+    <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <Box style={styleTopStack}>
         {topStack}
       </Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        {!!props.onClose &&
-          <Icon style={{...styleClose, ...props.styleClose}} type="iconfont-close" onClick={props.onClose} />}
         <Box style={{...styleContentContainer, ...props.style}}>
           {props.children}
         </Box>
@@ -47,19 +43,13 @@ const styleTopStack = {
   width: '100%',
 }
 
-const styleClose = {
-  ...globalStyles.clickable,
-  position: 'absolute',
-  top: globalMargins.small,
-  right: globalMargins.small,
-  color: globalColors.black_10,
-}
-
-const styleBack = {
-  ...globalStyles.clickable,
-  height: globalMargins.large,
-  alignSelf: 'flex-start',
-  marginLeft: globalMargins.small,
+const backgroundColorThemed = {
+  light: {
+    backgroundColor: globalColors.white,
+  },
+  dark: {
+    backgroundColor: globalColors.darkBlue3,
+  },
 }
 
 const styleBanner = (notificationType: NotificationType) => ({
@@ -97,4 +87,4 @@ const styleContentContainer = {
   textAlign: 'center',
 }
 
-export default StandardScreen
+export default HeaderHoc(StandardScreen)

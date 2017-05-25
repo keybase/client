@@ -252,7 +252,8 @@ protocol local {
   enum MessageUnboxedState {
     VALID_1,
     ERROR_2,
-    OUTBOX_3
+    OUTBOX_3,
+    PLACEHOLDER_4
   }
 
   record MessageUnboxedValid {
@@ -302,10 +303,15 @@ protocol local {
     gregor1.Time ctime;
   }
 
+  record MessageUnboxedPlaceholder {
+    MessageID messageID;
+  }
+
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
+    case PLACEHOLDER: MessageUnboxedPlaceholder;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +

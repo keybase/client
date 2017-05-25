@@ -164,8 +164,8 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	g.MessageDeliverer.Connected(context.TODO())
 	g.FetchRetrier = NewFetchRetrier(g)
 	g.FetchRetrier.(*FetchRetrier).SetClock(world.Fc)
-	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
 	g.FetchRetrier.Connected(context.TODO())
+	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
 	bgLoader := NewBackgroundConvLoader(g)
 	bgLoader.loads = listener.bgConvLoads
 	g.ConvLoader = bgLoader

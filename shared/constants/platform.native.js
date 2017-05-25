@@ -16,6 +16,7 @@ const isElectron = false
 const isLinux = false
 const isWindows = false
 const fileUIName = 'File Explorer'
+const mobileOsVersion = Platform.Version
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
@@ -31,6 +32,7 @@ export {
   isLinux,
   isMobile,
   isWindows,
+  mobileOsVersion,
   runMode,
   version,
   appVersionName,

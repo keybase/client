@@ -9,7 +9,6 @@ const ProvablePlatformsMap = {
   reddit: true,
   facebook: true,
   github: true,
-  coinbase: false, // Coinbase is no longer supported
   hackernews: true,
   dns: true,
   http: true,
@@ -23,7 +22,6 @@ const PlatformsExpandedMap = {
   reddit: true,
   facebook: true,
   github: true,
-  coinbase: false, // Coinbase is no longer supported
   hackernews: true,
   dns: true,
   http: true,

@@ -75,7 +75,12 @@ const PostProof = (props: Props) => {
             />}
           <Box style={styleButtonsContainer}>
             {!!onCancelText &&
-              <Button type="Secondary" onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+              <Button
+                type="Secondary"
+                onClick={() => onCancel()}
+                label={onCancelText || 'Cancel'}
+                style={{marginRight: globalMargins.tiny}}
+              />}
             <Button
               type="Primary"
               onClick={() => onComplete()}

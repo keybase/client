@@ -40,6 +40,7 @@ const fontIOS = {
 const fontAndroid = {
   fontRegular: {
     fontFamily: 'OpenSans',
+    fontWeight: 'normal',
   },
   fontSemibold: {
     fontFamily: 'OpenSans-Semi',

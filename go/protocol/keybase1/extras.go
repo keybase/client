@@ -19,12 +19,17 @@ import (
 )
 
 const (
-	UID_LEN          = 16
-	UID_SUFFIX       = 0x00
-	UID_SUFFIX_2     = 0x19
-	UID_SUFFIX_HEX   = "00"
-	UID_SUFFIX_2_HEX = "19"
-	PUBLIC_UID       = "ffffffffffffffffffffffffffffff00"
+	UID_LEN               = 16
+	UID_SUFFIX            = 0x00
+	UID_SUFFIX_2          = 0x19
+	UID_SUFFIX_HEX        = "00"
+	UID_SUFFIX_2_HEX      = "19"
+	TEAMID_LEN            = 16
+	TEAMID_SUFFIX         = 0x24
+	TEAMID_SUFFIX_HEX     = "24"
+	SUB_TEAMID_SUFFIX     = 0x25
+	SUB_TEAMID_SUFFIX_HEX = "25"
+	PUBLIC_UID            = "ffffffffffffffffffffffffffffff00"
 )
 
 // UID for the special "public" user.
@@ -292,15 +297,75 @@ func (u UID) Less(v UID) bool {
 	return u < v
 }
 
-// Returns a number in [0, shardCount) which can be treated as roughly
-// uniformly distributed. Used for things that need to shard by user.
-func (u UID) GetShard(shardCount int) (int, error) {
-	bytes, err := hex.DecodeString(string(u))
-	if err != nil {
-		return 0, err
+func (u UID) AsUserOrTeam() UserOrTeamID {
+	return UserOrTeamID(u)
+}
+
+func TeamIDFromString(s string) (TeamID, error) {
+	if len(s) != hex.EncodedLen(TEAMID_LEN) {
+		return "", fmt.Errorf("Bad TeamID '%s'; must be %d bytes long", s, TEAMID_LEN)
 	}
-	n := binary.LittleEndian.Uint32(bytes)
-	return int(n % uint32(shardCount)), nil
+	suffix := s[len(s)-2:]
+	if suffix != TEAMID_SUFFIX_HEX && suffix != SUB_TEAMID_SUFFIX_HEX {
+		return "", fmt.Errorf("Bad TeamID '%s': must end in 0x%x or 0x%x", s, TEAMID_SUFFIX, SUB_TEAMID_SUFFIX)
+	}
+	return TeamID(s), nil
+}
+
+// Used by unit tests.
+func MakeTestTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
+// Can panic if invalid
+func (t TeamID) IsSubTeam() bool {
+	suffix := t[len(t)-2:]
+	return suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+func (t TeamID) String() string {
+	return string(t)
+}
+
+func (t TeamID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(t))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+func (t TeamID) IsNil() bool {
+	return len(t) == 0
+}
+
+func (t TeamID) Exists() bool {
+	return !t.IsNil()
+}
+
+func (t TeamID) Equal(v TeamID) bool {
+	return t == v
+}
+
+func (t TeamID) NotEqual(v TeamID) bool {
+	return !t.Equal(v)
+}
+
+func (t TeamID) Less(v TeamID) bool {
+	return t < v
+}
+
+func (t TeamID) AsUserOrTeam() UserOrTeamID {
+	return UserOrTeamID(t)
 }
 
 func (s SigID) IsNil() bool {
@@ -987,4 +1052,97 @@ func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 		return true
 	}
 	return false
+}
+
+func (ut UserOrTeamID) String() string {
+	return string(ut)
+}
+
+func (ut UserOrTeamID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(ut))
+	if err != nil {
+		return nil
+	}
+	return b
+}
+
+func (ut UserOrTeamID) IsNil() bool {
+	return len(ut) == 0
+}
+
+func (ut UserOrTeamID) Exists() bool {
+	return !ut.IsNil()
+}
+
+func (ut UserOrTeamID) Equal(v UserOrTeamID) bool {
+	return ut == v
+}
+
+func (ut UserOrTeamID) NotEqual(v UserOrTeamID) bool {
+	return !ut.Equal(v)
+}
+
+func (ut UserOrTeamID) Less(v UserOrTeamID) bool {
+	return ut < v
+}
+
+func (ut UserOrTeamID) AsUser() (UID, error) {
+	if !ut.IsUser() {
+		return UID(""), errors.New("ID is not a UID")
+	}
+	return UID(ut), nil
+}
+
+func (ut UserOrTeamID) AsUserOrBust() UID {
+	uid, err := ut.AsUser()
+	if err != nil {
+		panic(err)
+	}
+	return uid
+}
+
+func (ut UserOrTeamID) AsTeam() (TeamID, error) {
+	if !ut.IsTeamOrSubteam() {
+		return TeamID(""), errors.New("ID is not a team ID")
+	}
+	return TeamID(ut), nil
+}
+
+func (ut UserOrTeamID) AsTeamOrBust() TeamID {
+	tid, err := ut.AsTeam()
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
+func (ut UserOrTeamID) IsUser() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX
+}
+
+func (ut UserOrTeamID) IsTeam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == TEAMID_SUFFIX_HEX
+}
+
+func (ut UserOrTeamID) IsSubteam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+func (ut UserOrTeamID) IsTeamOrSubteam() bool {
+	suffix := ut[len(ut)-2:]
+	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
+}
+
+// Returns a number in [0, shardCount) which can be treated as roughly
+// uniformly distributed. Used for things that need to shard by user.
+func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
+	bytes, err := hex.DecodeString(string(ut))
+	if err != nil {
+		return 0, err
+	}
+	n := binary.LittleEndian.Uint32(bytes)
+	return int(n % uint32(shardCount)), nil
 }

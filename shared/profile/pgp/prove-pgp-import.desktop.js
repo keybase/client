@@ -7,7 +7,7 @@ import type {Props} from './prove-pgp-import'
 class ProvePgpImport extends Component<void, Props, void> {
   render() {
     return (
-      <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
+      <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>
         <Icon type="icon-pgp-key-import-48" />
         <Text style={styleHeader} type="Header">Import a PGP key</Text>
         <Text style={styleBody} type="Body">

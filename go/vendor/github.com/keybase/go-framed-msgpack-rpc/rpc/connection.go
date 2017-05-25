@@ -271,6 +271,9 @@ type Connection struct {
 	reconnectErrPtr   *error             // Filled in with fatal reconnect err (if any) before reconnectChan is closed
 	cancelFunc        context.CancelFunc // used to cancel the reconnect loop
 	reconnectedBefore bool
+
+	initialReconnectBackoffWindow time.Duration
+	randomTimer                   CancellableRandomTimer
 }
 
 // This struct contains all the connection parameters that are optional. The
@@ -288,6 +291,10 @@ type ConnectionOpts struct {
 	WrapErrorFunc    WrapErrorFunc
 	ReconnectBackoff func() backoff.BackOff
 	CommandBackoff   func() backoff.BackOff
+	// InitialReconnectBackoffWindow, if non zero, causes a random backoff
+	// before reconnecting. The random backoff timer is fast-forward-able by
+	// passing in a WithFireNow(ctx) into a RPC call.
+	InitialReconnectBackoffWindow time.Duration
 }
 
 // NewTLSConnection returns a connection that tries to connect to the
@@ -365,13 +372,14 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(),
 		randBytes)
 	connection := &Connection{
-		handler:          handler,
-		transport:        transport,
-		errorUnwrapper:   errorUnwrapper,
-		reconnectBackoff: reconnectBackoff,
-		doCommandBackoff: commandBackoff,
-		wef:              opts.WrapErrorFunc,
-		tagsFunc:         opts.TagsFunc,
+		handler:                       handler,
+		transport:                     transport,
+		errorUnwrapper:                errorUnwrapper,
+		reconnectBackoff:              reconnectBackoff,
+		doCommandBackoff:              commandBackoff,
+		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
+		wef:      opts.WrapErrorFunc,
+		tagsFunc: opts.TagsFunc,
 		log: connectionLog{
 			LogOutput: log,
 			logPrefix: connectionPrefix,
@@ -537,6 +545,13 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	reconnectChan chan struct{}, reconnectErrPtr *error) {
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(ctx, disconnectStatus)
+	if c.initialReconnectBackoffWindow != 0 &&
+		disconnectStatus == StartingNonFirstConnection {
+		waitDur := c.randomTimer.Start(c.initialReconnectBackoffWindow)
+		c.log.Debug("starting random backoff: %s", waitDur)
+		c.randomTimer.Wait()
+		c.log.Debug("backoff done!")
+	}
 	err := backoff.RetryNotify(func() error {
 		// try to connect
 		err := c.connect(ctx)
@@ -608,6 +623,9 @@ type connectionClient struct {
 var _ GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+	if c.conn.initialReconnectBackoffWindow != 0 && isWithFireNow(ctx) {
+		c.conn.randomTimer.FireNow()
+	}
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
 		return rawClient.Call(ctx, s, args, res)
 	})
