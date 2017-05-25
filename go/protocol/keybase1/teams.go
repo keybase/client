@@ -48,6 +48,13 @@ type PerTeamKey struct {
 	EncKID KID   `codec:"encKID" json:"encKID"`
 }
 
+type TeamMembers struct {
+	Owners  []string `codec:"owners" json:"owners"`
+	Admins  []string `codec:"admins" json:"admins"`
+	Writers []string `codec:"writers" json:"writers"`
+	Readers []string `codec:"readers" json:"readers"`
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -60,7 +67,7 @@ type TeamGetArg struct {
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
-	TeamGet(context.Context, TeamGetArg) error
+	TeamGet(context.Context, TeamGetArg) (TeamMembers, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -94,7 +101,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamGetArg)(nil), args)
 						return
 					}
-					err = i.TeamGet(ctx, (*typedArgs)[0])
+					ret, err = i.TeamGet(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -112,7 +119,7 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err e
 	return
 }
 
-func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamMembers, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
 	return
 }
