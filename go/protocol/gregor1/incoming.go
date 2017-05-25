@@ -34,6 +34,7 @@ type ConnectedDevice struct {
 	DeviceID       DeviceID `codec:"deviceID" json:"deviceID"`
 	DeviceType     string   `codec:"deviceType" json:"deviceType"`
 	DevicePlatform string   `codec:"devicePlatform" json:"devicePlatform"`
+	UserAgent      string   `codec:"userAgent" json:"userAgent"`
 }
 
 type ConnectedUser struct {

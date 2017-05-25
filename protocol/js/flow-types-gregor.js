@@ -294,6 +294,7 @@ export type ConnectedDevice = {
   deviceID: DeviceID,
   deviceType: string,
   devicePlatform: string,
+  userAgent: string,
 }
 
 export type ConnectedUser = {

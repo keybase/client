@@ -34,6 +34,10 @@
         {
           "type": "string",
           "name": "devicePlatform"
+        },
+        {
+          "type": "string",
+          "name": "userAgent"
         }
       ],
       "doc": "DescribeConnectedUsers will take a list of users, and return the list of users\n    which are connected to any Gregor in the cluster, and what devices (and device type)\n    those users are connected with."

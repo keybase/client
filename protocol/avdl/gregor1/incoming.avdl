@@ -27,6 +27,7 @@ protocol incoming {
     DeviceID deviceID;
     string deviceType;
     string devicePlatform;
+    string userAgent;
   }
 
   record ConnectedUser {
