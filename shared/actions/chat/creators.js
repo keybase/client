@@ -341,19 +341,21 @@ function loadingMessages(
   return {payload: {conversationIDKey, isRequesting}, type: 'chat:loadingMessages'}
 }
 
-function retryAttachment(message: Constants.AttachmentMessage): Constants.SelectAttachment {
-  const {conversationIDKey, filename, title, previewType, outboxID} = message
-  if (!filename || !title || !previewType) {
-    throw new Error('attempted to retry attachment without filename')
+function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
+  const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
+  if (!uploadPath || !title || !previewType) {
+    throw new Error('attempted to retry attachment without upload path')
+  }
+  if (!outboxID) {
+    throw new Error('attempted to retry attachment without outboxID')
   }
   const input = {
     conversationIDKey,
-    filename,
-    outboxID,
+    filename: uploadPath,
     title,
     type: previewType || 'Other',
   }
-  return {payload: {input}, type: 'chat:selectAttachment'}
+  return {payload: {input, oldOutboxID: outboxID}, type: 'chat:retryAttachment'}
 }
 
 function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAttachment {
@@ -544,6 +546,7 @@ function clearAttachmentPlaceholderPreview(
 function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
+
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
@@ -557,7 +560,6 @@ export {
   attachmentSaved,
   badgeAppForChat,
   blockConversation,
-  clearAttachmentPlaceholderPreview,
   clearMessages,
   clearRekey,
   createPendingFailure,

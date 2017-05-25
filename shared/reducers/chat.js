@@ -126,31 +126,30 @@ function updateConversationMessage(
 function updateStateWithMessageChanged(
   state: Constants.State,
   conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
+  pred: MessageFindPredFn,
   toMerge: $Shape<Constants.Message>
 ) {
   let messageKey
 
   // $FlowIssue
   let newState = state.update('conversationStates', conversationStates =>
-    updateConversationMessage(
-      conversationStates,
-      conversationIDKey,
-      item => !!item.messageID && item.messageID === messageID,
-      m => {
-        messageKey = m.key
-        return {
-          ...m,
-          ...toMerge,
-        }
+    updateConversationMessage(conversationStates, conversationIDKey, pred, m => {
+      messageKey = m.key
+      return {
+        ...m,
+        ...toMerge,
       }
-    )
+    })
   )
 
-  if (messageKey) {
+  // Note: this may be overly conservative: it updates messageMap with the
+  // latest key only, and does not remove the old key in case of a key change.
+  // We may find that deleting the old key is appropriate in the future.
+  const newKey = toMerge.key || messageKey
+  if (newKey) {
     newState = newState.set(
       'messageMap',
-      state.get('messageMap').update(messageKey, message => ({
+      state.get('messageMap').update(newKey, message => ({
         ...message,
         ...toMerge,
       }))
@@ -158,6 +157,26 @@ function updateStateWithMessageChanged(
   }
 
   return newState
+}
+
+function updateStateWithMessageIDChanged(
+  state: Constants.State,
+  conversationIDKey: Constants.ConversationIDKey,
+  messageID: Constants.MessageID,
+  toMerge: $Shape<Constants.Message>
+) {
+  const pred = item => !!item.messageID && item.messageID === messageID
+  return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
+}
+
+function updateStateWithMessageOutboxIDChanged(
+  state: Constants.State,
+  conversationIDKey: Constants.ConversationIDKey,
+  outboxID: Constants.OutboxIDKey,
+  toMerge: $Shape<Constants.Message>
+) {
+  const pred = item => !!item.outboxID && item.outboxID === outboxID
+  return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
 }
 
 function sortInbox(inbox: List<Constants.InboxState>): List<Constants.InboxState> {
@@ -190,10 +209,17 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         console.warn("Attempted to clear conversation state that doesn't exist")
         return state
       }
+
+      const newMessages = origConversationState
+        .get('messages')
+        .filter(m => m.messageState === 'pending' || m.messageState === 'failed')
+      const newSeenMessages = Set(newMessages.map(m => m.key))
+
       // $FlowIssue
       const clearedConversationState = initialConversation.merge({
         firstNewMessageID: origConversationState.get('firstNewMessageID'),
-        messages: origConversationState.get('messages').filter(m => m.messageState === 'pending'),
+        messages: newMessages,
+        seenMessages: newSeenMessages,
       })
       // $FlowIssue
       return state.update('conversationStates', conversationStates =>
@@ -289,47 +315,27 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       if (action.error) {
         console.warn('Error in updateTempMessage')
         const {conversationIDKey, outboxID} = action.payload
-
-        // $FlowIssue
-        return state.update('conversationStates', conversationStates =>
-          updateConversationMessage(
-            conversationStates,
-            conversationIDKey,
-            item => !!item.outboxID && item.outboxID === outboxID,
-            m => ({
-              ...m,
-              messageState: 'failed',
-            })
-          )
-        )
+        return updateStateWithMessageOutboxIDChanged(state, conversationIDKey, outboxID, {
+          messageState: 'failed',
+        })
       } else {
         const {outboxID, message, conversationIDKey} = action.payload
-
-        // $FlowIssue
-        return state
-          .update('conversationStates', conversationStates =>
-            updateConversationMessage(
-              conversationStates,
-              conversationIDKey,
-              item => !!item.outboxID && item.outboxID === outboxID,
-              m => ({
-                ...m,
-                ...message,
-              })
-            )
-          )
-          .update('inbox', inbox =>
-            inbox.map((i, inboxIdx) => {
-              // Update snippetKey to message.messageID so we can clear deleted message snippets
-              if (i.get('conversationIDKey') === conversationIDKey) {
-                if (i.get('snippetKey') === outboxID && message.messageID) {
-                  return i.set('snippetKey', message.messageID)
-                }
+        return updateStateWithMessageOutboxIDChanged(
+          state,
+          conversationIDKey,
+          outboxID,
+          message
+        ).update('inbox', inbox =>
+          inbox.map((i, inboxIdx) => {
+            // Update snippetKey to message.messageID so we can clear deleted message snippets
+            if (i.get('conversationIDKey') === conversationIDKey) {
+              if (i.get('snippetKey') === outboxID && message.messageID) {
+                return i.set('snippetKey', message.messageID)
               }
-              return i
-            })
-          )
-          .set('messageMap', state.get('messageMap').set(message.key, message))
+            }
+            return i
+          })
+        )
       }
     }
     case 'chat:updateMessage': {
@@ -373,12 +379,12 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       } else {
         toMerge = {downloadedPath: path, downloadProgress: null}
       }
-      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
+      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:attachmentSaved': {
       const {conversationIDKey, messageID, path} = action.payload
       const toMerge = {savedPath: path}
-      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
+      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:downloadProgress': {
       const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
@@ -390,7 +396,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const toMerge = {
         [progressField]: progress,
       }
-      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
+      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:uploadProgress': {
       const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
@@ -399,7 +405,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         messageState: 'uploading',
         uploadProgress,
       }
-      return updateStateWithMessageChanged(state, conversationIDKey, messageID, toMerge)
+      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload
@@ -583,16 +589,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           conversation.set('loadedOffline', true)
         )
       return state.set('conversationStates', newConversationStates)
-    }
-    case 'chat:setAttachmentPlaceholderPreview': {
-      const {outboxID, previewPath} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.set(outboxID, previewPath))
-    }
-    case 'chat:clearAttachmentPlaceholderPreview': {
-      const {outboxID} = action.payload
-      // $FlowIssue doesn't recognize updates
-      return state.update('attachmentPlaceholderPreviews', previews => previews.delete(outboxID))
     }
     case 'gregor:updateReachability': {
       // reset this when we go online

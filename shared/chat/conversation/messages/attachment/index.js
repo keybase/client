@@ -40,6 +40,7 @@ function PreviewImage({
     previewType,
     previewSize,
     messageState,
+    messageID,
     downloadProgress,
     downloadedPath,
     savedPath,
@@ -253,7 +254,7 @@ function AttachmentMessageGeneric({
   onOpenInPopup: ?() => void,
 }) {
   const {savedPath, messageState, uploadProgress, downloadProgress} = message
-  const canOpen = messageState !== 'uploading'
+  const canOpen = messageState !== 'uploading' && messageState !== 'pending'
   return (
     <Box
       style={{
@@ -292,7 +293,7 @@ function AttachmentMessagePreviewImage({
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
 }) {
-  const canOpen = message.messageState !== 'uploading'
+  const canOpen = message.messageState !== 'uploading' && message.messageState !== 'pending'
   return (
     <Box style={{...globalStyles.flexBoxColumn, ...(canOpen ? globalStyles.clickable : {}), flex: 1}}>
       <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />

@@ -48,7 +48,12 @@ class PgpAdd extends Component<void, Props, void> {
           {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
         </Text>
         <Box style={styleActions}>
-          <Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />
+          <Button
+            type="Secondary"
+            label="Cancel"
+            onClick={this.props.onCancel}
+            style={{marginRight: globalMargins.tiny}}
+          />
           <Button
             type="Primary"
             label="Let the math begin"
