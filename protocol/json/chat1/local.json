@@ -2371,7 +2371,7 @@
           "name": "oneChatPerTLF",
           "type": [
             null,
-            "bool"
+            "boolean"
           ]
         },
         {
