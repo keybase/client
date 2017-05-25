@@ -56,7 +56,12 @@ type TeamInfo struct {
 	TID          keybase1.TeamID
 	CryptKeys    map[KeyGen]kbfscrypto.TLFCryptKey
 	LatestKeyGen KeyGen
-	// TODO: full user log or current membership + roles?
+
+	Writers map[keybase1.UID]bool
+	Readers map[keybase1.UID]bool
+
+	// TODO: Should we add a historic membership log to easily check
+	// whether a user was a member given some Merkle seqno?
 }
 
 // SessionInfo contains all the info about the keybase session that

@@ -1394,6 +1394,49 @@ func (_mr *_MockCurrentSessionGetterRecorder) GetCurrentSession(arg0 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentSession", arg0)
 }
 
+// Mock of teamMembershipChecker interface
+type MockteamMembershipChecker struct {
+	ctrl     *gomock.Controller
+	recorder *_MockteamMembershipCheckerRecorder
+}
+
+// Recorder for MockteamMembershipChecker (not exported)
+type _MockteamMembershipCheckerRecorder struct {
+	mock *MockteamMembershipChecker
+}
+
+func NewMockteamMembershipChecker(ctrl *gomock.Controller) *MockteamMembershipChecker {
+	mock := &MockteamMembershipChecker{ctrl: ctrl}
+	mock.recorder = &_MockteamMembershipCheckerRecorder{mock}
+	return mock
+}
+
+func (_m *MockteamMembershipChecker) EXPECT() *_MockteamMembershipCheckerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockteamMembershipChecker) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsTeamWriter", ctx, tid, uid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockteamMembershipCheckerRecorder) IsTeamWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamWriter", arg0, arg1, arg2)
+}
+
+func (_m *MockteamMembershipChecker) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsTeamReader", ctx, tid, uid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockteamMembershipCheckerRecorder) IsTeamReader(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamReader", arg0, arg1, arg2)
+}
+
 // Mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
@@ -1470,6 +1513,28 @@ func (_m *MockKBPKI) GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, er
 
 func (_mr *_MockKBPKIRecorder) GetCurrentMerkleSeqNo(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentMerkleSeqNo", arg0)
+}
+
+func (_m *MockKBPKI) IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsTeamWriter", ctx, tid, uid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) IsTeamWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamWriter", arg0, arg1, arg2)
+}
+
+func (_m *MockKBPKI) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsTeamReader", ctx, tid, uid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) IsTeamReader(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamReader", arg0, arg1, arg2)
 }
 
 func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {

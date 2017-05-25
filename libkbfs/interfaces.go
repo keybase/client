@@ -502,6 +502,22 @@ type CurrentSessionGetter interface {
 	GetCurrentSession(ctx context.Context) (SessionInfo, error)
 }
 
+type teamMembershipChecker interface {
+	// IsTeamWriter checks whether the given user is a writer of the
+	// given team right now.
+	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
+		bool, error)
+	// IsTeamReader checks whether the given user is a reader of the
+	// given team right now.
+	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
+		bool, error)
+	// TODO: add Was* method for figuring out whether the user was a
+	// writer/reader at a particular Merkle sequence number.  Not sure
+	// whether these calls should also verify that sequence number
+	// corresponds to a given TLF revision, or leave that work to
+	// another component.
+}
+
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
 	CurrentSessionGetter
@@ -509,6 +525,7 @@ type KBPKI interface {
 	identifier
 	normalizedUsernameGetter
 	merkleSeqNoGetter
+	teamMembershipChecker
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.

@@ -208,6 +208,26 @@ func (k *KBPKIClient) GetCurrentMerkleSeqNo(ctx context.Context) (
 	return k.serviceOwner.KeybaseService().GetCurrentMerkleSeqNo(ctx)
 }
 
+// IsTeamWriter implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) IsTeamWriter(
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(ctx, tid)
+	if err != nil {
+		return false, err
+	}
+	return teamInfo.Writers[uid], nil
+}
+
+// IsTeamReader implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) IsTeamReader(
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
+	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(ctx, tid)
+	if err != nil {
+		return false, err
+	}
+	return teamInfo.Writers[uid] || teamInfo.Readers[uid], nil
+}
+
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
