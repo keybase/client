@@ -374,6 +374,19 @@ func CombineErrors(errs ...error) error {
 	return fmt.Errorf("There were multiple errors: %s", strings.Join(msgs, "; "))
 }
 
+type Errorer func() error
+
+// Try all the fs and return nil if they all succeed or the first error.
+func FirstError(fs ...Errorer) error {
+	for _, f := range fs {
+		err := f()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // IsDirEmpty returns whether directory has any files.
 func IsDirEmpty(dir string) (bool, error) {
 	f, err := os.Open(dir)
