@@ -88,9 +88,9 @@ const Avatars = ({
         alignItems: 'flex-end',
         backgroundColor,
         justifyContent: 'flex-start',
-        maxWidth: 55,
-        minWidth: 55,
-        paddingLeft: 4,
+        maxWidth: 56,
+        minWidth: 56,
+        paddingLeft: globalMargins.xtiny,
       }}
     >
       <Box style={{position: 'relative'}}>
