@@ -10,6 +10,24 @@ function installExistingButtons(user) {
   return true;
 }
 
+function injectProfileChat(user) {
+  const injectFn = profileInject[user.origin];
+  if (injectFn === undefined) return;
+
+  // Check if there is an inline button already available for us to swap. Used
+  // before adding our own button.
+  const preinstalled = document.getElementsByClassName("keybase-chat-open");
+  if (preinstalled.length) {
+    installChatButton(preinstalled, user);
+    return;
+  }
+
+  // Check if there is already a button injected?
+  if (document.querySelector(".keybase-chat")) return;
+
+  injectFn(user);
+}
+
 // Site-specific DOM injectors, does not get used in the popup.
 
 const profileInject = {
