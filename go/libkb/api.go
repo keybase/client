@@ -204,17 +204,20 @@ func (c *countingReader) numRead() int {
 // Shared code
 //
 
-func nullFinisher() {}
+func noopFinisher() {}
 
-// If finisher is returned non-nil, the finisher() should be called after the
-// response is no longer needed.
+// doRequestShared returns an http.Response, which is a live streaming object that
+// escapes the function in which it was created.  It therefore also returns
+// a `finished func()` that *must always be called* after the response is no longer
+// needed. This finisher is always non-nil (and just a noop in some cases),
+// so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
 	if !api.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
 
-	finisher = nullFinisher
+	finisher = noopFinisher
 
 	ctx := arg.NetContext
 	if ctx == nil {
@@ -269,7 +272,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	defer func() {
 		if err != nil {
 			finisher()
-			finisher = nullFinisher
+			finisher = noopFinisher
 		}
 	}()
 
@@ -655,7 +658,7 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
-		return nil, nullFinisher, err
+		return nil, noopFinisher, err
 	}
 
 	resp, finisher, _, err := doRequestShared(a, arg, req, false)

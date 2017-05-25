@@ -58,7 +58,7 @@ func (a *FakeAPI) GetDecode(arg APIArg, v APIResponseWrapper) error {
 }
 
 func (a *FakeAPI) GetResp(APIArg) (*http.Response, func(), error) {
-	return nil, nullFinisher, fmt.Errorf("GetResp is phony")
+	return nil, noopFinisher, fmt.Errorf("GetResp is phony")
 }
 
 func (a *FakeAPI) Post(APIArg) (*APIRes, error) {
