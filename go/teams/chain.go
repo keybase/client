@@ -567,9 +567,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if team.Subteam != nil {
 			return res, errors.New("unexpected subteam")
 		}
-		if team.PerTeamKey != nil {
-			return res, errors.New("unexpected missing")
-		}
 
 		teamID, err := keybase1.TeamIDFromString(string(team.ID))
 		if err != nil {
@@ -665,7 +662,65 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.leave":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type) // TODO CORE-5305
+		if prevState == nil {
+			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+		}
+		if len(team.ID) == 0 {
+			return res, errors.New("missing team id")
+		}
+		if team.Name != nil {
+			return res, errors.New("unexpected name")
+		}
+		if team.Members != nil {
+			return res, errors.New("unexpected members")
+		}
+		if team.Parent != nil {
+			return res, errors.New("unexpected parent")
+		}
+		if team.Subteam != nil {
+			return res, errors.New("unexpected subteam")
+		}
+
+		teamID, err := keybase1.TeamIDFromString(string(team.ID))
+		if err != nil {
+			return res, err
+		}
+		if !prevState.ID.Equal(teamID) {
+			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+		}
+
+		// Check that the signer is at least a reader.
+		// Implicit admins cannot leave a subteam.
+		signerRole, err := prevState.GetUserRole(oRes.signingUser)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to leave: %v is a %v", oRes.signingUser, signerRole)
+		}
+
+		// The last owner of a team should not leave.
+		// But that's really up to them and the server. We're just reading what has happened.
+
+		res.newState = prevState.DeepCopy()
+		res.newState.UserLog.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
+
+		if team.PerTeamKey != nil {
+			lastKey, err := prevState.GetLatestPerTeamKey()
+			if err != nil {
+				return res, fmt.Errorf("getting previous per-team-key: %s", err)
+			}
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			if err != nil {
+				return res, err
+			}
+			res.newState.PerTeamKeys[newKey.Gen] = newKey
+		}
+
+		return res, nil
 	case "team.subteam_head":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
