@@ -125,8 +125,6 @@ class EngineRpcCall {
           racers: lastTask ? {lastTask: join(lastTask)} : {},
         })
 
-        console.log('DEBUG: incoming is', incoming)
-
         if (incoming.timeout) {
           yield call([this, this._cleanup], lastTask)
           throw new RPCTimeoutError(this._rpcNameKey, timeout)

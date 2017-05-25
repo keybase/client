@@ -393,7 +393,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       }
     )
 
-    // Todo do we need to pass this context?
     const result = yield call(loadThreadChanMapRpc.run)
 
     if (EngineRpc.isFinished(result)) {

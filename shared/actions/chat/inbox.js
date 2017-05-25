@@ -6,7 +6,7 @@ import * as EngineRpc from '../engine/helper'
 import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, fork, put, select, cancelled, take, spawn} from 'redux-saga/effects'
+import {call, put, select, cancelled, take, spawn} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
@@ -241,7 +241,7 @@ function* _chatInboxConversationSubSaga({conv}) {
   // Wait for an idle
   yield call(onIdlePromise, 100)
   // TODO might be better to make this a put with an associated takeEvery
-  yield fork(processConversation, conv)
+  yield spawn(processConversation, conv)
   return EngineRpc.rpcResult()
 }
 
