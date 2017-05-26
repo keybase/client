@@ -129,6 +129,8 @@ type AssertionURL interface {
 	IsKeybase() bool
 	IsUID() bool
 	ToUID() keybase1.UID
+	IsTeamID() bool
+	ToTeamID() keybase1.TeamID
 	IsSocial() bool
 	IsRemote() bool
 	IsFingerprint() bool
@@ -171,6 +173,7 @@ func (b AssertionURLBase) NeedsParens() bool { return false }
 func (b AssertionURLBase) HasOr() bool       { return false }
 
 func (a AssertionUID) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
+func (a AssertionTeamID) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
 func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
 func (a AssertionWeb) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionSocial) MatchSet(ps ProofSet) bool  { return a.matchSet(a, ps) }
@@ -183,14 +186,16 @@ func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
 func (a AssertionWeb) Keys() []string {
 	return []string{"dns", "http", "https"}
 }
-func (a AssertionHTTP) Keys() []string               { return []string{"http", "https"} }
-func (b AssertionURLBase) Keys() []string            { return []string{b.Key} }
-func (b AssertionURLBase) IsKeybase() bool           { return false }
-func (b AssertionURLBase) IsSocial() bool            { return false }
-func (b AssertionURLBase) IsRemote() bool            { return false }
-func (b AssertionURLBase) IsFingerprint() bool       { return false }
-func (b AssertionURLBase) IsUID() bool               { return false }
-func (b AssertionURLBase) ToUID() (ret keybase1.UID) { return ret }
+func (a AssertionHTTP) Keys() []string                     { return []string{"http", "https"} }
+func (b AssertionURLBase) Keys() []string                  { return []string{b.Key} }
+func (b AssertionURLBase) IsKeybase() bool                 { return false }
+func (b AssertionURLBase) IsSocial() bool                  { return false }
+func (b AssertionURLBase) IsRemote() bool                  { return false }
+func (b AssertionURLBase) IsFingerprint() bool             { return false }
+func (b AssertionURLBase) IsUID() bool                     { return false }
+func (b AssertionURLBase) ToUID() (ret keybase1.UID)       { return ret }
+func (b AssertionURLBase) IsTeamID() bool                  { return false }
+func (b AssertionURLBase) ToTeamID() (ret keybase1.TeamID) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
 }
@@ -212,6 +217,7 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 }
 
 func (a AssertionUID) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionTeamID) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
 func (a AssertionKeybase) CollectUrls(v []AssertionURL) []AssertionURL     { return append(v, a) }
 func (a AssertionWeb) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
 func (a AssertionSocial) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
@@ -226,6 +232,10 @@ type AssertionKeybase struct{ AssertionURLBase }
 type AssertionUID struct {
 	AssertionURLBase
 	uid keybase1.UID
+}
+type AssertionTeamID struct {
+	AssertionURLBase
+	tid keybase1.TeamID
 }
 type AssertionHTTP struct{ AssertionURLBase }
 type AssertionHTTPS struct{ AssertionURLBase }
@@ -355,6 +365,7 @@ func (a AssertionSocial) IsRemote() bool           { return true }
 func (a AssertionWeb) IsRemote() bool              { return true }
 func (a AssertionFingerprint) IsFingerprint() bool { return true }
 func (a AssertionUID) IsUID() bool                 { return true }
+func (a AssertionTeamID) IsTeamID() bool           { return true }
 func (a AssertionHTTP) IsRemote() bool             { return true }
 func (a AssertionHTTPS) IsRemote() bool            { return true }
 func (a AssertionDNS) IsRemote() bool              { return true }
@@ -368,6 +379,15 @@ func (a AssertionUID) ToUID() keybase1.UID {
 	return a.uid
 }
 
+func (a AssertionTeamID) ToTeamID() keybase1.TeamID {
+	if a.tid.IsNil() {
+		if tmp, err := keybase1.TeamIDFromString(a.Value); err == nil {
+			a.tid = tmp
+		}
+	}
+	return a.tid
+}
+
 func (a AssertionKeybase) ToLookup() (key, value string, err error) {
 	return "username", a.Value, nil
 }
@@ -379,6 +399,17 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 func (a AssertionUID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	var err error
 	a.uid, err = UIDFromHex(a.Value)
+	a.Value = strings.ToLower(a.Value)
+	return a, err
+}
+
+func (a AssertionTeamID) ToLookup() (key, value string, err error) {
+	return "tid", a.Value, nil
+}
+
+func (a AssertionTeamID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+	var err error
+	a.tid, err = keybase1.TeamIDFromString(a.Value)
 	a.Value = strings.ToLower(a.Value)
 	return a, err
 }
@@ -418,6 +449,8 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 		ret = AssertionKeybase{base}
 	case "uid":
 		ret = AssertionUID{AssertionURLBase: base}
+	case "tid":
+		ret = AssertionTeamID{AssertionURLBase: base}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":
