@@ -82,7 +82,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	group.Go(func() error {
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			IdentifyBehavior: identBehavior,
 		}
 		var err error
 		ib, err = t.identifyTLF(ectx, query, true)
@@ -117,9 +117,10 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	}
 	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 
-	// If the given identify mode treats breaks as errors, return an error now (key is that it is
+	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
-	if !identBehavior.WarningInsteadOfErrorOnBrokenTracks() && len(res.NameIDBreaks.Breaks.Breaks) > 0 {
+	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT &&
+		len(res.NameIDBreaks.Breaks.Breaks) > 0 {
 		return res, libkb.NewIdentifySummaryError(res.NameIDBreaks.Breaks.Breaks[0])
 	}
 
@@ -141,7 +142,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 	group.Go(func() error {
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			IdentifyBehavior: identBehavior,
 		}
 
 		var err error
@@ -158,7 +159,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		// skip identify:
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+			IdentifyBehavior: identBehavior,
 		}
 
 		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ectx, query)
@@ -176,9 +177,9 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 	}
 	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
 
-	// If the given identify mode treats breaks as errors, return an error now (key is that it is
+	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
-	if !identBehavior.WarningInsteadOfErrorOnBrokenTracks() && len(res.Breaks.Breaks) > 0 {
+	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res.Breaks.Breaks) > 0 {
 		return res, libkb.NewIdentifySummaryError(res.Breaks.Breaks[0])
 	}
 
@@ -287,16 +288,25 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
 	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
+		// Ignore these errors
 		if _, ok := err.(libkb.NotFoundError); ok {
-			err = nil
+			return keybase1.TLFIdentifyFailure{}, nil
 		}
 		if _, ok := err.(libkb.ResolutionError); ok {
-			err = nil
+			return keybase1.TLFIdentifyFailure{}, nil
 		}
-		return keybase1.TLFIdentifyFailure{}, err
-	}
-	resp := eng.Result()
 
+		// Special treatment is needed for GUI strict mode, since we need to
+		// simultaneously plumb identify breaks up to the UI, and make sure the
+		// overall process returns an error. Swallow the error here so the rest of
+		// the identify can proceed, but we will check later for breaks with this
+		// mode and return an error
+		if idBehavior != keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT {
+			return keybase1.TLFIdentifyFailure{}, err
+		}
+	}
+
+	resp := eng.Result()
 	var frep keybase1.TLFIdentifyFailure
 	if resp != nil && resp.TrackBreaks != nil {
 		frep.User = keybase1.User{
