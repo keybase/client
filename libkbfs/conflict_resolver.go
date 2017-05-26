@@ -2496,7 +2496,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	newMD, err := mostRecentMergedMD.MakeSuccessor(
 		ctx, cr.config.MetadataVersion(), cr.config.Codec(),
 		cr.config.Crypto(), cr.config.KeyManager(), cr.config.KBPKI(),
-		mostRecentMergedMD.MdID(), true)
+		cr.config.KBPKI(), mostRecentMergedMD.MdID(), true)
 	if err != nil {
 		return nil, err
 	}

@@ -242,7 +242,8 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
 	crypto cryptoPure, keyManager KeyManager, merkleGetter merkleSeqNoGetter,
-	mdID kbfsmd.ID, isWriter bool) (*RootMetadata, error) {
+	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
+	*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
@@ -272,6 +273,18 @@ func (md *RootMetadata) MakeSuccessor(
 		newMd.clearLastRevision()
 		// clear the serialized data.
 		newMd.SetSerializedPrivateMetadata(nil)
+
+		if handleCopy.Type() == tlf.SingleTeam {
+			tid, err := handleCopy.FirstResolvedWriter().AsTeam()
+			if err != nil {
+				return nil, err
+			}
+			_, keyGen, err := teamKeyer.GetTeamTLFCryptKeys(ctx, tid)
+			if err != nil {
+				return nil, err
+			}
+			newMd.bareMd.SetLatestKeyGenerationForTeamTLF(keyGen)
+		}
 	} else {
 		// if we can't read it it means we're simply setting the rekey bit
 		// and copying the previous data.

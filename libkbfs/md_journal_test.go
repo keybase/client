@@ -132,7 +132,7 @@ func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	prevRoot := mdID
 	for i := 1; i < mdCount; i++ {
 		md, err = md.MakeSuccessor(ctx, ver, codec, crypto,
-			nil, constMerkleRootGetter{}, prevRoot, true)
+			nil, constMerkleRootGetter{}, nil, prevRoot, true)
 		require.NoError(t, err)
 		mdID, err := putMD(ctx, md)
 		require.NoError(t, err)

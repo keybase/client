@@ -377,7 +377,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
 			config.Codec(), config.Crypto(), config.KeyManager(),
-			config.KBPKI(), mdID, true)
+			config.KBPKI(), config.KBPKI(), mdID, true)
 		require.NoError(t, err)
 		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
 			config.BlockSplitter(), rmd, false)

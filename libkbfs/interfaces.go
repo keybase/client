@@ -520,6 +520,14 @@ type TeamMembershipChecker interface {
 	// another component.
 }
 
+type teamKeysGetter interface {
+	// GetTeamTLFCryptKeys gets all of a team's secret crypt keys, by
+	// generation, as well as the latest key generation number for the
+	// team.
+	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (
+		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
+}
+
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
 	CurrentSessionGetter
@@ -528,6 +536,7 @@ type KBPKI interface {
 	normalizedUsernameGetter
 	merkleSeqNoGetter
 	TeamMembershipChecker
+	teamKeysGetter
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
@@ -548,12 +557,6 @@ type KBPKI interface {
 	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 		[]kbfscrypto.CryptPublicKey, error)
-
-	// GetTeamTLFCryptKeys gets all of a team's secret crypt keys, by
-	// generation, as well as the latest key generation number for the
-	// team.
-	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (
-		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
 
 	// TODO: Split the methods below off into a separate
 	// FavoriteOps interface.

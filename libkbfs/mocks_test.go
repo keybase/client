@@ -1437,6 +1437,39 @@ func (_mr *_MockTeamMembershipCheckerRecorder) IsTeamReader(arg0, arg1, arg2 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamReader", arg0, arg1, arg2)
 }
 
+// Mock of teamKeysGetter interface
+type MockteamKeysGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockteamKeysGetterRecorder
+}
+
+// Recorder for MockteamKeysGetter (not exported)
+type _MockteamKeysGetterRecorder struct {
+	mock *MockteamKeysGetter
+}
+
+func NewMockteamKeysGetter(ctrl *gomock.Controller) *MockteamKeysGetter {
+	mock := &MockteamKeysGetter{ctrl: ctrl}
+	mock.recorder = &_MockteamKeysGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockteamKeysGetter) EXPECT() *_MockteamKeysGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockteamKeysGetter) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamTLFCryptKeys", ctx, tid)
+	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(KeyGen)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockteamKeysGetterRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
+}
+
 // Mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
@@ -1537,6 +1570,18 @@ func (_mr *_MockKBPKIRecorder) IsTeamReader(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsTeamReader", arg0, arg1, arg2)
 }
 
+func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamTLFCryptKeys", ctx, tid)
+	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
+	ret1, _ := ret[1].(KeyGen)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKBPKIRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
+}
+
 func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
 	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime)
 	ret0, _ := ret[0].(error)
@@ -1566,18 +1611,6 @@ func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
 
 func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
-}
-
-func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
-	ret := _m.ctrl.Call(_m, "GetTeamTLFCryptKeys", ctx, tid)
-	ret0, _ := ret[0].(map[KeyGen]kbfscrypto.TLFCryptKey)
-	ret1, _ := ret[1].(KeyGen)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-func (_mr *_MockKBPKIRecorder) GetTeamTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamTLFCryptKeys", arg0, arg1)
 }
 
 func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
