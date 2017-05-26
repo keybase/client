@@ -209,11 +209,11 @@ type PerTeamSharedSecretBoxes struct {
 }
 
 type PerTeamSharedSecretBox struct {
-	_struct      bool `codec:",toarray"`
-	Version      uint
-	EldestSeqno  keybase1.Seqno
-	NonceCounter uint32
-	Ctext        []byte
+	_struct         bool `codec:",toarray"`
+	Version         uint
+	PerUserKeySeqno keybase1.Seqno
+	NonceCounter    uint32
+	Ctext           []byte
 }
 
 func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
@@ -245,10 +245,10 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 		copy(nonce[20:24], counterBytes[:])
 		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
 		boxStruct := PerTeamSharedSecretBox{
-			Version:      libkb.SharedTeamKeyBoxVersion1,
-			EldestSeqno:  recipientPerUserKey.Seqno,
-			NonceCounter: counter,
-			Ctext:        ctext,
+			Version:         libkb.SharedTeamKeyBoxVersion1,
+			PerUserKeySeqno: recipientPerUserKey.Seqno,
+			NonceCounter:    counter,
+			Ctext:           ctext,
 		}
 		encodedArray, err := libkb.MsgpackEncode(boxStruct)
 		if err != nil {
