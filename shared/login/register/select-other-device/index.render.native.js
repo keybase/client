@@ -4,7 +4,7 @@ import React from 'react'
 import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
-import {Box, Text, Icon, ClickableBox, NativeScrollView} from '../../../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
@@ -25,7 +25,13 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </Box>
-        <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
+          {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
+        </Box>
+        <Box style={stylesButtonContainer}>
+          <Button label="Connect" type="Secondary" small={true} onClick={onPress} />
+        </Box>
       </Box>
     </ClickableBox>
   )
@@ -55,12 +61,15 @@ const stylesDevicesContainer = {
   alignSelf: 'center',
 }
 const stylesRow = {
-  ...globalStyles.flexBoxColumn,
+  ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  justifyContent: 'center',
-  padding: 10,
+  alignItems: 'center',
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  paddingTop: globalMargins.tiny,
   borderBottomWidth: 1,
-  borderBottomColor: globalColors.black_10,
+  borderBottomColor: globalColors.black_05,
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,
@@ -73,12 +82,18 @@ const stylesIconContainer = {
 }
 const stylesIcon = {
   color: globalColors.black,
-  marginLeft: 32,
-  marginRight: 22,
+  marginLeft: 0,
+  marginRight: globalMargins.small,
 }
+const stylesButtonContainer = {
+  ...globalStyles.flexBoxRow,
+  flexGrow: 1,
+  justifyContent: 'flex-end',
+}
+
 const stylesWont = {
-  marginTop: 10,
-  marginBottom: 10,
+  marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   alignSelf: 'center',
 }
 
