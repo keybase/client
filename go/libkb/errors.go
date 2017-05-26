@@ -1349,6 +1349,18 @@ type IdentifySummaryError struct {
 	problems []string
 }
 
+func NewIdentifySummaryError(failure keybase1.TLFIdentifyFailure) IdentifySummaryError {
+	problem := "a followed proof failed"
+	if failure.Breaks != nil {
+		num := len(failure.Breaks.Proofs)
+		problem = fmt.Sprintf("%d followed proof%s failed", num, GiveMeAnS(num))
+	}
+	return IdentifySummaryError{
+		username: NewNormalizedUsername(failure.User.Username),
+		problems: []string{problem},
+	}
+}
+
 func (e IdentifySummaryError) Error() string {
 	return fmt.Sprintf("failed to identify %q: %s",
 		e.username,
@@ -1357,6 +1369,17 @@ func (e IdentifySummaryError) Error() string {
 
 func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
+}
+
+func IsIdentifyProofError(err error) bool {
+	switch err.(type) {
+	case ProofError:
+	case IdentifySummaryError:
+		return true
+	default:
+		return false
+	}
+	return false
 }
 
 //=============================================================================
