@@ -299,14 +299,15 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 		// Special treatment is needed for GUI strict mode, since we need to
 		// simultaneously plumb identify breaks up to the UI, and make sure the
 		// overall process returns an error. Swallow the error here so the rest of
-		// the identify can proceed, but we will check later for breaks with this
-		// mode and return an error
-		if idBehavior != keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT {
+		// the identify can proceed, but we will check later (in GetTLFCryptKeys) for breaks with this
+		// mode and return an error there.
+		if !(libkb.IsIdentifyProofError(err) &&
+			idBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT) {
 			return keybase1.TLFIdentifyFailure{}, err
 		}
 	}
-
 	resp := eng.Result()
+
 	var frep keybase1.TLFIdentifyFailure
 	if resp != nil && resp.TrackBreaks != nil {
 		frep.User = keybase1.User{

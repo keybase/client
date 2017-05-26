@@ -1371,6 +1371,17 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
 }
 
+func IsIdentifyProofError(err error) bool {
+	switch err.(type) {
+	case ProofError:
+	case IdentifySummaryError:
+		return true
+	default:
+		return false
+	}
+	return false
+}
+
 //=============================================================================
 
 type NotLatestSubchainError struct {
