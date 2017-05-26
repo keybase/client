@@ -102,7 +102,6 @@ func teamGet(t *testing.T) {
 }
 
 func createTeam(tc libkb.TestContext) string {
-	tc.T.Skip("create team busted, skipping")
 	b, err := libkb.RandBytes(4)
 	if err != nil {
 		tc.T.Fatal(err)
