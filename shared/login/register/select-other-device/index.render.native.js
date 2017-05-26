@@ -30,7 +30,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
         <Box style={stylesButtonContainer}>
-          <Button label="Connect" type="Secondary" small={true} onClick={onPress} />
+          <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
         </Box>
       </Box>
     </ClickableBox>
@@ -39,7 +39,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
+    <Text type="Header" style={stylesHeader}>Choose a device to prove you're you:</Text>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </NativeScrollView>
