@@ -55,8 +55,6 @@ class UserItem extends Component<void, UserItemProps, void> {
             ...followingStateToStyle(followingState),
             lineHeight: '18px',
             marginLeft: globalMargins.xtiny,
-            // Nudge up 1px so lowercase characters look more vertically centered
-            transform: 'translateY(-1px)',
           }}
         >
           {username}
@@ -159,7 +157,6 @@ const _inputStyle = {
   outline: 'none',
   lineHeight: '22px',
   padding: 0,
-  transform: 'translateY(-1px)',
 }
 
 export default UserInput
