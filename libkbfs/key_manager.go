@@ -119,6 +119,31 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		return kbfscrypto.TLFCryptKey{}, err
 	}
 
+	// Team TLF keys come from the service.
+	if tlfID.Type() == tlf.SingleTeam {
+		tid, err := kmd.GetTlfHandle().FirstResolvedWriter().AsTeam()
+		if err != nil {
+			return kbfscrypto.TLFCryptKey{}, err
+		}
+		keys, _, err := km.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid)
+		if err != nil {
+			return kbfscrypto.TLFCryptKey{}, err
+		}
+		tlfCryptKey, ok := keys[keyGen]
+		if !ok {
+			return kbfscrypto.TLFCryptKey{},
+				InvalidKeyGenerationError{tlfID, keyGen}
+		}
+		if flags&getTLFCryptKeyDoCache != 0 {
+			if err = kcache.PutTLFCryptKey(
+				tlfID, keyGen, tlfCryptKey); err != nil {
+				return kbfscrypto.TLFCryptKey{}, err
+			}
+		}
+
+		return tlfCryptKey, nil
+	}
+
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
 	session, err := kbpki.GetCurrentSession(ctx)
@@ -454,6 +479,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
 		md.TlfID(), promptPaper)
 	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %+v", md.TlfID(), err) }()
+
+	if md.TlfID().Type() == tlf.SingleTeam {
+		return false, nil, errors.New(
+			"Rekeying is not done by KBFS for team TLFs")
+	}
 
 	currKeyGen := md.LatestKeyGeneration()
 	if (md.TlfID().Type() == tlf.Public) != (currKeyGen == PublicKeyGen) {

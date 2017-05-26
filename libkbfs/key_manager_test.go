@@ -12,8 +12,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
@@ -2331,6 +2333,70 @@ func (c *protectedContext) maybeReplaceContext(newCtx context.Context) {
 		defer c.log.CDebugf(newCtx, "Context replaced")
 	}
 	c.ctx = newCtx
+}
+
+func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid2 := session2.UID
+
+	// These are deterministic, and should add the same TeamInfos for
+	// both user configs.
+	name := libkb.NormalizedUsername("t1")
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config1, name)
+	_ = AddEmptyTeamsForTestOrBust(t, config2, name)
+	tid := teamInfos[0].TID
+	AddTeamWriterForTestOrBust(t, config1, tid, uid1)
+	AddTeamWriterForTestOrBust(t, config2, tid, uid1)
+	AddTeamWriterForTestOrBust(t, config1, tid, uid2)
+	AddTeamWriterForTestOrBust(t, config2, tid, uid2)
+
+	tlfID := tlf.FakeID(1, tlf.SingleTeam)
+	h := &TlfHandle{
+		tlfType: tlf.SingleTeam,
+		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			tid.AsUserOrTeam(): name,
+		},
+		name: CanonicalTlfName(name),
+	}
+
+	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
+	require.NoError(t, err)
+	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
+	// Make sure the MD looks readable.
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+
+	// Both users should see the same key.
+	key1, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+	require.NoError(t, err)
+	key2, err := config2.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+	require.NoError(t, err)
+	require.Equal(t, key1, key2)
+
+	// Bump the key generation.
+	AddTeamKeyForTestOrBust(t, config1, tid)
+	AddTeamKeyForTestOrBust(t, config2, tid)
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config1.MetadataVersion(), config1.Codec(), config1.Crypto(),
+		config1.KeyManager(), config1.KBPKI(), config1.KBPKI(),
+		kbfsmd.FakeID(2), true)
+	require.NoError(t, err)
+
+	// Both users should see the same new key.
+	key1b, err := config1.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd2)
+	require.NoError(t, err)
+	key2b, err := config2.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd2)
+	require.NoError(t, err)
+	require.Equal(t, key1b, key2b)
+	require.NotEqual(t, key1, key1b)
 }
 
 func TestKeyManager(t *testing.T) {
