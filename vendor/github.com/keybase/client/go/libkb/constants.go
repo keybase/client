@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 )
 
 const (
@@ -98,7 +99,13 @@ const (
 	Identify2CacheBrokenTimeout = 1 * time.Hour
 	Identify2CacheShortTimeout  = 1 * time.Minute
 
-	CachedUserTimeout = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
+	// How long we'll go without rerequesting hints/merkle seqno. This is used in both
+	// CachedUPAKLoader and FullSelfCacher. Note that this timeout has to exceed the
+	// dtime value for Gregor IBMs that deal with user and key family changed notifications.
+	// Because if the client is offline for more than that amount of time, then our cache
+	// could be stale.
+	CachedUserTimeout = 10 * time.Minute
+
 	LinkCacheSize     = 0x10000
 	LinkCacheCleanDur = 1 * time.Minute
 
@@ -130,17 +137,22 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
-const (
-	KeybaseKIDV1       = 1 // Uses SHA-256
-	KeybaseSignatureV1 = 1
-	OneYearInSeconds   = 24 * 60 * 60 * 365
+type SigVersion int
 
-	SigExpireIn       = OneYearInSeconds * 16 // 16 years
-	NaclEdDSAExpireIn = OneYearInSeconds * 16 // 16 years
-	NaclDHExpireIn    = OneYearInSeconds * 16 // 16 years
-	KeyExpireIn       = OneYearInSeconds * 16 // 16 years
-	SubkeyExpireIn    = OneYearInSeconds * 16 // 16 years
-	AuthExpireIn      = OneYearInSeconds      // 1 year
+const KeybaseSignatureV1 SigVersion = 1
+const KeybaseSignatureV2 SigVersion = 2
+
+const (
+	KeybaseKIDV1     = 1 // Uses SHA-256
+	OneYearInSeconds = 24 * 60 * 60 * 365
+
+	SigExpireIn            = OneYearInSeconds * 16 // 16 years
+	NaclEdDSAExpireIn      = OneYearInSeconds * 16 // 16 years
+	NaclDHExpireIn         = OneYearInSeconds * 16 // 16 years
+	NaclPerUserKeyExpireIn = OneYearInSeconds * 16 // 16 years
+	KeyExpireIn            = OneYearInSeconds * 16 // 16 years
+	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
+	AuthExpireIn           = OneYearInSeconds      // 1 year
 
 	PaperKeyMemoryTimeout = time.Hour
 )
@@ -252,6 +264,12 @@ const (
 	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
 	LinkTypeUpdateSettings             = "update_settings"
 	LinkTypeWebServiceBinding          = "web_service_binding"
+	LinkTypePerUserKey                 = "per_user_key"
+
+	// team links
+	LinkTypeTeamRoot    LinkType = "team.root"
+	LinkTypeNewSubteam  LinkType = "team.new_subteam"
+	LinkTypeSubteamHead LinkType = "team.subteam_head"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate                = "pgp_update"
@@ -338,6 +356,7 @@ const (
 	HTTPDefaultTimeout        = 60 * time.Second
 	HTTPDefaultScraperTimeout = 10 * time.Second
 	HTTPPollMaximum           = 5 * time.Second
+	HTTPFastTimeout           = 5 * time.Second
 )
 
 // The following constants apply to APIArg parameters for
@@ -409,6 +428,7 @@ const (
 	DLGNone KeyRole = iota
 	DLGSibkey
 	DLGSubkey
+	DLGPerUserKey
 )
 
 const (
@@ -420,11 +440,12 @@ const (
 )
 
 const (
-	Kex2PhraseEntropy = 88
-	Kex2ScryptCost    = 1 << 17
-	Kex2ScryptR       = 8
-	Kex2ScryptP       = 1
-	Kex2ScryptKeylen  = 32
+	Kex2PhraseEntropy  = 88
+	Kex2ScryptCost     = 1 << 17
+	Kex2ScryptLiteCost = 1 << 10
+	Kex2ScryptR        = 8
+	Kex2ScryptP        = 1
+	Kex2ScryptKeylen   = 32
 )
 
 // PaperKeyWordCountMin of 13 is based on the current state:
@@ -444,7 +465,7 @@ const (
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 12
+const MinPassphraseLength = 6
 
 const TrackingRateLimitSeconds = 50
 
@@ -494,11 +515,21 @@ const (
 
 const (
 	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
+)
+
+type DeriveReason string
+
+const (
+	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
+	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
+	// Context used for chaining generations of PerUserKeys.
+	DeriveReasonPUKPrev DeriveReason = "Derived-User-NaCl-SecretBox-1"
 )
 
 // FirstPRodMerkleSeqnoWithSkips is the first merkle root on production that
 // has skip pointers indicating log(n) previous merkle roots.
-var FirstProdMerkleSeqnoWithSkips = Seqno(835903)
+var FirstProdMerkleSeqnoWithSkips = keybase1.Seqno(835903)
 
 type AppType string
 
@@ -535,3 +566,23 @@ type PvlUnparsed struct {
 	Hash PvlKitHash
 	Pvl  PvlString
 }
+
+const SharedTeamKeyBoxVersion1 = 1
+
+const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
+const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+
+func CurrentSaltpackVersion() saltpack.Version {
+	return saltpack.Version1()
+}
+
+const (
+	SeqTypePublic      int = 1
+	SeqTypePrivate         = 2
+	SeqTypeSemiprivate     = 3
+)
+
+const (
+	RootTeamIDTag byte = 0x24
+	SubteamIDTag       = 0x25
+)

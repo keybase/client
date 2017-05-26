@@ -869,6 +869,7 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 			i++
 		}
 		pk.PGPIdentities = ids
+		pk.IsRevoked = len(pgpBundle.Revocations)+len(pgpBundle.UnverifiedRevocations) > 0
 	}
 	pk.DeviceID = ckf.cki.KIDToDeviceID[pk.KID]
 	device := ckf.cki.Devices[pk.DeviceID]
@@ -924,6 +925,26 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
 	return exportedKeys, pgpKeyCount
+}
+
+type perUserKeyList []keybase1.PerUserKey
+
+func (l perUserKeyList) Len() int { return len(l) }
+func (l perUserKeyList) Less(i, j int) bool {
+	return l[i].Gen < l[j].Gen
+}
+func (l perUserKeyList) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+
+// ExportPerUserKeys exports the per-user public KIDs.
+func (ckf ComputedKeyFamily) ExportPerUserKeys() (ret []keybase1.PerUserKey) {
+
+	for _, k := range ckf.cki.PerUserKeys {
+		ret = append(ret, k)
+	}
+	sort.Sort(perUserKeyList(ret))
+	return ret
 }
 
 // ExportDeletedDeviceKeys is used by ExportToUserPlusKeys.  The key list
@@ -995,19 +1016,16 @@ func (u *User) ExportToVersionVector(idTime keybase1.Time) keybase1.UserVersionV
 
 func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys {
 	ret := keybase1.UserPlusKeys{
-		Uid:      u.GetUID(),
-		Username: u.GetName(),
+		Uid:         u.GetUID(),
+		Username:    u.GetName(),
+		EldestSeqno: u.GetCurrentEldestSeqno(),
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
-
-		// PC WIP
-		// these will be added to UserPlusKeys
-		// deletedDeviceKeys := ckf.ExportDeletedDeviceKeys()
-		// u.G().Log.Warning("deleted device keys: %+v", deletedDeviceKeys)
 		ret.DeletedDeviceKeys = ckf.ExportDeletedDeviceKeys()
+		ret.PerUserKeys = ckf.ExportPerUserKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

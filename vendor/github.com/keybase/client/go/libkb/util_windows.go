@@ -18,6 +18,8 @@ import (
 
 	"github.com/kardianos/osext"
 
+	"unicode/utf16"
+
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
@@ -31,12 +33,12 @@ type GUID struct {
 
 // 3EB685DB-65F9-4CF6-A03A-E3EF65729F3D
 var (
-	FOLDERID_RoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
+	FOLDERIDRoamingAppData = GUID{0x3EB685DB, 0x65F9, 0x4CF6, [8]byte{0xA0, 0x3A, 0xE3, 0xEF, 0x65, 0x72, 0x9F, 0x3D}}
 )
 
 // F1B32785-6FBA-4FCF-9D55-7B8E7F157091
 var (
-	FOLDERID_LocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
+	FOLDERIDLocalAppData = GUID{0xF1B32785, 0x6FBA, 0x4FCF, [8]byte{0x9D, 0x55, 0x7B, 0x8E, 0x7F, 0x15, 0x70, 0x91}}
 )
 
 var (
@@ -68,32 +70,55 @@ func coTaskMemFree(pv uintptr) {
 	return
 }
 
-func GetDataDir(id GUID) (string, error) {
+func GetDataDir(id GUID, envname string) (string, error) {
 
 	var pszPath uintptr
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb762188(v=vs.85).aspx
+	// When this method returns, contains the address of a pointer to a null-terminated
+	// Unicode string that specifies the path of the known folder. The calling process
+	// is responsible for freeing this resource once it is no longer needed by calling
+	// CoTaskMemFree.
 	r0, _, _ := procSHGetKnownFolderPath.Call(uintptr(unsafe.Pointer(&id)), uintptr(0), uintptr(0), uintptr(unsafe.Pointer(&pszPath)))
-	if r0 != 0 {
-		return "", errors.New("can't get FOLDERID_RoamingAppData")
+	// Sometimes r0 == 0 and there still isn't a valid string returned
+	if r0 != 0 || pszPath == 0 {
+		return "", errors.New("can't get FOLDERIDRoamingAppData")
 	}
 
 	defer coTaskMemFree(pszPath)
 
 	// go vet: "possible misuse of unsafe.Pointer"
-	folder := syscall.UTF16ToString((*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:])
+	// Have to cast this Windows string to
+	// a Go array of uint16 here, but we don't yet know the length.
+	rawUnicode := (*[1 << 16]uint16)(unsafe.Pointer(pszPath))[:]
+
+	// utf16.Decode crashes without adjusting the slice length
+	pathLen := 0
+	for i, r := range rawUnicode {
+		if r == 0 {
+			pathLen = i
+			break
+		}
+	}
+
+	folder := string(utf16.Decode(rawUnicode[:pathLen]))
 
 	if len(folder) == 0 {
-		return "", errors.New("can't get AppData directory")
+		// Try the environment as a backup
+		folder = os.Getenv(envname)
+		if len(folder) == 0 {
+			return "", errors.New("can't get AppData directory")
+		}
 	}
 
 	return folder, nil
 }
 
 func AppDataDir() (string, error) {
-	return GetDataDir(FOLDERID_RoamingAppData)
+	return GetDataDir(FOLDERIDRoamingAppData, "APPDATA")
 }
 
 func LocalDataDir() (string, error) {
-	return GetDataDir(FOLDERID_LocalAppData)
+	return GetDataDir(FOLDERIDLocalAppData, "LOCALAPPDATA")
 }
 
 // SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
@@ -107,6 +132,23 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 			time.Sleep(10 * time.Millisecond)
 		}
 		err = safeWriteToFileOnce(g, t, mode)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+// renameFile performs some retries on Windows,
+// similar to SafeWriteToFile
+func renameFile(g *GlobalContext, src string, dest string) error {
+	var err error
+	for i := 0; i < 5; i++ {
+		if err != nil {
+			g.Log.Debug("Retrying failed os.Rename - %s", err)
+			time.Sleep(10 * time.Millisecond)
+		}
+		err = os.Rename(src, dest)
 		if err == nil {
 			break
 		}
@@ -145,18 +187,19 @@ func moveKeyFiles(g *GlobalContext, oldHome string, currentHome string) (bool, e
 	if newSecretKeyfiles, _ := filepath.Glob(filepath.Join(currentHome, "*.ss")); len(newSecretKeyfiles) > 0 {
 		return false, nil
 	}
-	g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
 
 	files, _ := filepath.Glob(filepath.Join(oldHome, "*.mpack"))
 	oldSecretKeyfiles, _ := filepath.Glob(filepath.Join(oldHome, "*.ss"))
 	files = append(files, oldSecretKeyfiles...)
 	var newFiles []string
+
 	for _, oldPathName := range files {
 		_, name := filepath.Split(oldPathName)
 		newPathName := filepath.Join(currentHome, name)
 
 		// If both copies exist, skip
 		if exists, _ := FileExists(newPathName); !exists {
+			g.Log.Error("RemoteSettingsRepairman copying %s to %s", oldPathName, newPathName)
 			err = copyFile(oldPathName, newPathName)
 			if err != nil {
 				g.Log.Error("RemoteSettingsRepairman fatal error copying %s to %s - %s", oldPathName, newPathName, err)
@@ -244,6 +287,10 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
 		func() RunMode { return g.Env.GetRunMode() }}}
 
+	if g.Env.GetRunMode() != ProductionRunMode {
+		return nil
+	}
+
 	currentHome := w.Home(false)
 	kbDir := filepath.Base(currentHome)
 	oldDir, err := AppDataDir()
@@ -263,11 +310,14 @@ func RemoteSettingsRepairman(g *GlobalContext) error {
 
 // Notify the shell that the thing located at path has changed
 func notifyShell(path string) {
-	shChangeNotifyProc.Call(
-		uintptr(0x00002000), // SHCNE_UPDATEITEM
-		uintptr(0x0005),     // SHCNF_PATHW
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))),
-		0)
+	pathEncoded := utf16.Encode([]rune(path))
+	if len(pathEncoded) > 0 {
+		shChangeNotifyProc.Call(
+			uintptr(0x00002000), // SHCNE_UPDATEITEM
+			uintptr(0x0005),     // SHCNF_PATHW
+			uintptr(unsafe.Pointer(&pathEncoded[0])),
+			0)
+	}
 }
 
 // Manipulate registry entries to reflect the mount point icon in the shell

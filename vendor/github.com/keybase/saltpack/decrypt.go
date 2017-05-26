@@ -14,17 +14,16 @@ import (
 )
 
 type decryptStream struct {
-	ring       Keyring
-	mps        *msgpackStream
-	err        error
-	state      readState
-	payloadKey *SymmetricKey
-	senderKey  *RawBoxKey
-	buf        []byte
-	headerHash []byte
-	macKey     []byte
-	position   int
-	mki        MessageKeyInfo
+	versionValidator VersionValidator
+	version          Version
+	ring             Keyring
+	mps              *msgpackStream
+	payloadKey       *SymmetricKey
+	senderKey        *RawBoxKey
+	headerHash       headerHash
+	macKey           macKey
+	position         int
+	mki              MessageKeyInfo
 }
 
 // MessageKeyInfo conveys all of the data about the keys used in this encrypted message.
@@ -41,105 +40,75 @@ type MessageKeyInfo struct {
 	NumAnonReceivers int
 }
 
-func (ds *decryptStream) Read(b []byte) (n int, err error) {
-	for n == 0 && err == nil {
-		n, err = ds.read(b)
-	}
-	if err == io.EOF && ds.state != stateEndOfStream {
-		err = io.ErrUnexpectedEOF
-	}
-	return n, err
-}
-
-func (ds *decryptStream) read(b []byte) (n int, err error) {
-
-	// Handle the case of a previous error. Just return the error
-	// again.
-	if ds.err != nil {
-		return 0, ds.err
-	}
-
-	// Handle the case first of a previous read that couldn't put all
-	// of its data into the outgoing buffer.
-	if len(ds.buf) > 0 {
-		n = copy(b, ds.buf)
-		ds.buf = ds.buf[n:]
-		return n, nil
-	}
-
-	// We have two states we can be in, but we can definitely
-	// fall through during one read, so be careful.
-
-	if ds.state == stateBody {
-		var last bool
-		n, last, ds.err = ds.readBlock(b)
-		if ds.err != nil {
-			return 0, ds.err
+func (ds *decryptStream) getNextChunk() ([]byte, error) {
+	ciphertext, authenticators, isFinal, seqno, err := readEncryptionBlock(ds.version, ds.mps)
+	if err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
 		}
-
-		if last {
-			ds.state = stateEndOfStream
-		}
+		return nil, err
 	}
 
-	if ds.state == stateEndOfStream {
-		ds.err = assertEndOfStream(ds.mps)
-		if ds.err != nil {
-			return 0, ds.err
-		}
+	chunk, err := ds.processBlock(ciphertext, authenticators, isFinal, seqno)
+	if err != nil {
+		return nil, err
 	}
 
-	return n, nil
+	err = checkDecodedChunkState(ds.version, chunk, seqno, isFinal)
+	if err != nil {
+		return nil, err
+	}
+
+	if isFinal {
+		return chunk, assertEndOfStream(ds.mps)
+	}
+
+	return chunk, nil
 }
 
 func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 	// Read the header bytes.
 	headerBytes := []byte{}
-	seqno, err := ds.mps.Read(&headerBytes)
+	_, err := ds.mps.Read(&headerBytes)
 	if err != nil {
 		return ErrFailedToReadHeaderBytes
 	}
 	// Compute the header hash.
-	headerHash := sha512.Sum512(headerBytes)
-	ds.headerHash = headerHash[:]
+	ds.headerHash = sha512.Sum512(headerBytes)
 	// Parse the header bytes.
 	var header EncryptionHeader
 	err = decodeFromBytes(&header, headerBytes)
 	if err != nil {
 		return err
 	}
-	header.seqno = seqno
-	err = ds.processEncryptionHeader(&header)
+	err = ds.processHeader(&header)
 	if err != nil {
 		return err
 	}
-	ds.state = stateBody
 	return nil
 }
 
-func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
-	var eb encryptionBlock
-	var seqno packetSeqno
-	seqno, err = ds.mps.Read(&eb)
-	if err != nil {
-		return 0, false, err
-	}
-	eb.seqno = seqno
-	var plaintext []byte
-	plaintext, err = ds.processEncryptionBlock(&eb)
-	if err != nil {
-		return 0, false, err
-	}
-	if plaintext == nil {
-		return 0, true, err
-	}
+func readEncryptionBlock(version Version, mps *msgpackStream) (ciphertext []byte, authenticators []payloadAuthenticator, isFinal bool, seqno packetSeqno, err error) {
+	switch version.Major {
+	case 1:
+		var ebV1 encryptionBlockV1
+		seqno, err = mps.Read(&ebV1)
+		if err != nil {
+			return nil, nil, false, 0, err
+		}
 
-	// Copy as much as we can into the given outbuffer
-	n = copy(b, plaintext)
-	// Leave the remainder for a subsequent read
-	ds.buf = plaintext[n:]
+		return ebV1.PayloadCiphertext, ebV1.HashAuthenticators, len(ebV1.PayloadCiphertext) == secretbox.Overhead, seqno, nil
+	case 2:
+		var ebV2 encryptionBlockV2
+		seqno, err := mps.Read(&ebV2)
+		if err != nil {
+			return nil, nil, false, 0, err
+		}
 
-	return n, false, err
+		return ebV2.PayloadCiphertext, ebV2.HashAuthenticators, ebV2.IsFinal, seqno, nil
+	default:
+		panic(ErrBadVersion{version})
+	}
 }
 
 func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
@@ -163,7 +132,8 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 		return nil, nil, -1, ErrBadLookup
 	}
 
-	payloadKeySlice, err := sk.Unbox(ephemeralKey, nonceForPayloadKeyBox(), hdr.Receivers[orig].PayloadKeyBox)
+	nonce := nonceForPayloadKeyBox(hdr.Version, uint64(orig))
+	payloadKeySlice, err := sk.Unbox(ephemeralKey, nonce, hdr.Receivers[orig].PayloadKeyBox)
 	if err != nil {
 		return nil, nil, -1, err
 	}
@@ -191,7 +161,8 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 
 		for i, r := range hdr.Receivers {
 			if len(r.ReceiverKID) == 0 {
-				payloadKeySlice, err := shared.Unbox(nonceForPayloadKeyBox(), r.PayloadKeyBox)
+				nonce := nonceForPayloadKeyBox(hdr.Version, uint64(i))
+				payloadKeySlice, err := shared.Unbox(nonce, r.PayloadKeyBox)
 				if err != nil {
 					continue
 				}
@@ -207,10 +178,12 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 	return nil, nil, -1, nil
 }
 
-func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
-	if err := hdr.validate(); err != nil {
+func (ds *decryptStream) processHeader(hdr *EncryptionHeader) error {
+	if err := hdr.validate(ds.versionValidator); err != nil {
 		return err
 	}
+
+	ds.version = hdr.Version
 
 	ephemeralKey := ds.ring.ImportBoxEphemeralKey(hdr.Ephemeral)
 	if ephemeralKey == nil {
@@ -237,7 +210,8 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	ds.mki.ReceiverKey = secretKey
 
 	// Decrypt the sender's public key
-	senderKeySlice, ok := secretbox.Open([]byte{}, hdr.SenderSecretbox, (*[24]byte)(nonceForSenderKeySecretBox()), (*[32]byte)(ds.payloadKey))
+	nonce := nonceForSenderKeySecretBox()
+	senderKeySlice, ok := secretbox.Open([]byte{}, hdr.SenderSecretbox, (*[24]byte)(&nonce), (*[32]byte)(ds.payloadKey))
 	if !ok {
 		return ErrBadSenderKeySecretbox
 	}
@@ -262,32 +236,49 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	}
 
 	// Compute the MAC key.
-	ds.macKey = computeMACKey(secretKey, ds.mki.SenderKey, ds.headerHash)
+	ds.macKey = computeMACKeyReceiver(hdr.Version, uint64(ds.position), secretKey, ds.mki.SenderKey, ephemeralKey, ds.headerHash)
 
 	return nil
 }
 
-func (ds *decryptStream) processEncryptionBlock(bl *encryptionBlock) ([]byte, error) {
+func computeMACKeyReceiver(version Version, index uint64, secret BoxSecretKey, public, ePublic BoxPublicKey, headerHash headerHash) macKey {
+	// Switch on the major version since we're reading, and so may
+	// encounter headers written by unknown minor versions.
+	switch version.Major {
+	case 1:
+		nonce := nonceForMACKeyBoxV1(headerHash)
+		return computeMACKeySingle(secret, public, nonce)
+	case 2:
+		nonce := nonceForMACKeyBoxV2(headerHash, false, index)
+		mac := computeMACKeySingle(secret, public, nonce)
+		eNonce := nonceForMACKeyBoxV2(headerHash, true, index)
+		eMAC := computeMACKeySingle(secret, ePublic, eNonce)
+		return sum512Truncate256(append(mac[:], eMAC[:]...))
+	default:
+		panic(ErrBadVersion{version})
+	}
+}
 
-	blockNum := encryptionBlockNumber(bl.seqno - 1)
+func (ds *decryptStream) processBlock(ciphertext []byte, authenticators []payloadAuthenticator, isFinal bool, seqno packetSeqno) ([]byte, error) {
+
+	blockNum := encryptionBlockNumber(seqno - 1)
 
 	if err := blockNum.check(); err != nil {
 		return nil, err
 	}
 
 	nonce := nonceForChunkSecretBox(blockNum)
-	ciphertext := bl.PayloadCiphertext
 
 	// Check the authenticator.
-	hashToAuthenticate := computePayloadHash(ds.headerHash, nonce, ciphertext)
-	ourAuthenticator := hmacSHA512256(ds.macKey, hashToAuthenticate)
-	if !hmac.Equal(ourAuthenticator, bl.HashAuthenticators[ds.position]) {
-		return nil, ErrBadTag(bl.seqno)
+	hashToAuthenticate := computePayloadHash(ds.version, ds.headerHash, nonce, ciphertext, isFinal)
+	ourAuthenticator := computePayloadAuthenticator(ds.macKey, hashToAuthenticate)
+	if !ourAuthenticator.Equal(authenticators[ds.position]) {
+		return nil, ErrBadTag(seqno)
 	}
 
-	plaintext, ok := secretbox.Open([]byte{}, ciphertext, (*[24]byte)(nonce), (*[32]byte)(ds.payloadKey))
+	plaintext, ok := secretbox.Open([]byte{}, ciphertext, (*[24]byte)(&nonce), (*[32]byte)(ds.payloadKey))
 	if !ok {
-		return nil, ErrBadCiphertext(bl.seqno)
+		return nil, ErrBadCiphertext(seqno)
 	}
 
 	// The encoding of the empty buffer implies the EOF.  But otherwise, all mechanisms are the same.
@@ -308,10 +299,11 @@ func (ds *decryptStream) processEncryptionBlock(bl *encryptionBlock) ([]byte, er
 // Note that the caller has an opportunity not to ingest the plaintext if he
 // doesn't trust the sender revealed in the MessageKeyInfo.
 //
-func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaintext io.Reader, err error) {
+func NewDecryptStream(versionValidator VersionValidator, r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaintext io.Reader, err error) {
 	ds := &decryptStream{
-		ring: keyring,
-		mps:  newMsgpackStream(r),
+		versionValidator: versionValidator,
+		ring:             keyring,
+		mps:              newMsgpackStream(r),
 	}
 
 	err = ds.readHeader(r)
@@ -319,15 +311,15 @@ func NewDecryptStream(r io.Reader, keyring Keyring) (mki *MessageKeyInfo, plaint
 		return &ds.mki, nil, err
 	}
 
-	return &ds.mki, ds, nil
+	return &ds.mki, newChunkReader(ds), nil
 }
 
 // Open simply opens a ciphertext given the set of keys in the specified keyring.
-// It returns a plaintext on sucess, and an error on failure. It returns the header's
+// It returns a plaintext on success, and an error on failure. It returns the header's
 // MessageKeyInfo in either case.
-func Open(ciphertext []byte, keyring Keyring) (i *MessageKeyInfo, plaintext []byte, err error) {
+func Open(versionValidator VersionValidator, ciphertext []byte, keyring Keyring) (i *MessageKeyInfo, plaintext []byte, err error) {
 	buf := bytes.NewBuffer(ciphertext)
-	mki, plaintextStream, err := NewDecryptStream(buf, keyring)
+	mki, plaintextStream, err := NewDecryptStream(versionValidator, buf, keyring)
 	if err != nil {
 		return mki, nil, err
 	}

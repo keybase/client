@@ -62,6 +62,15 @@ var (
 
 	// ErrDecryptionFailed is returned when a decryption fails
 	ErrDecryptionFailed = errors.New("decryption failed")
+
+	// ErrWrongNumberOfKeys is returned when the resolved list of keys isn't
+	// the same length as the identifiers list.
+	ErrWrongNumberOfKeys = errors.New("wrong number of resolved keys")
+
+	// ErrUnexpectedEmptyBlock is returned when an empty block is
+	// encountered that isn't both the last one and the first one
+	// (for V2 and higher), or isn't the last one (for V1).
+	ErrUnexpectedEmptyBlock = errors.New("unexpected empty block")
 )
 
 // ErrBadTag is generated when a payload hash doesn't match the hash
@@ -107,7 +116,7 @@ func (e ErrWrongMessageType) Error() string {
 	return fmt.Sprintf("Wrong saltpack message type: wanted %s, but got %s instead", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
-	return fmt.Sprintf("Unsupported version (%v)", e.received)
+	return fmt.Sprintf("Unsupported version (%s)", e.received)
 }
 func (e ErrBadCiphertext) Error() string {
 	return fmt.Sprintf("In packet %d: bad ciphertext; failed Poly1305", e)

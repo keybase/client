@@ -17,6 +17,7 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,7 +25,6 @@ import (
 	"sync"
 	"time"
 
-	chattypes "github.com/keybase/client/go/chat/types"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -42,18 +42,22 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log          logger.Logger // Handles all logging
-	VDL          *VDebugLog    // verbose debug log
-	Env          *Env          // Env variables, cmdline args & config
-	SKBKeyringMu *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings     *Keyrings     // Gpg Keychains holding keys
-	API          API           // How to make a REST call to the server
-	Resolver     *Resolver     // cache of resolve results
-	LocalDb      *JSONLocalDb  // Local DB for cache
-	LocalChatDb  *JSONLocalDb  // Local DB for cache
-	MerkleClient *MerkleClient // client for querying server's merkle sig tree
-	XAPI         ExternalAPI   // for contacting Twitter, Github, etc.
-	Output       io.Writer     // where 'Stdout'-style output goes
+	Log              logger.Logger // Handles all logging
+	VDL              *VDebugLog    // verbose debug log
+	Env              *Env          // Env variables, cmdline args & config
+	SKBKeyringMu     *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings         *Keyrings     // Gpg Keychains holding keys
+	perUserKeyringMu *sync.Mutex
+	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
+	API              API                  // How to make a REST call to the server
+	Resolver         *Resolver            // cache of resolve results
+	LocalDb          *JSONLocalDb         // Local DB for cache
+	LocalChatDb      *JSONLocalDb         // Local DB for cache
+	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
+	XAPI             ExternalAPI          // for contacting Twitter, Github, etc.
+	Output           io.Writer            // where 'Stdout'-style output goes
+	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	AppState         *AppState            // The state of focus for the currently running instance of the app
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -65,16 +69,17 @@ type GlobalContext struct {
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
 
-	GpgClient         *GpgCLI        // A standard GPG-client (optional)
-	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
-	SocketInfo        Socket         // which socket to bind/connect to
-	socketWrapperMu   *sync.RWMutex
-	SocketWrapper     *SocketWrapper     // only need one connection per
-	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
-	XStreams          *ExportedStreams   // a table of streams we've exported to the daemon (or vice-versa)
-	Timers            *TimerSet          // Which timers are currently configured on
-	UI                UI                 // Interact with the UI
-	Service           bool               // whether we're in server mode
+	GpgClient        *GpgCLI        // A standard GPG-client (optional)
+	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
+	SocketInfo       Socket         // which socket to bind/connect to
+	socketWrapperMu  *sync.RWMutex
+	SocketWrapper    *SocketWrapper    // only need one connection per
+	LoopbackListener *LoopbackListener // If we're in loopback mode, we'll connect through here
+	XStreams         *ExportedStreams  // a table of streams we've exported to the daemon (or vice-versa)
+	Timers           *TimerSet         // Which timers are currently configured on
+	UI               UI                // Interact with the UI
+	Service          bool              // whether we're in server mode
+
 	shutdownOnce      *sync.Once         // whether we've shut down or not
 	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
 	loginState        *LoginState        // What phase of login the user's in
@@ -100,12 +105,7 @@ type GlobalContext struct {
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
-
-	// Chat globals
-	InboxSource         chattypes.InboxSource         // source of remote inbox entries for chat
-	ConvSource          chattypes.ConversationSource  // source of remote message bodies for chat
-	MessageDeliverer    chattypes.MessageDeliverer    // background message delivery service
-	ServerCacheVersions chattypes.ServerCacheVersions // server side versions for chat caches
+	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -113,20 +113,28 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	ActiveDevice *ActiveDevice
+
 	NetContext context.Context
 }
+
+// There are many interfaces that slice and dice the GlobalContext to expose a
+// smaller API. TODO: Assert more of them here.
+var _ ProofContext = (*GlobalContext)(nil)
 
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger          { return g.Log }
-func (g *GlobalContext) GetVDebugLog() *VDebugLog       { return g.VDL }
-func (g *GlobalContext) GetAPI() API                    { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI    { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string           { return g.Env.GetServerURI() }
-func (g *GlobalContext) GetMerkleClient() *MerkleClient { return g.MerkleClient }
-func (g *GlobalContext) GetNetContext() context.Context { return g.NetContext }
+func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
+func (g *GlobalContext) GetAPI() API                                   { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI                   { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                          { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return g.MerkleClient }
+func (g *GlobalContext) GetNetContext() context.Context                { return g.NetContext }
+func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
+func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
@@ -134,6 +142,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
+		perUserKeyringMu:   new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -146,6 +155,7 @@ func NewGlobalContext() *GlobalContext {
 		lastUpgradeWarning: new(time.Time),
 		uchMu:              new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
+		ActiveDevice:       new(ActiveDevice),
 		NetContext:         context.TODO(),
 	}
 }
@@ -183,6 +193,8 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
+	g.ConnectivityMonitor = NullConnectivityMonitor{}
+	g.AppState = NewAppState(g)
 	return g
 }
 
@@ -200,12 +212,17 @@ func (g *GlobalContext) SetUIRouter(u UIRouter) {
 	g.UIRouter = u
 }
 
+func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
+	g.DNSNSFetcher = d
+}
+
 // requires lock on loginStateMu before calling
 func (g *GlobalContext) createLoginStateLocked() {
 	if g.loginState != nil {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
+	g.ActiveDevice = new(ActiveDevice)
 }
 
 func (g *GlobalContext) createLoginState() {
@@ -237,6 +254,10 @@ func (g *GlobalContext) Logout() error {
 	}
 
 	g.CallLogoutHooks()
+
+	if g.Env.GetSupportPerUserKey() {
+		g.ClearPerUserKeyring()
+	}
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -416,8 +437,14 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+// to implement ProofContext
 func (g *GlobalContext) GetPvlSource() PvlSource {
 	return g.pvlSource
+}
+
+// to implement ProofContext
+func (g *GlobalContext) GetAppType() AppType {
+	return g.Env.GetAppType()
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -480,9 +507,6 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
-		}
-		if g.MessageDeliverer != nil {
-			g.MessageDeliverer.Stop(context.Background())
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -736,6 +760,11 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.Log.Debug("G#CallLoginHooks")
+
+	if g.Env.GetSupportPerUserKey() {
+		_ = g.BumpPerUserKeyring()
+	}
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -888,11 +917,14 @@ func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(u)
 	}
+
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
+
+	g.BumpPerUserKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -909,4 +941,66 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	}
 	g.UserChangedHandlers = newList
 	g.uchMu.Unlock()
+}
+
+func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
+	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
+	if !g.Env.GetSupportPerUserKey() {
+		return nil, errors.New("per-user-key support disabled")
+	}
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
+	if g.perUserKeyring == nil {
+		return nil, fmt.Errorf("PerUserKeyring not present")
+	}
+	return g.perUserKeyring, nil
+}
+
+func (g *GlobalContext) ClearPerUserKeyring() {
+	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
+	if !g.Env.GetSupportPerUserKey() {
+		return
+	}
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
+	g.perUserKeyring = nil
+}
+
+// BumpPerUserKeyring recreates PerUserKeyring if the uid changes.
+// Using this during provisioning is nigh impossible because GetMyUID
+// routes through LoginSession and deadlocks.
+func (g *GlobalContext) BumpPerUserKeyring() error {
+	g.Log.Debug("G#BumpPerUserKeyring")
+	if !g.Env.GetSupportPerUserKey() {
+		return errors.New("per-user-key support disabled")
+	}
+	myUID := g.GetMyUID()
+
+	// Don't do any operations under these locks that could come back and hit them again.
+	// That's why GetMyUID up above is not under this lock.
+	g.perUserKeyringMu.Lock()
+	defer g.perUserKeyringMu.Unlock()
+
+	makeNew := func() error {
+		pukring, err := NewPerUserKeyring(g, myUID)
+		if err != nil {
+			g.Log.Warning("G#BumpPerUserKeyring -> failed: %s", err)
+			g.perUserKeyring = nil
+			return err
+		}
+		g.Log.Debug("G#BumpPerUserKeyring -> new")
+		g.perUserKeyring = pukring
+		return nil
+	}
+
+	if g.perUserKeyring == nil {
+		return makeNew()
+	}
+	pukUID := g.perUserKeyring.GetUID()
+	if pukUID.Equal(myUID) {
+		// Leave the existing keyring in place for the same user
+		g.Log.Debug("G#BumpPerUserKeyring -> ignore")
+		return nil
+	}
+	return makeNew()
 }

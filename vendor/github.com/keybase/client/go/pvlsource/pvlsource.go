@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvl"
 )
 
@@ -197,7 +198,7 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb
 	var res pvlServerRes
 	err := s.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "merkle/pvl",
-		NeedSession: false,
+		SessionType: libkb.APISessionTypeNONE,
 		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
 			"hash": libkb.S{Val: string(hash)},
@@ -317,7 +318,7 @@ func (s *PvlSourceImpl) readFile(path string) (libkb.PvlKitString, libkb.PvlKitH
 	return pvl, s.hash(pvl), err
 }
 
-func seqnoWrap(x *libkb.Seqno) int64 {
+func seqnoWrap(x *keybase1.Seqno) int64 {
 	if x == nil {
 		return 0
 	}

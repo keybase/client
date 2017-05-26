@@ -6,10 +6,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"runtime/debug"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -34,7 +35,8 @@ type LoginState struct {
 // the login process.
 type LoginContext interface {
 	LoggedInLoad() (bool, error)
-	LoggedInProvisionedLoad() (bool, error)
+	LoggedInProvisioned() (bool, error)
+	LoggedInProvisionedCheck() (bool, error)
 	Logout() error
 
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
@@ -61,11 +63,13 @@ type LoginContext interface {
 	SecretSyncer() *SecretSyncer
 	RunSecretSyncer(uid keybase1.UID) error
 
-	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
-	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+	SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error
 	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
 	SetLKSec(lksec *LKSec)
+
+	GetUnlockedPaperEncKey() GenericKey
+	GetUnlockedPaperSigKey() GenericKey
 }
 
 type LoggedInHelper interface {
@@ -411,7 +415,7 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		}
 		arg := APIArg{
 			Endpoint:    "nuke",
-			NeedSession: true,
+			SessionType: APISessionTypeREQUIRED,
 			Args:        NewHTTPArgs(),
 			SessionR:    lctx.LocalSession(),
 		}
@@ -432,7 +436,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALo
 
 	arg := APIArg{
 		Endpoint:    "login",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"email_or_username": S{eOu},
 		},
@@ -900,7 +904,7 @@ func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) err
 // acctHandle creates an acctReq from an acctHandler and puts it
 // in the acctReqs channel.  It waits for the request handler to
 // close the done channel in the acctReq before returning.
-// For debugging purposes, there is a 10s timeout to help find any
+// For debugging purposes, there is a 5s timeout to help find any
 // cases where an account or login request is attempted while
 // another account or login request is in process.
 func (s *LoginState) acctHandle(f acctHandler, name string) error {
@@ -1178,10 +1182,20 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	return lin, err
 }
 
-func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
+func (s *LoginState) LoggedInProvisioned() (lin bool, err error) {
 	aerr := s.Account(func(a *Account) {
-		lin, err = a.LoggedInProvisionedLoad()
-	}, "LoggedInProvisionedLoad")
+		lin, err = a.LoggedInProvisioned()
+	}, "LoggedInProvisioned")
+	if aerr != nil {
+		return false, aerr
+	}
+	return
+}
+
+func (s *LoginState) LoggedInProvisionedCheck() (lin bool, err error) {
+	aerr := s.Account(func(a *Account) {
+		lin, err = a.LoggedInProvisionedCheck()
+	}, "LoggedInProvisionedCheck")
 	if aerr != nil {
 		return false, aerr
 	}

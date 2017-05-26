@@ -47,9 +47,7 @@ type Account struct {
 	loginSession *LoginSession
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
-	secSigKey    GenericKey // cached secret signing key
-	secEncKey    GenericKey // cached secret encryption key
-	lksec        *LKSec     // local key security (this member not currently used)
+	lksec        *LKSec // local key security (this member not currently used)
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -81,6 +79,13 @@ func (a *Account) GetUID() (ret keybase1.UID) {
 	return ret
 }
 
+func (a *Account) GetDeviceID() (ret keybase1.DeviceID) {
+	if a.localSession != nil {
+		ret = a.localSession.GetDeviceID()
+	}
+	return ret
+}
+
 func (a *Account) UnloadLocalSession() {
 	a.localSession = newSession(a.G())
 }
@@ -91,17 +96,23 @@ func (a *Account) LoggedIn() bool {
 	return a.LocalSession().IsLoggedIn()
 }
 
-func (a *Account) LoggedInAndProvisioined() bool {
-	return a.LocalSession().IsLoggedInAndProvisioned()
-}
-
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
 	return a.LocalSession().loadAndCheck()
 }
 
-func (a *Account) LoggedInProvisionedLoad() (bool, error) {
+// LoggedInProvisionedCheck will load and check the session with the api server if necessary.
+func (a *Account) LoggedInProvisionedCheck() (bool, error) {
 	return a.LocalSession().loadAndCheckProvisioned()
+}
+
+// LoggedInProvisioned will load the session file if necessary and return true if the
+// device is provisioned.  It will *not* check the session with the api server.
+func (a *Account) LoggedInProvisioned() (bool, error) {
+	if err := a.LocalSession().Load(); err != nil {
+		return false, err
+	}
+	return a.LocalSession().IsLoggedInAndProvisioned(), nil
 }
 
 func (a *Account) LoadLoginSession(emailOrUsername string) error {
@@ -460,37 +471,82 @@ func (a *Account) Dump() {
 	a.streamCache.Dump()
 }
 
-func (a *Account) CachedSecretKey(ska SecretKeyArg) (GenericKey, error) {
-	if ska.KeyType == DeviceSigningKeyType {
-		if a.secSigKey != nil {
-			return a.secSigKey, nil
-		}
-		return nil, NotFoundError{}
-	}
-	if ska.KeyType == DeviceEncryptionKeyType {
-		if a.secEncKey != nil {
-			return a.secEncKey, nil
-		}
-		return nil, NotFoundError{}
-	}
-	return nil, fmt.Errorf("invalid key type for cached secret key: %d", ska.KeyType)
-}
-
-func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error {
+func (a *Account) SetCachedSecretKey(ska SecretKeyArg, key GenericKey, device *Device) error {
 	if key == nil {
 		return errors.New("cache of nil secret key attempted")
 	}
-	if ska.KeyType == DeviceSigningKeyType {
-		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
-		a.secSigKey = key
-		return nil
+
+	uid := a.G().Env.GetUID()
+	deviceID := a.deviceIDFromDevice(device)
+	if deviceID.IsNil() {
+		a.G().Log.Debug("SetCachedSecretKey with nil deviceID (%+v)", ska)
 	}
-	if ska.KeyType == DeviceEncryptionKeyType {
-		a.G().Log.Debug("caching secret key for %d", ska.KeyType)
-		a.secEncKey = key
-		return nil
+
+	switch ska.KeyType {
+	case DeviceSigningKeyType:
+		a.G().Log.Debug("caching secret device signing key")
+
+		if err := a.G().ActiveDevice.setSigningKey(a, uid, deviceID, key); err != nil {
+			return err
+		}
+
+		deviceName := a.deviceNameLookup(device, ska.Me, key)
+		if deviceName == "" {
+			a.G().Log.Debug("no device name found for signing key")
+			return nil
+		}
+
+		a.G().Log.Debug("caching device name %q", deviceName)
+		return a.G().ActiveDevice.setDeviceName(a, uid, deviceID, deviceName)
+	case DeviceEncryptionKeyType:
+		a.G().Log.Debug("caching secret device encryption key")
+		return a.G().ActiveDevice.setEncryptionKey(a, uid, deviceID, key)
+	default:
+		return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
 	}
-	return fmt.Errorf("attempt to cache invalid key type: %d", ska.KeyType)
+}
+
+func (a *Account) deviceIDFromDevice(device *Device) keybase1.DeviceID {
+	if device != nil {
+		return device.ID
+	}
+	return a.localSession.GetDeviceID()
+}
+
+func (a *Account) deviceNameLookup(device *Device, me *User, key GenericKey) string {
+	if device != nil {
+		if device.Description != nil && *device.Description != "" {
+			a.G().Log.Debug("deviceNameLookup: using device name from device: %q", *device.Description)
+			return *device.Description
+		}
+	}
+
+	a.G().Log.Debug("deviceNameLookup: no device name passed in, checking user")
+
+	if me == nil {
+		a.G().Log.Debug("deviceNameLookup: me is nil, skipping device name lookup")
+		return ""
+	}
+	a.G().Log.Debug("deviceNameLookup: looking for device name for device signing key")
+	ckf := me.GetComputedKeyFamily()
+	device, err := ckf.GetDeviceForKey(key)
+	if err != nil {
+		// not fatal
+		a.G().Log.Debug("deviceNameLookup: error getting device for key: %s", err)
+		return ""
+	}
+	if device == nil {
+		a.G().Log.Debug("deviceNameLookup: device for key is nil")
+		return ""
+	}
+	if device.Description == nil {
+		a.G().Log.Debug("deviceNameLookup: device description is nil")
+		return ""
+	}
+
+	a.G().Log.Debug("deviceNameLookup: found device name %q", *device.Description)
+
+	return *device.Description
 }
 
 func (a *Account) SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error {
@@ -515,9 +571,10 @@ func (a *Account) GetUnlockedPaperEncKey() GenericKey {
 
 func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
-	a.secSigKey = nil
-	a.secEncKey = nil
 	a.ClearPaperKeys()
+	if err := a.G().ActiveDevice.clear(a); err != nil {
+		a.G().Log.Warning("error clearing ActiveDevice: %s", err)
+	}
 }
 
 func (a *Account) ClearPaperKeys() {
@@ -561,4 +618,8 @@ func (a *Account) SkipSecretPrompt() bool {
 
 func (a *Account) SecretPromptCanceled() {
 	a.secretPromptCanceledAt = a.G().Clock().Now()
+}
+
+func (a *Account) SetDeviceName(name string) error {
+	return a.G().ActiveDevice.setDeviceName(a, a.G().Env.GetUID(), a.localSession.GetDeviceID(), name)
 }

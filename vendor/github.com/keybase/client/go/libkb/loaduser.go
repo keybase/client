@@ -23,6 +23,7 @@ type LoadUserArg struct {
 	ForceReload              bool
 	ForcePoll                bool // for cached user load, force a repoll
 	StaleOK                  bool // if stale cached versions are OK (for immutable fields)
+	CachedOnly               bool // only return cached data (StaleOK should be true as well)
 	AllKeys                  bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool
@@ -39,9 +40,9 @@ type LoadUserArg struct {
 }
 
 func (arg LoadUserArg) String() string {
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AbortIfSigchainUnchanged:%v}",
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
 		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
-		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AbortIfSigchainUnchanged)
+		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
@@ -88,6 +89,11 @@ func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 
 func NewLoadUserArgBase(g *GlobalContext) *LoadUserArg {
 	return &LoadUserArg{Contextified: NewContextified(g)}
+}
+
+func (arg *LoadUserArg) WithSelf(self bool) *LoadUserArg {
+	arg.Self = self
+	return arg
 }
 
 func (arg *LoadUserArg) WithNetContext(ctx context.Context) *LoadUserArg {
@@ -304,7 +310,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 }
 
 func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, sigHints *SigHints, force bool, leaf *MerkleUserLeaf) (*User, bool, error) {
-	local, err := loadUserFromLocalStorage(ctx, g, uid)
+	local, err := LoadUserFromLocalStorage(ctx, g, uid)
 	var refresh bool
 	if err != nil {
 		g.Log.CWarningf(ctx, "Failed to load %s from storage: %s", uid, err)
@@ -348,8 +354,8 @@ func loadUser(ctx context.Context, g *GlobalContext, uid keybase1.UID, resolveBo
 	return ret, refresh, nil
 }
 
-func loadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase1.UID) (u *User, err error) {
-	g.Log.CDebugf(ctx, "+ loadUserFromLocalStorage(%s)", uid)
+func LoadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase1.UID) (u *User, err error) {
+	g.Log.CDebugf(ctx, "+ LoadUserFromLocalStorage(%s)", uid)
 	jw, err := g.LocalDb.Get(DbKeyUID(DBUser, uid))
 	if err != nil {
 		return nil, err
@@ -371,7 +377,7 @@ func loadUserFromLocalStorage(ctx context.Context, g *GlobalContext, uid keybase
 	}
 
 	g.Log.CDebugf(ctx, "| Loaded username %s (uid=%s)", u.name, uid)
-	g.Log.CDebugf(ctx, "- loadUserFromLocalStorage(%s,%s)", u.name, uid)
+	g.Log.CDebugf(ctx, "- LoadUserFromLocalStorage(%s,%s)", u.name, uid)
 
 	return
 }
@@ -381,7 +387,7 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 	uid := g.GetMyUID()
 	res, err := g.API.Get(APIArg{
 		Endpoint:    "user/lookup",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"uid": UIDArg(uid),
 		},
@@ -411,7 +417,7 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 	if body == nil {
 		res, err := g.API.Get(APIArg{
 			Endpoint:    "user/lookup",
-			NeedSession: false,
+			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},

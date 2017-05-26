@@ -67,7 +67,7 @@ var externalKeyStore ExternalKeyStore
 
 var externalKeyStoreMu sync.Mutex
 
-func (s secretStoreAccountName) serviceName() string {
+func (s *secretStoreAccountName) serviceName() string {
 	return s.context.GetStoredSecretServiceName()
 }
 
@@ -87,37 +87,42 @@ func getGlobalExternalKeyStore() ExternalKeyStore {
 type secretStoreAccountName struct {
 	externalKeyStore ExternalKeyStore
 	context          SecretStoreContext
+	setupOnce        sync.Once
 }
 
-var _ SecretStoreAll = secretStoreAccountName{}
-
-func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
-	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
-}
-
-func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
-	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
-	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
-}
-
-func (s secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
-	return s.externalKeyStore.ClearSecret(s.serviceName(), string(username))
-}
+var _ SecretStoreAll = &secretStoreAccountName{}
 
 func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil
 	}
-	return secretStoreAccountName{externalKeyStore, g}
+	s := &secretStoreAccountName{
+		externalKeyStore: externalKeyStore,
+		context:          g,
+	}
+	go s.setup()
+	return s
 }
 
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
+func (s *secretStoreAccountName) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external StoreSecret", func() error { return err })()
+	s.setup()
+	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
 }
 
-func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
+func (s *secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (sec LKSecFullSecret, err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external RetrieveSecret", func() error { return err })()
+	s.setup()
+	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
+}
+
+func (s *secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
+	defer TraceTimed(s.context.GetLog(), "secret_store_external ClearSecret", func() error { return err })()
+	return s.externalKeyStore.ClearSecret(s.serviceName(), string(username))
+}
+
+func (s *secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
 	if s.externalKeyStore == nil {
 		return nil, nil
 	}
@@ -131,10 +136,23 @@ func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
 	return users, err
 }
 
-func (s secretStoreAccountName) GetTerminalPrompt() string {
+func (s *secretStoreAccountName) GetTerminalPrompt() string {
 	return "Store secret in Android's KeyStore?"
 }
 
-func (s secretStoreAccountName) GetApprovalPrompt() string {
+func (s *secretStoreAccountName) GetApprovalPrompt() string {
 	return "Store secret in Android's KeyStore?"
+}
+
+func (s *secretStoreAccountName) setup() {
+	s.setupOnce.Do(func() {
+		s.context.GetLog().Debug("+ secret_store_external:setup")
+		// username not required
+		s.externalKeyStore.SetupKeyStore(s.serviceName(), "")
+		s.context.GetLog().Debug("- secret_store_external:setup")
+	})
+}
+
+func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	return nil
 }

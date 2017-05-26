@@ -262,9 +262,15 @@ func IsValidHostname(s string) bool {
 }
 
 func RandBytes(length int) ([]byte, error) {
+	var n int
+	var err error
 	buf := make([]byte, length)
-	if _, err := rand.Read(buf); err != nil {
+	if n, err = rand.Read(buf); err != nil {
 		return nil, err
+	}
+	// rand.Read uses io.ReadFull internally, so this check should never fail.
+	if n != length {
+		return nil, fmt.Errorf("RandBytes got too few bytes, %d < %d", n, length)
 	}
 	return buf, nil
 }
@@ -407,6 +413,12 @@ func RandStringB64(numTriads int) string {
 func Trace(log logger.Logger, msg string, f func() error) func() {
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
+}
+
+func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+	log.Debug("+ %s", msg)
+	start := time.Now()
+	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
@@ -567,4 +579,34 @@ func JoinPredicate(arr []string, delimeter string, f func(s string) bool) string
 func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
 	tags, ok := logger.LogTagsFromContext(ctx)
 	return map[interface{}]string(tags), ok
+}
+
+func MakeByte24(a []byte) [24]byte {
+	const n = 24
+	if len(a) != n {
+		panic(fmt.Sprintf("MakeByte expected len %v but got %v slice", n, len(a)))
+	}
+	var b [n]byte
+	copy(b[:], a)
+	return b
+}
+
+func MakeByte32(a []byte) [32]byte {
+	const n = 32
+	if len(a) != n {
+		panic(fmt.Sprintf("MakeByte expected len %v but got %v slice", n, len(a)))
+	}
+	var b [n]byte
+	copy(b[:], a)
+	return b
+}
+
+func MakeByte32Soft(a []byte) ([32]byte, error) {
+	const n = 32
+	var b [n]byte
+	if len(a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	copy(b[:], a)
+	return b, nil
 }

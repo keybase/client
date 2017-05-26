@@ -222,7 +222,7 @@ func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 	var id *Identity
 	if f := l.At(9); len(f) == 0 {
 	} else if id, err = ParseIdentity(f); err != nil {
-	} else {
+	} else if l.At(1) != "r" { // is not revoked
 		k.identities = append(k.identities, id)
 	}
 	if err != nil {
@@ -302,6 +302,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 		case "uat", "grp": // ignore
 		case "sub", "ssb":
 			err = k.AddSubkey(l)
+		case "rvk": // designated revoker (ignore)
 		default:
 			err = GpgIndexError{l.lineno, fmt.Sprintf("Unknown subfield: %s", f)}
 		}

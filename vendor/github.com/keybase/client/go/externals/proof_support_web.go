@@ -88,7 +88,7 @@ func (t WebServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (r
 	var res *libkb.APIRes
 	res, err = ctx.GetAPI().Get(libkb.APIArg{
 		Endpoint:    "remotes/check",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"hostname": libkb.S{Val: host},
 		},

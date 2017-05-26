@@ -26,7 +26,7 @@ type TypedChainLink interface {
 	IsRevocationIsh() bool
 	IsRevoked() bool
 	GetRole() KeyRole
-	GetSeqno() Seqno
+	GetSeqno() keybase1.Seqno
 	GetCTime() time.Time
 	GetETime() time.Time
 	GetPGPFingerprint() *PGPFingerprint
@@ -38,7 +38,7 @@ type TypedChainLink interface {
 	GetDelegatedKid() keybase1.KID
 	GetParentKid() keybase1.KID
 	VerifyReverseSig(ckf ComputedKeyFamily) error
-	GetMerkleSeqno() int
+	GetMerkleSeqno() keybase1.Seqno
 	GetDevice() *Device
 	DoOwnNewLinkFromServerNotifications(g *GlobalContext)
 }
@@ -72,7 +72,7 @@ func (g *GenericChainLink) VerifyReverseSig(ckf ComputedKeyFamily) error { retur
 func (g *GenericChainLink) IsRevocationIsh() bool                        { return false }
 func (g *GenericChainLink) GetRole() KeyRole                             { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                              { return g.revoked }
-func (g *GenericChainLink) GetSeqno() Seqno                              { return g.unpacked.seqno }
+func (g *GenericChainLink) GetSeqno() keybase1.Seqno                     { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }
@@ -624,9 +624,6 @@ func (s *SibkeyChainLink) Type() string                  { return DelegationType
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
-func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
-	tab.insertLink(s)
-}
 
 //-------------------------------------
 
@@ -648,42 +645,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 		return err
 	}
 
-	var p1, p2 []byte
-	if p1, _, err = key.VerifyStringAndExtract(s.G().Log, s.reverseSig); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}
-		return err
-	}
-
-	if p1, err = jsonw.Canonicalize(p1); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err)}
-		return err
-	}
-
-	// Null-out the reverse sig on the parent
-	path := "body.sibkey.reverse_sig"
-
-	// Make a deep copy. It's dangerous to try to mutate this thing
-	// since other goroutines might be accessing it at the same time.
-	var jsonCopy *jsonw.Wrapper
-	if jsonCopy, err = makeDeepCopy(s.payloadJSON); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Failed to copy payload json: %s", err)}
-		return err
-	}
-
-	jsonCopy.SetValueAtPath(path, jsonw.NewNil())
-	if p2, err = jsonCopy.Marshal(); err != nil {
-		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err)}
-		return err
-	}
-
-	eq := FastByteArrayEq(p1, p2)
-
-	if !eq {
-		err = ReverseSigError{fmt.Sprintf("JSON mismatch: %s != %s",
-			string(p1), string(p2))}
-		return err
-	}
-	return nil
+	return VerifyReverseSig(s.G(), key, "body.sibkey.reverse_sig", s.payloadJSON, s.reverseSig)
 }
 
 //
@@ -720,6 +682,74 @@ func (s *SubkeyChainLink) insertIntoTable(tab *IdentityTable) {
 //
 //=========================================================================
 
+//=========================================================================
+// PerUserKeyChainLink
+
+type PerUserKeyChainLink struct {
+	GenericChainLink
+	// KID of the signing key derived from the per-user-secret.
+	sigKID keybase1.KID
+	// KID of the encryption key derived from the per-user-secret.
+	encKID     keybase1.KID
+	generation keybase1.PerUserKeyGeneration
+	reverseSig string
+}
+
+func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err error) {
+	var sigKID, encKID keybase1.KID
+	var g int
+	var reverseSig string
+	section := b.payloadJSON.AtPath("body.per_user_key")
+	if sigKID, err = GetKID(section.AtKey("signing_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get signing KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
+	} else if encKID, err = GetKID(section.AtKey("encryption_kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get encryption KID for per_user_secret: @%s: %s", b.ToDebugString(), err)}
+	} else if g, err = section.AtKey("generation").GetInt(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Can't get generation for per_user_secret @%s: %s", b.ToDebugString(), err)}
+	} else if reverseSig, err = section.AtKey("reverse_sig").GetString(); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Missing reverse_sig in per-user-key section: @%s: %s", b.ToDebugString(), err)}
+	} else {
+		ret = &PerUserKeyChainLink{b, sigKID, encKID, keybase1.PerUserKeyGeneration(g), reverseSig}
+	}
+	return ret, err
+}
+
+func (s *PerUserKeyChainLink) Type() string { return LinkTypePerUserKey }
+func (s *PerUserKeyChainLink) ToDisplayString() string {
+	return s.sigKID.String() + " + " + s.encKID.String()
+}
+
+// Don't consider per-user-keys as normal delegations. Because they have
+// multiple kids and initially can't delegate further. They are handled
+// separately by the sigchain loader.
+func (s *PerUserKeyChainLink) GetRole() KeyRole                    { return DLGNone }
+func (s *PerUserKeyChainLink) GetDelegatedKid() (res keybase1.KID) { return }
+func (s *PerUserKeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
+
+func (s *PerUserKeyChainLink) ToPerUserKey() keybase1.PerUserKey {
+	return keybase1.PerUserKey{
+		Gen:    int(s.generation),
+		Seqno:  s.GetSeqno(),
+		SigKID: s.sigKID,
+		EncKID: s.encKID,
+	}
+}
+
+//-------------------------------------
+
+// VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
+func (s *PerUserKeyChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err error) {
+	key, err := ImportNaclSigningKeyPairFromHex(s.sigKID.String())
+	if err != nil {
+		return fmt.Errorf("Invalid per-user signing KID: %s", s.sigKID)
+	}
+
+	return VerifyReverseSig(s.G(), key, "body.per_user_key.reverse_sig", s.payloadJSON, s.reverseSig)
+}
+
+//
 //=========================================================================
 // PGPUpdateChainLink
 //
@@ -1080,6 +1110,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseSubkeyChainLink(base)
 		case DelegationTypePGPUpdate:
 			ret, err = ParsePGPUpdateChainLink(base)
+		case "per_user_key":
+			ret, err = ParsePerUserKeyChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
 		default:
@@ -1127,7 +1159,9 @@ func (idt *IdentityTable) populate() (err error) {
 			idt.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
-
+		if link.IsStubbed() {
+			continue
+		}
 		tcl, w := NewTypedChainLink(link)
 		tcl.insertIntoTable(idt)
 		if w != nil {
@@ -1447,4 +1481,43 @@ func (idt *IdentityTable) proofRemoteCheck(ctx context.Context, hasPreviousTrack
 	idt.G().Log.CDebugf(ctx, "| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
+}
+
+// VerifyReverseSig checks reverse signature using the key provided.
+// does not modify `payload`.
+// `path` is the path to the reverse sig spot to null before checking.
+func VerifyReverseSig(g *GlobalContext, key GenericKey, path string, payload *jsonw.Wrapper, reverseSig string) (err error) {
+	var p1, p2 []byte
+	if p1, _, err = key.VerifyStringAndExtract(g.Log, reverseSig); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}
+		return err
+	}
+
+	if p1, err = jsonw.Canonicalize(p1); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err)}
+		return err
+	}
+
+	// Make a deep copy. It's dangerous to try to mutate this thing
+	// since other goroutines might be accessing it at the same time.
+	var jsonCopy *jsonw.Wrapper
+	if jsonCopy, err = makeDeepCopy(payload); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to copy payload json: %s", err)}
+		return err
+	}
+
+	jsonCopy.SetValueAtPath(path, jsonw.NewNil())
+	if p2, err = jsonCopy.Marshal(); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err)}
+		return err
+	}
+
+	eq := FastByteArrayEq(p1, p2)
+
+	if !eq {
+		err = ReverseSigError{fmt.Sprintf("JSON mismatch: %s != %s",
+			string(p1), string(p2))}
+		return err
+	}
+	return nil
 }

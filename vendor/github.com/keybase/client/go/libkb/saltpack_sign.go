@@ -19,10 +19,12 @@ func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, k
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignStream(w, k)
+			return saltpack.NewSignStream(CurrentSaltpackVersion(), w, k)
 		}
 	} else {
-		s = saltpack.NewSignArmor62Stream
+		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
+			return saltpack.NewSignArmor62Stream(CurrentSaltpackVersion(), w, k, brand)
+		}
 	}
 	return saltpackSign(g, source, sink, key, s)
 }
@@ -31,10 +33,12 @@ func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteC
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignDetachedStream(w, k)
+			return saltpack.NewSignDetachedStream(CurrentSaltpackVersion(), w, k)
 		}
 	} else {
-		s = saltpack.NewSignDetachedArmor62Stream
+		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
+			return saltpack.NewSignDetachedArmor62Stream(CurrentSaltpackVersion(), w, k, brand)
+		}
 	}
 	return saltpackSign(g, source, sink, key, s)
 }

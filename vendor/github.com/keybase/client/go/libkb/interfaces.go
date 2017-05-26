@@ -38,6 +38,8 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
+	GetSupportPerUserKey() (bool, bool)
+	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -240,13 +242,13 @@ type ExternalAPIRes struct {
 
 type API interface {
 	Get(APIArg) (*APIRes, error)
-	GetResp(APIArg) (*http.Response, error)
+	GetResp(APIArg) (*http.Response, func(), error)
 	GetDecode(APIArg, APIResponseWrapper) error
 	Post(APIArg) (*APIRes, error)
 	PostJSON(APIArg) (*APIRes, error)
-	PostResp(APIArg) (*http.Response, error)
 	PostDecode(APIArg, APIResponseWrapper) error
 	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
+	Delete(APIArg) (*APIRes, error)
 }
 
 type ExternalAPI interface {
@@ -339,6 +341,7 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
+	ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error
 	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
 	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
 	ChatAttachmentUploadDone(context.Context) error
@@ -473,12 +476,22 @@ type NetContext interface {
 	GetNetContext() context.Context
 }
 
+type DNSNameServerFetcher interface {
+	GetServers() []string
+}
+
+type DNSContext interface {
+	GetDNSNameServerFetcher() DNSNameServerFetcher
+}
+
 // ProofContext defines features needed by the proof system
 type ProofContext interface {
 	LogContext
 	APIContext
 	NetContext
+	DNSContext
 	GetPvlSource() PvlSource
+	GetAppType() AppType
 }
 
 type AssertionContext interface {
@@ -529,7 +542,7 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(*PostProofRes) (string, error)
+	FormatProofText(ProofContext, *PostProofRes) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -552,4 +565,16 @@ type UserChangedHandler interface {
 	// HandlerUserChanged is called when the with User with the given UID has
 	// changed, either because of a sigchain change, or a profile change.
 	HandleUserChanged(uid keybase1.UID) error
+}
+
+type ConnectivityMonitorResult int
+
+const (
+	ConnectivityMonitorYes ConnectivityMonitorResult = iota
+	ConnectivityMonitorNo
+	ConnectivityMonitorUnknown
+)
+
+type ConnectivityMonitor interface {
+	IsConnected(ctx context.Context) ConnectivityMonitorResult
 }

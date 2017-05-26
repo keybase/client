@@ -26,14 +26,6 @@ type Keyrings struct {
 	Contextified
 }
 
-func (k *Keyrings) MakeKeyrings(filenames []string, isPublic bool) []*KeyringFile {
-	v := make([]*KeyringFile, len(filenames), len(filenames))
-	for i, filename := range filenames {
-		v[i] = &KeyringFile{filename, openpgp.EntityList{}, isPublic, nil, nil, Contextified{g: k.G()}}
-	}
-	return v
-}
-
 func NewKeyrings(g *GlobalContext) *Keyrings {
 	ret := &Keyrings{
 		Contextified: Contextified{g: g},
@@ -266,18 +258,7 @@ func (k *Keyrings) GetSecretKeyLocked(lctx LoginContext, ska SecretKeyArg) (ret 
 }
 
 func (k *Keyrings) cachedSecretKey(lctx LoginContext, ska SecretKeyArg) GenericKey {
-	var key GenericKey
-	var err error
-	if lctx != nil {
-		key, err = lctx.CachedSecretKey(ska)
-	} else {
-		aerr := k.G().LoginState().Account(func(a *Account) {
-			key, err = a.CachedSecretKey(ska)
-		}, "Keyrings - cachedSecretKey")
-		if aerr != nil {
-			k.G().Log.Debug("Account error: %s", aerr)
-		}
-	}
+	key, err := k.G().ActiveDevice.KeyByType(ska.KeyType)
 
 	if key != nil && err == nil {
 		k.G().Log.Debug("found cached secret key for ska: %+v", ska)
@@ -294,10 +275,10 @@ func (k *Keyrings) setCachedSecretKey(lctx LoginContext, ska SecretKeyArg, key G
 	k.G().Log.Debug("caching secret key for ska: %+v", ska)
 	var setErr error
 	if lctx != nil {
-		setErr = lctx.SetCachedSecretKey(ska, key)
+		setErr = lctx.SetCachedSecretKey(ska, key, nil)
 	} else {
 		aerr := k.G().LoginState().Account(func(a *Account) {
-			setErr = a.SetCachedSecretKey(ska, key)
+			setErr = a.SetCachedSecretKey(ska, key, nil)
 		}, "GetSecretKeyWithPrompt - SetCachedSecretKey")
 		if aerr != nil {
 			k.G().Log.Debug("Account error: %s", aerr)

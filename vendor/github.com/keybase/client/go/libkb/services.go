@@ -82,7 +82,7 @@ func (t BaseServiceType) LastWriterWins() bool                                { 
 func (t BaseServiceType) PreProofCheck(ProofContext, string) (*Markup, error) { return nil, nil }
 func (t BaseServiceType) PreProofWarning(remotename string) *Markup           { return nil }
 
-func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
+func (t BaseServiceType) FormatProofText(ctx ProofContext, ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
 }
 

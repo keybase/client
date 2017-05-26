@@ -4,8 +4,10 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"regexp"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -96,11 +98,19 @@ func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()
 }
 
-func (u *User) GetSigChainLastKnownSeqno() Seqno {
+func (u *User) GetSigChainLastKnownSeqno() keybase1.Seqno {
 	if u.sigChain() == nil {
 		return 0
 	}
 	return u.sigChain().GetLastKnownSeqno()
+}
+
+func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
+	if u.sigChain() == nil {
+		// Note that NameWithEldestSeqno will return an error if you call it with zero.
+		return 0
+	}
+	return u.sigChain().currentSubchainStart
 }
 
 func (u *User) IsNewerThan(v *User) (bool, error) {
@@ -580,13 +590,28 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	u.G().Log.Debug("User localDelegateKey signing kid: %s", kid)
+	u.G().Log.Debug("User LocalDelegateKey kid: %s", kid)
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey)
 	if isEldest {
 		eldestKID := key.GetKID()
 		u.leaf.eldest = eldestKID
 	}
 	return
+}
+
+func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
+
+	// Don't update the u.keyFamily. It doesn't manage per-user-keys.
+
+	// Update sigchain which will update ckf/cki
+	err := u.sigChain().LocalDelegatePerUserKey(perUserKey)
+	if err != nil {
+		return err
+	}
+
+	u.G().Log.Debug("User LocalDelegatePerUserKey gen:%v seqno:%v sig:%v enc:%v",
+		perUserKey.Gen, perUserKey.Seqno, perUserKey.SigKID.String(), perUserKey.EncKID.String())
+	return nil
 }
 
 func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID) {
@@ -684,7 +709,7 @@ func (u *User) TrackStatementJSON(them *User, outcome *IdentifyOutcome) (string,
 	return string(json), nil
 }
 
-func (u *User) GetSigIDFromSeqno(seqno int) keybase1.SigID {
+func (u *User) GetSigIDFromSeqno(seqno keybase1.Seqno) keybase1.SigID {
 	if u.sigChain() == nil {
 		return ""
 	}
@@ -767,4 +792,33 @@ func (u User) PartialCopy() *User {
 		ret.keyFamily = u.keyFamily.ShallowCopy()
 	}
 	return ret
+}
+
+type NameWithEldestSeqno string
+
+func MakeNameWithEldestSeqno(name string, seqno keybase1.Seqno) (NameWithEldestSeqno, error) {
+	if seqno < 1 {
+		return "", EldestSeqnoMissingError{}
+	} else if seqno == 1 {
+		// For users that have never reset, we use their name unmodified.
+		return NameWithEldestSeqno(name), nil
+	} else {
+		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
+	}
+}
+
+func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
+	res := NormalizedUsername(username)
+	if len(username) < 2 {
+		return res, errors.New("username too short")
+	}
+	if len(username) > 16 {
+		return res, errors.New("username too long")
+	}
+	// underscores allowed, just not first or doubled
+	re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
+	if !re.MatchString(username) {
+		return res, errors.New("invalid username")
+	}
+	return res, nil
 }

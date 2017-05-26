@@ -995,6 +995,40 @@ func (c ChainLinkError) Error() string {
 	return fmt.Sprintf("Error in parsing chain Link: %s", c.msg)
 }
 
+type SigchainV2Error struct {
+	msg string
+}
+
+func (s SigchainV2Error) Error() string {
+	return fmt.Sprintf("Error in sigchain v2 link: %s", s.msg)
+}
+
+type SigchainV2MismatchedFieldError struct {
+	msg string
+}
+
+func (s SigchainV2MismatchedFieldError) Error() string {
+	return fmt.Sprintf("Mismatched field in sigchain v2 link: %s", s.msg)
+}
+
+type SigchainV2StubbedFirstLinkError struct{}
+
+func (s SigchainV2StubbedFirstLinkError) Error() string {
+	return "First link can't be stubbed out"
+}
+
+type SigchainV2StubbedSignatureNeededError struct{}
+
+func (s SigchainV2StubbedSignatureNeededError) Error() string {
+	return "Stubbed-out link actually needs a signature"
+}
+
+type SigchainV2MismatchedHashError struct{}
+
+func (s SigchainV2MismatchedHashError) Error() string {
+	return "Sigchain V2 hash mismatch error"
+}
+
 //=============================================================================
 
 type ReverseSigError struct {
@@ -1003,6 +1037,10 @@ type ReverseSigError struct {
 
 func (r ReverseSigError) Error() string {
 	return fmt.Sprintf("Error in reverse signature: %s", r.msg)
+}
+
+func NewReverseSigError(msgf string, a ...interface{}) ReverseSigError {
+	return ReverseSigError{msg: fmt.Sprintf(msgf, a...)}
 }
 
 //=============================================================================
@@ -1311,6 +1349,18 @@ type IdentifySummaryError struct {
 	problems []string
 }
 
+func NewIdentifySummaryError(failure keybase1.TLFIdentifyFailure) IdentifySummaryError {
+	problem := "a followed proof failed"
+	if failure.Breaks != nil {
+		num := len(failure.Breaks.Proofs)
+		problem = fmt.Sprintf("%d followed proof%s failed", num, GiveMeAnS(num))
+	}
+	return IdentifySummaryError{
+		username: NewNormalizedUsername(failure.User.Username),
+		problems: []string{problem},
+	}
+}
+
 func (e IdentifySummaryError) Error() string {
 	return fmt.Sprintf("failed to identify %q: %s",
 		e.username,
@@ -1319,6 +1369,17 @@ func (e IdentifySummaryError) Error() string {
 
 func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_IDENTIFY, true
+}
+
+func IsIdentifyProofError(err error) bool {
+	switch err.(type) {
+	case ProofError:
+	case IdentifySummaryError:
+		return true
+	default:
+		return false
+	}
+	return false
 }
 
 //=============================================================================
@@ -1825,3 +1886,55 @@ func (e DeviceNotFoundError) Error() string {
 }
 
 //=============================================================================
+
+// PseudonymGetError is sometimes written by unmarshaling (no fields of) a server response.
+type PseudonymGetError struct {
+	msg string
+}
+
+func (e PseudonymGetError) Error() string {
+	if e.msg == "" {
+		return "Pseudonym could not be resolved"
+	}
+	return e.msg
+}
+
+var _ error = (*PseudonymGetError)(nil)
+
+//=============================================================================
+
+type PerUserKeyImportError struct {
+	msg string
+}
+
+func (e PerUserKeyImportError) Error() string {
+	return fmt.Sprintf("per-user-key import error: %s", e.msg)
+}
+
+func NewPerUserKeyImportError(format string, args ...interface{}) PerUserKeyImportError {
+	return PerUserKeyImportError{
+		msg: fmt.Sprintf(format, args...),
+	}
+}
+
+//=============================================================================
+
+type LoginOfflineError struct {
+	msg string
+}
+
+func NewLoginOfflineError(msg string) LoginOfflineError {
+	return LoginOfflineError{msg: msg}
+}
+
+func (e LoginOfflineError) Error() string {
+	return "LoginOffline error: " + e.msg
+}
+
+//=============================================================================
+
+type EldestSeqnoMissingError struct{}
+
+func (e EldestSeqnoMissingError) Error() string {
+	return "user's eldest seqno has not been loaded"
+}
