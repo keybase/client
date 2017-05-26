@@ -55,7 +55,8 @@ class UserItem extends Component<void, UserItemProps, void> {
             ...followingStateToStyle(followingState),
             lineHeight: '18px',
             marginLeft: globalMargins.xtiny,
-            marginBottom: 2,
+            // Nudge up 1px so lowercase characters look more vertically centered
+            transform: 'translateY(-1px)',
           }}
         >
           {username}
@@ -63,7 +64,7 @@ class UserItem extends Component<void, UserItemProps, void> {
         <Icon
           type="iconfont-close"
           onClick={this._onRemoveUser}
-          style={{fontSize: 12, marginLeft: globalMargins.tiny}}
+          style={{fontSize: 11, marginLeft: globalMargins.tiny}}
         />
       </Box>
     )
@@ -158,7 +159,7 @@ const _inputStyle = {
   outline: 'none',
   lineHeight: '22px',
   padding: 0,
-  marginBottom: 2,
+  transform: 'translateY(-1px)',
 }
 
 export default UserInput
