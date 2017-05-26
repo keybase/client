@@ -4,7 +4,6 @@
 package service
 
 import (
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -27,18 +26,9 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalC
 }
 
 func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreateArg) (err error) {
-	ctx := engine.Context{
-		LogUI:      h.getLogUI(arg.SessionID),
-		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
-		NetContext: netCtx,
-		SessionID:  arg.SessionID,
-	}
-	eng := engine.NewTeamCreateEngine(h.G(), arg.Name)
-	return engine.RunEngine(eng, &ctx)
+	return teams.CreateRootTeam(netCtx, h.G(), arg.Name)
 }
 
-// TODO: return something useful
-func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) error {
-	_, err := teams.Get(netCtx, h.G(), arg.Name)
-	return err
+func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembers, error) {
+	return teams.Members(netCtx, h.G(), arg.Name)
 }

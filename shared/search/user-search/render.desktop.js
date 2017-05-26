@@ -82,8 +82,8 @@ export function Result({
 
   // Align the body to the middle of the original 32 row so the extra info doesn't push the username down
   const alignedBody = (
-    <Box style={{flex: 1}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Box style={{flex: 1, width: '100%'}}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: '100%'}}>
         <Box style={{height: 32, width: 0}} />
         {body}
       </Box>
@@ -115,11 +115,12 @@ export function Result({
     paddingLeft: 8,
     borderTop: 'solid 1px',
     borderTopColor: globalColors.black_10,
+    width: '100%',
   }
 
   return (
     <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} style={rowStyle}>
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={{...globalStyles.flexBoxRow, width: '100%', position: 'relative'}}>
         {icon}
         {alignedBody}
         {extraInfo}
@@ -131,7 +132,7 @@ export function Result({
 class UserSearchRender extends Component<void, Props, void> {
   render() {
     return (
-      <Box style={{flex: 1, position: 'relative', minHeight: 40}}>
+      <Box style={{flex: 1, position: 'relative', minHeight: 40, width: '100%'}}>
         {this.props.waiting &&
           <ProgressIndicator
             white={false}

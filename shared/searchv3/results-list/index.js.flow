@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  style?: any,
+  keyPath: Array<string>,
+  items: Array<string>,
+}
+
+export default class ResultsList extends Component<void, Props, void> {}

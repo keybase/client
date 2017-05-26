@@ -95,7 +95,7 @@ const Render = ({
         {!revokedAt &&
           <Button
             type="Danger"
-            style={{marginTop: 15}}
+            style={{marginTop: 15, alignSelf: 'flex-start'}}
             label={`Revoke this ${revokeName || ''}`}
             onClick={showRevokeDevicePage}
           />}

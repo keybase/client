@@ -1173,6 +1173,7 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 	ret.SetKey("seqno", jsonw.NewInt(int(*mr.Seqno())))
 	ret.SetKey("ctime", jsonw.NewInt64(int64(mr.Ctime())))
 	ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
+	ret.SetKey("hash_meta", jsonw.NewString(mr.ShortHash().String()))
 
 	return
 }

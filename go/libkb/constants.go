@@ -267,7 +267,9 @@ const (
 	LinkTypePerUserKey                 = "per_user_key"
 
 	// team links
-	LinkTypeTeamRoot LinkType = "team.root"
+	LinkTypeTeamRoot    LinkType = "team.root"
+	LinkTypeNewSubteam  LinkType = "team.new_subteam"
+	LinkTypeSubteamHead LinkType = "team.subteam_head"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate                = "pgp_update"
@@ -578,4 +580,9 @@ const (
 	SeqTypePublic      int = 1
 	SeqTypePrivate         = 2
 	SeqTypeSemiprivate     = 3
+)
+
+const (
+	RootTeamIDTag byte = 0x24
+	SubteamIDTag       = 0x25
 )

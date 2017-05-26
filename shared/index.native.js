@@ -86,14 +86,6 @@ class Keybase extends Component {
 }
 
 function load() {
-  // Native String.startswith() sometimes incorrectly returns false on Android!
-  /* eslint-disable no-extend-native */
-  // $FlowIssue redefining startsWith
-  String.prototype.startsWith = function(searchString, position) {
-    position = position || 0
-    return this.substr(position, searchString.length) === searchString
-  }
-
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 

@@ -72,15 +72,31 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
             title: 'Keybase: Friends needed',
             body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
           }
-
+    // Aggregate these cases together since they both use the usage/limit calc
     case KbfsCommonFSErrorType.overQuota:
+    case KbfsCommonFSErrorType.diskLimitReached:
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
       const usedPercent = Math.round(100 * usageBytes / limitBytes)
-      return {
-        title: 'Keybase: Out of space',
-        body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+      if (notification.errorType === KbfsCommonFSErrorType.overQuota) {
+        return {
+          title: 'Keybase: Out of space',
+          body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+        }
+      } else {
+        // diskLimitReached
+        if (usageBytes >= 0.99 * limitBytes) {
+          return {
+            title: 'Keybase: Out of temporary space',
+            body: `Keybase is using ${usedPercent}% of its temporary write space (${usedGB}GB), and writes will fail until the data syncs to the remote server.`,
+          }
+        } else {
+          return {
+            title: 'Keybase: Out of temporary space',
+            body: 'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+          }
+        }
       }
 
     default:

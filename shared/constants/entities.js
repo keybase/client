@@ -3,6 +3,7 @@ import {Map, Record} from 'immutable'
 
 import type {NoErrorTypedAction} from './types/flux'
 import type {DeviceDetailRecord} from './devices'
+import type {State as SearchState} from './searchv3'
 
 export type EntityType = any // TODO stronger typing?
 
@@ -22,10 +23,14 @@ export type Actions = Delete | Merge | Replace
 // State
 export type State = Record<{
   devices: Map<string, DeviceDetailRecord>,
+  searchv3Chat: Map<string, SearchState>,
+  searchv3Profile: Map<string, SearchState>,
 }>
 
 const StateRecord = Record({
   devices: Map(),
+  searchv3Chat: Map(),
+  searchv3Profile: Map(),
 })
 
 export {StateRecord}

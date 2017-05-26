@@ -12,6 +12,7 @@ import {
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {mapValues} from 'lodash'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
 import {delay} from 'redux-saga'
@@ -94,8 +95,8 @@ function notificationsSave(): NotificationsSave {
   return {type: Constants.notificationsSave, payload: undefined}
 }
 
-function notificationsToggle(name?: string): NotificationsToggle {
-  return {type: Constants.notificationsToggle, payload: {name}}
+function notificationsToggle(group: string, name?: string): NotificationsToggle {
+  return {type: Constants.notificationsToggle, payload: {group, name}}
 }
 
 function setAllowDeleteAccount(allow: boolean): SetAllowDeleteAccount {
@@ -169,19 +170,25 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
 
-    if (!current || !current.settings) {
+    if (!current || !current.groups.email) {
       throw new Error('No notifications loaded yet')
     }
 
-    const JSONPayload = current.settings
-      .map(s => ({
-        key: `${s.name}|email`,
-        value: s.subscribed ? '1' : '0',
-      }))
-      .concat({
-        key: `unsub|email`,
-        value: current.unsubscribedFromAll ? '1' : '0',
+    let JSONPayload = []
+    for (const groupName in current.groups) {
+      const group = current.groups[groupName]
+      for (const key in group.settings) {
+        const setting = group.settings[key]
+        JSONPayload.push({
+          key: `${setting.name}|${groupName}`,
+          value: setting.subscribed ? '1' : '0',
+        })
+      }
+      JSONPayload.push({
+        key: `unsub|${groupName}`,
+        value: group.unsubscribedFromAll ? '1' : '0',
       })
+    }
 
     const result = yield call(apiserverPostJSONRpcPromise, {
       param: {
@@ -350,8 +357,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
     yield put({
       type: Constants.notificationsRefreshed,
       payload: {
-        settings: null,
-        unsubscribedFromAll: null,
+        groups: null,
       },
     })
   })
@@ -378,20 +384,22 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
     },
   } = JSON.parse((json && json.body) || '')
 
-  const unsubscribedFromAll = results.notifications.email.unsub
+  const settingsToPayload = s =>
+    ({
+      name: s.name,
+      subscribed: s.subscribed,
+      description: s.description,
+    } || [])
 
-  const settings = results.notifications.email.settings.map(s => ({
-    name: s.name,
-    subscribed: s.subscribed,
-    description: s.description,
-  })) || []
+  const groups = results.notifications
+  const payload = mapValues(groups, group => ({
+    settings: group.settings.map(settingsToPayload),
+    unsub: group.unsub,
+  }))
 
   yield put({
     type: Constants.notificationsRefreshed,
-    payload: {
-      unsubscribedFromAll,
-      settings,
-    },
+    payload,
   })
 }
 

@@ -1,22 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
-    <title>DE3DA1AE-6882-4A62-9344-35FC2FF15F36</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Style-guide---Desktop---Icons-2" transform="translate(-431.000000, -1116.000000)">
-            <g id="kb-iconfont-emoji-16" transform="translate(439.000000, 1124.000000) rotate(-270.000000) translate(-439.000000, -1124.000000) translate(431.000000, 1116.000000)">
-                <g id="kb-iconfont-emoji">
-                    <rect id="icon-area" x="0" y="0" width="16" height="16"></rect>
-                    <g id="Smiley-icon" fill="#000000">
-                        <path d="M8,14.5 C11.5898509,14.5 14.5,11.5898509 14.5,8 C14.5,4.41014913 11.5898509,1.5 8,1.5 C4.41014913,1.5 1.5,4.41014913 1.5,8 C1.5,11.5898509 4.41014913,14.5 8,14.5 Z M8,16 C3.581722,16 0,12.418278 0,8 C0,3.581722 3.581722,0 8,0 C12.418278,0 16,3.581722 16,8 C16,12.418278 12.418278,16 8,16 Z" id="Oval-2"></path>
-                        <path d="M11.2,8 C11.2,9.19116555 10.5430705,10.2566718 9.53785022,10.8077261 C9.53785022,10.8077261 10.4814542,12.1413946 10.8902427,11.8326366 C12.0502839,10.9564574 12.8,9.5657815 12.8,8 C12.8,6.37282057 11.9903349,4.93474856 10.7519067,4.06668605 C10.3963592,3.81746899 9.57627291,5.21372484 9.57627291,5.21372484 C10.5606046,5.77110673 11.2,6.82480715 11.2,8 Z" id="Oval-2"></path>
-                        <ellipse id="Oval-3" transform="translate(6.400000, 9.600000) rotate(-270.000000) translate(-6.400000, -9.600000) " cx="6.4" cy="9.6" rx="0.8" ry="1.6"></ellipse>
-                        <ellipse id="Oval-3-Copy" transform="translate(6.400000, 6.400000) rotate(-270.000000) translate(-6.400000, -6.400000) " cx="6.4" cy="6.4" rx="0.8" ry="1.6"></ellipse>
-                    </g>
-                </g>
-            </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g fill="none" fill-rule="evenodd">
+        <path d="M16 0v16H0V0z"/>
+        <g fill="#000" transform="rotate(90 8 8)">
+            <path fill-rule="nonzero" d="M8 14.5a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM8 16A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+            <path fill-rule="nonzero" d="M11.2 8a3.202 3.202 0 0 1-1.662 2.808s.943 1.333 1.352 1.025A4.793 4.793 0 0 0 12.8 8c0-1.627-.81-3.065-2.048-3.933-.356-.25-1.176 1.147-1.176 1.147A3.202 3.202 0 0 1 11.2 8z"/>
+            <ellipse cx="6.4" cy="9.6" rx="1" ry="1.6" transform="rotate(90 6.4 9.6)"/>
+            <ellipse cx="6.4" cy="6.4" rx="1" ry="1.6" transform="rotate(90 6.4 6.4)"/>
         </g>
     </g>
 </svg>

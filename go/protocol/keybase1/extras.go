@@ -312,6 +312,20 @@ func TeamIDFromString(s string) (TeamID, error) {
 	return TeamID(s), nil
 }
 
+// Used by unit tests.
+func MakeTestTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
 // Can panic if invalid
 func (t TeamID) IsSubTeam() bool {
 	suffix := t[len(t)-2:]
@@ -933,27 +947,6 @@ func (u UserPlusKeys) GetUID() UID {
 
 func (u UserPlusKeys) GetName() string {
 	return u.Username
-}
-
-func (u *UserPlusKeys) DeepCopy() UserPlusKeys {
-	return UserPlusKeys{
-		Uid:               u.Uid,
-		Username:          u.Username,
-		DeviceKeys:        append([]PublicKey{}, u.DeviceKeys...),
-		RevokedDeviceKeys: append([]RevokedKey{}, u.RevokedDeviceKeys...),
-		PGPKeyCount:       u.PGPKeyCount,
-		Uvv:               u.Uvv,
-		DeletedDeviceKeys: append([]PublicKey{}, u.DeletedDeviceKeys...),
-		PerUserKeys:       append([]PerUserKey{}, u.PerUserKeys...),
-	}
-}
-
-func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
-	return &UserPlusAllKeys{
-		Base:         u.Base.DeepCopy(),
-		PGPKeys:      append([]PublicKey{}, u.PGPKeys...),
-		RemoteTracks: append([]RemoteTrack{}, u.RemoteTracks...),
-	}
 }
 
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {

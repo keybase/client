@@ -9,10 +9,8 @@ package libkb
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -251,6 +249,7 @@ type ProofMetadata struct {
 	ExpireIn       int
 	IncludePGPHash bool
 	SigVersion     SigVersion
+	SeqType        int
 }
 
 func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error) {
@@ -328,14 +327,20 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 		return nil, err
 	}
 	body.SetKey("key", key)
+	// Capture the most recent Merkle Root, inside of "body"
+	// field.
+	if mr := merkleRootInfo(g); mr != nil {
+		body.SetKey("merkle_root", mr)
+	}
 
 	ret.SetKey("body", body)
 
-	// Capture the most recent Merkle Root and also what kind of client
-	// we're running.
+	// Save what kind of client we're running.
 	ret.SetKey("client", clientInfo(g))
-	if mr := merkleRootInfo(g); mr != nil {
-		ret.SetKey("merkle_root", mr)
+
+	// SeqTypePublic (1) is the default, and we don't write it out explicitly
+	if arg.SeqType != 0 && arg.SeqType != SeqTypePublic {
+		ret.SetKey("seq_type", jsonw.NewInt(arg.SeqType))
 	}
 
 	return
@@ -583,66 +588,18 @@ func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper
 	return ret, nil
 }
 
-type TeamSection struct {
-	Name    string          `json:"name"`
-	ID      keybase1.TeamID `json:"id"`
-	Members struct {
-		Owner  []NameWithEldestSeqno `json:"owner"`
-		Admin  []NameWithEldestSeqno `json:"admin"`
-		Writer []NameWithEldestSeqno `json:"writer"`
-		Reader []NameWithEldestSeqno `json:"reader"`
-	} `json:"members"`
-	PerTeamKey struct {
-		Generation    int          `json:"generation"`
-		EncryptionKID keybase1.KID `json:"encryption_kid"`
-		SigningKID    keybase1.KID `json:"signing_kid"`
-		// reverse_sig always gets set to null, and the caller has to overwrite it afterwards
-	} `json:"per_team_key"`
-}
-
-func (u *User) TeamRootSig(key GenericKey, teamSection TeamSection) (*jsonw.Wrapper, error) {
-	ret, err := ProofMetadata{
-		Me:         u,
-		LinkType:   LinkTypeTeamRoot,
-		SigningKey: key,
-		Seqno:      1,
-		SigVersion: KeybaseSignatureV2,
-	}.ToJSON(u.G())
-	if err != nil {
-		return nil, err
-	}
-
-	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
-	if err != nil {
-		return nil, err
-	}
-	teamSectionJSON.SetValueAtPath("per_team_key.reverse_sig", jsonw.NewNil())
-
-	body := ret.AtKey("body")
-	body.SetKey("team", teamSectionJSON)
-
-	// Non-public links need to explicitly specify a seq_type.
-	ret.SetKey("seq_type", jsonw.NewInt(SeqTypeSemiprivate))
-
-	return ret, nil
-}
-
-// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromName(name string) keybase1.TeamID {
-	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	return keybase1.TeamID(hex.EncodeToString(sum[0:15]) + "24")
-}
-
 type SigMultiItem struct {
-	Sig        string          `json:"sig"`
-	SigningKID keybase1.KID    `json:"signing_kid"`
-	Type       string          `json:"type"`
-	SigInner   string          `json:"sig_inner"`
-	TeamID     keybase1.TeamID `json:"team_id"`
-	PublicKeys struct {
-		Encryption keybase1.KID `json:"encryption"`
-		Signing    keybase1.KID `json:"signing"`
-	} `json:"public_keys"`
+	Sig        string                  `json:"sig"`
+	SigningKID keybase1.KID            `json:"signing_kid"`
+	Type       string                  `json:"type"`
+	SigInner   string                  `json:"sig_inner"`
+	TeamID     keybase1.TeamID         `json:"team_id"`
+	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
+}
+
+type SigMultiItemPublicKeys struct {
+	Encryption keybase1.KID `json:"encryption"`
+	Signing    keybase1.KID `json:"signing"`
 }
 
 // PerUserKeyProof creates a proof introducing a new per-user-key generation.

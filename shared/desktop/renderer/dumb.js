@@ -7,6 +7,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import {AppContainer} from 'react-hot-loader'
 import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../../styles/material-theme.desktop'
+import {GlobalEscapeHandler} from '../../util/escape-handler'
 
 module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
 
@@ -44,7 +45,9 @@ function render() {
   ReactDOM.render(
     <AppContainer>
       <MuiThemeProvider muiTheme={materialTheme}>
-        <Wrapper DumbSheet={DumbSheet} />
+        <GlobalEscapeHandler>
+          <Wrapper DumbSheet={DumbSheet} />
+        </GlobalEscapeHandler>
       </MuiThemeProvider>
     </AppContainer>,
     document.getElementById('root')

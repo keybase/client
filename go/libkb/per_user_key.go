@@ -219,15 +219,20 @@ func (s *PerUserKeyring) PrepareBoxForNewDevice(ctx context.Context, receiverKey
 // Used when creating a new seed.
 func (s *PerUserKeyring) PrepareBoxesForDevices(ctx context.Context, contents PerUserKeySeed,
 	generation keybase1.PerUserKeyGeneration, receiverKeys []NaclDHKeyPair,
-	senderKey NaclDHKeyPair) (boxes []keybase1.PerUserKeyBox, err error) {
+	senderKey GenericKey) (boxes []keybase1.PerUserKeyBox, err error) {
 	// Do not lock self because we do not use self.
 
 	if contents.IsBlank() {
 		return nil, errors.New("attempt to box blank per-user-key")
 	}
 
+	senderKeyDH, ok := senderKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("Unexpected encryption key type: %T", senderKey)
+	}
+
 	for _, receiverKey := range receiverKeys {
-		box, err := NewPerUserKeyBox(contents, receiverKey, senderKey, generation)
+		box, err := NewPerUserKeyBox(contents, receiverKey, senderKeyDH, generation)
 		if err != nil {
 			return nil, err
 		}

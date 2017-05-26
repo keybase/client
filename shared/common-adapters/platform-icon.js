@@ -27,7 +27,6 @@ const standardOffsets = {
 function _specsForMobileOrDesktop() {
   const size = isMobile ? 64 : 48
   return ({
-    coinbase: {icon: `icon-coinbase-logo-${size}`},
     twitter: {icon: `icon-twitter-logo-${size}`},
     github: {icon: `icon-github-logo-${size}`},
     facebook: {icon: `icon-facebook-logo-${size}`},
