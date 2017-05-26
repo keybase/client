@@ -455,6 +455,35 @@ func AddTeamReaderForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
+// AddTeamKeyForTest adds a new key for the given team.
+func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		return errors.New("Bad keybase daemon")
+	}
+
+	ti, err := kbd.LoadTeamPlusKeys(context.Background(), tid)
+	if err != nil {
+		return err
+	}
+	newKeyGen := ti.LatestKeyGen + 1
+	newKey := MakeLocalTLFCryptKeyOrBust(
+		buildCanonicalPathForTlfType(tlf.SingleTeam, string(ti.Name)),
+		newKeyGen)
+
+	return kbd.addTeamKeyForTest(tid, newKeyGen, newKey)
+}
+
+// AddTeamKeyForTestOrBust is like AddTeamKeyForTest, but
+// dies if there's an error.
+func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
+	tid keybase1.TeamID) {
+	err := AddTeamKeyForTest(config, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 // AddEmptyTeamsForTest creates teams for the given names with empty
 // membership lists.
 func AddEmptyTeamsForTest(

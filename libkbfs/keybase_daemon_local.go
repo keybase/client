@@ -501,6 +501,26 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 	return nil
 }
 
+func (k *KeybaseDaemonLocal) addTeamKeyForTest(
+	tid keybase1.TeamID, newKeyGen KeyGen,
+	newKey kbfscrypto.TLFCryptKey) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	t, err := k.localTeams.getLocalTeam(tid)
+	if err != nil {
+		return err
+	}
+
+	t.CryptKeys[newKeyGen] = newKey
+	if newKeyGen > t.LatestKeyGen {
+		t.LatestKeyGen = newKeyGen
+		// Only need to save back to the map if we've modified a
+		// non-reference type like the latest key gen.
+		k.localTeams[tid] = t
+	}
+	return nil
+}
+
 func (k *KeybaseDaemonLocal) addTeamsForTest(teams []TeamInfo) {
 	k.lock.Lock()
 	defer k.lock.Unlock()

@@ -719,6 +719,55 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	checkReader(charlieUID, true)
 }
 
+// Check that MakeSuccessor gets the right key gen for teams.
+func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice")
+	ctx := context.Background()
+	defer config.Shutdown(ctx)
+
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
+	tid := teamInfos[0].TID
+
+	tlfID := tlf.FakeID(1, tlf.SingleTeam)
+	h := &TlfHandle{
+		tlfType: tlf.SingleTeam,
+		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+			tid.AsUserOrTeam(): "t1",
+		},
+		name: "t1",
+	}
+	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
+	require.NoError(t, err)
+	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(teamInfos[0].LatestKeyGen)
+	// Make sure the MD looks readable.
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+
+	firstKeyGen := rmd.LatestKeyGeneration()
+	require.Equal(t, FirstValidKeyGen, firstKeyGen)
+
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
+		true)
+	require.NoError(t, err)
+
+	// No increase yet.
+	kg := rmd2.LatestKeyGeneration()
+	require.Equal(t, firstKeyGen, kg)
+
+	AddTeamKeyForTestOrBust(t, config, tid)
+
+	rmd3, err := rmd2.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(2),
+		true)
+	require.NoError(t, err)
+
+	// Should have been bumped by one.
+	kg = rmd3.LatestKeyGeneration()
+	require.Equal(t, firstKeyGen+1, kg)
+}
+
 func TestRootMetadata(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testRootMetadataGetTlfHandlePublic,
