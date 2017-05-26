@@ -159,7 +159,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 		// skip identify:
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_SKIP,
 		}
 
 		res, err = tlfClient.GetPublicCanonicalTLFNameAndID(ectx, query)
