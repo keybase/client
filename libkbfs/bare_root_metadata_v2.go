@@ -308,31 +308,31 @@ func (md *BareRootMetadataV2) IsFinal() bool {
 
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsWriter(
-	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, _ ExtraMetadata) bool {
+	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
+	_ TeamMembershipChecker, _ ExtraMetadata) (bool, error) {
 	if md.ID.Type() != tlf.Private {
 		for _, w := range md.Writers {
-			// TODO(KBFS-2185): If a team TLF, check that the user is
-			// a writer in that team.
 			if w == user.AsUserOrTeam() {
-				return true
+				return true, nil
 			}
 		}
-		return false
+		return false, nil
 	}
-	return md.WKeys.IsWriter(user, deviceKey)
+	return md.WKeys.IsWriter(user, deviceKey), nil
 }
 
 // IsReader implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsReader(
-	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, _ ExtraMetadata) bool {
+	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
+	_ TeamMembershipChecker, _ ExtraMetadata) (bool, error) {
 	switch md.ID.Type() {
 	case tlf.Public:
-		return true
+		return true, nil
 	case tlf.Private:
-		return md.RKeys.IsReader(user, deviceKey)
+		return md.RKeys.IsReader(user, deviceKey), nil
 	case tlf.SingleTeam:
 		// There are no read-only users of single-team TLFs.
-		return false
+		return false, nil
 	default:
 		panic(fmt.Sprintf("Unexpected TLF type: %s", md.ID.Type()))
 	}
@@ -764,7 +764,8 @@ func (md *BareRootMetadataV2) GetTLFCryptKeyParams(
 
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsValidAndSigned(
-	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
+	_ context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	_ TeamMembershipChecker, extra ExtraMetadata) error {
 	// Optimization -- if the WriterMetadata signature is nil, it
 	// will fail verification.
 	if md.WriterMetadataSigInfo.IsNil() {

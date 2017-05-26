@@ -1879,9 +1879,13 @@ type BareRootMetadata interface {
 	// folder.  This is only expected to be set for folder resets.
 	IsFinal() bool
 	// IsWriter returns whether or not the user+device is an authorized writer.
-	IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool
+	IsWriter(ctx context.Context, user keybase1.UID,
+		deviceKey kbfscrypto.CryptPublicKey,
+		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
 	// IsReader returns whether or not the user+device is an authorized reader.
-	IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool
+	IsReader(ctx context.Context, user keybase1.UID,
+		deviceKey kbfscrypto.CryptPublicKey,
+		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
 	// DeepCopy returns a deep copy of the underlying data structure.
 	DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error)
 	// MakeSuccessorCopy returns a newly constructed successor
@@ -1927,8 +1931,9 @@ type BareRootMetadata interface {
 	// user and key should be validated, either by comparing to
 	// the current device key (using IsLastModifiedBy), or by
 	// checking with KBPKI.
-	IsValidAndSigned(codec kbfscodec.Codec,
-		crypto cryptoPure, extra ExtraMetadata) error
+	IsValidAndSigned(ctx context.Context, codec kbfscodec.Codec,
+		crypto cryptoPure, teamMemChecker TeamMembershipChecker,
+		extra ExtraMetadata) error
 	// IsLastModifiedBy verifies that the BareRootMetadata is
 	// written by the given user and device (identified by the
 	// device verifying key), and returns an error if not.

@@ -17,6 +17,7 @@ type mdServerLocalConfig interface {
 	MetadataVersion() MetadataVer
 	logMaker
 	cryptoPureGetter
+	teamMemChecker() TeamMembershipChecker
 }
 
 // mdServerLocalConfigWrapper is an adapter for Config objects to the
@@ -26,5 +27,9 @@ type mdServerLocalConfigAdapter struct {
 }
 
 func (ca mdServerLocalConfigAdapter) currentSessionGetter() CurrentSessionGetter {
+	return ca.Config.KBPKI()
+}
+
+func (ca mdServerLocalConfigAdapter) teamMemChecker() TeamMembershipChecker {
 	return ca.Config.KBPKI()
 }

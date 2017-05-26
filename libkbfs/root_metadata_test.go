@@ -636,8 +636,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 		configReader.Codec(), configReader.Crypto(), configReader.Crypto(),
 		rmd2.bareMd, configReader.Clock().Now())
 	require.NoError(t, err)
-	err = rmds.IsValidAndSigned(configReader.Codec(), configReader.Crypto(),
-		rmd2.extra)
+	err = rmds.IsValidAndSigned(
+		ctx, configReader.Codec(), configReader.Crypto(), nil, rmd2.extra)
 	require.NoError(t, err)
 }
 

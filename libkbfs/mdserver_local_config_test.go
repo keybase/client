@@ -54,3 +54,8 @@ func (c testMDServerLocalConfig) currentSessionGetter() CurrentSessionGetter {
 func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
 	return defaultClientMetadataVer
 }
+
+func (c testMDServerLocalConfig) teamMemChecker() TeamMembershipChecker {
+	// TODO: support team TLFs in the test mdserver.
+	return nil
+}

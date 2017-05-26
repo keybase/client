@@ -139,7 +139,7 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// verify it
-	err = rmds.IsValidAndSigned(codec, crypto, extra)
+	err = rmds.IsValidAndSigned(ctx, codec, crypto, nil, extra)
 	require.NoError(t, err)
 
 	ext, err := tlf.NewHandleExtension(
@@ -151,7 +151,7 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// verify the finalized copy
-	err = rmds2.IsValidAndSigned(codec, crypto, extra)
+	err = rmds2.IsValidAndSigned(ctx, codec, crypto, nil, extra)
 	require.NoError(t, err)
 
 	// touch something the server shouldn't be allowed to edit for
@@ -161,6 +161,6 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	md3.SetRekeyBit()
 	rmds3 := rmds2
 	rmds2.MD = md3
-	err = rmds3.IsValidAndSigned(codec, crypto, extra)
+	err = rmds3.IsValidAndSigned(ctx, codec, crypto, nil, extra)
 	require.NotNil(t, err)
 }

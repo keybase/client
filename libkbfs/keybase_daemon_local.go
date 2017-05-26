@@ -173,6 +173,8 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 		var currID keybase1.UserOrTeamID
 		if url.IsUID() {
 			currID = url.ToUID().AsUserOrTeam()
+		} else if url.IsTeamID() {
+			currID = url.ToTeamID().AsUserOrTeam()
 		} else {
 			key, val := url.ToKeyValuePair()
 			a := fmt.Sprintf("%s@%s", val, key)
@@ -525,6 +527,7 @@ func (k *KeybaseDaemonLocal) addTeamsForTest(teams []TeamInfo) {
 	defer k.lock.Unlock()
 	for _, t := range teams {
 		k.localTeams[t.TID] = t
+		k.asserts[string(t.Name)] = t.TID.AsUserOrTeam()
 	}
 }
 

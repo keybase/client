@@ -60,7 +60,13 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 func (k *KBPKIClient) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID) (
 	libkb.NormalizedUsername, error) {
-	username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", id))
+	var assertion string
+	if id.IsUser() {
+		assertion = fmt.Sprintf("uid:%s", id)
+	} else {
+		assertion = fmt.Sprintf("tid:%s", id)
+	}
+	username, _, err := k.Resolve(ctx, assertion)
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}

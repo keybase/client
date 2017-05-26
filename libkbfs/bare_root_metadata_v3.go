@@ -376,51 +376,96 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsWriter(
-	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	if md.TlfID().Type() != tlf.Private {
-		err := md.checkNonPrivateExtra(extra)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, w := range md.WriterMetadata.Writers {
-			// TODO(KBFS-2185): If a team TLF, check that the user is
-			// a writer in that team.
-			if w == user.AsUserOrTeam() {
-				return true
-			}
-		}
-		return false
-	}
-	wkb, _, err := md.getTLFKeyBundles(extra)
-	if err != nil {
-		panic(err)
-	}
-	return wkb.IsWriter(user, deviceKey)
-}
-
-// IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsReader(
-	user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
+	ctx context.Context, user keybase1.UID,
+	deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
+	extra ExtraMetadata) (bool, error) {
 	switch md.TlfID().Type() {
 	case tlf.Public:
 		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
-			panic(err)
+			return false, err
 		}
-		return true
+
+		for _, w := range md.WriterMetadata.Writers {
+			if w == user.AsUserOrTeam() {
+				return true, nil
+			}
+		}
+		return false, nil
 	case tlf.Private:
-		_, rkb, err := md.getTLFKeyBundles(extra)
+		wkb, _, err := md.getTLFKeyBundles(extra)
 		if err != nil {
-			panic(err)
+			return false, err
 		}
-		return rkb.IsReader(user, deviceKey)
+		return wkb.IsWriter(user, deviceKey), nil
 	case tlf.SingleTeam:
 		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
-			panic(err)
+			return false, err
 		}
-		return false
+
+		tid, err := md.WriterMetadata.Writers[0].AsTeam()
+		if err != nil {
+			return false, err
+		}
+
+		// TODO: Eventually this will have to use a Merkle sequence
+		// number to check historic versions.
+		isWriter, err := teamMemChecker.IsTeamWriter(ctx, tid, user)
+		if err != nil {
+			return false, err
+		}
+		return isWriter, nil
+	default:
+		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
+	}
+}
+
+// IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) IsReader(
+	ctx context.Context, user keybase1.UID,
+	deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
+	extra ExtraMetadata) (bool, error) {
+	// Writers are also readers.
+	isWriter, err := md.IsWriter(ctx, user, deviceKey, teamMemChecker, extra)
+	if err != nil {
+		return false, err
+	}
+	if isWriter {
+		return true, nil
+	}
+
+	switch md.TlfID().Type() {
+	case tlf.Public:
+		err := md.checkNonPrivateExtra(extra)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	case tlf.Private:
+		_, rkb, err := md.getTLFKeyBundles(extra)
+		if err != nil {
+			return false, err
+		}
+		return rkb.IsReader(user, deviceKey), nil
+	case tlf.SingleTeam:
+		err := md.checkNonPrivateExtra(extra)
+		if err != nil {
+			return false, err
+		}
+
+		tid, err := md.WriterMetadata.Writers[0].AsTeam()
+		if err != nil {
+			return false, err
+		}
+
+		// TODO: Eventually this will have to use a Merkle sequence
+		// number to check historic versions.
+		isReader, err := teamMemChecker.IsTeamReader(ctx, tid, user)
+		if err != nil {
+			return false, err
+		}
+		return isReader, nil
 	default:
 		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
 	}
@@ -784,13 +829,9 @@ func checkRKBID(crypto cryptoPure,
 
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsValidAndSigned(
-	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
-	if md.TlfID().Type() == tlf.Public {
-		err := md.checkNonPrivateExtra(extra)
-		if err != nil {
-			return err
-		}
-	} else {
+	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
+	if md.TlfID().Type() == tlf.Private {
 		wkb, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
 			return err
@@ -802,6 +843,11 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		}
 
 		err = checkRKBID(crypto, md.GetTLFReaderKeyBundleID(), *rkb)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
 			return err
 		}
@@ -851,16 +897,38 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 		return err
 	}
 
-	// Make sure the last writer is valid.  TODO(KBFS-2185): for a
-	// team TLF, check that the writer is part of the team.
 	writer := md.LastModifyingWriter()
-	if !handle.IsWriter(writer.AsUserOrTeam()) {
-		return errors.Errorf("Invalid modifying writer %s", writer)
+	user := md.LastModifyingUser
+	isWriter := false
+	isReader := false
+	if md.TlfID().Type() == tlf.SingleTeam {
+		tid, err := md.WriterMetadata.Writers[0].AsTeam()
+		if err != nil {
+			return err
+		}
+
+		// TODO: Eventually this will have to use a Merkle sequence
+		// number to check historic versions.
+		isWriter, err = teamMemChecker.IsTeamWriter(ctx, tid, writer)
+		if err != nil {
+			return err
+		}
+
+		isReader, err = teamMemChecker.IsTeamReader(ctx, tid, user)
+		if err != nil {
+			return err
+		}
+	} else {
+		isWriter = handle.IsWriter(writer.AsUserOrTeam())
+		isReader = handle.IsReader(user.AsUserOrTeam())
 	}
 
+	// Make sure the last writer is valid.
+	if !isWriter {
+		return errors.Errorf("Invalid modifying writer %s", writer)
+	}
 	// Make sure the last modifier is valid.
-	user := md.LastModifyingUser
-	if !handle.IsReader(user.AsUserOrTeam()) {
+	if !isReader {
 		return errors.Errorf("Invalid modifying user %s", user)
 	}
 

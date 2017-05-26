@@ -43,6 +43,7 @@ type tlfJournalConfig interface {
 	usernameGetter() normalizedUsernameGetter
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
+	teamMemChecker() TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 }
 
@@ -61,6 +62,10 @@ func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter 
 }
 
 func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
+	return ca.Config.KBPKI()
+}
+
+func (ca tlfJournalConfigAdapter) teamMemChecker() TeamMembershipChecker {
 	return ca.Config.KBPKI()
 }
 
@@ -335,7 +340,7 @@ func makeTLFJournal(
 
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
-		tlfID, config.MetadataVersion(), dir, log)
+		config.teamMemChecker(), tlfID, config.MetadataVersion(), dir, log)
 	if err != nil {
 		return nil, err
 	}
@@ -1422,7 +1427,7 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 // complete), which can be used to build an unflushedPathsMap. If
 // complete is true, then the list may be empty; otherwise, it is
 // guaranteed to not be empty.
-func (j *tlfJournal) getJournalStatusWithRange() (
+func (j *tlfJournal) getJournalStatusWithRange(ctx context.Context) (
 	jStatus TLFJournalStatus, unflushedPaths unflushedPathsMap,
 	ibrmds []ImmutableBareRootMetadata, complete bool, err error) {
 	j.journalLock.RLock()
@@ -1450,8 +1455,8 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	// It would be nice to avoid getting this range if we are not
 	// the initializer, but at this point we don't know if we'll
 	// need to initialize or not.
-	ibrmds, err = j.mdJournal.getRange(j.mdJournal.branchID,
-		jStatus.RevisionStart, stop)
+	ibrmds, err = j.mdJournal.getRange(
+		ctx, j.mdJournal.branchID, jStatus.RevisionStart, stop)
 	if err != nil {
 		return TLFJournalStatus{}, nil, nil, false, err
 	}
@@ -1520,7 +1525,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	for {
 		var ibrmds []ImmutableBareRootMetadata
 		jStatus, unflushedPaths, ibrmds, complete, err =
-			j.getJournalStatusWithRange()
+			j.getJournalStatusWithRange(ctx)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
@@ -1949,7 +1954,7 @@ func (j *tlfJournal) getMDHead(
 		return ImmutableBareRootMetadata{}, err
 	}
 
-	return j.mdJournal.getHead(bid)
+	return j.mdJournal.getHead(ctx, bid)
 }
 
 func (j *tlfJournal) getMDRange(
@@ -1961,7 +1966,7 @@ func (j *tlfJournal) getMDRange(
 		return nil, err
 	}
 
-	return j.mdJournal.getRange(bid, start, stop)
+	return j.mdJournal.getRange(ctx, bid, start, stop)
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,

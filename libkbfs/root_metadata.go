@@ -1160,7 +1160,8 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 // validated, either by comparing to the current device key (using
 // IsLastModifiedBy), or by checking with KBPKI.
 func (rmds *RootMetadataSigned) IsValidAndSigned(
-	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
+	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
 	// Optimization -- if the RootMetadata signature is nil, it
 	// will fail verification.
 	if rmds.SigInfo.IsNil() {
@@ -1172,7 +1173,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return errors.New("Missing WriterMetadata signature")
 	}
 
-	err := rmds.MD.IsValidAndSigned(codec, crypto, extra)
+	err := rmds.MD.IsValidAndSigned(ctx, codec, crypto, teamMemChecker, extra)
 	if err != nil {
 		return err
 	}

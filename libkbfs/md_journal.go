@@ -127,12 +127,13 @@ type mdJournal struct {
 	uid keybase1.UID
 	key kbfscrypto.VerifyingKey
 
-	codec  kbfscodec.Codec
-	crypto cryptoPure
-	clock  Clock
-	tlfID  tlf.ID
-	mdVer  MetadataVer
-	dir    string
+	codec          kbfscodec.Codec
+	crypto         cryptoPure
+	clock          Clock
+	teamMemChecker TeamMembershipChecker
+	tlfID          tlf.ID
+	mdVer          MetadataVer
+	dir            string
 
 	log      logger.Logger
 	deferLog logger.Logger
@@ -158,7 +159,8 @@ type mdJournal struct {
 
 func makeMDJournalWithIDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
+	teamMemChecker TeamMembershipChecker, tlfID tlf.ID,
 	mdVer MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
@@ -170,25 +172,26 @@ func makeMDJournalWithIDJournal(
 
 	deferLog := log.CloneWithAddedDepth(1)
 	journal := mdJournal{
-		uid:      uid,
-		key:      key,
-		codec:    codec,
-		crypto:   crypto,
-		clock:    clock,
-		tlfID:    tlfID,
-		mdVer:    mdVer,
-		dir:      dir,
-		log:      log,
-		deferLog: deferLog,
-		j:        idJournal,
+		uid:            uid,
+		key:            key,
+		codec:          codec,
+		crypto:         crypto,
+		clock:          clock,
+		teamMemChecker: teamMemChecker,
+		tlfID:          tlfID,
+		mdVer:          mdVer,
+		dir:            dir,
+		log:            log,
+		deferLog:       deferLog,
+		j:              idJournal,
 	}
 
-	_, earliest, _, _, err := journal.getEarliestWithExtra(false)
+	_, earliest, _, _, err := journal.getEarliestWithExtra(ctx, false)
 	if err != nil {
 		return nil, err
 	}
 
-	latest, err := journal.getLatest(false)
+	latest, err := journal.getLatest(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +223,8 @@ func mdJournalPath(dir string) string {
 
 func makeMDJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock,
+	teamMemChecker TeamMembershipChecker, tlfID tlf.ID,
 	mdVer MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := mdJournalPath(dir)
@@ -229,7 +233,7 @@ func makeMDJournal(
 		return nil, err
 	}
 	return makeMDJournalWithIDJournal(
-		ctx, uid, key, codec, crypto, clock, tlfID, mdVer, dir,
+		ctx, uid, key, codec, crypto, clock, teamMemChecker, tlfID, mdVer, dir,
 		idJournal, log)
 }
 
@@ -421,7 +425,8 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 //
 // It returns a MutableBareRootMetadata so that it can be put in a
 // RootMetadataSigned object.
-func (j mdJournal) getMDAndExtra(entry mdIDJournalEntry, verifyBranchID bool) (
+func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
+	verifyBranchID bool) (
 	MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
 	// Read info.
 
@@ -469,7 +474,7 @@ func (j mdJournal) getMDAndExtra(entry mdIDJournalEntry, verifyBranchID bool) (
 		return nil, nil, time.Time{}, err
 	}
 
-	err = rmd.IsValidAndSigned(j.codec, j.crypto, extra)
+	err = rmd.IsValidAndSigned(ctx, j.codec, j.crypto, j.teamMemChecker, extra)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -543,7 +548,8 @@ func (j *mdJournal) removeMD(id kbfsmd.ID) error {
 
 // getEarliestWithExtra returns a MutableBareRootMetadata so that it
 // can be put in a RootMetadataSigned object.
-func (j mdJournal) getEarliestWithExtra(verifyBranchID bool) (
+func (j mdJournal) getEarliestWithExtra(
+	ctx context.Context, verifyBranchID bool) (
 	kbfsmd.ID, MutableBareRootMetadata, ExtraMetadata, time.Time, error) {
 	entry, exists, err := j.j.getEarliestEntry()
 	if err != nil {
@@ -553,14 +559,14 @@ func (j mdJournal) getEarliestWithExtra(verifyBranchID bool) (
 		return kbfsmd.ID{}, nil, nil, time.Time{}, nil
 	}
 	earliest, extra, timestamp, err :=
-		j.getMDAndExtra(entry, verifyBranchID)
+		j.getMDAndExtra(ctx, entry, verifyBranchID)
 	if err != nil {
 		return kbfsmd.ID{}, nil, nil, time.Time{}, err
 	}
 	return entry.ID, earliest, extra, timestamp, nil
 }
 
-func (j mdJournal) getLatest(verifyBranchID bool) (
+func (j mdJournal) getLatest(ctx context.Context, verifyBranchID bool) (
 	ImmutableBareRootMetadata, error) {
 	entry, exists, err := j.j.getLatestEntry()
 	if err != nil {
@@ -570,7 +576,7 @@ func (j mdJournal) getLatest(verifyBranchID bool) (
 		return ImmutableBareRootMetadata{}, nil
 	}
 	latest, extra, timestamp, err :=
-		j.getMDAndExtra(entry, verifyBranchID)
+		j.getMDAndExtra(ctx, entry, verifyBranchID)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
@@ -578,8 +584,9 @@ func (j mdJournal) getLatest(verifyBranchID bool) (
 		latest, extra, entry.ID, timestamp), nil
 }
 
-func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
-	head, err := j.getLatest(true)
+func (j mdJournal) checkGetParams(ctx context.Context) (
+	ImmutableBareRootMetadata, error) {
+	head, err := j.getLatest(ctx, true)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
@@ -588,7 +595,8 @@ func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
 		return ImmutableBareRootMetadata{}, nil
 	}
 
-	ok, err := isReader(j.uid, head.BareRootMetadata, head.extra)
+	ok, err := isReader(
+		ctx, j.teamMemChecker, j.uid, head.BareRootMetadata, head.extra)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
@@ -675,7 +683,7 @@ func (j *mdJournal) convertToBranch(
 
 	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
-		brmd, _, ts, err := j.getMDAndExtra(entry, true)
+		brmd, _, ts, err := j.getMDAndExtra(ctx, entry, true)
 		if err != nil {
 			return err
 		}
@@ -814,7 +822,7 @@ func (j *mdJournal) convertToBranch(
 func (j mdJournal) getNextEntryToFlush(
 	ctx context.Context, end kbfsmd.Revision, signer kbfscrypto.Signer) (
 	kbfsmd.ID, *RootMetadataSigned, ExtraMetadata, error) {
-	mdID, rmd, extra, timestamp, err := j.getEarliestWithExtra(true)
+	mdID, rmd, extra, timestamp, err := j.getEarliestWithExtra(ctx, true)
 	if err != nil {
 		return kbfsmd.ID{}, nil, nil, err
 	}
@@ -834,7 +842,7 @@ func (j mdJournal) getNextEntryToFlush(
 func (j *mdJournal) removeFlushedEntry(
 	ctx context.Context, mdID kbfsmd.ID, rmds *RootMetadataSigned) (
 	clearedMDJournal bool, err error) {
-	rmdID, rmd, _, _, err := j.getEarliestWithExtra(true)
+	rmdID, rmd, _, _, err := j.getEarliestWithExtra(ctx, true)
 	if err != nil {
 		return false, err
 	}
@@ -945,7 +953,7 @@ func (j *mdJournal) clearHelper(ctx context.Context, bid BranchID,
 		return nil
 	}
 
-	head, err := j.getHead(bid)
+	head, err := j.getHead(ctx, bid)
 	if err != nil {
 		return err
 	}
@@ -1040,8 +1048,9 @@ func (j mdJournal) getBranchID() BranchID {
 	return j.branchID
 }
 
-func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
-	head, err := j.checkGetParams()
+func (j mdJournal) getHead(ctx context.Context, bid BranchID) (
+	ImmutableBareRootMetadata, error) {
+	head, err := j.checkGetParams(ctx)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
@@ -1077,7 +1086,7 @@ func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
 		}
 		if entry.IsLocalSquash {
 			latest, extra, timestamp, err :=
-				j.getMDAndExtra(entry, false)
+				j.getMDAndExtra(ctx, entry, false)
 			if err != nil {
 				return ImmutableBareRootMetadata{}, err
 			}
@@ -1088,9 +1097,10 @@ func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
 	return ImmutableBareRootMetadata{}, nil
 }
 
-func (j mdJournal) getRange(bid BranchID, start, stop kbfsmd.Revision) (
+func (j mdJournal) getRange(
+	ctx context.Context, bid BranchID, start, stop kbfsmd.Revision) (
 	[]ImmutableBareRootMetadata, error) {
-	head, err := j.checkGetParams()
+	head, err := j.checkGetParams(ctx)
 	if err != nil {
 		return nil, err
 	} else if head == (ImmutableBareRootMetadata{}) {
@@ -1120,7 +1130,7 @@ func (j mdJournal) getRange(bid BranchID, start, stop kbfsmd.Revision) (
 		}
 
 		expectedRevision := realStart + kbfsmd.Revision(i)
-		brmd, extra, ts, err := j.getMDAndExtra(entry, true)
+		brmd, extra, ts, err := j.getMDAndExtra(ctx, entry, true)
 		if err != nil {
 			return nil, err
 		}
@@ -1200,7 +1210,7 @@ func (j *mdJournal) put(
 		}
 	}()
 
-	head, err := j.getLatest(true)
+	head, err := j.getLatest(ctx, true)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}
@@ -1279,8 +1289,8 @@ func (j *mdJournal) put(
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
 		ok, err := isWriterOrValidRekey(
-			j.codec, j.uid, head.BareRootMetadata, rmd.bareMd,
-			head.extra, rmd.extra)
+			ctx, j.teamMemChecker, j.codec, j.uid, head.BareRootMetadata,
+			rmd.bareMd, head.extra, rmd.extra)
 		if err != nil {
 			return kbfsmd.ID{}, err
 		}
@@ -1325,7 +1335,8 @@ func (j *mdJournal) put(
 		return kbfsmd.ID{}, err
 	}
 
-	err = rmd.bareMd.IsValidAndSigned(j.codec, j.crypto, rmd.extra)
+	err = rmd.bareMd.IsValidAndSigned(
+		ctx, j.codec, j.crypto, j.teamMemChecker, rmd.extra)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}
@@ -1470,8 +1481,8 @@ func (j *mdJournal) resolveAndClear(
 	}()
 
 	otherJournal, err := makeMDJournalWithIDJournal(
-		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
-		otherIDJournal, j.log)
+		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.teamMemChecker,
+		j.tlfID, j.mdVer, j.dir, otherIDJournal, j.log)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}

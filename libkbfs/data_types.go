@@ -180,9 +180,7 @@ const (
 	// storage of key bundles.
 	SegregatedKeyBundlesVer MetadataVer = 3
 
-	// MDv3 TODO: Change the below to SegregatedKeyBundlesVer when
-	// the client is ready for MDv3.
-	defaultClientMetadataVer MetadataVer = InitialExtraMetadataVer
+	defaultClientMetadataVer MetadataVer = SegregatedKeyBundlesVer
 )
 
 func (v MetadataVer) String() string {

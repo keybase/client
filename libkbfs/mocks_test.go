@@ -5639,24 +5639,26 @@ func (_mr *_MockBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockBareRootMetadata) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKey, extra)
+func (_m *MockBareRootMetadata) IsWriter(ctx context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsWriter", ctx, user, deviceKey, teamMemChecker, extra)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2)
+func (_mr *_MockBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockBareRootMetadata) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKey, extra)
+func (_m *MockBareRootMetadata) IsReader(ctx context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsReader", ctx, user, deviceKey, teamMemChecker, extra)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
+func (_mr *_MockBareRootMetadataRecorder) IsReader(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
@@ -5749,14 +5751,14 @@ func (_mr *_MockBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2,
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBareRootMetadata) IsValidAndSigned(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
-	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, extra)
+func (_m *MockBareRootMetadata) IsValidAndSigned(ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", ctx, codec, crypto, teamMemChecker, extra)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2)
+func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockBareRootMetadata) IsLastModifiedBy(uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
@@ -6085,24 +6087,26 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockMutableBareRootMetadata) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKey, extra)
+func (_m *MockMutableBareRootMetadata) IsWriter(ctx context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsWriter", ctx, user, deviceKey, teamMemChecker, extra)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2)
+func (_mr *_MockMutableBareRootMetadataRecorder) IsWriter(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMutableBareRootMetadata) IsReader(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) bool {
-	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKey, extra)
+func (_m *MockMutableBareRootMetadata) IsReader(ctx context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsReader", ctx, user, deviceKey, teamMemChecker, extra)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
+func (_mr *_MockMutableBareRootMetadataRecorder) IsReader(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockMutableBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
@@ -6195,14 +6199,14 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
-	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, extra)
+func (_m *MockMutableBareRootMetadata) IsValidAndSigned(ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure, teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", ctx, codec, crypto, teamMemChecker, extra)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2)
+func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockMutableBareRootMetadata) IsLastModifiedBy(uid keybase1.UID, key kbfscrypto.VerifyingKey) error {

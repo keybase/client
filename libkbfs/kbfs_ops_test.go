@@ -3430,3 +3430,89 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 	_, err = config.BlockCache().Get(ptrC)
 	require.NotNil(t, err)
 }
+
+func TestKBFSOpsBasicTeamTLF(t *testing.T) {
+	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
+	config1, uid1, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2, u3)
+	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, u2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+	session2, err := config2.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid2 := session2.UID
+
+	config3 := ConfigAsUser(config1, u3)
+	defer CheckConfigAndShutdown(ctx, t, config3)
+	session3, err := config3.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid3 := session3.UID
+
+	// These are deterministic, and should add the same TeamInfos for
+	// both user configs.
+	name := libkb.NormalizedUsername("t1")
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config1, name)
+	_ = AddEmptyTeamsForTestOrBust(t, config2, name)
+	_ = AddEmptyTeamsForTestOrBust(t, config3, name)
+	tid := teamInfos[0].TID
+	AddTeamWriterForTestOrBust(t, config1, tid, uid1)
+	AddTeamWriterForTestOrBust(t, config2, tid, uid1)
+	AddTeamWriterForTestOrBust(t, config3, tid, uid1)
+	AddTeamWriterForTestOrBust(t, config1, tid, uid2)
+	AddTeamWriterForTestOrBust(t, config2, tid, uid2)
+	AddTeamWriterForTestOrBust(t, config3, tid, uid2)
+	AddTeamReaderForTestOrBust(t, config1, tid, uid3)
+	AddTeamReaderForTestOrBust(t, config2, tid, uid3)
+	AddTeamReaderForTestOrBust(t, config3, tid, uid3)
+
+	// Look up bob's public folder.
+	h := parseTlfHandleOrBust(t, config1, string(name), tlf.SingleTeam)
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
+		ctx, h, MasterBranch)
+	require.NoError(t, err)
+
+	// Create a small file.
+	nodeA1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	require.NoError(t, err)
+	data := []byte{1}
+	err = kbfsOps1.Write(ctx, nodeA1, data, 0)
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	// The other writer should be able to read it.
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(
+		ctx, h, MasterBranch)
+	require.NoError(t, err)
+	nodeA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	require.NoError(t, err)
+	gotData2 := make([]byte, len(data))
+	_, err = kbfsOps2.Read(ctx, nodeA2, gotData2, 0)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(data, gotData2))
+	// And also should be able to write.
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	// The reader should be able to read it.
+	kbfsOps3 := config3.KBFSOps()
+	rootNode3, _, err := kbfsOps3.GetOrCreateRootNode(
+		ctx, h, MasterBranch)
+	require.NoError(t, err)
+	nodeA3, _, err := kbfsOps3.Lookup(ctx, rootNode3, "a")
+	require.NoError(t, err)
+	gotData3 := make([]byte, len(data))
+	_, err = kbfsOps3.Read(ctx, nodeA3, gotData3, 0)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(data, gotData3))
+	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, "c", false, NoExcl)
+	require.IsType(t, WriteAccessError{}, errors.Cause(err))
+}

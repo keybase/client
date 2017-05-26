@@ -148,7 +148,16 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 	if err != nil {
 		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
-	if !handle.IsReader(session.UID.AsUserOrTeam()) {
+	if handle.Type() == tlf.SingleTeam {
+		isReader, err := md.config.teamMemChecker().IsTeamReader(
+			ctx, handle.Writers[0].AsTeamOrBust(), session.UID)
+		if err != nil {
+			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
+		}
+		if !isReader {
+			return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+		}
+	} else if !handle.IsReader(session.UID.AsUserOrTeam()) {
 		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
 	}
 
@@ -213,7 +222,8 @@ func (md *MDServerMemory) checkGetParams(
 		if err != nil {
 			return NullBranchID, kbfsmd.ServerError{Err: err}
 		}
-		ok, err := isReader(session.UID, mergedMasterHead.MD, extra)
+		ok, err := isReader(ctx, md.config.teamMemChecker(), session.UID,
+			mergedMasterHead.MD, extra)
 		if err != nil {
 			return NullBranchID, kbfsmd.ServerError{Err: err}
 		}
@@ -391,7 +401,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	err = rmds.IsValidAndSigned(
-		md.config.Codec(), md.config.cryptoPure(), extra)
+		ctx, md.config.Codec(), md.config.cryptoPure(),
+		md.config.teamMemChecker(), extra)
 	if err != nil {
 		return kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -419,8 +430,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 			return kbfsmd.ServerError{Err: err}
 		}
 		ok, err := isWriterOrValidRekey(
-			md.config.Codec(), session.UID, mergedMasterHead.MD,
-			rmds.MD, prevExtra, extra)
+			ctx, md.config.teamMemChecker(), md.config.Codec(), session.UID,
+			mergedMasterHead.MD, rmds.MD, prevExtra, extra)
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
 		}

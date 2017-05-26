@@ -150,7 +150,8 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 	path := filepath.Join(md.dirPath, tlfID.String())
 	storage = makeMDServerTlfStorage(
 		tlfID, md.config.Codec(), md.config.cryptoPure(),
-		md.config.Clock(), md.config.MetadataVersion(), path)
+		md.config.Clock(), md.config.teamMemChecker(),
+		md.config.MetadataVersion(), path)
 
 	md.tlfStorage[tlfID] = storage
 	return storage, nil
@@ -348,7 +349,7 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
-	return tlfStorage.getForTLF(session.UID, bid)
+	return tlfStorage.getForTLF(ctx, session.UID, bid)
 }
 
 // GetRange implements the MDServer interface for MDServerDisk.
@@ -383,7 +384,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 		return nil, err
 	}
 
-	return tlfStorage.getRange(session.UID, bid, start, stop)
+	return tlfStorage.getRange(ctx, session.UID, bid, start, stop)
 }
 
 // Put implements the MDServer interface for MDServerDisk.
@@ -404,7 +405,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	recordBranchID, err := tlfStorage.put(
-		session.UID, session.VerifyingKey, rmds, extra)
+		ctx, session.UID, session.VerifyingKey, rmds, extra)
 	if err != nil {
 		return err
 	}

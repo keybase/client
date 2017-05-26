@@ -141,6 +141,11 @@ func (c testTLFJournalConfig) MDServer() MDServer {
 	return c.mdserver
 }
 
+func (c testTLFJournalConfig) teamMemChecker() TeamMembershipChecker {
+	// TODO: support team TLF tests.
+	return nil
+}
+
 func (c testTLFJournalConfig) diskLimitTimeout() time.Duration {
 	return c.dlTimeout
 }
@@ -173,7 +178,8 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(), c.Crypto(),
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
-	err := rmds.IsValidAndSigned(c.Codec(), c.Crypto(), extra)
+	err := rmds.IsValidAndSigned(
+		context.Background(), c.Codec(), c.Crypto(), nil, extra)
 	require.NoError(c.t, err)
 	err = rmds.IsLastModifiedBy(c.uid, verifyingKey)
 	require.NoError(c.t, err)

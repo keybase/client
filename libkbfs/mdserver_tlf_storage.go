@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each
@@ -61,12 +62,13 @@ import (
 // separately in dir/wkbv3 (dir/rkbv3). The number of bundles is
 // small, so no need to splay them.
 type mdServerTlfStorage struct {
-	tlfID  tlf.ID
-	codec  kbfscodec.Codec
-	crypto cryptoPure
-	clock  Clock
-	mdVer  MetadataVer
-	dir    string
+	tlfID          tlf.ID
+	codec          kbfscodec.Codec
+	crypto         cryptoPure
+	clock          Clock
+	teamMemChecker TeamMembershipChecker
+	mdVer          MetadataVer
+	dir            string
 
 	// Protects any IO operations in dir or any of its children,
 	// as well as branchJournals and its contents.
@@ -75,13 +77,14 @@ type mdServerTlfStorage struct {
 }
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, mdVer MetadataVer,
-	dir string) *mdServerTlfStorage {
+	crypto cryptoPure, clock Clock, teamMemChecker TeamMembershipChecker,
+	mdVer MetadataVer, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		tlfID:          tlfID,
 		codec:          codec,
 		crypto:         crypto,
 		clock:          clock,
+		teamMemChecker: teamMemChecker,
 		mdVer:          mdVer,
 		dir:            dir,
 		branchJournals: make(map[BranchID]mdIDJournal),
@@ -232,7 +235,7 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 }
 
 func (s *mdServerTlfStorage) checkGetParamsReadLocked(
-	currentUID keybase1.UID, bid BranchID) error {
+	ctx context.Context, currentUID keybase1.UID, bid BranchID) error {
 	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
 	if err != nil {
 		return kbfsmd.ServerError{Err: err}
@@ -244,7 +247,8 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
 		}
-		ok, err := isReader(currentUID, mergedMasterHead.MD, extra)
+		ok, err := isReader(
+			ctx, s.teamMemChecker, currentUID, mergedMasterHead.MD, extra)
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
 		}
@@ -257,9 +261,10 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 }
 
 func (s *mdServerTlfStorage) getRangeReadLocked(
-	currentUID keybase1.UID, bid BranchID, start, stop kbfsmd.Revision) (
+	ctx context.Context, currentUID keybase1.UID, bid BranchID,
+	start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
-	err := s.checkGetParamsReadLocked(currentUID, bid)
+	err := s.checkGetParamsReadLocked(ctx, currentUID, bid)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +364,8 @@ func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
 }
 
 func (s *mdServerTlfStorage) getForTLF(
-	currentUID keybase1.UID, bid BranchID) (*RootMetadataSigned, error) {
+	ctx context.Context, currentUID keybase1.UID, bid BranchID) (
+	*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	err := s.checkShutdownReadLocked()
@@ -367,7 +373,7 @@ func (s *mdServerTlfStorage) getForTLF(
 		return nil, err
 	}
 
-	err = s.checkGetParamsReadLocked(currentUID, bid)
+	err = s.checkGetParamsReadLocked(ctx, currentUID, bid)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +386,8 @@ func (s *mdServerTlfStorage) getForTLF(
 }
 
 func (s *mdServerTlfStorage) getRange(
-	currentUID keybase1.UID, bid BranchID, start, stop kbfsmd.Revision) (
+	ctx context.Context, currentUID keybase1.UID, bid BranchID,
+	start, stop kbfsmd.Revision) (
 	[]*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -389,10 +396,10 @@ func (s *mdServerTlfStorage) getRange(
 		return nil, err
 	}
 
-	return s.getRangeReadLocked(currentUID, bid, start, stop)
+	return s.getRangeReadLocked(ctx, currentUID, bid, start, stop)
 }
 
-func (s *mdServerTlfStorage) put(
+func (s *mdServerTlfStorage) put(ctx context.Context,
 	currentUID keybase1.UID, currentVerifyingKey kbfscrypto.VerifyingKey,
 	rmds *RootMetadataSigned, extra ExtraMetadata) (
 	recordBranchID bool, err error) {
@@ -403,7 +410,7 @@ func (s *mdServerTlfStorage) put(
 		return false, err
 	}
 
-	err = rmds.IsValidAndSigned(s.codec, s.crypto, extra)
+	err = rmds.IsValidAndSigned(ctx, s.codec, s.crypto, s.teamMemChecker, extra)
 	if err != nil {
 		return false, kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -428,7 +435,7 @@ func (s *mdServerTlfStorage) put(
 			return false, kbfsmd.ServerError{Err: err}
 		}
 		ok, err := isWriterOrValidRekey(
-			s.codec, currentUID,
+			ctx, s.teamMemChecker, s.codec, currentUID,
 			mergedMasterHead.MD, rmds.MD,
 			prevExtra, extra)
 		if err != nil {
@@ -451,7 +458,7 @@ func (s *mdServerTlfStorage) put(
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.RevisionNumber() - 1
 		rmdses, err := s.getRangeReadLocked(
-			currentUID, NullBranchID, prevRev, prevRev)
+			ctx, currentUID, NullBranchID, prevRev, prevRev)
 		if err != nil {
 			return false, kbfsmd.ServerError{Err: err}
 		}

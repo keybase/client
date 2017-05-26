@@ -174,7 +174,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// First, verify validity and signatures.
-	err := rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto(), extra)
+	err := rmds.IsValidAndSigned(
+		ctx, md.config.Codec(), md.config.Crypto(), md.config.KBPKI(), extra)
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),

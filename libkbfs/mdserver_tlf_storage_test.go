@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
@@ -40,7 +41,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	}()
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	s := makeMDServerTlfStorage(tlfID, codec, crypto, wallClock{},
+	s := makeMDServerTlfStorage(tlfID, codec, crypto, wallClock{}, nil,
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
 
@@ -53,7 +54,8 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (1) Validate merged branch is empty.
 
-	head, err := s.getForTLF(uid, NullBranchID)
+	ctx := context.Background()
+	head, err := s.getForTLF(ctx, uid, NullBranchID)
 	require.NoError(t, err)
 	require.Nil(t, head)
 
@@ -67,7 +69,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
 		// MDv3 TODO: pass extra metadata
-		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
+		recordBranchID, err := s.put(ctx, uid, verifyingKey, rmds, nil)
 		require.NoError(t, err)
 		require.False(t, recordBranchID)
 		prevRoot, err = kbfsmd.MakeID(codec, rmds.MD)
@@ -84,7 +86,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, 10, uid, prevRoot)
 	rmds := signRMDSForTest(t, codec, signer, brmd)
 	// MDv3 TODO: pass extra metadata
-	_, err = s.put(uid, verifyingKey, rmds, nil)
+	_, err = s.put(ctx, uid, verifyingKey, rmds, nil)
 	require.IsType(t, kbfsmd.ServerErrorConflictRevision{}, err)
 
 	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
@@ -100,7 +102,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
 		// MDv3 TODO: pass extra metadata
-		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
+		recordBranchID, err := s.put(ctx, uid, verifyingKey, rmds, nil)
 		require.NoError(t, err)
 		require.Equal(t, i == kbfsmd.Revision(6), recordBranchID)
 		prevRoot, err = kbfsmd.MakeID(codec, rmds.MD)
@@ -112,7 +114,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (5) Check for proper unmerged head.
 
-	head, err = s.getForTLF(uid, bid)
+	head, err = s.getForTLF(ctx, uid, bid)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(40), head.MD.RevisionNumber())
@@ -122,7 +124,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (6) Try to get unmerged range.
 
-	rmdses, err := s.getRange(uid, bid, 1, 100)
+	rmdses, err := s.getRange(ctx, uid, bid, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
 	for i := kbfsmd.Revision(6); i < 16; i++ {
@@ -133,14 +135,14 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (10) Check for proper merged head.
 
-	head, err = s.getForTLF(uid, NullBranchID)
+	head, err = s.getForTLF(ctx, uid, NullBranchID)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(10), head.MD.RevisionNumber())
 
 	// (11) Try to get merged range.
 
-	rmdses, err = s.getRange(uid, NullBranchID, 1, 100)
+	rmdses, err = s.getRange(ctx, uid, NullBranchID, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := kbfsmd.Revision(1); i <= 10; i++ {

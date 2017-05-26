@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 // TODO: Have the functions below wrap their errors.
@@ -20,25 +21,49 @@ import (
 // Helper to aid in enforcement that only specified public keys can
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
-func isReader(currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
+func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
+	currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
 	extra ExtraMetadata) (bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(extra)
 	if err != nil {
 		return false, err
 	}
+
+	if h.Type() == tlf.SingleTeam {
+		isReader, err := teamMemChecker.IsTeamReader(
+			ctx, h.Writers[0].AsTeamOrBust(), currentUID)
+		if err != nil {
+			return false, kbfsmd.ServerError{Err: err}
+		}
+		return isReader, nil
+	}
+
 	return h.IsReader(currentUID.AsUserOrTeam()), nil
 }
 
 // Helper to aid in enforcement that only specified public keys can
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
-func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
-	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra ExtraMetadata) (
+func isWriterOrValidRekey(ctx context.Context,
+	teamMemChecker TeamMembershipChecker, codec kbfscodec.Codec,
+	currentUID keybase1.UID, mergedMasterHead, newMd BareRootMetadata,
+	prevExtra, extra ExtraMetadata) (
 	bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
 		return false, err
 	}
+
+	if h.Type() == tlf.SingleTeam {
+		isWriter, err := teamMemChecker.IsTeamWriter(
+			ctx, h.Writers[0].AsTeamOrBust(), currentUID)
+		if err != nil {
+			return false, kbfsmd.ServerError{Err: err}
+		}
+		// Team TLFs can't be rekeyed, so readers aren't ever valid.
+		return isWriter, nil
+	}
+
 	if h.IsWriter(currentUID.AsUserOrTeam()) {
 		return true, nil
 	}
