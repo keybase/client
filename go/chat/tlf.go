@@ -82,7 +82,7 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	group.Go(func() error {
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		}
 		var err error
 		ib, err = t.identifyTLF(ectx, query, true)
@@ -117,6 +117,12 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	}
 	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 
+	// If the given identify mode treats breaks as errors, return an error now (key is that it is
+	// after send to IdentifyNotifier)
+	if !identBehavior.WarningInsteadOfErrorOnBrokenTracks() && len(res.NameIDBreaks.Breaks.Breaks) > 0 {
+		return res, libkb.NewIdentifySummaryError(res.NameIDBreaks.Breaks.Breaks[0])
+	}
+
 	return res, nil
 }
 
@@ -135,7 +141,7 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 	group.Go(func() error {
 		query := keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		}
 
 		var err error
@@ -165,11 +171,16 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 
 	// use id breaks calculated by identifyTLF
 	res.Breaks.Breaks = ib
-
 	if in := CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(res)
 	}
 	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
+
+	// If the given identify mode treats breaks as errors, return an error now (key is that it is
+	// after send to IdentifyNotifier)
+	if !identBehavior.WarningInsteadOfErrorOnBrokenTracks() && len(res.Breaks.Breaks) > 0 {
+		return res, libkb.NewIdentifySummaryError(res.Breaks.Breaks[0])
+	}
 
 	return res, nil
 }
