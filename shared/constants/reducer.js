@@ -5,6 +5,7 @@ import * as Config from '../constants/config'
 import * as Dev from '../constants/dev'
 import * as Devices from '../constants/devices'
 import * as Entity from '../constants/entities'
+import * as Engine from '../constants/engine'
 import * as Favorite from '../constants/favorite'
 import * as Gregor from '../constants/gregor'
 import * as Login from '../constants/login'
@@ -27,6 +28,7 @@ export type TypedState = {
   dev: Dev.State,
   devices: Devices.State,
   entities: Entity.State,
+  engine: Engine.State,
   favorite: Favorite.State,
   gregor: Gregor.State,
   login: Login.State,

@@ -170,12 +170,12 @@ function* _devicePaperKeySaga(): SagaGenerator<any, any> {
     while (true) {
       const incoming = yield channelMap.race()
 
-      if (incoming.promptRevokePaperKeys) {
-        incoming.promptRevokePaperKeys.response.result(false)
-      } else if (incoming.displayPaperKeyPhrase) {
-        incoming.displayPaperKeyPhrase.response.result()
+      if (incoming['keybase.1.loginUi.promptRevokePaperKeys']) {
+        incoming['keybase.1.loginUi.promptRevokePaperKeys'].response.result(false)
+      } else if (incoming['keybase.1.loginUi.displayPaperKeyPhrase']) {
+        incoming['keybase.1.loginUi.displayPaperKeyPhrase'].response.result()
         yield put(setWaiting(false))
-        const paperKey = new HiddenString(incoming.displayPaperKeyPhrase.params.phrase)
+        const paperKey = new HiddenString(incoming['keybase.1.loginUi.displayPaperKeyPhrase'].params.phrase)
         yield put(navigateTo([...devicesTabLocation, {props: {paperKey}, selected: 'genPaperKey'}]))
         break
       }

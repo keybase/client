@@ -343,17 +343,17 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	return nil
 }
 
-func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) (chat1.MessageID, error) {
+func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
 	typ, err := msg.State()
 	if err != nil {
-		return 0, err
+		return 0
 	}
 
 	switch typ {
 	case chat1.MessageUnboxedState_OUTBOX:
-		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev, nil
+		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev
 	default:
-		return msg.GetMessageID(), nil
+		return msg.GetMessageID()
 	}
 }
 
@@ -361,14 +361,22 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
 	inserted := false
 	var res []chat1.MessageUnboxed
+
+	// Check to see if outbox item is so old that it has no place in this thread view (but has
+	// a valid prev value)
+	if prev > 0 && len(thread.Messages) > 0 &&
+		prev < o.getMsgOrdinal(thread.Messages[len(thread.Messages)-1]) {
+		oldestMsg := thread.Messages[len(thread.Messages)-1]
+		o.Debug(ctx, "outbox item is too old to be included in this thread view: obid: %s prev: %d oldestMsg: %d", obr.OutboxID, prev, oldestMsg.GetMessageID())
+		return nil
+	}
+
 	for index, msg := range thread.Messages {
-		ord, err := o.getMsgOrdinal(msg)
-		if err != nil {
-			return err
-		}
+		ord := o.getMsgOrdinal(msg)
 		if !inserted && prev >= ord {
 			res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
-			o.Debug(ctx, "inserting at: %d msgID: %d", index, msg.GetMessageID())
+			o.Debug(ctx, "inserting at: %d msgID: %d total: %d obid: %s prev: %d", index,
+				msg.GetMessageID(), len(thread.Messages), obr.OutboxID, prev)
 			inserted = true
 		}
 		res = append(res, msg)
@@ -376,6 +384,8 @@ func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, ob
 
 	// If we didn't insert this guy, then put it at the front just so the user can see it
 	if !inserted {
+		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID,
+			prev)
 		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
 			res...)
 	}
