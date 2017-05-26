@@ -109,6 +109,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.mockBops = NewMockBlockOps(c)
 	config.SetBlockOps(config.mockBops)
 	config.mockMdserv = NewMockMDServer(c)
+	// Ignore all reconnect backoff fast forwards
+	config.mockMdserv.EXPECT().FastForwardBackoff().AnyTimes()
 	config.SetMDServer(config.mockMdserv)
 	config.mockKserv = NewMockKeyServer(c)
 	config.SetKeyServer(config.mockKserv)

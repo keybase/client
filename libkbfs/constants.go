@@ -15,3 +15,12 @@ const rekeyRecheckInterval = 30 * time.Second
 
 // rekeyInitialTTL is the maximum number rechecks each rekey request can trigger.
 const rekeyInitialTTL = 4
+
+// mdserverReconnectBackoffWindow is a backoff window within which we try to
+// wait randomly for before reconnecting to MD server.
+// TODO: increase this to 5 min
+const mdserverReconnectBackoffWindow = 30 * time.Second
+
+// registerForUpdatesFireNowThreshold is the maximum length of time that
+// KBFS can be idle for, in order to trigger FireNow from RegisterForUpdate.
+const registerForUpdatesFireNowThreshold = 10 * time.Minute

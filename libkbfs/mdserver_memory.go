@@ -879,6 +879,7 @@ func (md *MDServerMemory) GetKeyBundles(ctx context.Context,
 }
 
 // CheckReachability implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) CheckReachability(ctx context.Context) {
+func (md *MDServerMemory) CheckReachability(ctx context.Context) {}
 
-}
+// FastForwardBackoff implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) FastForwardBackoff() {}

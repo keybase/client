@@ -3523,6 +3523,14 @@ func (_mr *_MockMDServerRecorder) CheckReachability(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckReachability", arg0)
 }
 
+func (_m *MockMDServer) FastForwardBackoff() {
+	_m.ctrl.Call(_m, "FastForwardBackoff")
+}
+
+func (_mr *_MockMDServerRecorder) FastForwardBackoff() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FastForwardBackoff")
+}
+
 // Mock of mdServerLocal interface
 type MockmdServerLocal struct {
 	ctrl     *gomock.Controller
@@ -3723,6 +3731,14 @@ func (_m *MockmdServerLocal) CheckReachability(ctx context.Context) {
 
 func (_mr *_MockmdServerLocalRecorder) CheckReachability(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckReachability", arg0)
+}
+
+func (_m *MockmdServerLocal) FastForwardBackoff() {
+	_m.ctrl.Call(_m, "FastForwardBackoff")
+}
+
+func (_mr *_MockmdServerLocalRecorder) FastForwardBackoff() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FastForwardBackoff")
 }
 
 func (_m *MockmdServerLocal) addNewAssertionForTest(uid keybase1.UID, newAssertion keybase1.SocialAssertion) error {

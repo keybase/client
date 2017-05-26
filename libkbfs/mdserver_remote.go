@@ -51,7 +51,7 @@ type MDServerRemote struct {
 	squelchRekey  bool
 	pinger        pinger
 
-	authenticatedMtx sync.Mutex
+	authenticatedMtx sync.RWMutex
 	isAuthenticated  bool
 
 	connMu sync.RWMutex
@@ -116,6 +116,8 @@ func NewMDServerRemote(config Config, srvAddr string,
 		WrapErrorFunc:    libkb.WrapError,
 		TagsFunc:         libkb.LogTagsFromContext,
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
+
+		InitialReconnectBackoffWindow: mdserverReconnectBackoffWindow,
 	}
 	mdServer.initNewConnection()
 
@@ -125,6 +127,18 @@ func NewMDServerRemote(config Config, srvAddr string,
 	go mdServer.backgroundRekeyChecker(rekeyCtx)
 
 	return mdServer
+}
+
+func (md *MDServerRemote) getIsAuthenticated() bool {
+	md.authenticatedMtx.RLock()
+	defer md.authenticatedMtx.RUnlock()
+	return md.isAuthenticated
+}
+
+func (md *MDServerRemote) setIsAuthenticated(isAuthenticated bool) {
+	md.authenticatedMtx.Lock()
+	defer md.authenticatedMtx.Unlock()
+	md.isAuthenticated = isAuthenticated
 }
 
 func (md *MDServerRemote) initNewConnection() {
@@ -202,9 +216,7 @@ func (md *MDServerRemote) resetAuth(
 
 	isAuthenticated := false
 	defer func() {
-		md.authenticatedMtx.Lock()
-		md.isAuthenticated = isAuthenticated
-		md.authenticatedMtx.Unlock()
+		md.setIsAuthenticated(isAuthenticated)
 	}()
 
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
@@ -290,8 +302,12 @@ func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	beforePing := clock.Now()
 	resp, err := md.getClient().Ping2(ctx)
 	if err == context.DeadlineExceeded {
-		md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
-		md.initNewConnection()
+		if md.getIsAuthenticated() {
+			md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
+			md.initNewConnection()
+		} else {
+			md.log.CDebugf(ctx, "Ping timeout but not reinitializing")
+		}
 		return
 	} else if err != nil {
 		md.log.CDebugf(ctx, "MDServerRemote: ping error %s", err)
@@ -361,9 +377,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 		md.serverOffset = 0
 	}()
 
-	md.authenticatedMtx.Lock()
-	md.isAuthenticated = false
-	md.authenticatedMtx.Unlock()
+	md.setIsAuthenticated(false)
 
 	md.cancelObservers()
 	md.pinger.cancelTicker()
@@ -397,9 +411,14 @@ func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
 func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 	conn, err := net.DialTimeout("tcp", md.mdSrvAddr, MdServerPingTimeout)
 	if err != nil {
-		md.log.CDebugf(ctx,
-			"MDServerRemote: CheckReachability(): failed to connect, reconnecting: %s", err.Error())
-		md.initNewConnection()
+		if md.getIsAuthenticated() {
+			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
+				"failed to connect, reconnecting: %s", err.Error())
+			md.initNewConnection()
+		} else {
+			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
+				"failed to connect (%s), but not reconnecting", err.Error())
+		}
 	}
 	if conn != nil {
 		conn.Close()
@@ -477,6 +496,7 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 func (md *MDServerRemote) GetForHandle(ctx context.Context,
 	handle tlf.Handle, mStatus MergeStatus) (
 	tlfID tlf.ID, rmds *RootMetadataSigned, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	// TODO: Ideally, *tlf.Handle would have a nicer String() function.
 	md.log.LazyTrace(ctx, "MDServer: GetForHandle %+v %s", handle, mStatus)
 	defer func() {
@@ -510,6 +530,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (rmds *RootMetadataSigned, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s", id, bid, mStatus)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s done (err=%v)", id, bid, mStatus, err)
@@ -536,6 +557,7 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
 	rmdses []*RootMetadataSigned, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d done (err=%v)", id, bid, mStatus, start, stop, err)
@@ -556,6 +578,7 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 // Put implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra ExtraMetadata) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: Put %s %d", rmds.MD.TlfID(), rmds.MD.RevisionNumber())
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: Put %s %d done (err=%v)", rmds.MD.TlfID(), rmds.MD.RevisionNumber(), err)
@@ -616,7 +639,9 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) (err error) {
+func (md *MDServerRemote) PruneBranch(
+	ctx context.Context, id tlf.ID, bid BranchID) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: PruneBranch %s %s", id, bid)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: PruneBranch %s %s (err=%v)", id, bid, err)
@@ -772,6 +797,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 // TruncateLock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
 	locked bool, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: TruncateLock %s", id)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: TruncateLock %s (err=%v)", id, err)
@@ -782,6 +808,7 @@ func (md *MDServerRemote) TruncateLock(ctx context.Context, id tlf.ID) (
 // TruncateUnlock implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	unlocked bool, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: TruncateUnlock %s", id)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: TruncateUnlock %s (err=%v)", id, err)
@@ -792,6 +819,7 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	handle tlf.Handle, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetLatestHandle %s", id)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "MDServer: GetLatestHandle %s (err=%v)", id, err)
@@ -890,6 +918,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID,
 	cryptKey kbfscrypto.CryptPublicKey) (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetTLFCryptKeyServerHalf %s", serverHalfID)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "KeyServer: GetTLFCryptKeyServerHalf %s (err=%v)", serverHalfID, err)
@@ -924,6 +953,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 	keyServerHalves UserDeviceKeyServerHalves) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v", keyServerHalves)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "KeyServer: PutTLFCryptKeyServerHalves %v (err=%v)", keyServerHalves, err)
@@ -957,6 +987,7 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 	uid keybase1.UID, key kbfscrypto.CryptPublicKey,
 	serverHalfID TLFCryptKeyServerHalfID) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s", uid, serverHalfID)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "KeyServer: DeleteTLFCryptKeyServerHalf %s %s done (err=%v)", uid, serverHalfID, err)
@@ -1031,6 +1062,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	tlf tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s", tlf, wkbID, rkbID)
 	defer func() {
 		md.deferLog.LazyTrace(ctx, "KeyServer: GetKeyBundles %s %s %s done (err=%v)", tlf, wkbID, rkbID, err)
@@ -1094,6 +1126,13 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 	}
 
 	return wkb, rkb, nil
+}
+
+// FastForwardBackoff implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) FastForwardBackoff() {
+	md.connMu.RLock()
+	defer md.connMu.RUnlock()
+	md.conn.FastForwardInitialBackoffTimer()
 }
 
 func (md *MDServerRemote) resetRekeyTimer() {

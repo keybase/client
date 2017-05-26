@@ -6,6 +6,7 @@ kbfsfuse/kbfs_handles/
 kbfsfuse/kbfs_key/
 kbfsfuse/kbfs_md/
 kbfsfuse/revision
+libkbfs/kbfs_block_cache/
 *.test
 
 **/vim-go-test-compile

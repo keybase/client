@@ -1304,6 +1304,11 @@ type MDServer interface {
 	// CheckReachability is called when the Keybase service sends a notification
 	// that network connectivity has changed.
 	CheckReachability(ctx context.Context)
+
+	// FastForwardBackoff fast forwards any existing backoff timer for
+	// reconnects. If MD server is connected at the time this is called, it's
+	// essentially a no-op.
+	FastForwardBackoff()
 }
 
 type mdServerLocal interface {
