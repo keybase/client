@@ -27,11 +27,11 @@ function lineClamp(lines: ?number): Object {
 
 function fontSizeToSizeStyle(fontSize: number): ?Object {
   const lineHeight = {
-    '27': 31,
-    '19': 23,
-    '17': 21,
-    '15': 19,
-    '13': 17,
+    '27': 32,
+    '19': 24,
+    '17': 22,
+    '15': 20,
+    '13': 18,
   }[String(fontSize)]
 
   return {
