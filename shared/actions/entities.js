@@ -1,4 +1,5 @@
 // @flow
+import * as Immutable from 'immutable'
 import type {Delete, Merge, Replace, EntityType} from '../constants/entities'
 
 const deleteEntity: (keyPath: Array<string>, ids: Array<string>) => Delete = (keyPath, ids) => ({
@@ -18,7 +19,7 @@ const replaceEntity: (keyPath: Array<string>, entities: {[id: string]: EntityTyp
   keyPath,
   entities
 ) => ({
-  payload: {entities, keyPath},
+  payload: {entities: new Immutable.Map(entities), keyPath},
   type: 'entity:replace',
 })
 

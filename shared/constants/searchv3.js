@@ -5,6 +5,7 @@ import {friendlyName as friendlyServiceName} from '../util/platforms'
 
 import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
+import type {PlatformsExpandedType} from './types/more'
 
 const services: {[service: string]: true} = {
   Facebook: true,
@@ -19,7 +20,7 @@ export type Service = $Keys<typeof services>
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
+export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
 
 export type RowProps = {|
   id: string,
@@ -36,8 +37,6 @@ export type RowProps = {|
   rightUsername: ?string,
 
   showTrackerButton: boolean,
-
-  onShowTracker: () => void,
 |}
 
 // Keypaths - maybe these should be somewhere else?
@@ -45,12 +44,12 @@ export type KeyPath = ['searchv3Chat'] | ['searchv3Profile']
 
 // Actions
 
-export type Search = NoErrorTypedAction<'searchv3:search', {term: string, service: ?string, keyPath: Keypath}>
-
-export type OnShowTracker = NoErrorTypedAction<
-  'searchv3:onShowTracker',
-  {term: string, service: ?string, keyPath: Keypath}
+export type Search = NoErrorTypedAction<
+  'searchv3:search',
+  {term: string, service: ?SearchPlatform, keyPath: KeyPath}
 >
+
+export type OnShowTracker = NoErrorTypedAction<'searchv3:onShowTracker', {resultId: string, keyPath: KeyPath}>
 
 // Helper
 function serviceNameToSearchPlatform(serviceName: string): SearchPlatform {
@@ -67,7 +66,7 @@ function serviceNameToSearchPlatform(serviceName: string): SearchPlatform {
 
 // Platform icons
 
-function platformToIcon(platform: SearchPlatforms): IconType {
+function platformToIcon(platform: SearchPlatform): IconType {
   return {
     Keybase: 'iconfont-identity-devices',
     Twitter: 'iconfont-identity-twitter',
@@ -79,7 +78,7 @@ function platformToIcon(platform: SearchPlatforms): IconType {
   }[platform]
 }
 
-function platformToLogo24(platform: SearchPlatforms): IconType {
+function platformToLogo24(platform: SearchPlatform): IconType {
   return {
     Keybase: 'icon-keybase-logo-24',
     Twitter: 'icon-twitter-logo-24',
@@ -103,7 +102,7 @@ export type RawResult = {
     is_followee: boolean,
   },
   service: ?{
-    service_name: string,
+    service_name: PlatformsExpandedType,
     username: string,
     picture_url: ?string,
     bio: ?string,
@@ -122,32 +121,34 @@ function _parseKeybaseRawResultToRow(
   showTrackerButton: boolean
 ): RowProps {
   if (result.keybase && result.service) {
+    const {keybase, service} = result
     return {
       id: result.keybase.username,
-      leftFollowingState: isFollowingOnKeybase,
+      leftFollowingState: isFollowingOnKeybase ? 'Following' : 'NotFollowing',
       leftIcon: null,
-      leftUsername: result.keybase.username,
+      leftUsername: keybase.username,
       leftService: 'Keybase',
 
       rightFollowingState: 'NoState', // We don't currently get this information
-      rightFullname: result.keybase.full_name,
-      rightIcon: platformToIcon(serviceNameToSearchPlatform(result.service.service_name)),
-      rightService: friendlyServiceName(result.service.service_name),
-      rightUsername: result.service.username,
+      rightFullname: keybase.full_name,
+      rightIcon: platformToIcon(serviceNameToSearchPlatform(service.service_name)),
+      rightService: friendlyServiceName(service.service_name),
+      rightUsername: service.username,
       showTrackerButton,
     }
   }
 
   if (result.keybase) {
+    const {keybase} = result
     return {
-      id: result.keybase.username,
-      leftFollowingState: isFollowingOnKeybase,
+      id: keybase.username,
+      leftFollowingState: isFollowingOnKeybase ? 'Following' : 'NotFollowing',
       leftIcon: null,
-      leftUsername: result.keybase.username,
+      leftUsername: keybase.username,
       leftService: 'Keybase',
 
       rightFollowingState: 'NoState', // We don't currently get this information
-      rightFullname: result.keybase.full_name,
+      rightFullname: keybase.full_name,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -164,32 +165,34 @@ function _parseThirdPartyRawResultToRow(
   showTrackerButton: boolean
 ): RowProps {
   if (result.service && result.keybase) {
+    const {service, keybase} = result
     return {
-      id: result.keybase.username,
+      id: keybase.username,
       leftFollowingState: 'NoState',
-      leftIcon: platformToLogo24(serviceNameToSearchPlatform(result.service.service_name)),
-      leftUsername: result.service.username,
-      leftService: friendlyServiceName(result.service.service_name),
+      leftIcon: platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftUsername: service.username,
+      leftService: friendlyServiceName(service.service_name),
 
-      rightFollowingState: isFollowingOnKeybase,
-      rightFullname: result.keybase.full_name,
+      rightFollowingState: isFollowingOnKeybase ? 'Following' : 'NotFollowing',
+      rightFullname: keybase.full_name,
       rightIcon: null,
       rightService: 'Keybase',
-      rightUsername: result.keybase.username,
+      rightUsername: keybase.username,
       showTrackerButton,
     }
   }
 
   if (result.service) {
+    const service = result.service
     return {
-      id: externalServiceToId(result.service.service_name, result.service.username),
+      id: externalServiceToId(service.service_name, service.username),
       leftFollowingState: 'NoState',
-      leftIcon: platformToLogo24(serviceNameToSearchPlatform(result.service.service_name)),
-      leftUsername: result.servuce.username,
-      leftService: friendlyServiceName(result.service.service_name),
+      leftIcon: platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftUsername: service.username,
+      leftService: friendlyServiceName(service.service_name),
 
       rightFollowingState: 'NoState',
-      rightFullname: result.service.full_name,
+      rightFullname: service.full_name,
       rightIcon: null,
       rightService: null,
       rightUsername: null,
@@ -200,16 +203,11 @@ function _parseThirdPartyRawResultToRow(
   throw new SearchError('Invalid raw result for service search. Missing result.service', result)
 }
 
-function parseRawResultToRow(
-  result: RawResult,
-  service: string,
-  isFollowingOnKeybase: boolean,
-  showTrackerButton: boolean
-) {
+function parseRawResultToRow(result: RawResult, service: SearchPlatform, isFollowingOnKeybase: boolean) {
   if (service === '' || service === 'Keybase') {
-    return _parseKeybaseRawResultToRow(result)
+    return _parseKeybaseRawResultToRow(result, isFollowingOnKeybase, true)
   } else {
-    return _parseThirdPartyRawResultToRow(result)
+    return _parseThirdPartyRawResultToRow(result, isFollowingOnKeybase, !!result.keybase)
   }
 }
 

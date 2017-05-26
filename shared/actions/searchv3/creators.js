@@ -1,7 +1,11 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
 
-function search(term: string, keyPath: Constants.KeyPath, service: string = ''): Constants.Search {
+function search(
+  term: string,
+  keyPath: Constants.KeyPath,
+  service: Constants.SearchPlatform = 'Keybase'
+): Constants.Search {
   return {type: 'searchv3:search', payload: {keyPath, term, service}}
 }
 

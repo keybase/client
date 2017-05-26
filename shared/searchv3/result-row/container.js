@@ -1,6 +1,7 @@
 // @flow
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
+import * as Creators from '../../actions/searchv3/creators'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -11,8 +12,11 @@ const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath:
   }
 }
 
-// TODO
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
+  onShowTracker: () => {
+    dispatch(Creators.onShowTracker(keyPath, id))
+  },
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,

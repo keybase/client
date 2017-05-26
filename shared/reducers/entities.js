@@ -24,7 +24,7 @@ export default function(state: State = initialState, action: Actions): State {
     case 'entity:replace': {
       const {keyPath, entities} = action.payload
       // $FlowIssue doesn't understand this API
-      return state.mergeIn(keyPath, entities)
+      return state.setIn(keyPath, entities)
     }
     default:
       break

@@ -5,8 +5,13 @@ import SearchResultsList from '.'
 import type {TypedState} from '../../constants/reducer'
 
 // TODO use entities
-const mapStateToProps = (state: TypedState, id: string) => {
-  return {}
+const mapStateToProps = ({entities}: TypedState, {keyPath}) => {
+  // $FlowIssue
+  const items = entities.getIn(keyPath).keySeq().toArray()
+  return {
+    items,
+    keyPath,
+  }
 }
 
 // TODO

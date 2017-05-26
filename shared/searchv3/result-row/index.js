@@ -116,7 +116,7 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Constants.RowProps) => {
+const SearchResultRow = (props: Constants.RowProps & {onShowTracker: () => void}) => {
   return (
     <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4}>
       <Box style={_rowStyle}>
