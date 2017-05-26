@@ -39,8 +39,6 @@ function* search({payload: {term, service, keyPath}}: Constants.Search) {
       const isFollowingOnKeybase = !!result.keybase && isFollowingFn(result.keybase.username)
       return Constants.parseRawResultToRow(result, service || 'Keybase', isFollowingOnKeybase)
     })
-    console.log('results are', searchResults)
-    console.log('rows are', rows)
     // $FlowIssue - cast tuples to array
     yield put(EntityAction.replaceEntity(keyPath, keyBy(rows, 'id')))
   } catch (error) {
