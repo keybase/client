@@ -39,18 +39,22 @@ const Row = ({deviceID, name, type, onSelect}) => {
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Choose a device to prove you're you:</Text>
+    <Box style={globalStyles.flexBoxColumn}>
+      <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
+      <Text type="Body" style={stylesInstructions}>
+        Which of your other devices do you have handy?
+      </Text>
+    </Box>
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </NativeScrollView>
     <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )
-
 const stylesContainer = {
   alignItems: 'center',
 }
-const stylesHeader = {
+const stylesInstructions = {
   marginBottom: globalMargins.small,
   textAlign: 'center',
 }
