@@ -204,7 +204,7 @@ type PerTeamSharedSecretBoxes struct {
 	Generation    PerUserSecretGeneration `json:"generation"`
 	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
 	Nonce         string                  `json:"nonce"`
-	Prev          *string                 `json:"prev"`
+	PrevKey       *string                 `json:"prev"`
 	Boxes         map[string]string       `json:"boxes"`
 }
 
