@@ -30,6 +30,9 @@ func (f *finder) find(ctx context.Context, name string) (*Team, error) {
 		return nil, err
 	}
 
+	// XXX
+	// fmt.Printf("raw: %+v\n", raw)
+
 	var team Team
 	team.Box = raw.Box
 

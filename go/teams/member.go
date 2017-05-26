@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,7 +18,7 @@ func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1
 }
 
 func AddWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	s, err := Get(ctx, g, teamname)
+	t, err := Get(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -30,9 +32,13 @@ func AddWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return err
 	}
 
-	_ = s
-	// perTeamKey, err := s.GetLatestPerTeamKey()
+	perTeamKey, err := t.Chain.GetLatestPerTeamKey()
 	_ = nameSeq
+
+	fmt.Printf("perTeamKey: %+v\n", perTeamKey)
+
+	t.Key()
+
 	// teamSec := libkb.TeamSection{ID: s.ID}
 	// teamSec.Members.Writer = []libkb.NameWithEldestSeqno{nameSeq}
 

@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -16,6 +18,10 @@ type TeamBox struct {
 type Team struct {
 	Chain *TeamSigChainState
 	Box   TeamBox
+}
+
+func (t *Team) Key() {
+	fmt.Printf("box: %+v\n", t.Box)
 }
 
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
