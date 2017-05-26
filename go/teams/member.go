@@ -62,6 +62,8 @@ func AddWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return err
 	}
 
+	_ = s
+	_ = nameSeq
 	// teamSec := libkb.TeamSection{ID: s.ID}
 	// teamSec.Members.Writer = []libkb.NameWithEldestSeqno{nameSeq}
 
