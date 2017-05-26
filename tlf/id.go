@@ -82,7 +82,8 @@ func (id ID) String() string {
 // MarshalBinary implements the encoding.BinaryMarshaler interface for ID.
 func (id ID) MarshalBinary() (data []byte, err error) {
 	suffix := id.id[idByteLen-1]
-	if suffix != idSuffix && suffix != pubIDSuffix {
+	if suffix != idSuffix && suffix != pubIDSuffix &&
+		suffix != singleTeamIDSuffix {
 		return nil, errors.WithStack(InvalidIDError{id.String()})
 	}
 	return id.id[:], nil
@@ -96,7 +97,8 @@ func (id *ID) UnmarshalBinary(data []byte) error {
 			InvalidIDError{hex.EncodeToString(data)})
 	}
 	suffix := data[idByteLen-1]
-	if suffix != idSuffix && suffix != pubIDSuffix {
+	if suffix != idSuffix && suffix != pubIDSuffix &&
+		suffix != singleTeamIDSuffix {
 		return errors.WithStack(
 			InvalidIDError{hex.EncodeToString(data)})
 	}
