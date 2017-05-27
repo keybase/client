@@ -8,6 +8,16 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "FolderType",
+      "symbols": [
+        "UNKNOWN_0",
+        "PRIVATE_1",
+        "PUBLIC_2",
+        "TEAM_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "Folder",
       "fields": [
@@ -26,6 +36,10 @@
         {
           "type": "boolean",
           "name": "created"
+        },
+        {
+          "type": "FolderType",
+          "name": "folderType"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."
