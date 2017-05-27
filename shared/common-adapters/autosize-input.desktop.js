@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {globalStyles} from '../styles'
+import {getStyle as getTextStyle} from './text'
 
 import type {Props} from './autosize-input'
 
@@ -58,7 +59,10 @@ class AutosizeInput extends Component<void, Props, State> {
           }}
           value={this.props.value}
           placeholder={this.props.placeholder}
-          style={this.props.inputStyle}
+          style={{
+            ...resetStyle,
+            ...this.props.inputStyle,
+          }}
           onChange={this._onChange}
           onKeyDown={this.props.onKeyDown}
         />
@@ -67,6 +71,7 @@ class AutosizeInput extends Component<void, Props, State> {
             this._measureEl = el
           }}
           style={{
+            ...resetStyle,
             whiteSpace: 'pre',
             ...this.props.inputStyle,
             position: 'absolute',
@@ -79,6 +84,12 @@ class AutosizeInput extends Component<void, Props, State> {
       </div>
     )
   }
+}
+
+const resetStyle = {
+  ...getTextStyle('Body'),
+  padding: 0,
+  border: 'none',
 }
 
 export default AutosizeInput

@@ -4,7 +4,7 @@ import {Component} from 'react'
 export type Props = {
   value: string,
   placeholder: string,
-  inputStyle: ?Object,
+  inputStyle?: Object,
   onChange: (text: string) => void,
   onKeyDown?: (ev: SyntheticInputEvent) => void,
 }
