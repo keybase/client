@@ -8,14 +8,47 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type FolderType int
+
+const (
+	FolderType_UNKNOWN FolderType = 0
+	FolderType_PRIVATE FolderType = 1
+	FolderType_PUBLIC  FolderType = 2
+	FolderType_TEAM    FolderType = 3
+)
+
+func (o FolderType) DeepCopy() FolderType { return o }
+
+var FolderTypeMap = map[string]FolderType{
+	"UNKNOWN": 0,
+	"PRIVATE": 1,
+	"PUBLIC":  2,
+	"TEAM":    3,
+}
+
+var FolderTypeRevMap = map[FolderType]string{
+	0: "UNKNOWN",
+	1: "PRIVATE",
+	2: "PUBLIC",
+	3: "TEAM",
+}
+
+func (e FolderType) String() string {
+	if v, ok := FolderTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 // Folder represents a favorite top-level folder in kbfs.
 // This type is likely to change significantly as all the various parts are
 // connected and tested.
 type Folder struct {
-	Name            string `codec:"name" json:"name"`
-	Private         bool   `codec:"private" json:"private"`
-	NotificationsOn bool   `codec:"notificationsOn" json:"notificationsOn"`
-	Created         bool   `codec:"created" json:"created"`
+	Name            string     `codec:"name" json:"name"`
+	Private         bool       `codec:"private" json:"private"`
+	NotificationsOn bool       `codec:"notificationsOn" json:"notificationsOn"`
+	Created         bool       `codec:"created" json:"created"`
+	FolderType      FolderType `codec:"folderType" json:"folderType"`
 }
 
 func (o Folder) DeepCopy() Folder {
@@ -24,6 +57,7 @@ func (o Folder) DeepCopy() Folder {
 		Private:         o.Private,
 		NotificationsOn: o.NotificationsOn,
 		Created:         o.Created,
+		FolderType:      o.FolderType.DeepCopy(),
 	}
 }
 
