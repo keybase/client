@@ -78,7 +78,7 @@ function matchService(loc, doc, forceService) {
     const matched = url.match(m.locationMatches);
     if (!matched) continue;
 
-    const username = m.getUsername(loc);
+    const username = safeHTML(m.getUsername(loc));
     if (!username) continue;
 
     if (doc === undefined || m.css === undefined) return new User(username, m.service);
@@ -139,4 +139,20 @@ User.prototype.href = function(service) {
     default:
       throw `unknown service: ${this.origin}`;
   }
+}
+
+// Convert a user input into a string that is safe for inlining into HTML.
+function safeHTML(s) {
+  if (!s) return "";
+  return s.replace(/[&'"<>\/]/g, function (c) {
+    // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+    return {
+      '&': "&amp;",
+      '"': "&quot;",
+      "'": "&#x27",
+      '/': "&#x2F",
+      '<': "&lt;",
+      '>': "&gt;"
+    }[c];
+  });
 }
