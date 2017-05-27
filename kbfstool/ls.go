@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -120,7 +119,7 @@ func lsHelper(ctx context.Context, config libkbfs.Config, p fsrpc.Path, hasMulti
 			printHeader(p)
 		}
 		for _, fav := range favs {
-			if (p.TLFType == tlf.Public) == fav.Public {
+			if p.TLFType == fav.Type {
 				handleEntry(fav.Name, libkbfs.Dir)
 			}
 		}

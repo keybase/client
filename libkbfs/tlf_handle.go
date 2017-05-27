@@ -383,8 +383,8 @@ func (h *TlfHandle) GetCanonicalPath() string {
 // Favorites calls.
 func (h *TlfHandle) ToFavorite() Favorite {
 	return Favorite{
-		Name:   string(h.GetCanonicalName()),
-		Public: h.Type() == tlf.Public,
+		Name: string(h.GetCanonicalName()),
+		Type: h.Type(),
 	}
 }
 

@@ -382,8 +382,8 @@ func (r ReadyBlockData) GetEncodedSize() int {
 
 // Favorite is a top-level favorited folder name.
 type Favorite struct {
-	Name   string
-	Public bool
+	Name string
+	Type tlf.Type
 }
 
 // NewFavoriteFromFolder creates a Favorite from a
@@ -398,17 +398,44 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 		name = strings.TrimSuffix(folder.Name, oldPublicSuffix)
 	}
 
+	var t tlf.Type
+	if folder.FolderType == keybase1.FolderType_UNKNOWN {
+		// Use deprecated boolean
+		if folder.Private {
+			t = tlf.Private
+		} else {
+			t = tlf.Public
+		}
+	} else {
+		switch folder.FolderType {
+		case keybase1.FolderType_PRIVATE:
+			t = tlf.Private
+		case keybase1.FolderType_PUBLIC:
+			t = tlf.Public
+		case keybase1.FolderType_TEAM:
+			// TODO: if we ever support something other than single
+			// teams in the favorites list, we'll have to figure out
+			// which type the favorite is from its name.
+			t = tlf.SingleTeam
+		default:
+			// This shouldn't happen, but just in case the service
+			// sends us bad info....
+			t = tlf.Private
+		}
+	}
+
 	return &Favorite{
-		Name:   name,
-		Public: !folder.Private,
+		Name: name,
+		Type: t,
 	}
 }
 
 func (f Favorite) toKBFolder(created bool) keybase1.Folder {
 	return keybase1.Folder{
-		Name:    f.Name,
-		Private: !f.Public,
-		Created: created,
+		Name:       f.Name,
+		FolderType: f.Type.FolderType(),
+		Private:    f.Type != tlf.Public, // deprecated
+		Created:    created,
 	}
 }
 

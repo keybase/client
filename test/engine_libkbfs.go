@@ -223,8 +223,7 @@ func (k *LibKBFS) GetFavorites(u User, t tlf.Type) (map[string]bool, error) {
 	}
 	favoritesMap := make(map[string]bool)
 	for _, f := range favorites {
-		if f.Public != (t == tlf.Public) {
-			// TODO: support team TLFs in favorites list.
+		if f.Type != t {
 			continue
 		}
 		favoritesMap[f.Name] = true

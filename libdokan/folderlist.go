@@ -198,9 +198,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	ns.FileAttributes = dokan.FileAttributeDirectory
 	empty := true
 	for _, fav := range favs {
-		// TODO: add general types to the favorite records (or infer
-		// teams somehow from the name of the favorite).
-		if fav.Public != (fl.tlfType == tlf.Public) {
+		if fav.Type != fl.tlfType {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(session.Name,

@@ -23,7 +23,7 @@ const (
 	// /keybase/private)
 	PrivatePathType PathType = "private"
 	// SingleTeamPathType is the keybase team folder list (like /keybase/teams)
-	SingleTeamPathType PathType = "teams"
+	SingleTeamPathType PathType = "team"
 )
 
 // BuildCanonicalPath returns a canonical path for a path components.

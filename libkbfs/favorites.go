@@ -9,7 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfssync"
-
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -116,8 +116,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		session, err := f.config.KBPKI().GetCurrentSession(req.ctx)
 		if err == nil {
 			// Add favorites for the current user, that cannot be deleted.
-			f.cache[Favorite{string(session.Name), true}] = true
-			f.cache[Favorite{string(session.Name), false}] = true
+			f.cache[Favorite{string(session.Name), tlf.Private}] = true
+			f.cache[Favorite{string(session.Name), tlf.Public}] = true
 		}
 	}
 

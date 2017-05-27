@@ -19,6 +19,7 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -125,6 +126,11 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool, platformParams Pl
 	fs.root.public = &FolderList{
 		fs:      fs,
 		tlfType: tlf.Public,
+		folders: make(map[string]*TLF),
+	}
+	fs.root.team = &FolderList{
+		fs:      fs,
+		tlfType: tlf.SingleTeam,
 		folders: make(map[string]*TLF),
 	}
 	fs.execAfterDelay = func(d time.Duration, f func()) {
@@ -391,6 +397,7 @@ func (f *FS) Statfs(ctx context.Context, req *fuse.StatfsRequest, resp *fuse.Sta
 type Root struct {
 	private *FolderList
 	public  *FolderList
+	team    *FolderList
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -447,6 +454,11 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return r.public, nil
 	}
 
+	if env.NewContext().GetRunMode() == libkb.DevelRunMode &&
+		req.Name == TeamName {
+		return r.team, nil
+	}
+
 	// Don't want to pop up errors on special OS files.
 	if strings.HasPrefix(req.Name, ".") {
 		return nil, fuse.ENOENT
@@ -497,6 +509,12 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
+	}
+	if env.NewContext().GetRunMode() == libkb.DevelRunMode {
+		res = append(res, fuse.Dirent{
+			Type: fuse.DT_Dir,
+			Name: TeamName,
+		})
 	}
 	if r.private.fs.platformParams.shouldAppendPlatformRootDirs() {
 		res = append(res, platformRootDirs...)

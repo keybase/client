@@ -57,6 +57,11 @@ func makeFS(t testing.TB, ctx context.Context, config *libkbfs.ConfigLocal) (
 		tlfType: tlf.Public,
 		folders: make(map[string]*TLF),
 	}
+	filesys.root.team = &FolderList{
+		fs:      filesys,
+		tlfType: tlf.SingleTeam,
+		folders: make(map[string]*TLF),
+	}
 	filesys.execAfterDelay = func(d time.Duration, f func()) {
 		time.AfterFunc(d, f)
 	}
@@ -357,6 +362,7 @@ func TestReaddirRoot(t *testing.T) {
 	checkDir(t, mnt.Dir, map[string]fileInfoCheck{
 		PrivateName: mustBeDir,
 		PublicName:  mustBeDir,
+		TeamName:    mustBeDir,
 	})
 }
 

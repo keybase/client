@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
 )
@@ -52,6 +53,21 @@ func (t Type) String() string {
 		return "singleTeam"
 	default:
 		return fmt.Sprintf("Unknown TLF type: %d", t)
+	}
+}
+
+// FolderType returns the keybase1.FolderType corresponding to the
+// given TLF type.
+func (t Type) FolderType() keybase1.FolderType {
+	switch t {
+	case Private:
+		return keybase1.FolderType_PRIVATE
+	case Public:
+		return keybase1.FolderType_PUBLIC
+	case SingleTeam:
+		return keybase1.FolderType_TEAM
+	default:
+		return keybase1.FolderType_UNKNOWN
 	}
 }
 

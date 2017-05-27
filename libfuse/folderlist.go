@@ -245,9 +245,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 
 	res = make([]fuse.Dirent, 0, len(favs))
 	for _, fav := range favs {
-		// TODO: add general types to the favorite records (or infer
-		// teams somehow from the name of the favorite).
-		if fav.Public != (fl.tlfType == tlf.Public) {
+		if fav.Type != fl.tlfType {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(

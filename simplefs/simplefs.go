@@ -129,7 +129,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPub
 
 	res := make(map[string]libkbfs.EntryInfo, len(favs))
 	for _, fav := range favs {
-		if fav.Public != wantPublic {
+		if (fav.Type == tlf.Public) != wantPublic {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
