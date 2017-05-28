@@ -217,9 +217,9 @@ func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
 
 func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 	rmds *RootMetadataSigned, err error) {
-	j, ok := s.branchJournals[bid]
-	if !ok {
-		return nil, nil
+	j, err := s.getOrCreateBranchJournalLocked(bid)
+	if err != nil {
+		return nil, err
 	}
 	entry, exists, err := j.getLatestEntry()
 	if err != nil {
