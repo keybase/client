@@ -1,0 +1,237 @@
+{
+  "protocol": "UPK",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "KeyType",
+      "symbols": [
+        "NONE_0",
+        "NACL_1",
+        "PGP_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MerkleRootV2",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "bytes",
+          "name": "hashMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SignatureTime",
+      "fields": [
+        {
+          "type": "MerkleRootV2",
+          "name": "merkleRootAtSig"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "firstAppearedIn"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PublicKeyV2Base",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        },
+        {
+          "type": "SignatureTime",
+          "name": "provisioning"
+        },
+        {
+          "type": [
+            null,
+            "SignatureTime"
+          ],
+          "name": "revocation"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PublicKeyV2NaCl",
+      "fields": [
+        {
+          "type": "PublicKeyV2Base",
+          "name": "base"
+        },
+        {
+          "type": [
+            null,
+            "KID"
+          ],
+          "name": "parent"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        }
+      ]
+    },
+    {
+      "type": "fixed",
+      "name": "PGPFingerprint",
+      "size": "20"
+    },
+    {
+      "type": "record",
+      "name": "PublicKeyV2PGPSummary",
+      "fields": [
+        {
+          "type": "PublicKeyV2Base",
+          "name": "base"
+        },
+        {
+          "type": "PGPFingerprint",
+          "name": "fingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "identities"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "PublicKeyV2",
+      "switch": {
+        "type": "KeyType",
+        "name": "keyType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NACL",
+            "def": false
+          },
+          "body": "PublicKeyV2NaCl"
+        },
+        {
+          "label": {
+            "name": "PGP",
+            "def": false
+          },
+          "body": "PublicKeyV2PGPSummary"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeysV2",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerUserKey"
+          },
+          "name": "perUserKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKeyV2NaCl"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKeyV2PGPSummary"
+          },
+          "name": "pgpKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RemoteTrack"
+          },
+          "name": "remoteTracks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeysV2AllIncarnations",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserPlusKeysV2"
+          },
+          "name": "incarnations"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}
