@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // keybaseDaemon is the default KeybaseServiceCn implementation, which
@@ -59,13 +60,44 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 	localUID := localUsers[userIndex].UID
 	codec := config.Codec()
 
+	teams := MakeLocalTeams([]libkb.NormalizedUsername{"kbfs", "core", "dokan"})
+	for i := range teams {
+		teams[i].Writers = make(map[keybase1.UID]bool)
+		teams[i].Readers = make(map[keybase1.UID]bool)
+		switch teams[i].Name {
+		case "kbfs":
+			teams[i].Writers[localUsers[0].UID] = true // strib
+			teams[i].Writers[localUsers[3].UID] = true // akalin
+			teams[i].Writers[localUsers[4].UID] = true // jzila
+			teams[i].Writers[localUsers[6].UID] = true // jinyang
+			teams[i].Writers[localUsers[7].UID] = true // songgao
+			teams[i].Writers[localUsers[8].UID] = true // taru
+			// readers
+			teams[i].Readers[localUsers[1].UID] = true // max
+			teams[i].Readers[localUsers[2].UID] = true // chris
+		case "core":
+			teams[i].Writers[localUsers[1].UID] = true // max
+			// readers
+			teams[i].Readers[localUsers[0].UID] = true // strib
+			teams[i].Readers[localUsers[2].UID] = true // chris
+			teams[i].Readers[localUsers[3].UID] = true // akalin
+			teams[i].Readers[localUsers[4].UID] = true // jzila
+			teams[i].Readers[localUsers[6].UID] = true // jinyang
+			teams[i].Readers[localUsers[7].UID] = true // songgao
+			teams[i].Readers[localUsers[8].UID] = true // taru
+		case "dokan":
+			teams[i].Readers[localUsers[8].UID] = true // taru
+			teams[i].Readers[localUsers[9].UID] = true // zanderz
+		}
+	}
+
 	if params.LocalFavoriteStorage == memoryAddr {
-		return NewKeybaseDaemonMemory(localUID, localUsers, nil, codec), nil
+		return NewKeybaseDaemonMemory(localUID, localUsers, teams, codec), nil
 	}
 
 	if serverRootDir, ok := parseRootDir(params.LocalFavoriteStorage); ok {
 		favPath := filepath.Join(serverRootDir, "kbfs_favs")
-		return NewKeybaseDaemonDisk(localUID, localUsers, nil, favPath, codec)
+		return NewKeybaseDaemonDisk(localUID, localUsers, teams, favPath, codec)
 	}
 
 	return nil, errors.New("Can't user localuser without LocalFavoriteStorage being 'memory' or 'dir:/path/to/dir'")

@@ -349,6 +349,17 @@ func (f *Folder) isWriter(ctx context.Context) (bool, error) {
 	}
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
+	if f.h.Type() == tlf.SingleTeam {
+		tid, err := f.h.FirstResolvedWriter().AsTeam()
+		if err != nil {
+			return false, err
+		}
+		isWriter, err := f.fs.config.KBPKI().IsTeamWriter(ctx, tid, session.UID)
+		if err != nil {
+			return false, err
+		}
+		return isWriter, nil
+	}
 	return f.h.IsWriter(session.UID), nil
 }
 

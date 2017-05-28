@@ -189,7 +189,15 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 	if err != nil {
 		return tlf.NullID, false, kbfsmd.ServerError{Err: err}
 	}
-	if !handle.IsReader(session.UID.AsUserOrTeam()) {
+	if handle.Type() == tlf.SingleTeam {
+		isReader, err := md.config.teamMembershipChecker().IsTeamReader(
+			ctx, handle.Writers[0].AsTeamOrBust(), session.UID)
+		if err != nil {
+			return tlf.NullID, false, kbfsmd.ServerError{Err: err}
+		} else if !isReader {
+			return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
+		}
+	} else if !handle.IsReader(session.UID.AsUserOrTeam()) {
 		return tlf.NullID, false, kbfsmd.ServerErrorUnauthorized{}
 	}
 
