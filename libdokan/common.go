@@ -20,6 +20,9 @@ const (
 	// PrivateName is the name of the parent of all private top-level folders.
 	PrivateName = "private"
 
+	// TeamName is the name of the parent of all team top-level folders.
+	TeamName = "team"
+
 	// CtxOpID is the display name for the unique operation Dokan ID tag.
 	CtxOpID = "DID"
 )

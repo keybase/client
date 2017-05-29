@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -69,6 +70,12 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 		public: &FolderList{
 			fs:         f,
 			tlfType:    tlf.Public,
+			folders:    make(map[string]fileOpener),
+			aliasCache: map[string]string{},
+		},
+		team: &FolderList{
+			fs:         f,
+			tlfType:    tlf.SingleTeam,
 			folders:    make(map[string]fileOpener),
 			aliasCache: map[string]string{},
 		}}
@@ -370,6 +377,20 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			return nil, false, dokan.ErrAccessDenied
 		}
 		return f.root.private.open(ctx, oc, ps[1:])
+	case `TEAM` == ps[0]:
+		oc.isUppercasePath = true
+		fallthrough
+	case TeamName == ps[0]:
+		if env.NewContext().GetRunMode() != libkb.DevelRunMode {
+			return nil, false, dokan.ErrObjectNameNotFound
+		}
+
+		// Refuse team directories while we are in a error state.
+		if f.remoteStatus.ExtraFileName() != "" {
+			f.log.CWarningf(ctx, "Refusing access to team directory while errors are present!")
+			return nil, false, dokan.ErrAccessDenied
+		}
+		return f.root.team.open(ctx, oc, ps[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
@@ -608,6 +629,7 @@ type Root struct {
 	emptyFile
 	private *FolderList
 	public  *FolderList
+	team    *FolderList
 }
 
 // GetFileInformation for dokan stats.
@@ -627,6 +649,13 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 		err = callback(&ns)
 		if err != nil {
 			return err
+		}
+		if env.NewContext().GetRunMode() == libkb.DevelRunMode {
+			ns.Name = TeamName
+			err = callback(&ns)
+			if err != nil {
+				return err
+			}
 		}
 		fallthrough
 	case libfs.HumanNoLoginFileName:

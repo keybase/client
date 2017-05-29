@@ -287,6 +287,7 @@ func TestReaddirRoot(t *testing.T) {
 	checkDir(t, mnt.Dir, map[string]fileInfoCheck{
 		PrivateName: mustBeDir,
 		PublicName:  mustBeDir,
+		TeamName:    mustBeDir,
 	})
 }
 
