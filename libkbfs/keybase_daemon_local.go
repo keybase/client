@@ -477,6 +477,11 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 	t.Writers[uid] = true
 	delete(t.Readers, uid)
 	k.localTeams[tid] = t
+	f := keybase1.Folder{
+		Name:       string(t.Name),
+		FolderType: keybase1.FolderType_TEAM,
+	}
+	k.favoriteStore.FavoriteAdd(uid, f)
 	return nil
 }
 
@@ -499,6 +504,11 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 	}
 	t.Readers[uid] = true
 	k.localTeams[tid] = t
+	f := keybase1.Folder{
+		Name:       string(t.Name),
+		FolderType: keybase1.FolderType_TEAM,
+	}
+	k.favoriteStore.FavoriteAdd(uid, f)
 	return nil
 }
 
@@ -522,13 +532,27 @@ func (k *KeybaseDaemonLocal) addTeamKeyForTest(
 	return nil
 }
 
-func (k *KeybaseDaemonLocal) addTeamsForTest(teams []TeamInfo) {
-	k.lock.Lock()
-	defer k.lock.Unlock()
+func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []TeamInfo) {
 	for _, t := range teams {
 		k.localTeams[t.TID] = t
 		k.asserts[string(t.Name)] = t.TID.AsUserOrTeam()
+		f := keybase1.Folder{
+			Name:       string(t.Name),
+			FolderType: keybase1.FolderType_TEAM,
+		}
+		for u := range t.Writers {
+			k.favoriteStore.FavoriteAdd(u, f)
+		}
+		for u := range t.Readers {
+			k.favoriteStore.FavoriteAdd(u, f)
+		}
 	}
+}
+
+func (k *KeybaseDaemonLocal) addTeamsForTest(teams []TeamInfo) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	k.addTeamsForTestLocked(teams)
 }
 
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -649,18 +673,15 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		}
 		asserts[string(u.Name)] = u.UID.AsUserOrTeam()
 	}
-	localTeamMap := make(localTeamMap)
-	for _, t := range teams {
-		localTeamMap[t.TID] = t
-		asserts[string(t.Name)] = t.TID.AsUserOrTeam()
-	}
-	return &KeybaseDaemonLocal{
+	k := &KeybaseDaemonLocal{
 		codec:         codec,
 		localUsers:    localUserMap,
-		localTeams:    localTeamMap,
+		localTeams:    make(localTeamMap),
 		asserts:       asserts,
 		currentUID:    currentUID,
 		favoriteStore: favoriteStore,
 		merkleSeqNo:   FirstValidMerkleSeqNo,
 	}
+	k.addTeamsForTest(teams)
+	return k
 }
