@@ -10,8 +10,10 @@ import webpack from 'webpack'
 import webpackConfig from './webpack.config.production.js'
 import {exec} from 'child_process'
 
+// absolute path relative to this script
 const desktopPath = (...args) => path.join(__dirname, ...args)
 
+// recursively copy a folder over and allow only files with the extensions passed as onlyExts
 const copySyncFolder = (src, target, onlyExts) => {
   const srcRoot = desktopPath(src)
   const dstRoot = desktopPath(target)
