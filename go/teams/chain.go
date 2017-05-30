@@ -489,19 +489,17 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
 	}
 
-	hasPrevState := func(has bool) libkb.Errorer {
-		return func() error {
-			if has {
-				if prevState == nil {
-					return fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
-				}
-			} else {
-				if prevState != nil {
-					return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
-				}
+	hasPrevState := func(has bool) error {
+		if has {
+			if prevState == nil {
+				return fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
 			}
-			return nil
+		} else {
+			if prevState != nil {
+				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+			}
 		}
+		return nil
 	}
 	hasGeneric := func(hasExpected bool, hasReal bool, attr string) error {
 		if hasExpected != hasReal {
@@ -512,25 +510,25 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 		return nil
 	}
-	hasName := func(has bool) libkb.Errorer {
-		return func() error { return hasGeneric(has, team.Name != nil, "name") }
+	hasName := func(has bool) error {
+		return hasGeneric(has, team.Name != nil, "name")
 	}
-	hasMembers := func(has bool) libkb.Errorer {
-		return func() error { return hasGeneric(has, team.Members != nil, "members") }
+	hasMembers := func(has bool) error {
+		return hasGeneric(has, team.Members != nil, "members")
 	}
-	hasParent := func(has bool) libkb.Errorer {
-		return func() error { return hasGeneric(has, team.Parent != nil, "parent") }
+	hasParent := func(has bool) error {
+		return hasGeneric(has, team.Parent != nil, "parent")
 	}
-	hasSubteam := func(has bool) libkb.Errorer {
-		return func() error { return hasGeneric(has, team.Subteam != nil, "subteam") }
+	hasSubteam := func(has bool) error {
+		return hasGeneric(has, team.Subteam != nil, "subteam")
 	}
-	hasPerTeamKey := func(has bool) libkb.Errorer {
-		return func() error { return hasGeneric(has, team.PerTeamKey != nil, "per-team-key") }
+	hasPerTeamKey := func(has bool) error {
+		return hasGeneric(has, team.PerTeamKey != nil, "per-team-key")
 	}
 
 	switch payload.Body.Type {
 	case "team.root":
-		err = libkb.FirstError(
+		err = libkb.PickFirstError(
 			hasPrevState(false),
 			hasName(true),
 			hasMembers(true),
@@ -585,7 +583,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.change_membership":
-		err = libkb.FirstError(
+		err = libkb.PickFirstError(
 			hasPrevState(true),
 			hasName(false),
 			hasMembers(true),
@@ -632,7 +630,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.rotate_key":
-		err = libkb.FirstError(
+		err = libkb.PickFirstError(
 			hasPrevState(true),
 			hasName(false),
 			hasMembers(false),
@@ -669,7 +667,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.leave":
-		err = libkb.FirstError(
+		err = libkb.PickFirstError(
 			hasPrevState(true),
 			hasName(false),
 			hasMembers(false),
