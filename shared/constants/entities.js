@@ -29,8 +29,8 @@ export type State = Record<{
 
 const StateRecord = Record({
   devices: Map(),
-  searchv3Chat: Map(),
-  searchv3Profile: Map(),
+  searchResults: Map(),
+  searchQueryToResult: Map(),
 })
 
 export {StateRecord}

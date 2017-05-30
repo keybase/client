@@ -48,14 +48,24 @@ export type SearchResult = RowProps
 // Keypaths - maybe these should be somewhere else?
 export type KeyPath = ['searchv3Chat'] | ['searchv3Profile']
 
+export type SearchType = 'Profile' | 'Chat'
+
 // Actions
 
-export type Search = NoErrorTypedAction<
+export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
-  {term: string, service: ?SearchPlatform, keyPath: KeyPath}
+  {term: string, service: SearchPlatform, actionTypeToFire: TypeToFire}
+>
+
+export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
+  TypeToFire,
+  {searchResults: List<SearchResultId>, searchTerm: string, service: SearchPlatform}
 >
 
 export type OnShowTracker = NoErrorTypedAction<'searchv3:onShowTracker', {resultId: string, keyPath: KeyPath}>
+
+// Generic so others can make their own version
+export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
 
 // Helper
 function serviceNameToSearchPlatform(serviceName: string): SearchPlatform {
@@ -119,6 +129,10 @@ export type RawResult = {
 
 function rawResultToId(serviceName: string, serviceUsername: string): SearchResultId {
   return `${serviceName}-${serviceUsername}`
+}
+
+function toSearchQuery(serviceName: string, searchTerm: string): SearchQuery {
+  return `${serviceName}-${searchTerm}`
 }
 
 function _parseKeybaseRawResultToRow(
@@ -237,6 +251,4 @@ const StateRecord = Record({
   profileResults: new List(),
 })
 
-export type SearchType = 'Profile' | 'Chat'
-
-export {parseRawResultToRow, StateRecord}
+export {parseRawResultToRow, StateRecord, toSearchQuery}

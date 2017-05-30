@@ -1,6 +1,8 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
+import * as Creators from './creators'
 import * as EntityAction from '../entities'
+import {List} from 'immutable'
 import {apiserverGetWithSessionRpc} from '../../constants/types/flow-types'
 import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
@@ -31,7 +33,14 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(JSON.parse)
 }
 
-function* search({payload: {term, service, keyPath}}: Constants.Search) {
+function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Search<T>) {
+  const searchQuery = Constants.toSearchQuery(service, term)
+  const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
+  if (cachedResults) {
+    yield put(Creators.finishedSearch(actionTypeToFire, cachedResults, term, service))
+    return
+  }
+
   try {
     const searchResults = yield call(_apiSearch, trim(term), service)
     const isFollowingFn = yield select(Selectors.isFollowingFnSelector)
@@ -39,8 +48,10 @@ function* search({payload: {term, service, keyPath}}: Constants.Search) {
       const isFollowingOnKeybase = !!result.keybase && isFollowingFn(result.keybase.username)
       return Constants.parseRawResultToRow(result, service || 'Keybase', isFollowingOnKeybase)
     })
-    // $FlowIssue - cast tuples to array
-    yield put(EntityAction.replaceEntity(keyPath, keyBy(rows, 'id')))
+    const ids = List(rows.map(r => r.id))
+    yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
+    yield put(EntityAction.mergeEntity(['searchQueryToResult'], {searchQuery, ids}))
+    yield put(Creators.finishedSearch(actionTypeToFire, ids, term, service))
   } catch (error) {
     console.warn('error in searching', error)
   }
