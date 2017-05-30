@@ -1,1 +1,3 @@
-const bel = require("bel");
+module.exports = {
+  bel: require("bel"),
+};

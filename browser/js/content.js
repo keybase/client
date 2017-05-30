@@ -2,6 +2,7 @@
 // widget-rendering code into some page.
 "use strict";
 
+const bel = bundle.bel;
 const asset = chrome.runtime.getURL;
 
 function init() {
@@ -106,10 +107,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
   }
 
   // The chat widget is enclosed in the form element.
-  const f = document.createElement("form");
-  f.className = "keybase-reply";
-  f.action = "#"; // Avoid submitting even if we fail to preventDefault
-  f.innerHTML = `
+  const f = bel`<form class="keybase-reply" action="#">
     <h3>
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
@@ -412,4 +410,10 @@ function findParentByClass(el, className) {
     el = el.parentNode;
   }
   return null;
+}
+
+function replaceChildren(parent, children) {
+  while (parent.firstChild) parent.removeChild(parent.firstChild);
+  if (children === undefined) return;
+  for (const child of children) parent.appendChild(child);
 }

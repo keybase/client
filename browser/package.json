@@ -3,7 +3,7 @@
   "name": "keybase-extension",
   "license": "BSD-3-Clause",
   "scripts": {
-    "build": "cross-env webpack js/bundle.entry.js js/bundle.js"
+    "build": "cross-env webpack"
   },
   "dependencies": {
     "bel": "^5.0.0"
