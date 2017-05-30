@@ -428,6 +428,8 @@ function findParentByClass(el, className) {
   return null;
 }
 
+// Element rendering DSL helper.
+// Usage: E('div', 'some text node stuff', E(...), {'className': 'foo'})
 function E(_) { // Args: [tagname|textnode], [textnode|element, ...] */
   if (arguments.length == 1) {
     return document.createTextNode(arguments[0]);
