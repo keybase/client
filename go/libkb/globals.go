@@ -763,7 +763,8 @@ func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
 	if g.Env.GetSupportPerUserKey() {
-		_ = g.BumpPerUserKeyring()
+		// Trigger the creation of a per-user-keyring
+		_, _ = g.GetPerUserKeyring()
 	}
 
 	// Do so outside the lock below
@@ -924,7 +925,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	g.BumpPerUserKeyring()
+	_, _ = g.GetPerUserKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -943,17 +944,45 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.uchMu.Unlock()
 }
 
+// GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
+// Using this during provisioning is nigh impossible because GetMyUID
+// routes through LoginSession and deadlocks.
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
 	if !g.Env.GetSupportPerUserKey() {
 		return nil, errors.New("per-user-key support disabled")
 	}
+
+	myUID := g.GetMyUID()
+	if myUID.IsNil() {
+		return nil, errors.New("PerUserKeyring unavailable with no UID")
+	}
+
+	// Don't do any operations under these locks that could come back and hit them again.
+	// That's why GetMyUID up above is not under this lock.
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
-	if g.perUserKeyring == nil {
-		return nil, fmt.Errorf("PerUserKeyring not present")
+
+	makeNew := func() (*PerUserKeyring, error) {
+		pukring, err := NewPerUserKeyring(g, myUID)
+		if err != nil {
+			g.Log.Warning("G#GetPerUserKeyring -> failed: %s", err)
+			g.perUserKeyring = nil
+			return nil, err
+		}
+		g.Log.Debug("G#GetPerUserKeyring -> new")
+		g.perUserKeyring = pukring
+		return g.perUserKeyring, nil
 	}
-	return g.perUserKeyring, nil
+
+	if g.perUserKeyring == nil {
+		return makeNew()
+	}
+	pukUID := g.perUserKeyring.GetUID()
+	if pukUID.Equal(myUID) {
+		return g.perUserKeyring, nil
+	}
+	return makeNew()
 }
 
 func (g *GlobalContext) ClearPerUserKeyring() {
@@ -964,43 +993,4 @@ func (g *GlobalContext) ClearPerUserKeyring() {
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
 	g.perUserKeyring = nil
-}
-
-// BumpPerUserKeyring recreates PerUserKeyring if the uid changes.
-// Using this during provisioning is nigh impossible because GetMyUID
-// routes through LoginSession and deadlocks.
-func (g *GlobalContext) BumpPerUserKeyring() error {
-	g.Log.Debug("G#BumpPerUserKeyring")
-	if !g.Env.GetSupportPerUserKey() {
-		return errors.New("per-user-key support disabled")
-	}
-	myUID := g.GetMyUID()
-
-	// Don't do any operations under these locks that could come back and hit them again.
-	// That's why GetMyUID up above is not under this lock.
-	g.perUserKeyringMu.Lock()
-	defer g.perUserKeyringMu.Unlock()
-
-	makeNew := func() error {
-		pukring, err := NewPerUserKeyring(g, myUID)
-		if err != nil {
-			g.Log.Warning("G#BumpPerUserKeyring -> failed: %s", err)
-			g.perUserKeyring = nil
-			return err
-		}
-		g.Log.Debug("G#BumpPerUserKeyring -> new")
-		g.perUserKeyring = pukring
-		return nil
-	}
-
-	if g.perUserKeyring == nil {
-		return makeNew()
-	}
-	pukUID := g.perUserKeyring.GetUID()
-	if pukUID.Equal(myUID) {
-		// Leave the existing keyring in place for the same user
-		g.Log.Debug("G#BumpPerUserKeyring -> ignore")
-		return nil
-	}
-	return makeNew()
 }
