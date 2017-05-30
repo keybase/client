@@ -66,7 +66,6 @@ func TestMemberOwner(t *testing.T) {
 }
 
 func TestMemberAddOwner(t *testing.T) {
-	t.Skip("multiple owners not working? checking elided links: not a member of team")
 	tc, owner, other, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -180,6 +179,8 @@ func TestMemberRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Logf("before remove, seqno: %d", s.Chain.GetLatestSeqno())
+
 	role := uidRole(ctx, tc, s, owner.User.GetUID())
 	if role != keybase1.TeamRole_OWNER {
 		t.Errorf("role: %s, expected OWNER", role)
@@ -199,6 +200,8 @@ func TestMemberRemove(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	t.Logf("after remove, seqno: %d", s.Chain.GetLatestSeqno())
 
 	role = uidRole(ctx, tc, s, owner.User.GetUID())
 	if role != keybase1.TeamRole_OWNER {

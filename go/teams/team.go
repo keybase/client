@@ -162,6 +162,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
 		return err
 	}
 
+	t.G().Log.Warning("sigMultiItem: %s", sigMultiItem)
+
 	// create secret boxes for recipients
 	secretBoxes, err := t.recipientBoxes(memSet)
 	if err != nil {
