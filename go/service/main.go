@@ -804,6 +804,9 @@ func (d *Service) tryLogin() {
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
 		d.G().Log.Debug("trying LoginProvisionedDevice")
+		if d.G().Keyrings == nil {
+			d.G().ConfigureKeyring()
+		}
 		deng := engine.NewLoginProvisionedDevice(d.G(), "")
 		deng.SecretStoreOnly = true
 		ctx := &engine.Context{
