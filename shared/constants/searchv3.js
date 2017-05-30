@@ -58,7 +58,6 @@ export type KeyPath = ['searchv3Chat'] | ['searchv3Profile']
 export type SearchType = 'Profile' | 'Chat'
 
 // Actions
-
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
   {term: string, service: SearchPlatform, actionTypeToFire: TypeToFire}
@@ -75,7 +74,6 @@ export type OnShowTracker = NoErrorTypedAction<'searchv3:onShowTracker', {result
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
 
 // Platform icons
-
 function platformToIcon(platform: SearchPlatform): IconType {
   return {
     Keybase: 'iconfont-identity-devices',
