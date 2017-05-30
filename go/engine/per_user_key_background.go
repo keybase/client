@@ -181,7 +181,7 @@ func (e *PerUserKeyBackground) round(ctx context.Context, ectx *Context) error {
 
 	arg := &PerUserKeyUpgradeArgs{}
 	eng := NewPerUserKeyUpgrade(e.G(), arg)
-	err = RunEngine(eng, ectx)
+	err = RunEngine(eng, ectx.WithNetContext(ctx))
 	return err
 }
 

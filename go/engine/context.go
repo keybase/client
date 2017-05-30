@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -66,6 +67,13 @@ func (c *Context) GetNetContext() context.Context {
 
 func (c *Context) SetNetContext(netCtx context.Context) {
 	c.NetContext = netCtx
+}
+
+// A copy of the Context with the NetContext swapped out
+func (c *Context) WithNetContext(netCtx context.Context) *Context {
+	c2 := *c
+	c2.NetContext = netCtx
+	return &c2
 }
 
 func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
