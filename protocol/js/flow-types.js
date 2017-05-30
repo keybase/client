@@ -5040,8 +5040,8 @@ export type PublicKeyV2Base = {
   isEldest: boolean,
   cTime: Time,
   eTime: Time,
-  provisioning: SignatureTime,
-  revocation?: ?SignatureTime,
+  provisioning: SignatureMetadata,
+  revocation?: ?SignatureMetadata,
 }
 
 export type PublicKeyV2NaCl = {
@@ -5327,9 +5327,10 @@ export type SignMode =
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
-export type SignatureTime = {
-  merkleRootAtSig: MerkleRootV2,
-  firstAppearedIn?: ?MerkleRootV2,
+export type SignatureMetadata = {
+  signingKID: KID,
+  prevMerkleRootSigned: MerkleRootV2,
+  firstAppearedUnverified: Seqno,
   time: Time,
 }
 
@@ -5747,7 +5748,8 @@ export type UserPlusKeysV2 = {
 }
 
 export type UserPlusKeysV2AllIncarnations = {
-  incarnations?: ?Array<UserPlusKeysV2>,
+  current: UserPlusKeysV2,
+  pastIncarnations?: ?Array<UserPlusKeysV2>,
 }
 
 export type UserResolution = {

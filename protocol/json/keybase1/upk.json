@@ -27,18 +27,19 @@
     },
     {
       "type": "record",
-      "name": "SignatureTime",
+      "name": "SignatureMetadata",
       "fields": [
         {
-          "type": "MerkleRootV2",
-          "name": "merkleRootAtSig"
+          "type": "KID",
+          "name": "signingKID"
         },
         {
-          "type": [
-            null,
-            "MerkleRootV2"
-          ],
-          "name": "firstAppearedIn"
+          "type": "MerkleRootV2",
+          "name": "prevMerkleRootSigned"
+        },
+        {
+          "type": "Seqno",
+          "name": "firstAppearedUnverified"
         },
         {
           "type": "Time",
@@ -71,13 +72,13 @@
           "name": "eTime"
         },
         {
-          "type": "SignatureTime",
+          "type": "SignatureMetadata",
           "name": "provisioning"
         },
         {
           "type": [
             null,
-            "SignatureTime"
+            "SignatureMetadata"
           ],
           "name": "revocation"
         }
@@ -223,11 +224,15 @@
       "name": "UserPlusKeysV2AllIncarnations",
       "fields": [
         {
+          "type": "UserPlusKeysV2",
+          "name": "current"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UserPlusKeysV2"
           },
-          "name": "incarnations"
+          "name": "pastIncarnations"
         }
       ]
     },
