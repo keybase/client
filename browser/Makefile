@@ -1,4 +1,6 @@
-release: clean
+build: bundle
+
+release: clean build
 	mkdir build/
 	git archive HEAD . | tar x -C build/
 	sed -i "" '/"key"\:/d' build/manifest.json  # Strip hardcoded dev key
@@ -6,3 +8,8 @@ release: clean
 
 clean:
 	rm -rf build/
+
+bundle: js/bundle.js
+
+js/bundle.js: js/bundle.entry.js
+	yarn build
