@@ -648,7 +648,7 @@ func makeDefaultBackpressureDiskLimiterParams(
 		// files.
 		diskCacheFrac: 0.10,
 		// Set the byte limit to 200 GiB, which translates to
-		// having the journal take up at most 30 GiB, and the
+		// having the journal take up at most 170 GiB, and the
 		// disk cache to take up at most 20 GiB.
 		byteLimit: 200 * 1024 * 1024 * 1024,
 		// Set the file limit to 6 million files, which
