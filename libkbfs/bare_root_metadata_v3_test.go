@@ -119,6 +119,22 @@ func TestBareRootMetadataPublicVersionV3(t *testing.T) {
 	require.Equal(t, bh, bh2)
 }
 
+func TestBareRootMetadataSingleTeamVersionV3(t *testing.T) {
+	tlfID := tlf.FakeID(1, tlf.SingleTeam)
+
+	tid := keybase1.MakeTestTeamID(1)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{tid.AsUserOrTeam()}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	require.NoError(t, err)
+	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
+
+	bh2, err := rmd.MakeBareTlfHandle(nil)
+	require.Equal(t, bh, bh2)
+}
+
 func TestRevokeRemovedDevicesV3(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(0x1)
 	uid2 := keybase1.MakeTestUID(0x2)
