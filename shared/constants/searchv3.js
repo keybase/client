@@ -1,5 +1,5 @@
 // @flow
-import {List} from 'immutable'
+import {List, Record} from 'immutable'
 import {SearchError} from '../util/errors'
 import {friendlyName as friendlyServiceName} from '../util/platforms'
 
@@ -22,8 +22,11 @@ export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
 export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
 
+export type SearchResultId = string
+export type SearchQuery = string
+
 export type RowProps = {|
-  id: string,
+  id: SearchResultId,
 
   leftFollowingState: FollowingState,
   leftIcon: ?IconType, // If service is keybase this can be null
@@ -38,6 +41,9 @@ export type RowProps = {|
 
   showTrackerButton: boolean,
 |}
+
+// For now these are the same. Let's see how far we can get with that
+export type SearchResult = RowProps
 
 // Keypaths - maybe these should be somewhere else?
 export type KeyPath = ['searchv3Chat'] | ['searchv3Profile']
@@ -111,7 +117,7 @@ export type RawResult = {
   },
 }
 
-function externalServiceToId(serviceName: string, serviceUsername: string): string {
+function rawResultToId(serviceName: string, serviceUsername: string): SearchResultId {
   return `${serviceName}-${serviceUsername}`
 }
 
@@ -123,7 +129,7 @@ function _parseKeybaseRawResultToRow(
   if (result.keybase && result.service) {
     const {keybase, service} = result
     return {
-      id: result.keybase.username,
+      id: rawResultToId('Keybase', service.username),
       leftFollowingState: isFollowingOnKeybase ? 'Following' : 'NotFollowing',
       leftIcon: null,
       leftUsername: keybase.username,
@@ -167,7 +173,7 @@ function _parseThirdPartyRawResultToRow(
   if (result.service && result.keybase) {
     const {service, keybase} = result
     return {
-      id: keybase.username,
+      id: rawResultToId(service.service_name, service.username),
       leftFollowingState: 'NoState',
       leftIcon: platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
       leftUsername: service.username,
@@ -185,7 +191,7 @@ function _parseThirdPartyRawResultToRow(
   if (result.service) {
     const service = result.service
     return {
-      id: externalServiceToId(service.service_name, service.username),
+      id: rawResultToId(service.service_name, service.username),
       leftFollowingState: 'NoState',
       leftIcon: platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
       leftUsername: service.username,
@@ -211,9 +217,26 @@ function parseRawResultToRow(result: RawResult, service: SearchPlatform, isFollo
   }
 }
 
-export type State = {|
-  // TODO selected, typing, etc
-  rows: List<RowProps>,
-|}
+export type SearchSubState = Record<{|
+  results: List<SearchResultId>,
+  selected: SearchResultId,
+  typing: boolean,
+|}>
 
-export {parseRawResultToRow}
+export type State = Record<{|
+  // TODO selected, typing, etc
+  // A list of queries that have been searched and cachedk
+  searchCache: List<SearchQuery>,
+  chat: SearchSubState,
+  profile: SearchSubState,
+|}>
+
+const StateRecord = Record({
+  searchCache: new List(),
+  chat: new List(),
+  profileResults: new List(),
+})
+
+export type SearchType = 'Profile' | 'Chat'
+
+export {parseRawResultToRow, StateRecord}
