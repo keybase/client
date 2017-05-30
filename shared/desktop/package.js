@@ -84,8 +84,8 @@ function main() {
     if (!err) {
       try {
         // $FlowIssue
-        packagerOpts.version = stdout.match(/electron@([0-9.]+)/)[1]
-        console.log('Found electron version:', packagerOpts.version)
+        packagerOpts.electronVersion = stdout.match(/electron@([0-9.]+)/)[1]
+        console.log('Found electron version:', packagerOpts.electronVersion)
       } catch (err) {
         console.log("Couldn't parse yarn list to find electron:", err)
         process.exit(1)
