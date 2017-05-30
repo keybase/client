@@ -80,6 +80,7 @@
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
     "jsonfile": "3.0.0",
+    "klaw-sync": "2.1.0",
     "lodash": "4.17.4",
     "material-ui": "0.15.4",
     "menubar": "5.2.3",
