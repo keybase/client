@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -11,53 +10,18 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type TeamBox struct {
-	Nonce           string
-	SenderKID       keybase1.KID `json:"sender_kid"`
-	Generation      int
-	Ctext           string
-	PerUserKeySeqno keybase1.Seqno `json:"per_user_key_seqno"`
-}
-
-func (t *TeamBox) NonceBytes() ([]byte, error) {
-	return base64.StdEncoding.DecodeString(t.Nonce)
-}
-
-func (t *TeamBox) CtextBytes() ([]byte, error) {
-	return base64.StdEncoding.DecodeString(t.Ctext)
-}
-
-func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) ([]byte, error) {
-	nonce, err := t.NonceBytes()
-	if err != nil {
-		return nil, err
-	}
-	ctext, err := t.CtextBytes()
-	if err != nil {
-		return nil, err
-	}
-	nei := &libkb.NaclEncryptionInfo{
-		Ciphertext:     ctext,
-		EncryptionType: libkb.KIDNaclDH,
-		Nonce:          nonce,
-		Receiver:       encKey.GetKID().ToBytes(),
-		Sender:         t.SenderKID.ToBytes(),
-	}
-
-	plaintext, _, err := encKey.Decrypt(nei)
-	if err != nil {
-		return nil, err
-	}
-
-	return plaintext, nil
-}
-
 type Team struct {
+	libkb.Contextified
+
 	Name  string
 	Chain *TeamSigChainState
 	Box   TeamBox
 
-	libkb.Contextified
+	secret        []byte
+	signingKey    libkb.NaclSigningKeyPair
+	encryptionKey libkb.NaclDHKeyPair
+
+	me *libkb.User
 }
 
 func NewTeam(g *libkb.GlobalContext, name string) *Team {
@@ -115,20 +79,12 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	return members, nil
 }
 
-func (t *Team) Section() (SCTeamSection, error) {
-	teamSection := SCTeamSection{
-		ID: (SCTeamID)(t.Chain.GetID()),
-	}
-
-	return teamSection, nil
-}
-
 func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, error) {
 	// TeamBox has PerUserKeySeqno but libkb.PerUserKeyring has no seqnos.
 	// ComputedKeyInfos does, though, so let's find the key there first, then
 	// look for it in libkb.PerUserKeyring.
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(t.G()))
+	me, err := t.loadMe()
 	if err != nil {
 		return nil, err
 	}
@@ -170,4 +126,148 @@ func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, 
 
 func (t *Team) NextSeqno() keybase1.Seqno {
 	return t.Chain.GetLatestSeqno() + 1
+}
+
+// If any field is nil, that means no change.
+// If any field is an empty array, that means remove all current members.
+type ChangeReq struct {
+	Owners  *[]string
+	Admins  *[]string
+	Writers *[]string
+	Readers *[]string
+}
+
+func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
+	// make keys for the team
+	if err := t.makeKeys(ctx); err != nil {
+		return err
+	}
+
+	// load the member set specified in req
+	memSet, err := newMemberSet(ctx, t.G(), req)
+	if err != nil {
+		return err
+	}
+
+	// create the team section of the signature
+	section, err := memSet.Section(t.Chain.GetID())
+	if err != nil {
+		return err
+	}
+
+	// create the change item
+	sigMultiItem, err := t.sigChangeItem(section)
+	if err != nil {
+		return err
+	}
+
+	// create secret boxes for recipients
+	secretBoxes, err := t.recipientBoxes(memSet)
+	if err != nil {
+		return err
+	}
+
+	// make the payload
+	payload := t.sigPayload(sigMultiItem, secretBoxes)
+
+	// send it to the server
+	return t.postMulti(payload)
+}
+
+func (t *Team) makeKeys(ctx context.Context) error {
+	var err error
+	t.secret, err = t.SharedSecret(ctx)
+	if err != nil {
+		return err
+	}
+	t.signingKey, t.encryptionKey, err = generatePerTeamKeysFromSecret(t.secret)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *Team) loadMe() (*libkb.User, error) {
+	if t.me == nil {
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(t.G()))
+		if err != nil {
+			return nil, err
+		}
+		t.me = me
+	}
+
+	return t.me, nil
+}
+
+func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) {
+	me, err := t.loadMe()
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	sig, err := ChangeMembershipSig(me, t.Chain.GetLatestLinkID(), t.NextSeqno(), deviceSigningKey, section)
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+
+	sigJSON, err := sig.Marshal()
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+
+	v2Sig, err := makeSigchainV2OuterSig(
+		deviceSigningKey,
+		libkb.LinkTypeChangeMembership,
+		t.NextSeqno(),
+		sigJSON,
+		t.Chain.GetLatestLinkID(),
+		false, /* hasRevokes */
+	)
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+
+	sigMultiItem := libkb.SigMultiItem{
+		Sig:        v2Sig,
+		SigningKID: deviceSigningKey.GetKID(),
+		Type:       string(libkb.LinkTypeChangeMembership),
+		SigInner:   string(sigJSON),
+		TeamID:     t.Chain.GetID(),
+		PublicKeys: &libkb.SigMultiItemPublicKeys{
+			Encryption: t.encryptionKey.GetKID(),
+			Signing:    t.signingKey.GetKID(),
+		},
+	}
+	return sigMultiItem, nil
+}
+
+func (t *Team) recipientBoxes(memSet *memberSet) (*PerTeamSharedSecretBoxes, error) {
+	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	return boxTeamSharedSecret(t.secret, deviceEncryptionKey, memSet.recipients)
+}
+
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes) libkb.JSONPayload {
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = []interface{}{sigMultiItem}
+	payload["per_team_key"] = secretBoxes
+	return payload
+}
+
+func (t *Team) postMulti(payload libkb.JSONPayload) error {
+	_, err := t.G().API.PostJSON(libkb.APIArg{
+		Endpoint:    "sig/multi",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
