@@ -17,12 +17,11 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean => {
-  if (!filter.count()) {
+  if (filter.isEmpty()) {
     return true
   }
 
-  const participants = i.get('participants')
-  return filter.every(f => participants.indexOf(f) !== -1)
+  return filter.isSubset(i.get('participants'))
 }
 
 const filteredInbox = createImmutableEqualSelector(

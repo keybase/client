@@ -477,10 +477,6 @@ export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
-export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
-  'chat:setAttachmentPlaceholderPreview',
-  {previewPath: string, outboxID: OutboxIDKey}
->
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
 export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
