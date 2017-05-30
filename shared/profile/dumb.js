@@ -285,6 +285,7 @@ const propsBase: RenderProps = {
   onClickAvatar: () => console.log('on click avatar'),
   onClickFollowers: () => console.log('on click followers'),
   onClickFollowing: () => console.log('on click following'),
+  searchv3: true,
 }
 
 const bioEditFns = {
