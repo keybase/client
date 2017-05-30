@@ -473,7 +473,7 @@ func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
 
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	if !d.G().Env.GetUpgradePerUserKey() {
-		d.G().Log.Debug("PerUserKeyBackground disabled")
+		d.G().Log.Debug("PerUserKeyBackground disabled (not starting)")
 		return
 	}
 
@@ -484,7 +484,9 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	go func() {
 		ectx := &engine.Context{NetContext: context.Background()}
 		err := engine.RunEngine(eng, ectx)
-		d.G().Log.Warning("per-user-key background upgrade error: %s", err)
+		if err != nil {
+			d.G().Log.Warning("per-user-key background upgrade error: %v", err)
+		}
 	}()
 
 	d.G().PushShutdownHook(func() error {
@@ -492,9 +494,6 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 		eng.Shutdown()
 		return nil
 	})
-
-	// TODO consider other hooks
-	// d.G().AddUserChangedHandler(newBgi)
 }
 
 func (d *Service) OnLogin() error {

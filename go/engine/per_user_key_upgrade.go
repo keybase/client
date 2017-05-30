@@ -46,9 +46,7 @@ func (e *PerUserKeyUpgrade) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PerUserKeyUpgrade) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -91,11 +89,11 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 	sigKey, err := e.G().ActiveDevice.SigningKey()
 	if err != nil {
-		return err
+		return fmt.Errorf("signing key not found: (%v)", err)
 	}
 	encKey, err := e.G().ActiveDevice.EncryptionKey()
 	if err != nil {
-		return err
+		return fmt.Errorf("encryption key not found: (%v)", err)
 	}
 
 	pukring, err := e.G().GetPerUserKeyring()

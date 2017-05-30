@@ -77,9 +77,7 @@ func (e *PerUserKeyBackground) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PerUserKeyBackground) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -142,7 +140,7 @@ func (e *PerUserKeyBackground) loop(ctx context.Context, ectx *Context) error {
 		if err != nil {
 			e.G().Log.CDebugf(ctx, "PerUserKeyBackground round(%v) error: %s", i, err)
 		} else {
-			e.G().Log.CDebugf(ctx, "PerUserKeyBackground round(%v) complete", i, err)
+			e.G().Log.CDebugf(ctx, "PerUserKeyBackground round(%v) complete", i)
 		}
 		if e.args.testingRoundResCh != nil {
 			e.args.testingRoundResCh <- err
