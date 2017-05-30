@@ -267,9 +267,10 @@ const (
 	LinkTypePerUserKey                 = "per_user_key"
 
 	// team links
-	LinkTypeTeamRoot    LinkType = "team.root"
-	LinkTypeNewSubteam  LinkType = "team.new_subteam"
-	LinkTypeSubteamHead LinkType = "team.subteam_head"
+	LinkTypeTeamRoot         LinkType = "team.root"
+	LinkTypeNewSubteam                = "team.new_subteam"
+	LinkTypeSubteamHead               = "team.subteam_head"
+	LinkTypeChangeMembership          = "team.change_membership"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate                = "pgp_update"

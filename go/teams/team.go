@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 
@@ -18,6 +19,39 @@ type TeamBox struct {
 	PerUserKeySeqno keybase1.Seqno `json:"per_user_key_seqno"`
 }
 
+func (t *TeamBox) NonceBytes() ([]byte, error) {
+	return base64.StdEncoding.DecodeString(t.Nonce)
+}
+
+func (t *TeamBox) CtextBytes() ([]byte, error) {
+	return base64.StdEncoding.DecodeString(t.Ctext)
+}
+
+func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) ([]byte, error) {
+	nonce, err := t.NonceBytes()
+	if err != nil {
+		return nil, err
+	}
+	ctext, err := t.CtextBytes()
+	if err != nil {
+		return nil, err
+	}
+	nei := &libkb.NaclEncryptionInfo{
+		Ciphertext:     ctext,
+		EncryptionType: libkb.KIDNaclDH,
+		Nonce:          nonce,
+		Receiver:       encKey.GetKID().ToBytes(),
+		Sender:         t.SenderKID.ToBytes(),
+	}
+
+	plaintext, _, err := encKey.Decrypt(nei)
+	if err != nil {
+		return nil, err
+	}
+
+	return plaintext, nil
+}
+
 type Team struct {
 	Name  string
 	Chain *TeamSigChainState
@@ -30,55 +64,13 @@ func NewTeam(g *libkb.GlobalContext, name string) *Team {
 	return &Team{Name: name, Contextified: libkb.NewContextified(g)}
 }
 
-func (t *Team) Key(ctx context.Context) error {
-	fmt.Printf("box: %+v\n", t.Box)
-
-	// TeamBox has PerUserKeySeqno but libkb.PerUserKeyring has no seqnos.
-	// ComputedKeyInfos does, though, so let's find the key there first, then
-	// look for it in libkb.PerUserKeyring.
-
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(t.G()))
+func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
+	userEncKey, err := t.perUserEncryptionKey(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	cki := me.GetComputedKeyInfos()
-	if cki == nil {
-		return errors.New("no computed key infos for self")
-	}
-
-	var encKID keybase1.KID
-	for _, key := range cki.PerUserKeys {
-		if key.Seqno == t.Box.PerUserKeySeqno {
-			encKID = key.EncKID
-			break
-		}
-	}
-	if encKID.IsNil() {
-		return libkb.NotFoundError{Msg: fmt.Sprintf("per-user-key not found seqno=%d", t.Box.PerUserKeySeqno)}
-	}
-
-	kr, err := t.G().GetPerUserKeyring()
-	if err != nil {
-		return err
-	}
-	// XXX this seems to be necessary:
-	if err := kr.Sync(ctx); err != nil {
-		return err
-	}
-	encKey, err := kr.GetEncryptionKeyByKID(ctx, encKID)
-	if err != nil {
-		return err
-	}
-	if encKey.Private == nil {
-		return errors.New("per user enckey is locked")
-	}
-
-	fmt.Printf("found encKey: %v\n", encKey.Private)
-
-	// ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
-
-	return nil
+	return t.Box.Open(userEncKey)
 }
 
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
@@ -121,6 +113,14 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	members.Readers = libkb.NormalizedUsernamesToStrings(x)
 
 	return members, nil
+}
+
+func (t *Team) Section() (SCTeamSection, error) {
+	teamSection := SCTeamSection{
+		ID: (SCTeamID)(t.Chain.GetID()),
+	}
+
+	return teamSection, nil
 }
 
 func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, error) {
@@ -166,4 +166,8 @@ func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, 
 	}
 
 	return encKey, nil
+}
+
+func (t *Team) NextSeqno() keybase1.Seqno {
+	return t.Chain.GetLatestSeqno() + 1
 }

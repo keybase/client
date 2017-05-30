@@ -187,6 +187,11 @@ func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKey
 	if err != nil {
 		return
 	}
+	signingKey, encryptionKey, err = generatePerTeamKeysFromSecret(sharedSecret)
+	return
+}
+
+func generatePerTeamKeysFromSecret(sharedSecret []byte) (signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
 	encryptionKey, err = libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamDHDerivationString))
 	if err != nil {
 		return

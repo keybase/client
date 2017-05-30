@@ -24,6 +24,26 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 	return tc, u, name
 }
 
+func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other *kbtest.FakeUser, name string) {
+	tc = libkb.SetupTest(t, "team", 1)
+	tc.Tp.UpgradePerUserKey = true
+
+	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	name = createTeam(tc)
+
+	return tc, owner, other, name
+}
+
 func TestMemberOwner(t *testing.T) {
 	tc, u, name := memberSetup(t)
 	defer tc.Cleanup()
@@ -46,10 +66,10 @@ func TestMemberOwner(t *testing.T) {
 }
 
 func TestMemberAddWriter(t *testing.T) {
-	tc, u, name := memberSetup(t)
+	tc, owner, other, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := AddWriter(context.TODO(), tc.G, name, "t_alice"); err != nil {
+	if err := AddWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,18 +79,15 @@ func TestMemberAddWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	role := uidRole(ctx, tc, s, u.User.GetUID())
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
 	if role != keybase1.TeamRole_OWNER {
 		t.Errorf("role: %s, expected OWNER", role)
 	}
 
-	// XXX uncomment
-	/*
-		aliceRole := usernameRole(ctx, tc, s, "t_alice")
-		if aliceRole != keybase1.TeamRole_WRITER {
-			t.Errorf("role: %s, expected WRITER", aliceRole)
-		}
-	*/
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_WRITER {
+		t.Errorf("role: %s, expected WRITER", otherRole)
+	}
 }
 
 func uidRole(ctx context.Context, tc libkb.TestContext, team *Team, uid keybase1.UID) keybase1.TeamRole {
