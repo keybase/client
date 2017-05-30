@@ -36,9 +36,7 @@ li.keybase-reply form, form.keybase-reply {
   font-weight: 600;
   font-size: inherit !important;
   color: rgba(0, 0, 0, 0.6);
-}
-.keybase-reply a:hover {
-  text-decoration: none !important;
+  cursor: pointer;
 }
 
 .keybase-body {
@@ -227,7 +225,7 @@ a.keybase-chat {
   color: #fff !important;
   background-color: #33a0ff;
   white-space: nowrap !important;
-
+  cursor: pointer;
   text-align: center;
   display: inline-block;
   height: 28px;

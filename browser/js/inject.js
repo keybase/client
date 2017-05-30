@@ -97,7 +97,6 @@ function renderProfileChatButton(user) {
 
   const button = document.createElement("a");
   button.className = "keybase-chat";
-  button.href = `keybase://${user.query()}/`;
   button.appendChild(icon);
   button.appendChild(document.createTextNode("Keybase Chat"));
 
@@ -123,7 +122,7 @@ function redditRenderChatButton(toUsername) {
   const user = new User(toUsername, "reddit");
   const li = document.createElement("li");
   li.className = "keybase-reply";
-  li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
+  li.innerHTML = `<a>keybase chat reply</a>`;
 
   installChatButton(li.getElementsByTagName("a"), user, isLoggedIn);
   return li;
