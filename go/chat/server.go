@@ -236,6 +236,14 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
 	}
+	// Don't send remote mark as read if we somehow get this in the background.
+	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
+		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
+			h.G().AppState.State())
+		return chat1.MarkAsReadLocalRes{
+			Offline: h.G().Syncer.IsConnected(ctx),
+		}, nil
+	}
 	rres, err := h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
 		ConversationID: arg.ConversationID,
 		MsgID:          arg.MsgID,
