@@ -297,6 +297,7 @@ func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, conv
 				if lock.refs == 0 {
 					delete(c.convLocks, key)
 				}
+				lock.trace = ""
 				lock.lock.Unlock()
 				return true
 			}
