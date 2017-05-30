@@ -265,7 +265,7 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		lock.lock.Lock()
 		c.Lock()
 		lock.trace = trace
-		lock.shares++
+		lock.shares = 1
 		c.Unlock()
 		return true
 	}
