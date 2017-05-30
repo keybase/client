@@ -346,6 +346,19 @@ func (s *PerUserKeyring) GetEncryptionKey(ctx context.Context, gen keybase1.PerU
 	return key.encKey, nil
 }
 
+// GetEncryptionKeyByKID finds an encryption key that matches kid.
+func (s *PerUserKeyring) GetEncryptionKeyByKID(ctx context.Context, kid keybase1.KID) (*NaclDHKeyPair, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	for _, key := range s.generations {
+		if key.encKey.GetKID().Equal(kid) {
+			return key.encKey, nil
+		}
+	}
+	return nil, NotFoundError{Msg: fmt.Sprintf("no per-user encryption key found for KID %s", kid)}
+}
+
 // Clone makes a deep copy of this keyring.
 // But the keys are still aliased.
 func (s *PerUserKeyring) Clone() (*PerUserKeyring, error) {

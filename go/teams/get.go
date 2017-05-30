@@ -11,7 +11,7 @@ import (
 
 func Get(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
 	f := newFinder(g)
-	return f.find(ctx, name)
+	return f.find(ctx, g, name)
 }
 
 type finder struct {
@@ -24,7 +24,7 @@ func newFinder(g *libkb.GlobalContext) *finder {
 	}
 }
 
-func (f *finder) find(ctx context.Context, name string) (*Team, error) {
+func (f *finder) find(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
 	raw, err := f.rawTeam(ctx, name)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (f *finder) find(ctx context.Context, name string) (*Team, error) {
 	// XXX
 	// fmt.Printf("raw: %+v\n", raw)
 
-	var team Team
+	team := NewTeam(g, name)
 	team.Box = raw.Box
 
 	links, err := f.chainLinks(ctx, raw)
@@ -53,7 +53,7 @@ func (f *finder) find(ctx context.Context, name string) (*Team, error) {
 
 	team.Chain = &state
 
-	return &team, nil
+	return team, nil
 }
 
 func (f *finder) rawTeam(ctx context.Context, name string) (*rawTeam, error) {
