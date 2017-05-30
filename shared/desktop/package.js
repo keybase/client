@@ -32,11 +32,11 @@ const appCopyright = 'Copyright (c) 2015, Keybase'
 const companyName = 'Keybase, Inc.'
 
 const packagerOpts = {
-  'app-bundle-id': 'keybase.Electron',
-  'helper-bundle-id': 'keybase.ElectronHelper',
-  'app-version': appVersion,
-  'build-version': appVersion + comment,
-  'app-copyright': appCopyright,
+  appBundleId: 'keybase.Electron',
+  helperBundleId: 'keybase.ElectronHelper',
+  appVersion: appVersion,
+  buildVersion: appVersion + comment,
+  appCopyright: appCopyright,
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
