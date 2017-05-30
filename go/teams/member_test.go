@@ -65,11 +65,62 @@ func TestMemberOwner(t *testing.T) {
 	}
 }
 
+func TestMemberAddOwner(t *testing.T) {
+	t.Skip("multiple owners not working? checking elided links: not a member of team")
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleOwner(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	s, err := Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", otherRole)
+	}
+}
+
+func TestMemberAddAdmin(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	s, err := Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_ADMIN {
+		t.Errorf("role: %s, expected ADMIN", otherRole)
+	}
+}
+
 func TestMemberAddWriter(t *testing.T) {
 	tc, owner, other, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := AddWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -87,6 +138,76 @@ func TestMemberAddWriter(t *testing.T) {
 	otherRole := usernameRole(ctx, tc, s, other.Username)
 	if otherRole != keybase1.TeamRole_WRITER {
 		t.Errorf("role: %s, expected WRITER", otherRole)
+	}
+}
+
+func TestMemberAddReader(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	s, err := Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_READER {
+		t.Errorf("role: %s, expected READER", otherRole)
+	}
+}
+
+func TestMemberRemove(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	s, err := Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_WRITER {
+		t.Errorf("role: %s, expected WRITER", otherRole)
+	}
+
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx = context.Background()
+	s, err = Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role = uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole = usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_NONE {
+		t.Errorf("role: %s, expected NONE", otherRole)
 	}
 }
 

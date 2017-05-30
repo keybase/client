@@ -19,6 +19,7 @@ type memberSet struct {
 	Admins     *[]member
 	Writers    *[]member
 	Readers    *[]member
+	None       *[]member
 	recipients map[string]keybase1.PerUserKey
 }
 
@@ -45,6 +46,10 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	m.Readers, err = m.loadGroup(ctx, g, req.Readers)
+	if err != nil {
+		return err
+	}
+	m.None, err = m.loadGroup(ctx, g, req.None)
 	if err != nil {
 		return err
 	}
@@ -123,6 +128,10 @@ func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 		return SCTeamSection{}, err
 	}
 	teamSection.Members.Readers, err = m.nameSeqList(m.Readers)
+	if err != nil {
+		return SCTeamSection{}, err
+	}
+	teamSection.Members.None, err = m.nameSeqList(m.None)
 	if err != nil {
 		return SCTeamSection{}, err
 	}

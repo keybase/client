@@ -135,6 +135,7 @@ type ChangeReq struct {
 	Admins  *[]string
 	Writers *[]string
 	Readers *[]string
+	None    *[]string
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
