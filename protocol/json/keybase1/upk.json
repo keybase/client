@@ -230,6 +230,39 @@
           "name": "incarnations"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UPAKVersion",
+      "symbols": [
+        "V1_1",
+        "V2_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UPAKVersioned",
+      "switch": {
+        "type": "UPAKVersion",
+        "name": "v"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "UserPlusAllKeys"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "UserPlusKeysV2AllIncarnations"
+        }
+      ],
+      "doc": "* What we're storing for each user. At first it was UPAKs, as defined\n   * in common.avdl. But going forward, we're going to use UserPlusKeysV2AllIncarnations."
     }
   ],
   "messages": {},

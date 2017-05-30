@@ -55,13 +55,32 @@ protocol UPK {
       string username;
       Seqno eldestSeqno;
       UserVersionVector uvv;
+      // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
+      // Sorted by KID ascending
       array<PublicKeyV2NaCl> deviceKeys;
+      // Sorted by KID ascending
       array<PublicKeyV2PGPSummary> pgpKeys;
+      // Sorted by UID ascending
       array<RemoteTrack> remoteTracks;
   }
 
   record UserPlusKeysV2AllIncarnations {
+      // Sorted by account version ascending
       array<UserPlusKeysV2> incarnations;
+  }
+
+  enum UPAKVersion {
+      V1_1,
+      V2_2
+  }
+
+  /**
+   * What we're storing for each user. At first it was UPAKs, as defined
+   * in common.avdl. But going forward, we're going to use UserPlusKeysV2AllIncarnations.
+   */
+  variant UPAKVersioned switch (UPAKVersion v) {
+      case V1: UserPlusAllKeys;
+      case V2: UserPlusKeysV2AllIncarnations;
   }
 }

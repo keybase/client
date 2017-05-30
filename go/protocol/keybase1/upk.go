@@ -301,6 +301,110 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 	}
 }
 
+type UPAKVersion int
+
+const (
+	UPAKVersion_V1 UPAKVersion = 1
+	UPAKVersion_V2 UPAKVersion = 2
+)
+
+func (o UPAKVersion) DeepCopy() UPAKVersion { return o }
+
+var UPAKVersionMap = map[string]UPAKVersion{
+	"V1": 1,
+	"V2": 2,
+}
+
+var UPAKVersionRevMap = map[UPAKVersion]string{
+	1: "V1",
+	2: "V2",
+}
+
+func (e UPAKVersion) String() string {
+	if v, ok := UPAKVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+// * What we're storing for each user. At first it was UPAKs, as defined
+// * in common.avdl. But going forward, we're going to use UserPlusKeysV2AllIncarnations.
+type UPAKVersioned struct {
+	V__  UPAKVersion                    `codec:"v" json:"v"`
+	V1__ *UserPlusAllKeys               `codec:"v1,omitempty" json:"v1,omitempty"`
+	V2__ *UserPlusKeysV2AllIncarnations `codec:"v2,omitempty" json:"v2,omitempty"`
+}
+
+func (o *UPAKVersioned) V() (ret UPAKVersion, err error) {
+	switch o.V__ {
+	case UPAKVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	case UPAKVersion_V2:
+		if o.V2__ == nil {
+			err = errors.New("unexpected nil value for V2__")
+			return ret, err
+		}
+	}
+	return o.V__, nil
+}
+
+func (o UPAKVersioned) V1() (res UserPlusAllKeys) {
+	if o.V__ != UPAKVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func (o UPAKVersioned) V2() (res UserPlusKeysV2AllIncarnations) {
+	if o.V__ != UPAKVersion_V2 {
+		panic("wrong case accessed")
+	}
+	if o.V2__ == nil {
+		return
+	}
+	return *o.V2__
+}
+
+func NewUPAKVersionedWithV1(v UserPlusAllKeys) UPAKVersioned {
+	return UPAKVersioned{
+		V__:  UPAKVersion_V1,
+		V1__: &v,
+	}
+}
+
+func NewUPAKVersionedWithV2(v UserPlusKeysV2AllIncarnations) UPAKVersioned {
+	return UPAKVersioned{
+		V__:  UPAKVersion_V2,
+		V2__: &v,
+	}
+}
+
+func (o UPAKVersioned) DeepCopy() UPAKVersioned {
+	return UPAKVersioned{
+		V__: o.V__.DeepCopy(),
+		V1__: (func(x *UserPlusAllKeys) *UserPlusAllKeys {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+		V2__: (func(x *UserPlusKeysV2AllIncarnations) *UserPlusKeysV2AllIncarnations {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V2__),
+	}
+}
+
 type UPKInterface interface {
 }
 

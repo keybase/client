@@ -517,6 +517,11 @@ export const UPKKeyType = {
   pgp: 2,
 }
 
+export const UPKUPAKVersion = {
+  v1: 1,
+  v2: 2,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -5642,6 +5647,14 @@ export type Tracker = {
 }
 
 export type UID = string
+
+export type UPAKVersion =
+    1 // V1_1
+  | 2 // V2_2
+
+export type UPAKVersioned =
+    { v: 1, v1: ?UserPlusAllKeys }
+  | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
 
 export type UnboxAnyRes = {
   kid: KID,
