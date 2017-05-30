@@ -116,6 +116,11 @@ function startPack() {
       process.exit(1)
     }
 
+    if (stats.hasErrors()) {
+      console.error(stats.toJson('errors-only').errors)
+      process.exit(1)
+    }
+
     copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
     copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
