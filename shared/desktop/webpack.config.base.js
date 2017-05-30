@@ -34,7 +34,7 @@ module.exports = {
               {
                 useBuiltIns: false,
                 targets: {
-                  electron: '1.4.12',
+                  electron: '1.6.10',
                 },
                 debug: true,
                 exclude: ['transform-regenerator'],
