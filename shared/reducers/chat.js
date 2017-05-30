@@ -606,7 +606,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
 
     case 'chat:updateSearchResults': {
       const {payload: {searchResults}} = action
-      return state.set('searchResults', searchResults)
+      return state.set('searchResults', List(searchResults))
     }
   }
 

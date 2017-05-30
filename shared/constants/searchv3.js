@@ -63,7 +63,7 @@ export type Search<TypeToFire> = NoErrorTypedAction<
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
-  {searchResults: List<SearchResultId>, searchTerm: string, service: SearchPlatform}
+  {searchResults: Array<SearchResultId>, searchTerm: string, service: SearchPlatform}
 >
 
 // Generic so others can make their own version

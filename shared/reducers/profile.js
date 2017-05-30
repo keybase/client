@@ -180,7 +180,7 @@ export default function(state: State = initialState, action: Actions) {
       const {payload: {searchResults}} = action
       return {
         ...state,
-        searchResults,
+        searchResults: List(searchResults),
       }
     }
   }

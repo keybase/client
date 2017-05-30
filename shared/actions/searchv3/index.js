@@ -2,7 +2,6 @@
 import * as Constants from '../../constants/searchv3'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
-import {List} from 'immutable'
 import {apiserverGetWithSessionRpcPromise} from '../../constants/types/flow-types'
 import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
@@ -165,7 +164,7 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
     const rows = searchResults.list.map((result: RawResult) => {
       return _parseRawResultToRow(result, service || 'Keybase')
     })
-    const ids = List(rows.map(r => r.id))
+    const ids = rows.map(r => r.id)
     yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
     yield put(EntityAction.mergeEntity(['searchQueryToResult'], {[searchQuery]: ids}))
     yield put(Creators.finishedSearch(actionTypeToFire, ids, term, service))

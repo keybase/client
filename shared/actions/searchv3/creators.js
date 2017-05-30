@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
-import {List} from 'immutable'
 
 function search<T>(
   term: string,
@@ -12,7 +11,7 @@ function search<T>(
 
 function finishedSearch<T>(
   actionTypeToFire: T,
-  searchResults: List<Constants.SearchResultId>,
+  searchResults: Array<Constants.SearchResultId>,
   searchTerm: string,
   service: Constants.SearchPlatform = 'Keybase'
 ): Constants.FinishedSearch<T> {
