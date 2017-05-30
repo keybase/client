@@ -204,8 +204,16 @@ type PerTeamSharedSecretBoxes struct {
 	Generation    PerUserSecretGeneration `json:"generation"`
 	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
 	Nonce         string                  `json:"nonce"`
-	Prev          string                  `json:"prev"`
+	Prev          *string                 `json:"prev"`
 	Boxes         map[string]string       `json:"boxes"`
+}
+
+type PerTeamSharedSecretBox struct {
+	_struct         bool `codec:",toarray"`
+	Version         uint
+	PerUserKeySeqno keybase1.Seqno
+	NonceCounter    uint32
+	Ctext           []byte
 }
 
 func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
@@ -236,8 +244,13 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 		copy(nonce[:20], noncePrefix)
 		copy(nonce[20:24], counterBytes[:])
 		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
-		boxArray := []interface{}{libkb.SharedTeamKeyBoxVersion1, recipientPerUserKey.Seqno, counterBytes[:], ctext}
-		encodedArray, err := libkb.MsgpackEncode(boxArray)
+		boxStruct := PerTeamSharedSecretBox{
+			Version:         libkb.SharedTeamKeyBoxVersion1,
+			PerUserKeySeqno: recipientPerUserKey.Seqno,
+			NonceCounter:    counter,
+			Ctext:           ctext,
+		}
+		encodedArray, err := libkb.MsgpackEncode(boxStruct)
 		if err != nil {
 			return nil, err
 		}
@@ -249,7 +262,6 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 		Generation:    1,
 		EncryptingKid: senderNaclDHKey.GetKID(),
 		Nonce:         base64.StdEncoding.EncodeToString(noncePrefix),
-		Prev:          "", // no prev for the first team link
 		Boxes:         boxes,
 	}, nil
 }

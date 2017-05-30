@@ -11,9 +11,16 @@
       display: block;
       margin-bottom: 1em;
     }
-
     input[type="checked"] {
       float: left;
+    }
+    .tag {
+      text-transform: uppercase;
+      background: #eee;
+      font-size: 0.6em;
+      font-weight: bold;
+      padding: 2px;
+      color: rgba(200, 40, 40, 0.7);
     }
   </style>
 </head>
@@ -22,13 +29,18 @@
 
   <form id="options">
     <label>
+      <input type="checkbox" name="profile-chat-buttons" checked />
+      Add "keybase chat" buttons to profile pages.
+    </label>
+
+    <label>
       <input type="checkbox" name="reddit-thread-reply" checked />
       Reddit thread "keybase chat reply" buttons.
     </label>
 
     <label>
       <input type="checkbox" name="profile-passive-queries" />
-      Query profiles passively while browsing.
+      Query profiles passively while browsing. <span class="tag" title="Preview feature, not production quality">Alpha</span>
     </label>
   </form>
 

@@ -18,4 +18,23 @@ protocol incoming {
    */
   State stateByCategoryPrefix(UID uid, DeviceID deviceid, TimeOrOffset timeOrOffset, Category categoryPrefix);
  
+  /**
+    DescribeConnectedUsers will take a list of users, and return the list of users
+    which are connected to any Gregor in the cluster, and what devices (and device type)
+    those users are connected with.
+  */
+  record ConnectedDevice {
+    DeviceID deviceID;
+    string deviceType;
+    string devicePlatform;
+    string userAgent;
+  }
+
+  record ConnectedUser {
+    UID uid;
+    array<ConnectedDevice> devices;
+  }
+
+  array<ConnectedUser> describeConnectedUsers(array<UID> uids);
+  array<ConnectedUser> describeConnectedUsersInternal(array<UID> uids);
 }
