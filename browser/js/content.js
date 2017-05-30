@@ -152,8 +152,14 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
       renderChatContact(contactDiv, user);
       return;
     } else if (response.message != "user not found") {
-      renderError(f, response.message);
+      renderError(f, closeCallback, response.message);
     }
+
+    if (user.origin === "keybase") {
+      renderErrorFull(f, closeCallback, `<p>Keybase Chat only works on profile pages.</p>`);
+      return;
+    }
+
     user.services["keybase"] = null;
     renderChatContact(contactDiv, user);
     nudgePlaceholder.innerHTML = nudgeHTML;
@@ -245,7 +251,7 @@ function submitChat(successCallback, e) {
     "body": body
   }, function(response) {
     if (response.status != "ok") {
-      renderError(f, response.message);
+      renderError(f, null, response.message);
       submitButton.value = "Try Again";
       submitButton.disabled = false;
       return;
@@ -288,7 +294,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
 }
 
 // Render an error that replaces the body of the widget.
-function renderErrorFull(el, bodyHTML) {
+function renderErrorFull(el, closeCallback, bodyHTML) {
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
@@ -298,24 +304,24 @@ function renderErrorFull(el, bodyHTML) {
   `;
   el.classList.add("keybase-error");
 
-  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */);
+  installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */, closeCallback);
 }
 
 // Render error message inside our chat widget.
-function renderError(chatForm, msg) {
+function renderError(chatForm, closeCallback, msg) {
   const err = document.createElement("p");
   err.className = "keybase-error-msg";
 
   switch (msg) {
     case "Specified native messaging host not found.":
-      return renderErrorFull(chatForm, `
+      return renderErrorFull(chatForm, closeCallback, `
         <p>You need the Keybase app to send chat messages.</p>
         <p>
           <a href="https://keybase.io/download" class="keybase-button" target="_blank">Install Keybase</a>
         </p>
       `);
     case "keybase is not running":
-      return renderErrorFull(chatForm, `
+      return renderErrorFull(chatForm, closeCallback, `
         <p>Keybase needs to be running to send chat messages.</p>
         <p>
           <a href="https://keybase.io/docs/extension" class="keybase-button" target="_blank">More details</a>
