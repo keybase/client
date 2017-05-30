@@ -275,6 +275,8 @@ func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 	defer t.Unlock()
 
 	if t.storedState != nil {
+		// The caller shouldn't modify the returned value, but that's really easy to screw up
+		// so DeepCopy to defend our internal state.
 		return t.storedState.DeepCopy(), nil
 	}
 	return res, fmt.Errorf("no links loaded")
@@ -307,17 +309,16 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 
 	var state *TeamSigChainState
 	if t.storedState != nil {
-		tmp := t.storedState.DeepCopy()
-		state = &tmp
+		state = t.storedState
 	}
 
 	for _, link := range links {
 		newState, err := t.addChainLinkCommon(ctx, state, link, alreadyVerified)
 		if err != nil {
 			if state == nil {
-				return fmt.Errorf("seqno:1 %s", err)
+				return fmt.Errorf("at beginning: %v", err)
 			}
-			return fmt.Errorf("seqno:%v %s", state.GetLatestSeqno(), err)
+			return fmt.Errorf("at seqno %v: %v", state.GetLatestSeqno(), err)
 		}
 		state = &newState
 	}
@@ -334,7 +335,7 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 
 // Verify and add a chain link.
 // Does not modify self or any arguments.
-// The `prevState` argument is nil if this is the first chain link.
+// The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
 func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
 	oRes, err := t.checkOuterLink(ctx, prevState, link, alreadyVerified)
 	if err != nil {
