@@ -348,7 +348,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
-	case `PUBLIC` == ps[0]:
+	case strings.ToUpper(PublicName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case PublicName == ps[0]:
@@ -358,7 +358,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			return nil, false, dokan.ErrAccessDenied
 		}
 		return f.root.public.open(ctx, oc, ps[1:])
-	case `PRIVATE` == ps[0]:
+	case strings.ToUpper(PrivateName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case PrivateName == ps[0]:
