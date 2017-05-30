@@ -222,6 +222,7 @@ type conversationLockTab struct {
 	utils.DebugLabeler
 
 	convLocks map[string]*conversationLock
+	blockCb   *chan struct{} // Testing
 }
 
 func newConversationLockTab(g *globals.Context) *conversationLockTab {
@@ -256,6 +257,9 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 			return
 		}
 		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
+		if c.blockCb != nil {
+			*c.blockCb <- struct{}{} // For testing
+		}
 		lock.refs++
 		c.Unlock() // Give up map lock while we are waiting for conv lock
 		lock.lock.Lock()

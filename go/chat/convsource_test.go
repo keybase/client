@@ -538,17 +538,24 @@ func TestConversationLocking(t *testing.T) {
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewIdentifyNotifier(tc.Context()))
+	blockCb := make(chan struct{})
+	hcs.lockTab.blockCb = &blockCb
 	cb := make(chan struct{})
 	require.False(t, timedAcquire(ctx, uid, conv.GetConvID()))
 	go func() {
 		require.True(t, timedAcquire(ctx2, uid, conv.GetConvID()))
 		close(cb)
 	}()
-	time.Sleep(5 * time.Second)
 	select {
 	case <-cb:
 		require.Fail(t, "should have blocked")
 	default:
+	}
+	// Wait for the thread to get blocked
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
 	}
 	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
 	select {
