@@ -190,6 +190,7 @@ const styles = {
 }
 
 function load(options) {
+  debugger
   setupAvatar()
   ReactDOM.render(
     <RemoteComponentLoader

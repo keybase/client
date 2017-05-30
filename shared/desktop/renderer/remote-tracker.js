@@ -21,60 +21,78 @@ class _RemoteTracker extends Component<void, TrackerOrNonUserState & {username: 
   _window = null
   _remoteWindowId = 0
 
+  _makeWindow = () => {
+    if (this._window) {
+      return
+    }
+    const browser = new BrowserWindow({
+      frame: false,
+      fullscreen: false,
+      height: 470,
+      resizable: false,
+      show: false,
+      width: 320,
+    })
+
+    this._window = browser
+
+    this._remoteWindowId = browser.id
+
+    if (electron.screen.getPrimaryDisplay()) {
+      const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
+      browser.setPosition(width - 320 - 100, height - 470 - 100, false)
+    }
+
+    menuHelper(browser)
+    // this.closed = false
+
+    ipcRenderer.send('showDockIconForRemoteWindow', this._remoteWindowId)
+    ipcRenderer.send('listenForRemoteWindowClosed', this._remoteWindowId)
+
+    browser.loadURL(resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?tracker')))
+
+    const webContents = browser.webContents
+    webContents.on('did-finish-load', () => {
+      debugger
+      webContents.send('load', {
+        component: 'tracker',
+        scripts: [
+          ...(__DEV__
+            ? [
+                {
+                  async: false,
+                  src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
+                },
+              ]
+            : []),
+          {
+            async: false,
+            src: hotPath('remote-component-loader.bundle.js'),
+          },
+        ],
+        selectorParams: this.props.username,
+        title: `tracker - ${this.props.username}`,
+      })
+    })
+
+    if (showDevTools && !skipSecondaryDevtools) {
+      webContents.openDevTools('detach')
+    }
+  }
+
   render() {
-    if (!this._window) {
-      const browser = new BrowserWindow({
-        frame: false,
-        fullscreen: false,
-        height: 470,
-        resizable: false,
-        show: false,
-        width: 320,
-      })
+    this._makeWindow()
 
-      this._window = browser
+    if (!this._window) return null
 
-      this._remoteWindowId = browser.id
+    const w: BrowserWindow = this._window
 
-      if (electron.screen.getPrimaryDisplay()) {
-        const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
-        browser.setPosition(width - 320 - 100, height - 470 - 100, false)
-      }
+    w.emit('hasProps', this.props)
 
-      menuHelper(browser)
-      // this.closed = false
-
-      ipcRenderer.send('showDockIconForRemoteWindow', this._remoteWindowId)
-      ipcRenderer.send('listenForRemoteWindowClosed', this._remoteWindowId)
-
-      browser.loadURL(resolveRootAsURL('renderer', injectReactQueryParams('renderer.html?tracker')))
-
-      const webContents = browser.webContents
-      webContents.on('did-finish-load', () => {
-        webContents.send('load', {
-          component: 'tracker',
-          scripts: [
-            ...(__DEV__
-              ? [
-                  {
-                    async: false,
-                    src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
-                  },
-                ]
-              : []),
-            {
-              async: false,
-              src: hotPath('remote-component-loader.bundle.js'),
-            },
-          ],
-          selectorParams: this.props.username,
-          title: `tracker - ${this.props.username}`,
-        })
-      })
-
-      if (showDevTools && !skipSecondaryDevtools) {
-        webContents.openDevTools('detach')
-      }
+    if (this.props.hidden) {
+      w.hide()
+    } else {
+      w.show()
     }
 
     return null
