@@ -1,5 +1,5 @@
 // @flow
-import {List, Record} from 'immutable'
+import {List} from 'immutable'
 
 import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
@@ -37,8 +37,11 @@ export type RowProps = {|
   rightUsername: ?string,
 
   showTrackerButton: boolean,
+  onShowTracker: () => void,
 |}
 
+// A normalized version of the row props above.
+// The connector should fill in the missing pieces like the following state
 export type SearchResult = {|
   id: SearchResultId,
 
@@ -52,11 +55,6 @@ export type SearchResult = {|
   rightUsername: ?string,
 |}
 
-// Keypaths - maybe these should be somewhere else?
-export type KeyPath = ['searchv3Chat'] | ['searchv3Profile']
-
-export type SearchType = 'Profile' | 'Chat'
-
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
@@ -67,8 +65,6 @@ export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
   {searchResults: List<SearchResultId>, searchTerm: string, service: SearchPlatform}
 >
-
-export type OnShowTracker = NoErrorTypedAction<'searchv3:onShowTracker', {resultId: string, keyPath: KeyPath}>
 
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
@@ -98,30 +94,4 @@ function platformToLogo24(platform: SearchPlatform): IconType {
   }[platform]
 }
 
-// Parse fns
-
-function toSearchQuery(serviceName: string, searchTerm: string): SearchQuery {
-  return `${serviceName}-${searchTerm}`
-}
-
-export type SearchSubState = Record<{|
-  results: List<SearchResultId>,
-  selected: SearchResultId,
-  typing: boolean,
-|}>
-
-export type State = Record<{|
-  // TODO selected, typing, etc
-  // A list of queries that have been searched and cachedk
-  searchCache: List<SearchQuery>,
-  chat: SearchSubState,
-  profile: SearchSubState,
-|}>
-
-const StateRecord = Record({
-  searchCache: new List(),
-  chat: new List(),
-  profileResults: new List(),
-})
-
-export {StateRecord, toSearchQuery, platformToIcon, platformToLogo24}
+export {platformToIcon, platformToLogo24}

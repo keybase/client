@@ -1,7 +1,6 @@
 // @flow
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
-import * as Creators from '../../actions/searchv3/creators'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -14,7 +13,7 @@ const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath:
 
 const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
   onShowTracker: () => {
-    dispatch(Creators.onShowTracker(keyPath, id))
+    console.log('todo: dispatch action')
   },
 })
 

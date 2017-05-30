@@ -10,10 +10,6 @@ function search<T>(
   return {type: 'searchv3:search', payload: {actionTypeToFire, term, service}}
 }
 
-function onShowTracker(keyPath: Constants.KeyPath, resultId: string): Constants.OnShowTracker {
-  return {type: 'searchv3:onShowTracker', payload: {keyPath, resultId}}
-}
-
 function finishedSearch<T>(
   actionTypeToFire: T,
   searchResults: List<Constants.SearchResultId>,
@@ -23,4 +19,4 @@ function finishedSearch<T>(
   return {type: actionTypeToFire, payload: {searchTerm, searchResults, service}}
 }
 
-export {search, onShowTracker, finishedSearch}
+export {search, finishedSearch}

@@ -8,7 +8,6 @@ import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'
-import {friendlyName as friendlyServiceName} from '../../util/platforms'
 import {SearchError} from '../../util/errors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -45,22 +44,37 @@ function serviceNameToSearchPlatform(serviceName: string): Constants.SearchPlatf
   }[serviceName]
 }
 
-function rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
+function serviceNameToService(serviceName: string): Constants.Service {
+  return {
+    keybase: 'Keybase',
+    twitter: 'Twitter',
+    github: 'GitHub',
+    reddit: 'Reddit',
+    hackernews: 'Hacker News',
+    facebook: 'Facebook',
+  }[serviceName]
+}
+
+function _rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
   return `${serviceName}-${serviceUsername}`
+}
+
+function _toSearchQuery(serviceName: string, searchTerm: string): Constants.SearchQuery {
+  return `${serviceName}-${searchTerm}`
 }
 
 function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
   if (result.keybase && result.service) {
     const {keybase, service} = result
     return {
-      id: rawResultToId('Keybase', service.username),
+      id: _rawResultToId('Keybase', keybase.username),
       leftIcon: null,
       leftUsername: keybase.username,
       leftService: 'Keybase',
 
       rightFullname: keybase.full_name,
       rightIcon: Constants.platformToIcon(serviceNameToSearchPlatform(service.service_name)),
-      rightService: friendlyServiceName(service.service_name),
+      rightService: serviceNameToService(service.service_name),
       rightUsername: service.username,
     }
   }
@@ -68,7 +82,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
   if (result.keybase) {
     const {keybase} = result
     return {
-      id: keybase.username,
+      id: _rawResultToId('Keybase', keybase.username),
       leftIcon: null,
       leftUsername: keybase.username,
       leftService: 'Keybase',
@@ -87,10 +101,10 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
   if (result.service && result.keybase) {
     const {service, keybase} = result
     return {
-      id: rawResultToId(service.service_name, service.username),
+      id: _rawResultToId(service.service_name, service.username),
       leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
       leftUsername: service.username,
-      leftService: friendlyServiceName(service.service_name),
+      leftService: serviceNameToService(service.service_name),
 
       rightFullname: keybase.full_name,
       rightIcon: null,
@@ -102,10 +116,10 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
   if (result.service) {
     const service = result.service
     return {
-      id: rawResultToId(service.service_name, service.username),
+      id: _rawResultToId(service.service_name, service.username),
       leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
       leftUsername: service.username,
-      leftService: friendlyServiceName(service.service_name),
+      leftService: serviceNameToService(service.service_name),
 
       rightFullname: service.full_name,
       rightIcon: null,
@@ -139,7 +153,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
 }
 
 function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Search<T>) {
-  const searchQuery = Constants.toSearchQuery(service, term)
+  const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
     yield put(Creators.finishedSearch(actionTypeToFire, cachedResults, term, service))
@@ -153,7 +167,7 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
     })
     const ids = List(rows.map(r => r.id))
     yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
-    yield put(EntityAction.mergeEntity(['searchQueryToResult'], {searchQuery, ids}))
+    yield put(EntityAction.mergeEntity(['searchQueryToResult'], {[searchQuery]: ids}))
     yield put(Creators.finishedSearch(actionTypeToFire, ids, term, service))
   } catch (error) {
     console.warn('error in searching', error)
