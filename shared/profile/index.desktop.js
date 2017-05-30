@@ -262,13 +262,20 @@ class ProfileRender extends PureComponent<void, Props, State> {
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        {this.props.onBack &&
-          <BackButton
-            onClick={this.props.onBack}
-            style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
-            textStyle={{color: globalColors.white}}
-            iconStyle={{color: globalColors.white}}
-          />}
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          {this.props.onBack &&
+            <BackButton
+              onClick={this.props.onBack}
+              style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
+              textStyle={{color: globalColors.white}}
+              iconStyle={{color: globalColors.white}}
+            />}
+          {this.props.searchv3 &&
+            <Box onClick={() => console.log('activate search')} style={styleSearchContainer}>
+              <Icon style={styleSearch} type="iconfont-search" />
+              <Text style={styleSearchText} type="Body">Search people</Text>
+            </Box>}
+        </Box>
         <Box
           ref={c => {
             this._scrollContainer = c
@@ -453,6 +460,31 @@ const styleProofMenu = {
   minWidth: 196,
   maxWidth: 240,
   zIndex: 5,
+}
+
+const styleSearchContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  backgroundColor: globalColors.white_20,
+  borderRadius: 100,
+  justifyContent: 'center',
+  left: 224,
+  minHeight: 24,
+  minWidth: 273,
+  position: 'absolute',
+  top: 12,
+  zIndex: 13,
+}
+
+const styleSearch = {
+  color: globalColors.white,
+  padding: 3,
+}
+
+const styleSearchText = {
+  ...styleSearch,
+  position: 'relative',
+  top: 1,
 }
 
 export default ProfileRender
