@@ -669,14 +669,16 @@ func (o NewConversationRemoteArg) DeepCopy() NewConversationRemoteArg {
 }
 
 type NewConversationRemote2Arg struct {
-	IdTriple   ConversationIDTriple `codec:"idTriple" json:"idTriple"`
-	TLFMessage MessageBoxed         `codec:"TLFMessage" json:"TLFMessage"`
+	IdTriple    ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
+	TLFMessage  MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o NewConversationRemote2Arg) DeepCopy() NewConversationRemote2Arg {
 	return NewConversationRemote2Arg{
-		IdTriple:   o.IdTriple.DeepCopy(),
-		TLFMessage: o.TLFMessage.DeepCopy(),
+		IdTriple:    o.IdTriple.DeepCopy(),
+		TLFMessage:  o.TLFMessage.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
 	}
 }
 
