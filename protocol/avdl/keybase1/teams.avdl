@@ -29,10 +29,4 @@ protocol teams {
 
   TeamMembers teamGet(int sessionID, string name);
 
-  /* record BugBuster { */
-  /*   map<PublicKey> m1; */
-  /*   map<TeamRole,PublicKey> m2; */
-  /*   map<TeamRole,array<PublicKey>> m3; */
-  /* } */
-
 }
