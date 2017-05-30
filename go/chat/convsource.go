@@ -239,12 +239,12 @@ func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) 
 // Acquire obtains a per user per conversation lock on a per trace basis. That is, the lock is a
 // shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
 // no chat trace, this is a no-op.
-func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool) {
 	key := c.key(uid, convID)
 	trace, ok := CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
-		return
+		return false
 	}
 
 	c.Lock()
@@ -257,27 +257,33 @@ func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, conv
 		}
 		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
 		lock.refs++
-		c.Unlock()
+		c.Unlock() // Give up map lock while we are waiting for conv lock
 		lock.lock.Lock()
-	} else {
-		lock := &conversationLock{
-			shares: 1,
-			refs:   1,
-			trace:  trace,
-		}
-		c.convLocks[key] = lock
-		lock.lock.Lock()
+		c.Lock()
+		lock.trace = trace
+		lock.shares++
 		c.Unlock()
+		return true
 	}
+
+	lock := &conversationLock{
+		shares: 1,
+		refs:   1,
+		trace:  trace,
+	}
+	c.convLocks[key] = lock
+	lock.lock.Lock()
+	c.Unlock()
+	return false
 }
 
-func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (released bool) {
 	c.Lock()
 	defer c.Unlock()
 	trace, ok := CtxTrace(ctx)
 	if !ok {
 		c.Debug(ctx, "Release: failed to find trace value, doing nothing: convID: %s", convID)
-		return
+		return false
 	}
 
 	key := c.key(uid, convID)
@@ -292,9 +298,11 @@ func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, conv
 					delete(c.convLocks, key)
 				}
 				lock.lock.Unlock()
+				return true
 			}
 		}
 	}
+	return false
 }
 
 type HybridConversationSource struct {

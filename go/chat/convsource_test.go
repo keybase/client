@@ -507,10 +507,10 @@ func TestConversationLocking(t *testing.T) {
 		t.Skip()
 	}
 
-	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (ret bool) {
 		cb := make(chan struct{})
 		go func() {
-			hcs.lockTab.Acquire(ctx, uid, convID)
+			ret = hcs.lockTab.Acquire(ctx, uid, convID)
 			close(cb)
 		}()
 		select {
@@ -518,6 +518,7 @@ func TestConversationLocking(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "acquire timeout")
 		}
+		return ret
 	}
 	conv := newConv(t, uid, ri, sender, tlf, u.Username)
 
@@ -538,27 +539,28 @@ func TestConversationLocking(t *testing.T) {
 	ctx2 := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewIdentifyNotifier(tc.Context()))
 	cb := make(chan struct{})
-	timedAcquire(ctx, uid, conv.GetConvID())
+	require.False(t, timedAcquire(ctx, uid, conv.GetConvID()))
 	go func() {
-		timedAcquire(ctx2, uid, conv.GetConvID())
+		require.True(t, timedAcquire(ctx2, uid, conv.GetConvID()))
 		close(cb)
 	}()
+	time.Sleep(5 * time.Second)
 	select {
 	case <-cb:
 		require.Fail(t, "should have blocked")
 	default:
 	}
-	hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
 	select {
 	case <-cb:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no cb")
 	}
-	hcs.lockTab.Release(ctx2, uid, conv.GetConvID())
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
 	require.Zero(t, len(hcs.lockTab.convLocks))
 
 	t.Logf("No trace")
-	timedAcquire(context.TODO(), uid, conv.GetConvID())
-	timedAcquire(context.TODO(), uid, conv.GetConvID())
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
 	require.Zero(t, len(hcs.lockTab.convLocks))
 }
