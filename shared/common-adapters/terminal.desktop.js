@@ -21,10 +21,6 @@ export default class Terminal extends Component<void, Props, void> {
   }
 }
 
-Terminal.childContextTypes = {
-  inTerminal: React.PropTypes.bool,
-}
-
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   color: globalColors.white,

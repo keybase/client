@@ -9,7 +9,7 @@ const DashboardPlugin = require('webpack-dashboard/plugin')
 
 const USING_DLL = getenv.boolish('USING_DLL', false)
 const NO_SERVER = getenv.boolish('NO_SERVER', false)
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
+const NO_SOURCE_MAPS = true // TEMP  getenv.boolish('NO_SOURCE_MAPS', false)
 const HOT = getenv.boolish('HOT', false)
 const defines = {
   __DEV__: true,
