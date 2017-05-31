@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -60,6 +61,10 @@ func Unquote(data []byte) string {
 
 func Quote(s string) []byte {
 	return []byte("\"" + s + "\"")
+}
+
+func UnquoteBytes(data []byte) []byte {
+	return bytes.Trim(data, "\"")
 }
 
 func KIDFromSlice(b []byte) KID {
@@ -1124,4 +1129,23 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	}
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
+}
+
+func (m *MaskB64) UnmarshalJSON(b []byte) error {
+	unquoted := UnquoteBytes(b)
+	if len(unquoted) == 0 {
+		return nil
+	}
+	dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(unquoted)))
+	n, err := base64.StdEncoding.Decode(dbuf, unquoted)
+	if err != nil {
+		return err
+	}
+	*m = MaskB64(dbuf[:n])
+	return nil
+}
+
+func (m *MaskB64) MarshalJSON() ([]byte, error) {
+	s := Quote(base64.StdEncoding.EncodeToString([]byte(*m)))
+	return []byte(s), nil
 }

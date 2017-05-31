@@ -86,6 +86,26 @@ func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	}
 }
 
+type MaskB64 []byte
+
+func (o MaskB64) DeepCopy() MaskB64 {
+	return append([]byte(nil), o...)
+}
+
+type ReaderKeyMask struct {
+	Application TeamApplication `codec:"application" json:"application"`
+	Generation  int             `codec:"generation" json:"generation"`
+	Mask        MaskB64         `codec:"mask" json:"mask"`
+}
+
+func (o ReaderKeyMask) DeepCopy() ReaderKeyMask {
+	return ReaderKeyMask{
+		Application: o.Application.DeepCopy(),
+		Generation:  o.Generation,
+		Mask:        o.Mask.DeepCopy(),
+	}
+}
+
 type PerTeamKey struct {
 	Gen    int   `codec:"gen" json:"gen"`
 	Seqno  Seqno `codec:"seqno" json:"seqno"`

@@ -21,6 +21,15 @@ protocol teams {
     int generation;
     Bytes32 key; 
   }
+  
+  @typedef("bytes")
+  record MaskB64 {}
+
+  record ReaderKeyMask {
+    TeamApplication application;
+    int generation;
+    MaskB64 mask;
+  }
 
   @lint("ignore")
   record PerTeamKey {

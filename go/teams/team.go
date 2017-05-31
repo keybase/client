@@ -16,7 +16,7 @@ type Team struct {
 	Name           string
 	Chain          *TeamSigChainState
 	Box            TeamBox
-	ReaderKeyMasks []ReaderKeyMask
+	ReaderKeyMasks []keybase1.ReaderKeyMask
 
 	secret        []byte
 	signingKey    libkb.NaclSigningKeyPair
@@ -173,7 +173,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 		return keybase1.TeamApplicationKey{}, err
 	}
 
-	var max ReaderKeyMask
+	var max keybase1.ReaderKeyMask
 	for _, rkm := range t.ReaderKeyMasks {
 		if keybase1.TeamApplication(rkm.Application) != application {
 			continue
@@ -205,7 +205,7 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *Team) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
 	var derivationString string
 	switch keybase1.TeamApplication(mask.Application) {
 	case keybase1.TeamApplication_KBFS:
@@ -223,16 +223,12 @@ func (t *Team) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (keybase
 		Generation:  mask.Generation,
 	}
 
-	maskBytes, err := mask.MaskBytes()
-	if err != nil {
-		return keybase1.TeamApplicationKey{}, err
-	}
-	if len(maskBytes) != 32 {
-		return keybase1.TeamApplicationKey{}, fmt.Errorf("mask length: %d, expected 32", len(maskBytes))
+	if len(mask.Mask) != 32 {
+		return keybase1.TeamApplicationKey{}, fmt.Errorf("mask length: %d, expected 32", len(mask.Mask))
 	}
 
-	secBytes := make([]byte, len(maskBytes))
-	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), maskBytes)
+	secBytes := make([]byte, len(mask.Mask))
+	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), mask.Mask)
 	if n != 32 {
 		return key, errors.New("invalid derived secret xor mask size")
 	}

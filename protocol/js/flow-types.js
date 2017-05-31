@@ -4636,6 +4636,8 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MaskB64 = bytes
+
 export type MerkleRoot = {
   version: int,
   root: bytes,
@@ -5075,6 +5077,12 @@ export type ReadArgs = {
   path: Path,
   offset: long,
   size: int,
+}
+
+export type ReaderKeyMask = {
+  application: TeamApplication,
+  generation: int,
+  mask: MaskB64,
 }
 
 export type RegisterAddressRes = {

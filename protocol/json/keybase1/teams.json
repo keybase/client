@@ -42,6 +42,30 @@
     },
     {
       "type": "record",
+      "name": "MaskB64",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "ReaderKeyMask",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "MaskB64",
+          "name": "mask"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PerTeamKey",
       "fields": [
         {
