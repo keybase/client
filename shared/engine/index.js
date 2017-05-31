@@ -54,9 +54,7 @@ class EngineChannel {
     }
 
     const raceMap = this._configKeys.reduce((map, key) => {
-      const parts = key.split('.')
-      const name = parts[parts.length - 1]
-      map[name] = Saga.takeFromChannelMap(this._map, key)
+      map[key] = Saga.takeFromChannelMap(this._map, key)
       return map
     }, initMap)
 
@@ -468,7 +466,6 @@ export type SessionID = number
 export type SessionIDKey = string // used in our maps, really converted to a string key
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
 export type ResponseType = {
-  cancel(...args: Array<any>): void,
   result(...args: Array<any>): void,
   error(...args: Array<any>): void,
 }

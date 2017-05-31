@@ -290,10 +290,9 @@ func (e *Identify2WithUID) resetError(err error) error {
 		return nil
 	}
 
-	switch err.(type) {
-	case libkb.ProofError:
-	case libkb.IdentifySummaryError:
-	default:
+	// Check to see if this is an identify failure, and if not just return. If it is, we want
+	// to check what identify mode we are in here before returning an error.
+	if !libkb.IsIdentifyProofError(err) {
 		return err
 	}
 

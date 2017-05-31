@@ -253,7 +253,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			return nil, user, err
 		}
 		if needCopy {
-			upak = upak.DeepCopy()
+			tmp := upak.DeepCopy()
+			upak = &tmp
 		}
 		return upak, user, nil
 	}

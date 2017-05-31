@@ -62,7 +62,7 @@ chrome.contextMenus.create({
   title: "Getting started...",
   contexts: ["browser_action", "page_action"],
   onclick: function() {
-    chrome.tabs.create({url: "https://keybase.io/reddit-crypto"});
+    chrome.tabs.create({url: "https://keybase.io/docs/extension"});
   }
 });
 chrome.contextMenus.create({

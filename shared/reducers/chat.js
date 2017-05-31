@@ -603,6 +603,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:inboxUntrustedState': {
       return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
     }
+
+    case 'chat:updateSearchResults': {
+      const {payload: {searchResults}} = action
+      return state.set('searchResults', List(searchResults))
+    }
   }
 
   return state

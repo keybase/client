@@ -535,6 +535,10 @@
         {
           "name": "TLFMessage",
           "type": "MessageBoxed"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
         }
       ],
       "response": "NewConversationRemoteRes",

@@ -193,6 +193,10 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	}
 }
 
+func (t *TeamSigChainState) GetID() keybase1.TeamID {
+	return t.ID
+}
+
 func (t *TeamSigChainState) GetName() TeamName {
 	return t.Name
 }
@@ -203,6 +207,10 @@ func (t *TeamSigChainState) IsSubteam() bool {
 
 func (t *TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.LastSeqno
+}
+
+func (t *TeamSigChainState) GetLatestLinkID() libkb.LinkID {
+	return t.LastLinkID
 }
 
 func (t *TeamSigChainState) GetUserRole(user UserVersion) (keybase1.TeamRole, error) {
@@ -226,6 +234,14 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	if !ok {
 		// if this happens it's a programming error
 		return res, errors.New("per-team-key not found")
+	}
+	return res, nil
+}
+
+func (t *TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
+	res, ok := t.PerTeamKeys[gen]
+	if !ok {
+		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}
 	}
 	return res, nil
 }
@@ -267,6 +283,8 @@ func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 	defer t.Unlock()
 
 	if t.storedState != nil {
+		// The caller shouldn't modify the returned value, but that's really easy to screw up
+		// so DeepCopy to defend our internal state.
 		return t.storedState.DeepCopy(), nil
 	}
 	return res, fmt.Errorf("no links loaded")
@@ -299,17 +317,16 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 
 	var state *TeamSigChainState
 	if t.storedState != nil {
-		tmp := t.storedState.DeepCopy()
-		state = &tmp
+		state = t.storedState
 	}
 
 	for _, link := range links {
 		newState, err := t.addChainLinkCommon(ctx, state, link, alreadyVerified)
 		if err != nil {
 			if state == nil {
-				return fmt.Errorf("seqno:1 %s", err)
+				return fmt.Errorf("at beginning: %v", err)
 			}
-			return fmt.Errorf("seqno:%v %s", state.GetLatestSeqno(), err)
+			return fmt.Errorf("at seqno %v: %v", state.GetLatestSeqno(), err)
 		}
 		state = &newState
 	}
@@ -326,7 +343,7 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 
 // Verify and add a chain link.
 // Does not modify self or any arguments.
-// The `prevState` argument is nil if this is the first chain link.
+// The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
 func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *TeamSigChainState, link SCChainLink, alreadyVerified bool) (res TeamSigChainState, err error) {
 	oRes, err := t.checkOuterLink(ctx, prevState, link, alreadyVerified)
 	if err != nil {
@@ -469,34 +486,68 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	}
 	team := payload.Body.Team
 
+	if len(team.ID) == 0 {
+		return res, errors.New("missing team id")
+	}
+	teamID, err := keybase1.TeamIDFromString(string(team.ID))
+	if err != nil {
+		return res, err
+	}
+
+	if prevState != nil && !prevState.ID.Equal(teamID) {
+		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+	}
+
+	hasPrevState := func(has bool) error {
+		if has {
+			if prevState == nil {
+				return fmt.Errorf("link type '%s' unexpected at beginning", payload.Body.Type)
+			}
+		} else {
+			if prevState != nil {
+				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+			}
+		}
+		return nil
+	}
+	hasGeneric := func(hasExpected bool, hasReal bool, attr string) error {
+		if hasExpected != hasReal {
+			if hasReal {
+				return fmt.Errorf("unexpected %s", attr)
+			}
+			return fmt.Errorf("missing %s", attr)
+		}
+		return nil
+	}
+	hasName := func(has bool) error {
+		return hasGeneric(has, team.Name != nil, "name")
+	}
+	hasMembers := func(has bool) error {
+		return hasGeneric(has, team.Members != nil, "members")
+	}
+	hasParent := func(has bool) error {
+		return hasGeneric(has, team.Parent != nil, "parent")
+	}
+	hasSubteam := func(has bool) error {
+		return hasGeneric(has, team.Subteam != nil, "subteam")
+	}
+	hasPerTeamKey := func(has bool) error {
+		return hasGeneric(has, team.PerTeamKey != nil, "per-team-key")
+	}
+
 	switch payload.Body.Type {
 	case "team.root":
-		if prevState != nil {
-			return res, fmt.Errorf("link type 'team.root' unexpected at seqno:%v", prevState.LastSeqno+1)
-		}
-		if team.ID == nil {
-			return res, errors.New("missing team id")
-		}
-		if team.Name == nil {
-			return res, errors.New("missing name")
-		}
-		if team.Members == nil {
-			return res, errors.New("missing members")
-		}
-		if team.Parent != nil {
-			return res, errors.New("unexpected parent")
-		}
-		if team.Subteam != nil {
-			return res, errors.New("unexpected subteam")
-		}
-		if team.PerTeamKey == nil {
-			return res, errors.New("per-team-key missing")
-		}
-
-		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		err = libkb.PickFirstError(
+			hasPrevState(false),
+			hasName(true),
+			hasMembers(true),
+			hasParent(false),
+			hasSubteam(false),
+			hasPerTeamKey(true))
 		if err != nil {
 			return res, err
 		}
+
 		teamName, err := TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
@@ -541,35 +592,14 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.change_membership":
-		if prevState == nil {
-			return res, fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
-		}
-		if team.ID == nil {
-			return res, errors.New("missing team id")
-		}
-		if team.Name != nil {
-			return res, errors.New("unexpected name")
-		}
-		if team.Members == nil {
-			return res, errors.New("missing members")
-		}
-		if team.Parent != nil {
-			return res, errors.New("unexpected parent")
-		}
-		if team.Subteam != nil {
-			return res, errors.New("unexpected subteam")
-		}
-		if team.PerTeamKey != nil {
-			return res, errors.New("unexpected missing")
-		}
-
-		teamID, err := keybase1.TeamIDFromString(string(*team.ID))
+		err = libkb.PickFirstError(
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(true),
+			hasParent(false),
+			hasSubteam(false))
 		if err != nil {
 			return res, err
-		}
-
-		if !prevState.ID.Equal(teamID) {
-			return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
 		}
 
 		// Check that the signer is an admin or owner to have permission to make this link.
@@ -609,26 +639,15 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.rotate_key":
-		if prevState == nil {
-			return res, fmt.Errorf("link type 'team.rotate_key' unexpected at beginning of chain")
-		}
-		if team.ID == nil {
-			return res, errors.New("missing team id")
-		}
-		if team.Name != nil {
-			return res, errors.New("unexpected name")
-		}
-		if team.Members != nil {
-			return res, errors.New("unexpected members")
-		}
-		if team.Parent != nil {
-			return res, errors.New("unexpected parent")
-		}
-		if team.Subteam != nil {
-			return res, errors.New("unexpected subteam")
-		}
-		if team.PerTeamKey == nil {
-			return res, errors.New("missing per-team-key")
+		err = libkb.PickFirstError(
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(false),
+			hasPerTeamKey(true))
+		if err != nil {
+			return res, err
 		}
 
 		// Check that the signer is at least a writer to have permission to make this link.
@@ -657,7 +676,48 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		return res, nil
 	case "team.leave":
-		return res, fmt.Errorf("todo implement parsing of: %s", payload.Body.Type) // TODO CORE-5305
+		err = libkb.PickFirstError(
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(false))
+		if err != nil {
+			return res, err
+		}
+
+		// Check that the signer is at least a reader.
+		// Implicit admins cannot leave a subteam.
+		signerRole, err := prevState.GetUserRole(oRes.signingUser)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_READER, keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to leave: %v is a %v", oRes.signingUser, signerRole)
+		}
+
+		// The last owner of a team should not leave.
+		// But that's really up to them and the server. We're just reading what has happened.
+
+		res.newState = prevState.DeepCopy()
+		res.newState.UserLog.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
+
+		if team.PerTeamKey != nil {
+			lastKey, err := prevState.GetLatestPerTeamKey()
+			if err != nil {
+				return res, fmt.Errorf("getting previous per-team-key: %s", err)
+			}
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			if err != nil {
+				return res, err
+			}
+			res.newState.PerTeamKeys[newKey.Gen] = newKey
+		}
+
+		return res, nil
 	case "team.subteam_head":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
@@ -723,7 +783,8 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
-// `firstLink` is whether this is seqno=1. In which case owners must exist.
+// Do not check that all removals are members. That should be true, but not strictly enforced when reading.
+// `firstLink` is whether this is seqno=1. In which case owners must exist. And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
 // In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
 func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]UserVersion, error) {
@@ -739,6 +800,9 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 		}
 		if len(*members.Owners) < 1 {
 			return nil, fmt.Errorf("team has no owners: %+v", members)
+		}
+		if members.None != nil && len(*members.None) != 0 {
+			return nil, fmt.Errorf("team has removals in root link: %+v", members)
 		}
 	}
 
@@ -767,6 +831,12 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
+	}
+	if members.None != nil {
+		res[keybase1.TeamRole_NONE] = nil
+		for _, m := range *members.None {
+			all = append(all, assignment{m, keybase1.TeamRole_NONE})
 		}
 	}
 
@@ -841,31 +911,12 @@ func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRol
 }
 
 // Update `userLog` with the membership in roleUpdates.
-// Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
-// Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
-// Users already in `userLog` who appear with a different role than before are updated to that new role.
+// The `NONE` list removes users.
+// The other lists add users.
 func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno keybase1.Seqno) {
-	// Set of users that were already processed
-	processed := make(map[UserVersion]bool)
-
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
 			userLog.inform(uv, role, seqno)
-			processed[uv] = true
 		}
 	}
-
-	// Kick users who were not processed and whose role is mentioned in roleUpdates.
-	for uv := range *userLog {
-		if !processed[uv] {
-			role := (*userLog).getUserRole(uv)
-			if role != keybase1.TeamRole_NONE {
-				_, mentioned := roleUpdates[role]
-				if mentioned {
-					userLog.inform(uv, keybase1.TeamRole_NONE, seqno)
-				}
-			}
-		}
-	}
-
 }

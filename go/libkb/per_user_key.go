@@ -346,6 +346,19 @@ func (s *PerUserKeyring) GetEncryptionKey(ctx context.Context, gen keybase1.PerU
 	return key.encKey, nil
 }
 
+// GetEncryptionKeyByKID finds an encryption key that matches kid.
+func (s *PerUserKeyring) GetEncryptionKeyByKID(ctx context.Context, kid keybase1.KID) (*NaclDHKeyPair, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	for _, key := range s.generations {
+		if key.encKey.GetKID().Equal(kid) {
+			return key.encKey, nil
+		}
+	}
+	return nil, NotFoundError{Msg: fmt.Sprintf("no per-user encryption key found for KID %s", kid)}
+}
+
 // Clone makes a deep copy of this keyring.
 // But the keys are still aliased.
 func (s *PerUserKeyring) Clone() (*PerUserKeyring, error) {
@@ -551,7 +564,7 @@ func newPerUserKeyChecker(upak *keybase1.UserPlusAllKeys) *perUserKeyChecker {
 func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keybase1.PerUserKeyGeneration) error {
 	// sig key
 	if expectedSigKID, ok := c.expectedPUKSigKIDs[generation]; ok {
-		if !expectedSigKID.Equal(key.sigKey.GetKID()) {
+		if !expectedSigKID.SecureEqual(key.sigKey.GetKID()) {
 			return fmt.Errorf("import per-user-key: wrong sigKID expected %v", expectedSigKID.String())
 		}
 	} else {
@@ -560,7 +573,7 @@ func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keyba
 
 	// enc key
 	if expectedEncKID, ok := c.expectedPUKEncKIDs[generation]; ok {
-		if !expectedEncKID.Equal(key.encKey.GetKID()) {
+		if !expectedEncKID.SecureEqual(key.encKey.GetKID()) {
 			return fmt.Errorf("import per-user-key: wrong sigKID expected %v", expectedEncKID.String())
 		}
 	} else {
