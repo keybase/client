@@ -40,7 +40,28 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		signingKey, encryptionKey, err := generatePerTeamKeysFromSecret(secret)
+		if err != nil {
+			return nil, err
+		}
+
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
+		if err != nil {
+			return nil, err
+		}
+
+		if !teamKey.SigKID.Equal(signingKey.GetKID()) {
+			return nil, errors.New("derived signing key did not match key in team chain")
+		}
+
+		if !teamKey.EncKID.Equal(encryptionKey.GetKID()) {
+			return nil, errors.New("derived encryption key did not match key in team chain")
+		}
+
 		t.secret = secret
+		t.signingKey = signingKey
+		t.encryptionKey = encryptionKey
 	}
 
 	return t.secret, nil
@@ -230,7 +251,7 @@ type ChangeReq struct {
 
 func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
 	// make keys for the team
-	if err := t.makeKeys(ctx); err != nil {
+	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
 
@@ -265,20 +286,6 @@ func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
 
 	// send it to the server
 	return t.postMulti(payload)
-}
-
-func (t *Team) makeKeys(ctx context.Context) error {
-	var err error
-	t.secret, err = t.SharedSecret(ctx)
-	if err != nil {
-		return err
-	}
-	t.signingKey, t.encryptionKey, err = generatePerTeamKeysFromSecret(t.secret)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (t *Team) loadMe() (*libkb.User, error) {
