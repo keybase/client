@@ -175,7 +175,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 
 	var max keybase1.ReaderKeyMask
 	for _, rkm := range t.ReaderKeyMasks {
-		if keybase1.TeamApplication(rkm.Application) != application {
+		if rkm.Application != application {
 			continue
 		}
 		if rkm.Generation < max.Generation {
@@ -193,7 +193,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 
 func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
-		if keybase1.TeamApplication(rkm.Application) != application {
+		if rkm.Application != application {
 			continue
 		}
 		if rkm.Generation != generation {
@@ -207,7 +207,7 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 
 func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
 	var derivationString string
-	switch keybase1.TeamApplication(mask.Application) {
+	switch mask.Application {
 	case keybase1.TeamApplication_KBFS:
 		derivationString = libkb.TeamKBFSDerivationString
 	case keybase1.TeamApplication_CHAT:
@@ -219,7 +219,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	}
 
 	key := keybase1.TeamApplicationKey{
-		Application: keybase1.TeamApplication(mask.Application),
+		Application: mask.Application,
 		Generation:  mask.Generation,
 	}
 
