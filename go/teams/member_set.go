@@ -1,8 +1,6 @@
 package teams
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -69,22 +67,34 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 }
 
 func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, username string) (member, error) {
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(g, username))
+	// resolve the username
+	res := g.Resolver.ResolveWithBody(username)
+	if res.GetError() != nil {
+		return member{}, res.GetError()
+	}
+
+	// load upak for uid
+	arg := libkb.NewLoadUserByUIDArg(ctx, g, res.GetUID())
+	upak, _, err := g.GetUPAKLoader().Load(arg)
 	if err != nil {
 		return member{}, err
 	}
-	key := user.GetComputedKeyFamily().GetLatestPerUserKey()
-	if key == nil {
-		return member{}, errors.New("user does not have per-user key")
+
+	// find the most recent per-user key
+	var key keybase1.PerUserKey
+	for _, puk := range upak.Base.PerUserKeys {
+		if puk.Seqno > key.Seqno {
+			key = puk
+		}
 	}
 
-	version, err := loadUserVersionByUsername(ctx, g, username)
+	// store the key in a recipients table
+	m.recipients[upak.Base.Username] = key
 
-	m.recipients[user.GetName()] = *key
-
+	// return a member with UserVersion and a PerUserKey
 	return member{
-		version:    version,
-		perUserKey: *key,
+		version:    NewUserVersion(upak.Base.Username, upak.Base.EldestSeqno),
+		perUserKey: key,
 	}, nil
 
 }
