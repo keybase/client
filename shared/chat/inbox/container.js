@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as Constants from '../../constants/chat'
 import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
@@ -11,16 +12,27 @@ const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
+const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
+const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean => {
+  if (filter.isEmpty()) {
+    return true
+  }
+
+  return filter.isSubset(i.get('participants'))
+}
+
 const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow],
-  (inbox, supersededByState, alwaysShow) => {
+  [getInbox, getSupersededByState, getAlwaysShow, getFilter],
+  (inbox, supersededByState, alwaysShow, filter) => {
     return inbox
       .filter(
         i =>
-          (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) && !supersededByState.get(i.conversationIDKey)
+          (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
+          !supersededByState.get(i.conversationIDKey) &&
+          passesFilter(i, filter)
       )
       .map(i => i.conversationIDKey)
   }
