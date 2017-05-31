@@ -47,7 +47,7 @@ dependencies:
     #    background: true
     #    parallel: true
     # Maybe we dont need this with yarn - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
-    - yarn install --pure-lockfile
+    - yarn install --pure-lockfile --ignore-engines
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
