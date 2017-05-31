@@ -12,7 +12,7 @@ import {
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
-import {mapValues} from 'lodash'
+import {mapValues, trim} from 'lodash'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
 import {delay} from 'redux-saga'
@@ -301,7 +301,7 @@ function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any
     yield put(Constants.waiting(true))
 
     const {email, message} = invitesSendAction.payload
-    const args = [{key: 'email', value: email}]
+    const args = [{key: 'email', value: trim(email)}]
     if (message) {
       args.push({key: 'invitation_message', value: message})
     }

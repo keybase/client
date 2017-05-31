@@ -4,12 +4,22 @@ import SearchResultRow from '.'
 
 import type {TypedState} from '../../constants/reducer'
 
-// TODO use entities
-const mapStateToProps = (state: TypedState, id: string) => {
-  return {}
+const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath: Array<string>}) => {
+  return {
+    // $FlowIssue doesnt like getIn
+    ...state.entities.getIn(keyPath.concat([id])),
+  }
 }
 
-// TODO
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
+  onShowTracker: () => {
+    console.log('todo: dispatch action')
+  },
+})
 
-export default connect(mapStateToProps, mapDispatchToProps)(SearchResultRow)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SearchResultRow)

@@ -27,8 +27,14 @@ const MessagePopupHeader = ({
   const iconName = iconNameForDeviceType(deviceType, !!senderDeviceRevokedAt)
   const whoRevoked = author === you ? 'You' : author
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Icon type={iconName} style={{marginTop: -6}} />
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        width: '100%',
+      }}
+    >
+      <Icon type={iconName} style={{marginBottom: globalMargins.tiny, marginTop: -6}} />
       <Box style={globalStyles.flexBoxRow}>
         <Text type="BodySmall" style={{color: globalColors.green2}}>ENCRYPTED</Text>
         <Text
@@ -52,6 +58,7 @@ const MessagePopupHeader = ({
             ...(isLast
               ? {borderBottomLeftRadius: 3, borderBottomRightRadius: 3, marginBottom: -globalMargins.small}
               : {}),
+            width: '100%',
           }}
         >
           {whoRevoked} revoked this device on {formatTimeForRevoked(senderDeviceRevokedAt)}.

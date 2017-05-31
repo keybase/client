@@ -1,4 +1,8 @@
-li.keybase-reply form {
+.keybase-reply {
+  text-align: left;
+}
+
+li.keybase-reply form, form.keybase-reply {
   overflow: hidden;
   z-index: 9999;
   position: absolute;
@@ -6,10 +10,10 @@ li.keybase-reply form {
   border-radius: 4px;
 }
 
-.keybase-reply form {
+.keybase-reply form, form.keybase-reply {
   display: block !important;
   background: #fff;
-  margin-top: 2em;
+  margin-top: 3em;
   width: 500px;
   background-color: #ffffff;
   white-space: normal !important;
@@ -32,9 +36,7 @@ li.keybase-reply form {
   font-weight: 600;
   font-size: inherit !important;
   color: rgba(0, 0, 0, 0.6);
-}
-.keybase-reply a:hover {
-  text-decoration: none !important;
+  cursor: pointer;
 }
 
 .keybase-body {
@@ -103,7 +105,7 @@ img.keybase-icon {
   font-weight: 600;
 }
 
-.keybase-reply textarea {
+.keybase-reply textarea, .keybase-reply textarea:focus {
   width: 97%;
   font-size: 13px;
   color: rgba(0, 0, 0, 0.75);
@@ -111,6 +113,7 @@ img.keybase-icon {
   border-radius: 4px;
   border: solid 1px #33a0ff;
   margin: 8px 0 8px 0;
+  box-shadow: inherit;
 }
 
 .keybase-reply input {
@@ -140,6 +143,7 @@ a.keybase-button {
   font-weight: 600;
   font-size: 13px;
   margin-bottom: 16px;
+  margin-top: 0;
 }
 
 .keybase-reply .keybase-error h3 {
@@ -149,7 +153,7 @@ a.keybase-button {
 .keybase-reply h3 img {
   height: 16px;
   width: 16px;
-  margin: 0 6px -2px 0;
+  margin: 0 2px -2px 0;
 }
 
 .keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
@@ -206,4 +210,57 @@ span.keybase-close::before {
   position: absolute;
   margin: 3px 0 0 2px;
   content: "\1f4cb"; /* clipboard */
+}
+
+a.keybase-chat {
+  /* Stand-alone chat button that gets injected */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  white-space: normal !important;
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  color: #fff !important;
+  background-color: #33a0ff;
+  white-space: nowrap !important;
+  cursor: pointer;
+  text-align: center;
+  display: inline-block;
+  height: 28px;
+  width: 134px;
+  line-height: 28px;
+  border-radius: 28px;
+}
+a.keybase-chat img {
+  height: 16px;
+  width: 16px;
+  margin-bottom: -2px;
+  margin-right: 4px;
+}
+a.keybase-chat:focus img {
+  border: 0;
+}
+
+a.keybase-chat:hover {
+  text-decoration: none !important;
+  background-color: #52afff;
+}
+
+a.keybase-profile-chat {
+  /* Chat button for keybase profile page. */
+  background-color: #33a0ff;
+  color: rgb(255,255,255);
+}
+a.keybase-profile-chat img {
+  height: 16px;
+  width: 16px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+}
+
+a.keybase-profile-chat:hover {
+  color: rgb(255,255,255);
+  background-color: #52afff;
 }

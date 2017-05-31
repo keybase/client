@@ -12,6 +12,12 @@ protocol common {
   @typedef("uint64") @lint("ignore") record InboxVers {}
   @typedef("bytes")  record OutboxID {}
 
+  enum ConversationMembersType {
+    KBFS_0,
+    TEAM_1,
+    IMPTEAM_2
+  }
+
   @go("nostring")
   enum MessageType {
     NONE_0,
@@ -126,6 +132,7 @@ protocol common {
     ConversationID conversationID;
     TLFVisibility visibility;
     ConversationStatus status;
+    ConversationMembersType membersType;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

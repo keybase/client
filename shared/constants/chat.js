@@ -1,4 +1,5 @@
 // @flow
+import * as SearchConstants from './searchv3'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -351,6 +352,7 @@ export const StateRecord = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
+  searchResults: List(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -373,6 +375,7 @@ export type State = Record<{
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
+  searchResults: List<SearchConstants.SearchResultId>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -661,6 +664,18 @@ export type ShareAttachment = NoErrorTypedAction<
   }
 >
 
+export type UpdateThread = NoErrorTypedAction<
+  'chat:updateThread',
+  {
+    thread: ChatTypes.ThreadView,
+    yourName: string,
+    yourDeviceName: string,
+    conversationIDKey: string,
+  }
+>
+
+export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'chat:updateSearchResults'>
+
 export type Actions =
   | AddPendingConversation
   | AppendMessages
@@ -688,8 +703,9 @@ export type Actions =
   | MarkSeenMessage
   | AttachmentLoaded
   | UpdateFinalizedState
-  | UpdateSupersedesState
+  | UpdateSearchResults
   | UpdateSupersededByState
+  | UpdateSupersedesState
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

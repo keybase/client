@@ -228,22 +228,24 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
         _outputInstructionsResponse = null
         yield put(_waitingForResponse(true))
       }
-    } else if (incoming.promptUsername) {
-      _promptUsernameResponse = incoming.promptUsername.response
-      if (incoming.promptUsername.params.prevError) {
+    } else if (incoming['keybase.1.proveUi.promptUsername']) {
+      _promptUsernameResponse = incoming['keybase.1.proveUi.promptUsername'].response
+      if (incoming['keybase.1.proveUi.promptUsername'].params.prevError) {
         yield put(
           _updateErrorText(
-            incoming.promptUsername.params.prevError.desc,
-            incoming.promptUsername.params.prevError.code
+            incoming['keybase.1.proveUi.promptUsername'].params.prevError.desc,
+            incoming['keybase.1.proveUi.promptUsername'].params.prevError.code
           )
         )
       }
       yield put(navigateTo(['proveEnterUsername'], [profileTab]))
-    } else if (incoming.outputInstructions) {
+    } else if (incoming['keybase.1.proveUi.outputInstructions']) {
       if (service === 'dnsOrGenericWebSite') {
         // We don't get this directly (yet) so we parse this out
         try {
-          const match = incoming.outputInstructions.params.instructions.data.match(/<url>(http[s]+):\/\//)
+          const match = incoming['keybase.1.proveUi.outputInstructions'].params.instructions.data.match(
+            /<url>(http[s]+):\/\//
+          )
           const protocol = match && match[1]
           yield put(_updatePlatform(protocol === 'https' ? 'https' : 'http'))
         } catch (_) {
@@ -251,8 +253,8 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
         }
       }
 
-      yield put(_updateProofText(incoming.outputInstructions.params.proof))
-      _outputInstructionsResponse = incoming.outputInstructions.response
+      yield put(_updateProofText(incoming['keybase.1.proveUi.outputInstructions'].params.proof))
+      _outputInstructionsResponse = incoming['keybase.1.proveUi.outputInstructions'].response
       yield put(navigateAppend(['postProof'], [profileTab]))
     } else if (incoming.finished) {
       yield put(_updateSigID(incoming.finished.params.sigID))
@@ -264,20 +266,20 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
         yield put(checkProof())
       }
       break
-    } else if (incoming.promptOverwrite) {
-      incoming.promptOverwrite.response.result(true)
+    } else if (incoming['keybase.1.proveUi.promptOverwrite']) {
+      incoming['keybase.1.proveUi.promptOverwrite'].response.result(true)
       yield put(_waitingForResponse(true))
-    } else if (incoming.outputPrechecks) {
-      incoming.outputPrechecks.response.result()
+    } else if (incoming['keybase.1.proveUi.outputPrechecks']) {
+      incoming['keybase.1.proveUi.outputPrechecks'].response.result()
       yield put(_waitingForResponse(true))
-    } else if (incoming.preProofWarning) {
-      incoming.preProofWarning.response.result(true)
+    } else if (incoming['keybase.1.proveUi.preProofWarning']) {
+      incoming['keybase.1.proveUi.preProofWarning'].response.result(true)
       yield put(_waitingForResponse(true))
-    } else if (incoming.okToCheck) {
-      incoming.okToCheck.response.result(true)
+    } else if (incoming['keybase.1.proveUi.okToCheck']) {
+      incoming['keybase.1.proveUi.okToCheck'].response.result(true)
       yield put(_waitingForResponse(true))
-    } else if (incoming.displayRecheckWarning) {
-      incoming.displayRecheckWarning.response.result()
+    } else if (incoming['keybase.1.proveUi.displayRecheckWarning']) {
+      incoming['keybase.1.proveUi.displayRecheckWarning'].response.result()
       yield put(_waitingForResponse(true))
     }
   }

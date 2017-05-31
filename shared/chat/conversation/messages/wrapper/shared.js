@@ -28,9 +28,8 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   return <Text type="BodySmallSemibold" style={style}>{author}</Text>
 }
 
-const ActionButton = ({isRevoked, onAction}) => (
+const ActionButton = ({onAction}) => (
   <Box className="action-button">
-    {isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
     {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
   </Box>
 )
@@ -53,7 +52,7 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
 }
 
 const MessageWrapper = (props: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
+  <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
     {props.timestamp && <Timestamp timestamp={props.timestamp} />}
     <Box
       style={{
@@ -88,6 +87,7 @@ const MessageWrapper = (props: Props) => (
               <EditedMark isEdited={props.isEdited} />
             </Box>
             <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
+            {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
           </Box>
           <Failure
             failureDescription={props.failureDescription}
@@ -110,6 +110,15 @@ const _flexOneColumn = {
   flex: 1,
 }
 
+const _containerNoHeaderStyle = {
+  ...globalStyles.flexBoxColumn,
+}
+
+const _containerWithHeaderStyle = {
+  ..._containerNoHeaderStyle,
+  marginTop: globalMargins.tiny,
+}
+
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
   paddingRight: globalMargins.tiny,
@@ -117,7 +126,7 @@ const _rightSideNoHeaderStyle = {
 
 const _rightSideWithHeaderStyle = {
   ..._rightSideNoHeaderStyle,
-  paddingTop: globalMargins.tiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const _stylesFirstNewMessage = {
@@ -135,7 +144,9 @@ const _stylesSelected = {
 
 const _exclamationStyle = {
   color: globalColors.blue,
-  fontSize: 10,
+  fontSize: 11,
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const _ellipsisStyle = {
@@ -166,7 +177,6 @@ const _leftMarkerStyle = {
 
 const _userAvatarStyle = {
   width: 32,
-  paddingTop: globalMargins.tiny,
 }
 
 const _failStyle = {

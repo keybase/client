@@ -147,10 +147,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var newPukSeed *libkb.PerUserKeySeed
 
 	if e.G().Env.GetSupportPerUserKey() {
-		err = e.G().BumpPerUserKeyring()
-		if err != nil {
-			return err
-		}
 		pukring, err := e.G().GetPerUserKeyring()
 		if err != nil {
 			return err

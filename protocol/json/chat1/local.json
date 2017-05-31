@@ -2106,6 +2106,10 @@
           ]
         },
         {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -2371,7 +2375,7 @@
           "name": "oneChatPerTLF",
           "type": [
             null,
-            "bool"
+            "boolean"
           ]
         },
         {
