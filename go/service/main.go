@@ -804,9 +804,17 @@ func (d *Service) tryLogin() {
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
 		d.G().Log.Debug("trying LoginProvisionedDevice")
+
+		// Standalone mode quirk here. We call tryLogin when client is
+		// launched in standalone to unlock the same keys that we would
+		// have in service mode. But NewLoginProvisionedDevice engine
+		// needs KbKeyrings and not every command sets it up. Ensure
+		// Keyring is available.
 		if d.G().Keyrings == nil {
+			d.G().Log.Debug("tryLogin: Configuring Keyrings")
 			d.G().ConfigureKeyring()
 		}
+
 		deng := engine.NewLoginProvisionedDevice(d.G(), "")
 		deng.SecretStoreOnly = true
 		ctx := &engine.Context{

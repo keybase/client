@@ -322,7 +322,6 @@ func (c *CmdStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
-		//KbKeyring : true,
 	}
 }
 
