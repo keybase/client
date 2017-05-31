@@ -34,8 +34,8 @@ let config: {[key: string]: any} = {
   showAllTrackers: false,
 }
 
-  config.isDevApplePushToken = true
 if (__DEV__ && true) {
+  config.isDevApplePushToken = true
   config.clickableVisible = true
   config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
