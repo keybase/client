@@ -3826,7 +3826,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fbo.log.CDebugf(ctx, "Syncing %d dir(s)", len(dirtyDirs))
 	for _, ref := range dirtyDirs {
 		node := fbo.nodeCache.Get(ref)
-		if node == nil || fbo.nodeCache.IsUnlinked(node) {
+		if node == nil {
 			continue
 		}
 
@@ -3837,7 +3837,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 
 		lbc[dir.tailPointer()] = dblock
-		resolvedPaths[dir.tailPointer()] = dir
+		if !fbo.nodeCache.IsUnlinked(node) {
+			resolvedPaths[dir.tailPointer()] = dir
+		}
 
 		// On a successful sync, clean up the cached entries and the
 		// dirty blocks.
@@ -3975,7 +3977,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fileSyncBlocks := newBlockPutState(1)
 	for _, ref := range dirtyFiles {
 		node := fbo.nodeCache.Get(ref)
-		if node == nil || fbo.nodeCache.IsUnlinked(node) {
+		if node == nil {
 			continue
 		}
 		file := fbo.nodeCache.PathFromNode(node)
