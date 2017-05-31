@@ -421,7 +421,9 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},
-			NetContext: ctx,
+			NetContext:     ctx,
+			RetryCount:     5,
+			InitialTimeout: HTTPDefaultTimeout,
 		})
 
 		if err != nil {

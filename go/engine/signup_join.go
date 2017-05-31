@@ -78,7 +78,9 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.APIRes
 	var ppGenTmp int
 	res, err = s.G().API.Post(libkb.APIArg{
-		Endpoint: "signup",
+		Endpoint:       "signup",
+		RetryCount:     5,
+		InitialTimeout: libkb.HTTPDefaultTimeout,
 		Args: libkb.HTTPArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
 			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
