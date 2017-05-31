@@ -575,7 +575,7 @@ const (
 	TeamEdDSADerivationString    = "Keybase-Derived-Team-NaCl-EdDSA-1"
 	TeamKBFSDerivationString     = "Keybase-Derived-Team-NaCl-KBFS-1"
 	TeamChatDerivationString     = "Keybase-Derived-Team-NaCl-Chat-1"
-	TeamSaltpackDerivationString = "Keybase-Derived-Team-Nacl-Saltpack-1"
+	TeamSaltpackDerivationString = "Keybase-Derived-Team-NaCl-Saltpack-1"
 )
 
 func CurrentSaltpackVersion() saltpack.Version {

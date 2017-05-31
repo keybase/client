@@ -16,6 +16,12 @@ protocol teams {
     SALTPACK_3
   }
 
+  record TeamApplicationKey {
+    TeamApplication application;
+    int generation;
+    Bytes32 key; 
+  }
+
   @lint("ignore")
   record PerTeamKey {
       int gen;

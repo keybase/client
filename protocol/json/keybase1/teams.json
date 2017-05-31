@@ -24,6 +24,24 @@
     },
     {
       "type": "record",
+      "name": "TeamApplicationKey",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Bytes32",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PerTeamKey",
       "fields": [
         {

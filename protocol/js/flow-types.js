@@ -5575,6 +5575,12 @@ export type TeamApplication =
   | 2 // CHAT_2
   | 3 // SALTPACK_3
 
+export type TeamApplicationKey = {
+  application: TeamApplication,
+  generation: int,
+  key: Bytes32,
+}
+
 export type TeamID = string
 
 export type TeamMembers = {

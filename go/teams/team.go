@@ -45,18 +45,18 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 	return t.secret, nil
 }
 
-func (t *Team) KBFSEncKey(ctx context.Context) (libkb.NaclDHKeyPair, error) {
+func (t *Team) KBFSEncKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
 	secret, err := t.SharedSecret(ctx)
 	if err != nil {
-		return libkb.NaclDHKeyPair{}, err
+		return keybase1.TeamApplicationKey{}, err
 	}
 	return t.Box.ApplicationKey(keybase1.TeamApplication_KBFS, secret)
 }
 
-func (t *Team) ChatEncKey(ctx context.Context) (libkb.NaclDHKeyPair, error) {
+func (t *Team) ChatEncKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
 	secret, err := t.SharedSecret(ctx)
 	if err != nil {
-		return libkb.NaclDHKeyPair{}, err
+		return keybase1.TeamApplicationKey{}, err
 	}
 	return t.Box.ApplicationKey(keybase1.TeamApplication_CHAT, secret)
 }

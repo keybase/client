@@ -56,7 +56,7 @@ func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) ([]byte, error) {
 }
 
 // ApplicationKey returns the most recent key for an application.
-func (t *TeamBox) ApplicationKey(application keybase1.TeamApplication, secret []byte) (libkb.NaclDHKeyPair, error) {
+func (t *TeamBox) ApplicationKey(application keybase1.TeamApplication, secret []byte) (keybase1.TeamApplicationKey, error) {
 	var max ReaderKeyMask
 	for _, rkm := range t.ReaderKeyMasks {
 		if keybase1.TeamApplication(rkm.Application) != application {
@@ -69,13 +69,13 @@ func (t *TeamBox) ApplicationKey(application keybase1.TeamApplication, secret []
 	}
 
 	if max.Application == 0 {
-		return libkb.NaclDHKeyPair{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d", application)}
+		return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d", application)}
 	}
 
 	return t.applicationKeyForMask(max, secret)
 }
 
-func (t *TeamBox) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (libkb.NaclDHKeyPair, error) {
+func (t *TeamBox) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
 		if keybase1.TeamApplication(rkm.Application) != application {
 			continue
@@ -86,10 +86,10 @@ func (t *TeamBox) ApplicationKeyAtGeneration(application keybase1.TeamApplicatio
 		return t.applicationKeyForMask(rkm, secret)
 	}
 
-	return libkb.NaclDHKeyPair{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
+	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *TeamBox) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (libkb.NaclDHKeyPair, error) {
+func (t *TeamBox) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
 	var derivationString string
 	switch keybase1.TeamApplication(mask.Application) {
 	case keybase1.TeamApplication_KBFS:
@@ -98,18 +98,27 @@ func (t *TeamBox) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (libk
 		derivationString = libkb.TeamChatDerivationString
 	case keybase1.TeamApplication_SALTPACK:
 		derivationString = libkb.TeamSaltpackDerivationString
+	default:
+		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
+	}
+
+	key := keybase1.TeamApplicationKey{
+		Application: keybase1.TeamApplication(mask.Application),
+		Generation:  mask.Generation,
 	}
 
 	maskBytes, err := mask.MaskBytes()
 	if err != nil {
-		return libkb.NaclDHKeyPair{}, err
+		return key, err
 	}
 	var secBytes []byte
 	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), maskBytes)
 	if n != 32 {
-		return libkb.NaclDHKeyPair{}, errors.New("invalid derived secret size")
+		return key, errors.New("invalid derived secret xor mask size")
 	}
-	return libkb.MakeNaclDHKeyPairFromSecretBytes(secBytes)
+	copy(key.Key[:], secBytes)
+
+	return key, nil
 }
 
 func (t *TeamBox) nonceBytes() ([]byte, error) {
