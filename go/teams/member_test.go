@@ -65,36 +65,30 @@ func TestMemberOwner(t *testing.T) {
 	}
 }
 
-func TestMemberAddOwner(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
-	defer tc.Cleanup()
+type addTest struct {
+	name        string
+	setRoleFunc func(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error
+	afterRole   keybase1.TeamRole
+}
 
-	if err := SetRoleOwner(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
-	}
+var addTests = []addTest{
+	addTest{name: "owner", setRoleFunc: SetRoleOwner, afterRole: keybase1.TeamRole_OWNER},
+	addTest{name: "admin", setRoleFunc: SetRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
+	addTest{name: "writer", setRoleFunc: SetRoleWriter, afterRole: keybase1.TeamRole_WRITER},
+	addTest{name: "reader", setRoleFunc: SetRoleReader, afterRole: keybase1.TeamRole_READER},
+}
 
-	ctx := context.Background()
-	s, err := Get(ctx, tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	role := uidRole(ctx, tc, s, owner.User.GetUID())
-	if role != keybase1.TeamRole_OWNER {
-		t.Errorf("role: %s, expected OWNER", role)
-	}
-
-	otherRole := usernameRole(ctx, tc, s, other.Username)
-	if otherRole != keybase1.TeamRole_OWNER {
-		t.Errorf("role: %s, expected OWNER", otherRole)
+func TestMemberAddX(t *testing.T) {
+	for _, test := range addTests {
+		testMemberAdd(t, test)
 	}
 }
 
-func TestMemberAddAdmin(t *testing.T) {
+func testMemberAdd(t *testing.T, test addTest) {
 	tc, owner, other, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := test.setRoleFunc(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -110,58 +104,8 @@ func TestMemberAddAdmin(t *testing.T) {
 	}
 
 	otherRole := usernameRole(ctx, tc, s, other.Username)
-	if otherRole != keybase1.TeamRole_ADMIN {
-		t.Errorf("role: %s, expected ADMIN", otherRole)
-	}
-}
-
-func TestMemberAddWriter(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
-	defer tc.Cleanup()
-
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := context.Background()
-	s, err := Get(ctx, tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	role := uidRole(ctx, tc, s, owner.User.GetUID())
-	if role != keybase1.TeamRole_OWNER {
-		t.Errorf("role: %s, expected OWNER", role)
-	}
-
-	otherRole := usernameRole(ctx, tc, s, other.Username)
-	if otherRole != keybase1.TeamRole_WRITER {
-		t.Errorf("role: %s, expected WRITER", otherRole)
-	}
-}
-
-func TestMemberAddReader(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
-	defer tc.Cleanup()
-
-	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := context.Background()
-	s, err := Get(ctx, tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	role := uidRole(ctx, tc, s, owner.User.GetUID())
-	if role != keybase1.TeamRole_OWNER {
-		t.Errorf("role: %s, expected OWNER", role)
-	}
-
-	otherRole := usernameRole(ctx, tc, s, other.Username)
-	if otherRole != keybase1.TeamRole_READER {
-		t.Errorf("role: %s, expected READER", otherRole)
+	if otherRole != test.afterRole {
+		t.Errorf("role: %s, expected %s", otherRole, test.afterRole)
 	}
 }
 
