@@ -124,9 +124,7 @@ class UserInput extends Component<void, Props, void> {
               cursor: 'pointer',
             }}
           />}
-        <ClickableBox style={{flex: 1, cursor: 'text', height: 24}} onClick={this._focusInput}>
-          &nbsp; {/* Material-UI child warns if no children */}
-        </ClickableBox>
+        <ClickableBox style={{flex: 1, cursor: 'text', height: 24}} onClick={this._focusInput} />
       </Box>
     )
   }
