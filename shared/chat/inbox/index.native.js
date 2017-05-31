@@ -4,6 +4,7 @@ import {
   Text,
   MultiAvatar,
   Icon,
+  NativeFlatList,
   Usernames,
   Markdown,
   Box,
@@ -13,8 +14,6 @@ import {
 import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
-// $FlowIssue
-import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
 
@@ -331,7 +330,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
   render() {
     return (
       <Box style={boxStyle}>
-        <FlatList
+        <NativeFlatList
           loading={this.props.isLoading /* force loading to update */}
           data={this.state.rows}
           keyExtractor={this._keyExtractor}

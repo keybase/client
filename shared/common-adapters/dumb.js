@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
@@ -815,10 +814,10 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
 
 const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
 const mockAvatarSizes = (title, modifiers) =>
-  _.chain(avatarSizes)
-    .map(size => ({size, username: 'awendland', ...modifiers}))
-    .keyBy(props => `${title} x${props.size}`)
-    .value()
+  avatarSizes.reduce((map, size) => {
+    map[`${title} x${size}`] = {size, username: 'awendland', ...modifiers}
+    return map
+  }, {})
 
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
