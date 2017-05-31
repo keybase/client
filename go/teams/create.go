@@ -356,12 +356,16 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		return
 	}
 
+	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
+	if err != nil {
+		return nil, err
+	}
 	v2Sig, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeNewSubteam,
 		parentTeam.GetLatestSeqno()+1,
 		newSubteamSigJSON,
-		parentTeam.GetLatestLinkID(),
+		prevLinkID,
 		false, /* hasRevokes */
 	)
 	if err != nil {

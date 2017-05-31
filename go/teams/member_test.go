@@ -219,7 +219,7 @@ func usernameRole(ctx context.Context, tc libkb.TestContext, team *Team, usernam
 	return uvRole(tc, team, uv)
 }
 
-func uvRole(tc libkb.TestContext, team *Team, uv UserVersion) keybase1.TeamRole {
+func uvRole(tc libkb.TestContext, team *Team, uv keybase1.UserVersion) keybase1.TeamRole {
 	role, err := team.Chain.GetUserRole(uv)
 	if err != nil {
 		tc.T.Fatal(err)
