@@ -427,7 +427,7 @@ protocol local {
 
   GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior); 
+  NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
@@ -500,7 +500,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
@@ -595,13 +595,13 @@ protocol local {
   // Filename must be writable by the service.
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
- 
+
   record MakePreviewRes {
-    string mimeType;        // this will always be populated 
-    union {null, string} filename;    // will exist if service is able to make a preview 
+    string mimeType;        // this will always be populated
+    union {null, string} filename;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
-  } 
+  }
   MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
 
   @lint("ignore")
@@ -623,7 +623,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, union { null, bool } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
+  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing);

@@ -493,6 +493,12 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsTeamApplication = {
+  kbfs: 1,
+  chat: 2,
+  saltpack: 3,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   owner: 1,
@@ -509,6 +515,17 @@ export const TlfKeysTLFIdentifyBehavior = {
   kbfsRekey: 4,
   kbfsQr: 5,
   chatSkip: 6,
+}
+
+export const UPKKeyType = {
+  none: 0,
+  nacl: 1,
+  pgp: 2,
+}
+
+export const UPKUPAKVersion = {
+  v1: 1,
+  v2: 2,
 }
 
 export const UiPromptDefault = {
@@ -4564,6 +4581,11 @@ export type KeyInfo = {
   desc: string,
 }
 
+export type KeyType =
+    0 // NONE_0
+  | 1 // NACL_1
+  | 2 // PGP_2
+
 export type KeybaseTime = {
   unix: Time,
   chain: int,
@@ -4614,9 +4636,16 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MaskB64 = bytes
+
 export type MerkleRoot = {
   version: int,
   root: bytes,
+}
+
+export type MerkleRootV2 = {
+  seqno: Seqno,
+  hashMeta: bytes,
 }
 
 export type MerkleTreeID =
@@ -4772,6 +4801,8 @@ export type PGPEncryptOptions = {
   binaryOut: boolean,
   keyQuery: string,
 }
+
+export type PGPFingerprint = any
 
 export type PGPIdentity = {
   username: string,
@@ -4998,6 +5029,35 @@ export type PublicKey = {
   isRevoked: boolean,
 }
 
+export type PublicKeyV2 =
+    { keyType: 1, nacl: ?PublicKeyV2NaCl }
+  | { keyType: 2, pgp: ?PublicKeyV2PGPSummary }
+  | { keyType: any }
+
+export type PublicKeyV2Base = {
+  kid: KID,
+  isSibkey: boolean,
+  isEldest: boolean,
+  cTime: Time,
+  eTime: Time,
+  provisioning: SignatureMetadata,
+  revocation?: ?SignatureMetadata,
+}
+
+export type PublicKeyV2NaCl = {
+  base: PublicKeyV2Base,
+  parent?: ?KID,
+  deviceID: DeviceID,
+  deviceDescription: string,
+  deviceType: string,
+}
+
+export type PublicKeyV2PGPSummary = {
+  base: PublicKeyV2Base,
+  fingerprint: PGPFingerprint,
+  identities?: ?Array<PGPIdentity>,
+}
+
 export type PushReason =
     0 // NONE_0
   | 1 // RECONNECTED_1
@@ -5017,6 +5077,12 @@ export type ReadArgs = {
   path: Path,
   offset: long,
   size: int,
+}
+
+export type ReaderKeyMask = {
+  application: TeamApplication,
+  generation: int,
+  mask: MaskB64,
 }
 
 export type RegisterAddressRes = {
@@ -5260,6 +5326,13 @@ export type SignMode =
     0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
+
+export type SignatureMetadata = {
+  signingKID: KID,
+  prevMerkleRootSigned: MerkleRootV2,
+  firstAppearedUnverified: Seqno,
+  time: Time,
+}
 
 export type SignupRes = {
   passphraseOk: boolean,
@@ -5506,6 +5579,17 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamApplication =
+    1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
+
+export type TeamApplicationKey = {
+  application: TeamApplication,
+  generation: int,
+  key: Bytes32,
+}
+
 export type TeamID = string
 
 export type TeamMembers = {
@@ -5590,6 +5674,14 @@ export type Tracker = {
 
 export type UID = string
 
+export type UPAKVersion =
+    1 // V1_1
+  | 2 // V2_2
+
+export type UPAKVersioned =
+    { v: 1, v1: ?UserPlusAllKeys }
+  | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
+
 export type UnboxAnyRes = {
   kid: KID,
   plaintext: Bytes32,
@@ -5642,6 +5734,22 @@ export type UserPlusKeys = {
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
   perUserKeys?: ?Array<PerUserKey>,
+}
+
+export type UserPlusKeysV2 = {
+  uid: UID,
+  username: string,
+  eldestSeqno: Seqno,
+  uvv: UserVersionVector,
+  perUserKeys?: ?Array<PerUserKey>,
+  deviceKeys?: ?Array<PublicKeyV2NaCl>,
+  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
+  remoteTracks?: ?Array<RemoteTrack>,
+}
+
+export type UserPlusKeysV2AllIncarnations = {
+  current: UserPlusKeysV2,
+  pastIncarnations?: ?Array<UserPlusKeysV2>,
 }
 
 export type UserResolution = {

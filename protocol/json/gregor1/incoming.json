@@ -18,6 +18,46 @@
           "name": "hash"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ConnectedDevice",
+      "fields": [
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "string",
+          "name": "devicePlatform"
+        },
+        {
+          "type": "string",
+          "name": "userAgent"
+        }
+      ],
+      "doc": "DescribeConnectedUsers will take a list of users, and return the list of users\n    which are connected to any Gregor in the cluster, and what devices (and device type)\n    those users are connected with."
+    },
+    {
+      "type": "record",
+      "name": "ConnectedUser",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConnectedDevice"
+          },
+          "name": "devices"
+        }
+      ]
     }
   ],
   "messages": {
@@ -107,6 +147,36 @@
       ],
       "response": "State",
       "doc": "StateByCategoryPrefix loads the messages of the user's state whose\n    categories are prefixed by the given prefix"
+    },
+    "describeConnectedUsers": {
+      "request": [
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConnectedUser"
+      }
+    },
+    "describeConnectedUsersInternal": {
+      "request": [
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ConnectedUser"
+      }
     }
   },
   "namespace": "gregor.1"

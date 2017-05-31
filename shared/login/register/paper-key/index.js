@@ -44,7 +44,7 @@ type OwnProps = RouteProps<
 // $FlowIssue
 export default connect(
   (state: TypedState, {routeProps: {error}}: OwnProps) => ({
-    waitingForResponse: state.login.waitingForResponse,
+    waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
     error,
   }),
   dispatch => ({

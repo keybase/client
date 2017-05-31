@@ -4,6 +4,7 @@ import chat from './chat'
 import config from './config'
 import dev from './dev'
 import devices from './devices'
+import engine from './engine'
 import entities from './entities'
 import favorite from './favorite'
 import gregor from './gregor'
@@ -30,6 +31,7 @@ const reducer = combineReducers({
   dev,
   devices,
   entities,
+  engine,
   favorite,
   gregor,
   login,

@@ -305,6 +305,12 @@ func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByC
 func (m mockGregord) Version(_ context.Context, _ gregor1.UID) (string, error) {
 	return "mock", nil
 }
+func (m mockGregord) DescribeConnectedUsers(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
+	return nil, nil
+}
+func (m mockGregord) DescribeConnectedUsersInternal(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
+	return nil, nil
+}
 
 func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {
 	m.fc.Advance(time.Minute)

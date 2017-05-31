@@ -250,12 +250,14 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 				conv = nil
 			}
 
-			if g.shouldSendNotifications() {
-				g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-					convID, update.FinalizeInfo, conv)
-			} else {
-				g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-					[]chat1.ConversationID{convID}, false)
+			if conv.GetTopicType() == chat1.TopicType_CHAT {
+				if g.shouldSendNotifications() {
+					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
+						convID, update.FinalizeInfo, conv)
+				} else {
+					g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+						[]chat1.ConversationID{convID}, false)
+				}
 			}
 		}
 	}(bctx)
@@ -305,12 +307,14 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			NewTLFName: updateConv.Info.TlfName,
 		}
 
-		if g.shouldSendNotifications() {
-			g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
-				update.ConvID, resolveInfo)
-		} else {
-			g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-				[]chat1.ConversationID{update.ConvID}, false)
+		if updateConv.GetTopicType() == chat1.TopicType_CHAT {
+			if g.shouldSendNotifications() {
+				g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
+					update.ConvID, resolveInfo)
+			} else {
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+					[]chat1.ConversationID{update.ConvID}, false)
+			}
 		}
 	}(bctx)
 
@@ -351,6 +355,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 		var activity chat1.ChatActivity
 		var err error
+		var conv *chat1.ConversationLocal
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
 		switch action {
@@ -377,7 +382,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				DeviceID: keybase1.DeviceID(nm.Message.ClientHeader.SenderDevice.String()),
 			}, convID, false)
 
-			var conv *chat1.ConversationLocal
 			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {
 				g.Debug(ctx, "chat activity: unable to push message: %s", pushErr.Error())
@@ -432,7 +436,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d",
 				nm.ConvID, nm.MsgID)
 
-			var conv *chat1.ConversationLocal
 			uid := m.UID().Bytes()
 			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
@@ -457,7 +460,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d",
 				nm.ConvID, nm.Status)
 
-			var conv *chat1.ConversationLocal
 			uid := m.UID().Bytes()
 			if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
@@ -498,9 +500,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
+			conv = &inbox.Convs[0]
 
 			activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv: inbox.Convs[0],
+				Conv: *conv,
 			})
 
 			if g.badger != nil && nm.UnreadUpdate != nil {
@@ -510,18 +513,21 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}
 
-		g.notifyNewChatActivity(ctx, m.UID(), convID, &activity)
+		g.notifyNewChatActivity(ctx, m.UID(), convID, conv, &activity)
 	}(bctx)
 	return nil
 }
 
 func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
-	convID chat1.ConversationID, activity *chat1.ChatActivity) error {
+	convID chat1.ConversationID, conv *chat1.ConversationLocal, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err
 	}
-
+	// Don't send any notifications for non-chat topic types
+	if conv != nil && conv.GetTopicType() != chat1.TopicType_CHAT {
+		return nil
+	}
 	if g.shouldSendNotifications() {
 		g.G().NotifyRouter.HandleNewChatActivity(ctx, kbUID, activity)
 	} else {

@@ -1,5 +1,6 @@
 // @flow
-import {Map, Record} from 'immutable'
+import {Map, Record, List} from 'immutable'
+import * as SearchConstants from './searchv3'
 
 import type {NoErrorTypedAction} from './types/flux'
 import type {DeviceDetailRecord} from './devices'
@@ -22,10 +23,14 @@ export type Actions = Delete | Merge | Replace
 // State
 export type State = Record<{
   devices: Map<string, DeviceDetailRecord>,
+  searchResults: Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
 }>
 
 const StateRecord = Record({
   devices: Map(),
+  searchResults: Map(),
+  searchQueryToResult: Map(),
 })
 
 export {StateRecord}

@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // PerUserKeyUpgrade creates a per-user-key for the active user
@@ -46,10 +46,7 @@ func (e *PerUserKeyUpgrade) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *PerUserKeyUpgrade) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.LogUIKind,
-		libkb.SecretUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -92,19 +89,18 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 	sigKey, err := e.G().ActiveDevice.SigningKey()
 	if err != nil {
-		return err
+		return fmt.Errorf("signing key not found: (%v)", err)
 	}
 	encKey, err := e.G().ActiveDevice.EncryptionKey()
 	if err != nil {
-		return err
+		return fmt.Errorf("encryption key not found: (%v)", err)
 	}
 
-	// Get pukring
-	err = e.G().BumpPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return err
 	}
-	pukring, err := e.G().GetPerUserKeyring()
+	err = pukring.Sync(ctx.GetNetContext())
 	if err != nil {
 		return err
 	}

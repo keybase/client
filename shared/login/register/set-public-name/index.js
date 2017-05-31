@@ -55,7 +55,7 @@ export default connect(
   (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
     existingDevices,
     deviceNameError,
-    waiting: state.login.waitingForResponse,
+    waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
   }),
   dispatch => ({
     onBack: () => dispatch(Creators.onBack()),

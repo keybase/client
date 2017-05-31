@@ -678,6 +678,7 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 		return err
 	}
 	defer finisher()
+
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(&v); err != nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, Decode error: %s", err)

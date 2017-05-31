@@ -610,3 +610,20 @@ func MakeByte32Soft(a []byte) ([32]byte, error) {
 	copy(b[:], a)
 	return b, nil
 }
+
+// Sleep for `duration` or until `ctx` is canceled, whichever occurs first.
+// Returns an error BUT the error is not really an error.
+// It is nil if the sleep finished, and the non-nil result of Context.Err()
+func SleepWithContext(ctx context.Context, clock clockwork.Clock, duration time.Duration) error {
+	if ctx == nil {
+		// should not happen
+		clock.Sleep(duration)
+		return nil
+	}
+	select {
+	case <-clock.After(duration):
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}

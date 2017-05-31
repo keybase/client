@@ -53,12 +53,12 @@ class LoginRender extends Component<void, Props, void> {
             link={true}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassphrase}
-            style={{marginTop: globalMargins.medium}}
+            style={{marginTop: globalMargins.medium, textAlign: 'center'}}
           >
             Forgot passphrase?
           </Text>
         </UserCard>
-        <Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
+        <Text style={{marginTop: globalMargins.xlarge}} type="BodyBigLink" onClick={this.props.onSignup}>
           Create an account
         </Text>
       </Box>
