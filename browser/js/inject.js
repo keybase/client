@@ -154,7 +154,7 @@ function installChatButton(buttons, user, nudgeSupported) {
         }
       }
 
-      openChat = renderChat(chatParent, user, nudgeSupported);
+      openChat = renderChat(chatParent, user.clone(), nudgeSupported);
 
       // Is the widget exceeding our window width?
       if (openChat.offsetLeft + openChat.clientWidth > window.innerWidth) {

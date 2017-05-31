@@ -1053,6 +1053,10 @@ minimist@^1.2.0:
   dependencies:
     minimist "0.0.8"
 
+morphdom@^2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/morphdom/-/morphdom-2.3.2.tgz#6a71001f55e518f06b42e0e1f1084feaf8da2024"
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"

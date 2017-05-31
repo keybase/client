@@ -6,7 +6,8 @@
     "build": "cross-env webpack"
   },
   "dependencies": {
-    "bel": "^5.0.0"
+    "bel": "^5.0.0",
+    "morphdom": "^2.3.2"
   },
   "devDependencies": {
     "cross-env": "^5.0.0",
