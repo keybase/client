@@ -500,9 +500,28 @@ const logSaga = (...topEffects) => {
   console.log('')
 }
 
+const logSagaWithNames = (...namedSagas) => {
+  const sagaIdsWithNames = Object.keys(effectsById)
+    .filter(id => {
+      const e = effectsById[id]
+      return e.parentEffectId === 1
+    })
+    .map(id => {
+      const e = effectsById[id]
+      return {id, name: e.effect && e.effect.FORK && e.effect.FORK.fn && e.effect.FORK.fn.name}
+    })
+
+  const ids = sagaIdsWithNames.filter(({name}) => namedSagas.indexOf(name) >= 0).map(({id}) => parseInt(id))
+
+  logSaga(...ids)
+}
+
 // Export the snapshot-logging function to run from the browser console or extensions.
 if (globalScope) {
   globalScope.$$LogSagas = logSaga
+  globalScope.$$LogSagasWithNames = logSagaWithNames
+  globalScope.$$RootEffects = rootEffects
+  globalScope.$$EffectById = effectsById
 }
 
 // Export the snapshot-logging function for arbitrary use by external code.

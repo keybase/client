@@ -56,7 +56,7 @@ class Passphrase extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState) => ({waitingForResponse: state.login.waitingForResponse}),
+  (state: TypedState) => ({waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc')}),
   (dispatch: any) => ({
     onForgotPassphrase: () => {
       dispatch(Creators.openAccountResetPage())

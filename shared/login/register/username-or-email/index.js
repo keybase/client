@@ -16,7 +16,7 @@ class UsernameOrEmail extends Component<void, Props, void> {
 // $FlowIssue
 export default connect(
   (state: TypedState) => ({
-    waitingForResponse: state.login.waitingForResponse,
+    waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
   }),
   dispatch => ({
     onBack: () => dispatch(Creators.onBack()),
