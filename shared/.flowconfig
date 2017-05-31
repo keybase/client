@@ -1,5 +1,22 @@
 [ignore]
+.*/node_modules/accessibility-developer-tools*
+.*/node_modules/art*
 .*/node_modules/babel.*
+.*/node_modules/acorn*
+.*/node_modules/postcss*
+.*/node_modules/xmlbuilder*
+.*/node_modules/webpack*
+.*/node_modules/react-native/android*
+.*/node_modules/caniuse*
+.*/node_modules/browser*
+.*/node_modules/core-js/*
+.*/node_modules/emoji-data*
+.*/node_modules/electron*
+.*/node_modules/fbjs*
+.*/node_modules/express*
+.*/node_modules/eslint*
+.*/node_modules/fsevents*
+.*/node_modules/fs-extra*
 .*/node_modules/binary-extensions/.*
 .*/node_modules/builtin-modules/.*
 .*/node_modules/config-chain/.*
@@ -28,8 +45,8 @@
 [include]
 
 [libs]
-./libs/flow-interface.js.flow
-./flow-typed
+libs/flow-interface.js.flow
+flow-typed
 
 [options]
 munge_underscores=true
@@ -54,4 +71,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 suppress_comment=\\(.\\|\n\\)*\\$ForceType
 
 [version]
-0.41.0
+0.47.0
