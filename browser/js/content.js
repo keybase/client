@@ -59,80 +59,98 @@ let openChat = null;
 
 // General renderers:
 
+function renderImageSet(assetPrefix, attrs) {
+  return E('img', {
+    'src': asset(assetPrefix + ".png"),
+    'srcset': `${asset(assetPrefix + "@2x.png")} 2x, ${asset(assetPrefix + "@3x.png")} 3x`,
+  }, attrs);
+}
+
 // Render the "Encrypt to..." contact header for the chat widget.
 function renderChatContact(el, user) {
   const keybaseUsername = user.services["keybase"];
-  let queryStatus, iconSrc;
+  let queryStatus, iconImage;
   if (keybaseUsername) {
-    queryStatus = `<a class="keybase-user" href="https://keybase.io/${keybaseUsername}" target="_blank"><span>${keybaseUsername}</span></a> on Keybase`;
-    iconSrc = `<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
+    queryStatus = E('small',
+      E('a', {'className': 'keybase-user', 'href': `https://keybase.io/${keybaseUsername}`, 'target': '_blank'},
+        E('span', keybaseUsername),
+      ),
+      ' on Keybase');
+    iconImage = E('img', {'className': 'keybase-icon', 'src': `https://keybase.io/${keybaseUsername}/picture`});
   } else {
     queryStatus = "Searching...";
     if (keybaseUsername === null) {
       queryStatus = "(Not yet on Keybase)";
     }
-    iconSrc = `
-      <img class="keybase-icon"
-           src="${asset("images/icon-placeholder-avatar-32.png")}"
-           srcset="${asset("images/icon-placeholder-avatar-32@2x.png")} 2x, ${asset("images/icon-placeholder-avatar-32@3x.png")} 3x"
-           />
-    `;
+    iconImage = renderImageSet('images/icon-placeholder-avatar-32', {'className': 'keybase-icon'});
+
   }
-  el.innerHTML = `
-    <div>${iconSrc}</div>
-    Encrypt to <a class="keybase-user ${user.origin}" href="${user.href()}" target="_blank">${user.display()}</a>
-    <small>${queryStatus}</small>
-  `;
+  replaceChildren(el, [
+    E('div', iconImage),
+    E('Encrypt to'),
+    E('a', {'className': 'keybase-user', 'href': user.href(), 'target': '_blank'}, user.display()),
+    queryStatus,
+  ]);
 }
 
 // Render the Keybase chat reply widget
 function renderChat(parent, user, nudgeSupported, closeCallback) {
-  const oobNudgeHTML = `
-      <p>
-        You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
-      </p>
-      <p>
-        Share this handy link: <span class="keybase-copy">https://keybase.io/docs/extension</span>
-      </p>
-  `;
-  let nudgeHTML = oobNudgeHTML;
+  const oobNudgeElements = [
+    E('p',
+      'You will need to let ',
+      E('a', user.display(), {'target': '_blank', 'href': user.href(), 'className': 'external-user'}),
+      ' know that they have a Keybase message waiting for them.',
+    ),
+    E('p',
+      'Share this handy link: ',
+      E('span', 'https://keybase.io/docs/extension', {'className': 'keybase-copy'}),
+    ),
+  ];
+  let nudgeElements = oobNudgeElements;
   if (nudgeSupported) {
-    nudgeHTML = `
-      <p>
-        <label><input type="checkbox" name="keybase-nudgecheck" checked /> <strong>Nudge publicly</strong> (reply in thread so they know about Keybase)</label>
-        <textarea name="keybase-nudgetext">${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto</textarea>
-      </p>
-    `;
+    nudgeElements = [
+      E('p',
+        E('label',
+          E('input', {'type': 'checkbox', 'name': 'keybase-nudgecheck', 'checked': 'checked'}),
+          ' ',
+          E('strong', 'Nudge publicly'),
+          ' (reply in thread so they know about Keybase)',
+        ),
+        E('textarea', {'name': 'keybase-nudgetext'}, `${user.display()} - I left you an end-to-end encrypted reply in Keybase. https://keybase.io/reddit-crypto`),
+      ),
+    ];
   }
 
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
   f.className = "keybase-reply";
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
-  f.innerHTML = `
-    <h3>
-      <img src="${asset("images/icon-keybase-logo-16.png")}"
-           srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
-           />
-      Keybase Chat <span class="keybase-close"> </span>
-    </h3>
-    <div class="keybase-body">
-      <div class="keybase-contact"></div>
-      <input type="hidden" name="keybase-to" value="${user.query()}" />
-      <label>
-        <textarea name="keybase-chat" rows="6" placeholder="Write a message" autofocus></textarea>
-      </label>
-      <div class="keybase-nudge" style="display: none;"></div>
-      <p style="text-align: center; clear: both;"><input type="submit" value="Send" name="keybase-submit" /></p>
-    </div>
-  `;
+  replaceChildren(f, [
+    E('h3',
+      renderImageSet('images/icon-keybase-logo-16'),
+      'Keybase Chat',
+      E('span', ' ', {'className': 'keybase-close'}),
+    ),
+    E('div', {'className': 'keybase-body'},
+      E('div', {'className': 'keybase-contact'}),
+      E('input', {'type': 'hidden', 'name': 'keybase-to', 'value': user.query()}),
+      E('label',
+        E('textarea', {'name': 'keybase-chat', 'rows': 6, 'placeholder': 'Write a message', 'autofocus': 'autofocus'}),
+      ),
+      E('div', {'className': 'keybase-nudge', 'style': 'display: none;'}),
+      E('p', {'style': 'text-align: center; clear: both;'},
+        E('input', {'name': 'keybase-submit', 'type': 'submit', 'value': 'Send'}),
+      ),
+    ),
+  ]);
 
   function successCallback() {
-    let successHTML;
+    let successBody;
     if (!nudgeSupported && !user.services["keybase"]) {
-      successHTML = oobNudgeHTML;
+      successBody = oobNudgeElements;
     }
-    renderSuccess(f, closeCallback, successHTML);
+    // XXX: Port this away from innerHTML
+    renderSuccess(f, closeCallback, successBody.innerHTML);
   }
 
   f.addEventListener("submit", submitChat.bind(null, successCallback));
@@ -156,7 +174,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
     }
     user.services["keybase"] = null;
     renderChatContact(contactDiv, user);
-    nudgePlaceholder.innerHTML = nudgeHTML;
+    replaceChildren(nudgePlaceholder, nudgeElements);
     nudgePlaceholder.style = "display: block;";
 
     // Install copypasta selector
@@ -260,6 +278,7 @@ function submitChat(successCallback, e) {
 
 // Render a success screen which replaces the body of the widget.
 function renderSuccess(el, closeCallback, extraHTML) {
+  // XXX: Port this away from innerHTML
   el.innerHTML = `
     <h3>
       <img src="${asset("images/icon-keybase-logo-16.png")}"
@@ -289,6 +308,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
 
 // Render an error that replaces the body of the widget.
 function renderErrorFull(el, bodyHTML) {
+  // XXX: Port this away from innerHTML
   el.innerHTML = `
     <h3><span class="keybase-close"> </span></h3>
     <p>
@@ -406,4 +426,44 @@ function findParentByClass(el, className) {
     el = el.parentNode;
   }
   return null;
+}
+
+// Element rendering DSL helper.
+// Usage: E('div', 'some text node stuff', E(...), {'className': 'foo'})
+function E(_) { // Args: [tagname|textnode], [textnode|element, ...] */
+  if (arguments.length == 1) {
+    return document.createTextNode(arguments[0]);
+  }
+
+  const el = document.createElement(arguments[0]);
+  for (let i=1; i<arguments.length; i++) {
+    const arg = arguments[i];
+    if (!arg) {
+      // Skip false-y args
+      continue
+    }
+
+    if (arg instanceof Node) {
+      el.appendChild(arg)
+      continue
+    } else if (typeof(arg) === "string") {
+      el.appendChild(document.createTextNode(arg));
+      continue
+    }
+
+    // Attributes
+    for (const attr in arg) {
+      el[attr] = arg[attr];
+    }
+  }
+
+  return el;
+}
+
+function replaceChildren(parent, children) {
+  while (parent.firstChild) parent.removeChild(parent.firstChild);
+  if (children === undefined) return;
+  for (const child of children) {
+    parent.appendChild(child);
+  }
 }
