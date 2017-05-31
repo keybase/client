@@ -95,9 +95,9 @@ function setupApp(store) {
 
   // After a delay, see if we're connected, and try starting keybase if not
   setTimeout(() => {
-    eng.listenOnNotConnected('kb-service-check', () => {
+    if (!eng.hasEverConnected()) {
       ipcRenderer.send('kb-service-check')
-    })
+    }
   }, 3 * 1000)
 
   // Run installer
