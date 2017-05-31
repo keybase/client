@@ -231,11 +231,11 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
-      dispatch(Creators.inboxStale(undefined))
+      dispatch(Creators.inboxStale())
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFResolve', ({convID, resolveInfo: {newTLFName}}) => {
-      dispatch(Creators.inboxStale(undefined))
+      dispatch(Creators.inboxStale())
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
@@ -905,7 +905,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   return (
     originalAction.type === 'chat:loadMoreMessages' &&
     checkAction.type === 'chat:clearMessages' &&
-    originalAction.conversationIDKey === checkAction.conversationIDKey
+    originalAction.payload.conversationIDKey === checkAction.payload.conversationIDKey
   )
 }
 

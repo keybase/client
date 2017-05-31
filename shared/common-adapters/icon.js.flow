@@ -5,6 +5,7 @@ export type IconType = _IconType
 import type {Exact} from '../constants/types/more'
 
 export type Props = {
+  children?: any,
   type: IconType,
   hint?: string,
   onClick?: (event: SyntheticEvent) => void,
@@ -20,4 +21,4 @@ export type Props = {
 
 declare export default class Icon extends Component<void, Exact<Props>, void> {}
 declare export function iconTypeToImgSet(type: IconType): string
-declare export function urlsToImgSet(imgMap: {[size: string]: string}): ?string
+declare export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): ?string

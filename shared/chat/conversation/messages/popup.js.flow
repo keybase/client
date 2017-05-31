@@ -1,29 +1,32 @@
 // @flow
 import {Component} from 'react'
-
-import type {AttachmentMessage, TextMessage} from '../../../constants/chat'
+import * as Constants from '../../../constants/chat'
 
 type BaseProps = {
   onHidden: () => void,
   style?: Object,
-  onDeleteMessage: (message: TextMessage | AttachmentMessage) => void,
+  onDeleteMessage: (message: Constants.TextMessage | Constants.AttachmentMessage) => void,
 }
 
 export type TextProps = {
-  message: TextMessage,
+  ...BaseProps,
+  // $FlowIssue
+  message: Constants.TextMessage,
   you: string,
-  onShowEditor: (message: TextMessage) => void,
-} & BaseProps
+  onShowEditor: (message: Constants.TextMessage) => void,
+}
 
 export class TextPopupMenu extends Component<void, TextProps, void> {}
 
 export type AttachmentProps = {
-  message: AttachmentMessage,
+  ...BaseProps,
+  // $FlowIssue
+  message: Constants.AttachmentMessage,
   you: string,
   onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
-  onShareAttachment?: () => void,
-  onSaveAttachment?: () => void,
-} & BaseProps
+  onShareAttachment?: (message: Constants.AttachmentMessage) => void,
+  onSaveAttachment?: (message: Constants.AttachmentMessage) => void,
+}
 
 export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> {}

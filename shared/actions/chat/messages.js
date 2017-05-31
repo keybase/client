@@ -14,7 +14,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   let messageID: ?Constants.MessageID
-  let conversationIDKey: Constants.ConversationIDKey
+  let conversationIDKey: ?Constants.ConversationIDKey
   switch (message.type) {
     case 'Text':
       conversationIDKey = message.conversationIDKey

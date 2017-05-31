@@ -29,6 +29,7 @@ const getParticipants = createSelector(
         broken,
         following,
         fullname,
+        isYou: you === username,
         meta,
         username,
       }
@@ -57,7 +58,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) =
       ])
     )
   },
-  onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+  onShowProfile: (username: string) => dispatch(onUserClick(username)),
   onToggleSidePanel,
 })
 
@@ -66,8 +67,11 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...dispatchProps,
   onAddParticipant: () =>
     dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
-  onMuteConversation: (muted: boolean) =>
-    dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
+  onMuteConversation: (muted: boolean) => {
+    if (stateProps.selectedConversationIDKey) {
+      dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted)
+    }
+  },
   onShowBlockConversationDialog: () =>
     dispatchProps.onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,

@@ -240,17 +240,6 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
       }
       yield put(navigateTo(['proveEnterUsername'], [profileTab]))
     } else if (incoming.outputInstructions) {
-      if (service === 'dnsOrGenericWebSite') {
-        // We don't get this directly (yet) so we parse this out
-        try {
-          const match = incoming.outputInstructions.params.instructions.data.match(/<url>(http[s]+):\/\//)
-          const protocol = match && match[1]
-          yield put(_updatePlatform(protocol === 'https' ? 'https' : 'http'))
-        } catch (_) {
-          yield put(_updatePlatform('http'))
-        }
-      }
-
       yield put(_updateProofText(incoming.outputInstructions.params.proof))
       _outputInstructionsResponse = incoming.outputInstructions.response
       yield put(navigateAppend(['postProof'], [profileTab]))

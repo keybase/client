@@ -47,7 +47,8 @@ function parseExtraInfo(
   rr: RawResult,
   isFollowing: (username: string) => boolean
 ): ExtraInfo {
-  const serviceName = rr.service && capitalize(rr.service.service_name || '')
+  // $ForceType
+  const serviceName: ?SearchPlatforms = rr.service && capitalize(rr.service.service_name || '')
   let userName = ''
   if (rr.service) {
     userName = rr.service.username || ''
@@ -61,7 +62,7 @@ function parseExtraInfo(
     if (rr.service) {
       return {
         fullNameOnService: rr.service.full_name || (rr.keybase && rr.keybase.full_name) || '',
-        icon: serviceName && platformToLogo16(serviceName),
+        icon: (serviceName && platformToLogo16(serviceName)) || null,
         service: 'external',
         serviceAvatar: '',
         serviceUsername: userName,
@@ -105,7 +106,9 @@ function parseRawResult(
   added: Object
 ): ?SearchResult {
   const extraInfo = parseExtraInfo(platform, rr, isFollowing)
-  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+  // $ForceType
+  const serviceName: ?SearchPlatforms =
+    rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   let searchResult = null
   if (platform === 'Keybase' && rr.keybase) {

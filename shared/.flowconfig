@@ -10,7 +10,6 @@
 .*/node_modules/caniuse*
 .*/node_modules/browser*
 .*/node_modules/core-js/*
-.*/node_modules/emoji-data*
 .*/node_modules/electron*
 .*/node_modules/fbjs*
 .*/node_modules/express*
@@ -49,14 +48,13 @@ libs/flow-interface.js.flow
 flow-typed
 
 [options]
-munge_underscores=true
-esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
+esproposal.class_static_fields=enable
+module.system=haste
+munge_underscores=true
 unsafe.enable_getters_and_setters=true
 module.system.node.resolve_dirname=./node_modules
-
-module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
-module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> 'RelativeImageStub'
+module.name_mapper.extension='png' -> '<PROJECT_ROOT>/lib/image-stub.js.flow'
 module.name_mapper='^\..*resolve-root' -> 'resolveRoot'
 
 suppress_type=$FlowIssue

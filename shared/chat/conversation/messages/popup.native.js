@@ -47,7 +47,10 @@ function _attachmentMessagePopupHelper({
   const items = []
   items.push({
     onClick: () => {
-      onSaveAttachment && onSaveAttachment(attachment)
+      if (onSaveAttachment) {
+        // $FlowIssue doesn't understand onSaveAttachment
+        onSaveAttachment(attachment)
+      }
     },
     title: 'Save Image',
   })
@@ -55,7 +58,10 @@ function _attachmentMessagePopupHelper({
   if (isIOS && onShareAttachment) {
     items.push({
       onClick: () => {
-        onShareAttachment && onShareAttachment(attachment)
+        if (onShareAttachment) {
+          // $FlowIssue doesn't understand onSaveAttachment
+          onShareAttachment(attachment)
+        }
       },
       title: 'Share Image',
     })
@@ -95,7 +101,9 @@ function MessagePopup(props: TextProps | AttachmentProps) {
     items.push({
       danger: true,
       onClick: () => {
-        onDeleteMessage(message)
+        if (onDeleteMessage) {
+          onDeleteMessage(message)
+        }
       },
       title: 'Delete',
     })

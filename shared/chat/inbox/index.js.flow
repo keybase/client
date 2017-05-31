@@ -30,7 +30,7 @@ export type Props = {
   onNewChat: () => void,
   loadInbox: () => void,
   children?: React$Element<*>,
-  onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey) => void,
+  onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
 }
 
 export default class ConversationList extends Component<void, Props, void> {}
