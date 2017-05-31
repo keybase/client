@@ -120,6 +120,94 @@
           "name": "readers"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSigChainState",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "reader"
+        },
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastLinkID"
+        },
+        {
+          "type": [
+            null,
+            "TeamID"
+          ],
+          "name": "parentID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "UserLogPoint"
+            },
+            "keys": "UserVersion"
+          },
+          "name": "userLog"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "int"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "int"
+          },
+          "name": "stubbedTypes"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserLogPoint",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
     }
   ],
   "messages": {

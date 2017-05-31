@@ -50,4 +50,48 @@ protocol teams {
 
   TeamMembers teamGet(int sessionID, string name);
 
+  record UserVersion {
+    string username;
+    Seqno eldestSeqno;
+  }
+
+  // State of a parsed team sigchain.
+  // Should be treated as immutable when outside TeamSigChainPlayer.
+  // Modified internally to TeamSigChainPlayer.
+  record TeamSigChainState {
+    // The user who loaded this sigchain
+    UserVersion reader;
+
+    TeamID id;
+    // Latest name of the team
+    string name;
+    // The last link procesed
+    Seqno lastSeqno;
+    LinkID lastLinkID;
+
+    // Present if a subteam
+    union { null, TeamID } parentID;
+
+    // For each user; the timeline of their role status.
+    // The role checkpoints are always ordered by seqno.
+    // The latest role of the user is the role of their last checkpoint.
+    // When a user leaves the team a NONE checkpoint appears in their list.
+    map<UserVersion,array<UserLogPoint>> userLog;
+
+    // Keyed by per-team-key generation
+    map<int, PerTeamKey> perTeamKeys;
+
+    // Set of types that were loaded stubbed-out and whose contents are missing.
+    // Keyed by libkb.SigchainV2Type
+    map<int, bool> stubbedTypes;
+  }
+
+  // A user became this role at a point in time
+  record UserLogPoint {
+    // The new role. Including NONE if the user left the team.
+    TeamRole role;
+    // The seqno at which the user became this role.
+    Seqno seqno;
+  }
+
 }

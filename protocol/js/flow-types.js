@@ -5606,6 +5606,18 @@ export type TeamRole =
   | 3 // WRITER_3
   | 4 // READER_4
 
+export type TeamSigChainState = {
+  reader: UserVersion,
+  id: TeamID,
+  name: string,
+  lastSeqno: Seqno,
+  lastLinkID: LinkID,
+  parentID?: ?TeamID,
+  userLog: {[key: string]: ?Array<UserLogPoint>},
+  perTeamKeys: {[key: string]: PerTeamKey},
+  stubbedTypes: {[key: string]: bool},
+}
+
 export type Test = {
   reply: string,
 }
@@ -5711,6 +5723,11 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserLogPoint = {
+  role: TeamRole,
+  seqno: Seqno,
+}
+
 export type UserOrTeamID = string
 
 export type UserOrTeamLite = {
@@ -5786,6 +5803,11 @@ export type UserSummary2Set = {
   users?: ?Array<UserSummary2>,
   time: Time,
   version: int,
+}
+
+export type UserVersion = {
+  username: string,
+  eldestSeqno: Seqno,
 }
 
 export type UserVersionVector = {
