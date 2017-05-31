@@ -238,6 +238,14 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
+func (t *TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
+	res, ok := t.PerTeamKeys[gen]
+	if !ok {
+		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}
+	}
+	return res, nil
+}
+
 // UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
 type UsernameFinder interface {
 	UsernameForUID(context.Context, keybase1.UID) (string, error)

@@ -493,6 +493,12 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsTeamApplication = {
+  kbfs: 1,
+  chat: 2,
+  saltpack: 3,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   owner: 1,
@@ -4630,6 +4636,8 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MaskB64 = bytes
+
 export type MerkleRoot = {
   version: int,
   root: bytes,
@@ -5069,6 +5077,12 @@ export type ReadArgs = {
   path: Path,
   offset: long,
   size: int,
+}
+
+export type ReaderKeyMask = {
+  application: TeamApplication,
+  generation: int,
+  mask: MaskB64,
 }
 
 export type RegisterAddressRes = {
@@ -5562,6 +5576,17 @@ export type TLFIdentifyFailure = {
 export type TLFQuery = {
   tlfName: string,
   identifyBehavior: TLFIdentifyBehavior,
+}
+
+export type TeamApplication =
+    1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
+
+export type TeamApplicationKey = {
+  application: TeamApplication,
+  generation: int,
+  key: Bytes32,
 }
 
 export type TeamID = string

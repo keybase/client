@@ -14,6 +14,57 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamApplication",
+      "symbols": [
+        "KBFS_1",
+        "CHAT_2",
+        "SALTPACK_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamApplicationKey",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Bytes32",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MaskB64",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "ReaderKeyMask",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "MaskB64",
+          "name": "mask"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "PerTeamKey",
       "fields": [
