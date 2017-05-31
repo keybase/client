@@ -13,10 +13,12 @@ export type PushNotification = {
   payload?: {
     userInteraction: boolean,
     convID?: string, // Android variant
+    type?: string,
     data?: {
       // iOS variant
       convID?: string,
     },
+    username?: string,
   },
 }
 
