@@ -132,6 +132,16 @@ export default function(state: Constants.State = initialState, action: Action): 
       }
     }
 
+    case Constants.updateFollowings: {
+      const following = action.payload.usernames
+      return {
+        ...state,
+        following: following.reduce((map, u) => {
+          map[u] = true
+          return map
+        }, {}),
+      }
+    }
     case Constants.updateFollowing: {
       const {username, isTracking} = action.payload
       return {

@@ -205,10 +205,24 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
   type: Constants.updateFollowing,
 })
 
+const getFollowing = (): AsyncAction => dispatch => {
+  configGetBootstrapStatusRpc({
+    callback: (error, bootstrapStatus) => {
+      if (!error) {
+        dispatch({
+          payload: {following: bootstrapStatus.following || []},
+          type: Constants.updateFollowings,
+        })
+      }
+    },
+  })
+}
+
 export {
   bootstrap,
   getConfig,
   getExtendedStatus,
+  getFollowing,
   isFollower,
   isFollowing,
   retryBootstrap,

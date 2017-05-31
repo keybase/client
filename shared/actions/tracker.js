@@ -7,6 +7,7 @@ import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {showAllTrackers} from '../local-debug'
+import {getFollowing} from './config'
 
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CancelHandlerType} from '../engine/session'
@@ -56,6 +57,7 @@ function setupUserChangedHandler(): TrackerActionCreator {
   return (dispatch, getState) => {
     engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
       dispatch(_clearIdentifyCache(uid))
+      dispatch(getFollowing())
       const username = _getUsername(uid, getState())
       if (username) {
         dispatch(getProfile(username))
