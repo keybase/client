@@ -28,4 +28,5 @@ protocol teams {
   void teamCreate(int sessionID, string name);
 
   TeamMembers teamGet(int sessionID, string name);
+
 }
