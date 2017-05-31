@@ -117,6 +117,13 @@ func (t *KBFSTLFInfoSource) CryptKeys(ctx context.Context, tlfName string) (res 
 	}
 	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 
+	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
+	// after send to IdentifyNotifier)
+	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT &&
+		len(res.NameIDBreaks.Breaks.Breaks) > 0 {
+		return res, libkb.NewIdentifySummaryError(res.NameIDBreaks.Breaks.Breaks[0])
+	}
+
 	return res, nil
 }
 
@@ -165,11 +172,16 @@ func (t *KBFSTLFInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlf
 
 	// use id breaks calculated by identifyTLF
 	res.Breaks.Breaks = ib
-
 	if in := CtxIdentifyNotifier(ctx); in != nil {
 		in.Send(res)
 	}
 	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
+
+	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
+	// after send to IdentifyNotifier)
+	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res.Breaks.Breaks) > 0 {
+		return res, libkb.NewIdentifySummaryError(res.Breaks.Breaks[0])
+	}
 
 	return res, nil
 }
@@ -276,13 +288,23 @@ func (t *KBFSTLFInfoSource) identifyUser(ctx context.Context, assertion string, 
 	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
 	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
+		// Ignore these errors
 		if _, ok := err.(libkb.NotFoundError); ok {
-			err = nil
+			return keybase1.TLFIdentifyFailure{}, nil
 		}
 		if _, ok := err.(libkb.ResolutionError); ok {
-			err = nil
+			return keybase1.TLFIdentifyFailure{}, nil
 		}
-		return keybase1.TLFIdentifyFailure{}, err
+
+		// Special treatment is needed for GUI strict mode, since we need to
+		// simultaneously plumb identify breaks up to the UI, and make sure the
+		// overall process returns an error. Swallow the error here so the rest of
+		// the identify can proceed, but we will check later (in GetTLFCryptKeys) for breaks with this
+		// mode and return an error there.
+		if !(libkb.IsIdentifyProofError(err) &&
+			idBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT) {
+			return keybase1.TLFIdentifyFailure{}, err
+		}
 	}
 	resp := eng.Result()
 

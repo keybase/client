@@ -4,35 +4,12 @@ import React from 'react'
 import {Avatar, Box, Icon, ClickableBox, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
-import type {IconType} from '../../common-adapters/icon'
-
-type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
-
-export type Props = {|
-  id: string,
-
-  leftFollowingState: FollowingState,
-  leftIcon: IconType,
-  leftService: Constants.Service,
-  leftUsername: string,
-
-  rightFollowingState: FollowingState,
-  rightFullname: ?string,
-  rightIcon: ?IconType,
-  rightService: ?Constants.Service,
-  rightUsername: ?string,
-
-  showTrackerButton: boolean,
-
-  onShowTracker: () => void,
-|}
-
 const IconOrAvatar = ({service, username, icon, avatarSize, style}) =>
   service === 'Keybase'
     ? <Avatar username={username} size={avatarSize} style={style} />
     : icon ? <Icon type={icon} style={style} /> : null
 
-const followingStateToStyle = (followingState: FollowingState) => {
+const followingStateToStyle = (followingState: Constants.FollowingState) => {
   return {
     Following: {
       color: globalColors.green2,
@@ -139,7 +116,7 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Props) => {
+const SearchResultRow = (props: Constants.RowProps) => {
   return (
     <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4}>
       <Box style={_rowStyle}>

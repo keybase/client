@@ -47,7 +47,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
     return (
       downloadedPGPState &&
       passphrase.stringValue() === passphraseConfirm.stringValue() &&
-      this.state.passphrase.stringValue().length >= 12
+      this.state.passphrase.stringValue().length >= 6
     )
   }
 
@@ -73,7 +73,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
         />
         {!this.props.newPassphraseError &&
           <Text type="BodySmall" style={stylePasswordNote}>
-            (Minimum 12 characters)
+            (Minimum 6 characters)
           </Text>}
         <Input
           hintText="Confirm new passphrase"

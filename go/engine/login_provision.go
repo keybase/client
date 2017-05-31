@@ -595,6 +595,15 @@ func (e *loginProvision) route(ctx *Context) error {
 		return e.tryPGP(ctx)
 	}
 
+	if !e.arg.User.GetEldestKID().IsNil() {
+		// The user has no PGP keys and no devices, but they do have an eldest
+		// KID. That means they've revoked all their devices. They have to
+		// reset their account at this point.
+		// TODO: Once we make your account auto-reset after revoking your last
+		// device, change this error message.
+		return errors.New("Cannot add a new device when all existing devices are revoked. Reset your account on keybase.io.")
+	}
+
 	// User has no existing devices or pgp keys, so create
 	// the eldest device.
 	return e.makeEldestDevice(ctx)
@@ -900,11 +909,6 @@ func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 }
 
 func (e *loginProvision) makeEldestDevice(ctx *Context) error {
-	if !e.arg.User.GetEldestKID().IsNil() {
-		// this shouldn't happen, but make sure
-		return errors.New("eldest called on user with existing eldest KID")
-	}
-
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err

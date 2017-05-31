@@ -536,6 +536,15 @@ function setInboxUntrustedState(
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
+function updateThread(
+  thread: ChatTypes.ThreadView,
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: string
+): Constants.UpdateThread {
+  return {payload: {thread, yourName, yourDeviceName, conversationIDKey}, type: 'chat:updateThread'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -604,6 +613,7 @@ export {
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
+  updateThread,
   updateTyping,
   updatedMetadata,
   uploadProgress,

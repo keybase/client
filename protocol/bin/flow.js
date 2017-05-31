@@ -141,7 +141,7 @@ function figureType (type) {
       case 'array':
         return `?Array<${type.items}>`
       case 'map':
-        return `{[key: string]: ${type.values}}`
+        return `{[key: string]: ${figureType(type.values)}}`
       default:
         console.log(`Unknown type: ${type}`)
         return 'unknown'

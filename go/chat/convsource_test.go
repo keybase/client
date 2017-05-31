@@ -507,6 +507,19 @@ func TestConversationLocking(t *testing.T) {
 		t.Skip()
 	}
 
+	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (ret bool) {
+		cb := make(chan struct{})
+		go func() {
+			ret = hcs.lockTab.Acquire(ctx, uid, convID)
+			close(cb)
+		}()
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "acquire timeout")
+		}
+		return ret
+	}
 	conv := newConv(t, uid, ri, sender, tlf, u.Username)
 
 	t.Logf("Trace 1 can get multiple locks")
@@ -515,11 +528,7 @@ func TestConversationLocking(t *testing.T) {
 		NewIdentifyNotifier(tc.Context()))
 	acquires := 5
 	for i := 0; i < acquires; i++ {
-		select {
-		case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "locked")
-		}
+		timedAcquire(ctx, uid, conv.GetConvID())
 	}
 	for i := 0; i < acquires; i++ {
 		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
@@ -529,43 +538,36 @@ func TestConversationLocking(t *testing.T) {
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewIdentifyNotifier(tc.Context()))
-
+	blockCb := make(chan struct{})
+	hcs.lockTab.blockCb = &blockCb
+	cb := make(chan struct{})
+	require.False(t, timedAcquire(ctx, uid, conv.GetConvID()))
+	go func() {
+		require.True(t, timedAcquire(ctx2, uid, conv.GetConvID()))
+		close(cb)
+	}()
 	select {
-	case <-hcs.lockTab.Acquire(ctx, uid, conv.GetConvID()):
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "locked")
-	}
-	select {
-	case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
+	case <-cb:
 		require.Fail(t, "should have blocked")
 	default:
 	}
-
-	t.Logf("Trace 2 runs after Trace 1 gives up lock")
-	cb := make(chan struct{})
-	go func() {
-		select {
-		case <-hcs.lockTab.Acquire(ctx2, uid, conv.GetConvID()):
-			hcs.lockTab.Release(ctx2, uid, conv.GetConvID())
-			close(cb)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no lock obtained")
-		}
-	}()
-	hcs.lockTab.Release(ctx, uid, conv.GetConvID())
-	<-cb
+	// Wait for the thread to get blocked
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
+	select {
+	case <-cb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no cb")
+	}
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
 	require.Zero(t, len(hcs.lockTab.convLocks))
 
 	t.Logf("No trace")
-	select {
-	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "locked")
-	}
-	select {
-	case <-hcs.lockTab.Acquire(context.TODO(), uid, conv.GetConvID()):
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "locked")
-	}
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
 	require.Zero(t, len(hcs.lockTab.convLocks))
 }

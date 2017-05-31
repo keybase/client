@@ -76,7 +76,7 @@ const RowMeta = ({ignored, meta, styles}) => {
   }
 
   const metaBGColors = {
-    new: globalColors.blue2,
+    new: globalColors.orange,
     rekey: globalColors.red,
   }
 

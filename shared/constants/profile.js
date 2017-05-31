@@ -1,4 +1,6 @@
 // @flow
+import * as SearchConstants from './searchv3'
+import {List} from 'immutable'
 import type {PlatformsExpandedType} from './types/more'
 import type {ProofStatus, SigID, KID} from './types/flow-types'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
@@ -35,6 +37,7 @@ export type State = {
   username: string,
   usernameValid: boolean,
   waiting: boolean,
+  searchResults: List<SearchConstants.SearchResultId>,
 }
 
 export const addProof = 'profile:addProof'
@@ -124,6 +127,8 @@ export type UpdateUsername = TypedAction<'profile:updateUsername', {username: st
 export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
 export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
+export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'profile:updateSearchResults'>
+
 export type Actions =
   | CleanupUsername
   | FinishRevokeProof
@@ -135,3 +140,4 @@ export type Actions =
   | UpdateUsername
   | Waiting
   | WaitingRevokeProof
+  | UpdateSearchResults
