@@ -148,7 +148,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 
 	checkRole("d_b2809af7", keybase1.TeamRole_OWNER)
 	checkRole("c_ac088470", keybase1.TeamRole_ADMIN)
-	checkRole("b_ee111192", keybase1.TeamRole_NONE)   // removed
+	checkRole("b_ee111192", keybase1.TeamRole_WRITER)
 	checkRole("a_f0259e08", keybase1.TeamRole_WRITER) // changed role
 
 	xs, err := state.GetUsersWithRole(keybase1.TeamRole_OWNER)
@@ -156,7 +156,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	require.Len(t, xs, 1)
 	xs, err = state.GetUsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	require.Len(t, xs, 1)
+	require.Len(t, xs, 2)
 	xs, err = state.GetUsersWithRole(keybase1.TeamRole_READER)
 	require.Len(t, xs, 0)
 }

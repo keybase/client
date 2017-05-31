@@ -267,9 +267,10 @@ const (
 	LinkTypePerUserKey                 = "per_user_key"
 
 	// team links
-	LinkTypeTeamRoot    LinkType = "team.root"
-	LinkTypeNewSubteam  LinkType = "team.new_subteam"
-	LinkTypeSubteamHead LinkType = "team.subteam_head"
+	LinkTypeTeamRoot         LinkType = "team.root"
+	LinkTypeNewSubteam                = "team.new_subteam"
+	LinkTypeSubteamHead               = "team.subteam_head"
+	LinkTypeChangeMembership          = "team.change_membership"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate                = "pgp_update"
@@ -569,8 +570,13 @@ type PvlUnparsed struct {
 
 const SharedTeamKeyBoxVersion1 = 1
 
-const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
-const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+const (
+	TeamDHDerivationString       = "Keybase-Derived-Team-NaCl-DH-1"
+	TeamEdDSADerivationString    = "Keybase-Derived-Team-NaCl-EdDSA-1"
+	TeamKBFSDerivationString     = "Keybase-Derived-Team-NaCl-KBFS-1"
+	TeamChatDerivationString     = "Keybase-Derived-Team-NaCl-Chat-1"
+	TeamSaltpackDerivationString = "Keybase-Derived-Team-NaCl-Saltpack-1"
+)
 
 func CurrentSaltpackVersion() saltpack.Version {
 	return saltpack.Version1()

@@ -49,34 +49,30 @@ func (o MerkleRootV2) DeepCopy() MerkleRootV2 {
 	}
 }
 
-type SignatureTime struct {
-	MerkleRootAtSig MerkleRootV2  `codec:"merkleRootAtSig" json:"merkleRootAtSig"`
-	FirstAppearedIn *MerkleRootV2 `codec:"firstAppearedIn,omitempty" json:"firstAppearedIn,omitempty"`
-	Time            Time          `codec:"time" json:"time"`
+type SignatureMetadata struct {
+	SigningKID              KID          `codec:"signingKID" json:"signingKID"`
+	PrevMerkleRootSigned    MerkleRootV2 `codec:"prevMerkleRootSigned" json:"prevMerkleRootSigned"`
+	FirstAppearedUnverified Seqno        `codec:"firstAppearedUnverified" json:"firstAppearedUnverified"`
+	Time                    Time         `codec:"time" json:"time"`
 }
 
-func (o SignatureTime) DeepCopy() SignatureTime {
-	return SignatureTime{
-		MerkleRootAtSig: o.MerkleRootAtSig.DeepCopy(),
-		FirstAppearedIn: (func(x *MerkleRootV2) *MerkleRootV2 {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.FirstAppearedIn),
+func (o SignatureMetadata) DeepCopy() SignatureMetadata {
+	return SignatureMetadata{
+		SigningKID:              o.SigningKID.DeepCopy(),
+		PrevMerkleRootSigned:    o.PrevMerkleRootSigned.DeepCopy(),
+		FirstAppearedUnverified: o.FirstAppearedUnverified.DeepCopy(),
 		Time: o.Time.DeepCopy(),
 	}
 }
 
 type PublicKeyV2Base struct {
-	Kid          KID            `codec:"kid" json:"kid"`
-	IsSibkey     bool           `codec:"isSibkey" json:"isSibkey"`
-	IsEldest     bool           `codec:"isEldest" json:"isEldest"`
-	CTime        Time           `codec:"cTime" json:"cTime"`
-	ETime        Time           `codec:"eTime" json:"eTime"`
-	Provisioning SignatureTime  `codec:"provisioning" json:"provisioning"`
-	Revocation   *SignatureTime `codec:"revocation,omitempty" json:"revocation,omitempty"`
+	Kid          KID                `codec:"kid" json:"kid"`
+	IsSibkey     bool               `codec:"isSibkey" json:"isSibkey"`
+	IsEldest     bool               `codec:"isEldest" json:"isEldest"`
+	CTime        Time               `codec:"cTime" json:"cTime"`
+	ETime        Time               `codec:"eTime" json:"eTime"`
+	Provisioning SignatureMetadata  `codec:"provisioning" json:"provisioning"`
+	Revocation   *SignatureMetadata `codec:"revocation,omitempty" json:"revocation,omitempty"`
 }
 
 func (o PublicKeyV2Base) DeepCopy() PublicKeyV2Base {
@@ -87,7 +83,7 @@ func (o PublicKeyV2Base) DeepCopy() PublicKeyV2Base {
 		CTime:        o.CTime.DeepCopy(),
 		ETime:        o.ETime.DeepCopy(),
 		Provisioning: o.Provisioning.DeepCopy(),
-		Revocation: (func(x *SignatureTime) *SignatureTime {
+		Revocation: (func(x *SignatureMetadata) *SignatureMetadata {
 			if x == nil {
 				return nil
 			}
@@ -285,19 +281,21 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 }
 
 type UserPlusKeysV2AllIncarnations struct {
-	Incarnations []UserPlusKeysV2 `codec:"incarnations" json:"incarnations"`
+	Current          UserPlusKeysV2   `codec:"current" json:"current"`
+	PastIncarnations []UserPlusKeysV2 `codec:"pastIncarnations" json:"pastIncarnations"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
 	return UserPlusKeysV2AllIncarnations{
-		Incarnations: (func(x []UserPlusKeysV2) []UserPlusKeysV2 {
+		Current: o.Current.DeepCopy(),
+		PastIncarnations: (func(x []UserPlusKeysV2) []UserPlusKeysV2 {
 			var ret []UserPlusKeysV2
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.Incarnations),
+		})(o.PastIncarnations),
 	}
 }
 

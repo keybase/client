@@ -154,12 +154,12 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	// starts a root team, and so making that link is very similar to what the
 	// CreateTeamEngine does.
 
-	newSubteamSig, err := generateNewSubteamSigForParentChain(g, me, deviceSigningKey, parentTeam, subteamName, subteamID)
+	newSubteamSig, err := generateNewSubteamSigForParentChain(g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID)
 	if err != nil {
 		return err
 	}
 
-	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(g, me, deviceSigningKey, parentTeam, subteamName, subteamID)
+	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID)
 	if err != nil {
 		return err
 	}
@@ -187,6 +187,11 @@ func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKey
 	if err != nil {
 		return
 	}
+	signingKey, encryptionKey, err = generatePerTeamKeysFromSecret(sharedSecret)
+	return
+}
+
+func generatePerTeamKeysFromSecret(sharedSecret []byte) (signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
 	encryptionKey, err = libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamDHDerivationString))
 	if err != nil {
 		return
@@ -204,7 +209,7 @@ type PerTeamSharedSecretBoxes struct {
 	Generation    PerUserSecretGeneration `json:"generation"`
 	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
 	Nonce         string                  `json:"nonce"`
-	Prev          *string                 `json:"prev"`
+	PrevKey       *string                 `json:"prev"`
 	Boxes         map[string]string       `json:"boxes"`
 }
 

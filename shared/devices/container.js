@@ -1,6 +1,5 @@
 // @flow
 import Render from '.'
-import flags from '../util/feature-flags'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login/creators'
 import {compose, lifecycle, mapProps, withState} from 'recompose'
@@ -54,7 +53,7 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateU
 })
 
 const menuItems = props => [
-  ...((flags.mobileAppsExist && [{onClick: props.addNewPhone, title: 'New phone'}]) || []),
+  {onClick: props.addNewPhone, title: 'New phone'},
   {onClick: props.addNewComputer, title: 'New computer'},
   {onClick: props.addNewPaperKey, title: 'New paper key'},
 ]

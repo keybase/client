@@ -5,7 +5,7 @@ import SearchResultsList from '.'
 import type {TypedState} from '../../constants/reducer'
 
 // TODO use entities
-const mapStateToProps = (state: TypedState, id: string) => {
+const mapStateToProps = ({entities}: TypedState) => {
   return {}
 }
 

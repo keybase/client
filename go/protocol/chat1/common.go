@@ -57,6 +57,35 @@ func (o OutboxID) DeepCopy() OutboxID {
 	return append([]byte(nil), o...)
 }
 
+type ConversationMembersType int
+
+const (
+	ConversationMembersType_KBFS    ConversationMembersType = 0
+	ConversationMembersType_TEAM    ConversationMembersType = 1
+	ConversationMembersType_IMPTEAM ConversationMembersType = 2
+)
+
+func (o ConversationMembersType) DeepCopy() ConversationMembersType { return o }
+
+var ConversationMembersTypeMap = map[string]ConversationMembersType{
+	"KBFS":    0,
+	"TEAM":    1,
+	"IMPTEAM": 2,
+}
+
+var ConversationMembersTypeRevMap = map[ConversationMembersType]string{
+	0: "KBFS",
+	1: "TEAM",
+	2: "IMPTEAM",
+}
+
+func (e ConversationMembersType) String() string {
+	if v, ok := ConversationMembersTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type MessageType int
 
 const (
@@ -353,6 +382,7 @@ type ConversationMetadata struct {
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
 	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
+	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -365,6 +395,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		ConversationID: o.ConversationID.DeepCopy(),
 		Visibility:     o.Visibility.DeepCopy(),
 		Status:         o.Status.DeepCopy(),
+		MembersType:    o.MembersType.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

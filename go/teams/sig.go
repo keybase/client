@@ -115,3 +115,28 @@ func NewSubteamID() keybase1.TeamID {
 	idBytes[15] = libkb.SubteamIDTag
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
+
+func ChangeMembershipSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+	ret, err := libkb.ProofMetadata{
+		Me:         me,
+		LinkType:   libkb.LinkTypeChangeMembership,
+		SigningKey: key,
+		Seqno:      seqno,
+		PrevLinkID: prev,
+		SigVersion: libkb.KeybaseSignatureV2,
+		SeqType:    libkb.SeqTypeSemiprivate,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ret.AtKey("body")
+	body.SetKey("team", teamSectionJSON)
+
+	return ret, nil
+}

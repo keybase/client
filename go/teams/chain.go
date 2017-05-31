@@ -238,6 +238,14 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
+func (t *TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
+	res, ok := t.PerTeamKeys[gen]
+	if !ok {
+		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}
+	}
+	return res, nil
+}
+
 // UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
 type UsernameFinder interface {
 	UsernameForUID(context.Context, keybase1.UID) (string, error)
@@ -775,7 +783,8 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
-// `firstLink` is whether this is seqno=1. In which case owners must exist.
+// Do not check that all removals are members. That should be true, but not strictly enforced when reading.
+// `firstLink` is whether this is seqno=1. In which case owners must exist. And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
 // In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
 func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]UserVersion, error) {
@@ -791,6 +800,9 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 		}
 		if len(*members.Owners) < 1 {
 			return nil, fmt.Errorf("team has no owners: %+v", members)
+		}
+		if members.None != nil && len(*members.None) != 0 {
+			return nil, fmt.Errorf("team has removals in root link: %+v", members)
 		}
 	}
 
@@ -819,6 +831,12 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
+		}
+	}
+	if members.None != nil {
+		res[keybase1.TeamRole_NONE] = nil
+		for _, m := range *members.None {
+			all = append(all, assignment{m, keybase1.TeamRole_NONE})
 		}
 	}
 
@@ -893,31 +911,12 @@ func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRol
 }
 
 // Update `userLog` with the membership in roleUpdates.
-// Users already in `userLog` who do not appear in `roleUpdates` and whose role does not appear in `roleUpdates` are unaffected.
-// Users already in `userLog` who do not appear in `roleUpdates` but whose role does appear in `roleUpdates` are kicked out the team.
-// Users already in `userLog` who appear with a different role than before are updated to that new role.
+// The `NONE` list removes users.
+// The other lists add users.
 func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno keybase1.Seqno) {
-	// Set of users that were already processed
-	processed := make(map[UserVersion]bool)
-
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
 			userLog.inform(uv, role, seqno)
-			processed[uv] = true
 		}
 	}
-
-	// Kick users who were not processed and whose role is mentioned in roleUpdates.
-	for uv := range *userLog {
-		if !processed[uv] {
-			role := (*userLog).getUserRole(uv)
-			if role != keybase1.TeamRole_NONE {
-				_, mentioned := roleUpdates[role]
-				if mentioned {
-					userLog.inform(uv, keybase1.TeamRole_NONE, seqno)
-				}
-			}
-		}
-	}
-
 }

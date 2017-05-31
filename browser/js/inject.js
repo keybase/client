@@ -44,7 +44,7 @@ const profileInject = {
   },
 
   "facebook": function facebookInjectProfile(user) {
-    const container = document.querySelector(".actions");
+    const container = document.querySelector("#fbProfileCover .actions");
     if (!container) return;
 
     const button = renderProfileChatButton(user);
