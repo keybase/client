@@ -511,6 +511,17 @@ export const TlfKeysTLFIdentifyBehavior = {
   chatSkip: 6,
 }
 
+export const UPKKeyType = {
+  none: 0,
+  nacl: 1,
+  pgp: 2,
+}
+
+export const UPKUPAKVersion = {
+  v1: 1,
+  v2: 2,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -3427,18 +3438,18 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamGetRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>) {
+export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamGet', request)
 }
 
-export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): EngineChannel {
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
 }
-export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
 }
 
-export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamGetRpcParam}>): Promise<void> {
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): Promise<teamsTeamGetResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -4564,6 +4575,11 @@ export type KeyInfo = {
   desc: string,
 }
 
+export type KeyType =
+    0 // NONE_0
+  | 1 // NACL_1
+  | 2 // PGP_2
+
 export type KeybaseTime = {
   unix: Time,
   chain: int,
@@ -4617,6 +4633,11 @@ export type MDBlock = {
 export type MerkleRoot = {
   version: int,
   root: bytes,
+}
+
+export type MerkleRootV2 = {
+  seqno: Seqno,
+  hashMeta: bytes,
 }
 
 export type MerkleTreeID =
@@ -4772,6 +4793,8 @@ export type PGPEncryptOptions = {
   binaryOut: boolean,
   keyQuery: string,
 }
+
+export type PGPFingerprint = any
 
 export type PGPIdentity = {
   username: string,
@@ -4996,6 +5019,35 @@ export type PublicKey = {
   cTime: Time,
   eTime: Time,
   isRevoked: boolean,
+}
+
+export type PublicKeyV2 =
+    { keyType: 1, nacl: ?PublicKeyV2NaCl }
+  | { keyType: 2, pgp: ?PublicKeyV2PGPSummary }
+  | { keyType: any }
+
+export type PublicKeyV2Base = {
+  kid: KID,
+  isSibkey: boolean,
+  isEldest: boolean,
+  cTime: Time,
+  eTime: Time,
+  provisioning: SignatureTime,
+  revocation?: ?SignatureTime,
+}
+
+export type PublicKeyV2NaCl = {
+  base: PublicKeyV2Base,
+  parent?: ?KID,
+  deviceID: DeviceID,
+  deviceDescription: string,
+  deviceType: string,
+}
+
+export type PublicKeyV2PGPSummary = {
+  base: PublicKeyV2Base,
+  fingerprint: PGPFingerprint,
+  identities?: ?Array<PGPIdentity>,
 }
 
 export type PushReason =
@@ -5261,6 +5313,12 @@ export type SignMode =
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
+export type SignatureTime = {
+  merkleRootAtSig: MerkleRootV2,
+  firstAppearedIn?: ?MerkleRootV2,
+  time: Time,
+}
+
 export type SignupRes = {
   passphraseOk: boolean,
   postOk: boolean,
@@ -5508,6 +5566,13 @@ export type TLFQuery = {
 
 export type TeamID = string
 
+export type TeamMembers = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+}
+
 export type TeamRole =
     0 // NONE_0
   | 1 // OWNER_1
@@ -5583,6 +5648,14 @@ export type Tracker = {
 
 export type UID = string
 
+export type UPAKVersion =
+    1 // V1_1
+  | 2 // V2_2
+
+export type UPAKVersioned =
+    { v: 1, v1: ?UserPlusAllKeys }
+  | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
+
 export type UnboxAnyRes = {
   kid: KID,
   plaintext: Bytes32,
@@ -5635,6 +5708,21 @@ export type UserPlusKeys = {
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
   perUserKeys?: ?Array<PerUserKey>,
+}
+
+export type UserPlusKeysV2 = {
+  uid: UID,
+  username: string,
+  eldestSeqno: Seqno,
+  uvv: UserVersionVector,
+  perUserKeys?: ?Array<PerUserKey>,
+  deviceKeys?: ?Array<PublicKeyV2NaCl>,
+  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
+  remoteTracks?: ?Array<RemoteTrack>,
+}
+
+export type UserPlusKeysV2AllIncarnations = {
+  incarnations?: ?Array<UserPlusKeysV2>,
 }
 
 export type UserResolution = {
@@ -6802,6 +6890,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsTeamGetResult = TeamMembers
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks

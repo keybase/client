@@ -35,6 +35,40 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamMembers",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readers"
+        }
+      ]
     }
   ],
   "messages": {
@@ -62,7 +96,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamMembers"
     }
   },
   "namespace": "keybase.1"

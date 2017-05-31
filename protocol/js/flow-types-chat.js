@@ -1900,7 +1900,7 @@ export type localFindConversationsLocalRpcParam = Exact<{
   visibility: TLFVisibility,
   topicType: TopicType,
   topicName: string,
-  oneChatPerTLF?: ?bool,
+  oneChatPerTLF?: ?boolean,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 

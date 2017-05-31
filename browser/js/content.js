@@ -5,10 +5,7 @@
 const asset = chrome.runtime.getURL;
 
 function init() {
-  // Passive queries?
-  chrome.storage.sync.get("profile-passive-queries", function(options) {
-    if (options["profile-passive-queries"] !== true) return; // Default false
-
+  chrome.storage.sync.get(function(options) {
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
       // weird single-page-app stuff that makes it difficult to hook into.
@@ -30,75 +27,37 @@ function init() {
     }
 
     const user = matchService(window.location, document);
-    if (!user) return;
 
-    chrome.runtime.sendMessage({
-      "method": "passivequery",
-      "to": user.query(),
-    }, function(response) {
-      if (response.status !== "ok") return;
-      user.services["keybase"] = safeHTML(response.result["username"]);
-    });
+    // Passive queries?
+    if (options["profile-passive-queries"] === true && user) { // undefined defaults to false
+      chrome.runtime.sendMessage({
+        "method": "passivequery",
+        "to": user.query(),
+      }, function(response) {
+        if (response.status !== "ok") return;
+        user.services["keybase"] = safeHTML(response.result["username"]);
+      });
+    }
+
+    // Inject Reddit replies?
+    if (options["reddit-thread-reply"] !== false) { // undefined defaults to true
+      if (location.hostname.endsWith('.reddit.com') && redditCheckThread.test(location.pathname)) {
+        redditInjectThread(document);
+      }
+    }
+
+    // Inject profile chat buttons?
+    if (options["profile-chat-buttons"] !== false && user) { // undefined defaults to true
+      injectProfileChat(user);
+    }
   });
-
-  // Inject Reddit thread DOM changes?
-  if (location.hostname.endsWith('.reddit.com') && checkThread.test(location.pathname)) {
-    chrome.storage.sync.get("reddit-thread-reply", function(options) {
-      // Is thread replies enabled?
-      if (options["reddit-thread-reply"] === false) return; // Default true
-
-      injectThread();
-    });
-  }
 }
 window.addEventListener('load', init);
-
-const checkThread = /^\/r\/\w+\/comments\/\w+\//;
-function injectThread() {
-  // /r/<subreddit>/comments/<id>/<slug>
-  for (let c of document.getElementsByClassName("comment")) {
-    const author = safeHTML(c.getAttribute("data-author"));
-    if (author == "") continue; // Empty
-    const buttons = c.getElementsByClassName("buttons")[0];
-
-    renderRedditChatButton(buttons, author);
-  }
-}
 
 // Global state of which chat window is currently open.
 let openChat = null;
 
-// Render the "keybase chat reply" button with handlers.
-function renderRedditChatButton(parent, toUsername) {
-  const isLoggedIn = document.getElementsByClassName("logout").length > 0;
-  const user = new User(toUsername, "reddit");
-  const li = document.createElement("li");
-  li.className = "keybase-reply";
-  li.innerHTML = `<a href="keybase://${user.query()}/">keybase chat reply</a>`;
-
-  li.getElementsByTagName("a")[0].addEventListener('click', function(e) {
-    e.preventDefault();
-    const chatParent = e.currentTarget.parentNode;
-
-    if (chatParent.getElementsByTagName("form").length > 0) {
-      // Current chat widget is already open, toggle it and exit
-      if (removeChat(openChat)) {
-        openChat = null;
-      }
-      return
-    } else if (openChat) {
-      // A different chat widget is open, close it and open the new one
-      if (!removeChat(openChat)) {
-        // Aborted
-        return
-      }
-    }
-
-    openChat = renderChat(chatParent, user, isLoggedIn /* nudgeSupported */);
-  });
-
-  parent.appendChild(li);
-}
+// General renderers:
 
 // Render the "Encrypt to..." contact header for the chat widget.
 function renderChatContact(el, user) {
@@ -133,7 +92,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
         You will need to let <a target="_blank" href="${user.href()}" class="external-user">${user.display()}</a> know that they have a Keybase message waiting for them.
       </p>
       <p>
-        Share this handy link: <span class="keybase-copy">https://keybase.io/reddit-crypto</span>
+        Share this handy link: <span class="keybase-copy">https://keybase.io/docs/extension</span>
       </p>
   `;
   let nudgeHTML = oobNudgeHTML;
@@ -148,13 +107,14 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
   // The chat widget is enclosed in the form element.
   const f = document.createElement("form");
+  f.className = "keybase-reply";
   f.action = "#"; // Avoid submitting even if we fail to preventDefault
   f.innerHTML = `
     <h3>
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
            />
-      Keybase chat <span class="keybase-close"> </span>
+      Keybase Chat <span class="keybase-close"> </span>
     </h3>
     <div class="keybase-body">
       <div class="keybase-contact"></div>
@@ -238,7 +198,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
 // Remove the chat widget from the DOM
 function removeChat(chatForm, skipCheck) {
-  if (!chatForm.parentNode) {
+  if (!chatForm || !chatForm.parentNode) {
     // Already removed, skip.
     return true;
   }
@@ -305,7 +265,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
       <img src="${asset("images/icon-keybase-logo-16.png")}"
            srcset="${asset("images/icon-keybase-logo-16@2x.png")} 2x, ${asset("images/icon-keybase-logo-16@3x.png")} 3x"
            />
-      Keybase chat <span class="keybase-close"> </span>
+      Keybase Chat <span class="keybase-close"> </span>
     </h3>
     <div class="keybase-body">
       <p>
@@ -322,7 +282,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
       </p>
     </div>
   `;
-  el.className = "keybase-success";
+  el.classList.add("keybase-success");
 
   installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */, closeCallback);
 }
@@ -336,7 +296,7 @@ function renderErrorFull(el, bodyHTML) {
     </p>
     ${bodyHTML}
   `;
-  el.className = "keybase-error";
+  el.classList.add("keybase-error");
 
   installCloser(el.getElementsByClassName("keybase-close"), el, true /* skipCheck */);
 }
@@ -358,7 +318,7 @@ function renderError(chatForm, msg) {
       return renderErrorFull(chatForm, `
         <p>Keybase needs to be running to send chat messages.</p>
         <p>
-          <a href="https://keybase.io/reddit-crypto" class="keybase-button" target="_blank">More details</a>
+          <a href="https://keybase.io/docs/extension" class="keybase-button" target="_blank">More details</a>
         </p>
       `);
     case "keybase is not logged in":
@@ -446,20 +406,4 @@ function findParentByClass(el, className) {
     el = el.parentNode;
   }
   return null;
-}
-
-// Convert a user input into a string that is safe for inlining into HTML.
-function safeHTML(s) {
-  if (!s) return "";
-  return s.replace(/[&'"<>\/]/g, function (c) {
-    // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
-    return {
-      '&': "&amp;",
-      '"': "&quot;",
-      "'": "&#x27",
-      '/': "&#x2F",
-      '<': "&lt;",
-      '>': "&gt;"
-    }[c];
-  });
 }
