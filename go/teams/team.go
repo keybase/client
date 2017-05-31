@@ -13,9 +13,10 @@ import (
 type Team struct {
 	libkb.Contextified
 
-	Name  string
-	Chain *TeamSigChainState
-	Box   TeamBox
+	Name           string
+	Chain          *TeamSigChainState
+	Box            TeamBox
+	ReaderKeyMasks []ReaderKeyMask
 
 	secret        []byte
 	signingKey    libkb.NaclSigningKeyPair
@@ -45,20 +46,12 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 	return t.secret, nil
 }
 
-func (t *Team) KBFSEncKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
-	secret, err := t.SharedSecret(ctx)
-	if err != nil {
-		return keybase1.TeamApplicationKey{}, err
-	}
-	return t.Box.ApplicationKey(keybase1.TeamApplication_KBFS, secret)
+func (t *Team) KBFSKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_KBFS)
 }
 
-func (t *Team) ChatEncKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
-	secret, err := t.SharedSecret(ctx)
-	if err != nil {
-		return keybase1.TeamApplicationKey{}, err
-	}
-	return t.Box.ApplicationKey(keybase1.TeamApplication_CHAT, secret)
+func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
@@ -150,6 +143,81 @@ func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, 
 
 func (t *Team) NextSeqno() keybase1.Seqno {
 	return t.Chain.GetLatestSeqno() + 1
+}
+
+// ApplicationKey returns the most recent key for an application.
+func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamApplication) (keybase1.TeamApplicationKey, error) {
+	secret, err := t.SharedSecret(ctx)
+	if err != nil {
+		return keybase1.TeamApplicationKey{}, err
+	}
+
+	var max ReaderKeyMask
+	for _, rkm := range t.ReaderKeyMasks {
+		if keybase1.TeamApplication(rkm.Application) != application {
+			continue
+		}
+		if rkm.Generation < max.Generation {
+			continue
+		}
+		max = rkm
+	}
+
+	if max.Application == 0 {
+		return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d", application)}
+	}
+
+	return t.applicationKeyForMask(max, secret)
+}
+
+func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (keybase1.TeamApplicationKey, error) {
+	for _, rkm := range t.ReaderKeyMasks {
+		if keybase1.TeamApplication(rkm.Application) != application {
+			continue
+		}
+		if rkm.Generation != generation {
+			continue
+		}
+		return t.applicationKeyForMask(rkm, secret)
+	}
+
+	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
+}
+
+func (t *Team) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
+	var derivationString string
+	switch keybase1.TeamApplication(mask.Application) {
+	case keybase1.TeamApplication_KBFS:
+		derivationString = libkb.TeamKBFSDerivationString
+	case keybase1.TeamApplication_CHAT:
+		derivationString = libkb.TeamChatDerivationString
+	case keybase1.TeamApplication_SALTPACK:
+		derivationString = libkb.TeamSaltpackDerivationString
+	default:
+		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
+	}
+
+	key := keybase1.TeamApplicationKey{
+		Application: keybase1.TeamApplication(mask.Application),
+		Generation:  mask.Generation,
+	}
+
+	maskBytes, err := mask.MaskBytes()
+	if err != nil {
+		return keybase1.TeamApplicationKey{}, err
+	}
+	if len(maskBytes) != 32 {
+		return keybase1.TeamApplicationKey{}, fmt.Errorf("mask length: %d, expected 32", len(maskBytes))
+	}
+
+	secBytes := make([]byte, len(maskBytes))
+	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), maskBytes)
+	if n != 32 {
+		return key, errors.New("invalid derived secret xor mask size")
+	}
+	copy(key.Key[:], secBytes)
+
+	return key, nil
 }
 
 type ChangeReq struct {

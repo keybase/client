@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/base64"
 	"encoding/json"
 
 	"golang.org/x/net/context"
@@ -32,6 +33,7 @@ func (f *finder) find(ctx context.Context, g *libkb.GlobalContext, name string) 
 
 	team := NewTeam(g, name)
 	team.Box = raw.Box
+	team.ReaderKeyMasks = raw.ReaderKeyMasks
 
 	links, err := f.chainLinks(ctx, raw)
 	if err != nil {
@@ -95,10 +97,21 @@ func (f *finder) UsernameForUID(ctx context.Context, uid keybase1.UID) (string, 
 	return name.String(), nil
 }
 
+type ReaderKeyMask struct {
+	Application int
+	Generation  int
+	Mask        string
+}
+
+func (r ReaderKeyMask) MaskBytes() ([]byte, error) {
+	return base64.StdEncoding.DecodeString(r.Mask)
+}
+
 type rawTeam struct {
-	Status libkb.AppStatus
-	Chain  []json.RawMessage
-	Box    TeamBox
+	Status         libkb.AppStatus
+	Chain          []json.RawMessage
+	Box            TeamBox
+	ReaderKeyMasks []ReaderKeyMask `json:"reader_key_masks"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
