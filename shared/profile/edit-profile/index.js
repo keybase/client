@@ -34,9 +34,9 @@ export default connect(
   (state, {routeState}) => {
     const userInfo = state.tracker.trackers[state.config.username].userInfo
     return {
-      bio: routeState.bio || userInfo.bio,
-      fullname: routeState.fullname || userInfo.fullname,
-      location: routeState.location || userInfo.location,
+      bio: routeState.bio !== undefined ? routeState.bio : userInfo.bio,
+      fullname: routeState.fullname !== undefined ? routeState.fullname : userInfo.fullname,
+      location: routeState.location !== undefined ? routeState.location : userInfo.location,
     }
   },
   (dispatch, {routeState, setRouteState}) => {
