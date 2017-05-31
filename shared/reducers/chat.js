@@ -609,6 +609,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:inboxSearch': {
       return state.set('inboxSearch', List(action.payload.search))
     }
+    case 'chat:updateSearchResults': {
+      const {payload: {searchResults}} = action
+      return state.set('searchResults', List(searchResults))
+    }
   }
 
   return state

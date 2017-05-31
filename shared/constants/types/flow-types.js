@@ -493,6 +493,12 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsTeamApplication = {
+  kbfs: 1,
+  chat: 2,
+  saltpack: 3,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   owner: 1,
@@ -4630,6 +4636,8 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MaskB64 = bytes
+
 export type MerkleRoot = {
   version: int,
   root: bytes,
@@ -5032,8 +5040,8 @@ export type PublicKeyV2Base = {
   isEldest: boolean,
   cTime: Time,
   eTime: Time,
-  provisioning: SignatureTime,
-  revocation?: ?SignatureTime,
+  provisioning: SignatureMetadata,
+  revocation?: ?SignatureMetadata,
 }
 
 export type PublicKeyV2NaCl = {
@@ -5069,6 +5077,12 @@ export type ReadArgs = {
   path: Path,
   offset: long,
   size: int,
+}
+
+export type ReaderKeyMask = {
+  application: TeamApplication,
+  generation: int,
+  mask: MaskB64,
 }
 
 export type RegisterAddressRes = {
@@ -5313,9 +5327,10 @@ export type SignMode =
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
-export type SignatureTime = {
-  merkleRootAtSig: MerkleRootV2,
-  firstAppearedIn?: ?MerkleRootV2,
+export type SignatureMetadata = {
+  signingKID: KID,
+  prevMerkleRootSigned: MerkleRootV2,
+  firstAppearedUnverified: Seqno,
   time: Time,
 }
 
@@ -5564,6 +5579,17 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamApplication =
+    1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
+
+export type TeamApplicationKey = {
+  application: TeamApplication,
+  generation: int,
+  key: Bytes32,
+}
+
 export type TeamID = string
 
 export type TeamMembers = {
@@ -5722,7 +5748,8 @@ export type UserPlusKeysV2 = {
 }
 
 export type UserPlusKeysV2AllIncarnations = {
-  incarnations?: ?Array<UserPlusKeysV2>,
+  current: UserPlusKeysV2,
+  pastIncarnations?: ?Array<UserPlusKeysV2>,
 }
 
 export type UserResolution = {

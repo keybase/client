@@ -60,6 +60,15 @@
     },
     {
       "type": "enum",
+      "name": "ConversationMembersType",
+      "symbols": [
+        "KBFS_0",
+        "TEAM_1",
+        "IMPTEAM_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "MessageType",
       "symbols": [
         "NONE_0",
@@ -304,6 +313,10 @@
         {
           "type": "ConversationStatus",
           "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
         },
         {
           "type": [

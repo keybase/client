@@ -12,9 +12,10 @@ protocol UPK {
       bytes hashMeta;
   }
 
-  record SignatureTime {
-      MerkleRootV2 merkleRootAtSig;
-      union { null, MerkleRootV2 } firstAppearedIn;
+  record SignatureMetadata {
+      KID signingKID;  // For an eldest key, the signing KID is itself.
+      MerkleRootV2 prevMerkleRootSigned;
+      Seqno firstAppearedUnverified;
       Time time;
   }
 
@@ -24,8 +25,8 @@ protocol UPK {
       boolean isEldest;
       Time cTime;
       Time eTime;
-      SignatureTime provisioning;
-      union { null, SignatureTime } revocation;
+      SignatureMetadata provisioning;
+      union { null, SignatureMetadata } revocation;
   }
 
   record PublicKeyV2NaCl {
@@ -66,8 +67,9 @@ protocol UPK {
   }
 
   record UserPlusKeysV2AllIncarnations {
-      // Sorted by account version ascending
-      array<UserPlusKeysV2> incarnations;
+      UserPlusKeysV2 current;
+      // Sorted by account version ascending, could be empty.
+      array<UserPlusKeysV2> pastIncarnations;
   }
 
   enum UPAKVersion {

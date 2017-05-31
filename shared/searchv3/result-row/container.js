@@ -11,8 +11,11 @@ const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath:
   }
 }
 
-// TODO
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
+  onShowTracker: () => {
+    console.log('todo: dispatch action')
+  },
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
