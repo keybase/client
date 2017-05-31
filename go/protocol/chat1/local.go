@@ -3090,6 +3090,7 @@ type NewConversationLocalArg struct {
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
 	TlfVisibility    TLFVisibility                `codec:"tlfVisibility" json:"tlfVisibility"`
 	TopicName        *string                      `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	MembersType      ConversationMembersType      `codec:"membersType" json:"membersType"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -3105,6 +3106,7 @@ func (o NewConversationLocalArg) DeepCopy() NewConversationLocalArg {
 			tmp := (*x)
 			return &tmp
 		})(o.TopicName),
+		MembersType:      o.MembersType.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
 }

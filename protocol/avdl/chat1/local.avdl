@@ -500,7 +500,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
