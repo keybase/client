@@ -3,9 +3,7 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
-import {Box, NativeScrollView, NativeKeyboard} from '../../../common-adapters/index.native'
-// $FlowIssue
-import FlatList from '../../../fixme/Lists/FlatList'
+import {Box, NativeScrollView, NativeKeyboard, NativeFlatList} from '../../../common-adapters/index.native'
 
 import type {Props} from '.'
 
@@ -70,7 +68,7 @@ class ConversationList extends Component<void, Props, void> {
 
   render() {
     return (
-      <FlatList
+      <NativeFlatList
         data={this.props.messageKeys.toArray()}
         renderItem={this._renderItem}
         renderScrollComponent={this._renderScrollComponent}
