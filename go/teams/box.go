@@ -2,6 +2,7 @@ package teams
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -22,6 +23,10 @@ type ReaderKeyMask struct {
 	Application int
 	Generation  int
 	Mask        string
+}
+
+func (r ReaderKeyMask) MaskBytes() ([]byte, error) {
+	return base64.StdEncoding.DecodeString(r.Mask)
 }
 
 // Open decrypts Ctext using encKey.
@@ -95,7 +100,16 @@ func (t *TeamBox) applicationKeyForMask(mask ReaderKeyMask, secret []byte) (libk
 		derivationString = libkb.TeamSaltpackDerivationString
 	}
 
-	return libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(secret, derivationString))
+	maskBytes, err := mask.MaskBytes()
+	if err != nil {
+		return libkb.NaclDHKeyPair{}, err
+	}
+	var secBytes []byte
+	n := libkb.XORBytes(secBytes, derivedSecret(secret, derivationString), maskBytes)
+	if n != 32 {
+		return libkb.NaclDHKeyPair{}, errors.New("invalid derived secret size")
+	}
+	return libkb.MakeNaclDHKeyPairFromSecretBytes(secBytes)
 }
 
 func (t *TeamBox) nonceBytes() ([]byte, error) {
