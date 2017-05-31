@@ -15,11 +15,11 @@ type member struct {
 }
 
 type memberSet struct {
-	Owners     *[]member
-	Admins     *[]member
-	Writers    *[]member
-	Readers    *[]member
-	None       *[]member
+	Owners     []member
+	Admins     []member
+	Writers    []member
+	Readers    []member
+	None       []member
 	recipients map[string]keybase1.PerUserKey
 }
 
@@ -56,20 +56,16 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 	return nil
 }
 
-func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group *[]string) (*[]member, error) {
-	if group == nil {
-		return nil, nil
-	}
-
-	members := make([]member, len(*group))
+func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []string) ([]member, error) {
+	members := make([]member, len(group))
 	var err error
-	for i, username := range *group {
+	for i, username := range group {
 		members[i], err = m.loadMember(ctx, g, username)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return &members, nil
+	return members, nil
 }
 
 func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, username string) (member, error) {
@@ -93,12 +89,12 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, user
 
 }
 
-func (m *memberSet) nameSeqList(members *[]member) (*[]SCTeamMember, error) {
-	if members == nil {
+func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
+	if len(members) == 0 {
 		return nil, nil
 	}
-	res := make([]SCTeamMember, len(*members))
-	for i, m := range *members {
+	res := make([]SCTeamMember, len(members))
+	for i, m := range members {
 		nameSeq, err := libkb.MakeNameWithEldestSeqno(m.version.Username.String(), m.version.EldestSeqno)
 		if err != nil {
 			return nil, err

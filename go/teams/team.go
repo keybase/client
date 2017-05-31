@@ -152,14 +152,12 @@ func (t *Team) NextSeqno() keybase1.Seqno {
 	return t.Chain.GetLatestSeqno() + 1
 }
 
-// If any field is nil, that means no change.
-// If any field is an empty array, that means remove all current members.
 type ChangeReq struct {
-	Owners  *[]string
-	Admins  *[]string
-	Writers *[]string
-	Readers *[]string
-	None    *[]string
+	Owners  []string
+	Admins  []string
+	Writers []string
+	Readers []string
+	None    []string
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
