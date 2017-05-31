@@ -31,6 +31,7 @@ type SCTeamMembers struct {
 	Admins  *[]SCTeamMember `json:"admin,omitempty"`
 	Writers *[]SCTeamMember `json:"writer,omitempty"`
 	Readers *[]SCTeamMember `json:"reader,omitempty"`
+	None    *[]SCTeamMember `json:"none,omitempty"`
 }
 
 type SCTeamParent struct {
