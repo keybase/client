@@ -214,6 +214,51 @@ func TestMemberRemove(t *testing.T) {
 	}
 }
 
+func TestMemberChangeRole(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.Background()
+	s, err := Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role := uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole := usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_WRITER {
+		t.Errorf("role: %s, expected WRITER", otherRole)
+	}
+
+	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx = context.Background()
+	s, err = Get(ctx, tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	role = uidRole(ctx, tc, s, owner.User.GetUID())
+	if role != keybase1.TeamRole_OWNER {
+		t.Errorf("role: %s, expected OWNER", role)
+	}
+
+	otherRole = usernameRole(ctx, tc, s, other.Username)
+	if otherRole != keybase1.TeamRole_READER {
+		t.Errorf("role: %s, expected READER", otherRole)
+	}
+}
+
 func uidRole(ctx context.Context, tc libkb.TestContext, team *Team, uid keybase1.UID) keybase1.TeamRole {
 	uv, err := loadUserVersionByUID(ctx, tc.G, uid)
 	if err != nil {
