@@ -19,7 +19,11 @@ export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden,
       {onClick: () => onShowEditor(message), title: 'Edit'},
       {
         danger: true,
-        onClick: () => onDeleteMessage(message),
+        onClick: () => {
+          if (onDeleteMessage) {
+            onDeleteMessage(message)
+          }
+        },
         subTitle: 'Deletes for everyone',
         title: 'Delete',
       },
@@ -60,7 +64,11 @@ export const AttachmentPopupMenu = ({
   if (message.author === you) {
     items.push({
       danger: true,
-      onClick: () => onDeleteMessage(message),
+      onClick: () => {
+        if (onDeleteMessage) {
+          onDeleteMessage(message)
+        }
+      },
       subTitle: 'Deletes for everyone',
       title: 'Delete',
     })

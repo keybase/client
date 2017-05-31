@@ -284,7 +284,7 @@ function _notify(state) {
     .filter(t => t.meta === 'new')
     .map(t => t.path)
 
-  if (_.difference(newNotifyState, previousNotifyState).length) {
+  if (_.difference(newNotifyState, previousNotifyState || []).length) {
     let body
     if (total <= 3) {
       body = newNotifyState.join('\n')

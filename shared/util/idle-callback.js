@@ -2,12 +2,18 @@
 import {forceImmediateLogging} from '../local-debug'
 import {isAndroid} from '../constants/platform'
 
-function immediateCallback(cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void): number {
+function immediateCallback(
+  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
+  options: any
+): number {
   cb({didTimeout: true, timeRemaining: () => 0})
   return 0
 }
 
-function timeoutFallback(cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void): number {
+function timeoutFallback(
+  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
+  options: any
+): number {
   return setTimeout(function() {
     cb({
       didTimeout: true,

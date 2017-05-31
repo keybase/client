@@ -12,7 +12,11 @@ import type {StateProps, DispatchProps} from './container'
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
-    return {}
+    return {
+      _participants: List(),
+      _supersededBy: null,
+      username: '',
+    }
   }
   const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
   const _supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)

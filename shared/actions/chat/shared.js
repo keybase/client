@@ -30,6 +30,7 @@ function pendingFailureSelector(state: TypedState, outboxID: Constants.OutboxIDK
 }
 
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
+  // $FlowIssue doesn't understand record fallback
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
 

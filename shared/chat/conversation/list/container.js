@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import HiddenString from '../../../util/hidden-string'
+import * as I from 'immutable'
 import ListComponent from '.'
-import {List} from 'immutable'
+import HiddenString from '../../../util/hidden-string'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
@@ -16,7 +16,7 @@ import type {TypedState} from '../../../constants/reducer'
 
 // TODO change this. This is a temporary store for the messages so we can have a function to map from
 // messageKey to Message to support the 'edit last message' functionality. We should change how this works
-let _messages: List<Constants.Message> = List()
+let _messages: I.List<Constants.Message> = I.List()
 const _getMessageFromMessageKey = (messageKey: Constants.MessageKey): ?Constants.Message =>
   _messages.find(m => m.key === messageKey)
 
@@ -24,15 +24,15 @@ const getPropsFromConversationState = createSelector(
   [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
   (conversationState, inbox, _supersedes) => {
     let supersedes = null
-    let messageKeys = List()
+    let messageKeys = I.List()
     let validated = false
     if (conversationState) {
       if (!conversationState.moreToLoad) {
         supersedes = _supersedes
       }
 
-      messageKeys = conversationState.messages.map(m => m.key)
-      _messages = conversationState.messages
+      _messages = conversationState.get('messages')
+      messageKeys = _messages.map(m => m.key)
       validated = inbox && inbox.state === 'unboxed'
     }
     return {
@@ -46,7 +46,7 @@ const getPropsFromConversationState = createSelector(
 // This is a temporary solution until I can cleanup the reducer in a different PR
 // messageKeys is being derived so it can change even when nothing else is causing re-renders
 // As a short term 'cheat' i'm keeping the last copy and returning that if its equivalent. TODO take this out later
-let _lastMessageKeys = List()
+let _lastMessageKeys = I.List()
 
 const mapStateToProps = (
   state: TypedState,
@@ -56,7 +56,7 @@ const mapStateToProps = (
   const you = state.config.username || ''
 
   let validated = false
-  let messageKeys = List()
+  let messageKeys = I.List()
   let supersedes
 
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
@@ -67,7 +67,7 @@ const mapStateToProps = (
   } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
     const temp = getPropsFromConversationState(state)
     supersedes = temp.supersedes
-    if (temp.messageKeys.equals(_lastMessageKeys)) {
+    if (I.is(temp.messageKeys, _lastMessageKeys)) {
       messageKeys = _lastMessageKeys
     } else {
       messageKeys = temp.messageKeys

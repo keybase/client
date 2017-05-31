@@ -20,7 +20,7 @@ class CopyableText extends Component<void, Props & TimerProps, State> {
   state: State
   lastCopyTimeoutId: ?number
 
-  constructor(props: Props) {
+  constructor(props: Props & TimerProps) {
     super(props)
     this.state = {
       hasCopied: false,

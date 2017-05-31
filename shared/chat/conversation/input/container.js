@@ -46,7 +46,7 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
+  _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([
         {props: {conversationIDKey: selectedConversation, inputs}, selected: 'attachmentInput'},
@@ -56,14 +56,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onEditMessage: (message: Constants.Message, body: string) => {
     dispatch(Creators.editMessage(message, new HiddenString(body)))
   },
-  onPostMessage: (selectedConversation, text) =>
-    dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
+  onPostMessage: (selectedConversation, text) => {
+    if (selectedConversation && text) {
+      dispatch(Creators.postMessage(selectedConversation, new HiddenString(text)))
+    }
+  },
   onShowEditor: (message: Constants.Message) => {
     dispatch(Creators.showEditor(message))
   },
-  onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
+  _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
-  onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
+  _onUpdateTyping: (selectedConversation: Constants.ConversationIDKey, typing: boolean) => {
     dispatch(Creators.updateTyping(selectedConversation, typing))
   },
 })
@@ -71,7 +74,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   const updateTyping = (typing: boolean) => {
     if (stateProps.selectedConversationIDKey) {
-      dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)
+      dispatchProps._onUpdateTyping(stateProps.selectedConversationIDKey, typing)
     }
   }
   const wrappedTyping = throttle(updateTyping, 5000)
@@ -79,8 +82,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
   return {
     ...stateProps,
     ...dispatchProps,
-    onAttach: (inputs: Array<Constants.AttachmentInput>) =>
-      dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
+    onAttach: (inputs: Array<Constants.AttachmentInput>) => {
+      dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs)
+    },
     onEditLastMessage: ownProps.onEditLastMessage,
     onPostMessage: text => {
       dispatchProps.onPostMessage(stateProps.selectedConversationIDKey, text)
@@ -89,7 +93,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
     onStoreInputText: (inputText: string) => {
       if (stateProps.selectedConversationIDKey) {
         // only write if we're in a convo
-        dispatchProps.onStoreInputText(stateProps.selectedConversationIDKey, inputText)
+        dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, inputText)
       }
     },
     onUpdateTyping: (typing: boolean) => {
@@ -101,6 +105,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
         wrappedTyping(typing)
       }
     },
+    // make flow happy
+    inputClear: () => {},
+    inputFocus: () => {},
+    inputBlur: () => {},
+    inputSelections: () => ({}),
+    inputSetRef: () => {},
+    inputValue: () => '',
+    setText: () => {},
+    text: '',
   }
 }
 

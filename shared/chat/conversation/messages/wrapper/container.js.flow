@@ -13,7 +13,7 @@ export type OwnProps = {|
 |}
 
 export type StateProps = {|
-  _editedCount: boolean,
+  _editedCount: number,
   _message: Constants.AttachmentMessage | Constants.TextMessage,
   _selectedConversationIDKey: ?Constants.ConversationIDKey,
   author: string,

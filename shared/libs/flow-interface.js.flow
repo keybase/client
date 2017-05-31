@@ -6,28 +6,10 @@ declare module 'Interpolation' {
 declare module 'buffer' {
   declare var exports: {Buffer: any}
 }
-declare module 'deep-diff' {
-  declare var exports: any
-}
-declare module 'deep-equal' {
-  declare var exports: any
-}
 declare module 'electron' {
   declare var exports: any
 }
 declare module 'getenv' {
-  declare var exports: any
-}
-declare module 'lodash' {
-  declare var exports: any
-}
-declare module 'lodash/debounce' {
-  declare var exports: any
-}
-declare module 'lodash/merge' {
-  declare var exports: any
-}
-declare module 'marked' {
   declare var exports: any
 }
 declare module 'material-ui' {
@@ -40,9 +22,6 @@ declare module 'material-ui/styles' {
   declare var exports: any
 }
 declare module 'material-ui/svg-icons' {
-  declare var exports: any
-}
-declare module 'moment' {
   declare var exports: any
 }
 declare module 'qrcode-generator' {
@@ -69,22 +48,10 @@ declare module 'react-navigation' {
 declare module 'react-navigation/src/views/CardStackTransitioner' {
   declare var exports: any
 }
-declare module 'react-redux' {
-  declare var exports: any
-}
 declare module 'react-tap-event-plugin' {
   declare var exports: any
 }
-declare module 'redux' {
-  declare var exports: any
-}
 declare module 'redux-devtools' {
-  declare var exports: any
-}
-declare module 'redux-saga' {
-  declare var exports: any
-}
-declare module 'redux-saga/effects' {
   declare var exports: any
 }
 declare module './dll/vendor-manifest.json' {
@@ -92,17 +59,6 @@ declare module './dll/vendor-manifest.json' {
 }
 declare module 'invariant' {
   declare var exports: (callback: any) => any
-}
-declare module 'react-addons-perf' {
-  declare var exports: {
-    start: () => void,
-    stop: () => void,
-    getLastMeasurements: () => Object,
-    printInclusive: (measurements: Object) => void,
-    printExclusive: (measurements: Object) => void,
-    printWasted: (measurements: Object) => void,
-    printDOM: (measurements: Object) => void,
-  }
 }
 declare module 'resolveRoot' {
   declare var exports: {

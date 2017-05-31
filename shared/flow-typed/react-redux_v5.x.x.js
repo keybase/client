@@ -1,5 +1,4 @@
-// Lifted from: https://github.com/gcanti/redux/commit/ec18cbe4551159a64518b17bd556a7525be94f88
-// PR into redux here: https://github.com/reactjs/redux/pull/1887
+// https://raw.githubusercontent.com/flowtype/flow-typed/master/definitions/npm/react-redux_v5.x.x/flow_v0.30.x-/react-redux_v5.x.x.js
 import type {Dispatch, Store} from 'redux'
 
 declare module 'react-redux' {
@@ -28,7 +27,9 @@ declare module 'react-redux' {
     ownProps: OP
   ) => P
 
-  declare type StatelessComponent<P> = (props: P) => ?React$Element<any>
+  declare type Context = {store: Store<*, *>}
+
+  declare type StatelessComponent<P> = (props: P, context: Context) => ?React$Element<any>
 
   declare class ConnectedComponent<OP, P, Def, St> extends React$Component<void, OP, void> {
     static WrappedComponent: Class<React$Component<Def, P, St>>,
@@ -85,6 +86,13 @@ declare module 'react-redux' {
     mergeProps: Null,
     options?: ConnectOptions
   ): Connector<OP, $Supertype<SP & DP & OP>>
+
+  declare function connect<S, A, OP, SP, DP, P>(
+    mapStateToProps: MapStateToProps<S, OP, SP>,
+    mapDispatchToProps: Null,
+    mergeProps: MergeProps<SP, DP, OP, P>,
+    options?: ConnectOptions
+  ): Connector<OP, P>
 
   declare function connect<S, A, OP, SP, DP, P>(
     mapStateToProps: MapStateToProps<S, OP, SP>,

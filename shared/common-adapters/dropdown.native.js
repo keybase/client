@@ -96,12 +96,12 @@ class Dropdown extends Component<void, Props, State> {
   }
 
   _renderLabelAndCaret(): Array<React$Element<*>> {
-    return [
-      <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
-        {this._label(this.state.value)}
-      </Text>,
-      <Icon key="icon" type="iconfont-caret-down" style={styleIcon} />,
-    ]
+    const icon = <Icon key="icon" type="iconfont-caret-down" style={styleIcon} />
+    const textContent = this._label(this.state.value)
+    const text = (
+      <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>{textContent}</Text>
+    )
+    return [text, icon]
   }
 
   _renderPicker(style: Object, selectOnChange: boolean): React$Element<*> {
