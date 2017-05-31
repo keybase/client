@@ -162,6 +162,7 @@ func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.Dismis
 // given UID into a gregorHandler, the result is that a TrackEngine gets run
 // for that user.
 func TestShowTrackerPopupMessage(t *testing.T) {
+	t.Skip("flake as per CORE-5404")
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 
