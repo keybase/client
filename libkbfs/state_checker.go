@@ -222,7 +222,9 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 				}
 			}
 			for _, update := range op.allUpdates() {
-				delete(expectedLiveBlocks, update.Unref)
+				if update.Ref != update.Unref {
+					delete(expectedLiveBlocks, update.Unref)
+				}
 				if update.Unref != zeroPtr && update.Ref != update.Unref {
 					if rmd.Revision() <= gcRevision {
 						delete(archivedBlocks, update.Unref)
@@ -230,7 +232,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlfID tlf.ID) erro
 						archivedBlocks[update.Unref] = true
 					}
 				}
-				if update.Ref != zeroPtr {
+				if update.Ref != zeroPtr && update.Ref != update.Unref {
 					expectedLiveBlocks[update.Ref] = true
 				}
 			}

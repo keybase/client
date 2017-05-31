@@ -480,3 +480,53 @@ func TestSyncTwoFilesInRoot(t *testing.T) {
 		),
 	)
 }
+
+// Regression for KBFS-2243.
+func TestCreateAndRemoveDirTreeWithinBatch(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("a/b"),
+			mkfile("a/b/c", "hello"),
+			rm("a/b/c"),
+			mkdir("b"),
+			rmdir("a/b"),
+			rmdir("a"),
+			// Initial check before SyncAll is called.
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+		as(alice,
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+		as(bob,
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+	)
+}
+
+func TestRenameFromRemovedDirWithinBatch(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("a/b"),
+			rename("a/b", "b"),
+			rmdir("a"),
+			// Initial check before SyncAll is called.
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+		as(alice,
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+		as(bob,
+			lsdir("", m{"b$": "DIR"}),
+			lsdir("b", m{}),
+		),
+	)
+}
