@@ -325,9 +325,6 @@ function renderErrorFull(el, closeCallback, bodyHTML) {
 
 // Render error message inside our chat widget.
 function renderError(chatForm, closeCallback, msg) {
-  const err = document.createElement("p");
-  err.className = "keybase-error-msg";
-
   if (msg.includes("keybased.sock: connect:")) {
     msg = "keybase is not running";
   }
@@ -362,7 +359,9 @@ function renderError(chatForm, closeCallback, msg) {
       break;
   }
 
-  err.innerText = msg;
+  const err = bel`
+    <p class="keybase-error-msg">${msg}</p>
+  `;
   const el = chatForm.getElementsByClassName("keybase-body")[0];
   el.appendChild(err);
 }
