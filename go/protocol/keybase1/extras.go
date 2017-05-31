@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -134,6 +135,10 @@ func (k KID) Equal(v KID) bool {
 
 func (k KID) NotEqual(v KID) bool {
 	return !k.Equal(v)
+}
+
+func (k KID) SecureEqual(v KID) bool {
+	return hmac.Equal(k.ToBytes(), v.ToBytes())
 }
 
 func (k KID) Match(q string, exact bool) bool {
