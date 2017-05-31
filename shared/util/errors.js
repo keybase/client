@@ -26,6 +26,8 @@ export class RPCTimeoutError extends Error {
 
 export class ValidationError extends Error {}
 
+export class SearchError extends Error {}
+
 // convertToError converts an RPC error object (or any object) into an Error
 export function convertToError(err: Object): Error {
   if (err instanceof Error) {
