@@ -30,9 +30,6 @@ func (f *finder) find(ctx context.Context, g *libkb.GlobalContext, name string) 
 		return nil, err
 	}
 
-	// XXX
-	// fmt.Printf("raw: %+v\n", raw)
-
 	team := NewTeam(g, name)
 	team.Box = raw.Box
 

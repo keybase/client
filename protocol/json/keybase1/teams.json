@@ -14,6 +14,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TeamApplication",
+      "symbols": [
+        "KBFS_1",
+        "CHAT_2",
+        "SALTPACK_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "PerTeamKey",
       "fields": [

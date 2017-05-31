@@ -29,12 +29,36 @@ func NewTeam(g *libkb.GlobalContext, name string) *Team {
 }
 
 func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
-	userEncKey, err := t.perUserEncryptionKey(ctx)
-	if err != nil {
-		return nil, err
+	if t.secret == nil {
+		userEncKey, err := t.perUserEncryptionKey(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		secret, err := t.Box.Open(userEncKey)
+		if err != nil {
+			return nil, err
+		}
+		t.secret = secret
 	}
 
-	return t.Box.Open(userEncKey)
+	return t.secret, nil
+}
+
+func (t *Team) KBFSEncKey(ctx context.Context) (libkb.NaclDHKeyPair, error) {
+	secret, err := t.SharedSecret(ctx)
+	if err != nil {
+		return libkb.NaclDHKeyPair{}, err
+	}
+	return t.Box.ApplicationKey(keybase1.TeamApplication_KBFS, secret)
+}
+
+func (t *Team) ChatEncKey(ctx context.Context) (libkb.NaclDHKeyPair, error) {
+	secret, err := t.SharedSecret(ctx)
+	if err != nil {
+		return libkb.NaclDHKeyPair{}, err
+	}
+	return t.Box.ApplicationKey(keybase1.TeamApplication_CHAT, secret)
 }
 
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {

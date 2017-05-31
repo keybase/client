@@ -493,6 +493,12 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsTeamApplication = {
+  kbfs: 1,
+  chat: 2,
+  saltpack: 3,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   owner: 1,
@@ -5563,6 +5569,11 @@ export type TLFQuery = {
   tlfName: string,
   identifyBehavior: TLFIdentifyBehavior,
 }
+
+export type TeamApplication =
+    1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
 
 export type TeamID = string
 

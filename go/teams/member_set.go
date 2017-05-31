@@ -82,7 +82,6 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, user
 		return member{}, errors.New("user does not have per-user key")
 	}
 
-	// XXX use user object above instead?
 	version, err := loadUserVersionByUsername(ctx, g, username)
 
 	m.recipients[user.GetName()] = *key

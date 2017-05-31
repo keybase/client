@@ -570,8 +570,13 @@ type PvlUnparsed struct {
 
 const SharedTeamKeyBoxVersion1 = 1
 
-const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
-const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+const (
+	TeamDHDerivationString       = "Keybase-Derived-Team-NaCl-DH-1"
+	TeamEdDSADerivationString    = "Keybase-Derived-Team-NaCl-EdDSA-1"
+	TeamKBFSDerivationString     = "Keybase-Derived-Team-NaCl-KBFS-1"
+	TeamChatDerivationString     = "Keybase-Derived-Team-NaCl-Chat-1"
+	TeamSaltpackDerivationString = "Keybase-Derived-Team-Nacl-Saltpack-1"
+)
 
 func CurrentSaltpackVersion() saltpack.Version {
 	return saltpack.Version1()

@@ -43,6 +43,35 @@ func (e TeamRole) String() string {
 	return ""
 }
 
+type TeamApplication int
+
+const (
+	TeamApplication_KBFS     TeamApplication = 1
+	TeamApplication_CHAT     TeamApplication = 2
+	TeamApplication_SALTPACK TeamApplication = 3
+)
+
+func (o TeamApplication) DeepCopy() TeamApplication { return o }
+
+var TeamApplicationMap = map[string]TeamApplication{
+	"KBFS":     1,
+	"CHAT":     2,
+	"SALTPACK": 3,
+}
+
+var TeamApplicationRevMap = map[TeamApplication]string{
+	1: "KBFS",
+	2: "CHAT",
+	3: "SALTPACK",
+}
+
+func (e TeamApplication) String() string {
+	if v, ok := TeamApplicationRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PerTeamKey struct {
 	Gen    int   `codec:"gen" json:"gen"`
 	Seqno  Seqno `codec:"seqno" json:"seqno"`
