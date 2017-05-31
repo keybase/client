@@ -59,6 +59,9 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, errors.New("derived encryption key did not match key in team chain")
 		}
 
+		// TODO: check that t.Box.SenderKID is a known device DH key for the
+		// user that signed the link.
+
 		t.secret = secret
 		t.signingKey = signingKey
 		t.encryptionKey = encryptionKey
