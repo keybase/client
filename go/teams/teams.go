@@ -190,6 +190,24 @@ func (t *Team) NextSeqno() keybase1.Seqno {
 	return t.Chain.GetLatestSeqno() + 1
 }
 
+func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
+	secret, err := t.SharedSecret(ctx)
+	if err != nil {
+		return res, err
+	}
+	for _, rkm := range t.ReaderKeyMasks {
+		if rkm.Application != application {
+			continue
+		}
+		key, err := t.applicationKeyForMask(rkm, secret)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, key)
+	}
+	return res, nil
+}
+
 // ApplicationKey returns the most recent key for an application.
 func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamApplication) (keybase1.TeamApplicationKey, error) {
 	secret, err := t.SharedSecret(ctx)
@@ -243,8 +261,8 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	}
 
 	key := keybase1.TeamApplicationKey{
-		Application: mask.Application,
-		Generation:  mask.Generation,
+		Application:   mask.Application,
+		KeyGeneration: mask.Generation,
 	}
 
 	if len(mask.Mask) != 32 {

@@ -18,7 +18,7 @@ protocol teams {
 
   record TeamApplicationKey {
     TeamApplication application;
-    int generation;
+    int keyGeneration;
     Bytes32 key; 
   }
   

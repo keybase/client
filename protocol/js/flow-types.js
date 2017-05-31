@@ -5645,7 +5645,7 @@ export type TeamApplication =
 
 export type TeamApplicationKey = {
   application: TeamApplication,
-  generation: int,
+  keyGeneration: int,
   key: Bytes32,
 }
 

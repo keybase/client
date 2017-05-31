@@ -32,7 +32,7 @@
         },
         {
           "type": "int",
-          "name": "generation"
+          "name": "keyGeneration"
         },
         {
           "type": "Bytes32",

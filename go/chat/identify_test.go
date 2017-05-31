@@ -9,15 +9,13 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestChatBackgroundIdentify(t *testing.T) {
-
-	world, _, _, _, listener, _ := setupTest(t, 2)
+	_, world, _, _, _, listener := setupTest(t, 2)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -47,7 +45,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
 
-	handler := NewIdentifyChangedHandler(g, kbtest.NewTlfMock(world))
+	handler := NewIdentifyChangedHandler(g)
 	require.NotNil(t, handler.G().NotifyRouter, "notify router")
 
 	t.Logf("new error job in inbox")

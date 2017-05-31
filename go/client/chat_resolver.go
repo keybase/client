@@ -87,13 +87,16 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 			errors.New("we are not supporting setting topic name for chat conversations yet")
 	}
 
-	var tlfName *string
+	var nameQuery *chat1.NameQuery
 	if len(req.TlfName) > 0 {
 		err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
 		if err != nil {
 			return chat1.GetInboxAndUnboxLocalArg{}, err
 		}
-		tlfName = &req.ctx.canonicalizedTlfName
+		nameQuery = &chat1.NameQuery{
+			Name:        req.ctx.canonicalizedTlfName,
+			MembersType: chat1.ConversationMembersType_KBFS,
+		}
 	}
 
 	var topicName *string
@@ -103,7 +106,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 
 	return chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			TlfName:       tlfName,
+			Name:          nameQuery,
 			TopicName:     topicName,
 			TopicType:     &req.TopicType,
 			TlfVisibility: &req.Visibility,
@@ -120,8 +123,9 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 
 	// Convert argument
 	var fcArg chat1.FindConversationsLocalArg
-	if arg.Query.TlfName != nil {
-		fcArg.TlfName = *arg.Query.TlfName
+	if arg.Query.Name != nil {
+		fcArg.TlfName = arg.Query.Name.Name
+		fcArg.MembersType = arg.Query.Name.MembersType
 	}
 	if arg.Query.TlfVisibility != nil {
 		fcArg.Visibility = *arg.Query.TlfVisibility
