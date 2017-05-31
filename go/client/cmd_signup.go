@@ -76,9 +76,7 @@ type CmdSignup struct {
 	skipMail          bool
 	genPGP            bool
 	genPaper          bool
-
-	// storeSecret is passed around but currently ignored
-	storeSecret bool
+	storeSecret       bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -124,6 +122,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		s.genPGP = ctx.Bool("pgp")
 		s.genPaper = true
 		s.doPrompt = false
+		s.storeSecret = true
 	} else {
 		s.doPrompt = true
 	}
@@ -231,8 +230,6 @@ func (s *CmdSignup) prompt() (err error) {
 			return
 		}
 		s.passphrase = res.Passphrase
-
-		// storeSecret is passed around but currently ignored
 		s.storeSecret = res.StoreSecret
 	}
 
@@ -262,8 +259,6 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
-
-		// storeSecret is passed around but currently ignored
 		StoreSecret: s.storeSecret,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)

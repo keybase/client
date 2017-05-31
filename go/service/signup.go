@@ -45,8 +45,6 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		SkipMail:    arg.SkipMail,
 		GenPGPBatch: arg.GenPGPBatch,
 		SkipPaper:   !arg.GenPaper,
-
-		// StoreSecret is passed around but currently ignored
 		StoreSecret: arg.StoreSecret,
 	}
 	eng := engine.NewSignupEngine(&runarg, h.G())

@@ -37,8 +37,6 @@ type SignupEngineRunArg struct {
 	SkipMail    bool
 	SkipPaper   bool
 	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
-
-	// StoreSecret is passed around but currently ignored
 	StoreSecret bool
 }
 
@@ -238,21 +236,21 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 
 	// Create the secret store as late as possible here, as the username may
 	// change during the signup process.
-	// NOTE: We used to respect the StoreSecret flag here, but now we store
-	// unconditionally.
-	secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
-	if secretStore == nil {
-		s.G().Log.Info("aborting StoreSecret: secretStore is nil")
-		return nil
-	}
-	secret, err := s.lks.GetSecret(a)
-	if err != nil {
-		return err
-	}
-	// Ignore any errors storing the secret.
-	storeSecretErr := secretStore.StoreSecret(secret)
-	if storeSecretErr != nil {
-		s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+	if s.arg.StoreSecret {
+		secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
+		if secretStore == nil {
+			s.G().Log.Info("aborting StoreSecret: secretStore is nil")
+			return nil
+		}
+		secret, err := s.lks.GetSecret(a)
+		if err != nil {
+			return err
+		}
+		// Ignore any errors storing the secret.
+		storeSecretErr := secretStore.StoreSecret(secret)
+		if storeSecretErr != nil {
+			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+		}
 	}
 
 	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())
