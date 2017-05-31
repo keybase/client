@@ -442,9 +442,3 @@ function findParentByClass(el, className) {
   }
   return null;
 }
-
-function replaceChildren(parent, children) {
-  while (parent.firstChild) parent.removeChild(parent.firstChild);
-  if (children === undefined) return;
-  for (const child of children) parent.appendChild(child);
-}
