@@ -15,7 +15,9 @@ import {setupExecuteActionsListener, executeActionsForContext} from '../../util/
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
-import {isWindows} from '../../constants/platform'
+import {showMainWindow} from '../../actions/platform-specific.desktop'
+
+
 
 let mainWindow = null
 
@@ -26,6 +28,8 @@ function start() {
       if (mainWindow) {
         mainWindow.show(true)
       }
+      // Wasn't showing on Windows without this
+      showMainWindow()
     })
 
     if (shouldQuit) {
