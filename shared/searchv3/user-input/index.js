@@ -23,7 +23,6 @@ export type Props = {
   placeholder?: string,
   userItems: Array<UserDetails>,
   usernameText: string,
-  showAddButton: boolean,
   onChangeText: (usernameText: string) => void,
   onRemoveUser: (username: string) => void,
   onClickAddButton: () => void,
@@ -87,17 +86,10 @@ class UserInput extends Component<void, Props, void> {
   }
 
   render() {
-    const {
-      placeholder,
-      userItems,
-      usernameText,
-      onChangeText,
-      showAddButton,
-      onClickAddButton,
-      onRemoveUser,
-    } = this.props
+    const {placeholder, userItems, usernameText, onChangeText, onClickAddButton, onRemoveUser} = this.props
 
     const inputLeftPadding = userItems.length ? {paddingLeft: globalMargins.xtiny} : null
+    const showAddButton = !!userItems.length && !usernameText.length
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.username} />)}
@@ -106,7 +98,7 @@ class UserInput extends Component<void, Props, void> {
             this._textInput = el
           }}
           inputStyle={{..._inputStyle, ...inputLeftPadding}}
-          placeholder={placeholder}
+          placeholder={userItems.length ? '' : placeholder}
           value={usernameText}
           onChange={onChangeText}
           onKeyDown={this._onInputKeyDown}

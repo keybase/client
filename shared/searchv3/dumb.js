@@ -256,7 +256,7 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
 }
 
 const commonUserInputMapProps = {
-  showAddButton: true,
+  placeholder: 'Type someone',
   onChangeText: text => console.log(`username text change: ${text}`),
   onRemoveUser: username => console.log(`user removed: ${username}`),
   onClickAddButton: () => console.log('username input add button clicked'),
@@ -295,8 +295,6 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: [],
       usernameText: '',
-      placeholder: 'Type someone',
-      showAddButton: false,
     },
     'Users + Add': {
       ...commonUserInputMapProps,
@@ -307,7 +305,6 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: maxUsers,
       usernameText: 'ma',
-      showAddButton: false,
     },
     'Users (Wrap)': {
       ...commonUserInputMapProps,
