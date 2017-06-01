@@ -18,7 +18,6 @@ import {
   StandardScreen,
   TabBar,
   Text,
-  Terminal,
   Dropdown,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
@@ -161,30 +160,6 @@ backgroundModes.forEach(backgroundMode => {
 const textMap: DumbComponentMap<Text> = {
   component: Text,
   mocks: textMocks,
-}
-
-const terminalMap: DumbComponentMap<Box> = {
-  component: Box,
-  mocks: {
-    Terminal: {
-      children: [
-        <Box key="a" style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-          <Text type="Body">
-            <Text type="Body">Word word </Text>
-            <Text type="TerminalInline">inline command line </Text>
-            <Text type="Body"> word word word word word </Text>
-            <Text type="TerminalInline">inline command line</Text>
-          </Text>
-        </Box>,
-        <Terminal key="b" style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}>
-          <Text type="Terminal">command line thing</Text>
-          <Text type="TerminalComment"># comment</Text>
-          <Text type="Terminal">command line thing</Text>
-          <Text type="TerminalComment"># comment</Text>
-        </Terminal>,
-      ],
-    },
-  },
 }
 
 const commonButton = {
@@ -1077,6 +1052,5 @@ export default {
   PopupMenu: popupMenuMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
-  Terminal: terminalMap,
   Text: textMap,
 }
