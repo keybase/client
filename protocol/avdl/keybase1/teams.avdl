@@ -54,9 +54,6 @@ protocol teams {
     array<string> none;
   }
 
-  void teamCreate(int sessionID, string name);
-  TeamMembers teamGet(int sessionID, string name);
-
   record UserVersion {
     string username;
     Seqno eldestSeqno;
@@ -101,4 +98,8 @@ protocol teams {
     Seqno seqno;
   }
 
+  void teamCreate(int sessionID, string name);
+  TeamMembers teamGet(int sessionID, string name);
+  void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
+  void teamAddMember(int sessionID, string name, string username, TeamRole role);
 }

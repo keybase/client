@@ -1,6 +1,9 @@
 package teams
 
 import (
+	"errors"
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -29,6 +32,30 @@ func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 
 func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []string{username}})
+}
+
+func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+	if t.IsMember(ctx, username) {
+		return fmt.Errorf("user %q is already a member of team %q", username, teamname)
+	}
+	var req keybase1.TeamChangeReq
+	switch role {
+	case keybase1.TeamRole_OWNER:
+		req.Owners = []string{username}
+	case keybase1.TeamRole_ADMIN:
+		req.Admins = []string{username}
+	case keybase1.TeamRole_WRITER:
+		req.Writers = []string{username}
+	case keybase1.TeamRole_READER:
+		req.Readers = []string{username}
+	default:
+		return errors.New("invalid AddMember role")
+	}
+	return t.ChangeMembership(ctx, req)
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {

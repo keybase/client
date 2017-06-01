@@ -79,6 +79,23 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
+func (t *Team) IsMember(ctx context.Context, username string) bool {
+	uv, err := loadUserVersionByUsername(ctx, t.G(), username)
+	if err != nil {
+		t.G().Log.Debug("error loading user version: %s", err)
+		return false
+	}
+	role, err := t.Chain.GetUserRole(uv)
+	if err != nil {
+		t.G().Log.Debug("error getting user role: %s", err)
+		return false
+	}
+	if role == keybase1.TeamRole_NONE {
+		return false
+	}
+	return true
+}
+
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
 	uvs, err := t.Chain.GetUsersWithRole(role)
 	if err != nil {
@@ -264,8 +281,6 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	if err != nil {
 		return err
 	}
-
-	t.G().Log.Warning("sigMultiItem: %s", sigMultiItem)
 
 	// create secret boxes for recipients
 	secretBoxes, err := t.recipientBoxes(memSet)

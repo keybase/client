@@ -25,10 +25,18 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalC
 	}
 }
 
-func (h *TeamsHandler) TeamCreate(netCtx context.Context, arg keybase1.TeamCreateArg) (err error) {
-	return teams.CreateRootTeam(netCtx, h.G(), arg.Name)
+func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (err error) {
+	return teams.CreateRootTeam(ctx, h.G(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamGet(netCtx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembers, error) {
-	return teams.Members(netCtx, h.G(), arg.Name)
+func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembers, error) {
+	return teams.Members(ctx, h.G(), arg.Name)
+}
+
+func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
+	return teams.ChangeRoles(ctx, h.G(), arg.Name, arg.Req)
+}
+
+func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) error {
+	return teams.AddMember(ctx, h.G(), arg.Name, arg.Username, arg.Role)
 }
