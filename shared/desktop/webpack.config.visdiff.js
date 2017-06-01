@@ -1,7 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const path = require('path')
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 
@@ -21,9 +20,9 @@ config.module.loaders.unshift({
   include: path.resolve(__dirname, '../images/mock'),
   loader: 'file?name=[name].[ext]',
 })
+
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin(), new webpack.DefinePlugin(defines))
-
 config.output.publicPath = '../dist/'
+config.target = 'electron-renderer'
 
-config.target = webpackTargetElectronRenderer(config)
 module.exports = config

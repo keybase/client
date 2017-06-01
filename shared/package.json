@@ -167,10 +167,9 @@
     "source-map-support": "0.4.15",
     "style-loader": "0.18.1",
     "unused-files-webpack-plugin": "3.0.1",
-    "webpack": "1.14.0",
+    "webpack": "2.6.1",
     "webpack-dashboard": "0.4.0",
     "webpack-dev-middleware": "1.10.2",
-    "webpack-hot-middleware": "2.18.0",
-    "webpack-target-electron-renderer": "0.4.0"
+    "webpack-hot-middleware": "2.18.0"
   }
 }

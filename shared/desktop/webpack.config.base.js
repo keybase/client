@@ -11,66 +11,80 @@ console.warn('Injecting defines: ', defines)
 
 module.exports = {
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.flow?$/,
-        loader: 'null',
+        use: ['null-loader'],
       },
       {
         test: /\.native\.js?$/,
-        loader: 'null',
+        use: ['null-loader'],
       },
       {
         test: /\.jsx?$/,
-        loader: 'babel',
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              cacheDirectory: true,
+              // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
+              babelrc: false,
+              presets: [
+                [
+                  'env',
+                  {
+                    useBuiltIns: false,
+                    targets: {
+                      electron: '1.6.10',
+                    },
+                    debug: true,
+                    exclude: ['transform-regenerator'],
+                  },
+                ],
+                'babel-preset-react',
+              ],
+              plugins: [
+                ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
+                'transform-flow-strip-types',
+                'transform-object-rest-spread', // not supported by electron yet
+                'babel-plugin-transform-class-properties', // not supported by electron yet
+                'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
+              ],
+            },
+          },
+        ],
         exclude: /((node_modules\/(?!universalify|fs-extra))|\/dist\/)/,
-        query: Object.assign({
-          cacheDirectory: true,
-          // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
-          babelrc: false,
-          presets: [
-            [
-              'env',
-              {
-                useBuiltIns: false,
-                targets: {
-                  electron: '1.6.10',
-                },
-                debug: true,
-                exclude: ['transform-regenerator'],
-              },
-            ],
-            'babel-preset-react',
-          ],
-          plugins: [
-            ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
-            'transform-flow-strip-types',
-            'transform-object-rest-spread', // not supported by electron yet
-            'babel-plugin-transform-class-properties', // not supported by electron yet
-            'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
-          ],
-        }),
-      },
-      {
-        test: /\.json?$/,
-        loader: 'json',
       },
       {
         test: /emoji-datasource.*\.(gif|png)$/,
-        loader: 'file?name=[name].[ext]',
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+        ],
       },
       {
         test: /\.(gif|png|jpg)$/,
         include: path.resolve(__dirname, '../images/icons'),
-        loader: 'null',
+        use: ['null-loader'],
       },
       {
         test: /\.ttf$/,
-        loader: 'file?name=[name].[ext]',
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]',
+            },
+          },
+        ],
       },
       {
         test: /\.css$/,
-        loader: 'style!css',
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
@@ -80,7 +94,7 @@ module.exports = {
     libraryTarget: 'commonjs2',
   },
   resolve: {
-    extensions: ['', '.desktop.js', '.js', '.jsx', '.json', '.flow'],
+    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   },
   plugins: [new webpack.DefinePlugin(defines)],
   node: {

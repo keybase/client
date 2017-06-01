@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 
 const config = Object.assign({}, baseConfig)
@@ -18,9 +17,7 @@ console.warn('Injecting dev defines: ', defines)
 
 // Error out on errors
 config.bail = true
-config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map'
-config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
 
 config.entry = {
@@ -33,5 +30,5 @@ if (getenv.boolish('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
-config.target = webpackTargetElectronRenderer(config)
+config.target = 'electron-renderer'
 module.exports = config

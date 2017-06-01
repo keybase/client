@@ -1,7 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const path = require('path')
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 
@@ -24,7 +23,7 @@ config.module.loaders.unshift({
   loader: 'null',
 })
 
-config.plugins.push(new webpack.DefinePlugin(defines), new webpack.optimize.OccurenceOrderPlugin())
+config.plugins.push(new webpack.DefinePlugin(defines))
 
 if (!SKIP_OPTIMIZE) {
   const babelLoader = config.module.loaders.find(l => l.loader === 'babel')
@@ -40,40 +39,40 @@ if (!SKIP_OPTIMIZE) {
 
   config.plugins.push(
     new webpack.optimize.UglifyJsPlugin({
-      screw_ie8: true,
-      warnings: false,
       compressor: {
-        sequences: true,
-        properties: true,
-        dead_code: true,
-        drop_debugger: true,
-        unsafe: false,
-        conditionals: true,
-        comparisons: true,
-        evaluate: true,
         booleans: true,
-        loops: true,
-        unused: true,
+        cascade: true,
+        comparisons: true,
+        conditionals: true,
+        dead_code: true,
+        drop_console: false,
+        drop_debugger: true,
+        evaluate: true,
         hoist_funs: true,
         hoist_vars: false,
         if_return: true,
         join_vars: true,
-        cascade: true,
-        warnings: false,
-        negate_iife: true,
-        pure_getters: false,
-        pure_funcs: null,
-        drop_console: false,
         keep_fargs: true,
         keep_fnames: false,
+        loops: true,
+        negate_iife: true,
+        properties: true,
+        pure_funcs: null,
+        pure_getters: false,
+        sequences: true,
+        unsafe: false,
+        unused: true,
+        warnings: false,
       },
-    }),
-    new webpack.optimize.DedupePlugin()
+      screw_ie8: true,
+      sourceMaps: true,
+      warnings: false,
+    })
   )
 } else {
   console.error('Skipping optimize step!')
 }
 
-config.target = webpackTargetElectronRenderer(config)
+config.target = 'electron-renderer'
 config.bail = true
 module.exports = config

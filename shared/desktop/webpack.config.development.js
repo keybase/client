@@ -1,7 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const path = require('path')
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
@@ -102,5 +101,5 @@ if (USING_DLL) {
   delete config.entry.main
 }
 
-config.target = webpackTargetElectronRenderer(config)
+config.target = 'electron-renderer'
 module.exports = config
