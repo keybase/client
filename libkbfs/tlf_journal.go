@@ -43,7 +43,7 @@ type tlfJournalConfig interface {
 	usernameGetter() normalizedUsernameGetter
 	MakeLogger(module string) logger.Logger
 	diskLimitTimeout() time.Duration
-	teamMemChecker() TeamMembershipChecker
+	teamMembershipChecker() TeamMembershipChecker
 	BGFlushDirOpBatchSize() int
 }
 
@@ -65,7 +65,7 @@ func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
 	return ca.Config.KBPKI()
 }
 
-func (ca tlfJournalConfigAdapter) teamMemChecker() TeamMembershipChecker {
+func (ca tlfJournalConfigAdapter) teamMembershipChecker() TeamMembershipChecker {
 	return ca.Config.KBPKI()
 }
 
@@ -340,7 +340,8 @@ func makeTLFJournal(
 
 	mdJournal, err := makeMDJournal(
 		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
-		config.teamMemChecker(), tlfID, config.MetadataVersion(), dir, log)
+		config.teamMembershipChecker(), tlfID, config.MetadataVersion(), dir,
+		log)
 	if err != nil {
 		return nil, err
 	}

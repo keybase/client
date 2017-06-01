@@ -3454,6 +3454,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 
 	// These are deterministic, and should add the same TeamInfos for
 	// both user configs.
+	t.Log("Add teams")
 	name := libkb.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config1, name)
 	_ = AddEmptyTeamsForTestOrBust(t, config2, name)
@@ -3469,14 +3470,14 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	AddTeamReaderForTestOrBust(t, config2, tid, uid3)
 	AddTeamReaderForTestOrBust(t, config3, tid, uid3)
 
-	// Look up bob's public folder.
+	t.Log("Look up bob's public folder.")
 	h := parseTlfHandleOrBust(t, config1, string(name), tlf.SingleTeam)
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err := kbfsOps1.GetOrCreateRootNode(
 		ctx, h, MasterBranch)
 	require.NoError(t, err)
 
-	// Create a small file.
+	t.Log("Create a small file.")
 	nodeA1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	require.NoError(t, err)
 	data := []byte{1}
@@ -3485,7 +3486,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
-	// The other writer should be able to read it.
+	t.Log("The other writer should be able to read it.")
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err := kbfsOps2.GetOrCreateRootNode(
 		ctx, h, MasterBranch)
@@ -3496,13 +3497,13 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	_, err = kbfsOps2.Read(ctx, nodeA2, gotData2, 0)
 	require.NoError(t, err)
 	require.True(t, bytes.Equal(data, gotData2))
-	// And also should be able to write.
+	t.Log("And also should be able to write.")
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	// The reader should be able to read it.
+	t.Log("The reader should be able to read it.")
 	kbfsOps3 := config3.KBFSOps()
 	rootNode3, _, err := kbfsOps3.GetOrCreateRootNode(
 		ctx, h, MasterBranch)

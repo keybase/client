@@ -150,7 +150,7 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 	path := filepath.Join(md.dirPath, tlfID.String())
 	storage = makeMDServerTlfStorage(
 		tlfID, md.config.Codec(), md.config.cryptoPure(),
-		md.config.Clock(), md.config.teamMemChecker(),
+		md.config.Clock(), md.config.teamMembershipChecker(),
 		md.config.MetadataVersion(), path)
 
 	md.tlfStorage[tlfID] = storage

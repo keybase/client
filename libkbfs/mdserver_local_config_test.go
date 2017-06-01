@@ -55,7 +55,7 @@ func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
 	return defaultClientMetadataVer
 }
 
-func (c testMDServerLocalConfig) teamMemChecker() TeamMembershipChecker {
+func (c testMDServerLocalConfig) teamMembershipChecker() TeamMembershipChecker {
 	// TODO: support team TLFs in the test mdserver.
 	return nil
 }
