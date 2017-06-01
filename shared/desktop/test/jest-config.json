@@ -1,7 +1,0 @@
-{
-  "modulePaths": ["<rootDir>/desktop/node_modules"],
-  "moduleFileExtensions": ["js", "json", "jsx", "node", "desktop.js"],
-  "globals": {
-    "__DEV__": true
-  }
-}

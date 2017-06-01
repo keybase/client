@@ -30,11 +30,6 @@ export default class BackButton extends Component {
   }
 }
 
-BackButton.propTypes = {
-  onClick: React.PropTypes.func.isRequired,
-  style: React.PropTypes.object,
-}
-
 const visibleStyle = {
   backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }

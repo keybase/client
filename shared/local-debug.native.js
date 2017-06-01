@@ -11,7 +11,6 @@ const nativeBridge = NativeModules.KeybaseEngine
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   clickableVisible: false,
-  devStoreChangingFunctions: false,
   dumbChatOnly: false,
   dumbSheetOnly: false,
   enableActionLogging: true,
@@ -37,7 +36,6 @@ let config: {[key: string]: any} = {
 if (__DEV__ && true) {
   config.isDevApplePushToken = true
   config.clickableVisible = true
-  config.devStoreChangingFunctions = true
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
@@ -57,7 +55,6 @@ if (__DEV__ && true) {
 export const {
   actionStatFrequency,
   clickableVisible,
-  devStoreChangingFunctions,
   dumbChatOnly,
   dumbSheetOnly,
   enableActionLogging,

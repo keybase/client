@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, Terminal, Text, StandardScreen, Icon} from '../../common-adapters'
-import {globalMargins} from '../../styles'
+import {Button, Box, Text, StandardScreen, Icon} from '../../common-adapters'
+import {globalMargins, globalColors, globalStyles} from '../../styles'
 import type {Props} from './prove-pgp-import'
 
 class ProvePgpImport extends Component<void, Props, void> {
@@ -13,7 +13,7 @@ class ProvePgpImport extends Component<void, Props, void> {
         <Text style={styleBody} type="Body">
           To upload your existing PGP key to Keybase, please run the following command from your terminal:
         </Text>
-        <Terminal style={styleTerminal}>
+        <Box style={styleTerminal}>
           <Text type="TerminalComment"># import a key from gpg's key chain</Text>
           <Text type="Terminal">keybase pgp select</Text>
           <Text type="TerminalEmpty" />
@@ -22,7 +22,7 @@ class ProvePgpImport extends Component<void, Props, void> {
           <Text type="TerminalEmpty" />
           <Text type="TerminalComment"># for more options</Text>
           <Text type="Terminal">keybase pgp help</Text>
-        </Terminal>
+        </Box>
         <Button
           style={styleCancelButton}
           type="Secondary"
@@ -55,13 +55,17 @@ const styleCancelButton = {
 }
 
 const styleTerminal = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  backgroundColor: globalColors.midnightBlue,
   borderRadius: 4,
-  textAlign: 'left',
   boxSizing: 'content-box',
-  width: '100%',
+  color: globalColors.white,
   marginLeft: -globalMargins.medium,
   marginRight: -globalMargins.medium,
   padding: globalMargins.medium,
+  textAlign: 'left',
+  width: '100%',
 }
 
 export default ProvePgpImport
