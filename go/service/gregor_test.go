@@ -141,20 +141,27 @@ func (n *nlistener) getBadgeState(t *testing.T) keybase1.BadgeState {
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
-	startedUsername   string
-	dismissedUsername string
+	startCh   chan string
+	dismissCh chan string
+}
+
+func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
+	return &showTrackerPopupIdentifyUI{
+		startCh:   make(chan string, 1),
+		dismissCh: make(chan string, 1),
+	}
 }
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
 func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason, force bool) error {
-	ui.startedUsername = name
+	ui.startCh <- name
 	return nil
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
 func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) error {
-	ui.dismissedUsername = username
+	ui.dismissCh <- username
 	return nil
 }
 
@@ -162,13 +169,12 @@ func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.Dismis
 // given UID into a gregorHandler, the result is that a TrackEngine gets run
 // for that user.
 func TestShowTrackerPopupMessage(t *testing.T) {
-	t.Skip("flake as per CORE-5404")
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
 
-	identifyUI := &showTrackerPopupIdentifyUI{}
+	identifyUI := newShowTrackerPopupIdentifyUI()
 	router := fakeUIRouter{
 		secretUI:   &libkb.TestSecretUI{},
 		identifyUI: identifyUI,
@@ -209,8 +215,17 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 
 	broadcastMessageTesting(t, h, m)
-	require.Equal(t, trackee.Username, identifyUI.startedUsername, "wrong username")
-	require.Equal(t, "", identifyUI.dismissedUsername, "dismissed username")
+	select {
+	case name := <-identifyUI.startCh:
+		require.Equal(t, trackee.Username, name, "wrong username")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no start username")
+	}
+	select {
+	case <-identifyUI.dismissCh:
+		require.Fail(t, "no dismiss should have happened")
+	default:
+	}
 
 	msgIDDis := gregor1.MsgID("my_random_id_dis")
 	dismissal := gregor1.Message{
@@ -227,7 +242,12 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		},
 	}
 	broadcastMessageTesting(t, h, dismissal)
-	require.Equal(t, trackee.User.GetName(), identifyUI.dismissedUsername, "dismissed")
+	select {
+	case name := <-identifyUI.dismissCh:
+		require.Equal(t, trackee.User.GetName(), name, "wrong dismiss")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no dismiss username")
+	}
 }
 
 func newMsgID() gregor1.MsgID {
