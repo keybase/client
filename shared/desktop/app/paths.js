@@ -38,6 +38,15 @@ export function appInstallerPath() {
 
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
+  if (os.platform() === 'win32') {
+    var kbPath = app.getPath('appData').replace('Roaming', 'Local')
+    if (kbPath === null) kbPath = process.env.LOCALAPPDATA
+    if (kbPath === null) {
+      console.log('No keybaseBinPath')
+      return null
+    }
+    return path.resolve(String(kbPath), 'Keybase', 'keybase.exe')
+  }
   if (os.platform() !== 'darwin') return null
   const bundlePath = appBundlePath()
   if (bundlePath === null) return null
