@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  value: string,
+  placeholder: string,
+  inputStyle?: Object,
+  onChange: (text: string) => void,
+  onKeyDown?: (ev: SyntheticInputEvent) => void,
+}
+
+export default class AutosizeInput extends Component<void, Props, void> {
+  focus: () => void
+}
