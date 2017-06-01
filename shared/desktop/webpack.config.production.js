@@ -1,6 +1,4 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-const _ = require('lodash')
-const babelRule = require('./webpack.common').babelRule
 const baseConfig = require('./webpack.config.base')
 const path = require('path')
 const webpack = require('webpack')
@@ -10,34 +8,16 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 const noOptimize = false
 
 const makeRules = () => {
-  // const updatedBaseRules = baseConfig.module.rules.map(rule => {
-  // const loader = rule.use[0].loader
-  // if (noOptimize || loader !== 'babel-loader') {
-  // return rule
-  // }
-
-  // const temp = _.cloneDeep(babelRule)
-  // const envPreset = temp.options.presets.find(p => p[0] === 'env')[1]
-  // envPreset.useBuiltIns = false
-  // // Allow all uglify targets
-  // envPreset.exclude = []
-  // return {
-  // ...rule,
-  // use: [temp],
-  // }
-  // })
-
   const mockRule = {
     include: path.resolve(__dirname, '../images/mock'),
     use: ['null-loader'],
   }
 
   return [mockRule, ...baseConfig.module.rules]
-  // return [mockRule, ...updatedBaseRules]
 }
 
 const makePlugins = () => {
-  const uglifyPlugin = false /*!noOptimize*/ && [
+  const uglifyPlugin = !noOptimize && [
     new UglifyJSPlugin({
       compressor: {
         booleans: true,
