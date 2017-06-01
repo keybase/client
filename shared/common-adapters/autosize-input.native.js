@@ -1,5 +1,6 @@
 // @flow
 
-// FIXME: stub placeholder for mobile version
+// FIXME: unable to get sufficient performance on RN Android; leaving
+// uninplemented for now.
 function AutosizeInput() {}
 export default AutosizeInput
