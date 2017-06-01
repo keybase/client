@@ -102,6 +102,50 @@ func TestMakeHandleFailures(t *testing.T) {
 
 	_, err = MakeHandle(w, r[:1], nil, ur, nil)
 	assert.Equal(t, errInvalidReader, err)
+
+	// Any handle with a team must be a single-team handle.
+	w = []keybase1.UserOrTeamID{
+		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(4).AsUserOrTeam(),
+	}
+	r = []keybase1.UserOrTeamID{}
+	_, err = MakeHandle(w, r, nil, nil, nil)
+	assert.Equal(t, errInvalidWriter, err)
+
+	w = []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+	}
+	r = []keybase1.UserOrTeamID{}
+	_, err = MakeHandle(w, r, nil, nil, nil)
+	assert.Equal(t, errInvalidWriter, err)
+
+	w = []keybase1.UserOrTeamID{
+		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+	}
+	r = []keybase1.UserOrTeamID{}
+	_, err = MakeHandle(w, r, nil, nil, nil)
+	assert.Equal(t, errInvalidWriter, err)
+
+	w = []keybase1.UserOrTeamID{
+		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+	}
+	r = []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+	}
+	_, err = MakeHandle(w, r, nil, nil, nil)
+	assert.Equal(t, errInvalidReader, err)
+
+	w = []keybase1.UserOrTeamID{
+		keybase1.MakeTestUID(4).AsUserOrTeam(),
+		keybase1.MakeTestUID(5).AsUserOrTeam(),
+	}
+	r = []keybase1.UserOrTeamID{
+		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+	}
+	_, err = MakeHandle(w, r, nil, nil, nil)
+	assert.Equal(t, errInvalidReader, err)
 }
 
 func TestHandleAccessorsPrivate(t *testing.T) {
@@ -239,6 +283,30 @@ func TestHandleAccessorsPublic(t *testing.T) {
 				Service: "service3",
 			},
 		})
+}
+
+func TestHandleAccessorsSingleTeam(t *testing.T) {
+	w := []keybase1.UserOrTeamID{
+		keybase1.MakeTestTeamID(4).AsUserOrTeam(),
+	}
+
+	h, err := MakeHandle(
+		w, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	require.Equal(t, SingleTeam, h.Type())
+
+	// All types of IsWriter/IsReader calls should panic for team TLFs.
+	for _, u := range w {
+		require.Panics(t, func() { h.IsWriter(u) })
+		require.Panics(t, func() { h.IsReader(u) })
+	}
+
+	u := keybase1.MakeTestUID(uint32(6)).AsUserOrTeam()
+	require.Panics(t, func() { h.IsWriter(u) })
+	require.Panics(t, func() { h.IsReader(u) })
+
+	require.False(t, h.HasUnresolvedUsers())
 }
 
 func TestHandleHasUnresolvedUsers(t *testing.T) {

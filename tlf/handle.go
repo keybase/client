@@ -86,19 +86,22 @@ func MakeHandle(
 		}
 	}
 
-	for _, w := range writers {
+	for i, w := range writers {
 		if w == keybase1.PUBLIC_UID {
+			return Handle{}, errInvalidWriter
+		} else if i > 0 && w.IsTeamOrSubteam() {
 			return Handle{}, errInvalidWriter
 		}
 	}
 
-	if (len(readers) + len(unresolvedReaders)) > 1 {
-		// If we have more than one reader, none of them
-		// should be the public UID.
-		for _, r := range readers {
-			if r == keybase1.PUBLIC_UID {
-				return Handle{}, errInvalidReader
-			}
+	// If we have more than one reader, none of them should be the
+	// public UID.  And no readers should be a team.
+	checkPublic := (len(readers) + len(unresolvedReaders)) > 1
+	for _, r := range readers {
+		if checkPublic && r == keybase1.PUBLIC_UID {
+			return Handle{}, errInvalidReader
+		} else if r.IsTeamOrSubteam() {
+			return Handle{}, errInvalidReader
 		}
 	}
 
