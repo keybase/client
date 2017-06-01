@@ -1,12 +1,13 @@
 // @flow
-import React, {Component} from 'react'
+import {Component} from 'react'
+import PropTypes from 'prop-types'
 
 import type {GlobalProps, Props} from './escape-handler'
 
 class EscapeHandler extends Component<void, Props, void> {
   static contextTypes = {
-    addESCHandler: React.PropTypes.func,
-    removeESCHandler: React.PropTypes.func,
+    addESCHandler: PropTypes.func,
+    removeESCHandler: PropTypes.func,
   }
 
   componentDidMount() {
@@ -38,8 +39,8 @@ class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
   }
 
   static childContextTypes = {
-    addESCHandler: React.PropTypes.func,
-    removeESCHandler: React.PropTypes.func,
+    addESCHandler: PropTypes.func,
+    removeESCHandler: PropTypes.func,
   }
 
   getChildContext() {
