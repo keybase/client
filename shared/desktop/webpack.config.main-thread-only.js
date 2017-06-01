@@ -1,34 +1,35 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const webpack = require('webpack')
 const baseConfig = require('./webpack.config.base')
-
-const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', true)
+const HOT = getenv.boolish('HOT', false)
+
 const defines = {
   __DEV__: true,
   __SCREENSHOT__: false,
-  'process.env.NODE_ENV': JSON.stringify('development'),
   __VERSION__: JSON.stringify('Development'),
+  'process.env.NODE_ENV': JSON.stringify('development'),
 }
 
 console.warn('Injecting dev defines: ', defines)
 
-// Error out on errors
-config.bail = true
-config.devtool = NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map'
-config.output.publicPath = 'http://localhost:4000/dist/'
+const hotPlugin = HOT ? [new webpack.HotModuleReplacementPlugin()] : []
 
-config.entry = {
-  main: ['./desktop/app/index.js'],
+const config = {
+  ...baseConfig,
+  bail: true,
+  devtool: NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map',
+  entry: {
+    main: ['./desktop/app/index.js'],
+  },
+  output: {
+    ...baseConfig.output,
+    publicPath: 'http://localhost:4000/dist/',
+  },
+  plugins: [...baseConfig.plugins, new webpack.DefinePlugin(defines), ...hotPlugin],
+  target: 'electron-renderer',
 }
 
-config.plugins.push(new webpack.DefinePlugin(defines))
-
-if (getenv.boolish('HOT', false)) {
-  config.plugins.push(new webpack.HotModuleReplacementPlugin())
-}
-
-config.target = 'electron-renderer'
 module.exports = config

@@ -35,6 +35,7 @@ function pad(s, num) {
 }
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+const webpackCmd = `${nodeCmd} ./node_modules/.bin/webpack`
 
 const commands = {
   'apply-new-fonts': {
@@ -51,24 +52,24 @@ const commands = {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Bundle the code that the main node thread uses',
     nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.main-thread-only.js --progress --profile --colors',
+    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors`,
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
-    shell: 'webpack --config desktop/webpack.config.production.js --progress --profile --colors',
+    shell: `${webpackCmd} --config desktop/webpack.config.production.js --progress --profile --colors`,
   },
   'build-profile': {
     help: 'Make a production build of the js code',
     nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+    shell: `${webpackCmd} --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json`,
   },
   'build-wpdll': {
     env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'development',
-    shell: 'webpack --config desktop/webpack.config.dll-build.js --progress',
+    shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress`,
   },
   'debug-main': {
     env: {ELECTRON_RUN_AS_NODE: 'true'},
@@ -141,7 +142,7 @@ const commands = {
       KEYBASE_NO_ENGINE: 1,
     },
     help: 'Render images of dumb components',
-    shell: 'webpack --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js',
+    shell: `${webpackCmd} --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js`,
   },
   'setup-debug-main': {
     code: setupDebugMain,
