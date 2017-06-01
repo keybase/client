@@ -4,15 +4,11 @@
 
 const bel = bundle.bel;
 const morphdom = bundle.morphdom;
-const asset = browser.runtime.getURL;
-
-if (browser===undefined) {
-  const browser = chrome;
-}
+const asset = chrome.runtime.getURL;
 
 
 function init() {
-  browser.storage.sync.get(function(options) {
+  chrome.storage.sync.get(function(options) {
     if (options === undefined) {
       // Backfill for Firefox
       options = {};
@@ -41,7 +37,7 @@ function init() {
 
     // Passive queries?
     if (options["profile-passive-queries"] === true && user) { // undefined defaults to false
-      browser.runtime.sendMessage({
+      chrome.runtime.sendMessage({
         "method": "passivequery",
         "to": user.query(),
       }, function(response) {
@@ -171,7 +167,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
   // Find user
   const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
-  browser.runtime.sendMessage({
+  chrome.runtime.sendMessage({
     "method": "query",
     "to": user.query(),
   }, function(response) {
@@ -267,7 +263,7 @@ function submitChat(successCallback, e) {
   submitButton.disabled = true;
   submitButton.value = "Sending...";
 
-  browser.runtime.sendMessage({
+  chrome.runtime.sendMessage({
     "method": "chat",
     "to": to,
     "body": body
