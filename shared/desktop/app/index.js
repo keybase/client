@@ -16,6 +16,7 @@ import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {showMainWindow} from '../../actions/platform-specific.desktop'
+import {isWindows} from '../../constants/platform'
 
 
 
@@ -28,8 +29,10 @@ function start() {
       if (mainWindow) {
         mainWindow.show(true)
       }
-      // Wasn't showing on Windows without this
-      showMainWindow()
+      if (isWindows) {
+        // Wasn't showing on Windows without this
+        showMainWindow()
+      }
     })
 
     if (shouldQuit) {
