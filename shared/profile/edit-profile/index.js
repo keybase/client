@@ -8,8 +8,14 @@ import type {TypedState} from '../../constants/reducer'
 import {navigateUp} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
-  // $FlowIssue
-  const userInfo = state.tracker.trackers[state.config.username].userInfo
+  if (!state.config.username) {
+    throw new Error("Didn't get username")
+  }
+  const trackerInfo = state.tracker.trackers[state.config.username]
+  if (!trackerInfo || trackerInfo.type !== 'tracker') {
+    throw new Error("Didn't get trackerinfo")
+  }
+  const userInfo = trackerInfo.userInfo
   const {bio, fullname, location} = userInfo
   return {bio, fullname, location}
 }
