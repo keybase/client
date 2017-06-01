@@ -1,19 +1,20 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const path = require('path')
 const webpack = require('webpack')
-const getenv = require('getenv')
+const {noSourceMaps} = require('./webpack.common')
 
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
-
-const dllPlugin = new webpack.DllPlugin({
-  context: path.resolve(__dirname, 'client'),
-  name: '[name]',
-  path: path.join(__dirname, 'dll', '[name]-manifest.json'),
-})
+const makePlugins = () => {
+  const dllPlugin = new webpack.DllPlugin({
+    context: path.resolve(__dirname, 'client'),
+    name: '[name]',
+    path: path.join(__dirname, 'dll', '[name]-manifest.json'),
+  })
+  return [dllPlugin]
+}
 
 const config = {
   bail: true,
-  devtool: NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map',
+  devtool: noSourceMaps ? undefined : 'inline-eval-cheap-source-map',
   entry: {
     vendor: [
       'core-js',
@@ -38,7 +39,7 @@ const config = {
     library: '[name]',
     path: path.join(__dirname, 'dist', 'dll'),
   },
-  plugins: [dllPlugin],
+  plugins: makePlugins(),
   resolve: {
     modules: [path.resolve(__dirname, 'client'), 'node_modules'],
   },

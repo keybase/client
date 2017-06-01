@@ -1,21 +1,13 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-const path = require('path')
 const webpack = require('webpack')
 const baseConfig = require('./webpack.config.base')
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
 const DashboardPlugin = require('webpack-dashboard/plugin')
-const {isHot, fileLoaderRule} = require('./webpack.common')
+const {isHot, HMRUrl, RHLPatch, noSourceMaps, mockRule} = require('./webpack.common')
 
 const isUsingDLL = getenv.boolish('USING_DLL', false)
 const noServer = getenv.boolish('NO_SERVER', false)
-const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', false)
-
-const mockRule = {
-  include: path.resolve(__dirname, '../images/mock'),
-  test: /\.jpg$/,
-  use: [fileLoaderRule],
-}
 
 const makePlugins = () => {
   const unusedFilesPlugin = new UnusedFilesWebpackPlugin({
@@ -75,7 +67,6 @@ const makeRules = () => {
 }
 
 const makeEntries = () => {
-  const HMRURL = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
   const oldEntries = baseConfig.entry
   return isHot
     ? Object.keys(baseConfig.entry)
@@ -83,7 +74,7 @@ const makeEntries = () => {
           const oldEntry = oldEntries[name]
 
           if (name === 'index') {
-            return ['react-hot-loader/patch', ...oldEntry]
+            return [RHLPatch, ...oldEntry]
           } else if (name === 'main') {
             if (isUsingDLL) {
               // If we are running a hot server and using a DLL we want to be fast.
@@ -95,7 +86,7 @@ const makeEntries = () => {
             return oldEntry
           } else {
             // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
-            return [HMRURL, ...oldEntry]
+            return [HMRUrl, ...oldEntry]
           }
         })
         .filter(Boolean)

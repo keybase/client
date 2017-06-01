@@ -1,16 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const devConfig = require('./webpack.config.development')
-const getenv = require('getenv')
+const {isHot, HMRUrl, RHLPatch} = require('./webpack.common')
 
-const HOT = getenv.boolish('HOT', false)
-
-const entry = HOT
+const entry = isHot
   ? {
-      index: [
-        'react-hot-loader/patch',
-        'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr',
-        './desktop/renderer/dumb.js',
-      ],
+      index: [RHLPatch, HMRUrl, './desktop/renderer/dumb.js'],
     }
   : devConfig.entry
 
