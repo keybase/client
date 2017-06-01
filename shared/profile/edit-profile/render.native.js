@@ -35,7 +35,7 @@ const EditProfileRender = (props: Props) => (
       multiline={true}
       rowsMin={1}
       rowsMax={3}
-      errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' chars left' : ''}
+      errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' characters left' : ''}
       onChangeText={bio => props.onBioChange(bio)}
     />
     <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
