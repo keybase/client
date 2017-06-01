@@ -122,9 +122,12 @@ function redditRenderChatButton(toUsername) {
   const user = new User(toUsername, "reddit");
   const li = document.createElement("li");
   li.className = "keybase-reply";
-  li.innerHTML = `<a>keybase chat reply</a>`;
 
-  installChatButton(li.getElementsByTagName("a"), user, isLoggedIn);
+  const button = document.createElement("a");
+  button.appendChild(document.createTextNode("keybase chat reply"));
+  li.appendChild(button);
+
+  installChatButton([button], user, isLoggedIn);
   return li;
 }
 
@@ -154,7 +157,7 @@ function installChatButton(buttons, user, nudgeSupported) {
         }
       }
 
-      openChat = renderChat(chatParent, user, nudgeSupported);
+      openChat = renderChat(chatParent, user.clone(), nudgeSupported);
 
       // Is the widget exceeding our window width?
       if (openChat.offsetLeft + openChat.clientWidth > window.innerWidth) {

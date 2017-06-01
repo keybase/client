@@ -99,6 +99,11 @@ function User(username, service) {
   this.services[service] = username;
 }
 
+// Return a fresh copy equivalent to how it was initialized.
+User.prototype.clone = function() {
+  return new User(this.services[this.origin], this.origin);
+}
+
 User.prototype.query = function() {
   const name = this.services[this.origin];
   if (this.origin === "keybase") {

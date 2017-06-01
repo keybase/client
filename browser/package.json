@@ -1,0 +1,16 @@
+{
+  "title": "Keybase Browser Extension",
+  "name": "keybase-extension",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "scripts": {
+    "build": "webpack"
+  },
+  "dependencies": {
+    "bel": "^5.0.0",
+    "morphdom": "^2.3.2"
+  },
+  "devDependencies": {
+    "webpack": "^2.6.1"
+  }
+}
