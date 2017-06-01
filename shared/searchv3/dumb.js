@@ -313,9 +313,11 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 480,
+          width: isMobile ? 300 : 480,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
@@ -325,9 +327,11 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 370,
+          width: isMobile ? 300 : 370,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: maxUsers,
@@ -339,7 +343,9 @@ const userInputMap: DumbComponentMap<UserInput> = {
         style: {
           width: 460,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
