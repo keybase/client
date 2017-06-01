@@ -16,26 +16,26 @@ func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1
 }
 
 func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Owners: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Owners: []string{username}})
 }
 
 func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Admins: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Admins: []string{username}})
 }
 
 func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Writers: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Writers: []string{username}})
 }
 
 func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Readers: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []string{username}})
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{None: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{None: []string{username}})
 }
 
-func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req ChangeReq) error {
+func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
 	t, err := Get(ctx, g, teamname)
 	if err != nil {
 		return err

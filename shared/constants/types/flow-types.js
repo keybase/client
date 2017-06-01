@@ -5604,6 +5604,14 @@ export type TeamApplicationKey = {
   key: Bytes32,
 }
 
+export type TeamChangeReq = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+  none?: ?Array<string>,
+}
+
 export type TeamID = string
 
 export type TeamMembers = {

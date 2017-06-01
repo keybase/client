@@ -166,6 +166,59 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 	}
 }
 
+type TeamChangeReq struct {
+	Owners  []string `codec:"owners" json:"owners"`
+	Admins  []string `codec:"admins" json:"admins"`
+	Writers []string `codec:"writers" json:"writers"`
+	Readers []string `codec:"readers" json:"readers"`
+	None    []string `codec:"none" json:"none"`
+}
+
+func (o TeamChangeReq) DeepCopy() TeamChangeReq {
+	return TeamChangeReq{
+		Owners: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Owners),
+		Admins: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Admins),
+		Writers: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Writers),
+		Readers: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Readers),
+		None: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.None),
+	}
+}
+
 type UserVersion struct {
 	Username    string `codec:"username" json:"username"`
 	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldestSeqno"`

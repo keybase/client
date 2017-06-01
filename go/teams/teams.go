@@ -241,15 +241,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	return key, nil
 }
 
-type ChangeReq struct {
-	Owners  []string
-	Admins  []string
-	Writers []string
-	Readers []string
-	None    []string
-}
-
-func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
+func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
