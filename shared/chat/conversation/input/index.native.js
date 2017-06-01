@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import {Box, Icon, Input, Text, ClickableBox} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
+import {Alert} from 'react-native'
 
 import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
@@ -39,8 +40,14 @@ class ConversationInput extends Component<void, Props, void> {
   }
 
   _openFilePicker = () => {
+    // File picker is image picker on mobile
     ImagePicker.showImagePicker({}, response => {
       if (response.didCancel) {
+        return
+      }
+      if (response.error) {
+        console.warn('Error from image picker:', response.error)
+        Alert.alert('We had a problem selecting an image', response.error.message)
         return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
