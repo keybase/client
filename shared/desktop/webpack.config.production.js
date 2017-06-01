@@ -25,7 +25,10 @@ const makeRules = () => {
     envPreset.useBuiltIns = false
     // Allow all uglify targets
     envPreset.exclude = []
-    return temp
+    return {
+      ...rule,
+      use: [temp],
+    }
   })
 
   const mockRule = {
@@ -101,5 +104,7 @@ const config = {
 if (noOptimize) {
   console.error('Skipping optimize step!')
 }
+
+console.log('aaa', JSON.stringify(config, null, 2))
 
 module.exports = config
