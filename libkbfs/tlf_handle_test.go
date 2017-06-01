@@ -90,6 +90,40 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	assert.Equal(t, ReadAccessError{User: "u1", Tlf: CanonicalTlfName(name), Type: tlf.Private, Filename: "/keybase/private/u2,u3"}, err)
 }
 
+func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	localTeams := MakeLocalTeams([]libkb.NormalizedUsername{"t1", "t2"})
+	daemon := NewKeybaseDaemonMemory(
+		currentUID, localUsers, localTeams, kbfscodec.NewMsgpack())
+
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
+	}
+
+	checkNoSuchName := func(name string, ty tlf.Type) {
+		_, err := ParseTlfHandle(ctx, kbpki, name, ty)
+		assert.Equal(t, 0, kbpki.getIdentifyCalls())
+		assert.Equal(t, NoSuchNameError{Name: name}, err)
+	}
+
+	checkNoSuchName("u1", tlf.SingleTeam)
+	checkNoSuchName("t1,u1", tlf.SingleTeam)
+	checkNoSuchName("u1,t1", tlf.SingleTeam)
+	checkNoSuchName("t1,t2", tlf.SingleTeam)
+	checkNoSuchName("t1#t2", tlf.SingleTeam)
+	checkNoSuchName("t1", tlf.Private)
+	checkNoSuchName("t1,u1", tlf.Private)
+	checkNoSuchName("u1#t1", tlf.Private)
+	checkNoSuchName("t1#u1", tlf.Private)
+	checkNoSuchName("t1", tlf.Public)
+	checkNoSuchName("t1,u1", tlf.Public)
+}
+
 func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	ctx := context.Background()
 

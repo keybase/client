@@ -69,6 +69,8 @@ func makeTlfHandleHelper(
 	extensions []tlf.HandleExtension) (*TlfHandle, error) {
 	if t != tlf.Private && len(readers) > 0 {
 		return nil, errors.New("public or team folder cannot have readers")
+	} else if t == tlf.SingleTeam && len(writers) != 1 {
+		return nil, errors.New("team folder cannot have more than one writer")
 	}
 
 	// parallelize the resolutions for each user
@@ -112,8 +114,8 @@ func makeTlfHandleHelper(
 		}
 	}
 
-	for uid := range usedWNames {
-		delete(usedRNames, uid)
+	for id := range usedWNames {
+		delete(usedRNames, id)
 	}
 
 	for sa := range usedUnresolvedWriters {
@@ -138,6 +140,37 @@ func makeTlfHandleHelper(
 	sort.Sort(extensionList)
 	canonicalName += extensionList.Suffix()
 	conflictInfo, finalizedInfo := extensionList.Splat()
+
+	switch t {
+	case tlf.Private:
+		// All writers and readers must be users.
+		for id := range usedWNames {
+			if !id.IsUser() {
+				return nil, NoSuchNameError{Name: canonicalName}
+			}
+		}
+		for id := range usedRNames {
+			if !id.IsUser() {
+				return nil, NoSuchNameError{Name: canonicalName}
+			}
+		}
+	case tlf.Public:
+		// All writers must be users.
+		for id := range usedWNames {
+			if !id.IsUser() {
+				return nil, NoSuchNameError{Name: canonicalName}
+			}
+		}
+	case tlf.SingleTeam:
+		// The writer must be a team.
+		for id := range usedWNames {
+			if !id.IsTeamOrSubteam() {
+				return nil, NoSuchNameError{Name: canonicalName}
+			}
+		}
+	default:
+		panic(fmt.Sprintf("Unknown TLF type: %s", t))
+	}
 
 	h := &TlfHandle{
 		tlfType:           t,

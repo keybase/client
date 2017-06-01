@@ -443,6 +443,10 @@ func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	if err != nil {
 		return nil, nil, "", err
 	}
+	if t == tlf.SingleTeam && len(writerNames) != 1 {
+		// No team folder can have more than one writer.
+		return nil, nil, "", NoSuchNameError{Name: name}
+	}
 
 	hasReaders := len(readerNames) != 0
 	if t != tlf.Private && hasReaders {
