@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const webpack = require('webpack')
 const baseConfig = require('./webpack.config.base')
-const {noSourceMaps, isHot} = require('./webpack.common')
+const {isHot} = require('./webpack.common')
 
 const makePlugins = () => {
   const defines = {
@@ -20,7 +20,7 @@ const makePlugins = () => {
 const config = {
   ...baseConfig,
   bail: true,
-  devtool: noSourceMaps ? undefined : 'inline-eval-cheap-source-map',
+  devtool: undefined,
   entry: {
     main: ['./desktop/app/index.js'],
   },
