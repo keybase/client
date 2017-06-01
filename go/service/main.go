@@ -810,6 +810,11 @@ func (d *Service) tryLogin() {
 		// have in service mode. But NewLoginProvisionedDevice engine
 		// needs KbKeyrings and not every command sets it up. Ensure
 		// Keyring is available.
+
+		// TODO: We will be phasing out KbKeyrings usage flag, or even
+		// usage flags entirely. Then this will not be needed because
+		// Keyrings will always be loaded.
+
 		if d.G().Keyrings == nil {
 			d.G().Log.Debug("tryLogin: Configuring Keyrings")
 			d.G().ConfigureKeyring()
