@@ -68,29 +68,27 @@ const makeRules = () => {
 
 const makeEntries = () => {
   const oldEntries = baseConfig.entry
-  return isHot
-    ? Object.keys(baseConfig.entry)
-        .map(name => {
-          const oldEntry = oldEntries[name]
+  if (!isHot) {
+    return oldEntries
+  }
+  return Object.keys(baseConfig.entry).reduce((map, name) => {
+    const oldEntry = oldEntries[name]
 
-          if (name === 'index') {
-            return [RHLPatch, ...oldEntry]
-          } else if (name === 'main') {
-            if (isUsingDLL) {
-              // If we are running a hot server and using a DLL we want to be fast.
-              // So don't waste time in building the main thread bundle in this webpack server
-              return null
-            }
-
-            // node-only thread can't be hot loaded...
-            return oldEntry
-          } else {
-            // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
-            return [HMRUrl, ...oldEntry]
-          }
-        })
-        .filter(Boolean)
-    : baseConfig.entry
+    if (name === 'index') {
+      map[name] = [RHLPatch, ...oldEntry]
+    } else if (name === 'main') {
+      if (!isUsingDLL) {
+        // If we are running a hot server and using a DLL we want to be fast.
+        // So don't waste time in building the main thread bundle in this webpack server
+        // node-only thread can't be hot loaded...
+        map[name] = oldEntry
+      }
+    } else {
+      // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
+      map[name] = [HMRUrl, ...oldEntry]
+    }
+    return map
+  }, {})
 }
 
 const config = {
