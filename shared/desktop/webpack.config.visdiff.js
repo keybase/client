@@ -15,13 +15,18 @@ config.entry = {
   'render-visdiff': ['./desktop/test/render-visdiff.js'],
   visdiff: ['./test/render-dumb-sheet.js'],
 }
-config.module.loaders.unshift({
+config.module.rules.unshift({
   test: /\.jpg$/,
   include: path.resolve(__dirname, '../images/mock'),
-  loader: 'file?name=[name].[ext]',
+  use: [
+  loader: 'file-loader',
+    options: {
+      name:'[name].[ext]',
+    }
+  ]
 })
 
-config.plugins.push(new webpack.optimize.OccurenceOrderPlugin(), new webpack.DefinePlugin(defines))
+config.plugins.push(new webpack.DefinePlugin(defines))
 config.output.publicPath = '../dist/'
 config.target = 'electron-renderer'
 
