@@ -1,4 +1,5 @@
 // @flow
+import {compose, withHandlers, withState} from 'recompose'
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
@@ -347,18 +348,53 @@ const userInputMap: DumbComponentMap<UserInput> = {
       },
       userItems: chrisUsers,
       usernameText: 'Chris Hemswor',
-      showAddButton: false,
     },
   },
 }
 
-const desktopOnly = !isMobile ? {
-  'SearchV3 result': servicesResultMap,
-  'SearchV3 resultsList': servicesResultsListMap,
-} : {}
+const UserInputEditable = compose(
+  withState('usernameText', 'onChangeText', ''),
+  withState('userItems', 'setUserItems', ({userItems}) => userItems),
+  withHandlers({
+    onRemoveUser: ({setUserItems, userItems}) => (username: string) => {
+      setUserItems(userItems.filter(i => i.username !== username))
+    },
+  })
+)(UserInput)
+
+const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
+  component: UserInputEditable,
+  mocks: {
+    Empty: {
+      ...commonUserInputMapProps,
+      userItems: [],
+    },
+    'Users + Add (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 480,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
+    },
+  },
+}
+
+const desktopOnly = !isMobile
+  ? {
+      'SearchV3 result': servicesResultMap,
+      'SearchV3 resultsList': servicesResultsListMap,
+    }
+  : {}
 
 export default {
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
+  'SearchV3 user input (editable)': userInputEditableMap,
   ...desktopOnly,
 }
