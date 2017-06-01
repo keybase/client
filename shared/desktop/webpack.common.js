@@ -21,6 +21,7 @@ const babelRule = {
         {
           debug: true,
           exclude: ['transform-regenerator'],
+          modules: false,
           targets: {
             electron: '1.6.10',
           },

@@ -4,44 +4,41 @@ const babelRule = require('./webpack.common').babelRule
 const baseConfig = require('./webpack.config.base')
 const path = require('path')
 const webpack = require('webpack')
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 
 // set this to true temporarily to skip the optimization step
 const noOptimize = false
 
 const makeRules = () => {
-  const updatedBaseRules = baseConfig.module.rules.map(rule => {
-    const loader = rule.use[0].loader
-    if (noOptimize || loader !== 'babel-loader') {
-      return rule
-    }
+  // const updatedBaseRules = baseConfig.module.rules.map(rule => {
+  // const loader = rule.use[0].loader
+  // if (noOptimize || loader !== 'babel-loader') {
+  // return rule
+  // }
 
-    const temp = _.cloneDeep(babelRule)
-    // Need regenerator
-    temp.options.plugins.push('babel-plugin-transform-runtime')
-
-    const envPreset = temp.options.presets.find(p => p[0] === 'env')[1]
-    // Have to fall back to more transpiling so we can use ugilfy
-    envPreset.targets.uglify = true
-    envPreset.useBuiltIns = false
-    // Allow all uglify targets
-    envPreset.exclude = []
-    return {
-      ...rule,
-      use: [temp],
-    }
-  })
+  // const temp = _.cloneDeep(babelRule)
+  // const envPreset = temp.options.presets.find(p => p[0] === 'env')[1]
+  // envPreset.useBuiltIns = false
+  // // Allow all uglify targets
+  // envPreset.exclude = []
+  // return {
+  // ...rule,
+  // use: [temp],
+  // }
+  // })
 
   const mockRule = {
     include: path.resolve(__dirname, '../images/mock'),
     use: ['null-loader'],
   }
 
-  return [mockRule, ...updatedBaseRules]
+  return [mockRule, ...baseConfig.module.rules]
+  // return [mockRule, ...updatedBaseRules]
 }
 
 const makePlugins = () => {
-  const uglifyPlugin = !noOptimize && [
-    new webpack.optimize.UglifyJsPlugin({
+  const uglifyPlugin = false /*!noOptimize*/ && [
+    new UglifyJSPlugin({
       compressor: {
         booleans: true,
         cascade: true,
