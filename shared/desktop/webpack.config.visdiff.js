@@ -19,11 +19,13 @@ config.module.rules.unshift({
   test: /\.jpg$/,
   include: path.resolve(__dirname, '../images/mock'),
   use: [
-  loader: 'file-loader',
-    options: {
-      name:'[name].[ext]',
-    }
-  ]
+    {
+      loader: 'file-loader',
+      options: {
+        name: '[name].[ext]',
+      },
+    },
+  ],
 })
 
 config.plugins.push(new webpack.DefinePlugin(defines))
