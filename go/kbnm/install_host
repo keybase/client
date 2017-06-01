@@ -99,7 +99,7 @@ uninstall() {
   # Uninstall the whitelist.
   declare target="$1"
 
-  rm "$target" && echo "Removed Chrome NativeMessaging whitelist: $target" || echo "Install not found: $target"
+  rm "$target" && echo "Removed NativeMessaging whitelist: $target" || echo "Install not found: $target"
 }
 
 
