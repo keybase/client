@@ -44,7 +44,6 @@ class UserItem extends Component<void, UserItemProps, void> {
           username={username}
           avatarSize={16}
           style={{
-            fontSize: 16,
             // Add more space to the left of square icons
             marginLeft: service === 'Hacker News' || service === 'Facebook' ? 3 : 0,
           }}
@@ -106,7 +105,6 @@ class UserInput extends Component<void, Props, void> {
           ref={el => {
             this._textInput = el
           }}
-          flex={1}
           inputStyle={{..._inputStyle, ...inputLeftPadding}}
           placeholder={placeholder}
           value={usernameText}
