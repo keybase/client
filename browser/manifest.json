@@ -59,5 +59,11 @@
     "page": "html/options.html",
     "chrome_style": true
   },
+  "applications": {
+    "gecko": {
+      "id": "keybase@keybase.io",
+      "strict_min_version": "50.0"
+    }
+  },
   "manifest_version": 2
 }

@@ -2,10 +2,6 @@
 
 const KBNM_HOST = "io.keybase.kbnm";
 
-if (browser===undefined) {
-  const browser = chrome;
-}
-
 // Set the default badge color
 chrome.browserAction.setBadgeBackgroundColor({
   color: "#3dcc8e"
