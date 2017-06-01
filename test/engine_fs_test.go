@@ -82,6 +82,8 @@ func buildRootPath(u *fsUser, t tlf.Type) string {
 		path = filepath.Join(u.mntDir, "public")
 	case tlf.Private:
 		path = filepath.Join(u.mntDir, "private")
+	case tlf.SingleTeam:
+		path = filepath.Join(u.mntDir, "team")
 	default:
 		panic(fmt.Sprintf("Unknown TLF type: %s", t))
 	}
@@ -544,7 +546,7 @@ func fiTypeString(fi os.FileInfo) string {
 
 func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
-	opTimeout time.Duration, users []libkb.NormalizedUsername,
+	opTimeout time.Duration, users []libkb.NormalizedUsername, teams teamMap,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	res := map[libkb.NormalizedUsername]User{}
 	initSuccess := false
@@ -614,6 +616,10 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 				panic(fmt.Sprintf("Couldn't disable journaling: %+v", err))
 			}
 		}
+	}
+
+	for _, c := range cfgs {
+		makeTeams(e.tb, c, e, teams, res)
 	}
 
 	initSuccess = true

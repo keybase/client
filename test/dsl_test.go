@@ -34,6 +34,7 @@ const (
 type opt struct {
 	ver                      libkbfs.MetadataVer
 	usernames                []libkb.NormalizedUsername
+	teams                    teamMap
 	tlfName                  string
 	expectedCanonicalTlfName string
 	tlfType                  tlf.Type
@@ -170,7 +171,7 @@ func (o *opt) runInitOnce() {
 		o.clock.Set(time.Unix(0, 0))
 		o.users = o.engine.InitTest(o.ver, o.blockSize,
 			o.blockChangeSize, o.batchSize, o.bwKBps, o.timeout, o.usernames,
-			o.clock, o.journal)
+			o.teams, o.clock, o.journal)
 		o.stallers = o.makeStallers()
 	})
 }
@@ -253,6 +254,28 @@ func users(ns ...username) optionOp {
 	}
 }
 
+func team(teamName libkb.NormalizedUsername, writers string,
+	readers string) optionOp {
+	return func(o *opt) {
+		if o.ver == libkbfs.InitialExtraMetadataVer {
+			o.tb.Skip("mdv2 doesn't support teams")
+		}
+		if o.teams == nil {
+			o.teams = make(teamMap)
+		}
+		var writerNames, readerNames []libkb.NormalizedUsername
+		for _, w := range strings.Split(writers, ",") {
+			writerNames = append(writerNames, libkb.NormalizedUsername(w))
+		}
+		if readers != "" {
+			for _, r := range strings.Split(readers, ",") {
+				readerNames = append(readerNames, libkb.NormalizedUsername(r))
+			}
+		}
+		o.teams[teamName] = teamMembers{writerNames, readerNames}
+	}
+}
+
 func inPrivateTlf(name string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
@@ -282,6 +305,22 @@ func inPublicTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 		o.tlfName = name
 		o.expectedCanonicalTlfName = expectedCanonicalName
 		o.tlfType = tlf.Public
+	}
+}
+
+func inSingleTeamTlf(name string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = name
+		o.tlfType = tlf.SingleTeam
+	}
+}
+
+func inSingleTeamNonCanonical(name, expectedCanonicalName string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = expectedCanonicalName
+		o.tlfType = tlf.SingleTeam
 	}
 }
 

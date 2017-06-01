@@ -21,6 +21,13 @@ type Node interface{}
 
 type username string
 
+type teamMembers struct {
+	writers []libkb.NormalizedUsername
+	readers []libkb.NormalizedUsername
+}
+
+type teamMap map[libkb.NormalizedUsername]teamMembers
+
 // Engine is the interface to the filesystem to be used by the test harness.
 // It may wrap libkbfs directly or it may wrap other users of libkbfs (e.g., libfuse).
 type Engine interface {
@@ -40,7 +47,8 @@ type Engine interface {
 	InitTest(ver libkbfs.MetadataVer, blockSize int64,
 		blockChangeSize int64, batchSize int, bwKBps int,
 		opTimeout time.Duration, users []libkb.NormalizedUsername,
-		clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User
+		teams teamMap, clock libkbfs.Clock,
+		journal bool) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private

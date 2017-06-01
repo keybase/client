@@ -7,6 +7,7 @@ package test
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -39,5 +40,20 @@ func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 		// Looks like we're testing big transfers, so let's do
 		// background flushes.
 		config.SetDoBackgroundFlushes(true)
+	}
+}
+
+func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
+	users map[libkb.NormalizedUsername]User) {
+	for name, members := range teams {
+		infos := libkbfs.AddEmptyTeamsForTestOrBust(t, config, name)
+		for _, w := range members.writers {
+			libkbfs.AddTeamWriterForTestOrBust(t, config, infos[0].TID,
+				e.GetUID(users[w]))
+		}
+		for _, r := range members.readers {
+			libkbfs.AddTeamReaderForTestOrBust(t, config, infos[0].TID,
+				e.GetUID(users[r]))
+		}
 	}
 }
