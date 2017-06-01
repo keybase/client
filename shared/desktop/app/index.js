@@ -18,8 +18,6 @@ import startWinService from './start-win-service'
 import {showMainWindow} from '../../actions/platform-specific.desktop'
 import {isWindows} from '../../constants/platform'
 
-
-
 let mainWindow = null
 
 function start() {
