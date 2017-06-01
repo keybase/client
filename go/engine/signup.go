@@ -31,13 +31,13 @@ type SignupEngineRunArg struct {
 	Email       string
 	InviteCode  string
 	Passphrase  string
+	StoreSecret bool
 	DeviceName  string
 	DeviceType  keybase1.DeviceType
 	SkipGPG     bool
 	SkipMail    bool
 	SkipPaper   bool
 	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
-	StoreSecret bool
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {

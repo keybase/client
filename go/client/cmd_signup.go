@@ -68,6 +68,7 @@ type CmdSignup struct {
 	fullname          string
 	notes             string
 	passphrase        string
+	storeSecret       bool
 	defaultEmail      string
 	defaultUsername   string
 	defaultPassphrase string
@@ -76,7 +77,6 @@ type CmdSignup struct {
 	skipMail          bool
 	genPGP            bool
 	genPaper          bool
-	storeSecret       bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -254,12 +254,12 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
+		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 		GenPaper:    s.genPaper,
-		StoreSecret: s.storeSecret,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {

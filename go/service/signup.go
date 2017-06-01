@@ -40,12 +40,12 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		Email:       arg.Email,
 		InviteCode:  arg.InviteCode,
 		Passphrase:  arg.Passphrase,
+		StoreSecret: arg.StoreSecret,
 		DeviceName:  arg.DeviceName,
 		DeviceType:  arg.DeviceType,
 		SkipMail:    arg.SkipMail,
 		GenPGPBatch: arg.GenPGPBatch,
 		SkipPaper:   !arg.GenPaper,
-		StoreSecret: arg.StoreSecret,
 	}
 	eng := engine.NewSignupEngine(&runarg, h.G())
 	err = engine.RunEngine(eng, ctx)
