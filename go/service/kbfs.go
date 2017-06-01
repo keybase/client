@@ -5,6 +5,7 @@ package service
 
 import (
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -78,11 +79,25 @@ func (h *KBFSHandler) checkConversationRekey(arg keybase1.FSNotification) {
 
 	h.G().Log.Debug("received rekey finished notification for %s, checking for conversations", arg.Filename)
 
-	go h.notifyConversation(uid, arg.Filename, arg.PublicTopLevelFolder)
+	go h.notifyConversation(uid, arg.Filename)
 }
 
-func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string, public bool) {
+// findFolderList returns the type of KBFS folder list containing the
+// given file, e.g., "private", "public", "team", etc.
+func findFolderList(filename string) string {
+	// KBFS always sets the filenames in the protocol to be like
+	// `/keybase/private/alice/...`, regardless of the OS.  So we just
+	// need to split by `/` and take the third component.
+	components := strings.Split(filename, "/")
+	if len(components) < 3 {
+		return ""
+	}
+	return components[2]
+}
+
+func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	tlf := filepath.Base(filename)
+	public := findFolderList(filename) == "public"
 	convIDs, err := h.conversationIDs(uid, tlf, public)
 	if err != nil {
 		h.G().Log.Debug("error getting conversation IDs for tlf %q: %s", tlf, err)
