@@ -9,8 +9,6 @@ const config = getenv.boolish('DUMB', false)
   : Object.assign({}, require('./webpack.config.development'))
 const PORT = 4000
 
-console.log(JSON.stringify(config, null, 2))
-
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server

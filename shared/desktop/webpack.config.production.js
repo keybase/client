@@ -105,6 +105,4 @@ if (noOptimize) {
   console.error('Skipping optimize step!')
 }
 
-console.log('aaa', JSON.stringify(config, null, 2))
-
 module.exports = config
