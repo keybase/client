@@ -23,7 +23,7 @@ module.exports = {
       {
         test: /\.jsx?$/,
         loader: 'babel',
-        exclude: /(node_modules|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|fs-extra))|\/dist\/)/,
         query: Object.assign({
           cacheDirectory: true,
           // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
@@ -34,7 +34,7 @@ module.exports = {
               {
                 useBuiltIns: false,
                 targets: {
-                  electron: '1.4.12',
+                  electron: '1.6.10',
                 },
                 debug: true,
                 exclude: ['transform-regenerator'],

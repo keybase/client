@@ -24,7 +24,7 @@ console.warn('Injecting dev defines: ', defines)
 
 config.debug = true
 config.cache = true
-config.devtool = NO_SOURCE_MAPS ? undefined : 'eval-source-map'
+config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-source-map'
 config.pathinfo = true
 config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
 
