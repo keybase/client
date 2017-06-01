@@ -2,7 +2,7 @@
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsc0yU3MTDhx+JC23YHwvWo/TD1Pynkdc9QekQ7S3jpl0isgro3I5K0ywANwBsZicIYhVq3OQTzV4jq53YoJSP9OFApMb3yzqzJ/QmcwpGvHjztD6I2zPoglMLnWj12VNqFqJtqVj5tT+/TQJ2MdY4eCQpuPweEwDLsR9mP2mxlpV1iCNzF2T61DAqnLmV8zeyjrwJ1QRZq/qd0lJR5JRI8+xBTTStOy2eQvnf8ngEXq2R+NXNq10MELtTpfAT0NPPS1lUbJwR9AYbm9f4wQWLxpeyl63WlmbBUsInM9jsfccDo0hULa59IWpgTdFVQFMBFlIEIN7St8QpF09OygMNQIDAQAB",
   "name": "Keybase",
   "short_name": "Keybase",
-  "version": "1.9.4",
+  "version": "1.10",
   "description": "A secure chat button for every profile.",
   "icons": {
     "48": "images/icon-keybase-logo-48.png",

@@ -4,10 +4,19 @@
 
 const bel = bundle.bel;
 const morphdom = bundle.morphdom;
-const asset = chrome.runtime.getURL;
+const asset = browser.runtime.getURL;
+
+if (browser===undefined) {
+  const browser = chrome;
+}
+
 
 function init() {
-  chrome.storage.sync.get(function(options) {
+  browser.storage.sync.get(function(options) {
+    if (options === undefined) {
+      // Backfill for Firefox
+      options = {};
+    }
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
       // weird single-page-app stuff that makes it difficult to hook into.
@@ -32,7 +41,7 @@ function init() {
 
     // Passive queries?
     if (options["profile-passive-queries"] === true && user) { // undefined defaults to false
-      chrome.runtime.sendMessage({
+      browser.runtime.sendMessage({
         "method": "passivequery",
         "to": user.query(),
       }, function(response) {
@@ -162,7 +171,7 @@ function renderChat(parent, user, nudgeSupported, closeCallback) {
 
   // Find user
   const nudgePlaceholder = f.getElementsByClassName("keybase-nudge")[0];
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     "method": "query",
     "to": user.query(),
   }, function(response) {
@@ -258,7 +267,7 @@ function submitChat(successCallback, e) {
   submitButton.disabled = true;
   submitButton.value = "Sending...";
 
-  chrome.runtime.sendMessage({
+  browser.runtime.sendMessage({
     "method": "chat",
     "to": to,
     "body": body
@@ -331,6 +340,7 @@ function renderError(chatForm, closeCallback, msg) {
 
   switch (msg) {
     case "Specified native messaging host not found.":
+    case "Attempt to postMessage on disconnected port":
       return renderErrorFull(chatForm, closeCallback, bel`
         <div>
           <p>You need the Keybase app to send chat messages.</p>
