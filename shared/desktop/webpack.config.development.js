@@ -41,14 +41,14 @@ const makePlugins = () => {
     pattern: './shared/**/*.js',
   })
 
-  const dashboardPlugin = !noServer && new DashboardPlugin()
-  const hmrPlugin = isHot && new webpack.HotModuleReplacementPlugin()
-  const dllPlugin =
-    isUsingDLL &&
+  const dashboardPlugin = !noServer && [new DashboardPlugin()]
+  const hmrPlugin = isHot && [new webpack.HotModuleReplacementPlugin()]
+  const dllPlugin = isUsingDLL && [
     new webpack.DllReferencePlugin({
       context: './renderer',
       manifest: require('./dll/vendor-manifest.json'),
-    })
+    }),
+  ]
 
   const defines = {
     __DEV__: true,
