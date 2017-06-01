@@ -530,6 +530,14 @@ function setSelectedRouteState(
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
+function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
+  return {payload: {filter}, type: 'chat:inboxFilter'}
+}
+
+function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
+  return {payload: {search}, type: 'chat:inboxSearch'}
+}
+
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
@@ -587,6 +595,8 @@ export {
   saveAttachment,
   selectAttachment,
   selectConversation,
+  setInboxFilter,
+  setInboxSearch,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,

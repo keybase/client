@@ -205,6 +205,13 @@ export const CtlExitCode = {
   restart: 4,
 }
 
+export const FavoriteFolderType = {
+  unknown: 0,
+  private: 1,
+  public: 2,
+  team: 3,
+}
+
 export const GregorUIPushReason = {
   none: 0,
   reconnected: 1,
@@ -4342,7 +4349,14 @@ export type Folder = {
   private: boolean,
   notificationsOn: boolean,
   created: boolean,
+  folderType: FolderType,
 }
+
+export type FolderType =
+    0 // UNKNOWN_0
+  | 1 // PRIVATE_1
+  | 2 // PUBLIC_2
+  | 3 // TEAM_3
 
 export type ForkType =
     0 // NONE_0
@@ -5606,6 +5620,18 @@ export type TeamRole =
   | 3 // WRITER_3
   | 4 // READER_4
 
+export type TeamSigChainState = {
+  reader: UserVersion,
+  id: TeamID,
+  name: string,
+  lastSeqno: Seqno,
+  lastLinkID: LinkID,
+  parentID?: ?TeamID,
+  userLog: {[key: string]: ?Array<UserLogPoint>},
+  perTeamKeys: {[key: string]: PerTeamKey},
+  stubbedTypes: {[key: string]: bool},
+}
+
 export type Test = {
   reply: string,
 }
@@ -5711,6 +5737,11 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserLogPoint = {
+  role: TeamRole,
+  seqno: Seqno,
+}
+
 export type UserOrTeamID = string
 
 export type UserOrTeamLite = {
@@ -5786,6 +5817,11 @@ export type UserSummary2Set = {
   users?: ?Array<UserSummary2>,
   time: Time,
   version: int,
+}
+
+export type UserVersion = {
+  username: string,
+  eldestSeqno: Seqno,
 }
 
 export type UserVersionVector = {

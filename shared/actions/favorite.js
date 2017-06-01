@@ -7,6 +7,7 @@ import {
   apiserverGetWithSessionRpcPromise,
   favoriteFavoriteAddRpcPromise,
   favoriteFavoriteIgnoreRpcPromise,
+  FavoriteFolderType,
   NotifyFSRequestFSSyncStatusRequestRpcPromise,
 } from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
@@ -185,6 +186,7 @@ function _getFavoritesRPCToFolders(
         created: false,
         waitingForParticipantUnlock: [],
         youCanUnlock: [],
+        folderType: isPrivate ? FavoriteFolderType.private : FavoriteFolderType.public,
       }
 
       if (idx !== -1) {

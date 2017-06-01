@@ -28,7 +28,7 @@ func (v *CmdPGPPull) Run() (err error) {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewIdentifyTrackUIProtocol(v.G()),
+		NewIdentifyMaybeTrackUIProtocol(v.G()),
 	}
 	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err

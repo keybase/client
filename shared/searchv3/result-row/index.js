@@ -1,28 +1,10 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
 import React from 'react'
-import {Avatar, Box, Icon, ClickableBox, Text} from '../../common-adapters'
+import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
-
-const IconOrAvatar = ({service, username, icon, avatarSize, style}) =>
-  service === 'Keybase'
-    ? <Avatar username={username} size={avatarSize} style={style} />
-    : icon ? <Icon type={icon} style={style} /> : null
-
-const followingStateToStyle = (followingState: Constants.FollowingState) => {
-  return {
-    Following: {
-      color: globalColors.green2,
-    },
-    NoState: {},
-    NotFollowing: {
-      color: globalColors.blue,
-    },
-    You: {
-      fontStyle: 'italic',
-    },
-  }[followingState]
-}
+import IconOrAvatar from '../icon-or-avatar'
+import {followingStateToStyle} from '../shared'
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (

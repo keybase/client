@@ -166,6 +166,93 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 	}
 }
 
+type UserVersion struct {
+	Username    string `codec:"username" json:"username"`
+	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldestSeqno"`
+}
+
+func (o UserVersion) DeepCopy() UserVersion {
+	return UserVersion{
+		Username:    o.Username,
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type TeamSigChainState struct {
+	Reader       UserVersion                    `codec:"reader" json:"reader"`
+	Id           TeamID                         `codec:"id" json:"id"`
+	Name         string                         `codec:"name" json:"name"`
+	LastSeqno    Seqno                          `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID   LinkID                         `codec:"lastLinkID" json:"lastLinkID"`
+	ParentID     *TeamID                        `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog      map[UserVersion][]UserLogPoint `codec:"userLog" json:"userLog"`
+	PerTeamKeys  map[int]PerTeamKey             `codec:"perTeamKeys" json:"perTeamKeys"`
+	StubbedTypes map[int]bool                   `codec:"stubbedTypes" json:"stubbedTypes"`
+}
+
+func (o TeamSigChainState) DeepCopy() TeamSigChainState {
+	return TeamSigChainState{
+		Reader:     o.Reader.DeepCopy(),
+		Id:         o.Id.DeepCopy(),
+		Name:       o.Name,
+		LastSeqno:  o.LastSeqno.DeepCopy(),
+		LastLinkID: o.LastLinkID.DeepCopy(),
+		ParentID: (func(x *TeamID) *TeamID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ParentID),
+		UserLog: (func(x map[UserVersion][]UserLogPoint) map[UserVersion][]UserLogPoint {
+			ret := make(map[UserVersion][]UserLogPoint)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []UserLogPoint) []UserLogPoint {
+					var ret []UserLogPoint
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UserLog),
+		PerTeamKeys: (func(x map[int]PerTeamKey) map[int]PerTeamKey {
+			ret := make(map[int]PerTeamKey)
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PerTeamKeys),
+		StubbedTypes: (func(x map[int]bool) map[int]bool {
+			ret := make(map[int]bool)
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.StubbedTypes),
+	}
+}
+
+type UserLogPoint struct {
+	Role  TeamRole `codec:"role" json:"role"`
+	Seqno Seqno    `codec:"seqno" json:"seqno"`
+}
+
+func (o UserLogPoint) DeepCopy() UserLogPoint {
+	return UserLogPoint{
+		Role:  o.Role.DeepCopy(),
+		Seqno: o.Seqno.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`

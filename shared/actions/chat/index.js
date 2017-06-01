@@ -794,7 +794,11 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield put(Creators.updateMetadata(inbox.get('participants').toArray()))
+    const participants = inbox.get('participants').toArray()
+    yield put(Creators.updateMetadata(participants))
+    // Update search but don't update the filter
+    // TODO likely only do this if search is visible
+    yield put(Creators.setInboxSearch(participants))
   }
 
   // Do this here because it's possible loadMoreMessages bails early

@@ -2,11 +2,17 @@
 import {app} from 'electron'
 import {keybaseBinPath} from './paths'
 import exec from './exec'
+import {isWindows} from '../../constants/platform'
 
 export function ctlStop(callback: any) {
   const binPath = keybaseBinPath()
-  const args = ['ctl', 'stop', '--exclude=app']
-  exec(binPath, args, 'darwin', 'prod', false, callback)
+  var plat = 'darwin'
+  var args = ['ctl', 'stop', '--exclude=app']
+  if (isWindows) {
+    args = ['ctl', 'stop', '--kill-kbfs']
+    plat = 'win32'
+  }
+  exec(binPath, args, plat, 'prod', false, callback)
 }
 
 function exitApp() {

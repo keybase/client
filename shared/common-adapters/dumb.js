@@ -4,6 +4,7 @@ import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
+  AutosizeInput,
   Avatar,
   Button,
   Box,
@@ -1037,7 +1038,40 @@ const popupDialogMap: DumbComponentMap<PopupDialog> = {
     },
   },
 }
+const autosizeInputMap: DumbComponentMap<AutosizeInput> = {
+  component: AutosizeInput,
+  mocks: {
+    Normal: {
+      value: 'here is some long text',
+      placeholder: '',
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+    Placeholder: {
+      value: '',
+      placeholder: 'Type here...',
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+    Styled: {
+      value: 'styled inputs work too!',
+      placeholder: '',
+      inputStyle: {
+        background: 'papayawhip',
+        borderWidth: 2,
+        fontSize: 20,
+        padding: 10,
+      },
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+  },
+}
 export default {
+  AutosizeInput: autosizeInputMap,
   Avatar: avatarMap,
   Buttons: buttonsMap,
   Checkbox: checkboxMap,

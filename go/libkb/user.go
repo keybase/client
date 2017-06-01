@@ -794,6 +794,7 @@ func (u User) PartialCopy() *User {
 	return ret
 }
 
+// TODO: This and keybase1.UserVersion should be reconciled
 type NameWithEldestSeqno string
 
 func MakeNameWithEldestSeqno(name string, seqno keybase1.Seqno) (NameWithEldestSeqno, error) {

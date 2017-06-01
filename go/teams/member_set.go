@@ -8,7 +8,7 @@ import (
 )
 
 type member struct {
-	version    UserVersion
+	version    keybase1.UserVersion
 	perUserKey keybase1.PerUserKey
 }
 
@@ -105,7 +105,7 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 	}
 	res := make([]SCTeamMember, len(members))
 	for i, m := range members {
-		nameSeq, err := libkb.MakeNameWithEldestSeqno(m.version.Username.String(), m.version.EldestSeqno)
+		nameSeq, err := libkb.MakeNameWithEldestSeqno(m.version.Username, m.version.EldestSeqno)
 		if err != nil {
 			return nil, err
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -50,7 +51,6 @@ func TestTeamSigChainParse(t *testing.T) {
 		} else {
 			t.Logf("payload stubbed")
 		}
-
 	}
 }
 
@@ -78,30 +78,52 @@ func TestTeamSigChainPlay1(t *testing.T) {
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
+	// Check once before and after serializing and deserializing
 	state, err := player.GetState()
 	require.NoError(t, err)
-	require.Equal(t, "t_79351477", string(state.GetName()))
-	require.False(t, state.IsSubteam())
-	ptk, err := state.GetLatestPerTeamKey()
-	require.NoError(t, err)
-	require.Equal(t, 2, ptk.Gen)
-	require.Equal(t, keybase1.Seqno(3), ptk.Seqno)
-	require.Equal(t, "0120f1483c8515d08ac9ecb8a92eecba17cc35e3132b2da5481ab5da634da27e8d0e0a", string(ptk.SigKID))
-	require.Equal(t, "0121015351e68bc98d256c190fbca5608c2b04a36d15f5e95896385f1b5b0c6dc1260a", string(ptk.EncKID))
-	require.Equal(t, keybase1.Seqno(3), state.GetLatestSeqno())
+	for i := 0; i < 2; i++ {
+		if i == 0 {
+			t.Logf("testing fresh")
+		} else {
+			t.Logf("testing serde")
+		}
 
-	checkRole := func(username string, role keybase1.TeamRole) {
-		uv := NewUserVersion(username, 1)
-		r, err := state.GetUserRole(uv)
+		require.Equal(t, "t_79351477", string(state.GetName()))
+		require.False(t, state.IsSubteam())
+		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
-		require.Equal(t, role, r)
-	}
+		require.Equal(t, 2, ptk.Gen)
+		require.Equal(t, keybase1.Seqno(3), ptk.Seqno)
+		require.Equal(t, "0120f1483c8515d08ac9ecb8a92eecba17cc35e3132b2da5481ab5da634da27e8d0e0a", string(ptk.SigKID))
+		require.Equal(t, "0121015351e68bc98d256c190fbca5608c2b04a36d15f5e95896385f1b5b0c6dc1260a", string(ptk.EncKID))
+		require.Equal(t, keybase1.Seqno(3), state.GetLatestSeqno())
 
-	checkRole("d_08827f78", keybase1.TeamRole_OWNER)
-	checkRole("c_61002771", keybase1.TeamRole_ADMIN)
-	checkRole("b_4a45388c", keybase1.TeamRole_WRITER)
-	checkRole("a_1585f13b", keybase1.TeamRole_READER)
-	checkRole("popeye", keybase1.TeamRole_NONE)
+		checkRole := func(username string, role keybase1.TeamRole) {
+			uv := NewUserVersion(username, 1)
+			r, err := state.GetUserRole(uv)
+			require.NoError(t, err)
+			require.Equal(t, role, r)
+		}
+
+		checkRole("d_08827f78", keybase1.TeamRole_OWNER)
+		checkRole("c_61002771", keybase1.TeamRole_ADMIN)
+		checkRole("b_4a45388c", keybase1.TeamRole_WRITER)
+		checkRole("a_1585f13b", keybase1.TeamRole_READER)
+		checkRole("popeye", keybase1.TeamRole_NONE)
+
+		linkIDProto := state.GetLatestLinkID()
+		require.Equal(t, "ef8bec278e661da9688207955a6c5f1067ac1489322cf454fd7aa1f1eab406ce", string(linkIDProto))
+		linkIDLibkb, err := libkb.ImportLinkID(linkIDProto)
+		require.NoError(t, err)
+		require.Equal(t, linkIDProto, linkIDLibkb.Export())
+
+		// Reserialize
+		bs, err := encode(state.inner)
+		require.NoError(t, err, "encode")
+		state = TeamSigChainState{}
+		err = decode(bs, &state.inner)
+		require.NoError(t, err, "decode")
+	}
 }
 
 func TestTeamSigChainPlay2(t *testing.T) {
@@ -127,38 +149,48 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
+	// Check once before and after serializing and deserializing
 	state, err := player.GetState()
 	require.NoError(t, err)
-	require.Equal(t, "t_913dfbc3", string(state.GetName()))
-	require.False(t, state.IsSubteam())
-	ptk, err := state.GetLatestPerTeamKey()
-	require.NoError(t, err)
-	require.Equal(t, 1, ptk.Gen)
-	require.Equal(t, keybase1.Seqno(1), ptk.Seqno)
-	require.Equal(t, "01208c7432e8d65a4aa59e666e55ee856a8fa41a20bdc3edb5bb07ab7cac4a230a170a", string(ptk.SigKID))
-	require.Equal(t, "01212337961af637143545aa512b63393cd92c588d3e153fbd8c4c5c923c76cc410d0a", string(ptk.EncKID))
-	require.Equal(t, keybase1.Seqno(2), state.GetLatestSeqno())
-
-	checkRole := func(username string, role keybase1.TeamRole) {
-		uv := NewUserVersion(username, 1)
-		r, err := state.GetUserRole(uv)
+	for i := 0; i < 2; i++ {
+		require.Equal(t, "t_913dfbc3", string(state.GetName()))
+		require.False(t, state.IsSubteam())
+		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
-		require.Equal(t, role, r)
+		require.Equal(t, 1, ptk.Gen)
+		require.Equal(t, keybase1.Seqno(1), ptk.Seqno)
+		require.Equal(t, "01208c7432e8d65a4aa59e666e55ee856a8fa41a20bdc3edb5bb07ab7cac4a230a170a", string(ptk.SigKID))
+		require.Equal(t, "01212337961af637143545aa512b63393cd92c588d3e153fbd8c4c5c923c76cc410d0a", string(ptk.EncKID))
+		require.Equal(t, keybase1.Seqno(2), state.GetLatestSeqno())
+
+		checkRole := func(username string, role keybase1.TeamRole) {
+			uv := NewUserVersion(username, 1)
+			r, err := state.GetUserRole(uv)
+			require.NoError(t, err)
+			require.Equal(t, role, r)
+		}
+
+		checkRole("d_b2809af7", keybase1.TeamRole_OWNER)
+		checkRole("c_ac088470", keybase1.TeamRole_ADMIN)
+		checkRole("b_ee111192", keybase1.TeamRole_WRITER)
+		checkRole("a_f0259e08", keybase1.TeamRole_WRITER) // changed role
+
+		xs, err := state.GetUsersWithRole(keybase1.TeamRole_OWNER)
+		require.NoError(t, err)
+		require.Len(t, xs, 1)
+		xs, err = state.GetUsersWithRole(keybase1.TeamRole_WRITER)
+		require.NoError(t, err)
+		require.Len(t, xs, 2)
+		xs, err = state.GetUsersWithRole(keybase1.TeamRole_READER)
+		require.Len(t, xs, 0)
+
+		// Reserialize
+		bs, err := encode(state.inner)
+		require.NoError(t, err, "encode")
+		state = TeamSigChainState{}
+		err = decode(bs, &state.inner)
+		require.NoError(t, err, "decode")
 	}
-
-	checkRole("d_b2809af7", keybase1.TeamRole_OWNER)
-	checkRole("c_ac088470", keybase1.TeamRole_ADMIN)
-	checkRole("b_ee111192", keybase1.TeamRole_WRITER)
-	checkRole("a_f0259e08", keybase1.TeamRole_WRITER) // changed role
-
-	xs, err := state.GetUsersWithRole(keybase1.TeamRole_OWNER)
-	require.NoError(t, err)
-	require.Len(t, xs, 1)
-	xs, err = state.GetUsersWithRole(keybase1.TeamRole_WRITER)
-	require.NoError(t, err)
-	require.Len(t, xs, 2)
-	xs, err = state.GetUsersWithRole(keybase1.TeamRole_READER)
-	require.Len(t, xs, 0)
 }
 
 type chainHelper struct{}
@@ -176,4 +208,21 @@ func (c *chainHelper) UsernameForUID(ctx context.Context, uid keybase1.UID) (str
 	default:
 		return "", errors.New("testing hit unknown uid")
 	}
+}
+
+func encode(input interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(input); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func decode(data []byte, res interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err := dec.Decode(res)
+	return err
 }

@@ -14,6 +14,8 @@ import {BrowserWindow, app, ipcMain, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
+import startWinService from './start-win-service'
+import {isWindows} from '../../constants/platform'
 
 let mainWindow = null
 
@@ -81,6 +83,13 @@ function start() {
       splash()
       event.sender.send('installed')
     })
+  })
+
+  ipcMain.on('kb-service-check', (event, arg) => {
+    if (isWindows) {
+      console.log('kb-service-check: starting keybase.exe')
+      startWinService()
+    }
   })
 
   // Called when the user clicks the dock icon

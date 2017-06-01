@@ -43,19 +43,19 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 	return t.ChangeMembership(ctx, req)
 }
 
-func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (UserVersion, error) {
+func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	res := g.Resolver.ResolveWithBody(username)
 	if res.GetError() != nil {
-		return UserVersion{}, res.GetError()
+		return keybase1.UserVersion{}, res.GetError()
 	}
 	return loadUserVersionByUID(ctx, g, res.GetUID())
 }
 
-func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (UserVersion, error) {
+func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (keybase1.UserVersion, error) {
 	arg := libkb.NewLoadUserByUIDArg(ctx, g, uid)
 	upak, _, err := g.GetUPAKLoader().Load(arg)
 	if err != nil {
-		return UserVersion{}, err
+		return keybase1.UserVersion{}, err
 	}
 
 	return NewUserVersion(upak.Base.Username, upak.Base.EldestSeqno), nil

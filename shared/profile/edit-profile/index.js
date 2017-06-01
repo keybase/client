@@ -1,65 +1,39 @@
 // @flow
-import React, {Component} from 'react'
 import Render from './render'
+import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
+import type {TypedState} from '../../constants/reducer'
 import {navigateUp} from '../../actions/route-tree'
 
-import type {Props} from './render'
-
-class EditProfile extends Component<void, Props, void> {
-  render() {
-    const bioMaxChars = maxProfileBioChars
-    const bioLengthLeft = bioMaxChars - this.props.bio.length
-    return (
-      <Render
-        bio={this.props.bio}
-        bioLengthLeft={bioLengthLeft}
-        fullname={this.props.fullname}
-        location={this.props.location}
-        onBack={this.props.onBack}
-        onBioChange={this.props.onBioChange}
-        onCancel={this.props.onBack}
-        onFullnameChange={this.props.onFullnameChange}
-        onLocationChange={this.props.onLocationChange}
-        onSubmit={this.props.onEditProfile}
-      />
-    )
+const mapStateToProps = (state: TypedState) => {
+  if (!state.config.username) {
+    throw new Error("Didn't get username")
   }
+  const trackerInfo = state.tracker.trackers[state.config.username]
+  if (!trackerInfo || trackerInfo.type !== 'tracker') {
+    throw new Error("Didn't get trackerinfo")
+  }
+  const userInfo = trackerInfo.userInfo
+  const {bio, fullname, location} = userInfo
+  return {bio, fullname, location}
 }
 
-// $FlowIssue type this connector
-export default connect(
-  (state, {routeState}) => {
-    const userInfo = state.tracker.trackers[state.config.username].userInfo
-    return {
-      bio: routeState.bio || userInfo.bio,
-      fullname: routeState.fullname || userInfo.fullname,
-      location: routeState.location || userInfo.location,
-    }
-  },
-  (dispatch, {routeState, setRouteState}) => {
-    return {
-      onBack: () => dispatch(navigateUp()),
-      onBioChange: bio => {
-        setRouteState({bio})
-      },
-      onEditProfile: (bio, fullname, location) => dispatch(editProfile(bio, fullname, location)),
-      onFullnameChange: fullname => {
-        setRouteState({fullname})
-      },
-      onLocationChange: location => {
-        setRouteState({location})
-      },
-    }
-  },
-  (stateProps, dispatchProps, ownProps) => ({
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-    onEditProfile: () => {
-      dispatchProps.onEditProfile(stateProps.bio, stateProps.fullname, stateProps.location)
-    },
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBack: () => dispatch(navigateUp()),
+  onEditProfile: ({bio, fullname, location}) => dispatch(editProfile(bio, fullname, location)),
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withState('bio', 'onBioChange', props => props.bio),
+  withState('fullname', 'onFullnameChange', props => props.fullname),
+  withState('location', 'onLocationChange', props => props.location),
+  withPropsOnChange(['bio'], props => ({
+    bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
+  })),
+  withHandlers({
+    onSubmit: ({bio, fullname, location, onSubmit}) => () => onSubmit({bio, fullname, location}),
   })
-)(EditProfile)
+)(Render)
