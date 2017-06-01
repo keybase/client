@@ -62,11 +62,10 @@ export default function() {
   }
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
-  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
-  // Start not shown by default on Windows
-  const hideWindowOnStart =
-    getenv.string('KEYBASE_START_UI', '') === 'hideWindow' ||
-    (isWindows && getenv.string('KEYBASE_START_UI', '') !== 'showWindow')
+  // app.getLoginItemSettings().restoreState is mac only, so consider it always on in Windows
+  const isRestore =
+    getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   console.log('Opened at login:', openedAtLogin)
   console.log('Is restore:', isRestore)
