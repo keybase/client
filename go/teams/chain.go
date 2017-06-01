@@ -24,19 +24,15 @@ import (
 
 type TeamName string
 
-type UserVersion struct {
-	Username    libkb.NormalizedUsername
-	EldestSeqno keybase1.Seqno
-}
-
-func NewUserVersion(username string, eldestSeqno keybase1.Seqno) UserVersion {
-	return UserVersion{
-		Username:    libkb.NewNormalizedUsername(username),
+// Create a new user/version pair.
+func NewUserVersion(username string, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
+	return keybase1.UserVersion{
+		Username:    string(libkb.NewNormalizedUsername(username)),
 		EldestSeqno: eldestSeqno,
 	}
 }
 
-func ParseUserVersion(s string) (res UserVersion, err error) {
+func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
 	parts := strings.Split(s, "%")
 	if len(parts) == 1 {
 		// default to seqno 1
@@ -53,18 +49,10 @@ func ParseUserVersion(s string) (res UserVersion, err error) {
 	if err != nil {
 		return res, fmt.Errorf("invalid eldest seqno: %s", err)
 	}
-	return UserVersion{
-		Username:    username,
+	return keybase1.UserVersion{
+		Username:    string(username),
 		EldestSeqno: keybase1.Seqno(eldestSeqno),
 	}, nil
-}
-
-// "foo" for seqno 1 or "foo%6"
-func (u UserVersion) PercentForm() string {
-	if u.EldestSeqno == 1 {
-		return u.Username.String()
-	}
-	return fmt.Sprintf("%s%%%d", u.Username, u.EldestSeqno)
 }
 
 // Does not canonicalize the name
@@ -100,129 +88,56 @@ func (n TeamName) ToTeamID() keybase1.TeamID {
 
 const TeamSigChainPlayerSupportedLinkVersion = 2
 
-// A user became this role at a point in time
-type UserTeamRoleCheckpoint struct {
-	// The new role. Including NONE if the user left the team.
-	Role keybase1.TeamRole
-	// The seqno at which the user became this role.
-	Seqno keybase1.Seqno
-}
-
-type UserLog map[UserVersion][]UserTeamRoleCheckpoint
-
-func (ul *UserLog) getUserRole(u UserVersion) keybase1.TeamRole {
-	log := (*ul)[u]
-	if len(log) == 0 {
-		return keybase1.TeamRole_NONE
-	}
-	role := log[len(log)-1].Role
-	return role
-}
-
-// Inform the UserLog of a user's role.
-// Doesn't check anything, don't screw up.
-// Idempotent if called correctly.
-func (ul *UserLog) inform(u UserVersion, role keybase1.TeamRole, seqno keybase1.Seqno) {
-	currentRole := ul.getUserRole(u)
-	if currentRole == role {
-		// no change in role, now new checkpoint needed
-		return
-	}
-	(*ul)[u] = append((*ul)[u], UserTeamRoleCheckpoint{
-		Role:  role,
-		Seqno: seqno,
-	})
-}
-
-// State of a parsed team sigchain.
-// Should be treated as immutable when returned from TeamSigChainPlayer.
-// Modified internally to TeamSigChainPlayer.
+// Accessor wrapper for keybase1.TeamSigChainState
 type TeamSigChainState struct {
-	// The user who loaded this sigchain
-	Reader UserVersion
-
-	ID keybase1.TeamID
-	// Latest name of the team
-	Name TeamName
-	// The last link procesed
-	LastSeqno  keybase1.Seqno
-	LastLinkID libkb.LinkID
-
-	// Present if a subteam
-	ParentID *keybase1.TeamID
-
-	// For each user, the timeline of their role status.
-	// The role checkpoints are always ordered by seqno.
-	// The latest role of the user is the role of their last checkpoint.
-	// When a user leaves the team a NONE checkpoint appears in their list.
-	UserLog UserLog
-
-	PerTeamKeys map[int]keybase1.PerTeamKey
-
-	// Set of types that were loaded stubbed-out and whose contents are missing.
-	StubbedTypes map[libkb.SigchainV2Type]bool
+	inner keybase1.TeamSigChainState
 }
 
 func (t TeamSigChainState) DeepCopy() TeamSigChainState {
-
-	stubbedTypes := make(map[libkb.SigchainV2Type]bool)
-	for k, v := range t.StubbedTypes {
-		stubbedTypes[k] = v
-	}
-
-	perTeamKeys := make(map[int]keybase1.PerTeamKey)
-	for k, v := range t.PerTeamKeys {
-		perTeamKeys[k] = v
-	}
-
-	userLog := make(UserLog)
-	for k, v := range t.UserLog {
-		userLog[k] = v
-	}
-
 	return TeamSigChainState{
-		Reader:       t.Reader,
-		ID:           t.ID,
-		Name:         t.Name,
-		LastSeqno:    t.LastSeqno,
-		LastLinkID:   t.LastLinkID,
-		ParentID:     t.ParentID,
-		UserLog:      userLog,
-		PerTeamKeys:  perTeamKeys,
-		StubbedTypes: stubbedTypes,
+		inner: t.inner.DeepCopy(),
 	}
 }
 
 func (t *TeamSigChainState) GetID() keybase1.TeamID {
-	return t.ID
+	return t.inner.Id
 }
 
-func (t *TeamSigChainState) GetName() TeamName {
-	return t.Name
+func (t *TeamSigChainState) GetName() string {
+	return t.inner.Name
 }
 
 func (t *TeamSigChainState) IsSubteam() bool {
-	return t.ParentID != nil
+	return t.inner.ParentID != nil
 }
 
 func (t *TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
-	return t.LastSeqno
+	return t.inner.LastSeqno
 }
 
-func (t *TeamSigChainState) GetLatestLinkID() libkb.LinkID {
-	return t.LastLinkID
+func (t *TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
+	return t.inner.LastLinkID
 }
 
-func (t *TeamSigChainState) GetUserRole(user UserVersion) (keybase1.TeamRole, error) {
-	return t.UserLog.getUserRole(user), nil
+func (t *TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
+	return t.getUserRole(user), nil
 }
 
-func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []UserVersion, err error) {
+func (t *TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamRole {
+	points := t.inner.UserLog[user]
+	if len(points) == 0 {
+		return keybase1.TeamRole_NONE
+	}
+	role := points[len(points)-1].Role
+	return role
+}
+
+func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
 	if role == keybase1.TeamRole_NONE {
 		return nil, errors.New("cannot get users with NONE role")
 	}
-	for uv := range t.UserLog {
-		if t.UserLog.getUserRole(uv) == role {
+	for uv := range t.inner.UserLog {
+		if t.getUserRole(uv) == role {
 			res = append(res, uv)
 		}
 	}
@@ -230,7 +145,7 @@ func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []User
 }
 
 func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
-	res, ok := t.PerTeamKeys[len(t.PerTeamKeys)]
+	res, ok := t.inner.PerTeamKeys[len(t.inner.PerTeamKeys)]
 	if !ok {
 		// if this happens it's a programming error
 		return res, errors.New("per-team-key not found")
@@ -239,11 +154,27 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 }
 
 func (t *TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
-	res, ok := t.PerTeamKeys[gen]
+	res, ok := t.inner.PerTeamKeys[gen]
 	if !ok {
 		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}
 	}
 	return res, nil
+}
+
+// Inform the UserLog of a user's role.
+// Mutates the UserLog.
+// Must be called with seqno's and events in correct order.
+// Idempotent if called correctly.
+func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, seqno keybase1.Seqno) {
+	currentRole := t.getUserRole(u)
+	if currentRole == role {
+		// no change in role, now new checkpoint needed
+		return
+	}
+	t.inner.UserLog[u] = append(t.inner.UserLog[u], keybase1.UserLogPoint{
+		Role:  role,
+		Seqno: seqno,
+	})
 }
 
 // UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
@@ -259,7 +190,7 @@ type TeamSigChainPlayer struct {
 	helper UsernameFinder
 
 	// information about the reading user
-	reader UserVersion
+	reader keybase1.UserVersion
 
 	isSubTeam bool
 
@@ -267,7 +198,7 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(g *libkb.GlobalContext, helper UsernameFinder, reader UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(g *libkb.GlobalContext, helper UsernameFinder, reader keybase1.UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		Contextified: libkb.NewContextified(g),
 
@@ -367,11 +298,11 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 		newState = &iRes.newState
 	}
 
-	newState.LastSeqno = oRes.outerLink.Seqno
-	newState.LastLinkID = oRes.outerLink.LinkID()
+	newState.inner.LastSeqno = oRes.outerLink.Seqno
+	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
 
 	if stubbed {
-		newState.StubbedTypes[oRes.outerLink.LinkType] = true
+		newState.inner.StubbedTypes[int(oRes.outerLink.LinkType)] = true
 	}
 
 	return *newState, nil
@@ -379,7 +310,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 
 type checkOuterLinkResult struct {
 	outerLink   libkb.OuterLinkV2WithMetadata
-	signingUser UserVersion
+	signingUser keybase1.UserVersion
 
 	// optional inner link info
 	innerLink *SCChainLinkPayload
@@ -396,8 +327,8 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 			return res, fmt.Errorf("expected seqno:1 but got:%v", link.Seqno)
 		}
 	} else {
-		if link.Seqno != prevState.LastSeqno+1 {
-			return res, fmt.Errorf("expected seqno:%v but got:%v", prevState.LastSeqno+1, link.Seqno)
+		if link.Seqno != prevState.inner.LastSeqno+1 {
+			return res, fmt.Errorf("expected seqno:%v but got:%v", prevState.inner.LastSeqno+1, link.Seqno)
 		}
 	}
 
@@ -442,8 +373,12 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 			return res, fmt.Errorf("expected outer nil prev but got:%s", outerLink.Prev)
 		}
 	} else {
-		if !outerLink.Prev.Eq(prevState.LastLinkID) {
-			return res, fmt.Errorf("wrong outer prev: %s != %s", outerLink.Prev, prevState.LastLinkID)
+		prevStateLastLinkID, err := libkb.ImportLinkID(prevState.inner.LastLinkID)
+		if err != nil {
+			return res, fmt.Errorf("invalid prev last link id: %v", err)
+		}
+		if !outerLink.Prev.Eq(prevStateLastLinkID) {
+			return res, fmt.Errorf("wrong outer prev: %s != %s", outerLink.Prev, prevState.inner.LastLinkID)
 		}
 	}
 
@@ -494,8 +429,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		return res, err
 	}
 
-	if prevState != nil && !prevState.ID.Equal(teamID) {
-		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.ID.String())
+	if prevState != nil && !prevState.inner.Id.Equal(teamID) {
+		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.inner.Id.String())
 	}
 
 	hasPrevState := func(has bool) error {
@@ -505,7 +440,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			}
 		} else {
 			if prevState != nil {
-				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.LastSeqno+1)
+				return fmt.Errorf("link type '%s' unexpected at seqno:%v", payload.Body.Type, prevState.inner.LastSeqno+1)
 			}
 		}
 		return nil
@@ -563,13 +498,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, err
 		}
 
-		userLog := t.makeInitialUserLog(roleUpdates)
-
-		// check that the signer is an owner
-		if userLog.getUserRole(oRes.signingUser) != keybase1.TeamRole_OWNER {
-			return res, fmt.Errorf("signer is not an owner: %v (%v)", oRes.signingUser, team.Members.Owners)
-		}
-
 		perTeamKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, 1)
 		if err != nil {
 			return res, err
@@ -579,15 +507,23 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		perTeamKeys[1] = perTeamKey
 
 		res.newState = TeamSigChainState{
-			Reader:       t.reader,
-			ID:           teamID,
-			Name:         teamName,
-			LastSeqno:    1,
-			LastLinkID:   oRes.outerLink.LinkID(),
-			ParentID:     nil,
-			UserLog:      userLog,
-			PerTeamKeys:  perTeamKeys,
-			StubbedTypes: make(map[libkb.SigchainV2Type]bool),
+			inner: keybase1.TeamSigChainState{
+				Reader:       t.reader,
+				Id:           teamID,
+				Name:         string(teamName),
+				LastSeqno:    1,
+				LastLinkID:   oRes.outerLink.LinkID().Export(),
+				ParentID:     nil,
+				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				PerTeamKeys:  perTeamKeys,
+				StubbedTypes: make(map[int]bool),
+			}}
+
+		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
+
+		// check that the signer is an owner
+		if res.newState.getUserRole(oRes.signingUser) != keybase1.TeamRole_OWNER {
+			return res, fmt.Errorf("signer is not an owner: %v (%v)", oRes.signingUser, team.Members.Owners)
 		}
 
 		return res, nil
@@ -621,7 +557,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		res.newState = prevState.DeepCopy()
 
-		t.updateMembership(&res.newState.UserLog, roleUpdates, oRes.outerLink.Seqno)
+		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -634,7 +570,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			if err != nil {
 				return res, err
 			}
-			res.newState.PerTeamKeys[newKey.Gen] = newKey
+			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		}
 
 		return res, nil
@@ -672,7 +608,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 
 		res.newState = prevState.DeepCopy()
-		res.newState.PerTeamKeys[newKey.Gen] = newKey
+		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 
 		return res, nil
 	case "team.leave":
@@ -703,7 +639,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		// But that's really up to them and the server. We're just reading what has happened.
 
 		res.newState = prevState.DeepCopy()
-		res.newState.UserLog.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
+		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
 
 		if team.PerTeamKey != nil {
 			lastKey, err := prevState.GetLatestPerTeamKey()
@@ -714,7 +650,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			if err != nil {
 				return res, err
 			}
-			res.newState.PerTeamKeys[newKey.Gen] = newKey
+			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		}
 
 		return res, nil
@@ -770,10 +706,11 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 	if role == keybase1.TeamRole_NONE {
 		return errors.New("not a member of team")
 	}
-	for k, v := range state.StubbedTypes {
+	for k, v := range state.inner.StubbedTypes {
 		if v {
-			if !k.TeamAllowStub(role) {
-				return fmt.Errorf("link stubbed when not allowed allowed; linktype:%v role:%v", k, role)
+			k2 := libkb.SigchainV2Type(k)
+			if !k2.TeamAllowStub(role) {
+				return fmt.Errorf("link stubbed when not allowed allowed; linktype:%v role:%v", k2, role)
 			}
 		}
 	}
@@ -787,7 +724,7 @@ func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
 // `firstLink` is whether this is seqno=1. In which case owners must exist. And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
 // In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]UserVersion, error) {
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]keybase1.UserVersion, error) {
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
@@ -807,7 +744,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 	}
 
 	// Map from roles to users.
-	res := make(map[keybase1.TeamRole][]UserVersion)
+	res := make(map[keybase1.TeamRole][]keybase1.UserVersion)
 
 	if members.Owners != nil {
 		res[keybase1.TeamRole_OWNER] = nil
@@ -841,7 +778,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 	}
 
 	// Set of users who have already been seen.
-	seen := make(map[UserVersion]bool)
+	seen := make(map[keybase1.UserVersion]bool)
 
 	for _, pair := range all {
 		uv, err := ParseUserVersion(string(pair.m))
@@ -898,25 +835,13 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 	}, nil
 }
 
-func (t *TeamSigChainPlayer) makeInitialUserLog(roleUpdates map[keybase1.TeamRole][]UserVersion) UserLog {
-	userLog := make(UserLog)
-
-	for role, uvs := range roleUpdates {
-		for _, uv := range uvs {
-			userLog.inform(uv, role, 1)
-		}
-	}
-
-	return userLog
-}
-
 // Update `userLog` with the membership in roleUpdates.
 // The `NONE` list removes users.
 // The other lists add users.
-func (t *TeamSigChainPlayer) updateMembership(userLog *UserLog, roleUpdates map[keybase1.TeamRole][]UserVersion, seqno keybase1.Seqno) {
+func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion, seqno keybase1.Seqno) {
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
-			userLog.inform(uv, role, seqno)
+			stateToUpdate.inform(uv, role, seqno)
 		}
 	}
 }

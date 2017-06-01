@@ -86,7 +86,7 @@ func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUser
 	}
 	names := make([]libkb.NormalizedUsername, len(uvs))
 	for i, uv := range uvs {
-		names[i] = uv.Username
+		names[i] = libkb.NewNormalizedUsername(uv.Username)
 	}
 	return names, nil
 }
@@ -309,7 +309,11 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeMembershipSig(me, t.Chain.GetLatestLinkID(), t.NextSeqno(), deviceSigningKey, section)
+	latestLinkID1, err := libkb.ImportLinkID(t.Chain.GetLatestLinkID())
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	sig, err := ChangeMembershipSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -319,12 +323,16 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 		return libkb.SigMultiItem{}, err
 	}
 
+	latestLinkID2, err := libkb.ImportLinkID(t.Chain.GetLatestLinkID())
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
 	v2Sig, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
 		libkb.LinkTypeChangeMembership,
 		t.NextSeqno(),
 		sigJSON,
-		t.Chain.GetLatestLinkID(),
+		latestLinkID2,
 		false, /* hasRevokes */
 	)
 	if err != nil {

@@ -50,6 +50,10 @@ func RootTeamIDFromName(name string) keybase1.TeamID {
 }
 
 func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID) (*jsonw.Wrapper, error) {
+	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
+	if err != nil {
+		return nil, err
+	}
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeNewSubteam,
@@ -57,7 +61,7 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		SigVersion: libkb.KeybaseSignatureV2,
 		SeqType:    libkb.SeqTypeSemiprivate,
 		Seqno:      parentTeam.GetLatestSeqno() + 1,
-		PrevLinkID: parentTeam.GetLatestLinkID(),
+		PrevLinkID: prevLinkID,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
