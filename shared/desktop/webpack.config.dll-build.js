@@ -6,9 +6,7 @@ const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
 
 module.exports = {
   bail: true,
-  debug: true,
   devtool: NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map',
-  pathinfo: true,
   entry: {
     vendor: [
       'core-js',
@@ -39,10 +37,8 @@ module.exports = {
       name: '[name]',
       context: path.resolve(__dirname, 'client'),
     }),
-    new webpack.optimize.OccurenceOrderPlugin(),
   ],
   resolve: {
-    root: path.resolve(__dirname, 'client'),
-    modulesDirectories: ['node_modules'],
+    modules: [path.resolve(__dirname, 'client'), 'node_modules'],
   },
 }

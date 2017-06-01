@@ -21,19 +21,24 @@ const config = Object.assign({}, baseConfig)
 
 console.warn('Injecting dev defines: ', defines)
 
-config.debug = true
 config.cache = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-source-map'
-config.pathinfo = true
 config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
 
 // Uncomment below to figure out packaging bugs
 // config.bail = true
 
-config.module.loaders.unshift({
+config.module.rules.unshift({
   test: /\.jpg$/,
   include: path.resolve(__dirname, '../images/mock'),
-  loader: 'file?name=[name].[ext]',
+  use: [
+    {
+      loader: 'file-loader',
+      options: {
+        name: '[name].[ext]',
+      },
+    },
+  ],
 })
 
 config.plugins.push(
@@ -65,13 +70,11 @@ if (!NO_SERVER) {
   config.plugins.push(new DashboardPlugin())
 }
 
-config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
-
 if (getenv.boolish('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
-config.plugins.push(new webpack.NoErrorsPlugin(), new webpack.DefinePlugin(defines))
+config.plugins.push(new webpack.NoEmitOnErrorsPlugin(), new webpack.DefinePlugin(defines))
 
 if (USING_DLL) {
   config.plugins.push(
