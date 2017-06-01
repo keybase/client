@@ -18,19 +18,20 @@ config.devtool = 'source-map'
 config.output.publicPath = '../dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
 
-config.module.loaders.unshift({
+config.module.rules.unshift({
   include: path.resolve(__dirname, '../images/mock'),
-  loader: 'null',
+  use: ['null-loader'],
 })
 
 config.plugins.push(new webpack.DefinePlugin(defines))
 
 if (!SKIP_OPTIMIZE) {
-  const babelLoader = config.module.loaders.find(l => l.loader === 'babel')
-  const envPreset = babelLoader.query.presets.find(p => p[0] === 'env')[1]
+  const babelLoader = config.module.rules.find(l => l.use[0].loader === 'babel-loader')
+  const babelOptions = babelLoader.use[0].options
+  const envPreset = babelOptions.presets.find(p => p[0] === 'env')[1]
 
   // Need regenerator
-  babelLoader.query.plugins.push('babel-plugin-transform-runtime')
+  babelOptions.plugins.push('babel-plugin-transform-runtime')
   // Have to fall back to more transpiling so we can use ugilfy
   envPreset.targets.uglify = true
   envPreset.useBuiltIns = false
