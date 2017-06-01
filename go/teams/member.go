@@ -58,6 +58,14 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	return t.ChangeMembership(ctx, req)
 }
 
+func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	return t.MemberRole(ctx, username)
+}
+
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{None: []string{username}})
 }

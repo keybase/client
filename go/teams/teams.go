@@ -80,12 +80,7 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 }
 
 func (t *Team) IsMember(ctx context.Context, username string) bool {
-	uv, err := loadUserVersionByUsername(ctx, t.G(), username)
-	if err != nil {
-		t.G().Log.Debug("error loading user version: %s", err)
-		return false
-	}
-	role, err := t.Chain.GetUserRole(uv)
+	role, err := t.MemberRole(ctx, username)
 	if err != nil {
 		t.G().Log.Debug("error getting user role: %s", err)
 		return false
@@ -94,6 +89,14 @@ func (t *Team) IsMember(ctx context.Context, username string) bool {
 		return false
 	}
 	return true
+}
+
+func (t *Team) MemberRole(ctx context.Context, username string) (keybase1.TeamRole, error) {
+	uv, err := loadUserVersionByUsername(ctx, t.G(), username)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	return t.Chain.GetUserRole(uv)
 }
 
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
