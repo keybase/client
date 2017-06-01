@@ -785,20 +785,25 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  if (conversationIDKey) {
-    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
-    yield put(navigateTo([conversationIDKey], [chatTab]))
-  } else {
-    yield put(navigateTo([], [chatTab]))
-  }
-
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
+    // Don't navigate into errored conversations
+    if (inbox.get('state') === 'error') {
+      return
+    }
+
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
     // TODO likely only do this if search is visible
     yield put(Creators.setInboxSearch(participants))
+  }
+
+  if (conversationIDKey) {
+    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
+    yield put(navigateTo([conversationIDKey], [chatTab]))
+  } else {
+    yield put(navigateTo([], [chatTab]))
   }
 
   // Do this here because it's possible loadMoreMessages bails early

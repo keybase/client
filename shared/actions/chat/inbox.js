@@ -259,6 +259,7 @@ function* _chatInboxFailedSubSaga(params) {
     participants: error.rekeyInfo
       ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : List(error.unverifiedTLFName.split(',')),
+    snippet: error.message,
     state: 'error',
     status: 'unfiled',
     time: error.remoteConv.readerInfo.mtime,
@@ -277,6 +278,10 @@ function* _chatInboxFailedSubSaga(params) {
     }
     case ChatTypes.LocalConversationErrorType.transient: {
       // Just ignore these, it is a transient error
+      break
+    }
+    case ChatTypes.LocalConversationErrorType.permanent: {
+      // Let's show it as failed in the inbox
       break
     }
     default:
