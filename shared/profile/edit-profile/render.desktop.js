@@ -1,53 +1,49 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
 import {StandardScreen, Box, Button, Input} from '../../common-adapters'
 
 import type {Props} from './render'
 
-class EditProfileRender extends Component<void, Props, void> {
-  render() {
-    return (
-      <StandardScreen onBack={this.props.onBack}>
-        <Box style={styleContainer}>
-          <Input
-            autoFocus={true}
-            style={styleEditProfile}
-            hintText="Full name"
-            value={this.props.fullname}
-            onEnterKeyDown={this.props.onSubmit}
-            onChangeText={fullname => this.props.onFullnameChange(fullname)}
-          />
-          <Input
-            style={styleEditProfile}
-            hintText="Location"
-            value={this.props.location}
-            onEnterKeyDown={this.props.onSubmit}
-            onChangeText={location => this.props.onLocationChange(location)}
-          />
-          <Input
-            style={styleEditProfile}
-            hintText="Bio"
-            value={this.props.bio}
-            multiline={true}
-            rowsMax={4}
-            errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
-            onChangeText={bio => this.props.onBioChange(bio)}
-          />
-          <Box style={styleButtonContainer}>
-            <Button
-              type="Secondary"
-              onClick={this.props.onCancel}
-              label="Cancel"
-              style={{marginRight: globalMargins.tiny}}
-            />
-            <Button type="Primary" onClick={this.props.onSubmit} label="Save" />
-          </Box>
-        </Box>
-      </StandardScreen>
-    )
-  }
-}
+const EditProfileRender = (props: Props) => (
+  <StandardScreen onBack={props.onBack}>
+    <Box style={styleContainer}>
+      <Input
+        autoFocus={true}
+        style={styleEditProfile}
+        hintText="Full name"
+        value={props.fullname}
+        onEnterKeyDown={props.onSubmit}
+        onChangeText={fullname => props.onFullnameChange(fullname)}
+      />
+      <Input
+        style={styleEditProfile}
+        hintText="Location"
+        value={props.location}
+        onEnterKeyDown={props.onSubmit}
+        onChangeText={location => props.onLocationChange(location)}
+      />
+      <Input
+        style={styleEditProfile}
+        hintText="Bio"
+        value={props.bio}
+        multiline={true}
+        rowsMax={4}
+        errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' characters left.' : ''}
+        onChangeText={bio => props.onBioChange(bio)}
+      />
+      <Box style={styleButtonContainer}>
+        <Button
+          type="Secondary"
+          onClick={props.onCancel}
+          label="Cancel"
+          style={{marginRight: globalMargins.tiny}}
+        />
+        <Button type="Primary" onClick={props.onSubmit} label="Save" />
+      </Box>
+    </Box>
+  </StandardScreen>
+)
 
 const styleButtonContainer = {
   ...globalStyles.flexBoxRow,
