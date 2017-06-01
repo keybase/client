@@ -1,0 +1,22 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../constants/searchv3'
+import type {IconType} from '../../common-adapters/icon'
+
+export type UserDetails = {
+  followingState: Constants.FollowingState,
+  icon: ?IconType,
+  service: Constants.Service,
+  username: string,
+}
+
+export type Props = {
+  placeholder?: string,
+  userItems: Array<UserDetails>,
+  usernameText: string,
+  onChangeText: (usernameText: string) => void,
+  onRemoveUser: (username: string) => void,
+  onClickAddButton: () => void,
+}
+
+export default class UserInput extends Component<void, Props, void> {}

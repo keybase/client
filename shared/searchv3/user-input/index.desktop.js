@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../../constants/searchv3'
 import {last} from 'lodash'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon, ClickableBox} from '../../common-adapters'
@@ -8,25 +7,9 @@ import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
 
-import type {IconType} from '../../common-adapters/icon'
+import type {UserDetails, Props} from './'
 
-export type UserDetails = {
-  followingState: Constants.FollowingState,
-  icon: ?IconType,
-  service: Constants.Service,
-  username: string,
-}
-
-export type UserItemProps = UserDetails & {onRemoveUser: (username: string) => void}
-
-export type Props = {
-  placeholder?: string,
-  userItems: Array<UserDetails>,
-  usernameText: string,
-  onChangeText: (usernameText: string) => void,
-  onRemoveUser: (username: string) => void,
-  onClickAddButton: () => void,
-}
+type UserItemProps = UserDetails & {onRemoveUser: (username: string) => void}
 
 class UserItem extends Component<void, UserItemProps, void> {
   _onRemoveUser = () => {
