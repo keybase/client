@@ -1,45 +1,16 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-const path = require('path')
 const webpack = require('webpack')
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
 const DashboardPlugin = require('webpack-dashboard/plugin')
+const {isHot, HMRUrl, RHLPatch, noSourceMaps, mockRule} = require('./webpack.common')
 
-const USING_DLL = getenv.boolish('USING_DLL', false)
-const NO_SERVER = getenv.boolish('NO_SERVER', false)
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
-const HOT = getenv.boolish('HOT', false)
-const defines = {
-  __DEV__: true,
-  __SCREENSHOT__: false,
-  'process.env.NODE_ENV': JSON.stringify('development'),
-  __VERSION__: JSON.stringify('Development'),
-}
+const isUsingDLL = getenv.boolish('USING_DLL', false)
+const noServer = getenv.boolish('NO_SERVER', false)
 
-const config = Object.assign({}, baseConfig)
-
-console.warn('Injecting dev defines: ', defines)
-
-config.debug = true
-config.cache = true
-config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-source-map'
-config.pathinfo = true
-config.output.publicPath = HOT ? 'http://localhost:4000/dist/' : '../dist/'
-
-// Uncomment below to figure out packaging bugs
-// config.bail = true
-
-config.module.loaders.unshift({
-  test: /\.jpg$/,
-  include: path.resolve(__dirname, '../images/mock'),
-  loader: 'file?name=[name].[ext]',
-})
-
-config.plugins.push(
-  new UnusedFilesWebpackPlugin({
-    pattern: './shared/**/*.js',
+const makePlugins = () => {
+  const unusedFilesPlugin = new UnusedFilesWebpackPlugin({
     globOptions: {
       ignore: [
         // Mobile stuff
@@ -59,48 +30,82 @@ config.plugins.push(
         '../dev/log-send/index.js',
       ],
     },
+    pattern: './shared/**/*.js',
   })
-)
 
-if (!NO_SERVER) {
-  config.plugins.push(new DashboardPlugin())
-}
-
-config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
-
-if (getenv.boolish('HOT', false)) {
-  config.plugins.push(new webpack.HotModuleReplacementPlugin())
-}
-
-config.plugins.push(new webpack.NoErrorsPlugin(), new webpack.DefinePlugin(defines))
-
-if (USING_DLL) {
-  config.plugins.push(
+  const dashboardPlugin = !noServer && [new DashboardPlugin()]
+  const hmrPlugin = isHot && [new webpack.HotModuleReplacementPlugin()]
+  const dllPlugin = isUsingDLL && [
     new webpack.DllReferencePlugin({
       context: './renderer',
       manifest: require('./dll/vendor-manifest.json'),
-    })
-  )
+    }),
+  ]
+
+  const defines = {
+    __DEV__: true,
+    __SCREENSHOT__: false,
+    __VERSION__: JSON.stringify('Development'),
+    'process.env.NODE_ENV': JSON.stringify('development'),
+  }
+
+  console.warn('Injecting dev defines: ', defines)
+
+  return [
+    ...baseConfig.plugins,
+    unusedFilesPlugin,
+    ...(dashboardPlugin || []),
+    ...(hmrPlugin || []),
+    new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.DefinePlugin(defines),
+    ...(dllPlugin || []),
+  ].filter(Boolean)
 }
 
-if (getenv.boolish('HOT', false)) {
-  config.entry.index = ['react-hot-loader/patch'].concat(config.entry.index)
+const makeRules = () => {
+  return [mockRule, ...baseConfig.module.rules]
+}
 
-  const HMR = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
+const makeEntries = () => {
+  const oldEntries = baseConfig.entry
+  if (!isHot) {
+    return oldEntries
+  }
+  return Object.keys(baseConfig.entry).reduce((map, name) => {
+    const oldEntry = oldEntries[name]
 
-  Object.keys(config.entry).forEach(k => {
-    if (k !== 'main') {
-      // node-only thread can't be hot loaded...
-      config.entry[k] = [HMR].concat(config.entry[k]) // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
+    if (name === 'index') {
+      map[name] = [RHLPatch, ...oldEntry]
+    } else if (name === 'main') {
+      if (!isUsingDLL) {
+        // If we are running a hot server and using a DLL we want to be fast.
+        // So don't waste time in building the main thread bundle in this webpack server
+        // node-only thread can't be hot loaded...
+        map[name] = oldEntry
+      }
+    } else {
+      // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
+      map[name] = [HMRUrl, ...oldEntry]
     }
-  })
+    return map
+  }, {})
 }
 
-if (USING_DLL) {
-  // If we are running a hot server and using a DLL we want to be fast.
-  // So don't waste time in building the main thread bundle in this webpack server
-  delete config.entry.main
+const config = {
+  ...baseConfig,
+  cache: true,
+  devtool: noSourceMaps ? undefined : 'cheap-module-source-map',
+  entry: makeEntries(),
+  module: {
+    ...baseConfig.module,
+    rules: makeRules(),
+  },
+  output: {
+    ...baseConfig.output,
+    publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
+  },
+  plugins: makePlugins(),
+  target: 'electron-renderer',
 }
 
-config.target = webpackTargetElectronRenderer(config)
 module.exports = config

@@ -1,95 +1,101 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 const webpack = require('webpack')
 const path = require('path')
-const getenv = require('getenv')
+const {fileLoaderRule, isHot} = require('./webpack.common')
 
-const defines = {
-  __HOT__: JSON.stringify(getenv.boolish('HOT', false)),
+const makePlugins = () => {
+  const defines = {
+    __HOT__: JSON.stringify(isHot),
+  }
+
+  console.warn('Injecting defines: ', defines)
+  return [new webpack.DefinePlugin(defines)]
 }
 
-console.warn('Injecting defines: ', defines)
+const makeRules = () => {
+  const babelRule = {
+    loader: 'babel-loader',
+    options: {
+      // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
+      babelrc: false,
+      cacheDirectory: true,
+      plugins: [
+        ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
+        'transform-flow-strip-types',
+        'transform-object-rest-spread', // not supported by electron yet
+        'babel-plugin-transform-class-properties', // not supported by electron yet
+        'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
+      ],
+      presets: [
+        [
+          'env',
+          {
+            debug: true,
+            exclude: ['transform-regenerator'],
+            modules: false,
+            targets: {
+              electron: '1.6.10',
+            },
+            useBuiltIns: false,
+          },
+        ],
+        'babel-preset-react',
+      ],
+    },
+  }
 
-module.exports = {
+  return [
+    {
+      include: path.resolve(__dirname, '../images/icons'),
+      test: /\.(flow|native\.js|gif|png|jpg)$/,
+      use: ['null-loader'],
+    },
+    {
+      exclude: /((node_modules\/(?!universalify|fs-extra))|\/dist\/)/,
+      test: /\.jsx?$/,
+      use: [babelRule],
+    },
+    {
+      test: /emoji-datasource.*\.(gif|png)$/,
+      use: [fileLoaderRule],
+    },
+    {
+      test: /\.ttf$/,
+      use: [fileLoaderRule],
+    },
+    {
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader'],
+    },
+  ]
+}
+
+const makeEntries = () => {
+  return {
+    index: ['./desktop/renderer/index.js'],
+    launcher: ['./desktop/renderer/launcher.js'],
+    main: ['./desktop/app/index.js'],
+    'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
+  }
+}
+
+const config = {
+  entry: makeEntries(),
   module: {
-    loaders: [
-      {
-        test: /\.flow?$/,
-        loader: 'null',
-      },
-      {
-        test: /\.native\.js?$/,
-        loader: 'null',
-      },
-      {
-        test: /\.jsx?$/,
-        loader: 'babel',
-        exclude: /((node_modules\/(?!universalify|fs-extra))|\/dist\/)/,
-        query: Object.assign({
-          cacheDirectory: true,
-          // Have to do this or it'll inherit babelrcs from the root and pull in things we don't want
-          babelrc: false,
-          presets: [
-            [
-              'env',
-              {
-                useBuiltIns: false,
-                targets: {
-                  electron: '1.6.10',
-                },
-                debug: true,
-                exclude: ['transform-regenerator'],
-              },
-            ],
-            'babel-preset-react',
-          ],
-          plugins: [
-            ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
-            'transform-flow-strip-types',
-            'transform-object-rest-spread', // not supported by electron yet
-            'babel-plugin-transform-class-properties', // not supported by electron yet
-            'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
-          ],
-        }),
-      },
-      {
-        test: /\.json?$/,
-        loader: 'json',
-      },
-      {
-        test: /emoji-datasource.*\.(gif|png)$/,
-        loader: 'file?name=[name].[ext]',
-      },
-      {
-        test: /\.(gif|png|jpg)$/,
-        include: path.resolve(__dirname, '../images/icons'),
-        loader: 'null',
-      },
-      {
-        test: /\.ttf$/,
-        loader: 'file?name=[name].[ext]',
-      },
-      {
-        test: /\.css$/,
-        loader: 'style!css',
-      },
-    ],
+    rules: makeRules(),
   },
-  output: {
-    path: path.join(__dirname, 'dist'),
-    filename: '[name].bundle.js',
-    libraryTarget: 'commonjs2',
-  },
-  resolve: {
-    extensions: ['', '.desktop.js', '.js', '.jsx', '.json', '.flow'],
-  },
-  plugins: [new webpack.DefinePlugin(defines)],
   node: {
     __dirname: true,
   },
-  entry: {
-    index: ['./desktop/renderer/index.js'],
-    main: ['./desktop/app/index.js'],
-    launcher: ['./desktop/renderer/launcher.js'],
-    'remote-component-loader': ['./desktop/renderer/remote-component-loader.js'],
+  output: {
+    filename: '[name].bundle.js',
+    libraryTarget: 'commonjs2',
+    path: path.join(__dirname, 'dist'),
+  },
+  plugins: makePlugins(),
+  resolve: {
+    extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   },
 }
+
+module.exports = config

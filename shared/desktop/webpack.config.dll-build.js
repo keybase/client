@@ -1,14 +1,20 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-var path = require('path')
-var webpack = require('webpack')
-const getenv = require('getenv')
-const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
+const path = require('path')
+const webpack = require('webpack')
+const {noSourceMaps} = require('./webpack.common')
 
-module.exports = {
+const makePlugins = () => {
+  const dllPlugin = new webpack.DllPlugin({
+    context: path.resolve(__dirname, 'client'),
+    name: '[name]',
+    path: path.join(__dirname, 'dll', '[name]-manifest.json'),
+  })
+  return [dllPlugin]
+}
+
+const config = {
   bail: true,
-  debug: true,
-  devtool: NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map',
-  pathinfo: true,
+  devtool: noSourceMaps ? undefined : 'inline-eval-cheap-source-map',
   entry: {
     vendor: [
       'core-js',
@@ -29,20 +35,14 @@ module.exports = {
     ],
   },
   output: {
-    path: path.join(__dirname, 'dist', 'dll'),
     filename: 'dll.[name].js',
     library: '[name]',
+    path: path.join(__dirname, 'dist', 'dll'),
   },
-  plugins: [
-    new webpack.DllPlugin({
-      path: path.join(__dirname, 'dll', '[name]-manifest.json'),
-      name: '[name]',
-      context: path.resolve(__dirname, 'client'),
-    }),
-    new webpack.optimize.OccurenceOrderPlugin(),
-  ],
+  plugins: makePlugins(),
   resolve: {
-    root: path.resolve(__dirname, 'client'),
-    modulesDirectories: ['node_modules'],
+    modules: [path.resolve(__dirname, 'client'), 'node_modules'],
   },
 }
+
+module.exports = config

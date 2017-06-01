@@ -8,6 +8,7 @@ const config = getenv.boolish('DUMB', false)
   ? Object.assign({}, require('./webpack.config.dumb'))
   : Object.assign({}, require('./webpack.config.development'))
 const PORT = 4000
+
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
@@ -36,13 +37,13 @@ if (NO_SERVER) {
 
   app.use(
     require('webpack-dev-middleware')(compiler, {
-      publicPath: config.output.publicPath,
+      headers: {'Access-Control-Allow-Origin': '*'},
       hot: true,
       lazy: false,
-      headers: {'Access-Control-Allow-Origin': '*'},
+      publicPath: config.output.publicPath,
       stats: {
-        colors: true,
         chunkModules: KEYBASE_VERBOSE_WEBPACK,
+        colors: true,
       },
     })
   )
