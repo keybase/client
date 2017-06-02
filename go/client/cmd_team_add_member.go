@@ -48,8 +48,11 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 }
 
 func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
+	if len(ctx.Args()) == 0 {
 		return errors.New("add-member requires team name argument")
+	}
+	if len(ctx.Args()) > 1 {
+		return errors.New("add-member requires one team name argument, multiple found")
 	}
 	c.team = ctx.Args()[0]
 	if len(ctx.String("email")) > 0 {

@@ -67,7 +67,15 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{None: []string{username}})
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+	if !t.IsMember(ctx, username) {
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
+	}
+	req := keybase1.TeamChangeReq{None: []string{username}}
+	return t.ChangeMembership(ctx, req)
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
