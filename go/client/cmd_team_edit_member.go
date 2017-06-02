@@ -5,8 +5,6 @@ package client
 
 import (
 	"context"
-	"errors"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -44,25 +42,16 @@ func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 }
 
 func (c *CmdTeamEditMember) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
-		return errors.New("edit-member requires team name argument")
-	}
-	c.team = ctx.Args()[0]
-
-	c.username = ctx.String("user")
-	if len(c.username) == 0 {
-		return errors.New("username required via --user flag")
-	}
-	srole := ctx.String("role")
-	if srole == "" {
-		return errors.New("team role required via --role flag")
+	var err error
+	c.team, err = ParseOneTeamName(ctx)
+	if err != nil {
+		return err
 	}
 
-	role, ok := keybase1.TeamRoleMap[strings.ToUpper(srole)]
-	if !ok {
-		return errors.New("invalid team role, please use owner, admin, writer, or reader")
+	c.username, c.role, err = ParseUserAndRole(ctx)
+	if err != nil {
+		return err
 	}
-	c.role = role
 
 	return nil
 }

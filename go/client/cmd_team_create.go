@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -21,12 +19,12 @@ type CmdTeamCreate struct {
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	if nargs != 1 {
-		return fmt.Errorf("Create takes one argument, the (sub)team name.")
+	var err error
+	v.teamName, err = ParseOneTeamName(ctx)
+	if err != nil {
+		return err
 	}
 
-	v.teamName = ctx.Args()[0]
 	return nil
 }
 
