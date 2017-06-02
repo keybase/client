@@ -98,7 +98,7 @@
     "react-dom": "15.5.4",
     "react-list": "0.8.6",
     "react-native": "0.42.3",
-    "react-native-camera": "0.9.0",
+    "react-native-camera": "lwansbrough/react-native-camera#885cdf41b7674d76eb9eaf971c0700eb9f585bed",
     "react-native-fetch-blob": "0.10.5",
     "react-native-image-picker": "0.26.3",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2",
