@@ -41,11 +41,10 @@ if (NO_SERVER) {
     lazy: false,
     publicPath: 'http://localhost:4000/dist/',
     quiet: false,
-    stats: 'verbose',
-    // {
-    // chunkModules: KEYBASE_VERBOSE_WEBPACK,
-    // colors: true,
-    // },
+    stats: {
+      chunkModules: KEYBASE_VERBOSE_WEBPACK,
+      colors: true,
+    },
   })
 
   server.listen(PORT, 'localhost', err => {
