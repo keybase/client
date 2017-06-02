@@ -267,6 +267,13 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		return err
 	}
 
+	// if there are any removals happening, need to rotate the
+	// team key, and recipients will be all the users in the team
+	// after the removal.
+	if memSet.HasRemoval() {
+
+	}
+
 	// create the team section of the signature
 	section, err := memSet.Section(t.Chain.GetID())
 	if err != nil {

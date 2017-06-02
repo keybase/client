@@ -143,3 +143,7 @@ func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 
 	return teamSection, nil
 }
+
+func (m *memberSet) HasRemoval() bool {
+	return len(m.None) > 0
+}
