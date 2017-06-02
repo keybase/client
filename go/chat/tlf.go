@@ -89,6 +89,15 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	defer t.Trace(ctx, func() error { return ferr },
 		fmt.Sprintf("CryptKeys(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
+	username := t.G().Env.GetUsername()
+	if len(username) == 0 {
+		return res, libkb.LoginRequiredError{}
+	}
+	// Prepend username in case it's not present. We don't need to check if it
+	// exists already since CryptKeys calls below transforms the TLF name into a
+	// canonical one.
+	tlfName = string(username) + "," + tlfName
+
 	// call identifyTLF and GetTLFCryptKeys concurrently:
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
