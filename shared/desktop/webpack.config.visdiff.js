@@ -24,12 +24,15 @@ const config = {
     'render-visdiff': ['./desktop/test/render-visdiff.js'],
     visdiff: ['./test/render-dumb-sheet.js'],
   },
+  module: {
+    ...baseConfig.module,
+    rules: makeRules(),
+  },
   output: {
     ...baseConfig.output,
     publicPath: '../dist/',
   },
   plugins: makePlugins(),
-  rules: makeRules(),
   target: 'electron-renderer',
 }
 
