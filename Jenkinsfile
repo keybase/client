@@ -104,14 +104,16 @@ helpers.rootLinuxNode(env, {
             helpers.withKbweb() {
                 parallel (
                     test_linux_deps: {
-                        // Build the client docker first so we can immediately kick off KBFS
-                        dir('go') {
-                            sh "go install github.com/keybase/client/go/keybase"
-                            sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                            clientImage = docker.build("keybaseprivate/kbclient")
-                            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                            archive("kbclient.tar.gz")
-                            sh "rm kbclient.tar.gz"
+                        if (hasGoChanges) {
+                            // Build the client docker first so we can immediately kick off KBFS
+                            dir('go') {
+                                sh "go install github.com/keybase/client/go/keybase"
+                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                clientImage = docker.build("keybaseprivate/kbclient")
+                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                archive("kbclient.tar.gz")
+                                sh "rm kbclient.tar.gz"
+                            }
                         }
                         parallel (
                             test_linux: {
