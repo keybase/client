@@ -79,6 +79,26 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
+func (t *Team) IsMember(ctx context.Context, username string) bool {
+	role, err := t.MemberRole(ctx, username)
+	if err != nil {
+		t.G().Log.Debug("error getting user role: %s", err)
+		return false
+	}
+	if role == keybase1.TeamRole_NONE {
+		return false
+	}
+	return true
+}
+
+func (t *Team) MemberRole(ctx context.Context, username string) (keybase1.TeamRole, error) {
+	uv, err := loadUserVersionByUsername(ctx, t.G(), username)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	return t.Chain.GetUserRole(uv)
+}
+
 func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
 	uvs, err := t.Chain.GetUsersWithRole(role)
 	if err != nil {
@@ -241,15 +261,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	return key, nil
 }
 
-type ChangeReq struct {
-	Owners  []string
-	Admins  []string
-	Writers []string
-	Readers []string
-	None    []string
-}
-
-func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
+func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
@@ -272,8 +284,6 @@ func (t *Team) ChangeMembership(ctx context.Context, req ChangeReq) error {
 	if err != nil {
 		return err
 	}
-
-	t.G().Log.Warning("sigMultiItem: %s", sigMultiItem)
 
 	// create secret boxes for recipients
 	secretBoxes, err := t.recipientBoxes(memSet)

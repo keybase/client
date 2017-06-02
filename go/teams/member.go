@@ -1,6 +1,9 @@
 package teams
 
 import (
+	"errors"
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,26 +19,58 @@ func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1
 }
 
 func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Owners: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Owners: []string{username}})
 }
 
 func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Admins: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Admins: []string{username}})
 }
 
 func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Writers: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Writers: []string{username}})
 }
 
 func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{Readers: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []string{username}})
+}
+
+func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+	if t.IsMember(ctx, username) {
+		return fmt.Errorf("user %q is already a member of team %q", username, teamname)
+	}
+	var req keybase1.TeamChangeReq
+	switch role {
+	case keybase1.TeamRole_OWNER:
+		req.Owners = []string{username}
+	case keybase1.TeamRole_ADMIN:
+		req.Admins = []string{username}
+	case keybase1.TeamRole_WRITER:
+		req.Writers = []string{username}
+	case keybase1.TeamRole_READER:
+		req.Readers = []string{username}
+	default:
+		return errors.New("invalid AddMember role")
+	}
+	return t.ChangeMembership(ctx, req)
+}
+
+func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	return t.MemberRole(ctx, username)
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	return ChangeRoles(ctx, g, teamname, ChangeReq{None: []string{username}})
+	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{None: []string{username}})
 }
 
-func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req ChangeReq) error {
+func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
 	t, err := Get(ctx, g, teamname)
 	if err != nil {
 		return err

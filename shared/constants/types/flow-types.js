@@ -3436,6 +3436,36 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
+}
+
+export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
+}
+export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAddMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamChangeMembershipRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request)
+}
+
+export function teamsTeamChangeMembershipRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
+}
+export function teamsTeamChangeMembershipRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamChangeMembershipRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamCreateRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamCreate', request)
 }
@@ -5604,6 +5634,14 @@ export type TeamApplicationKey = {
   key: Bytes32,
 }
 
+export type TeamChangeReq = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+  none?: ?Array<string>,
+}
+
 export type TeamID = string
 
 export type TeamMembers = {
@@ -6711,6 +6749,18 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsTeamAddMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole,
+  sendChatNotification: boolean
+}>
+
+export type teamsTeamChangeMembershipRpcParam = Exact<{
+  name: string,
+  req: TeamChangeReq
+}>
+
 export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
@@ -7173,6 +7223,8 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsTeamAddMemberRpc
+  | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
   | teamsTeamGetRpc
   | testPanicRpc
