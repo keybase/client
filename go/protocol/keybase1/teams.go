@@ -376,12 +376,29 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 	}
 }
 
+type TeamEditMemberArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      string   `codec:"name" json:"name"`
+	Username  string   `codec:"username" json:"username"`
+	Role      TeamRole `codec:"role" json:"role"`
+}
+
+func (o TeamEditMemberArg) DeepCopy() TeamEditMemberArg {
+	return TeamEditMemberArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Username:  o.Username,
+		Role:      o.Role.DeepCopy(),
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamMembers, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
+	TeamEditMember(context.Context, TeamEditMemberArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -468,6 +485,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamEditMember": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamEditMemberArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamEditMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamEditMemberArg)(nil), args)
+						return
+					}
+					err = i.TeamEditMember(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -498,5 +531,10 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
 	return
 }

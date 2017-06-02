@@ -62,3 +62,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) error {
 	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
+
+func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) error {
+	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+}

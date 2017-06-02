@@ -3481,6 +3481,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
+}
+
+export function teamsTeamEditMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
+}
+export function teamsTeamEditMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamEditMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamEditMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamEditMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamGet', request)
 }
@@ -6780,6 +6795,12 @@ export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamEditMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole
+}>
+
 export type teamsTeamGetRpcParam = Exact<{
   name: string
 }>
@@ -7246,6 +7267,7 @@ export type rpc =
   | teamsTeamAddMemberRpc
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
+  | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
   | teamsTeamRemoveMemberRpc
   | testPanicRpc
