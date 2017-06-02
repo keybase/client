@@ -214,6 +214,7 @@ func TestPerUserKeyBackgroundUnnecessary(t *testing.T) {
 
 // The normal case of upgrading a user
 func TestPerUserKeyBackgroundWork(t *testing.T) {
+	t.Skip("disabled as flaky: see CORE-5410")
 	tc := SetupEngineTest(t, "pukup")
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
