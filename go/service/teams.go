@@ -58,3 +58,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	gregorCli := h.gregor.GetClient()
 	return chat.SendTextByName(ctx, h.G(), arg.Username, chat1.ConversationMembersType_KBFS, body, gregorCli)
 }
+
+func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) error {
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}

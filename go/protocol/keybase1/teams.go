@@ -362,11 +362,26 @@ func (o TeamAddMemberArg) DeepCopy() TeamAddMemberArg {
 	}
 }
 
+type TeamRemoveMemberArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Username  string `codec:"username" json:"username"`
+}
+
+func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
+	return TeamRemoveMemberArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Username:  o.Username,
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamMembers, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
+	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -437,6 +452,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamRemoveMember": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamRemoveMemberArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamRemoveMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamRemoveMemberArg)(nil), args)
+						return
+					}
+					err = i.TeamRemoveMember(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -462,5 +493,10 @@ func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeM
 
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
 	return
 }

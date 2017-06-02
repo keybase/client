@@ -71,15 +71,12 @@ func (c *CmdTeamRemoveMember) Run() error {
 		return err
 	}
 
-	req := keybase1.TeamChangeReq{
-		None: []string{c.username},
-	}
-	arg := keybase1.TeamChangeMembershipArg{
-		Name: c.team,
-		Req:  req,
+	arg := keybase1.TeamRemoveMemberArg{
+		Name:     c.team,
+		Username: c.username,
 	}
 
-	if err = cli.TeamChangeMembership(context.Background(), arg); err != nil {
+	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {
 		return err
 	}
 
