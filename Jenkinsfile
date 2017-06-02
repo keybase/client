@@ -1,6 +1,6 @@
 #!groovy
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'jzila/KBFS-2244-universal-change-monitoring', null, 'linux')
 
 helpers.rootLinuxNode(env, {
     helpers.slackOnError("client", env, currentBuild)
@@ -126,9 +126,7 @@ helpers.rootLinuxNode(env, {
                                         "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                     ]) {
                                         dir("shared") {
-                                            stage("JS tests") {
-                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                            }
+                                            sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                         }
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
@@ -152,9 +150,7 @@ helpers.rootLinuxNode(env, {
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("shared") {
-                                                            stage("js visdiff") {
-                                                                sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
-                                                            }
+                                                            sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                         }
                                                     }
                                                 } catch (e) {
@@ -310,7 +306,14 @@ helpers.rootLinuxNode(env, {
 
 def testNixGo(prefix) {
     dir('go') {
+        def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
+        if (changes.size() == 0) {
+            println "No Go changes, skipping tests."
+            return
+        }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh "./test/jenkins_test.sh ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+        dir('test') {
+            sh "run_tests.sh"
+        }
     }
 }
