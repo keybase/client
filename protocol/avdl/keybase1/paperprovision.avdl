@@ -9,6 +9,6 @@ protocol paperprovision {
     If the current device isn't provisioned, this function will
     provision it.
     */
-  void paperProvision(int sessionID, string username, string deviceName, string paperKey, boolean keepPaperKey);
+  void paperProvision(int sessionID, string username, string deviceName, string paperKey);
 
 }

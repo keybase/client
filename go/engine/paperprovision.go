@@ -13,23 +13,21 @@ import (
 
 type PaperProvisionEngine struct {
 	libkb.Contextified
-	Username     string
-	DeviceName   string
-	PaperKey     string
-	keepPaperKey bool
-	result       error
-	lks          *libkb.LKSec
-	User         *libkb.User
+	Username   string
+	DeviceName string
+	PaperKey   string
+	result     error
+	lks        *libkb.LKSec
+	User       *libkb.User
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
-	paperKey string, keepPaperKey bool) *PaperProvisionEngine {
+	paperKey string) *PaperProvisionEngine {
 	return &PaperProvisionEngine{
 		Contextified: libkb.NewContextified(g),
 		Username:     username,
 		DeviceName:   deviceName,
 		PaperKey:     paperKey,
-		keepPaperKey: keepPaperKey,
 	}
 }
 
@@ -161,11 +159,10 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 			return err
 		}
 
+		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
-		}
-		if e.keepPaperKey {
-			lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
