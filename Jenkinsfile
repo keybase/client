@@ -1,6 +1,6 @@
 #!groovy
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'jzila/KBFS-2244-universal-change-monitoring', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
 helpers.rootLinuxNode(env, {
     helpers.slackOnError("client", env, currentBuild)
