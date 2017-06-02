@@ -345,18 +345,20 @@ func (o TeamChangeMembershipArg) DeepCopy() TeamChangeMembershipArg {
 }
 
 type TeamAddMemberArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Name      string   `codec:"name" json:"name"`
-	Username  string   `codec:"username" json:"username"`
-	Role      TeamRole `codec:"role" json:"role"`
+	SessionID            int      `codec:"sessionID" json:"sessionID"`
+	Name                 string   `codec:"name" json:"name"`
+	Username             string   `codec:"username" json:"username"`
+	Role                 TeamRole `codec:"role" json:"role"`
+	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 func (o TeamAddMemberArg) DeepCopy() TeamAddMemberArg {
 	return TeamAddMemberArg{
-		SessionID: o.SessionID,
-		Name:      o.Name,
-		Username:  o.Username,
-		Role:      o.Role.DeepCopy(),
+		SessionID:            o.SessionID,
+		Name:                 o.Name,
+		Username:             o.Username,
+		Role:                 o.Role.DeepCopy(),
+		SendChatNotification: o.SendChatNotification,
 	}
 }
 

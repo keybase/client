@@ -6,7 +6,6 @@ package client
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -82,9 +81,10 @@ func (c *CmdTeamAddMember) Run() error {
 	}
 
 	arg := keybase1.TeamAddMemberArg{
-		Name:     c.team,
-		Username: c.username,
-		Role:     c.role,
+		Name:                 c.team,
+		Username:             c.username,
+		Role:                 c.role,
+		SendChatNotification: true,
 	}
 
 	if err = cli.TeamAddMember(context.Background(), arg); err != nil {
@@ -92,25 +92,6 @@ func (c *CmdTeamAddMember) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-
-	// send a chat message to the user telling them they are now a member of the team.
-	h := newChatServiceHandler(c.G())
-	name := strings.Join([]string{c.username, c.G().Env.GetUsername().String()}, ",")
-	body := fmt.Sprintf("Hi %s, I've invited you to a new team, %s.", c.username, c.team)
-	sendOpts := sendOptionsV1{
-		Channel: ChatChannel{
-			Name: name,
-		},
-		Message: ChatMessage{
-			Body: body,
-		},
-	}
-	rep := h.SendV1(context.Background(), sendOpts)
-	if rep.Error != nil {
-		dui.Printf("Success adding user %s to %s, but had an error sending %s a chat message: %s", c.username, c.team, c.username, rep.Error.Message)
-		return nil
-	}
-
 	dui.Printf("Success! A keybase chat message has been sent to %s.", c.username)
 
 	return nil

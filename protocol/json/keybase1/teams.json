@@ -312,6 +312,10 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
         }
       ],
       "response": null

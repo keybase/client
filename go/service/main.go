@@ -114,7 +114,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, g)),
+		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 	}
 	for _, proto := range protocols {

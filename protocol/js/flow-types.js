@@ -6752,7 +6752,8 @@ export type streamUiWriteRpcParam = Exact<{
 export type teamsTeamAddMemberRpcParam = Exact<{
   name: string,
   username: string,
-  role: TeamRole
+  role: TeamRole,
+  sendChatNotification: boolean
 }>
 
 export type teamsTeamChangeMembershipRpcParam = Exact<{
