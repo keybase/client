@@ -134,8 +134,10 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
-	if tc.G.Env.GetSupportPerUserKey() {
+	if tc.G.Env.GetUpgradePerUserKey() {
 		checkPerUserKeyring(t, tc.G, 2)
+	} else {
+		checkPerUserKeyring(t, tc.G, 0)
 	}
 }
 
@@ -181,14 +183,16 @@ func testRevokerPaperDeviceTwice(t *testing.T, upgradePerUserKey bool) {
 	t.Logf("check")
 	assertNumDevicesAndKeys(tc, u, 1, 2)
 
-	if tc.G.Env.GetSupportPerUserKey() {
+	if tc.G.Env.GetUpgradePerUserKey() {
 		checkPerUserKeyring(t, tc.G, 3)
 	}
 }
 
 func checkPerUserKeyring(t *testing.T, g *libkb.GlobalContext, expectedCurrentGeneration int) {
 	pukring, err := g.GetPerUserKeyring()
-	if err == nil {
+	require.NoError(t, err)
+	// Weakly check. If the keyring was not initialized, don't worry about it.
+	if pukring.HasAnyKeys() == (expectedCurrentGeneration > 0) {
 		require.Equal(t, keybase1.PerUserKeyGeneration(expectedCurrentGeneration), pukring.CurrentGeneration())
 	}
 	pukring = nil
