@@ -14,9 +14,9 @@ const codeSnippetStyle = {
   fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
-  //...globalStyles.rounded,
-  //paddingLeft: globalMargins.xtiny,
-  //paddingRight: globalMargins.xtiny,
+  // ...globalStyles.rounded,
+  // paddingLeft: globalMargins.xtiny,
+  // paddingRight: globalMargins.xtiny,
 }
 
 const codeSnippetBlockStyle = {
