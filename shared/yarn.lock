@@ -5658,9 +5658,9 @@ react-list@0.8.6:
   dependencies:
     prop-types "15"
 
-react-native-camera@0.9.0:
+react-native-camera@lwansbrough/react-native-camera#885cdf41b7674d76eb9eaf971c0700eb9f585bed:
   version "0.9.0"
-  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-0.9.0.tgz#5d89b6e5769d94d59f9b7248096b3fb930fc4bfb"
+  resolved "https://codeload.github.com/lwansbrough/react-native-camera/tar.gz/885cdf41b7674d76eb9eaf971c0700eb9f585bed"
 
 react-native-dismiss-keyboard@1.0.0:
   version "1.0.0"
