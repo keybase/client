@@ -9,20 +9,18 @@ import (
 )
 
 type PaperProvisionArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	Username     string `codec:"username" json:"username"`
-	DeviceName   string `codec:"deviceName" json:"deviceName"`
-	PaperKey     string `codec:"paperKey" json:"paperKey"`
-	KeepPaperKey bool   `codec:"keepPaperKey" json:"keepPaperKey"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
+	PaperKey   string `codec:"paperKey" json:"paperKey"`
 }
 
 func (o PaperProvisionArg) DeepCopy() PaperProvisionArg {
 	return PaperProvisionArg{
-		SessionID:    o.SessionID,
-		Username:     o.Username,
-		DeviceName:   o.DeviceName,
-		PaperKey:     o.PaperKey,
-		KeepPaperKey: o.KeepPaperKey,
+		SessionID:  o.SessionID,
+		Username:   o.Username,
+		DeviceName: o.DeviceName,
+		PaperKey:   o.PaperKey,
 	}
 }
 

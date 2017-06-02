@@ -6395,8 +6395,7 @@ export type notifyCtlSetNotificationsRpcParam = Exact<{
 export type paperprovisionPaperProvisionRpcParam = Exact<{
   username: string,
   deviceName: string,
-  paperKey: string,
-  keepPaperKey: boolean
+  paperKey: string
 }>
 
 export type pgpPgpDecryptRpcParam = Exact<{
