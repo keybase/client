@@ -23,17 +23,23 @@ func NewCmdPaperProvision(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPaperProvisionRunner(g), "paperprovision", c)
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "keep-paper-key, k",
+				Usage: "Keep paper key.",
+			},
+		},
 	}
 	return cmd
 }
 
 type CmdPaperProvision struct {
 	libkb.Contextified
-	username   string
-	deviceName string
-	paperKey   string
-	SessionID  int
+	username     string
+	deviceName   string
+	paperKey     string
+	SessionID    int
+	keepPaperKey bool
 }
 
 func NewCmdPaperProvisionRunner(g *libkb.GlobalContext) *CmdPaperProvision {
@@ -59,6 +65,10 @@ func (c *CmdPaperProvision) Run() (err error) {
 		return err
 	}
 
+	if c.keepPaperKey {
+		c.G().Log.Warning("'--keep-paper-key' has no effect")
+	}
+
 	err = client.PaperProvision(context.TODO(),
 		keybase1.PaperProvisionArg{
 			Username:   c.username,
@@ -71,6 +81,7 @@ func (c *CmdPaperProvision) Run() (err error) {
 }
 
 func (c *CmdPaperProvision) ParseArgv(ctx *cli.Context) error {
+	c.keepPaperKey = ctx.Bool("keep-paper-key")
 	nargs := len(ctx.Args())
 	if nargs != 3 {
 		return errors.New("Username, devicename and paperkey arguments required")
