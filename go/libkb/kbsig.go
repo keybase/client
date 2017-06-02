@@ -610,6 +610,10 @@ func PerUserKeyProof(me *User,
 	generation keybase1.PerUserKeyGeneration,
 	signingKey GenericKey) (*jsonw.Wrapper, error) {
 
+	if me == nil {
+		return nil, fmt.Errorf("missing user object for proof")
+	}
+
 	ret, err := ProofMetadata{
 		Me:         me,
 		LinkType:   LinkTypePerUserKey,

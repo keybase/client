@@ -72,12 +72,17 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return libkb.NoUIDError{}
 	}
 
-	loadArg := libkb.NewLoadUserArgBase(e.G()).WithNetContext(ctx.GetNetContext()).WithUID(uid).WithPublicKeyOptional()
+	loadArg := libkb.NewLoadUserArgBase(e.G()).
+		WithNetContext(ctx.GetNetContext()).
+		WithUID(uid).
+		WithSelf(true).
+		WithPublicKeyOptional()
 	loadArg.LoginContext = e.args.LoginContext
 	upak, me, err := e.G().GetUPAKLoader().Load(*loadArg)
 	if err != nil {
 		return err
 	}
+	// `me` could be nil. Use the upak for quick checks and then fill `me`.
 
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade check for key")
 	if len(upak.Base.PerUserKeys) > 0 {
@@ -86,6 +91,13 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return nil
 	}
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade has no per-user-key")
+
+	if me == nil {
+		me, err = libkb.LoadUser(*loadArg)
+		if err != nil {
+			return err
+		}
+	}
 
 	sigKey, err := e.G().ActiveDevice.SigningKey()
 	if err != nil {
