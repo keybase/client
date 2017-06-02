@@ -190,72 +190,78 @@ helpers.rootLinuxNode(env, {
                         )
                     },
                     test_windows: {
-                        helpers.nodeWithCleanup('windows', {}, {}) {
-                            def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}\\go"
-                            withEnv([
-                                'GOROOT=C:\\tools\\go',
-                                "GOPATH=\"${GOPATH}\"",
-                                "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout Windows"
-                                retry(3) {
-                                    checkout scm
-                                }
+                        // TODO: If we re-enable tests other than Go tests on
+                        // Windows, this check should go away.
+                        if (hasGoChanges) {
+                            helpers.nodeWithCleanup('windows', {}, {}) {
+                                def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                                def GOPATH="${BASEDIR}\\go"
+                                withEnv([
+                                    'GOROOT=C:\\tools\\go',
+                                    "GOPATH=\"${GOPATH}\"",
+                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                ]) {
+                                ws("$GOPATH/src/github.com/keybase/client") {
+                                    println "Checkout Windows"
+                                    retry(3) {
+                                        checkout scm
+                                    }
 
-                                println "Test Windows"
-                                parallel (
-                                    test_windows_go: {
-                                        if (hasGoChanges) {
-                                            println "Test Windows Go"
-                                            dir("go") {
-                                                dir ("keybase") {
-                                                    bat "go build -a 2>&1 || exit /B 1"
-                                                    bat "echo %errorlevel%"
-                                                }
-                                                bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                                bat "go get \"github.com/stretchr/testify/require\""
-                                                bat "go get \"github.com/stretchr/testify/assert\""
-                                                helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                                def testlist = readFile('testlist.txt')
-                                                def tests = testlist.tokenize()
-                                                for (test in tests) {
-                                                    bat "go test -timeout 10m ${test}"
+                                    println "Test Windows"
+                                    parallel (
+                                        test_windows_go: {
+                                            if (hasGoChanges) {
+                                                println "Test Windows Go"
+                                                dir("go") {
+                                                    dir ("keybase") {
+                                                        bat "go build -a 2>&1 || exit /B 1"
+                                                        bat "echo %errorlevel%"
+                                                    }
+                                                    bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                    bat "go get \"github.com/stretchr/testify/require\""
+                                                    bat "go get \"github.com/stretchr/testify/assert\""
+                                                    helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
+                                                    def testlist = readFile('testlist.txt')
+                                                    def tests = testlist.tokenize()
+                                                    for (test in tests) {
+                                                        bat "go test -timeout 10m ${test}"
+                                                    }
                                                 }
                                             }
-                                        }
-                                    },
-                                    test_windows_js: {
-                                    // Only run visdiff for PRs
-                                    // FIXME (MBG): Disabled temporarily due to flaky false positives
-                                    if (false && env.CHANGE_ID) {
-                                    wrap([$class: 'Xvfb']) {
-                                        println "Test Windows JS"
-                                        dir("visdiff") {
-                                            bat "yarn install --pure-lockfile"
-                                        }
-                                        dir("desktop") {
-                                            bat "yarn install --pure-lockfile"
-                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'visdiff-aws-creds',
-                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                ],[$class: 'StringBinding',
-                                                    credentialsId: 'visdiff-github-token',
-                                                    variable: 'VISDIFF_GH_TOKEN',
-                                            ]]) {
-                                            withEnv([
-                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                            ]) {
-                                                bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
-                                            }}
-                                        }
-                                    }}},
-                                )
-                            }}
+                                        },
+                                        test_windows_js: {
+                                        // Only run visdiff for PRs
+                                        // FIXME (MBG): Disabled temporarily due to flaky false positives
+                                        // When this is re-enabled, remove the if (hasGoChanges) check at the
+                                        // beginning of this block.
+                                        if (false && env.CHANGE_ID) {
+                                        wrap([$class: 'Xvfb']) {
+                                            println "Test Windows JS"
+                                            dir("visdiff") {
+                                                bat "yarn install --pure-lockfile"
+                                            }
+                                            dir("desktop") {
+                                                bat "yarn install --pure-lockfile"
+                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                        credentialsId: 'visdiff-aws-creds',
+                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                    ],[$class: 'StringBinding',
+                                                        credentialsId: 'visdiff-github-token',
+                                                        variable: 'VISDIFF_GH_TOKEN',
+                                                ]]) {
+                                                withEnv([
+                                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                                ]) {
+                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
+                                                }}
+                                            }
+                                        }}},
+                                    )
+                                }}
+                            }
                         }
                     },
                     test_osx: {
