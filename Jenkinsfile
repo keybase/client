@@ -259,48 +259,52 @@ helpers.rootLinuxNode(env, {
                         }
                     },
                     test_osx: {
-                        def mountDir='/Volumes/untitled/client'
-                        helpers.nodeWithCleanup('macstadium', {}, {
-                                sh "rm -rf ${mountDir}"
-                            }) {
-                            def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}/go"
-                            dir(mountDir) {
-                                // Ensure that the mountDir exists
-                                sh "touch test.txt"
-                            }
-                            withEnv([
-                                "GOPATH=${GOPATH}",
-                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                "TMPDIR=${mountDir}",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout OS X"
-                                retry(3) {
-                                    checkout scm
+                        // TODO: If we re-enable tests other than Go tests on
+                        // macOS, this check should go away.
+                        if (hasGoChanges) {
+                            def mountDir='/Volumes/untitled/client'
+                            helpers.nodeWithCleanup('macstadium', {}, {
+                                    sh "rm -rf ${mountDir}"
+                                }) {
+                                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
+                                def GOPATH="${BASEDIR}/go"
+                                dir(mountDir) {
+                                    // Ensure that the mountDir exists
+                                    sh "touch test.txt"
                                 }
-
-                                parallel (
-                                    //test_react_native: {
-                                    //    println "Test React Native"
-                                    //    dir("react-native") {
-                                    //        sh "npm i"
-                                    //        lock("iossimulator_${env.NODE_NAME}") {
-                                    //            sh "npm run test-ios"
-                                    //        }
-                                    //    }
-                                    //},
-                                    test_osx: {
-                                        println "Test OS X"
-                                        if (hasGoChanges) {
-                                            testNixGo("OS X")
-                                        }
+                                withEnv([
+                                    "GOPATH=${GOPATH}",
+                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                    "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                    "TMPDIR=${mountDir}",
+                                ]) {
+                                ws("$GOPATH/src/github.com/keybase/client") {
+                                    println "Checkout OS X"
+                                    retry(3) {
+                                        checkout scm
                                     }
-                                )
-                            }}
+
+                                    parallel (
+                                        //test_react_native: {
+                                        //    println "Test React Native"
+                                        //    dir("react-native") {
+                                        //        sh "npm i"
+                                        //        lock("iossimulator_${env.NODE_NAME}") {
+                                        //            sh "npm run test-ios"
+                                        //        }
+                                        //    }
+                                        //},
+                                        test_osx: {
+                                            println "Test OS X"
+                                            if (hasGoChanges) {
+                                                testNixGo("OS X")
+                                            }
+                                        }
+                                    )
+                                }}
+                            }
                         }
                     },
                 )
@@ -322,6 +326,7 @@ helpers.rootLinuxNode(env, {
 def hasChanges(subdir) {
     dir(subdir) {
         def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
+        println "Number of changes: " + changes.size()
         if (changes.size() == 0) {
             println "No Go changes, skipping tests."
             return false
