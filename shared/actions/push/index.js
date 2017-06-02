@@ -61,13 +61,16 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
 
     // Check for conversation ID so we know where to navigate to
     const convID = payload.data ? payload.data.convID : payload.convID
-    const type = payload.type
-    if (convID) {
+    const type = payload.data ? payload.data.type : payload.type
+    if (type === 'chat.newmessage') {
+      if (!convID) {
+        console.error('Push chat notification payload missing conversation ID')
+        return
+      }
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
       yield put(navigateTo([chatTab, convID]))
-      return
     } else if (type === 'follow') {
       const username = payload.username
       if (!username) {
@@ -79,9 +82,9 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
       yield put(onUserClick(username))
-      return
+    } else {
+      console.error('Push notification payload missing or unknown type')
     }
-    console.error('Push notification payload missing conversation ID or follow type')
   }
 }
 
