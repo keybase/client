@@ -95,6 +95,11 @@ helpers.rootLinuxNode(env, {
             }
         }
 
+        def hasGoChanges = hasChanges('go')
+        def hasJSChanges = hasChanges('shared')
+        println "Has go changes: " + hasGoChanges
+        println "Has JS changes: " + hasJSChanges
+
         stage("Test") {
             helpers.withKbweb() {
                 parallel (
@@ -119,7 +124,9 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
-                                        testNixGo("Linux")
+                                        if (hasGoChanges) {
+                                            testNixGo("Linux")
+                                        }
                                     }},
                                     test_linux_js: { withEnv([
                                         "PATH=${env.HOME}/.node/bin:${env.PATH}",
@@ -162,19 +169,21 @@ helpers.rootLinuxNode(env, {
                                 )
                             },
                             test_kbfs: {
-                                build([
-                                    job: "/kbfs/master",
-                                    parameters: [
-                                        string(
-                                            name: 'clientProjectName',
-                                            value: env.JOB_NAME,
-                                        ),
-                                        string(
-                                            name: 'kbwebNodePrivateIP',
-                                            value: kbwebNodePrivateIP,
-                                        ),
-                                    ]
-                                ])
+                                if (hasGoChanges) {
+                                    build([
+                                        job: "/kbfs/master",
+                                        parameters: [
+                                            string(
+                                                name: 'clientProjectName',
+                                                value: env.JOB_NAME,
+                                            ),
+                                            string(
+                                                name: 'kbwebNodePrivateIP',
+                                                value: kbwebNodePrivateIP,
+                                            ),
+                                        ]
+                                    ])
+                                }
                             },
                         )
                     },
@@ -198,20 +207,22 @@ helpers.rootLinuxNode(env, {
                                 println "Test Windows"
                                 parallel (
                                     test_windows_go: {
-                                        println "Test Windows Go"
-                                        dir("go") {
-                                            dir ("keybase") {
-                                                bat "go build -a 2>&1 || exit /B 1"
-                                                bat "echo %errorlevel%"
-                                            }
-                                            bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                            bat "go get \"github.com/stretchr/testify/require\""
-                                            bat "go get \"github.com/stretchr/testify/assert\""
-                                            helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                            def testlist = readFile('testlist.txt')
-                                            def tests = testlist.tokenize()
-                                            for (test in tests) {
-                                                bat "go test -timeout 10m ${test}"
+                                        if (hasGoChanges) {
+                                            println "Test Windows Go"
+                                            dir("go") {
+                                                dir ("keybase") {
+                                                    bat "go build -a 2>&1 || exit /B 1"
+                                                    bat "echo %errorlevel%"
+                                                }
+                                                bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                bat "go get \"github.com/stretchr/testify/require\""
+                                                bat "go get \"github.com/stretchr/testify/assert\""
+                                                helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
+                                                def testlist = readFile('testlist.txt')
+                                                def tests = testlist.tokenize()
+                                                for (test in tests) {
+                                                    bat "go test -timeout 10m ${test}"
+                                                }
                                             }
                                         }
                                     },
@@ -282,7 +293,9 @@ helpers.rootLinuxNode(env, {
                                     //},
                                     test_osx: {
                                         println "Test OS X"
-                                        testNixGo("OS X")
+                                        if (hasGoChanges) {
+                                            testNixGo("OS X")
+                                        }
                                     }
                                 )
                             }}
@@ -304,16 +317,19 @@ helpers.rootLinuxNode(env, {
     }
 }
 
-def testNixGo(prefix) {
-    dir('go') {
+def hasChanges(subdir) {
+    dir(subdir) {
         def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
         if (changes.size() == 0) {
             println "No Go changes, skipping tests."
             return
         }
+    }
+}
+
+def testNixGo(prefix) {
+    dir('go') {
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        dir('test') {
-            sh "run_tests.sh"
-        }
+        sh "test/run_tests.sh"
     }
 }
