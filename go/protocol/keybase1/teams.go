@@ -73,16 +73,16 @@ func (e TeamApplication) String() string {
 }
 
 type TeamApplicationKey struct {
-	Application TeamApplication `codec:"application" json:"application"`
-	Generation  int             `codec:"generation" json:"generation"`
-	Key         Bytes32         `codec:"key" json:"key"`
+	Application   TeamApplication `codec:"application" json:"application"`
+	KeyGeneration int             `codec:"keyGeneration" json:"keyGeneration"`
+	Key           Bytes32         `codec:"key" json:"key"`
 }
 
 func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	return TeamApplicationKey{
-		Application: o.Application.DeepCopy(),
-		Generation:  o.Generation,
-		Key:         o.Key.DeepCopy(),
+		Application:   o.Application.DeepCopy(),
+		KeyGeneration: o.KeyGeneration,
+		Key:           o.Key.DeepCopy(),
 	}
 }
 

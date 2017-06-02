@@ -1917,6 +1917,7 @@ type ConversationInfoLocal struct {
 	TopicName    string                    `codec:"topicName" json:"topicName"`
 	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus        `codec:"status" json:"status"`
+	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
 	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
@@ -1924,12 +1925,13 @@ type ConversationInfoLocal struct {
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 	return ConversationInfoLocal{
-		Id:         o.Id.DeepCopy(),
-		Triple:     o.Triple.DeepCopy(),
-		TlfName:    o.TlfName,
-		TopicName:  o.TopicName,
-		Visibility: o.Visibility.DeepCopy(),
-		Status:     o.Status.DeepCopy(),
+		Id:          o.Id.DeepCopy(),
+		Triple:      o.Triple.DeepCopy(),
+		TlfName:     o.TlfName,
+		TopicName:   o.TopicName,
+		Visibility:  o.Visibility.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
 		WriterNames: (func(x []string) []string {
 			var ret []string
 			for _, v := range x {
@@ -2283,8 +2285,20 @@ func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
 	}
 }
 
+type NameQuery struct {
+	Name        string                  `codec:"name" json:"name"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
+func (o NameQuery) DeepCopy() NameQuery {
+	return NameQuery{
+		Name:        o.Name,
+		MembersType: o.MembersType.DeepCopy(),
+	}
+}
+
 type GetInboxLocalQuery struct {
-	TlfName           *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
+	Name              *NameQuery           `codec:"name,omitempty" json:"name,omitempty"`
 	TopicName         *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
 	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
@@ -2300,13 +2314,13 @@ type GetInboxLocalQuery struct {
 
 func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 	return GetInboxLocalQuery{
-		TlfName: (func(x *string) *string {
+		Name: (func(x *NameQuery) *NameQuery {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.TlfName),
+		})(o.Name),
 		TopicName: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -3304,6 +3318,7 @@ func (o MarkAsReadLocalArg) DeepCopy() MarkAsReadLocalArg {
 
 type FindConversationsLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	MembersType      ConversationMembersType      `codec:"membersType" json:"membersType"`
 	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
 	TopicName        string                       `codec:"topicName" json:"topicName"`
@@ -3313,10 +3328,11 @@ type FindConversationsLocalArg struct {
 
 func (o FindConversationsLocalArg) DeepCopy() FindConversationsLocalArg {
 	return FindConversationsLocalArg{
-		TlfName:    o.TlfName,
-		Visibility: o.Visibility.DeepCopy(),
-		TopicType:  o.TopicType.DeepCopy(),
-		TopicName:  o.TopicName,
+		TlfName:     o.TlfName,
+		MembersType: o.MembersType.DeepCopy(),
+		Visibility:  o.Visibility.DeepCopy(),
+		TopicType:   o.TopicType.DeepCopy(),
+		TopicName:   o.TopicName,
 		OneChatPerTLF: (func(x *bool) *bool {
 			if x == nil {
 				return nil

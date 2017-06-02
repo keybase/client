@@ -277,11 +277,10 @@ func (d *Service) stopChatModules() {
 func (d *Service) createChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
 	ri := d.gregor.GetClient
-	tlf := chat.NewKBFSTLFInfoSource(g)
 
 	// Set up main chat data sources
-	boxer := chat.NewBoxer(g, tlf)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri, tlf)
+	boxer := chat.NewBoxer(g)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
@@ -299,7 +298,7 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// Set up Offlinables on Syncer
@@ -310,7 +309,7 @@ func (d *Service) createChatModules() {
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
-	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
+	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g))
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

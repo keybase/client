@@ -95,7 +95,7 @@ func (c *CmdTeamAddMember) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Success! A keybase chat message has been sent to %s.", c.username)
+	dui.Printf("Success! A keybase chat message has been sent to %s.\n", c.username)
 
 	return nil
 }

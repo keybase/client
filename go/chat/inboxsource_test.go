@@ -14,17 +14,17 @@ import (
 )
 
 func TestInboxSourceUpdateRace(t *testing.T) {
-	world, ri, _, sender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
-	trip := newConvTriple(t, tlf, u.Username)
-	res := startConv(t, u, trip, sender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
-	_, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			TlfPublic:   false,
@@ -36,7 +36,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 
-	ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -47,21 +47,21 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		_, err = tc.ChatG.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 0, res.ConvID,
+		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 0, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
 		require.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
-		_, err = tc.ChatG.InboxSource.SetStatus(context.TODO(), u.User.GetUID().ToBytes(), 1, res.ConvID,
+		_, err = tc.ChatG.InboxSource.SetStatus(ctx, uid, 1, conv.GetConvID(),
 			chat1.ConversationStatus_UNFILED)
 		require.NoError(t, err)
 		wg.Done()
 	}()
 	wg.Wait()
 
-	ib, _, err = tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -70,16 +70,17 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 // a complete sync of the inbox occurs.
 func TestInboxSourceSkipAhead(t *testing.T) {
 	t.Logf("setup")
-	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
 	ri := ri2.(*kbtest.ChatRemoteMock)
 	defer world.Cleanup()
 	t.Logf("test's remoteInterface: %p[%T] -> %v", &ri, ri, ri)
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
+	uid := u.User.GetUID().ToBytes()
 
 	assertInboxVersion := func(v int) {
-		ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), u.User.GetUID().ToBytes(), nil, true, nil, nil)
+		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -97,16 +98,15 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	assertInboxVersion(0)
 
 	t.Logf("new conv")
-	trip := newConvTriple(t, tlf, u.Username)
-	res := startConv(t, u, trip, sender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
 	assertInboxVersion(0)
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, err := sender.Prepare(context.TODO(), chat1.MessagePlaintext{
+	boxed, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			TlfPublic:   false,
@@ -115,11 +115,11 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, &res.ConvID)
+	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
-	postRes, err := ri.PostRemote(context.TODO(), chat1.PostRemoteArg{
-		ConversationID: res.ConvID,
+	postRes, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
+		ConversationID: conv.GetConvID(),
 		MessageBoxed:   *boxed,
 	})
 	require.NoError(t, err)
@@ -148,7 +148,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("receive oobm with version light years ahead of its current one")
 	_, err = tc.ChatG.InboxSource.NewMessage(context.TODO(), u.User.GetUID().ToBytes(), chat1.InboxVers(100),
-		res.ConvID, *boxed)
+		conv.GetConvID(), *boxed)
 	require.NoError(t, err)
 	assertInboxVersion(100)
 

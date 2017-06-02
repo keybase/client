@@ -99,7 +99,7 @@ func (b *BackgroundIdentifier) completedIdentifyJob(ij engine.IdentifyJob) {
 
 	// Let the chat system know about this identify change
 	cg := globals.NewContext(b.G(), b.ChatG())
-	chat.NewIdentifyChangedHandler(cg, chat.NewKBFSTLFInfoSource(cg)).BackgroundIdentifyChanged(context.Background(), ij)
+	chat.NewIdentifyChangedHandler(cg).BackgroundIdentifyChanged(context.Background(), ij)
 }
 
 func (b *BackgroundIdentifier) populateWithFollowees() (err error) {
