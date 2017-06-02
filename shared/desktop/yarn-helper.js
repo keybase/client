@@ -96,7 +96,6 @@ const commands = {
     env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
-    // shell: `${nodeCmd} ./node_modules/.bin/webpack-dev-server --config=./desktop/webpack.config.development.js --port=4000 --hot=true`,
     shell: process.env['NO_DASHBOARD']
       ? `${nodeCmd} desktop/server.js`
       : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
