@@ -19,10 +19,11 @@ type chatConversationResolvingRequestContext struct {
 }
 
 type chatConversationResolvingRequest struct {
-	TlfName    string
-	TopicName  string
-	TopicType  chat1.TopicType
-	Visibility chat1.TLFVisibility
+	TlfName     string
+	TopicName   string
+	TopicType   chat1.TopicType
+	Visibility  chat1.TLFVisibility
+	MembersType chat1.ConversationMembersType
 
 	ctx *chatConversationResolvingRequestContext
 }
@@ -88,14 +89,23 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	}
 
 	var nameQuery *chat1.NameQuery
-	if len(req.TlfName) > 0 {
-		err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
-		if err != nil {
-			return chat1.GetInboxAndUnboxLocalArg{}, err
+	switch req.MembersType {
+	case chat1.ConversationMembersType_KBFS:
+		if len(req.TlfName) > 0 {
+			err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
+			if err != nil {
+				return chat1.GetInboxAndUnboxLocalArg{}, err
+			}
+			nameQuery = &chat1.NameQuery{
+				Name:        req.ctx.canonicalizedTlfName,
+				MembersType: chat1.ConversationMembersType_KBFS,
+			}
 		}
+	case chat1.ConversationMembersType_TEAM:
+		req.ctx.canonicalizedTlfName = req.TlfName
 		nameQuery = &chat1.NameQuery{
-			Name:        req.ctx.canonicalizedTlfName,
-			MembersType: chat1.ConversationMembersType_KBFS,
+			Name:        req.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
 		}
 	}
 
@@ -207,6 +217,7 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		TopicName:     tnp,
 		TopicType:     req.TopicType,
 		TlfVisibility: req.Visibility,
+		MembersType:   req.MembersType,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating conversation error: %v\n", err)
