@@ -99,15 +99,38 @@ type ChatAPI struct {
 
 // ChatChannel represents a channel through which chat happens.
 type ChatChannel struct {
-	Name      string `json:"name"`
-	Public    bool   `json:"public"`
-	TopicType string `json:"topic_type,omitempty"`
-	TopicName string `json:"topic_name,omitempty"`
+	Name        string `json:"name"`
+	Public      bool   `json:"public"`
+	MembersType string `json:"members_type"`
+	TopicType   string `json:"topic_type,omitempty"`
+	TopicName   string `json:"topic_name,omitempty"`
 }
+
+var validMembersTypes = []string{"", "kbfs", "team"}
 
 // Valid returns true if the ChatChannel has at least a Name.
 func (c ChatChannel) Valid() bool {
-	return len(c.Name) > 0
+	if len(c.Name) == 0 {
+		return false
+	}
+	validTyp := false
+	for _, typ := range validMembersTypes {
+		if typ == c.MembersType {
+			validTyp = true
+			break
+		}
+	}
+	return validTyp
+}
+
+func (c ChatChannel) GetMembersType() chat1.ConversationMembersType {
+	switch c.MembersType {
+	case "", "kbfs":
+		return chat1.ConversationMembersType_KBFS
+	case "team":
+		return chat1.ConversationMembersType_TEAM
+	}
+	return chat1.ConversationMembersType_KBFS
 }
 
 // ChatMessage represents a text message to be sent.
@@ -139,7 +162,8 @@ type sendOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Message        ChatMessage
-	Nonblock       bool `json:"nonblock"`
+	Nonblock       bool   `json:"nonblock"`
+	MembersType    string `json:"members_type"`
 }
 
 func (s sendOptionsV1) Check() error {

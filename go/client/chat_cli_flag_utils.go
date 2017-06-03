@@ -94,6 +94,10 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "async",
 		Usage: "Fetch inbox and unbox asynchronously",
 	},
+	"team": cli.BoolFlag{
+		Name:  "team",
+		Usage: "Treat conversation name as a team name",
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -108,7 +112,7 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 }
 
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "topic-name", "public", "private")
+	return mustGetChatFlags("topic-type", "topic-name", "public", "private", "team")
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -151,6 +155,10 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 		req.Visibility = chat1.TLFVisibility_PUBLIC
 	} else {
 		req.Visibility = chat1.TLFVisibility_ANY
+	}
+
+	if ctx.Bool("team") {
+		req.MembersType = chat1.ConversationMembersType_TEAM
 	}
 
 	return req, nil
