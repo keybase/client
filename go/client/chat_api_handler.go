@@ -106,29 +106,28 @@ type ChatChannel struct {
 	TopicName   string `json:"topic_name,omitempty"`
 }
 
-var validMembersTypes = []string{"", "kbfs", "team"}
-
 // Valid returns true if the ChatChannel has at least a Name.
 func (c ChatChannel) Valid() bool {
 	if len(c.Name) == 0 {
 		return false
 	}
 	validTyp := false
-	for _, typ := range validMembersTypes {
-		if typ == c.MembersType {
-			validTyp = true
-			break
+	if len(c.MembersType) > 0 {
+		for typ := range chat1.ConversationMembersTypeMap {
+			if strings.ToLower(typ) == c.MembersType {
+				validTyp = true
+				break
+			}
 		}
+	} else {
+		validTyp = true
 	}
 	return validTyp
 }
 
 func (c ChatChannel) GetMembersType() chat1.ConversationMembersType {
-	switch c.MembersType {
-	case "", "kbfs":
-		return chat1.ConversationMembersType_KBFS
-	case "team":
-		return chat1.ConversationMembersType_TEAM
+	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(c.MembersType)]; ok {
+		return typ
 	}
 	return chat1.ConversationMembersType_KBFS
 }
