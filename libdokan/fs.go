@@ -416,9 +416,9 @@ func (f *FS) ErrorPrint(err error) {
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking was handled by original file open, this is no longer true.
-	// As we return a fakeroot for other SIDs, check it here too.
-	// Only allow the current user access
-	if !source.IsRequestorUserSidEqualTo(currentUserSID) {
+	// However we only allow fake files with names that are not potential rename
+	// paths. Filter those out here.
+	if !isPotentialRenamePath(source.Path()) {
 		f.log.Errorf("Refusing MoveFile access: SID match error")
 		return dokan.ErrAccessDenied
 	}
@@ -543,6 +543,18 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 
 	f.log.CDebugf(ctx, "FS Rename SUCCESS")
 	return nil
+}
+
+// isPotentialRenamePath filters out some special paths
+// for rename. Especially those provided by fakeroot.go.
+func isPotentialRenamePath(s string) bool {
+	if len(s) < 3 || s[0] != '\\' {
+		return false
+	}
+	s = s[1:]
+	return strings.HasPrefix(s, PrivateName) ||
+		strings.HasPrefix(s, PublicName) ||
+		strings.HasPrefix(s, TeamName)
 }
 
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {

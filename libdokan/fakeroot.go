@@ -11,19 +11,23 @@ import (
 
 type fakeRoot struct {
 	EmptyFolder
+	isRoot bool
 }
 
 func openFakeRoot(ctx context.Context, fs *FS, fi *dokan.FileInfo) (dokan.File, bool, error) {
 	path := fi.Path()
 	fs.log.CDebugf(ctx, "openFakeRoot %q", path)
 	if path == `\`+WrongUserErrorDirName {
-		return &EmptyFolder{}, true, nil
+		return &fakeRoot{isRoot: false}, true, nil
 	}
-	return &fakeRoot{}, true, nil
+	return &fakeRoot{isRoot: true}, true, nil
 }
 
 // FindFiles for dokan.
-func (*fakeRoot) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
+func (fr *fakeRoot) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
+	if !fr.isRoot {
+		return nil
+	}
 	var ns dokan.NamedStat
 	ns.FileAttributes = dokan.FileAttributeDirectory
 	ns.Name = WrongUserErrorDirName
