@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
+import * as SearchConstants from '../../constants/searchv3'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -84,6 +85,30 @@ const retryMessageActionTransformer = action => ({
   },
   type: action.type,
 })
+
+// TODO kill this?
+function clearTempSearchConversation(): Constants.ClearTempSearchConversation {
+  return {
+    type: 'chat:clearTempSearchConversation',
+    payload: {},
+  }
+}
+
+function createTempSearchConversation(
+  participants: Constants.Participants
+): Constants.CreateTempSearchConversation {
+  return {
+    type: 'chat:createTempSearchConversation',
+    payload: {participants},
+  }
+}
+
+function exitSearch(): Constants.ExitSearch {
+  return {
+    type: 'chat:exitSearch',
+    payload: {},
+  }
+}
 
 function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
   return {
@@ -270,6 +295,10 @@ function getInboxAndUnbox(
 
 function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
+}
+
+function clearSearchResults(): Constants.ClearSearchResults {
+  return {payload: {}, type: 'chat:clearSearchResults'}
 }
 
 function updateConversationUnreadCounts(
@@ -544,6 +573,14 @@ function setInboxUntrustedState(
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
+function stageUserForSearch(user: SearchConstants.SearchResultId): Constants.StageUserForSearch {
+  return {payload: {user}, type: 'chat:stageUserForSearch'}
+}
+
+function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.UnstageUserForSearch {
+  return {payload: {user}, type: 'chat:unstageUserForSearch'}
+}
+
 function updateThread(
   thread: ChatTypes.ThreadView,
   yourName: string,
@@ -561,11 +598,14 @@ export {
   badgeAppForChat,
   blockConversation,
   clearMessages,
+  clearSearchResults,
   clearRekey,
   createPendingFailure,
+  createTempSearchConversation,
   deleteMessage,
   downloadProgress,
   editMessage,
+  exitSearch,
   getInboxAndUnbox,
   inboxStale,
   incomingMessage,
@@ -605,8 +645,10 @@ export {
   setUnboxing,
   setupChatHandlers,
   showEditor,
+  stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,

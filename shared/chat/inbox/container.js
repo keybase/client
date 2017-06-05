@@ -5,10 +5,12 @@ import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
+import {tempSearchConversationSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
 
 const getInbox = (state: TypedState) => state.chat.get('inbox')
+const getInSearch = (state: TypedState) => state.chat.inSearch
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
@@ -25,8 +27,8 @@ const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean 
 }
 
 const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow, getFilter],
-  (inbox, supersededByState, alwaysShow, filter) => {
+  [getInbox, getInSearch, tempSearchConversationSelector, getSupersededByState, getAlwaysShow, getFilter],
+  (inbox, inSearch, tempSearchConversationParticipants, supersededByState, alwaysShow, filter) => {
     return inbox
       .filter(
         i =>
@@ -44,6 +46,7 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
 export default connect(
   (state: TypedState) => ({
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    inSearch: state.chat.inSearch,
     rows: getRows(state),
   }),
   (dispatch: Dispatch) => ({

@@ -3,6 +3,7 @@ import * as Constants from '../../constants/chat'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
+import Search from '../search'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
 import {hideKeyboard} from '../../actions/app'
@@ -19,6 +20,7 @@ type StateProps = {|
   supersededBy: ?Constants.SupersedeInfo,
   supersedes: ?Constants.SupersedeInfo,
   threadLoadedOffline: boolean,
+  inSearch: boolean,
 |}
 
 type DispatchProps = {|
@@ -63,6 +65,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersededBy,
     supersedes,
     threadLoadedOffline,
+    inSearch: state.chat.inSearch,
   }
 }
 
@@ -97,6 +100,8 @@ export default compose(
     renderComponent(NoConversation)
   ),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  // TODO this will be different since we still need the conversation content
+  branch((props: Props) => props.inSearch, renderComponent(Search)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),

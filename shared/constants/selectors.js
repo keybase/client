@@ -1,6 +1,6 @@
 // @flow
 import type {TypedState} from './reducer'
-import type {SearchQuery} from './searchv3'
+import type {SearchQuery, SearchResultId} from './searchv3'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
@@ -9,4 +9,9 @@ const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
   searchQueryToResult.get(searchQuery)
 
-export {cachedSearchResults, usernameSelector, loggedInSelector}
+const searchResult = ({entities: {searchResults}}: TypedState, searchResultId: SearchResultId) =>
+  searchResults.get(searchResultId)
+
+const tempSearchConversationSelector = ({chat: {tempSearchConversation}}: TypedState) =>
+  tempSearchConversation
+export {cachedSearchResults, usernameSelector, loggedInSelector, tempSearchConversationSelector}

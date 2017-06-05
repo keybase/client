@@ -11,13 +11,14 @@ import {getStyle as getTextStyle} from '../../common-adapters/text'
 import type {IconType} from '../../common-adapters/icon'
 
 export type UserDetails = {
+  id: string,
   followingState: Constants.FollowingState,
   icon: ?IconType,
   service: Constants.Service,
   username: string,
 }
 
-export type UserItemProps = UserDetails & {onRemoveUser: (username: string) => void}
+export type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 
 export type Props = {
   placeholder?: string,
@@ -31,7 +32,7 @@ export type Props = {
 
 class UserItem extends Component<void, UserItemProps, void> {
   _onRemoveUser = () => {
-    this.props.onRemoveUser(this.props.username)
+    this.props.onRemoveUser(this.props.id)
   }
 
   render() {
@@ -83,7 +84,7 @@ class UserInput extends Component<void, Props, void> {
       ev.target.selectionStart === 0 &&
       ev.target.selectionEnd === 0
     ) {
-      this.props.onRemoveUser(last(this.props.userItems).username)
+      this.props.onRemoveUser(last(this.props.userItems).id)
     }
   }
 
@@ -101,7 +102,7 @@ class UserInput extends Component<void, Props, void> {
     const inputLeftPadding = userItems.length ? {paddingLeft: globalMargins.xtiny} : null
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
-        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.username} />)}
+        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
         <AutosizeInput
           ref={el => {
             this._textInput = el

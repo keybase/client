@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {List} from 'immutable'
 import Header from '.'
-import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {onUserClick} from '../../../actions/profile'
@@ -35,4 +34,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: Own
   onToggleSidePanel,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Header)
+export default connect(mapStateToProps, mapDispatchToProps)(Header)
