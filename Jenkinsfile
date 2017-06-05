@@ -338,7 +338,7 @@ def hasChanges(subdir) {
         def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
         println "Number of changes: " + changes.size()
         if (changes.size() == 0) {
-            println "No Go changes, skipping tests."
+            println "No ${subdir} changes, skipping tests."
             return false
         }
         return true
