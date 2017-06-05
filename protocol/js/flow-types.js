@@ -4320,7 +4320,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
-  publicTopLevelFolder: boolean,
   filename: string,
   status: string,
   statusCode: FSStatusCode,
@@ -4329,6 +4328,7 @@ export type FSNotification = {
   params: {[key: string]: string},
   writerUid: UID,
   localTime: Time,
+  folderType: FolderType,
 }
 
 export type FSNotificationType =
@@ -4346,7 +4346,7 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
-  publicTopLevelFolder: boolean,
+  folderType: FolderType,
   path: string,
   syncingBytes: int64,
   syncingOps: int64,

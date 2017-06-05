@@ -50,8 +50,8 @@
       "name": "FSNotification",
       "fields": [
         {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
+          "type": "FolderType",
+          "name": "folderType"
         },
         {
           "type": "string",
