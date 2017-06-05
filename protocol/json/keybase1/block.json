@@ -116,6 +116,27 @@
       ],
       "response": null
     },
+    "putBlockAgain": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ref",
+          "type": "BlockReference"
+        },
+        {
+          "name": "blockKey",
+          "type": "string"
+        },
+        {
+          "name": "buf",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    },
     "getBlock": {
       "request": [
         {
