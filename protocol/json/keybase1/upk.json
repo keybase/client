@@ -1,6 +1,11 @@
 {
   "protocol": "UPK",
-  "imports": [],
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [
     {
       "type": "enum",

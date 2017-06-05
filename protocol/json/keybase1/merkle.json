@@ -1,0 +1,46 @@
+{
+  "protocol": "merkle",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "upk.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "MerkleRootAndTime",
+      "fields": [
+        {
+          "type": "MerkleRootV2",
+          "name": "root"
+        },
+        {
+          "type": "Time",
+          "name": "updateTime"
+        },
+        {
+          "type": "Time",
+          "name": "fetchTime"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getCurrentMerkleRoot": {
+      "request": [
+        {
+          "name": "freshnessMsec",
+          "type": "int"
+        }
+      ],
+      "response": "MerkleRootAndTime",
+      "doc": "* getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.\n   * The caller can specify how stale a result can be with freshnessMsec.\n   * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then\n   * we force a GET and a round-trip."
+    }
+  },
+  "namespace": "keybase.1"
+}
