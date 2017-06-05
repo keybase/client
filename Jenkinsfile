@@ -345,9 +345,30 @@ def hasChanges(subdir) {
     }
 }
 
+def getTestDirs() {
+    def dirs = sh(
+        returnStdout: true,
+        script: "go list -f '{{.Dir}}' ./... | grep -v 'vendor\\|bind'"
+    ).trim()
+    return dirs.split("[\\r\\n]+")
+}
+
 def testNixGo(prefix) {
     dir('go') {
+        def dirs = getTestDirs()
+        def tests = [:]
+        def curDir = pwd()
+        dirs.each {
+            dir(it) {
+                sh "go test -i"
+                sh "go test -c -o test.test"
+            }
+            def dirName = s.replaceAll(pwd, '').replaceAll('/', '_')
+            tests[prefix + "_" + dirName] = {
+                sh "./test.test -test.timeout 10m"
+            }
+        }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh "test/run_tests.sh"
+        parallel(tests)
     }
 }
