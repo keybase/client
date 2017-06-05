@@ -25,6 +25,9 @@ const (
 
 	// CtxOpID is the display name for the unique operation Dokan ID tag.
 	CtxOpID = "DID"
+
+	// WrongUserErrorDirName is the name of error directory for other users.
+	WrongUserErrorDirName = `kbfs.access.denied.for.other.windows.users`
 )
 
 // CtxTagKey is the type used for unique context tags

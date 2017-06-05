@@ -272,8 +272,8 @@ func newSyntheticOpenContext() *openContext {
 func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(currentUserSID) {
-		f.log.Errorf("Refusing access: SID match error")
-		return nil, false, dokan.ErrAccessDenied
+		f.log.Errorf("FS CreateFile - Refusing real access: SID match error")
+		return openFakeRoot(ctx, f, fi)
 	}
 	f.logEnter(ctx, "FS CreateFile")
 	return f.openRaw(ctx, fi, cd)
@@ -415,7 +415,14 @@ func (f *FS) ErrorPrint(err error) {
 
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
-	// User checking is handled by the opening of the source file
+	// User checking was handled by original file open, this is no longer true.
+	// As we return a fakeroot for other SIDs, check it here too.
+	// Only allow the current user access
+	if !source.IsRequestorUserSidEqualTo(currentUserSID) {
+		f.log.Errorf("Refusing MoveFile access: SID match error")
+		return dokan.ErrAccessDenied
+	}
+
 	f.logEnter(ctx, "FS MoveFile")
 	// No racing deletions or renames.
 	// Note that this calls Cleanup multiple times, however with nil
