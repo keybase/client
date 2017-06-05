@@ -46,7 +46,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(int(t.Box.Generation))
 		if err != nil {
 			return nil, err
 		}
@@ -369,7 +369,11 @@ func (t *Team) recipientBoxes(memSet *memberSet) (*PerTeamSharedSecretBoxes, err
 	if err != nil {
 		return nil, err
 	}
-	return boxTeamSharedSecret(t.secret, deviceEncryptionKey, memSet.recipients)
+	f, err := NewTeamKeyFactoryWithSecret(t.secret, t.Box.Generation)
+	if err != nil {
+		return nil, err
+	}
+	return f.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
 }
 
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes) libkb.JSONPayload {

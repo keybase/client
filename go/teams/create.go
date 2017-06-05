@@ -3,12 +3,8 @@ package teams
 import (
 	"crypto/hmac"
 	"crypto/sha512"
-	"encoding/base64"
-	"encoding/binary"
 	"errors"
-	"fmt"
 
-	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -33,11 +29,6 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		return err
 	}
 
-	perTeamSecret, perTeamSigningKey, perTeamEncryptionKey, err := generatePerTeamKeys()
-	if err != nil {
-		return err
-	}
-
 	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
 	if ownerLatest == nil {
 		return errors.New("can't create a new team without having provisioned a per-user key")
@@ -45,8 +36,22 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	secretboxRecipients := map[string]keybase1.PerUserKey{
 		me.GetName(): *ownerLatest,
 	}
+
 	// These boxes will get posted along with the sig below.
-	secretboxes, err := boxTeamSharedSecret(perTeamSecret, deviceEncryptionKey, secretboxRecipients)
+	f, err := NewTeamKeyFactory()
+	if err != nil {
+		return err
+	}
+	secretboxes, err := f.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	if err != nil {
+		return err
+	}
+
+	perTeamSigningKey, err := f.SigningKey()
+	if err != nil {
+		return err
+	}
+	perTeamEncryptionKey, err := f.EncryptionKey()
 	if err != nil {
 		return err
 	}
@@ -178,97 +183,6 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	}
 
 	return nil
-}
-
-func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
-	// This is the magical secret key, from which we derive a DH keypair and a
-	// signing keypair.
-	sharedSecret, err = libkb.RandBytes(32)
-	if err != nil {
-		return
-	}
-	signingKey, encryptionKey, err = generatePerTeamKeysFromSecret(sharedSecret)
-	return
-}
-
-func generatePerTeamKeysFromSecret(sharedSecret []byte) (signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
-	encryptionKey, err = libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamDHDerivationString))
-	if err != nil {
-		return
-	}
-	signingKey, err = libkb.MakeNaclSigningKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamEdDSADerivationString))
-	if err != nil {
-		return
-	}
-	return
-}
-
-type PerUserSecretGeneration int
-
-type PerTeamSharedSecretBoxes struct {
-	Generation    PerUserSecretGeneration `json:"generation"`
-	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
-	Nonce         string                  `json:"nonce"`
-	PrevKey       *string                 `json:"prev"`
-	Boxes         map[string]string       `json:"boxes"`
-}
-
-type PerTeamSharedSecretBox struct {
-	_struct         bool `codec:",toarray"`
-	Version         uint
-	PerUserKeySeqno keybase1.Seqno
-	NonceCounter    uint32
-	Ctext           []byte
-}
-
-func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
-	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
-	if !ok {
-		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
-	}
-	noncePrefix, err := libkb.RandBytes(20)
-	if err != nil {
-		return nil, err
-	}
-	// The counter starts at 1, because 0 will be the prev secretbox, which is
-	// omitted for the team root link, because this is the first shared key.
-	var counter uint32 = 1
-	boxes := make(map[string]string)
-	for username, recipientPerUserKey := range recipients {
-		recipientPerUserGenericKeypair, err := libkb.ImportKeypairFromKID(recipientPerUserKey.EncKID)
-		if err != nil {
-			return nil, err
-		}
-		recipientPerUserNaclKeypair, ok := recipientPerUserGenericKeypair.(libkb.NaclDHKeyPair)
-		if !ok {
-			return nil, fmt.Errorf("got an unexpected key type for recipient KID in sharedTeamKeyBox: %T", recipientPerUserGenericKeypair)
-		}
-		var nonce [24]byte
-		counterBytes := [4]byte{}
-		binary.BigEndian.PutUint32(counterBytes[:], counter)
-		copy(nonce[:20], noncePrefix)
-		copy(nonce[20:24], counterBytes[:])
-		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
-		boxStruct := PerTeamSharedSecretBox{
-			Version:         libkb.SharedTeamKeyBoxVersion1,
-			PerUserKeySeqno: recipientPerUserKey.Seqno,
-			NonceCounter:    counter,
-			Ctext:           ctext,
-		}
-		encodedArray, err := libkb.MsgpackEncode(boxStruct)
-		if err != nil {
-			return nil, err
-		}
-		base64Array := base64.StdEncoding.EncodeToString(encodedArray)
-		boxes[username] = base64Array
-	}
-
-	return &PerTeamSharedSecretBoxes{
-		Generation:    1,
-		EncryptingKid: senderNaclDHKey.GetKID(),
-		Nonce:         base64.StdEncoding.EncodeToString(noncePrefix),
-		Boxes:         boxes,
-	}, nil
 }
 
 func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
