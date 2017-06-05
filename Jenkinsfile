@@ -364,8 +364,10 @@ def testNixGo(prefix) {
                 sh "go test -c -o test.test"
             }
             def dirName = s.replaceAll(pwd, '').replaceAll('/', '_')
-            tests[prefix + "_" + dirName] = {
-                sh "./test.test -test.timeout 10m"
+            tests[prefix + dirName] = {
+                dir(it) {
+                    sh "./test.test -test.timeout 10m"
+                }
             }
         }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
