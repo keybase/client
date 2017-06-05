@@ -25,7 +25,7 @@ dependencies:
     - sudo apt-get install -y -qq yarn=0.24.5-1
     - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
-    - wget https://storage.googleapis.com/golang/go1.7.linux-amd64.tar.gz -O $HOME/go.tar.gz
+    - wget https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - mkdir $HOME/go-path
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
@@ -39,7 +39,7 @@ dependencies:
     # Install Yarn
   cache_directories:
     - /usr/local/android-sdk-linux/tools
-    - /usr/local/android-sdk-linux/build-tools/23.0.2
+    - /usr/local/android-sdk-linux/build-tools/25.0.0
     - /usr/local/android-sdk-linux/extras/android/m2repository
   override:
     # TODO(mm): use the emulator when we figure out a consistent way of getting this working
