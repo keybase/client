@@ -359,13 +359,16 @@ def testNixGo(prefix) {
         def tests = [:]
         def curDir = pwd()
         for (d in dirs) {
+            def dirPath = d.replaceAll(pwd, '')
+            def testName = dirPath.replaceAll('/', '_')
+            println "Building tests for $dirPath"
             dir(d) {
                 sh "go test -i"
                 sh "go test -c -o test.test"
             }
-            def dirName = s.replaceAll(pwd, '').replaceAll('/', '_')
-            tests[prefix + dirName] = {
+            tests[prefix + testName] = {
                 dir(d) {
+                    println "Running tests for $dirPath"
                     sh "./test.test -test.timeout 10m"
                 }
             }
