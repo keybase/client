@@ -1,7 +1,7 @@
 // @flow
 import {last} from 'lodash'
 import React, {Component} from 'react'
-import {AutosizeInput, Box, Text, Icon, ClickableBox} from '../../common-adapters'
+import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
@@ -74,7 +74,7 @@ class UserInput extends Component<void, Props, void> {
     const inputLeftPadding = userItems.length ? {paddingLeft: globalMargins.xtiny} : null
     const showAddButton = !!userItems.length && !usernameText.length
     return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}} onClick={this._focusInput}>
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.username} />)}
         <AutosizeInput
           ref={el => {
@@ -97,7 +97,6 @@ class UserInput extends Component<void, Props, void> {
               cursor: 'pointer',
             }}
           />}
-        <ClickableBox style={{flex: 1, cursor: 'text', height: 24}} onClick={this._focusInput} />
       </Box>
     )
   }
