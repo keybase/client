@@ -14,6 +14,7 @@ import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
 import {navigateTo, switchTo} from '../actions/route-tree'
+import {navBasedOnLoginState} from '../actions/login/creators'
 
 import type {KBFSStatus} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
@@ -211,7 +212,7 @@ export default connect(
   dispatch => ({
     ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
     onShowLoginTab: () => {
-      dispatch(navigateTo([loginTab]))
+      dispatch(navBasedOnLoginState())
     },
     switchTab: tab => {
       dispatch(switchTo([tab]))
