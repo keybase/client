@@ -290,10 +290,9 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 	}
 
 	return &keybase1.FSNotification{
-		PublicTopLevelFolder: handle.Type() == tlf.Public,
-		Filename:             string(handle.GetCanonicalPath()),
-		StatusCode:           code,
-		NotificationType:     keybase1.FSNotificationType_REKEYING,
+		Filename:         string(handle.GetCanonicalPath()),
+		StatusCode:       code,
+		NotificationType: keybase1.FSNotificationType_REKEYING,
 	}
 }
 
@@ -361,9 +360,8 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 	}
 
 	return &keybase1.FSNotification{
-		PublicTopLevelFolder: file.Tlf.Type() == tlf.Public,
-		Filename:             file.CanonicalPathString(),
-		StatusCode:           code,
+		Filename:   file.CanonicalPathString(),
+		StatusCode: code,
 	}
 }
 
@@ -394,13 +392,12 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		panic(fmt.Sprintf("Unknown mode: %v", mode))
 	}
 	return &keybase1.FSNotification{
-		Filename:             filename,
-		StatusCode:           keybase1.FSStatusCode_ERROR,
-		Status:               err.Error(),
-		ErrorType:            errType,
-		Params:               params,
-		NotificationType:     nType,
-		PublicTopLevelFolder: t == tlf.Public, // Deprecated
+		Filename:         filename,
+		StatusCode:       keybase1.FSStatusCode_ERROR,
+		Status:           err.Error(),
+		ErrorType:        errType,
+		Params:           params,
+		NotificationType: nType,
 	}
 }
 
@@ -411,10 +408,9 @@ func mdReadSuccessNotification(handle *TlfHandle,
 		params[errorParamTlf] = string(handle.GetCanonicalName())
 	}
 	return &keybase1.FSNotification{
-		Filename:             string(handle.GetCanonicalPath()),
-		StatusCode:           keybase1.FSStatusCode_START,
-		NotificationType:     keybase1.FSNotificationType_MD_READ_SUCCESS,
-		PublicTopLevelFolder: public,
-		Params:               params,
+		Filename:         string(handle.GetCanonicalPath()),
+		StatusCode:       keybase1.FSStatusCode_START,
+		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
+		Params:           params,
 	}
 }

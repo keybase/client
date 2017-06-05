@@ -1829,7 +1829,6 @@ func (j *tlfJournal) putBlockData(
 	}
 
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
-		PublicTopLevelFolder: j.tlfID.Type() == tlf.Public,
 		// Path: TODO,
 		// TODO: should this be the complete total for the file/directory,
 		// rather than the diff?

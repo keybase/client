@@ -895,7 +895,6 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 		totalFlushedBytes += flushedBytes
 
 		reporter.NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
-			PublicTopLevelFolder: tlfID.Type() == tlf.Public,
 			// Path: TODO,
 			// SyncingBytes: TODO,
 			// SyncingOps: TODO,

@@ -645,12 +645,11 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 				continue
 			}
 			n := keybase1.FSNotification{
-				PublicTopLevelFolder: !req.Folder.Private,
-				Filename:             edit.Filepath,
-				StatusCode:           keybase1.FSStatusCode_FINISH,
-				NotificationType:     nType,
-				WriterUid:            writer,
-				LocalTime:            keybase1.ToTime(edit.LocalTime),
+				Filename:         edit.Filepath,
+				StatusCode:       keybase1.FSStatusCode_FINISH,
+				NotificationType: nType,
+				WriterUid:        writer,
+				LocalTime:        keybase1.ToTime(edit.LocalTime),
 			}
 			resp.Edits = append(resp.Edits, n)
 		}

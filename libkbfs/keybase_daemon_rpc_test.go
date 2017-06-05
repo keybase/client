@@ -420,20 +420,18 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	// We should see 1 create edit for each user.
 	expectedEdits := []keybase1.FSNotification{
 		{
-			PublicTopLevelFolder: false,
-			Filename:             name + "/a",
-			StatusCode:           keybase1.FSStatusCode_FINISH,
-			NotificationType:     keybase1.FSNotificationType_FILE_CREATED,
-			WriterUid:            uid1,
-			LocalTime:            keybase1.ToTime(now),
+			Filename:         name + "/a",
+			StatusCode:       keybase1.FSStatusCode_FINISH,
+			NotificationType: keybase1.FSNotificationType_FILE_CREATED,
+			WriterUid:        uid1,
+			LocalTime:        keybase1.ToTime(now),
 		},
 		{
-			PublicTopLevelFolder: false,
-			Filename:             name + "/b",
-			StatusCode:           keybase1.FSStatusCode_FINISH,
-			NotificationType:     keybase1.FSNotificationType_FILE_CREATED,
-			WriterUid:            uid2,
-			LocalTime:            keybase1.ToTime(now),
+			Filename:         name + "/b",
+			StatusCode:       keybase1.FSStatusCode_FINISH,
+			NotificationType: keybase1.FSNotificationType_FILE_CREATED,
+			WriterUid:        uid2,
+			LocalTime:        keybase1.ToTime(now),
 		},
 	}
 
