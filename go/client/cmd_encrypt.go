@@ -17,13 +17,12 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter         UnixFilter
-	recipients     []string
-	noSelfEncrypt  bool
-	binary         bool
-	hideRecipients bool
-	hideSelf       bool
-	signcrypt      bool
+	filter             UnixFilter
+	recipients         []string
+	binary             bool
+	anonymousSender    bool
+	currentDevicesOnly bool // the public-facing term for "encryption-only mode"
+	noSelfEncrypt      bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -45,17 +44,16 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			Usage: "Specify an outfile (stdout by default).",
 		},
 		cli.BoolFlag{
-			Name:  "hide-recipients",
-			Usage: "Don't include recipients in metadata",
+			Name:  "anonymous",
+			Usage: "Don't include a sender.",
 		},
 		cli.BoolFlag{
-			Name: "anonymous",
-			Usage: "Don't include sender or recipients in metadata. " +
-				"Implies --hide-recipients.",
+			Name:  "current-devices-only", // the public-facing term for "encryption-only mode"
+			Usage: "Don't use any forward-compatible keys or server assistance.",
 		},
 		cli.BoolFlag{
 			Name:  "no-self",
-			Usage: "Don't encrypt for yourself",
+			Usage: "Don't encrypt for yourself. Requires --current-devices-only.",
 		},
 	}
 
@@ -103,12 +101,11 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	opts := keybase1.SaltpackEncryptOptions{
-		Recipients:     c.recipients,
-		NoSelfEncrypt:  c.noSelfEncrypt,
-		Binary:         c.binary,
-		HideRecipients: c.hideRecipients,
-		HideSelf:       c.hideSelf,
-		Signcrypt:      c.signcrypt,
+		Recipients:         c.recipients,
+		AnonymousSender:    c.anonymousSender,
+		EncryptionOnlyMode: c.currentDevicesOnly,
+		NoSelfEncrypt:      c.noSelfEncrypt,
+		Binary:             c.binary,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -133,12 +130,13 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
+	c.anonymousSender = ctx.Bool("anonymous")
+	c.currentDevicesOnly = ctx.Bool("current-devices-only")
 	c.noSelfEncrypt = ctx.Bool("no-self")
+	if c.noSelfEncrypt && !c.currentDevicesOnly {
+		return errors.New("--no-self requires --current-devices-only")
+	}
 	c.binary = ctx.Bool("binary")
-	// --anonymous means hide both self and recipients.
-	c.hideSelf = ctx.Bool("anonymous")
-	c.hideRecipients = ctx.Bool("hide-recipients") || ctx.Bool("anonymous")
-	c.signcrypt = ctx.Bool("signcrypt")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}

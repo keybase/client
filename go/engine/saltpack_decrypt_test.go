@@ -59,6 +59,7 @@ func TestSaltpackDecrypt(t *testing.T) {
 		Sink:   sink,
 	}
 	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -162,17 +163,19 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		},
 	}
 	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.String()
 
-	// Also output a hidden-sender message
-	arg.Opts.HideSelf = true
+	// Also output a anonymous-sender message
+	arg.Opts.AnonymousSender = true
 	sink = libkb.NewBufferCloser()
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = sink
 	enc = NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -317,6 +320,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		},
 	}
 	enc := NewSaltpackEncrypt(arg, tcZ.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
