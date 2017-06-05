@@ -50,11 +50,25 @@ class UserItem extends Component<void, UserItemProps, void> {
   }
 }
 
-class UserInput extends Component<void, Props, void> {
+type State = {isFocused: boolean}
+
+class UserInput extends Component<void, Props, State> {
   _textInput: AutosizeInput
+
+  state = {
+    isFocused: false,
+  }
 
   _focusInput = () => {
     this._textInput.focus()
+  }
+
+  _onFocus = () => {
+    this.setState({isFocused: true})
+  }
+
+  _onBlur = () => {
+    this.setState({isFocused: false})
   }
 
   _onInputKeyDown = ev => {
@@ -68,35 +82,52 @@ class UserInput extends Component<void, Props, void> {
     }
   }
 
+  _preventInputDefocus(ev) {
+    // We prevent default handling of mousedown events on the container so that
+    // our input doesn't get defocused.
+    ev.preventDefault()
+  }
+
   render() {
     const {placeholder, userItems, usernameText, onChangeText, onClickAddButton, onRemoveUser} = this.props
+    const {isFocused} = this.state
 
-    const inputLeftPadding = userItems.length ? {paddingLeft: globalMargins.xtiny} : null
     const showAddButton = !!userItems.length && !usernameText.length
+    const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
+      ? globalMargins.xtiny
+      : 0
     return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}} onClick={this._focusInput}>
+      <Box
+        style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}
+        onClick={this._focusInput}
+        onMouseDown={this._preventInputDefocus}
+      >
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.username} />)}
-        <AutosizeInput
-          ref={el => {
-            this._textInput = el
-          }}
-          inputStyle={{..._inputStyle, ...inputLeftPadding}}
-          placeholder={userItems.length ? '' : placeholder}
-          value={usernameText}
-          onChange={onChangeText}
-          onKeyDown={this._onInputKeyDown}
-        />
-        {showAddButton &&
-          <Icon
-            onClick={onClickAddButton}
-            type="iconfont-add"
-            style={{
-              fontSize: 12,
-              color: globalColors.blue,
-              marginLeft: globalMargins.xtiny,
-              cursor: 'pointer',
+        <Box style={_inputLineStyle}>
+          <AutosizeInput
+            ref={el => {
+              this._textInput = el
             }}
-          />}
+            inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
+            placeholder={userItems.length ? '' : placeholder}
+            value={usernameText}
+            onChange={onChangeText}
+            onKeyDown={this._onInputKeyDown}
+            onFocus={this._onFocus}
+            onBlur={this._onBlur}
+          />
+          {showAddButton &&
+            <Icon
+              onClick={onClickAddButton}
+              type="iconfont-add"
+              style={{
+                fontSize: 12,
+                color: globalColors.blue,
+                marginLeft: globalMargins.xtiny,
+                cursor: 'pointer',
+              }}
+            />}
+        </Box>
       </Box>
     )
   }
@@ -117,6 +148,15 @@ const _pillStyle = {
   borderWidth: 1,
   borderStyle: 'solid',
   borderColor: globalColors.black_10,
+}
+
+const _inputLineStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 24,
+  marginTop: 2,
+  marginBottom: 2,
+  overflow: 'hidden',
 }
 
 const _inputStyle = {

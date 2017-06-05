@@ -70,6 +70,8 @@ class AutosizeInput extends Component<void, Props, State> {
           }}
           onChange={this._onChange}
           onKeyDown={this.props.onKeyDown}
+          onFocus={this.props.onFocus}
+          onBlur={this.props.onBlur}
         />
         <div
           ref={el => {
