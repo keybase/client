@@ -419,7 +419,7 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
 	if !isPotentialRenamePath(source.Path()) {
-		f.log.Errorf("Refusing MoveFile access: SID match error")
+		f.log.Errorf("Refusing MoveFile access: not potential rename path")
 		return dokan.ErrAccessDenied
 	}
 
