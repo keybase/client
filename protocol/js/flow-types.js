@@ -5249,11 +5249,10 @@ export type SaltpackDecryptOptions = {
 
 export type SaltpackEncryptOptions = {
   recipients?: ?Array<string>,
-  hideSelf: boolean,
+  anonymousSender: boolean,
+  encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
-  hideRecipients: boolean,
-  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {

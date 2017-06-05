@@ -6,12 +6,10 @@ protocol saltpack {
 
   record SaltpackEncryptOptions {
     array<string> recipients; // user assertions
-    boolean hideSelf;
+    boolean anonymousSender;
+    boolean encryptionOnlyMode;
     boolean noSelfEncrypt;
     boolean binary;
-    boolean hideRecipients;
-    // TEMPORARY
-    boolean signcrypt;
   }
 
   record SaltpackDecryptOptions {

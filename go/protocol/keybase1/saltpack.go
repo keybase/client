@@ -9,12 +9,11 @@ import (
 )
 
 type SaltpackEncryptOptions struct {
-	Recipients     []string `codec:"recipients" json:"recipients"`
-	HideSelf       bool     `codec:"hideSelf" json:"hideSelf"`
-	NoSelfEncrypt  bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary         bool     `codec:"binary" json:"binary"`
-	HideRecipients bool     `codec:"hideRecipients" json:"hideRecipients"`
-	Signcrypt      bool     `codec:"signcrypt" json:"signcrypt"`
+	Recipients         []string `codec:"recipients" json:"recipients"`
+	AnonymousSender    bool     `codec:"anonymousSender" json:"anonymousSender"`
+	EncryptionOnlyMode bool     `codec:"encryptionOnlyMode" json:"encryptionOnlyMode"`
+	NoSelfEncrypt      bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary             bool     `codec:"binary" json:"binary"`
 }
 
 func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
@@ -27,11 +26,10 @@ func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
 			}
 			return ret
 		})(o.Recipients),
-		HideSelf:       o.HideSelf,
-		NoSelfEncrypt:  o.NoSelfEncrypt,
-		Binary:         o.Binary,
-		HideRecipients: o.HideRecipients,
-		Signcrypt:      o.Signcrypt,
+		AnonymousSender:    o.AnonymousSender,
+		EncryptionOnlyMode: o.EncryptionOnlyMode,
+		NoSelfEncrypt:      o.NoSelfEncrypt,
+		Binary:             o.Binary,
 	}
 }
 

@@ -24,7 +24,11 @@
         },
         {
           "type": "boolean",
-          "name": "hideSelf"
+          "name": "anonymousSender"
+        },
+        {
+          "type": "boolean",
+          "name": "encryptionOnlyMode"
         },
         {
           "type": "boolean",
@@ -33,14 +37,6 @@
         {
           "type": "boolean",
           "name": "binary"
-        },
-        {
-          "type": "boolean",
-          "name": "hideRecipients"
-        },
-        {
-          "type": "boolean",
-          "name": "signcrypt"
         }
       ]
     },
