@@ -199,10 +199,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "5E4DLEAVDwFt//h5K23zHP1qCew=",
+			"checksumSHA1": "fgFlkfkaotUjBVhJik2979oCeJw=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "b5f4c79208fa609f364833f8c356535100d602ad",
-			"revisionTime": "2017-05-22T12:28:10Z"
+			"revision": "00ac4db533f63ef97576cbc7b07939ff7daf7329",
+			"revisionTime": "2017-06-05T14:56:57Z"
 		},
 		{
 			"checksumSHA1": "+spfcEChljh3yeIg4K/xHOQ2pVM=",
@@ -235,10 +235,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "CXTLNDL5s+SONDJdwuI3kRFGyBk=",
+			"checksumSHA1": "y16ATKgHL/k6rQZqdXP1sIAJxE0=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "b5f4c79208fa609f364833f8c356535100d602ad",
-			"revisionTime": "2017-05-22T12:28:10Z"
+			"revision": "00ac4db533f63ef97576cbc7b07939ff7daf7329",
+			"revisionTime": "2017-06-05T14:56:57Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
