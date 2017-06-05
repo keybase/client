@@ -52,6 +52,16 @@ func TestLoginAndSwitch(t *testing.T) {
 	return
 }
 
+func TestLoginUsernameWhitespace(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "lg")
+	Logout(tc)
+	u1.Username = " " + u1.Username
+	u1.LoginOrBust(tc)
+}
+
 // Login should now unlock device keys at the end, no matter what.
 func TestLoginUnlocksDeviceKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
