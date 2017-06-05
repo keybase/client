@@ -5,7 +5,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -40,16 +39,15 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 }
 
 func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) == 0 {
-		return errors.New("remove-member requires team name argument")
+	var err error
+	c.team, err = ParseOneTeamName(ctx)
+	if err != nil {
+		return err
 	}
-	if len(ctx.Args()) > 1 {
-		return errors.New("remove-member requires one team name argument, multiple found")
-	}
-	c.team = ctx.Args()[0]
-	c.username = ctx.String("user")
-	if len(c.username) == 0 {
-		return errors.New("username required via --user flag")
+
+	c.username, err = ParseUser(ctx)
+	if err != nil {
+		return err
 	}
 
 	return nil
