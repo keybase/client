@@ -11,7 +11,7 @@ import type {Props} from './markdown'
 const codeSnippetStyle = {
   ...globalStyles.fontTerminal,
   color: globalColors.blue,
-  fontSize: 12,
+  fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
   //...globalStyles.rounded,
@@ -88,9 +88,9 @@ function messageCreateComponent(style) {
       case 'strike':
         return <Text type="Body" key={key} style={strikeStyle}>{children}</Text>
       case 'emoji':
-        return <EmojiIfExists emojiName={String(children)} key={key} />
+        return <EmojiIfExists emojiName={String(children)} size={15} key={key} />
       case 'native-emoji':
-        return <Emoji emojiName={String(children)} key={key} />
+        return <Emoji emojiName={String(children)} size={15} key={key} />
       case 'quote-block':
         return <Box key={key} style={quoteBlockStyle}>{children}</Box>
     }

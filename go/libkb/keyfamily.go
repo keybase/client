@@ -436,6 +436,10 @@ func (ckf ComputedKeyFamily) FindKeyWithKIDUnsafe(kid keybase1.KID) (GenericKey,
 	return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid)}
 }
 
+func (ckf ComputedKeyFamily) getCkiUnchecked(kid keybase1.KID) (ret *ComputedKeyInfo) {
+	return ckf.cki.Infos[kid]
+}
+
 func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
 	if ki := ckf.cki.Infos[kid]; ki == nil {
@@ -518,16 +522,16 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: tcl.GetMerkleSeqno(),
+		Chain: int(tcl.GetMerkleSeqno()),
 	}
 }
 
 // NowAsKeybaseTime makes a representation of now.  IF we don't know the MerkleTree
 // chain seqno, just use 0
-func NowAsKeybaseTime(seqno int) *KeybaseTime {
+func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: seqno,
+		Chain: int(seqno),
 	}
 }
 
@@ -740,6 +744,32 @@ func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (re
 		ret = DLGSubkey
 	}
 	return
+}
+
+// GetAllSibkeysUnchecked gets all sibkeys, dead or otherwise, that were at one point associated
+// with this key family.
+func (ckf ComputedKeyFamily) GetAllSibkeysUnchecked() (ret []GenericKey) {
+	return ckf.getAllKeysUnchecked(DLGSibkey)
+}
+
+// GetAllSubkeysUnchecked gets all sibkeys, dead or otherwise, that were at one point associated
+// with this key family.
+func (ckf ComputedKeyFamily) GetAllSubkeysUnchecked() (ret []GenericKey) {
+	return ckf.getAllKeysUnchecked(DLGSubkey)
+}
+
+func (ckf ComputedKeyFamily) getAllKeysUnchecked(role KeyRole) (ret []GenericKey) {
+	for kid := range ckf.kf.AllKIDs {
+		info := ckf.getCkiUnchecked(kid)
+		if info != nil && ((info.Sibkey && role == DLGSibkey) || (!info.Sibkey && role == DLGSubkey)) {
+			key, err := ckf.FindKeyWithKIDUnsafe(kid)
+			if err != nil {
+				ckf.G().Log.Warning("GetAllSibkeys: Error in getting KID %s: %s", kid, err)
+			}
+			ret = append(ret, key)
+		}
+	}
+	return ret
 }
 
 // GetKeyRole returns the KeyRole (sibkey/subkey/none), taking into account

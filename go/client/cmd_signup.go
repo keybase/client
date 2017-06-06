@@ -122,6 +122,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		s.genPGP = ctx.Bool("pgp")
 		s.genPaper = true
 		s.doPrompt = false
+		s.storeSecret = true
 	} else {
 		s.doPrompt = true
 	}

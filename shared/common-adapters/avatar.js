@@ -18,6 +18,7 @@ type State = {
 
 const placeHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
+  '12': 'icon-placeholder-avatar-24',
   '16': 'icon-placeholder-avatar-24',
   '176': 'icon-placeholder-avatar-176',
   '24': 'icon-placeholder-avatar-24',

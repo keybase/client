@@ -205,6 +205,13 @@ export const CtlExitCode = {
   restart: 4,
 }
 
+export const FavoriteFolderType = {
+  unknown: 0,
+  private: 1,
+  public: 2,
+  team: 3,
+}
+
 export const GregorUIPushReason = {
   none: 0,
   reconnected: 1,
@@ -493,6 +500,20 @@ export const SimpleFSPathType = {
   kbfs: 1,
 }
 
+export const TeamsTeamApplication = {
+  kbfs: 1,
+  chat: 2,
+  saltpack: 3,
+}
+
+export const TeamsTeamRole = {
+  none: 0,
+  owner: 1,
+  admin: 2,
+  writer: 3,
+  reader: 4,
+}
+
 export const TlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
   chatCli: 1,
@@ -501,6 +522,17 @@ export const TlfKeysTLFIdentifyBehavior = {
   kbfsRekey: 4,
   kbfsQr: 5,
   chatSkip: 6,
+}
+
+export const UPKKeyType = {
+  none: 0,
+  nacl: 1,
+  pgp: 2,
+}
+
+export const UPKUPAKVersion = {
+  v1: 1,
+  v2: 2,
 }
 
 export const UiPromptDefault = {
@@ -1964,6 +1996,21 @@ export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {ca
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify2', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function identifyIdentifyLiteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.identifyLite', request)
+}
+
+export function identifyIdentifyLiteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identifyLite', request)
+}
+export function identifyIdentifyLiteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.identifyLite', request, callback, incomingCallMap) })
+}
+
+export function identifyIdentifyLiteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyLiteResult) => void} & {param: identifyIdentifyLiteRpcParam}>): Promise<identifyIdentifyLiteResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyIdentifyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
   engineRpcOutgoing('keybase.1.identify.identify', request)
 }
@@ -2337,6 +2384,21 @@ export function loginUnlockWithPassphraseRpcChannelMapOld (channelConfig: Channe
 
 export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function merkleGetCurrentMerkleRootRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>) {
+  engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+
+export function merkleGetCurrentMerkleRootRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+export function merkleGetCurrentMerkleRootRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, callback, incomingCallMap) })
+}
+
+export function merkleGetCurrentMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): Promise<merkleGetCurrentMerkleRootResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
@@ -3389,6 +3451,36 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
+}
+
+export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
+}
+export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAddMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamChangeMembershipRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request)
+}
+
+export function teamsTeamChangeMembershipRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
+}
+export function teamsTeamChangeMembershipRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamChangeMembershipRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamCreateRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamCreate', request)
 }
@@ -3402,6 +3494,51 @@ export function teamsTeamCreateRpcChannelMapOld (channelConfig: ChannelConfig<*>
 
 export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
+}
+
+export function teamsTeamEditMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
+}
+export function teamsTeamEditMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamEditMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamEditMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamEditMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamGet', request)
+}
+
+export function teamsTeamGetRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamGet', request)
+}
+export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamGet', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): Promise<teamsTeamGetResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
+}
+
+export function teamsTeamRemoveMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
+}
+export function teamsTeamRemoveMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamRemoveMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
@@ -3898,7 +4035,7 @@ export type BinaryKID = bytes
 
 export type BlockIdCombo = {
   blockHash: string,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
   blockType: BlockType,
 }
 
@@ -3909,7 +4046,7 @@ export type BlockRefNonce = any
 export type BlockReference = {
   bid: BlockIdCombo,
   nonce: BlockRefNonce,
-  chargedTo: UID,
+  chargedTo: UserOrTeamID,
 }
 
 export type BlockReferenceCount = {
@@ -4198,7 +4335,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
-  publicTopLevelFolder: boolean,
   filename: string,
   status: string,
   statusCode: FSStatusCode,
@@ -4207,6 +4343,7 @@ export type FSNotification = {
   params: {[key: string]: string},
   writerUid: UID,
   localTime: Time,
+  folderType: FolderType,
 }
 
 export type FSNotificationType =
@@ -4224,7 +4361,7 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
-  publicTopLevelFolder: boolean,
+  folderType: FolderType,
   path: string,
   syncingBytes: int64,
   syncingOps: int64,
@@ -4287,7 +4424,14 @@ export type Folder = {
   private: boolean,
   notificationsOn: boolean,
   created: boolean,
+  folderType: FolderType,
 }
+
+export type FolderType =
+    0 // UNKNOWN_0
+  | 1 // PRIVATE_1
+  | 2 // PUBLIC_2
+  | 3 // TEAM_3
 
 export type ForkType =
     0 // NONE_0
@@ -4385,6 +4529,11 @@ export type IdentifyKey = {
   KID: KID,
   trackDiff?: ?TrackDiff,
   breaksTracking: boolean,
+}
+
+export type IdentifyLiteRes = {
+  ul: UserOrTeamLite,
+  trackBreaks?: ?IdentifyTrackBreaks,
 }
 
 export type IdentifyOutcome = {
@@ -4521,6 +4670,11 @@ export type KeyInfo = {
   desc: string,
 }
 
+export type KeyType =
+    0 // NONE_0
+  | 1 // NACL_1
+  | 2 // PGP_2
+
 export type KeybaseTime = {
   unix: Time,
   chain: int,
@@ -4571,9 +4725,22 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MaskB64 = bytes
+
 export type MerkleRoot = {
   version: int,
   root: bytes,
+}
+
+export type MerkleRootAndTime = {
+  root: MerkleRootV2,
+  updateTime: Time,
+  fetchTime: Time,
+}
+
+export type MerkleRootV2 = {
+  seqno: Seqno,
+  hashMeta: bytes,
 }
 
 export type MerkleTreeID =
@@ -4730,6 +4897,8 @@ export type PGPEncryptOptions = {
   keyQuery: string,
 }
 
+export type PGPFingerprint = any
+
 export type PGPIdentity = {
   username: string,
   comment: string,
@@ -4784,9 +4953,16 @@ export type PathType =
     0 // LOCAL_0
   | 1 // KBFS_1
 
+export type PerTeamKey = {
+  gen: int,
+  seqno: Seqno,
+  sigKID: KID,
+  encKID: KID,
+}
+
 export type PerUserKey = {
   gen: int,
-  seqno: int,
+  seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
@@ -4948,6 +5124,35 @@ export type PublicKey = {
   isRevoked: boolean,
 }
 
+export type PublicKeyV2 =
+    { keyType: 1, nacl: ?PublicKeyV2NaCl }
+  | { keyType: 2, pgp: ?PublicKeyV2PGPSummary }
+  | { keyType: any }
+
+export type PublicKeyV2Base = {
+  kid: KID,
+  isSibkey: boolean,
+  isEldest: boolean,
+  cTime: Time,
+  eTime: Time,
+  provisioning: SignatureMetadata,
+  revocation?: ?SignatureMetadata,
+}
+
+export type PublicKeyV2NaCl = {
+  base: PublicKeyV2Base,
+  parent?: ?KID,
+  deviceID: DeviceID,
+  deviceDescription: string,
+  deviceType: string,
+}
+
+export type PublicKeyV2PGPSummary = {
+  base: PublicKeyV2Base,
+  fingerprint: PGPFingerprint,
+  identities?: ?Array<PGPIdentity>,
+}
+
 export type PushReason =
     0 // NONE_0
   | 1 // RECONNECTED_1
@@ -4967,6 +5172,12 @@ export type ReadArgs = {
   path: Path,
   offset: long,
   size: int,
+}
+
+export type ReaderKeyMask = {
+  application: TeamApplication,
+  generation: int,
+  mask: MaskB64,
 }
 
 export type RegisterAddressRes = {
@@ -5131,6 +5342,8 @@ export type SelectKeyRes = {
   doSecretPush: boolean,
 }
 
+export type Seqno = int64
+
 export type ServiceStatus = {
   version: string,
   label: string,
@@ -5167,7 +5380,7 @@ export type SessionStatus = {
 export type SessionToken = string
 
 export type Sig = {
-  seqno: int,
+  seqno: Seqno,
   sigID: SigID,
   sigIDDisplay: string,
   type: string,
@@ -5208,6 +5421,13 @@ export type SignMode =
     0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
+
+export type SignatureMetadata = {
+  signingKID: KID,
+  prevMerkleRootSigned: MerkleRootV2,
+  firstAppearedUnverified: Seqno,
+  time: Time,
+}
 
 export type SignupRes = {
   passphraseOk: boolean,
@@ -5454,7 +5674,52 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamApplication =
+    1 // KBFS_1
+  | 2 // CHAT_2
+  | 3 // SALTPACK_3
+
+export type TeamApplicationKey = {
+  application: TeamApplication,
+  keyGeneration: int,
+  key: Bytes32,
+}
+
+export type TeamChangeReq = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+  none?: ?Array<string>,
+}
+
 export type TeamID = string
+
+export type TeamMembers = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+}
+
+export type TeamRole =
+    0 // NONE_0
+  | 1 // OWNER_1
+  | 2 // ADMIN_2
+  | 3 // WRITER_3
+  | 4 // READER_4
+
+export type TeamSigChainState = {
+  reader: UserVersion,
+  id: TeamID,
+  name: string,
+  lastSeqno: Seqno,
+  lastLinkID: LinkID,
+  parentID?: ?TeamID,
+  userLog: {[key: string]: ?Array<UserLogPoint>},
+  perTeamKeys: {[key: string]: PerTeamKey},
+  stubbedTypes: {[key: string]: bool},
+}
 
 export type Test = {
   reply: string,
@@ -5524,6 +5789,14 @@ export type Tracker = {
 
 export type UID = string
 
+export type UPAKVersion =
+    1 // V1_1
+  | 2 // V2_2
+
+export type UPAKVersioned =
+    { v: 1, v1: ?UserPlusAllKeys }
+  | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
+
 export type UnboxAnyRes = {
   kid: KID,
   plaintext: Bytes32,
@@ -5553,6 +5826,18 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserLogPoint = {
+  role: TeamRole,
+  seqno: Seqno,
+}
+
+export type UserOrTeamID = string
+
+export type UserOrTeamLite = {
+  id: UserOrTeamID,
+  name: string,
+}
+
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
@@ -5562,13 +5847,29 @@ export type UserPlusAllKeys = {
 export type UserPlusKeys = {
   uid: UID,
   username: string,
-  eldestSeqno: int,
+  eldestSeqno: Seqno,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
   uvv: UserVersionVector,
   deletedDeviceKeys?: ?Array<PublicKey>,
   perUserKeys?: ?Array<PerUserKey>,
+}
+
+export type UserPlusKeysV2 = {
+  uid: UID,
+  username: string,
+  eldestSeqno: Seqno,
+  uvv: UserVersionVector,
+  perUserKeys?: ?Array<PerUserKey>,
+  deviceKeys?: ?Array<PublicKeyV2NaCl>,
+  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
+  remoteTracks?: ?Array<RemoteTrack>,
+}
+
+export type UserPlusKeysV2AllIncarnations = {
+  current: UserPlusKeysV2,
+  pastIncarnations?: ?Array<UserPlusKeysV2>,
 }
 
 export type UserResolution = {
@@ -5605,6 +5906,11 @@ export type UserSummary2Set = {
   users?: ?Array<UserSummary2>,
   time: Time,
   version: int,
+}
+
+export type UserVersion = {
+  username: string,
+  eldestSeqno: Seqno,
 }
 
 export type UserVersionVector = {
@@ -5882,6 +6188,22 @@ export type identifyIdentify2RpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
+export type identifyIdentifyLiteRpcParam = Exact<{
+  id: UserOrTeamID,
+  assertion: string,
+  reason: IdentifyReason,
+  useDelegateUI?: boolean,
+  alwaysBlock?: boolean,
+  noErrorOnTrackFailure?: boolean,
+  forceRemoteCheck?: boolean,
+  needProofSet?: boolean,
+  allowEmptySelfID?: boolean,
+  noSkipSelf?: boolean,
+  canSuppressUI?: boolean,
+  identifyBehavior?: TLFIdentifyBehavior,
+  forceDisplay?: boolean
+}>
+
 export type identifyIdentifyRpcParam = Exact<{
   userAssertion: string,
   forceRemoteCheck?: boolean,
@@ -6044,6 +6366,10 @@ export type loginUnlockWithPassphraseRpcParam = Exact<{
   passphrase: string
 }>
 
+export type merkleGetCurrentMerkleRootRpcParam = Exact<{
+  freshnessMsec: int
+}>
+
 export type metadataAuthenticateRpcParam = Exact<{
   signature: string
 }>
@@ -6162,8 +6488,7 @@ export type notifyCtlSetNotificationsRpcParam = Exact<{
 export type paperprovisionPaperProvisionRpcParam = Exact<{
   username: string,
   deviceName: string,
-  paperKey: string,
-  keepPaperKey: boolean
+  paperKey: string
 }>
 
 export type pgpPgpDecryptRpcParam = Exact<{
@@ -6478,8 +6803,35 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsTeamAddMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole,
+  sendChatNotification: boolean
+}>
+
+export type teamsTeamChangeMembershipRpcParam = Exact<{
+  name: string,
+  req: TeamChangeReq
+}>
+
 export type teamsTeamCreateRpcParam = Exact<{
   name: string
+}>
+
+export type teamsTeamEditMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole
+}>
+
+export type teamsTeamGetRpcParam = Exact<{
+  name: string
+}>
+
+export type teamsTeamRemoveMemberRpcParam = Exact<{
+  name: string,
+  username: string
 }>
 
 export type testPanicRpcParam = Exact<{
@@ -6655,6 +7007,7 @@ type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
+type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
 type identifyResolveResult = UID
@@ -6665,6 +7018,7 @@ type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 type loginUiGetEmailOrUsernameResult = string
 type loginUiPromptRevokePaperKeysResult = boolean
+type merkleGetCurrentMerkleRootResult = MerkleRootAndTime
 type metadataAuthenticateResult = int
 type metadataGetChallengeResult = ChallengeInfo
 type metadataGetFolderHandleResult = bytes
@@ -6715,6 +7069,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsTeamGetResult = TeamMembers
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -6838,6 +7193,7 @@ export type rpc =
   | fsListRpc
   | gregorGetStateRpc
   | identifyIdentify2Rpc
+  | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
   | identifyResolveRpc
@@ -6863,6 +7219,7 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
+  | merkleGetCurrentMerkleRootRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc
@@ -6933,7 +7290,12 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsTeamAddMemberRpc
+  | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
+  | teamsTeamEditMemberRpc
+  | teamsTeamGetRpc
+  | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

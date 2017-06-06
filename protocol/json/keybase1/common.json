@@ -102,6 +102,19 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "UserOrTeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Seqno",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
       "type": "fixed",
       "name": "Bytes32",
       "size": "32"
@@ -365,7 +378,7 @@
           "name": "gen"
         },
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "seqno"
         },
         {
@@ -392,7 +405,7 @@
           "name": "username"
         },
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "eldestSeqno"
         },
         {
@@ -431,6 +444,20 @@
           },
           "name": "perUserKeys",
           "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamLite",
+      "fields": [
+        {
+          "type": "UserOrTeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
         }
       ]
     },

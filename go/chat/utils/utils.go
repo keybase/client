@@ -334,21 +334,6 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) fun
 	return func() {}
 }
 
-func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
-
-	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
-	}
-	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: no conv found: %s", convID)
-	}
-	return inbox.ConvsUnverified[0], ratelim, nil
-}
-
 // FilterByType filters messages based on a query.
 // If includeAllErrors then MessageUnboxedError are all returned. Otherwise, they are filtered based on type.
 // Messages whose type cannot be determined are considered errors.

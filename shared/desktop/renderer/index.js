@@ -17,7 +17,6 @@ import loadPerf from '../../util/load-perf'
 import routeDefs from '../../routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
-import {devEditAction} from '../../reducers/dev-edit'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
@@ -25,7 +24,7 @@ import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
 import {merge, throttle} from 'lodash'
-import {reduxDevToolsEnable, devStoreChangingFunctions, resetEngineOnHMR} from '../../local-debug.desktop'
+import {reduxDevToolsEnable, resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar'
 import {selector as pineentrySelector} from '../../pinentry'
 import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
@@ -58,13 +57,9 @@ function setupAvatar() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  makeEngine()
+  const eng = makeEngine()
   loadPerf()
   setupAvatar()
-
-  if (devStoreChangingFunctions) {
-    window.devEdit = (path, value) => store.dispatch(devEditAction(path, value))
-  }
 
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     require('devtron').install()
@@ -92,6 +87,13 @@ function setupApp(store) {
       } catch (_) {}
     })
   })
+
+  // After a delay, see if we're connected, and try starting keybase if not
+  setTimeout(() => {
+    if (!eng.hasEverConnected()) {
+      ipcRenderer.send('kb-service-check')
+    }
+  }, 3 * 1000)
 
   // Run installer
   ipcRenderer.on('installed', (event, message) => {

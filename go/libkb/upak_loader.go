@@ -253,7 +253,8 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			return nil, user, err
 		}
 		if needCopy {
-			upak = upak.DeepCopy()
+			tmp := upak.DeepCopy()
+			upak = &tmp
 		}
 		return upak, user, nil
 	}
@@ -305,7 +306,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			if err != nil {
 				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.UID, err)
 			}
-		} else if leaf.public != nil && leaf.public.Seqno == Seqno(upak.Base.Uvv.SigChain) {
+		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Base.Uvv.SigChain) {
 			g.Log.CDebugf(ctx, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
 			upak.Base.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())

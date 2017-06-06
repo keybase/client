@@ -38,7 +38,7 @@ const PostProof = (props: Props) => {
       }
 
   return (
-    <StandardScreen {...notification} onClose={onCancel}>
+    <StandardScreen {...notification} onCancel={onCancel}>
       <PlatformIcon
         style={stylePlatformIcon}
         platform={platform}
@@ -62,11 +62,10 @@ const PostProof = (props: Props) => {
         <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
       {!!noteText && <Text style={styleNoteText} type="BodySmall">{noteText}</Text>}
       {!!proofAction &&
-        !!proofActionText &&
         !!proofActionIcon &&
         <LinkWithIcon
           style={styleProofAction}
-          label={proofActionText}
+          label={proofActionText || ''}
           icon={proofActionIcon}
           color={globalColors.blue}
           onClick={() => proofAction()}

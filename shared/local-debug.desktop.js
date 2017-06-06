@@ -12,7 +12,6 @@ let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   allowMultipleInstances: false,
   closureStoreCheck: false,
-  devStoreChangingFunctions: false,
   enableActionLogging: true,
   enableStoreLogging: false,
   featureFlagsOverride: null,
@@ -43,7 +42,6 @@ let config: {[key: string]: any} = {
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.actionStatFrequency = 0.8
   config.allowMultipleInstances = true
-  config.devStoreChangingFunctions = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.forwardLogs = false
@@ -53,7 +51,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRPC = true
   config.printRoutes = true
   config.redirectOnLogout = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
 
   const envJson = envVarDebugJson()
@@ -74,7 +72,6 @@ config = updateConfig(config)
 
 if (__DEV__ && process.env.KEYBASE_PERF) {
   config.actionStatFrequency = 0
-  config.devStoreChangingFunctions = false
   config.enableActionLogging = false
   config.enableStoreLogging = false
   config.forwardLogs = false
@@ -90,7 +87,6 @@ export const {
   actionStatFrequency,
   allowMultipleInstances,
   closureStoreCheck,
-  devStoreChangingFunctions,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,

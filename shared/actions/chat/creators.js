@@ -341,19 +341,21 @@ function loadingMessages(
   return {payload: {conversationIDKey, isRequesting}, type: 'chat:loadingMessages'}
 }
 
-function retryAttachment(message: Constants.AttachmentMessage): Constants.SelectAttachment {
-  const {conversationIDKey, filename, title, previewType, outboxID} = message
-  if (!filename || !title || !previewType) {
-    throw new Error('attempted to retry attachment without filename')
+function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
+  const {conversationIDKey, uploadPath, title, previewType, outboxID} = message
+  if (!uploadPath || !title || !previewType) {
+    throw new Error('attempted to retry attachment without upload path')
+  }
+  if (!outboxID) {
+    throw new Error('attempted to retry attachment without outboxID')
   }
   const input = {
     conversationIDKey,
-    filename,
-    outboxID,
+    filename: uploadPath,
     title,
     type: previewType || 'Other',
   }
-  return {payload: {input}, type: 'chat:selectAttachment'}
+  return {payload: {input, oldOutboxID: outboxID}, type: 'chat:retryAttachment'}
 }
 
 function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAttachment {
@@ -528,23 +530,27 @@ function setSelectedRouteState(
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
-function setAttachmentPlaceholderPreview(
-  outboxID: Constants.OutboxIDKey,
-  previewPath: string
-): Constants.SetAttachmentPlaceholderPreview {
-  return {payload: {previewPath, outboxID}, type: 'chat:setAttachmentPlaceholderPreview'}
+function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
+  return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
-function clearAttachmentPlaceholderPreview(
-  outboxID: Constants.OutboxIDKey
-): Constants.ClearAttachmentPlaceholderPreview {
-  return {payload: {outboxID}, type: 'chat:clearAttachmentPlaceholderPreview'}
+function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
+  return {payload: {search}, type: 'chat:inboxSearch'}
 }
 
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
+}
+
+function updateThread(
+  thread: ChatTypes.ThreadView,
+  yourName: string,
+  yourDeviceName: string,
+  conversationIDKey: string
+): Constants.UpdateThread {
+  return {payload: {thread, yourName, yourDeviceName, conversationIDKey}, type: 'chat:updateThread'}
 }
 
 export {
@@ -554,7 +560,6 @@ export {
   attachmentSaved,
   badgeAppForChat,
   blockConversation,
-  clearAttachmentPlaceholderPreview,
   clearMessages,
   clearRekey,
   createPendingFailure,
@@ -590,7 +595,8 @@ export {
   saveAttachment,
   selectAttachment,
   selectConversation,
-  setAttachmentPlaceholderPreview,
+  setInboxFilter,
+  setInboxSearch,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
@@ -617,6 +623,7 @@ export {
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
+  updateThread,
   updateTyping,
   updatedMetadata,
   uploadProgress,

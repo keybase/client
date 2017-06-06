@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func sendSimple(t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
+func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	sender Sender, conv chat1.Conversation, user *kbtest.FakeUser,
 	iboxXform func(chat1.InboxVers) chat1.InboxVers) {
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
@@ -36,11 +36,11 @@ func sendSimple(t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 			Body: "hi",
 		}),
 	}
-	_, boxed, _, err := sender.Send(context.TODO(), convID, pt, 0)
+	_, boxed, _, err := sender.Send(ctx, convID, pt, 0)
 	require.NoError(t, err)
 
 	ibox := storage.NewInbox(tc.Context(), uid)
-	vers, err := ibox.Version(context.TODO())
+	vers, err := ibox.Version(ctx)
 	if err != nil {
 		require.IsType(t, storage.MissError{}, err)
 		vers = 0
@@ -63,11 +63,11 @@ func sendSimple(t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
 	}
 
 	tc.G.NotifyRouter = nr
-	require.NoError(t, ph.Activity(context.TODO(), m))
+	require.NoError(t, ph.Activity(ctx, m))
 }
 
 func TestPushOrdering(t *testing.T) {
-	world, ri2, _, sender, list, tlf := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -77,8 +77,8 @@ func TestPushOrdering(t *testing.T) {
 	handler := NewPushHandler(tc.Context())
 	handler.SetClock(world.Fc)
 
-	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
-	sendSimple(t, tc, handler, sender, conv, u,
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 
 	select {
@@ -87,7 +87,7 @@ func TestPushOrdering(t *testing.T) {
 		require.Fail(t, "no notification received")
 	}
 
-	sendSimple(t, tc, handler, sender, conv, u,
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 2 })
 	select {
 	case <-list.incoming:
@@ -95,7 +95,7 @@ func TestPushOrdering(t *testing.T) {
 	default:
 	}
 
-	sendSimple(t, tc, handler, sender, conv, u,
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incoming:
@@ -111,7 +111,7 @@ func TestPushOrdering(t *testing.T) {
 	require.Zero(t, len(handler.orderer.waiters))
 	handler.orderer.Unlock()
 
-	sendSimple(t, tc, handler, sender, conv, u,
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 2 })
 	select {
 	case <-list.incoming:
@@ -132,7 +132,7 @@ func TestPushOrdering(t *testing.T) {
 }
 
 func TestPushAppState(t *testing.T) {
-	world, ri2, _, sender, list, tlf := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -141,10 +141,10 @@ func TestPushAppState(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
 	handler.SetClock(world.Fc)
-	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-	sendSimple(t, tc, handler, sender, conv, u,
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incoming:
@@ -165,7 +165,7 @@ func TestPushAppState(t *testing.T) {
 		require.Fail(t, "no stale message")
 	}
 
-	sendSimple(t, tc, handler, sender, conv, u,
+	sendSimple(ctx, t, tc, handler, sender, conv, u,
 		func(vers chat1.InboxVers) chat1.InboxVers { return vers + 1 })
 	select {
 	case <-list.incoming:
@@ -193,7 +193,7 @@ func makeTypingNotification(t *testing.T, uid gregor1.UID, convID chat1.Conversa
 }
 
 func TestPushTyping(t *testing.T) {
-	world, ri2, _, sender, list, tlf := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -205,7 +205,7 @@ func TestPushTyping(t *testing.T) {
 	handler.typingMonitor.SetClock(world.Fc)
 	handler.typingMonitor.SetTimeout(time.Minute)
 
-	conv := newBlankConv(t, uid, ri, sender, tlf, u.Username)
+	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
 	confirmTyping := func(list *chatListener) {
 		select {

@@ -87,7 +87,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 
 type ChainLinkUnpacked struct {
 	prev           LinkID
-	seqno          Seqno
+	seqno          keybase1.Seqno
 	payloadJSONStr string
 	ctime, etime   int64
 	pgpFingerprint *PGPFingerprint
@@ -302,7 +302,7 @@ func (c *ChainLink) Pack() error {
 	return nil
 }
 
-func (c *ChainLink) GetMerkleSeqno() int {
+func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 	if c.IsStubbed() {
 		return 0
 	}
@@ -310,7 +310,7 @@ func (c *ChainLink) GetMerkleSeqno() int {
 	if err != nil {
 		i = 0
 	}
-	return i
+	return keybase1.Seqno(i)
 }
 
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
@@ -413,7 +413,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 		return
 	}
 
-	tmp.seqno = Seqno(sq)
+	tmp.seqno = keybase1.Seqno(sq)
 	tmp.etime = tmp.ctime + ei
 	tmp.payloadJSONStr = payloadJSONStr
 
@@ -724,14 +724,14 @@ func (c *ChainLink) verifyPayloadV1() error {
 	return nil
 }
 
-func (c *ChainLink) getSeqnoFromPayload() Seqno {
+func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 	if c.unpacked != nil {
 		return c.unpacked.seqno
 	}
-	return Seqno(-1)
+	return keybase1.Seqno(-1)
 }
 
-func (c *ChainLink) GetSeqno() Seqno {
+func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
 }
 

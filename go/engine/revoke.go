@@ -147,10 +147,6 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var newPukSeed *libkb.PerUserKeySeed
 
 	if e.G().Env.GetSupportPerUserKey() {
-		err = e.G().BumpPerUserKeyring()
-		if err != nil {
-			return err
-		}
 		pukring, err := e.G().GetPerUserKeyring()
 		if err != nil {
 			return err
@@ -186,7 +182,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 			// Create boxes of the new per-user-key
 			pukBoxesInner, err := pukring.PrepareBoxesForDevices(ctx.NetContext,
-				*newPukSeed, newPukGeneration, pukReceivers, *encKey)
+				*newPukSeed, newPukGeneration, pukReceivers, encKey)
 			if err != nil {
 				return err
 			}
@@ -197,12 +193,15 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var sigsList []libkb.JSONPayload
 
 	// Push the per-user-key sig
+
+	// Seqno when the per-user-key will be signed in.
+	var newPukSeqno keybase1.Seqno
 	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
-		creationTime := e.G().Clock().Now().Unix()
-		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey, creationTime)
+		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey)
 		if err != nil {
 			return err
 		}
+		newPukSeqno = me.GetSigChainLastKnownSeqno()
 		sigsList = append(sigsList, sig1)
 	}
 
@@ -237,7 +236,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		err = pukring.AddKey(ctx.NetContext, newPukGeneration, *newPukSeed)
+		err = pukring.AddKey(ctx.NetContext, newPukGeneration, newPukSeqno, *newPukSeed)
 		if err != nil {
 			return err
 		}
@@ -250,8 +249,8 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 // Get the full keys for this device.
 // Returns (sigKey, encKey, err)
-// encKey will be nil iff SharedDH is disabled
-func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.GenericKey, *libkb.NaclDHKeyPair, error) {
+// encKey will be nil iff PerUserKey is disabled
+func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.GenericKey, libkb.GenericKey, error) {
 	skaSig := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
@@ -264,21 +263,17 @@ func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.
 		return nil, nil, err
 	}
 
-	var encKey *libkb.NaclDHKeyPair
+	var encKey libkb.GenericKey
 	if e.G().Env.GetSupportPerUserKey() {
 		skaEnc := libkb.SecretKeyArg{
 			Me:      me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		encKeyGeneric, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaEnc, "to revoke another key"))
+		encKey2, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(skaEnc, "to revoke another key"))
 		if err != nil {
 			return nil, nil, err
 		}
-		encKey2, ok := encKeyGeneric.(libkb.NaclDHKeyPair)
-		if !ok {
-			return nil, nil, fmt.Errorf("Unexpected encryption key type: %T", encKeyGeneric)
-		}
-		encKey = &encKey2
+		encKey = encKey2
 		if err = encKey.CheckSecretKey(); err != nil {
 			return nil, nil, err
 		}

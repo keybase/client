@@ -1,17 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: sketchtool 41.2 (35397) - http://www.bohemiancoding.com/sketch -->
-    <title>36D19B9A-3DB4-4F11-BF51-66DE7C4FCC7E</title>
-    <desc>Created with sketchtool.</desc>
-    <defs></defs>
-    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Style-guide---Desktop---Icons-2" transform="translate(-401.000000, -1456.000000)">
-            <g id="kb-iconfont-star-16" transform="translate(401.000000, 1456.000000)">
-                <g id="star" transform="translate(1.000000, 0.000000)">
-                    <rect id="Rectangle-3" x="0" y="0" width="15" height="15"></rect>
-                    <path d="M7.00007509,12.1705855 L2.99715176,14.2149937 C2.50058805,14.4686031 2.1746572,14.2402496 2.27194248,13.689219 L3.03424834,9.371466 L-0.204184665,6.30485371 C-0.605913141,5.92443964 -0.483074825,5.55274146 0.060923739,5.47594955 L4.54905936,4.8423955 L6.55052103,0.902716684 C6.79880288,0.413998478 7.20065199,0.412629839 7.44962915,0.902716684 L9.45109082,4.8423955 L13.9392264,5.47594955 C14.4873702,5.55332661 14.6071883,5.9233743 14.2043348,6.30485371 L10.9659018,9.371466 L11.7282077,13.689219 C11.8242494,14.2332057 11.5009527,14.4693133 11.0029984,14.2149937 L7.00007509,12.1705855 Z" id="Star" fill="#000000"></path>
-                </g>
-            </g>
-        </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+    <g fill="none" fill-rule="evenodd">
+        <path d="M1 0h15v15H1z"/>
+        <path fill="#000" d="M8 12.17l-4.003 2.045c-.496.254-.822.025-.725-.526l.762-4.318L.796 6.305c-.402-.38-.28-.752.265-.83l4.488-.633L7.551.902c.248-.488.65-.49.899 0l2.001 3.94 4.488.634c.548.077.668.447.265.829L11.966 9.37l.762 4.318c.096.544-.227.78-.725.526L8 12.171z"/>
     </g>
 </svg>

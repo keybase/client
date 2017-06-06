@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"sync"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -52,13 +54,9 @@ func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterf
 	s.ri = ri
 }
 
-func (s *baseConversationSource) SetTLFInfoSource(tlfInfoSource types.TLFInfoSource) {
-	s.boxer.tlfInfoSource = tlfInfoSource
-}
-
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
-	finalizeInfo *chat1.ConversationFinalizeInfo, superXform supersedesTransform, checkPrev bool) (err error) {
+	conv chat1.Conversation, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
+	superXform supersedesTransform, checkPrev bool) (err error) {
 
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -76,7 +74,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 		if superXform == nil {
 			superXform = newBasicSupersedesTransform(s.G())
 		}
-		if thread.Messages, err = superXform.Run(ctx, convID, uid, thread.Messages, finalizeInfo); err != nil {
+		if thread.Messages, err = superXform.Run(ctx, conv, uid, thread.Messages); err != nil {
 			return err
 		}
 	}
@@ -86,7 +84,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(s.G(), uid)
-	if err = outbox.SprinkleIntoThread(ctx, convID, thread); err != nil {
+	if err = outbox.SprinkleIntoThread(ctx, conv.GetConvID(), thread); err != nil {
 		if _, ok := err.(storage.MissError); !ok {
 			return err
 		}
@@ -95,9 +93,9 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	return nil
 }
 
-func (s *baseConversationSource) TransformSupersedes(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+func (s *baseConversationSource) TransformSupersedes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 	transform := newBasicSupersedesTransform(s.G())
-	return transform.Run(ctx, convID, uid, msgs, finalizeInfo)
+	return transform.Run(ctx, conv, uid, msgs)
 }
 
 type RemoteConversationSource struct {
@@ -138,7 +136,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	var rl []*chat1.RateLimit
 
 	// Get conversation metadata
-	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
@@ -156,13 +154,13 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, rl, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, convID, &thread, query, conv.Metadata.FinalizeInfo, nil, true); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true); err != nil {
 		return chat1.ThreadView{}, nil, err
 	}
 
@@ -178,8 +176,8 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 	return nil
 }
 
-func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv chat1.Conversation,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline() {
@@ -187,11 +185,11 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	rres, err := s.ri().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-		ConversationID: convID,
+		ConversationID: conv.GetConvID(),
 		MessageIDs:     msgIDs,
 	})
 
-	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, convID, finalizeInfo)
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, conv)
 	if err != nil {
 		return nil, err
 	}
@@ -200,12 +198,111 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
 	if s.IsOffline() {
 		return nil, OfflineError{}
 	}
-	return s.boxer.UnboxMessages(ctx, msgs, convID, finalizeInfo)
+	return s.boxer.UnboxMessages(ctx, msgs, conv)
+}
+
+type conversationLock struct {
+	refs, shares int
+	trace        string
+	lock         sync.Mutex
+}
+
+type conversationLockTab struct {
+	globals.Contextified
+	sync.Mutex
+	utils.DebugLabeler
+
+	convLocks map[string]*conversationLock
+	blockCb   *chan struct{} // Testing
+}
+
+func newConversationLockTab(g *globals.Context) *conversationLockTab {
+	return &conversationLockTab{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "conversationLockTab", false),
+		convLocks:    make(map[string]*conversationLock),
+	}
+}
+
+func (c *conversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) string {
+	return fmt.Sprintf("%s:%s", uid, convID)
+}
+
+// Acquire obtains a per user per conversation lock on a per trace basis. That is, the lock is a
+// shared lock for the current chat trace, and serves to synchronize large chat operations. If there is
+// no chat trace, this is a no-op.
+func (c *conversationLockTab) Acquire(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (blocked bool) {
+	key := c.key(uid, convID)
+	trace, ok := CtxTrace(ctx)
+	if !ok {
+		c.Debug(ctx, "Acquire: failed to find trace value, not using a lock: convID: %s", convID)
+		return false
+	}
+
+	c.Lock()
+	if lock, ok := c.convLocks[key]; ok {
+		if lock.trace == trace {
+			// Our request holds the lock on this conversation ID already, so just plow through it
+			lock.shares++
+			c.Unlock()
+			return
+		}
+		c.Debug(ctx, "Acquire: blocked by trace: %s on convID: %s", lock.trace, convID)
+		if c.blockCb != nil {
+			*c.blockCb <- struct{}{} // For testing
+		}
+		lock.refs++
+		c.Unlock() // Give up map lock while we are waiting for conv lock
+		lock.lock.Lock()
+		c.Lock()
+		lock.trace = trace
+		lock.shares = 1
+		c.Unlock()
+		return true
+	}
+
+	lock := &conversationLock{
+		shares: 1,
+		refs:   1,
+		trace:  trace,
+	}
+	c.convLocks[key] = lock
+	lock.lock.Lock()
+	c.Unlock()
+	return false
+}
+
+func (c *conversationLockTab) Release(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (released bool) {
+	c.Lock()
+	defer c.Unlock()
+	trace, ok := CtxTrace(ctx)
+	if !ok {
+		c.Debug(ctx, "Release: failed to find trace value, doing nothing: convID: %s", convID)
+		return false
+	}
+
+	key := c.key(uid, convID)
+	if lock, ok := c.convLocks[key]; ok {
+		if lock.trace != trace {
+			c.Debug(ctx, "Release: different trace trying to free lock? convID: %s lock.trace: %s trace: %s", convID, lock.trace, trace)
+		} else {
+			lock.shares--
+			if lock.shares == 0 {
+				lock.refs--
+				if lock.refs == 0 {
+					delete(c.convLocks, key)
+				}
+				lock.trace = ""
+				lock.lock.Unlock()
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type HybridConversationSource struct {
@@ -214,6 +311,7 @@ type HybridConversationSource struct {
 	*baseConversationSource
 
 	storage *storage.Storage
+	lockTab *conversationLockTab
 }
 
 var _ types.ConversationSource = (*HybridConversationSource)(nil)
@@ -225,14 +323,21 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
+		lockTab:                newConversationLockTab(g),
 	}
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Push")()
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
 
-	var err error
-	continuousUpdate := false
+	// Grab conversation information before pushing
+	conv, _, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		return decmsg, continuousUpdate, err
+	}
 
 	// Check to see if we are "appending" this message to the current record.
 	maxMsgID, err := s.storage.GetMaxMsgID(ctx, convID, uid)
@@ -245,12 +350,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return chat1.MessageUnboxed{}, continuousUpdate, err
 	}
 
-	// leaving this empty for message Push.
-	// In a rare case, this will result in an error if a push message
-	// coincides with an account reset.
-	var emptyFinalizeInfo *chat1.ConversationFinalizeInfo
-
-	decmsg, err := s.boxer.UnboxMessage(ctx, msg, convID, emptyFinalizeInfo)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -272,8 +372,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return decmsg, continuousUpdate, nil
 }
 
-func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed, finalizeInfo *chat1.ConversationFinalizeInfo) error {
+func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.Conversation,
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
 
 	// If we are offline, then bail out of here with no error
 	if s.IsOffline() {
@@ -292,18 +392,14 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, convID chat1
 				return nil
 			}
 
-			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(finalizeInfo)
+			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
-				msg.GetMessageID(), tlfName, convID)
+				msg.GetMessageID(), tlfName, conv.GetConvID())
 
-			vis := chat1.TLFVisibility_PRIVATE
-			if msg.Valid().ClientHeader.TlfPublic {
-				vis = chat1.TLFVisibility_PUBLIC
-			}
-
-			_, err := s.boxer.tlfInfoSource.Lookup(ctx, tlfName, vis)
+			_, err := CtxKeyFinder(ctx, s.G()).Find(ctx, tlfName, conv.GetMembersType(),
+				msg.Valid().ClientHeader.TlfPublic)
 			if err != nil {
-				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, convID)
+				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, conv.GetConvID())
 				return err
 			}
 
@@ -344,7 +440,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 	}
 
 	// Fetch all missing messages from server, and sub in the real ones into the placeholder slots
-	msgs, err := s.GetMessages(ctx, conv.GetConvID(), uid, msgIDs, conv.Metadata.FinalizeInfo)
+	msgs, err := s.GetMessages(ctx, conv, uid, msgIDs)
 	if err != nil {
 		s.Debug(ctx, "resolveHoles: failed to get missing messages: %s", err.Error())
 		return err
@@ -383,24 +479,23 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if convID.IsNil() {
 		return chat1.ThreadView{}, rl, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	var finalizeInfo *chat1.ConversationFinalizeInfo
-	conv, ratelim, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, ratelim, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
 	rl = append(rl, ratelim)
-	if err == nil {
-		finalizeInfo = conv.Metadata.FinalizeInfo
-	}
 
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
-			err = s.postProcessThread(ctx, uid, convID, &thread, query,
-				finalizeInfo, nil, true)
+			err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true)
 		}
 	}()
 
+	var unboxConv unboxConversationInfo
 	if err == nil {
+		unboxConv = conv
 		// Try locally first
 		rc := storage.NewHoleyResultCollector(maxHolesForPull,
 			s.storage.ResultCollectorFromQuery(ctx, query, pagination))
@@ -416,7 +511,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			if !s.IsOffline() {
 
 				// Identify this TLF by running crypt keys
-				if ierr := s.identifyTLF(ctx, convID, uid, thread.Messages, conv.Metadata.FinalizeInfo); ierr != nil {
+				if ierr := s.identifyTLF(ctx, conv, uid, thread.Messages); ierr != nil {
 					s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 					return chat1.ThreadView{}, rl, ierr
 				}
@@ -454,6 +549,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
+		// Assume this is a public convo for unbox purposes, since it is the only way any unboxing
+		// will succeed here since we don't know the members type.
+		unboxConv = newPublicUnboxConverstionInfo(convID)
 	}
 
 	// Insta fail if we are offline
@@ -474,7 +572,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Unbox
-	thread, err = s.boxer.UnboxThread(ctx, boxed.Thread, convID, conv.Metadata.FinalizeInfo)
+	thread, err = s.boxer.UnboxThread(ctx, boxed.Thread, unboxConv)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
 	}
@@ -575,14 +673,16 @@ func newPullLocalResultCollector(num int) *pullLocalResultCollector {
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (tv chat1.ThreadView, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PullLocalOnly")()
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
+
 	// Post process thread before returning
 	defer func() {
 		if err == nil {
 			superXform := newBasicSupersedesTransform(s.G())
-			superXform.SetMessagesFunc(func(ctx context.Context, convID chat1.ConversationID,
-				uid gregor1.UID, msgIDs []chat1.MessageID,
-				finalizeInfo *chat1.ConversationFinalizeInfo) (res []chat1.MessageUnboxed, err error) {
-				msgs, err := storage.New(s.G()).FetchMessages(ctx, convID, uid, msgIDs)
+			superXform.SetMessagesFunc(func(ctx context.Context, conv chat1.Conversation,
+				uid gregor1.UID, msgIDs []chat1.MessageID) (res []chat1.MessageUnboxed, err error) {
+				msgs, err := storage.New(s.G()).FetchMessages(ctx, conv.GetConvID(), uid, msgIDs)
 				if err != nil {
 					return nil, err
 				}
@@ -593,7 +693,10 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 				}
 				return res, nil
 			})
-			err = s.postProcessThread(ctx, uid, convID, &tv, query, nil, superXform, false)
+			// Form a fake version of a conversation so we don't need to hit the network ever here
+			var conv chat1.Conversation
+			conv.Metadata.ConversationID = convID
+			err = s.postProcessThread(ctx, uid, conv, &tv, query, superXform, false)
 		}
 	}()
 
@@ -610,13 +713,6 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 		return chat1.ThreadView{}, err
 	}
 
-	// Identify this TLF by running crypt keys
-	// XXX might need finalize info
-	if ierr := s.identifyTLF(ctx, convID, uid, tv.Messages, nil); ierr != nil {
-		s.Debug(ctx, "PullLocalOnly: identify failed: %s", ierr.Error())
-		return chat1.ThreadView{}, ierr
-	}
-
 	return tv, nil
 }
 
@@ -630,8 +726,11 @@ func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
 
-func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgIDs []chat1.MessageID, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+func (s *HybridConversationSource) GetMessages(ctx context.Context, conv chat1.Conversation,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+	convID := conv.GetConvID()
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
 
 	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 
@@ -667,7 +766,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 		}
 
 		// Unbox all the remote messages
-		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, convID, finalizeInfo)
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs, conv)
 		if err != nil {
 			return nil, err
 		}
@@ -694,7 +793,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+	if ierr := s.identifyTLF(ctx, conv, uid, res); ierr != nil {
 		s.Debug(ctx, "GetMessages: identify failed: %s", ierr.Error())
 		return nil, ierr
 	}
@@ -703,8 +802,10 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1
 }
 
 func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageBoxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
+	convID := conv.GetConvID()
+	s.lockTab.Acquire(ctx, uid, convID)
+	defer s.lockTab.Release(ctx, uid, convID)
 
 	var res []chat1.MessageUnboxed
 	var msgIDs []chat1.MessageID
@@ -736,7 +837,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 				return nil, OfflineError{}
 			}
 
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, convID, finalizeInfo)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv)
 			if err != nil {
 				return res, err
 			}
@@ -752,7 +853,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	}
 
 	// Identify this TLF by running crypt keys
-	if ierr := s.identifyTLF(ctx, convID, uid, res, finalizeInfo); ierr != nil {
+	if ierr := s.identifyTLF(ctx, conv, uid, res); ierr != nil {
 		s.Debug(ctx, "Pull: identify failed: %s", ierr.Error())
 		return res, ierr
 	}

@@ -55,6 +55,12 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
 }
 
 
+export const CommonConversationMembersType = {
+  kbfs: 0,
+  team: 1,
+  impteam: 2,
+}
+
 export const CommonConversationStatus = {
   unfiled: 0,
   favorite: 1,
@@ -1038,6 +1044,7 @@ export type ConversationInfoLocal = {
   topicName: string,
   visibility: TLFVisibility,
   status: ConversationStatus,
+  membersType: ConversationMembersType,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -1054,11 +1061,17 @@ export type ConversationLocal = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
+export type ConversationMembersType =
+    0 // KBFS_0
+  | 1 // TEAM_1
+  | 2 // IMPTEAM_2
+
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
   visibility: TLFVisibility,
   status: ConversationStatus,
+  membersType: ConversationMembersType,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1146,7 +1159,7 @@ export type GetInboxByTLFIDRemoteRes = {
 }
 
 export type GetInboxLocalQuery = {
-  tlfName?: ?string,
+  name?: ?NameQuery,
   topicName?: ?string,
   convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
@@ -1518,6 +1531,11 @@ export type MessageUnboxedValid = {
   headerSignature?: ?SignatureInfo,
   verificationKey?: ?bytes,
   senderDeviceRevokedAt?: ?gregor1.Time,
+}
+
+export type NameQuery = {
+  name: string,
+  membersType: ConversationMembersType,
 }
 
 export type NewConversationInfo = {
@@ -1897,10 +1915,11 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
 
 export type localFindConversationsLocalRpcParam = Exact<{
   tlfName: string,
+  membersType: ConversationMembersType,
   visibility: TLFVisibility,
   topicType: TopicType,
   topicName: string,
-  oneChatPerTLF?: ?bool,
+  oneChatPerTLF?: ?boolean,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -1968,6 +1987,7 @@ export type localNewConversationLocalRpcParam = Exact<{
   topicType: TopicType,
   tlfVisibility: TLFVisibility,
   topicName?: ?string,
+  membersType: ConversationMembersType,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2092,7 +2112,8 @@ export type remoteMarkAsReadRpcParam = Exact<{
 
 export type remoteNewConversationRemote2RpcParam = Exact<{
   idTriple: ConversationIDTriple,
-  TLFMessage: MessageBoxed
+  TLFMessage: MessageBoxed,
+  membersType: ConversationMembersType
 }>
 
 export type remoteNewConversationRemoteRpcParam = Exact<{

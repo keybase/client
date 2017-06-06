@@ -1018,7 +1018,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	ret := keybase1.UserPlusKeys{
 		Uid:         u.GetUID(),
 		Username:    u.GetName(),
-		EldestSeqno: int(u.GetCurrentEldestSeqno()),
+		EldestSeqno: u.GetCurrentEldestSeqno(),
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {

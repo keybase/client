@@ -7,6 +7,8 @@ body {
 
 .keybase-reply form {
   margin-top: 0;
+  position: initial;
+  border-radius: initial;
 }
 .keybase-reply h3 {
   width: 100%;

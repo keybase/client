@@ -10,6 +10,8 @@
 package engine
 
 import (
+	"strings"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -25,7 +27,7 @@ type loginLoadUser struct {
 func newLoginLoadUser(g *libkb.GlobalContext, usernameOrEmail string) *loginLoadUser {
 	return &loginLoadUser{
 		Contextified:    libkb.NewContextified(g),
-		usernameOrEmail: usernameOrEmail,
+		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
 	}
 }
 

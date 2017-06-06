@@ -1,4 +1,5 @@
 // @flow
+import * as SearchConstants from './searchv3'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -40,6 +41,7 @@ type MessageKeyKind =
   | 'messageIDError'
   | 'messageIDText'
   | 'messageIDUnhandled'
+  | 'outboxIDAttachment'
   | 'outboxIDText'
   | 'tempAttachment'
   | 'timestamp'
@@ -136,6 +138,7 @@ export type AttachmentMessage = {
   previewDurationMs: ?number,
   downloadedPath: ?string,
   savedPath: string | null | false,
+  uploadPath?: string,
   outboxID?: ?OutboxIDKey,
   previewProgress: number | null /* between 0 - 1 */,
   downloadProgress: number | null /* between 0 - 1 */,
@@ -335,6 +338,8 @@ export type RekeyInfo = Record<{
 export const StateRecord = Record({
   messageMap: Map(),
   inbox: List(),
+  inboxFilter: List(),
+  inboxSearch: List(),
   conversationStates: Map(),
   metaData: Map(),
   finalizedState: Map(),
@@ -348,8 +353,8 @@ export const StateRecord = Record({
   nowOverride: null,
   editingMessage: null,
   initialConversation: null,
-  attachmentPlaceholderPreviews: Map(),
   inboxUntrustedState: 'unloaded',
+  searchResults: List(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -358,6 +363,8 @@ export type State = Record<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
+  inboxFilter: List<string>,
+  inboxSearch: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -371,8 +378,8 @@ export type State = Record<{
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
-  attachmentPlaceholderPreviews: Map<OutboxIDKey, string>,
   inboxUntrustedState: UntrustedState,
+  searchResults: List<SearchConstants.SearchResultId>,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -397,10 +404,6 @@ export type BlockConversation = NoErrorTypedAction<
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type ClearAttachmentPlaceholderPreview = NoErrorTypedAction<
-  'chat:clearAttachmentPlaceholderPreview',
-  {outboxID: OutboxIDKey}
->
 export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
   {failureDescription: string, outboxID: OutboxIDKey}
@@ -477,10 +480,8 @@ export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
-export type SetAttachmentPlaceholderPreview = NoErrorTypedAction<
-  'chat:setAttachmentPlaceholderPreview',
-  {previewPath: string, outboxID: OutboxIDKey}
->
+export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
+export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
   {inboxUntrustedState: UntrustedState}
@@ -568,6 +569,10 @@ export type ThreadLoadedOffline = NoErrorTypedAction<
 >
 
 export type SelectAttachment = NoErrorTypedAction<'chat:selectAttachment', {input: AttachmentInput}>
+export type RetryAttachment = NoErrorTypedAction<
+  'chat:retryAttachment',
+  {input: AttachmentInput, oldOutboxID: OutboxIDKey}
+>
 export type UpdateBrokenTracker = NoErrorTypedAction<
   'chat:updateBrokenTracker',
   {userToBroken: {[username: string]: boolean}}
@@ -665,6 +670,18 @@ export type ShareAttachment = NoErrorTypedAction<
   }
 >
 
+export type UpdateThread = NoErrorTypedAction<
+  'chat:updateThread',
+  {
+    thread: ChatTypes.ThreadView,
+    yourName: string,
+    yourDeviceName: string,
+    conversationIDKey: string,
+  }
+>
+
+export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'chat:updateSearchResults'>
+
 export type Actions =
   | AddPendingConversation
   | AppendMessages
@@ -692,8 +709,9 @@ export type Actions =
   | MarkSeenMessage
   | AttachmentLoaded
   | UpdateFinalizedState
-  | UpdateSupersedesState
+  | UpdateSearchResults
   | UpdateSupersededByState
+  | UpdateSupersedesState
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
@@ -806,7 +824,7 @@ function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
   return null
 }
 
-function getAttachmentInfo(preview: ?Asset, object: ?Asset) {
+function getAttachmentInfo(preview: ?(Asset | ChatTypes.MakePreviewRes), object: ?Asset) {
   const filename = object && object.filename
   const title = object && object.title
 
@@ -922,6 +940,8 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
       return 'messageIDUnhandled'
     case 'outboxIDText':
       return 'outboxIDText'
+    case 'outboxIDAttachment':
+      return 'outboxIDAttachment'
     case 'tempAttachment':
       return 'tempAttachment'
     case 'timestamp':

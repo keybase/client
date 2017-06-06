@@ -41,7 +41,6 @@ protocol kbfsCommon {
   }
 
   record FSNotification {
-    boolean publicTopLevelFolder;
     string filename;
     string status;
     FSStatusCode statusCode;
@@ -51,7 +50,8 @@ protocol kbfsCommon {
     @lint("ignore")
     UID writerUid;
     Time localTime;
-  }
+    FolderType folderType;
+}
 
   record FSEditListRequest {
     Folder folder;
@@ -63,7 +63,7 @@ protocol kbfsCommon {
   }
 
   record FSPathSyncStatus {
-    boolean publicTopLevelFolder;
+    FolderType folderType;
     string path;  // could be a file or directory
     // How many total encrypted, padded bytes are still syncing, as part of
     // operations on this path.

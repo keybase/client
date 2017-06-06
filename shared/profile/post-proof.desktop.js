@@ -64,18 +64,22 @@ const PostProof = (props: Props) => {
           {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
           {!!noteText && <Text style={styleNoteText} type="Body">{noteText}</Text>}
           {!!proofAction &&
-            !!proofActionText &&
             !!proofActionIcon &&
             <LinkWithIcon
               style={styleProofAction}
-              label={proofActionText}
+              label={proofActionText || ''}
               icon={proofActionIcon}
               color={globalColors.blue}
               onClick={() => proofAction()}
             />}
           <Box style={styleButtonsContainer}>
             {!!onCancelText &&
-              <Button type="Secondary" onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+              <Button
+                type="Secondary"
+                onClick={() => onCancel()}
+                label={onCancelText || 'Cancel'}
+                style={{marginRight: globalMargins.tiny}}
+              />}
             <Button
               type="Primary"
               onClick={() => onComplete()}

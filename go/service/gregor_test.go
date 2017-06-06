@@ -141,20 +141,27 @@ func (n *nlistener) getBadgeState(t *testing.T) keybase1.BadgeState {
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
-	startedUsername   string
-	dismissedUsername string
+	startCh   chan string
+	dismissCh chan string
+}
+
+func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
+	return &showTrackerPopupIdentifyUI{
+		startCh:   make(chan string, 1),
+		dismissCh: make(chan string, 1),
+	}
 }
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
 func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason, force bool) error {
-	ui.startedUsername = name
+	ui.startCh <- name
 	return nil
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
 func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) error {
-	ui.dismissedUsername = username
+	ui.dismissCh <- username
 	return nil
 }
 
@@ -167,7 +174,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 	tc.G.SetService()
 
-	identifyUI := &showTrackerPopupIdentifyUI{}
+	identifyUI := newShowTrackerPopupIdentifyUI()
 	router := fakeUIRouter{
 		secretUI:   &libkb.TestSecretUI{},
 		identifyUI: identifyUI,
@@ -208,8 +215,17 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 
 	broadcastMessageTesting(t, h, m)
-	require.Equal(t, trackee.Username, identifyUI.startedUsername, "wrong username")
-	require.Equal(t, "", identifyUI.dismissedUsername, "dismissed username")
+	select {
+	case name := <-identifyUI.startCh:
+		require.Equal(t, trackee.Username, name, "wrong username")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no start username")
+	}
+	select {
+	case <-identifyUI.dismissCh:
+		require.Fail(t, "no dismiss should have happened")
+	default:
+	}
 
 	msgIDDis := gregor1.MsgID("my_random_id_dis")
 	dismissal := gregor1.Message{
@@ -226,7 +242,12 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		},
 	}
 	broadcastMessageTesting(t, h, dismissal)
-	require.Equal(t, trackee.User.GetName(), identifyUI.dismissedUsername, "dismissed")
+	select {
+	case name := <-identifyUI.dismissCh:
+		require.Equal(t, trackee.User.GetName(), name, "wrong dismiss")
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no dismiss username")
+	}
 }
 
 func newMsgID() gregor1.MsgID {
@@ -304,6 +325,12 @@ func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByC
 }
 func (m mockGregord) Version(_ context.Context, _ gregor1.UID) (string, error) {
 	return "mock", nil
+}
+func (m mockGregord) DescribeConnectedUsers(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
+	return nil, nil
+}
+func (m mockGregord) DescribeConnectedUsersInternal(ctx context.Context, arg []gregor1.UID) ([]gregor1.ConnectedUser, error) {
+	return nil, nil
 }
 
 func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {
@@ -604,6 +631,14 @@ func TestSyncDismissal(t *testing.T) {
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
 
+type dummyRemoteClient struct {
+	chat1.RemoteClient
+}
+
+func (d dummyRemoteClient) GetUnreadUpdateFull(ctx context.Context, vers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
+	return chat1.UnreadUpdateFull{}, nil
+}
+
 func TestGregorBadgesIBM(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
@@ -630,6 +665,11 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
+	ri := func() chat1.RemoteInterface {
+		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
+	}
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
@@ -641,6 +681,8 @@ func TestGregorBadgesIBM(t *testing.T) {
 	_, _, err = h.serverSync(context.TODO(), server, h.gregorCli, nil)
 	require.NoError(t, err)
 	t.Logf("client sync complete")
+
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")

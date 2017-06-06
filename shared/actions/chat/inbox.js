@@ -2,6 +2,8 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as EngineRpc from '../engine/helper'
+import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, cancelled, take, spawn} from 'redux-saga/effects'
@@ -10,7 +12,7 @@ import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import {requestIdleCallback} from '../../util/idle-callback'
+import {onIdlePromise} from '../../util/idle-callback'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
@@ -103,12 +105,15 @@ function* onInboxStale(): SagaGenerator<any, any> {
     )
 
     const incoming = yield loadInboxChanMap.race()
-    if (!incoming.chatInboxUnverified || !incoming.chatInboxUnverified.response) {
+    if (
+      !incoming['chat.1.chatUi.chatInboxUnverified'] ||
+      !incoming['chat.1.chatUi.chatInboxUnverified'].response
+    ) {
       throw new Error("Can't load inbox")
     }
-    incoming.chatInboxUnverified.response.result()
+    incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
-    const inbox: ChatTypes.GetInboxLocalRes = incoming.chatInboxUnverified.params.inbox
+    const inbox: ChatTypes.GetInboxLocalRes = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
@@ -232,6 +237,69 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
   }
 }
 
+function* _chatInboxConversationSubSaga({conv}) {
+  // Wait for an idle
+  yield call(onIdlePromise, 100)
+  // TODO might be better to make this a put with an associated takeEvery
+  yield spawn(processConversation, conv)
+  return EngineRpc.rpcResult()
+}
+
+function* _chatInboxFailedSubSaga(params) {
+  const {convID, error} = params
+  console.log('chatInboxFailed', params)
+  yield call(onIdlePromise, 100)
+
+  yield call(delay, 1)
+  const conversationIDKey = Constants.conversationIDToKey(convID)
+
+  // Valid inbox item for rekey errors only
+  const conversation = new Constants.InboxStateRecord({
+    conversationIDKey,
+    participants: error.rekeyInfo
+      ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
+      : List(error.unverifiedTLFName.split(',')),
+    snippet: error.message,
+    state: 'error',
+    status: 'unfiled',
+    time: error.remoteConv.readerInfo.mtime,
+  })
+
+  yield put(Creators.updateInbox(conversation))
+  switch (error.typ) {
+    case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
+      yield put(Creators.updateInboxRekeySelf(conversationIDKey))
+      break
+    }
+    case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
+      const rekeyers = error.rekeyInfo.rekeyers
+      yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
+      break
+    }
+    case ChatTypes.LocalConversationErrorType.transient: {
+      // Just ignore these, it is a transient error
+      break
+    }
+    case ChatTypes.LocalConversationErrorType.permanent: {
+      // Let's show it as failed in the inbox
+      break
+    }
+    default:
+      yield put({
+        payload: error,
+        type: globalError,
+      })
+  }
+
+  return EngineRpc.rpcResult()
+}
+
+const unboxConversationsSagaMap = {
+  'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
+  'chat.1.chatUi.chatInboxConversation': _chatInboxConversationSubSaga,
+  'chat.1.chatUi.chatInboxFailed': _chatInboxFailedSubSaga,
+}
+
 // Loads the trusted inbox segments
 function* unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>
@@ -239,13 +307,10 @@ function* unboxConversations(
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
-  const loadInboxChanMap = ChatTypes.localGetInboxNonblockLocalRpcChannelMap(
-    [
-      'chat.1.chatUi.chatInboxUnverified',
-      'chat.1.chatUi.chatInboxConversation',
-      'chat.1.chatUi.chatInboxFailed',
-      'finished',
-    ],
+  const loadInboxRpc = new EngineRpc.EngineRpcCall(
+    unboxConversationsSagaMap,
+    ChatTypes.localGetInboxNonblockLocalRpcChannelMap,
+    'unboxConversations',
     {
       param: {
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
@@ -257,72 +322,14 @@ function* unboxConversations(
     }
   )
 
-  while (true) {
-    const incoming = yield loadInboxChanMap.race({timeout: 30 * 1000})
-
-    // Ignore untrusted version
-    if (incoming.chatInboxUnverified) {
-      incoming.chatInboxUnverified.response.result()
-    } else if (incoming.chatInboxConversation) {
-      requestIdleCallback(
-        () => {
-          incoming.chatInboxConversation.response.result()
-        },
-        {timeout: 100}
-      )
-      yield call(delay, 1)
-      yield call(processConversation, incoming.chatInboxConversation.params.conv)
-      // find it
-    } else if (incoming.chatInboxFailed) {
-      console.log('chatInboxFailed', incoming.chatInboxFailed)
-      requestIdleCallback(
-        () => {
-          incoming.chatInboxFailed.response.result()
-        },
-        {timeout: 100}
-      )
-      yield call(delay, 1)
-      const error = incoming.chatInboxFailed.params.error
-      const conversationIDKey = Constants.conversationIDToKey(incoming.chatInboxFailed.params.convID)
-
-      // Valid inbox item for rekey errors only
-      const conversation = new Constants.InboxStateRecord({
-        conversationIDKey,
-        participants: error.rekeyInfo
-          ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
-          : List(error.unverifiedTLFName.split(',')),
-        state: 'error',
-        status: 'unfiled',
-        time: error.remoteConv.readerInfo.mtime,
-      })
-
-      yield put(Creators.updateInbox(conversation))
-      switch (error.typ) {
-        case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
-          yield put(Creators.updateInboxRekeySelf(conversationIDKey))
-          break
-        }
-        case ChatTypes.LocalConversationErrorType.otherrekeyneeded: {
-          const rekeyers = error.rekeyInfo.rekeyers
-          yield put(Creators.updateInboxRekeyOthers(conversationIDKey, rekeyers))
-          break
-        }
-        case ChatTypes.LocalConversationErrorType.transient: {
-          // Just ignore these, it is a transient error
-          break
-        }
-        default:
-          yield put({
-            payload: error,
-            type: globalError,
-          })
-      }
-    } else if (incoming.timeout) {
+  try {
+    yield call(loadInboxRpc.run, 30e3)
+  } catch (error) {
+    if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
       yield put(Creators.setUnboxing(conversationIDKeys, true))
-      break
-    } else if (incoming.finished) {
-      break
+    } else {
+      console.warn('Error in loadInboxRpc', error)
     }
   }
 }

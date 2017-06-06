@@ -3,6 +3,14 @@
 protocol favorite {
   import idl "common.avdl";
 
+  enum FolderType {
+    UNKNOWN_0,
+    PRIVATE_1,
+    PUBLIC_2,
+    TEAM_3
+  }
+
+
   /**
     Folder represents a favorite top-level folder in kbfs.
     This type is likely to change significantly as all the various parts are
@@ -10,9 +18,10 @@ protocol favorite {
     */
   record Folder {
     string name;              // patrick,max or chris,maxtaco@twitter#strib
-    boolean private;          // in /keybase/private or /keybase/public?
+    boolean private;          // (DEPRECATED) in /keybase/private or /keybase/public?
     boolean notificationsOn;  // user wants to be notified when this folder changes
     boolean created;          // this folder was just created by this user
+    FolderType folderType;    // what type of folder is this?
   }
 
   // Each of your TLFs is in one of 3 states with respect to favoriting. Either

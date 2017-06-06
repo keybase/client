@@ -17,12 +17,16 @@ const Conversation = (props: Props) => (
       <Box
         style={{
           ...globalStyles.flexBoxCenter,
-          backgroundColor: globalColors.black_10,
+          backgroundColor: globalColors.grey,
           flex: 1,
-          maxHeight: globalMargins.large,
+          maxHeight: 48,
+          paddingBottom: globalMargins.tiny,
+          paddingLeft: globalMargins.medium,
+          paddingRight: globalMargins.medium,
+          paddingTop: globalMargins.tiny,
         }}
       >
-        <Text style={{textAlign: 'center'}} type="BodySmallSemibold">
+        <Text style={{textAlign: 'center', color: globalColors.black_40}} type="BodySemibold">
           Couldn't load all chat messages due to network connectivity. Retrying...
         </Text>
       </Box>}

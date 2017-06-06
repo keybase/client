@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -42,14 +43,14 @@ func IdentifyMode(ctx context.Context) (ib keybase1.TLFIdentifyBehavior, breaks 
 	return keybase1.TLFIdentifyBehavior_CHAT_CLI, nil, false
 }
 
-func CtxKeyFinder(ctx context.Context) KeyFinder {
+func CtxKeyFinder(ctx context.Context, g *globals.Context) KeyFinder {
 	var kf KeyFinder
 	var ok bool
 	val := ctx.Value(kfKey)
 	if kf, ok = val.(KeyFinder); ok {
 		return kf
 	}
-	return NewKeyFinder()
+	return NewKeyFinder(g)
 }
 
 func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
@@ -60,6 +61,16 @@ func CtxIdentifyNotifier(ctx context.Context) *IdentifyNotifier {
 		return in
 	}
 	return nil
+}
+
+func CtxTrace(ctx context.Context) (string, bool) {
+	var trace string
+	var ok bool
+	val := ctx.Value(chatTraceKey)
+	if trace, ok = val.(string); ok {
+		return trace, true
+	}
+	return "", false
 }
 
 func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
@@ -81,22 +92,28 @@ func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 	return ctx
 }
 
-func Context(ctx context.Context, env appTypeSource, mode keybase1.TLFIdentifyBehavior,
+func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyBehavior,
 	breaks *[]keybase1.TLFIdentifyFailure, notifier *IdentifyNotifier) context.Context {
+	if breaks == nil {
+		breaks = new([]keybase1.TLFIdentifyFailure)
+	}
 	res := IdentifyModeCtx(ctx, mode, breaks)
-	res = context.WithValue(res, kfKey, NewKeyFinder())
+	val := res.Value(kfKey)
+	if _, ok := val.(KeyFinder); !ok {
+		res = context.WithValue(res, kfKey, NewKeyFinder(g))
+	}
 	res = context.WithValue(res, inKey, notifier)
-	res = CtxAddLogTags(res, env)
+	res = CtxAddLogTags(res, g.GetEnv())
 	return res
 }
 
-func BackgroundContext(sourceCtx context.Context, env appTypeSource) context.Context {
+func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Context {
 
 	rctx := context.Background()
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
-		rctx = Context(rctx, env, ident, breaks, in)
+		rctx = Context(rctx, g, ident, breaks, in)
 	}
 
 	// Overwrite trace tag
@@ -104,7 +121,7 @@ func BackgroundContext(sourceCtx context.Context, env appTypeSource) context.Con
 		rctx = context.WithValue(rctx, chatTraceKey, tr)
 	}
 
-	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx))
+	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))
 	rctx = context.WithValue(rctx, inKey, in)
 
 	return rctx

@@ -18,6 +18,11 @@ general:
   build_dir: shared
 dependencies:
   pre:
+    - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
+    - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    - sudo apt-get update -qq
+    # - sudo apt-cache show yarn
+    - sudo apt-get install -y -qq yarn=0.24.5-1
     - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
     - wget https://storage.googleapis.com/golang/go1.7.linux-amd64.tar.gz -O $HOME/go.tar.gz
@@ -32,10 +37,6 @@ dependencies:
     - mkdir /usr/local/android-sdk-linux/licenses
     - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
-    - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
-    - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-    - sudo apt-get update -qq
-    - sudo apt-get install -y -qq yarn=0.17.9-1
   cache_directories:
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/build-tools/23.0.2
@@ -46,7 +47,7 @@ dependencies:
     #    background: true
     #    parallel: true
     # Maybe we dont need this with yarn - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
-    - yarn install --pure-lockfile
+    - yarn install --pure-lockfile --ignore-engines
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client

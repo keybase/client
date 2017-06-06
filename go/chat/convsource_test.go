@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
@@ -16,12 +17,12 @@ import (
 )
 
 func TestGetThreadSupersedes(t *testing.T) {
-	world, ri, _, sender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
-	trip := newConvTriple(t, tlf, u.Username)
+	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -31,16 +32,17 @@ func TestGetThreadSupersedes(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
 	t.Logf("basic test")
-	_, msgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -54,7 +56,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
-	thread, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -62,7 +64,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, 1, len(thread.Messages), "wrong length")
 	require.Equal(t, msgID, thread.Messages[0].GetMessageID(), "wrong msgID")
 
-	_, editMsgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, editMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -80,7 +82,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	editMsgID := editMsgBoxed.GetMessageID()
 
 	t.Logf("testing an edit")
-	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -91,7 +93,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, "EDITED", thread.Messages[0].Valid().MessageBody.Text().Body, "wrong body")
 
 	t.Logf("testing a delete")
-	_, deleteMsgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, deleteMsgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -106,7 +108,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
-	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -114,7 +116,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
 
 	t.Logf("testing disabling resolve")
-	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{
 				chat1.MessageType_TEXT,
@@ -266,9 +268,9 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, chat1.TLFVisibility) (*types.TLFInfo, error) {
+func (f failingTlf) Lookup(context.Context, string, chat1.TLFVisibility) (types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
-	return nil, nil
+	return types.NameInfo{}, nil
 }
 
 type failingUpak struct {
@@ -321,12 +323,12 @@ func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error
 }
 
 func TestGetThreadCaching(t *testing.T) {
-	world, ri, _, sender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
-	trip := newConvTriple(t, tlf, u.Username)
+	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -336,15 +338,16 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
 
-	_, msgBoxed, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, msgBoxed, _, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -360,10 +363,10 @@ func TestGetThreadCaching(t *testing.T) {
 	msgID := msgBoxed.GetMessageID()
 
 	tc.ChatG.ConvSource.Clear(res.ConvID, u.User.GetUID().ToBytes())
-	tc.ChatG.ConvSource.Disconnected(context.TODO())
-	tc.ChatG.InboxSource.Disconnected(context.TODO())
+	tc.ChatG.ConvSource.Disconnected(ctx)
+	tc.ChatG.InboxSource.Disconnected(ctx)
 	t.Logf("make sure we get offline error")
-	thread, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -371,9 +374,9 @@ func TestGetThreadCaching(t *testing.T) {
 	require.IsType(t, OfflineError{}, err, "wrong error type")
 
 	t.Logf("read to populate caches")
-	tc.ChatG.ConvSource.Connected(context.TODO())
-	tc.ChatG.InboxSource.Connected(context.TODO())
-	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	tc.ChatG.ConvSource.Connected(ctx)
+	tc.ChatG.InboxSource.Connected(ctx)
+	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -384,16 +387,15 @@ func TestGetThreadCaching(t *testing.T) {
 	t.Logf("reading thread again for total cache hit")
 	failingRI := newFailingRemote(t)
 	failingTI := newFailingTlf(t)
-	tc.ChatG.ConvSource.Disconnected(context.TODO())
-	tc.ChatG.InboxSource.Disconnected(context.TODO())
+	tc.ChatG.ConvSource.Disconnected(ctx)
+	tc.ChatG.InboxSource.Disconnected(ctx)
 	tc.ChatG.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.ChatG.ConvSource.SetTLFInfoSource(failingTI)
 	tc.ChatG.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface { return failingRI })
-	tc.ChatG.InboxSource.SetTLFInfoSource(failingTI)
 
 	tc.G.OverrideUPAKLoader(newFailingUpak(t))
 
-	thread, _, err = tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	ctx = newTestContextWithTlfMock(tc, failingTI)
+	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
@@ -417,7 +419,7 @@ func (n *noGetThreadRemote) GetThreadRemote(ctx context.Context, arg chat1.GetTh
 }
 
 func TestGetThreadHoleResolution(t *testing.T) {
-	world, ri2, _, sender, _, tlf := setupTest(t, 1)
+	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -427,7 +429,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
 
-	conv := newConv(t, uid, ri, sender, tlf, u.Username)
+	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	convID := conv.GetConvID()
 	pt := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -449,11 +451,11 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, err = sender.Prepare(context.TODO(), pt, &convID)
+		msg, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
 
-		res, err := ri.PostRemote(context.TODO(), chat1.PostRemoteArg{
+		res, err := ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.GetConvID(),
 			MessageBoxed:   *msg,
 		})
@@ -472,14 +474,14 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 
-	localThread, err := tc.Context().ConvSource.PullLocalOnly(context.TODO(), convID, uid, nil, nil)
+	localThread, err := tc.Context().ConvSource.PullLocalOnly(ctx, convID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(localThread.Messages))
 
 	tc.Context().ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return newNoGetThreadRemote(ri)
 	})
-	thread, _, err := tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	thread, _, err := tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, holes+2, len(thread.Messages))
 	require.Equal(t, msg.GetMessageID(), thread.Messages[0].GetMessageID())
@@ -487,6 +489,86 @@ func TestGetThreadHoleResolution(t *testing.T) {
 
 	// Make sure we don't consider it a hit if we end the fetch with a hole
 	require.NoError(t, tc.Context().ConvSource.Clear(convID, uid))
-	_, _, err = tc.Context().ConvSource.Pull(context.TODO(), convID, uid, nil, nil)
+	_, _, err = tc.Context().ConvSource.Pull(ctx, convID, uid, nil, nil)
 	require.Error(t, err)
+}
+
+func TestConversationLocking(t *testing.T) {
+	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+	hcs := tc.Context().ConvSource.(*HybridConversationSource)
+	if hcs == nil {
+		t.Skip()
+	}
+
+	timedAcquire := func(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (ret bool) {
+		cb := make(chan struct{})
+		go func() {
+			ret = hcs.lockTab.Acquire(ctx, uid, convID)
+			close(cb)
+		}()
+		select {
+		case <-cb:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "acquire timeout")
+		}
+		return ret
+	}
+	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+
+	t.Logf("Trace 1 can get multiple locks")
+	var breaks []keybase1.TLFIdentifyFailure
+	ctx = Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks,
+		NewIdentifyNotifier(tc.Context()))
+	acquires := 5
+	for i := 0; i < acquires; i++ {
+		timedAcquire(ctx, uid, conv.GetConvID())
+	}
+	for i := 0; i < acquires; i++ {
+		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
+	}
+	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("Trace 2 properly blocked by Trace 1")
+	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		&breaks, NewIdentifyNotifier(tc.Context()))
+	blockCb := make(chan struct{})
+	hcs.lockTab.blockCb = &blockCb
+	cb := make(chan struct{})
+	require.False(t, timedAcquire(ctx, uid, conv.GetConvID()))
+	go func() {
+		require.True(t, timedAcquire(ctx2, uid, conv.GetConvID()))
+		close(cb)
+	}()
+	select {
+	case <-cb:
+		require.Fail(t, "should have blocked")
+	default:
+	}
+	// Wait for the thread to get blocked
+	select {
+	case <-blockCb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "not blocked")
+	}
+	require.True(t, hcs.lockTab.Release(ctx, uid, conv.GetConvID()))
+	select {
+	case <-cb:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no cb")
+	}
+	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
+	require.Zero(t, len(hcs.lockTab.convLocks))
+
+	t.Logf("No trace")
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
+	require.False(t, timedAcquire(context.TODO(), uid, conv.GetConvID()))
+	require.Zero(t, len(hcs.lockTab.convLocks))
 }

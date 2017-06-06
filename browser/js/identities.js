@@ -52,8 +52,8 @@ const identityMatchers = [
   {
     service: "facebook",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.facebook\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.facebook\.com/[\\w]+[/]?$',
+    locationMatches: new RegExp('\.facebook\.com/([\\w\.]+)[/]?$'),
+    originAndPathMatches: '\.facebook\.com/[\\w\.]+[/]?$',
     css: ['body.timelineLayout']
   },
   {
@@ -67,16 +67,18 @@ const identityMatchers = [
 
 // Match a window.location and document against a service profile and return
 // a User instance. Will skip matching CSS if no document is provided.
-function matchService(loc, doc) {
+function matchService(loc, doc, forceService) {
   // Prefix the url with a period if there is no subdomain.
   const hasSubdomain = loc.hostname.indexOf(".") !== loc.hostname.lastIndexOf(".");
   const url = (!hasSubdomain && ".") + loc.hostname + loc.pathname;
 
   for (const m of identityMatchers) {
+    if (forceService !== undefined && forceService !== m.service) continue;
+
     const matched = url.match(m.locationMatches);
     if (!matched) continue;
 
-    const username = m.getUsername(loc);
+    const username = safeHTML(m.getUsername(loc));
     if (!username) continue;
 
     if (doc === undefined || m.css === undefined) return new User(username, m.service);
@@ -95,6 +97,11 @@ function User(username, service) {
   this.origin = service;
   this.services = {};
   this.services[service] = username;
+}
+
+// Return a fresh copy equivalent to how it was initialized.
+User.prototype.clone = function() {
+  return new User(this.services[this.origin], this.origin);
 }
 
 User.prototype.query = function() {
@@ -121,7 +128,7 @@ User.prototype.display = function(service) {
 User.prototype.href = function(service) {
   if (service === undefined) service = this.origin;
   const name = this.services[this.origin];
-  switch (this.origin) {
+  switch (service) {
     case "keybase":
       return `https://keybase.io/${name}`;
     case "reddit":
@@ -137,4 +144,20 @@ User.prototype.href = function(service) {
     default:
       throw `unknown service: ${this.origin}`;
   }
+}
+
+// Convert a user input into a string that is safe for inlining into HTML.
+function safeHTML(s) {
+  if (!s) return "";
+  return s.replace(/[&'"<>\/]/g, function (c) {
+    // Per https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+    return {
+      '&': "&amp;",
+      '"': "&quot;",
+      "'": "&#x27",
+      '/': "&#x2F",
+      '<': "&lt;",
+      '>': "&gt;"
+    }[c];
+  });
 }

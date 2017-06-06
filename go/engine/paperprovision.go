@@ -13,23 +13,23 @@ import (
 
 type PaperProvisionEngine struct {
 	libkb.Contextified
-	Username     string
-	DeviceName   string
-	PaperKey     string
-	keepPaperKey bool
-	result       error
-	lks          *libkb.LKSec
-	User         *libkb.User
+	Username       string
+	DeviceName     string
+	PaperKey       string
+	keepPaperKey   bool
+	result         error
+	lks            *libkb.LKSec
+	User           *libkb.User
+	perUserKeyring *libkb.PerUserKeyring
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
-	paperKey string, keepPaperKey bool) *PaperProvisionEngine {
+	paperKey string) *PaperProvisionEngine {
 	return &PaperProvisionEngine{
 		Contextified: libkb.NewContextified(g),
 		Username:     username,
 		DeviceName:   deviceName,
 		PaperKey:     paperKey,
-		keepPaperKey: keepPaperKey,
 	}
 }
 
@@ -110,6 +110,13 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.User.GetUID())
 	}
 
+	if e.G().Env.GetSupportPerUserKey() {
+		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
+		if err != nil {
+			return err
+		}
+	}
+
 	// Make new device keys and sign them with this paper key
 	err = e.paper(ctx, kp)
 	if err != nil {
@@ -161,11 +168,10 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 			return err
 		}
 
+		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
-		}
-		if e.keepPaperKey {
-			lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
@@ -227,10 +233,11 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs
 	}
 
 	return &DeviceWrapArgs{
-		Me:         e.User,
-		DeviceName: e.DeviceName,
-		DeviceType: "desktop",
-		Lks:        e.lks,
+		Me:             e.User,
+		DeviceName:     e.DeviceName,
+		DeviceType:     "desktop",
+		Lks:            e.lks,
+		PerUserKeyring: e.perUserKeyring,
 	}, nil
 }
 

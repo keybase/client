@@ -1,0 +1,107 @@
+@namespace("keybase.1")
+
+protocol teams {
+
+  enum TeamRole {
+    NONE_0,
+    OWNER_1,
+    ADMIN_2,
+    WRITER_3,
+    READER_4
+  }
+
+  enum TeamApplication {
+    KBFS_1,
+    CHAT_2,
+    SALTPACK_3
+  }
+
+  record TeamApplicationKey {
+    TeamApplication application;
+    int keyGeneration;
+    Bytes32 key; 
+  }
+  
+  @typedef("bytes")
+  record MaskB64 {}
+
+  record ReaderKeyMask {
+    TeamApplication application;
+    int generation;
+    MaskB64 mask;
+  }
+
+  @lint("ignore")
+  record PerTeamKey {
+      int gen;
+      Seqno seqno;
+      KID sigKID;
+      KID encKID;
+  }
+
+  record TeamMembers {
+    array<string> owners;
+    array<string> admins;
+    array<string> writers;
+    array<string> readers;
+  }
+
+  record TeamChangeReq {
+    array<string> owners;
+    array<string> admins;
+    array<string> writers;
+    array<string> readers;
+    array<string> none;
+  }
+
+  record UserVersion {
+    string username;
+    Seqno eldestSeqno;
+  }
+
+  // State of a parsed team sigchain.
+  // Should be treated as immutable when outside TeamSigChainPlayer.
+  // Modified internally to TeamSigChainPlayer.
+  record TeamSigChainState {
+    // The user who loaded this sigchain
+    UserVersion reader;
+
+    TeamID id;
+    // Latest name of the team
+    string name;
+    // The last link procesed
+    Seqno lastSeqno;
+    LinkID lastLinkID;
+
+    // Present if a subteam
+    union { null, TeamID } parentID;
+
+    // For each user; the timeline of their role status.
+    // The role checkpoints are always ordered by seqno.
+    // The latest role of the user is the role of their last checkpoint.
+    // When a user leaves the team a NONE checkpoint appears in their list.
+    map<UserVersion,array<UserLogPoint>> userLog;
+
+    // Keyed by per-team-key generation
+    map<int, PerTeamKey> perTeamKeys;
+
+    // Set of types that were loaded stubbed-out and whose contents are missing.
+    // Keyed by libkb.SigchainV2Type
+    map<int, bool> stubbedTypes;
+  }
+
+  // A user became this role at a point in time
+  record UserLogPoint {
+    // The new role. Including NONE if the user left the team.
+    TeamRole role;
+    // The seqno at which the user became this role.
+    Seqno seqno;
+  }
+
+  void teamCreate(int sessionID, string name);
+  TeamMembers teamGet(int sessionID, string name);
+  void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
+  void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
+  void teamRemoveMember(int sessionID, string name, string username);
+  void teamEditMember(int sessionID, string name, string username, TeamRole role);
+}

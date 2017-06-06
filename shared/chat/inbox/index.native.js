@@ -88,9 +88,9 @@ const Avatars = ({
         alignItems: 'flex-end',
         backgroundColor,
         justifyContent: 'flex-start',
-        maxWidth: 55,
-        minWidth: 55,
-        paddingLeft: 4,
+        maxWidth: 56,
+        minWidth: 56,
+        paddingLeft: globalMargins.xtiny,
       }}
     >
       <Box style={{position: 'relative'}}>
@@ -109,8 +109,8 @@ const Avatars = ({
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
   const boldOverride = showBold ? globalStyles.fontBold : null
   return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 18, minHeight: 18}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 18, minHeight: 18, position: 'relative'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 19, minHeight: 19}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 19, minHeight: 19, position: 'relative'}}>
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
@@ -162,7 +162,7 @@ const BottomLine = ({
           backgroundColor: globalColors.red,
           borderRadius: 2,
           color: globalColors.white,
-          fontSize: 10,
+          fontSize: 11,
           paddingLeft: 2,
           paddingRight: 2,
         }}
@@ -178,7 +178,7 @@ const BottomLine = ({
     )
   } else if (snippet) {
     content = (
-      <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 12, lineHeight: 16}}>
+      <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 13, lineHeight: 17}}>
         {snippet}
       </Markdown>
     )

@@ -4,6 +4,7 @@ import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
+  AutosizeInput,
   Avatar,
   Button,
   Box,
@@ -18,7 +19,6 @@ import {
   StandardScreen,
   TabBar,
   Text,
-  Terminal,
   Dropdown,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
@@ -161,30 +161,6 @@ backgroundModes.forEach(backgroundMode => {
 const textMap: DumbComponentMap<Text> = {
   component: Text,
   mocks: textMocks,
-}
-
-const terminalMap: DumbComponentMap<Box> = {
-  component: Box,
-  mocks: {
-    Terminal: {
-      children: [
-        <Box key="a" style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-          <Text type="Body">
-            <Text type="Body">Word word </Text>
-            <Text type="TerminalInline">inline command line </Text>
-            <Text type="Body"> word word word word word </Text>
-            <Text type="TerminalInline">inline command line</Text>
-          </Text>
-        </Box>,
-        <Terminal key="b" style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}>
-          <Text type="Terminal">command line thing</Text>
-          <Text type="TerminalComment"># comment</Text>
-          <Text type="Terminal">command line thing</Text>
-          <Text type="TerminalComment"># comment</Text>
-        </Terminal>,
-      ],
-    },
-  },
 }
 
 const commonButton = {
@@ -1062,7 +1038,40 @@ const popupDialogMap: DumbComponentMap<PopupDialog> = {
     },
   },
 }
+const autosizeInputMap: DumbComponentMap<AutosizeInput> = {
+  component: AutosizeInput,
+  mocks: {
+    Normal: {
+      value: 'here is some long text',
+      placeholder: '',
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+    Placeholder: {
+      value: '',
+      placeholder: 'Type here...',
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+    Styled: {
+      value: 'styled inputs work too!',
+      placeholder: '',
+      inputStyle: {
+        background: 'papayawhip',
+        borderWidth: 2,
+        fontSize: 20,
+        padding: 10,
+      },
+      onChange: text => {
+        console.log('input text changed:', text)
+      },
+    },
+  },
+}
 export default {
+  AutosizeInput: autosizeInputMap,
   Avatar: avatarMap,
   Buttons: buttonsMap,
   Checkbox: checkboxMap,
@@ -1077,6 +1086,5 @@ export default {
   PopupMenu: popupMenuMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
-  Terminal: terminalMap,
   Text: textMap,
 }

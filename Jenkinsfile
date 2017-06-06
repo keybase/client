@@ -95,18 +95,25 @@ helpers.rootLinuxNode(env, {
             }
         }
 
+        def hasGoChanges = hasChanges('go')
+        def hasJSChanges = hasChanges('shared')
+        println "Has go changes: " + hasGoChanges
+        println "Has JS changes: " + hasJSChanges
+
         stage("Test") {
             helpers.withKbweb() {
                 parallel (
                     test_linux_deps: {
-                        // Build the client docker first so we can immediately kick off KBFS
-                        dir('go') {
-                            sh "go install github.com/keybase/client/go/keybase"
-                            sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                            clientImage = docker.build("keybaseprivate/kbclient")
-                            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                            archive("kbclient.tar.gz")
-                            sh "rm kbclient.tar.gz"
+                        if (hasGoChanges) {
+                            // Build the client docker first so we can immediately kick off KBFS
+                            dir('go') {
+                                sh "go install github.com/keybase/client/go/keybase"
+                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                clientImage = docker.build("keybaseprivate/kbclient")
+                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                archive("kbclient.tar.gz")
+                                sh "rm kbclient.tar.gz"
+                            }
                         }
                         parallel (
                             test_linux: {
@@ -119,14 +126,16 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
-                                        testNixGo("Linux")
+                                        if (hasGoChanges) {
+                                            testNixGo("Linux")
+                                        }
                                     }},
                                     test_linux_js: { withEnv([
                                         "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                         "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                     ]) {
                                         dir("shared") {
-                                            stage("JS tests") {
+                                            stage("JS Tests") {
                                                 sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                             }
                                         }
@@ -166,130 +175,146 @@ helpers.rootLinuxNode(env, {
                                 )
                             },
                             test_kbfs: {
-                                build([
-                                    job: "/kbfs/master",
-                                    parameters: [
-                                        string(
-                                            name: 'clientProjectName',
-                                            value: env.JOB_NAME,
-                                        ),
-                                        string(
-                                            name: 'kbwebNodePrivateIP',
-                                            value: kbwebNodePrivateIP,
-                                        ),
-                                    ]
-                                ])
+                                if (hasGoChanges) {
+                                    build([
+                                        job: "/kbfs/master",
+                                        parameters: [
+                                            string(
+                                                name: 'clientProjectName',
+                                                value: env.JOB_NAME,
+                                            ),
+                                            string(
+                                                name: 'kbwebNodePrivateIP',
+                                                value: kbwebNodePrivateIP,
+                                            ),
+                                        ]
+                                    ])
+                                }
                             },
                         )
                     },
                     test_windows: {
-                        helpers.nodeWithCleanup('windows', {}, {}) {
-                            def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}\\go"
-                            withEnv([
-                                'GOROOT=C:\\tools\\go',
-                                "GOPATH=\"${GOPATH}\"",
-                                "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout Windows"
-                                retry(3) {
-                                    checkout scm
-                                }
+                        // TODO: If we re-enable tests other than Go tests on
+                        // Windows, this check should go away.
+                        if (hasGoChanges) {
+                            helpers.nodeWithCleanup('windows', {}, {}) {
+                                def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                                def GOPATH="${BASEDIR}\\go"
+                                withEnv([
+                                    'GOROOT=C:\\tools\\go',
+                                    "GOPATH=\"${GOPATH}\"",
+                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                ]) {
+                                ws("$GOPATH/src/github.com/keybase/client") {
+                                    println "Checkout Windows"
+                                    retry(3) {
+                                        checkout scm
+                                    }
 
-                                println "Test Windows"
-                                parallel (
-                                    test_windows_go: {
-                                        println "Test Windows Go"
-                                        dir("go") {
-                                            dir ("keybase") {
-                                                bat "go build -a 2>&1 || exit /B 1"
-                                                bat "echo %errorlevel%"
+                                    println "Test Windows"
+                                    parallel (
+                                        test_windows_go: {
+                                            if (hasGoChanges) {
+                                                println "Test Windows Go"
+                                                dir("go") {
+                                                    dir ("keybase") {
+                                                        bat "go build -a 2>&1 || exit /B 1"
+                                                        bat "echo %errorlevel%"
+                                                    }
+                                                    bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                    bat "go get \"github.com/stretchr/testify/require\""
+                                                    bat "go get \"github.com/stretchr/testify/assert\""
+                                                    helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
+                                                    def testlist = readFile('testlist.txt')
+                                                    def tests = testlist.tokenize()
+                                                    for (test in tests) {
+                                                        bat "go test -timeout 10m ${test}"
+                                                    }
+                                                }
                                             }
-                                            bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                            bat "go get \"github.com/stretchr/testify/require\""
-                                            bat "go get \"github.com/stretchr/testify/assert\""
-                                            helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                            def testlist = readFile('testlist.txt')
-                                            def tests = testlist.tokenize()
-                                            for (test in tests) {
-                                                bat "go test -timeout 10m ${test}"
+                                        },
+                                        test_windows_js: {
+                                        // Only run visdiff for PRs
+                                        // FIXME (MBG): Disabled temporarily due to flaky false positives
+                                        // When this is re-enabled, remove the if (hasGoChanges) check at the
+                                        // beginning of this block.
+                                        if (false && env.CHANGE_ID) {
+                                        wrap([$class: 'Xvfb']) {
+                                            println "Test Windows JS"
+                                            dir("visdiff") {
+                                                bat "yarn install --pure-lockfile"
                                             }
-                                        }
-                                    },
-                                    test_windows_js: {
-                                    // Only run visdiff for PRs
-                                    // FIXME (MBG): Disabled temporarily due to flaky false positives
-                                    if (false && env.CHANGE_ID) {
-                                    wrap([$class: 'Xvfb']) {
-                                        println "Test Windows JS"
-                                        dir("visdiff") {
-                                            bat "yarn install --pure-lockfile"
-                                        }
-                                        dir("desktop") {
-                                            bat "yarn install --pure-lockfile"
-                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'visdiff-aws-creds',
-                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                ],[$class: 'StringBinding',
-                                                    credentialsId: 'visdiff-github-token',
-                                                    variable: 'VISDIFF_GH_TOKEN',
-                                            ]]) {
-                                            withEnv([
-                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                            ]) {
-                                                bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
-                                            }}
-                                        }
-                                    }}},
-                                )
-                            }}
+                                            dir("desktop") {
+                                                bat "yarn install --pure-lockfile"
+                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                        credentialsId: 'visdiff-aws-creds',
+                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                    ],[$class: 'StringBinding',
+                                                        credentialsId: 'visdiff-github-token',
+                                                        variable: 'VISDIFF_GH_TOKEN',
+                                                ]]) {
+                                                withEnv([
+                                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                                ]) {
+                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
+                                                }}
+                                            }
+                                        }}},
+                                    )
+                                }}
+                            }
                         }
                     },
                     test_osx: {
-                        def mountDir='/Volumes/untitled/client'
-                        helpers.nodeWithCleanup('macstadium', {}, {
-                                sh "rm -rf ${mountDir}"
-                            }) {
-                            def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
-                            def GOPATH="${BASEDIR}/go"
-                            dir(mountDir) {
-                                // Ensure that the mountDir exists
-                                sh "touch test.txt"
-                            }
-                            withEnv([
-                                "GOPATH=${GOPATH}",
-                                "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                                "TMPDIR=${mountDir}",
-                            ]) {
-                            ws("$GOPATH/src/github.com/keybase/client") {
-                                println "Checkout OS X"
-                                retry(3) {
-                                    checkout scm
+                        // TODO: If we re-enable tests other than Go tests on
+                        // macOS, this check should go away.
+                        if (hasGoChanges) {
+                            def mountDir='/Volumes/untitled/client'
+                            helpers.nodeWithCleanup('macstadium', {}, {
+                                    sh "rm -rf ${mountDir}"
+                                }) {
+                                def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
+                                def GOPATH="${BASEDIR}/go"
+                                dir(mountDir) {
+                                    // Ensure that the mountDir exists
+                                    sh "touch test.txt"
                                 }
-
-                                parallel (
-                                    //test_react_native: {
-                                    //    println "Test React Native"
-                                    //    dir("react-native") {
-                                    //        sh "npm i"
-                                    //        lock("iossimulator_${env.NODE_NAME}") {
-                                    //            sh "npm run test-ios"
-                                    //        }
-                                    //    }
-                                    //},
-                                    test_osx: {
-                                        println "Test OS X"
-                                        testNixGo("OS X")
+                                withEnv([
+                                    "GOPATH=${GOPATH}",
+                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                    "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                    "TMPDIR=${mountDir}",
+                                ]) {
+                                ws("$GOPATH/src/github.com/keybase/client") {
+                                    println "Checkout OS X"
+                                    retry(3) {
+                                        checkout scm
                                     }
-                                )
-                            }}
+
+                                    parallel (
+                                        //test_react_native: {
+                                        //    println "Test React Native"
+                                        //    dir("react-native") {
+                                        //        sh "npm i"
+                                        //        lock("iossimulator_${env.NODE_NAME}") {
+                                        //            sh "npm run test-ios"
+                                        //        }
+                                        //    }
+                                        //},
+                                        test_osx: {
+                                            println "Test OS X"
+                                            if (hasGoChanges) {
+                                                testNixGo("OS X")
+                                            }
+                                        }
+                                    )
+                                }}
+                            }
                         }
                     },
                 )
@@ -308,9 +333,21 @@ helpers.rootLinuxNode(env, {
     }
 }
 
+def hasChanges(subdir) {
+    dir(subdir) {
+        def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
+        println "Number of changes: " + changes.size()
+        if (changes.size() == 0) {
+            println "No Go changes, skipping tests."
+            return false
+        }
+        return true
+    }
+}
+
 def testNixGo(prefix) {
     dir('go') {
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh "./test/jenkins_test.sh ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+        sh "test/run_tests.sh"
     }
 }

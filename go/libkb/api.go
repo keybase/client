@@ -204,13 +204,20 @@ func (c *countingReader) numRead() int {
 // Shared code
 //
 
-// The returned response, if non-nil, should have
-// DiscardAndCloseBody() called on it.
-func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, jw *jsonw.Wrapper, err error) {
+func noopFinisher() {}
+
+// doRequestShared returns an http.Response, which is a live streaming object that
+// escapes the function in which it was created.  It therefore also returns
+// a `finisher func()` that *must always be called* after the response is no longer
+// needed. This finisher is always non-nil (and just a noop in some cases),
+// so therefore it's fine to call it without checking for nil-ness.
+func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
 	if !api.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
+
+	finisher = noopFinisher
 
 	ctx := arg.NetContext
 	if ctx == nil {
@@ -238,7 +245,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	var jsonBytes int
 	var status string
 	defer func() {
-		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%q, jsonBytes=%d", req.Method, req.URL,
+		api.G().Log.CDebugf(ctx, "- API %s %s: err=%s, status=%q, jsonwBytes=%d", req.Method, req.URL,
 			ErrToOk(err), status, jsonBytes)
 	}()
 
@@ -251,19 +258,28 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	timer := api.G().Timers.Start(timerType)
 	internalResp, canc, err := doRetry(ctx, api, arg, cli, req)
 
-	defer func() {
-		if internalResp != nil && err != nil {
+	finisher = func() {
+		if internalResp != nil {
 			DiscardAndCloseBody(internalResp)
+			internalResp = nil
 		}
 		if canc != nil {
 			canc()
+			canc = nil
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			finisher()
+			finisher = noopFinisher
 		}
 	}()
 
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
-		return nil, nil, APINetError{err: err}
+		return nil, finisher, nil, APINetError{err: err}
 	}
 	status = internalResp.Status
 
@@ -273,13 +289,13 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	// handle headers *before* we abort based on status below.
 	err = api.consumeHeaders(internalResp)
 	if err != nil {
-		return nil, nil, err
+		return nil, finisher, nil, err
 	}
 
 	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
 	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
-		return nil, nil, err
+		return nil, finisher, nil, err
 	}
 
 	if wantJSONRes {
@@ -291,7 +307,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		jsonBytes = reader.numRead()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
-			return nil, nil, err
+			return nil, finisher, nil, err
 		}
 
 		jw = jsonw.NewWrapper(obj)
@@ -301,7 +317,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		}
 	}
 
-	return internalResp, jw, nil
+	return internalResp, finisher, jw, nil
 }
 
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
@@ -552,7 +568,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if a.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
@@ -636,37 +652,44 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 	return a.DoRequest(arg, req)
 }
 
-// GetResp performs a GET request and returns the http response.  The
-// returned response, if non-nil, should have DiscardAndCloseBody()
-// called on it.
-func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
+// GetResp performs a GET request and returns the http response. The finisher
+// second arg should be called whenever we're done with the response (if it's non-nil).
+func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) {
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
-		return nil, err
+		return nil, noopFinisher, err
 	}
 
-	resp, _, err := doRequestShared(a, arg, req, false)
+	resp, finisher, _, err := doRequestShared(a, arg, req, false)
 	if err != nil {
-		return nil, err
+		return nil, finisher, err
 	}
 
-	return resp, nil
+	return resp, finisher, nil
 }
 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.GetResp(arg)
+	resp, finisher, err := a.GetResp(arg)
 	if err != nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, GetResp error: %s", err)
 		return err
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
+
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(&v); err != nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, Decode error: %s", err)
 		return err
 	}
-	return a.checkAppStatus(arg, v.GetAppStatus())
+	if err = a.checkAppStatus(arg, v.GetAppStatus()); err != nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, checkAppStatus error: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
@@ -685,29 +708,28 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 }
 
 // postResp performs a POST request and returns the http response.
-// The returned response, if non-nil, should have
-// DiscardAndCloseBody() called on it.
-func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, error) {
+// The finisher() should be called after the response is no longer needed.
+func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, func(), error) {
 	url1 := a.getURL(arg)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	resp, _, err := doRequestShared(a, arg, req, false)
+	resp, finisher, _, err := doRequestShared(a, arg, req, false)
 	if err != nil {
-		return nil, err
+		return nil, finisher, err
 	}
 
-	return resp, nil
+	return resp, finisher, nil
 }
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.postResp(arg)
+	resp, finisher, err := a.postResp(arg)
 	if err != nil {
 		return err
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(&v); err != nil {
 		return err
@@ -737,11 +759,11 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 }
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
-	resp, jw, err := doRequestShared(a, arg, req, true)
+	resp, finisher, jw, err := doRequestShared(a, arg, req, true)
 	if err != nil {
 		return nil, err
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
@@ -817,12 +839,13 @@ func (api *ExternalAPIEngine) DoRequest(
 
 	var resp *http.Response
 	var jw *jsonw.Wrapper
+	var finisher func()
 
-	resp, jw, err = doRequestShared(api, arg, req, (restype == XAPIResJSON))
+	resp, finisher, jw, err = doRequestShared(api, arg, req, (restype == XAPIResJSON))
 	if err != nil {
 		return
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
 
 	switch restype {
 	case XAPIResJSON:

@@ -1,6 +1,7 @@
 // @flow
 import del from 'del'
 import fs from 'fs-extra'
+import klawSync from 'klaw-sync'
 import minimist from 'minimist'
 import os from 'os'
 import packager from 'electron-packager'
@@ -9,11 +10,19 @@ import webpack from 'webpack'
 import webpackConfig from './webpack.config.production.js'
 import {exec} from 'child_process'
 
-const filterAllowOnlyTypes = (...types) => ({
-  filter: f => types.some(type => f.endsWith(`.${type}`)),
-})
-
+// absolute path relative to this script
 const desktopPath = (...args) => path.join(__dirname, ...args)
+
+// recursively copy a folder over and allow only files with the extensions passed as onlyExts
+const copySyncFolder = (src, target, onlyExts) => {
+  const srcRoot = desktopPath(src)
+  const dstRoot = desktopPath(target)
+  const files = klawSync(srcRoot, {filter: item => onlyExts.includes(path.extname(item.path))})
+  const relSrcs = files.map(f => f.path.substr(srcRoot.length))
+  const dsts = relSrcs.map(f => path.join(dstRoot, f))
+
+  relSrcs.forEach((s, idx) => fs.copySync(path.join(srcRoot, s), dsts[idx]))
+}
 
 const copySync = (src, target, options) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
@@ -32,11 +41,11 @@ const appCopyright = 'Copyright (c) 2015, Keybase'
 const companyName = 'Keybase, Inc.'
 
 const packagerOpts = {
-  'app-bundle-id': 'keybase.Electron',
-  'helper-bundle-id': 'keybase.ElectronHelper',
-  'app-version': appVersion,
-  'build-version': appVersion + comment,
-  'app-copyright': appCopyright,
+  appBundleId: 'keybase.Electron',
+  helperBundleId: 'keybase.ElectronHelper',
+  appVersion: appVersion,
+  buildVersion: appVersion + comment,
+  appCopyright: appCopyright,
   dir: desktopPath('./build'),
   name: appName,
   asar: shouldUseAsar,
@@ -58,10 +67,10 @@ function main() {
 
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
-  copySync('../images', 'build/images', filterAllowOnlyTypes('gif', 'png'))
+  copySyncFolder('../images', 'build/images', ['.gif', '.png'])
   fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
-  copySync('renderer', 'build/desktop/renderer', filterAllowOnlyTypes('html'))
+  copySyncFolder('renderer', 'build/desktop/renderer', ['.html'])
   copySync('renderer/renderer-load.js', 'build/desktop/renderer/renderer-load.js')
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
@@ -84,8 +93,8 @@ function main() {
     if (!err) {
       try {
         // $FlowIssue
-        packagerOpts.version = stdout.match(/electron@([0-9.]+)/)[1]
-        console.log('Found electron version:', packagerOpts.version)
+        packagerOpts.electronVersion = stdout.match(/electron@([0-9.]+)/)[1]
+        console.log('Found electron version:', packagerOpts.electronVersion)
       } catch (err) {
         console.log("Couldn't parse yarn list to find electron:", err)
         process.exit(1)
@@ -107,8 +116,13 @@ function startPack() {
       process.exit(1)
     }
 
-    copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf', 'png'))
+    if (stats.hasErrors()) {
+      console.error(stats.toJson('errors-only').errors)
+      process.exit(1)
+    }
+
+    copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
+    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     del(desktopPath('release'))

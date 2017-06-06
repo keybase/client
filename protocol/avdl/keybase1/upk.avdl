@@ -1,0 +1,89 @@
+@namespace("keybase.1")
+protocol UPK {
+  import idl "common.avdl";
+
+  enum KeyType {
+      NONE_0,
+      NACL_1,
+      PGP_2
+  }
+
+  record MerkleRootV2 {
+      Seqno seqno;
+      bytes hashMeta;
+  }
+
+  record SignatureMetadata {
+      KID signingKID;  // For an eldest key, the signing KID is itself.
+      MerkleRootV2 prevMerkleRootSigned;
+      Seqno firstAppearedUnverified;
+      Time time;
+  }
+
+  record PublicKeyV2Base {
+      KID kid;
+      boolean isSibkey;
+      boolean isEldest;
+      Time cTime;
+      Time eTime;
+      SignatureMetadata provisioning;
+      union { null, SignatureMetadata } revocation;
+  }
+
+  record PublicKeyV2NaCl {
+      PublicKeyV2Base base;
+      union { null, KID } parent;
+      DeviceID deviceID;
+      string deviceDescription;
+      string deviceType;
+  }
+
+  fixed PGPFingerprint(20);
+
+  record PublicKeyV2PGPSummary {
+      PublicKeyV2Base base;
+      PGPFingerprint fingerprint;
+      array<PGPIdentity> identities;
+  }
+
+  variant PublicKeyV2 switch (KeyType keyType) {
+      case NACL: PublicKeyV2NaCl;
+      case PGP : PublicKeyV2PGPSummary;
+      default  : void;
+  }
+
+  record UserPlusKeysV2 {
+      UID uid;
+      string username;
+      Seqno eldestSeqno;
+      UserVersionVector uvv;
+      // Sorted by generation ascending
+      array<PerUserKey> perUserKeys;
+      // Sorted by KID ascending
+      array<PublicKeyV2NaCl> deviceKeys;
+      // Sorted by KID ascending
+      array<PublicKeyV2PGPSummary> pgpKeys;
+      // Sorted by UID ascending
+      array<RemoteTrack> remoteTracks;
+  }
+
+  record UserPlusKeysV2AllIncarnations {
+      UserPlusKeysV2 current;
+      // Sorted by account version ascending, could be empty.
+      array<UserPlusKeysV2> pastIncarnations;
+  }
+
+  enum UPAKVersion {
+      V1_1,
+      V2_2
+  }
+
+  /**
+   * What we're storing for each user. At first it was UPAKs, as defined
+   * in common.avdl. But going forward, we're going to use UserPlusKeysV2AllIncarnations.
+   */
+  variant UPAKVersioned switch (UPAKVersion v) {
+      case V1: UserPlusAllKeys;
+      case V2: UserPlusKeysV2AllIncarnations;
+  }
+}

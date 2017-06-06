@@ -18,7 +18,7 @@ const ConversationHeader = ({
     <BackButton
       title={null}
       onClick={onBack}
-      iconStyle={{color: globalColors.blue}}
+      iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
       style={{flexShrink: 0, padding: globalMargins.tiny}}
     />
@@ -57,6 +57,8 @@ const ConversationHeader = ({
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: 1,
   justifyContent: 'flex-start',
   minHeight: 32,
 }
