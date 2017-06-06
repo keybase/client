@@ -373,7 +373,7 @@ def testNixGo(prefix) {
                 sh 'go test -c -o test.test'
             }
             // Only run the test if a test binary should have been produced.
-            if (fileExists('test.test')) {
+            if (fileExists("${dirPath}/test.test")) {
                 def testName = dirPath.replaceAll('/', '_')
                 tests[prefix + testName] = {
                     dir(dirPath) {
