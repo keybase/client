@@ -365,11 +365,11 @@ def testNixGo(prefix) {
         def dirs = getTestDirs()
         def tests = [:]
         def curDir = sh(returnStdout: true, script: "pwd").trim() + "/"
-        for (i=0; i<dirs.size(); i++) {
+        for (def i=0; i<dirs.size(); i++) {
             def d = dirs[i]
             def dirPath = d.replaceAll(curDir, '')
+            println "Building tests for $dirPath"
             dir(dirPath) {
-                println "Building tests for $dirPath"
                 sh 'go test -i'
                 sh 'go test -c -o test.test'
                 // Only run the test if a test binary should have been produced.
