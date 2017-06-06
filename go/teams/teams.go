@@ -41,7 +41,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		factory, err := NewTeamKeyFactoryWithSecret(secret, t.Box.Generation)
+		factory, err := NewTeamKeyFactoryWithSecret(t.G(), secret, t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}
@@ -297,12 +297,6 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	// make the payload
 	payload := t.sigPayload(sigMultiItem, secretBoxes)
 
-	pretty, err := json.MarshalIndent(payload, "", "\t")
-	if err != nil {
-		return err
-	}
-	t.G().Log.Info("payload: %s", pretty)
-
 	// send it to the server
 	return t.postMulti(payload)
 }
@@ -406,6 +400,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		// key is rotating, so recipients needs to be all the remaining members
 		// of the team after the removal (and including any new members in this
 		// change)
+		t.G().Log.Debug("team change request contains removal, rotating team key")
 		existing, err := t.Members()
 		if err != nil {
 			return nil, nil, err
@@ -428,6 +423,16 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamS
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretBoxes
+
+	if t.G().VDL.DumpPayload() {
+		pretty, err := json.MarshalIndent(payload, "", "\t")
+		if err != nil {
+			t.G().Log.Info("json marshal error: %s", err)
+		} else {
+			t.G().Log.Info("payload: %s", pretty)
+		}
+	}
+
 	return payload
 }
 

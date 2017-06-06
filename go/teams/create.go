@@ -38,7 +38,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	}
 
 	// These boxes will get posted along with the sig below.
-	f, err := NewTeamKeyFactory()
+	f, err := NewTeamKeyFactory(g)
 	if err != nil {
 		return err
 	}
@@ -302,11 +302,6 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		return
 	}
 
-	perTeamSecret, perTeamSigningKey, perTeamEncryptionKey, err := generatePerTeamKeys()
-	if err != nil {
-		return
-	}
-
 	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
 	if ownerLatest == nil {
 		err = errors.New("can't create a new team without having provisioned a per-user key")
@@ -316,9 +311,22 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		me.GetName(): *ownerLatest,
 	}
 	// These boxes will get posted along with the sig below.
-	boxes, err = boxTeamSharedSecret(perTeamSecret, deviceEncryptionKey, secretboxRecipients)
+	f, err := NewTeamKeyFactory(g)
+	if err != nil {
+		return nil, nil, err
+	}
+	boxes, err = f.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return
+	}
+
+	perTeamSigningKey, err := f.SigningKey()
+	if err != nil {
+		return nil, nil, err
+	}
+	perTeamEncryptionKey, err := f.EncryptionKey()
+	if err != nil {
+		return nil, nil, err
 	}
 
 	// The "team" section of a subchain head link is similar to that of a

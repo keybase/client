@@ -2,7 +2,6 @@ package teams
 
 import (
 	"encoding/base64"
-	"encoding/binary"
 	"errors"
 	"fmt"
 
@@ -31,6 +30,8 @@ type PerTeamSharedSecretBox struct {
 }
 
 type TeamKeyFactory struct {
+	libkb.Contextified
+
 	sharedSecret []byte
 	generation   PerTeamSecretGeneration
 
@@ -38,19 +39,20 @@ type TeamKeyFactory struct {
 	signingKey    *libkb.NaclSigningKeyPair
 }
 
-func NewTeamKeyFactory() (*TeamKeyFactory, error) {
+func NewTeamKeyFactory(g *libkb.GlobalContext) (*TeamKeyFactory, error) {
 	sharedSecret, err := newSharedSecret()
 	if err != nil {
 		return nil, err
 	}
-	return NewTeamKeyFactoryWithSecret(sharedSecret, 1)
+	return NewTeamKeyFactoryWithSecret(g, sharedSecret, 1)
 }
 
-func NewTeamKeyFactoryWithSecret(secret []byte, generation PerTeamSecretGeneration) (*TeamKeyFactory, error) {
+func NewTeamKeyFactoryWithSecret(g *libkb.GlobalContext, secret []byte, generation PerTeamSecretGeneration) (*TeamKeyFactory, error) {
 	if len(secret) != sharedSecretLen {
 		return nil, errors.New("invalid shared secret length")
 	}
 	return &TeamKeyFactory{
+		Contextified: libkb.NewContextified(g),
 		sharedSecret: secret,
 		generation:   generation,
 	}, nil
@@ -83,7 +85,8 @@ func (t *TeamKeyFactory) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 
 }
 
-func (t *TeamKeyFactory) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func (t *TeamKeyFactory) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
+	defer t.G().Trace("SharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix, skipping the zero counter
 	// (0 used for previous key encryption nonce)
@@ -96,7 +99,8 @@ func (t *TeamKeyFactory) SharedSecretBoxes(senderKey libkb.GenericKey, recipient
 	return t.sharedBoxes(t.sharedSecret, t.generation, n, senderKey, recipients)
 }
 
-func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
+	defer t.G().Trace("RotateSharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix
 	nonce, err := newNonce24()
@@ -137,11 +141,8 @@ func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	encoded := base64.StdEncoding.EncodeToString(packed)
 
 	// make the recipient boxes with the new secret and the nonce prefix
-	t.sharedSecret = nextSecret
-	t.generation = t.generation + 1
-	t.signingKey = nil
-	t.encryptionKey = nil
-	boxes, err := t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
+	t.setNextSharedSecret(nextSecret)
+	boxes, err = t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -150,7 +151,7 @@ func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	boxes.PrevKey = &encoded
 
 	// need a new PerTeamKey section since the key was rotated
-	keySection, err := t.PerTeamKeySection()
+	keySection, err = t.PerTeamKeySection()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -235,83 +236,17 @@ func (t *TeamKeyFactory) PerTeamKeySection() (*SCPerTeamKey, error) {
 	}, nil
 }
 
-// XXX remove this
-func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
-	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
-	if !ok {
-		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
-	}
-	noncePrefix, err := libkb.RandBytes(20)
-	if err != nil {
-		return nil, err
-	}
-	// The counter starts at 1, because 0 will be the prev secretbox, which is
-	// omitted for the team root link, because this is the first shared key.
-	var counter uint32 = 1
-	boxes := make(map[string]string)
-	for username, recipientPerUserKey := range recipients {
-		recipientPerUserGenericKeypair, err := libkb.ImportKeypairFromKID(recipientPerUserKey.EncKID)
-		if err != nil {
-			return nil, err
-		}
-		recipientPerUserNaclKeypair, ok := recipientPerUserGenericKeypair.(libkb.NaclDHKeyPair)
-		if !ok {
-			return nil, fmt.Errorf("got an unexpected key type for recipient KID in sharedTeamKeyBox: %T", recipientPerUserGenericKeypair)
-		}
-		var nonce [24]byte
-		counterBytes := [4]byte{}
-		binary.BigEndian.PutUint32(counterBytes[:], counter)
-		copy(nonce[:20], noncePrefix)
-		copy(nonce[20:24], counterBytes[:])
-		ctext := box.Seal(nil, secret, &nonce, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderNaclDHKey.Private)))
-		boxStruct := PerTeamSharedSecretBox{
-			Version:         libkb.SharedTeamKeyBoxVersion1,
-			PerUserKeySeqno: recipientPerUserKey.Seqno,
-			NonceCounter:    counter,
-			Ctext:           ctext,
-		}
-		encodedArray, err := libkb.MsgpackEncode(boxStruct)
-		if err != nil {
-			return nil, err
-		}
-		base64Array := base64.StdEncoding.EncodeToString(encodedArray)
-		boxes[username] = base64Array
+func (t *TeamKeyFactory) setNextSharedSecret(secret []byte) {
+	t.sharedSecret = secret
 
-		// increment nonce counter for next recipient
-		counter++
-	}
+	// bump generation number
+	t.generation = t.generation + 1
 
-	return &PerTeamSharedSecretBoxes{
-		Generation:    1,
-		EncryptingKid: senderNaclDHKey.GetKID(),
-		Nonce:         base64.StdEncoding.EncodeToString(noncePrefix),
-		Boxes:         boxes,
-	}, nil
-}
+	// clear out derived keys
+	t.signingKey = nil
+	t.encryptionKey = nil
 
-// XXX remove this
-func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
-	// This is the magical secret key, from which we derive a DH keypair and a
-	// signing keypair.
-	sharedSecret, err = libkb.RandBytes(32)
-	if err != nil {
-		return
-	}
-	signingKey, encryptionKey, err = generatePerTeamKeysFromSecret(sharedSecret)
-	return
-}
-
-// XXX remove this
-func generatePerTeamKeysFromSecret(sharedSecret []byte) (signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
-	encryptionKey, err = libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamDHDerivationString))
-	if err != nil {
-		return
-	}
-	signingKey, err = libkb.MakeNaclSigningKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamEdDSADerivationString))
-	if err != nil {
-		return
-	}
-	return
+	t.G().Log.Debug("TeamKeyFactory: set next shared secret, generation %d", t.generation)
 }
 
 const sharedSecretLen = 32
