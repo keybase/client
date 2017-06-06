@@ -154,6 +154,10 @@ func (t *Team) perUserEncryptionKeyForBox(ctx context.Context) (*libkb.NaclDHKey
 	if err != nil {
 		return nil, err
 	}
+	if encKey.Private == nil {
+		// Should never happen
+		return nil, errors.New("per user enckey is locked")
+	}
 
 	return encKey, nil
 }

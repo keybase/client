@@ -280,6 +280,7 @@ func (s *PerUserKeyring) AddKey(ctx context.Context, generation keybase1.PerUser
 	seqno keybase1.Seqno, seed PerUserKeySeed) error {
 	s.Lock()
 	defer s.Unlock()
+	s.G().Log.CDebugf(ctx, "PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
 
 	if seed.IsBlank() {
 		return errors.New("attempt to add blank per-user-key")
