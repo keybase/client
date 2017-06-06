@@ -109,7 +109,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		noneMap[n.version.Username] = true
 	}
 
-	for _, u := range existing.All() {
+	for _, u := range existing.AllUsernames() {
 		if noneMap[u] {
 			continue
 		}

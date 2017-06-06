@@ -1269,7 +1269,7 @@ func (k TeamApplicationKey) Generation() int {
 	return k.KeyGeneration
 }
 
-func (t TeamMembers) All() []string {
+func (t TeamMembers) AllUsernames() []string {
 	m := make(map[string]bool)
 	for _, u := range t.Owners {
 		m[u] = true
