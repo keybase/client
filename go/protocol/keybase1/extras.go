@@ -1268,3 +1268,24 @@ func (k TeamApplicationKey) Material() Bytes32 {
 func (k TeamApplicationKey) Generation() int {
 	return k.KeyGeneration
 }
+
+func (t TeamMembers) All() []string {
+	m := make(map[string]bool)
+	for _, u := range t.Owners {
+		m[u] = true
+	}
+	for _, u := range t.Admins {
+		m[u] = true
+	}
+	for _, u := range t.Writers {
+		m[u] = true
+	}
+	for _, u := range t.Readers {
+		m[u] = true
+	}
+	var all []string
+	for u := range m {
+		all = append(all, u)
+	}
+	return all
+}

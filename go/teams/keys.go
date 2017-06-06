@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type PerTeamSecretGeneration int
@@ -55,6 +56,10 @@ func NewTeamKeyFactoryWithSecret(secret []byte, generation PerTeamSecretGenerati
 	}, nil
 }
 
+func (t *TeamKeyFactory) SharedSecret() []byte {
+	return t.sharedSecret
+}
+
 func (t *TeamKeyFactory) SigningKey() (libkb.NaclSigningKeyPair, error) {
 	if t.signingKey == nil {
 		key, err := libkb.MakeNaclSigningKeyPairFromSecretBytes(derivedSecret(t.sharedSecret, libkb.TeamEdDSADerivationString))
@@ -80,39 +85,77 @@ func (t *TeamKeyFactory) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 
 func (t *TeamKeyFactory) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
 
-	// make the nonce prefix
-	n, err := newNonce24()
+	// make the nonce prefix, skipping the zero counter
+	// (0 used for previous key encryption nonce)
+	n, err := newNonce24SkipZero()
 	if err != nil {
 		return nil, err
 	}
-	// increment past the zero-counter since not rotating keys
-	// (0 used for previous key encryption nonce)
-	n.Inc()
 
 	// make the recipient boxes with the new secret and the nonce prefix
 	return t.sharedBoxes(t.sharedSecret, t.generation, n, senderKey, recipients)
 }
 
-func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func (t *TeamKeyFactory) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
 
 	// make the nonce prefix
-	n, err := newNonce24()
+	nonce, err := newNonce24()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	_ = n
 
 	// make a new secret
+	nextSecret, err := newSharedSecret()
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// derive new key from new secret for PrevKey
+	key := derivedSecret(nextSecret, libkb.TeamPrevKeySecretBoxDerivationString)
+	var keyb [32]byte
+	copy(keyb[:], key)
 
 	// encrypt existing secret with derived key and nonce counter 0
+	nonceBytes, _ := nonce.Nonce()
+	sealed := secretbox.Seal(nil, t.sharedSecret, &nonceBytes, &keyb)
 
 	// store it in PrevKey field
+	prevKey := struct {
+		_struct bool `codec:",toarray"`
+		Version int
+		Nonce   [24]byte
+		Key     []byte
+	}{
+		Version: 1,
+		Nonce:   nonceBytes,
+		Key:     sealed,
+	}
+	packed, err := libkb.MsgpackEncode(prevKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	encoded := base64.StdEncoding.EncodeToString(packed)
 
 	// make the recipient boxes with the new secret and the nonce prefix
+	t.sharedSecret = nextSecret
+	t.generation = t.generation + 1
+	t.signingKey = nil
+	t.encryptionKey = nil
+	boxes, err := t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return nil, nil
+	// insert PrevKey
+	boxes.PrevKey = &encoded
+
+	// need a new PerTeamKey section since the key was rotated
+	keySection, err := t.PerTeamKeySection()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return boxes, keySection, nil
 }
 
 func (t *TeamKeyFactory) sharedBoxes(secret []byte, generation PerTeamSecretGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
@@ -148,9 +191,6 @@ func (t *TeamKeyFactory) recipientBoxes(secret []byte, nonce *nonce24, senderKey
 		}
 
 		boxes[username] = base64.StdEncoding.EncodeToString(encodedArray)
-
-		// increment nonce counter for next recipient
-		nonce.Inc()
 	}
 
 	return boxes, nil
@@ -166,19 +206,36 @@ func (t *TeamKeyFactory) recipientBox(secret []byte, nonce *nonce24, senderKey l
 		return nil, fmt.Errorf("got an unexpected key type for recipient KID in sharedTeamKeyBox: %T", recipientPerUserGenericKeypair)
 	}
 
-	nonceBytes := nonce.Nonce()
+	nonceBytes, nonceCounter := nonce.Nonce()
 	ctext := box.Seal(nil, secret, &nonceBytes, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderKey.Private)))
 
 	boxStruct := PerTeamSharedSecretBox{
 		Version:         libkb.SharedTeamKeyBoxVersion1,
 		PerUserKeySeqno: recipient.Seqno,
-		NonceCounter:    nonce.Counter(),
+		NonceCounter:    nonceCounter,
 		Ctext:           ctext,
 	}
 
 	return &boxStruct, nil
 }
 
+func (t *TeamKeyFactory) PerTeamKeySection() (*SCPerTeamKey, error) {
+	sigKey, err := t.SigningKey()
+	if err != nil {
+		return nil, err
+	}
+	encKey, err := t.EncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	return &SCPerTeamKey{
+		Generation: int(t.generation),
+		SigKID:     sigKey.GetKID(),
+		EncKID:     encKey.GetKID(),
+	}, nil
+}
+
+// XXX remove this
 func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
 	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
 	if !ok {
@@ -232,6 +289,7 @@ func boxTeamSharedSecret(secret []byte, senderKey libkb.GenericKey, recipients m
 	}, nil
 }
 
+// XXX remove this
 func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
 	// This is the magical secret key, from which we derive a DH keypair and a
 	// signing keypair.
@@ -243,6 +301,7 @@ func generatePerTeamKeys() (sharedSecret []byte, signingKey libkb.NaclSigningKey
 	return
 }
 
+// XXX remove this
 func generatePerTeamKeysFromSecret(sharedSecret []byte) (signingKey libkb.NaclSigningKeyPair, encryptionKey libkb.NaclDHKeyPair, err error) {
 	encryptionKey, err = libkb.MakeNaclDHKeyPairFromSecretBytes(derivedSecret(sharedSecret, libkb.TeamDHDerivationString))
 	if err != nil {
