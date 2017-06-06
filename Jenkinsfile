@@ -355,6 +355,11 @@ def getTestDirs() {
 
 def testNixGo(prefix) {
     dir('go') {
+    withEnv([
+        "KEYBASE_LOG_SETUPTEST_FUNCS=1",
+    ]) {
+        sh "go get github.com/stretchr/testify/require"
+        sh "go get github.com/stretchr/testify/assert"
         def dirs = getTestDirs()
         def tests = [:]
         def curDir = sh(returnStdout: true, script: "pwd").trim() + "/"
@@ -362,8 +367,8 @@ def testNixGo(prefix) {
             def dirPath = d.replaceAll(curDir, '')
             println "Building tests for $dirPath"
             dir(dirPath) {
-                sh "go test -i"
-                sh "go test -c -o test.test"
+                sh 'go test -i'
+                sh 'go test -c -o test.test'
             }
             def testName = dirPath.replaceAll('/', '_')
             tests[prefix + testName] = {
@@ -375,5 +380,5 @@ def testNixGo(prefix) {
         }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
         parallel(tests)
-    }
+    }}
 }
