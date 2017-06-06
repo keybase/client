@@ -86,6 +86,10 @@ func (n TeamName) ToTeamID() keybase1.TeamID {
 	return res
 }
 
+func (n TeamName) IsSubTeam() bool {
+	return strings.Contains(string(n), ".")
+}
+
 const TeamSigChainPlayerSupportedLinkVersion = 2
 
 // Accessor wrapper for keybase1.TeamSigChainState
@@ -99,31 +103,31 @@ func (t TeamSigChainState) DeepCopy() TeamSigChainState {
 	}
 }
 
-func (t *TeamSigChainState) GetID() keybase1.TeamID {
+func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
 
-func (t *TeamSigChainState) GetName() string {
+func (t TeamSigChainState) GetName() string {
 	return t.inner.Name
 }
 
-func (t *TeamSigChainState) IsSubteam() bool {
+func (t TeamSigChainState) IsSubteam() bool {
 	return t.inner.ParentID != nil
 }
 
-func (t *TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
+func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
 
-func (t *TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
+func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
 
-func (t *TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
+func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.getUserRole(user), nil
 }
 
-func (t *TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamRole {
+func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamRole {
 	points := t.inner.UserLog[user]
 	if len(points) == 0 {
 		return keybase1.TeamRole_NONE
@@ -132,7 +136,7 @@ func (t *TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.Team
 	return role
 }
 
-func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
+func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
 	if role == keybase1.TeamRole_NONE {
 		return nil, errors.New("cannot get users with NONE role")
 	}
@@ -144,7 +148,7 @@ func (t *TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyb
 	return res, nil
 }
 
-func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[len(t.inner.PerTeamKeys)]
 	if !ok {
 		// if this happens it's a programming error
@@ -153,7 +157,7 @@ func (t *TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
-func (t *TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[gen]
 	if !ok {
 		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}

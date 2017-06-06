@@ -2,6 +2,8 @@ package teams
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -30,10 +32,6 @@ func (f *finder) find(ctx context.Context, g *libkb.GlobalContext, name string) 
 		return nil, err
 	}
 
-	team := NewTeam(g, name)
-	team.Box = raw.Box
-	team.ReaderKeyMasks = raw.ReaderKeyMasks
-
 	links, err := f.chainLinks(ctx, raw)
 	if err != nil {
 		return nil, err
@@ -49,9 +47,22 @@ func (f *finder) find(ctx context.Context, g *libkb.GlobalContext, name string) 
 		return nil, err
 	}
 
-	team.Chain = &state
+	// TODO validate reader key masks
+	td := keybase1.TeamData{
+		Chain:           state.inner,
+		PerTeamKeySeeds: nil,
+		ReaderKeyMasks:  raw.ReaderKeyMasks,
+	}
 
-	return team, nil
+	seed, err := f.openBox(ctx, raw.Box, state)
+	if err != nil {
+		return nil, err
+	}
+	td.PerTeamKeySeeds = append(td.PerTeamKeySeeds, *seed)
+
+	return &Team{
+		TeamData: &td,
+	}, nil
 }
 
 func (f *finder) rawTeam(ctx context.Context, name string) (*rawTeam, error) {
@@ -86,6 +97,70 @@ func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigCh
 		return nil, err
 	}
 	return player, nil
+}
+
+func (f *finder) openBox(ctx context.Context, box TeamBox, chain TeamSigChainState) (*keybase1.PerTeamKeySeedItem, error) {
+	userEncKey, err := f.perUserEncryptionKeyForBox(ctx, box)
+	if err != nil {
+		return nil, err
+	}
+
+	secret, err := box.Open(userEncKey)
+	if err != nil {
+		return nil, err
+	}
+
+	signingKey, encryptionKey, err := generatePerTeamKeysFromSecret(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	teamKey, err := chain.GetPerTeamKeyAtGeneration(box.Generation)
+	if err != nil {
+		return nil, err
+	}
+
+	if !teamKey.SigKID.SecureEqual(signingKey.GetKID()) {
+		return nil, errors.New("derived signing key did not match key in team chain")
+	}
+
+	if !teamKey.EncKID.SecureEqual(encryptionKey.GetKID()) {
+		return nil, errors.New("derived encryption key did not match key in team chain")
+	}
+
+	// TODO: check that t.Box.SenderKID is a known device DH key for the
+	// user that signed the link.
+	// See CORE-5399
+
+	seed, err := libkb.MakeByte32Soft(secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid seed: %v", err)
+	}
+
+	record := keybase1.PerTeamKeySeedItem{
+		Seed:       seed,
+		Generation: box.Generation,
+		Seqno:      teamKey.Seqno,
+	}
+
+	return &record, nil
+}
+
+func (f *finder) perUserEncryptionKeyForBox(ctx context.Context, box TeamBox) (*libkb.NaclDHKeyPair, error) {
+	kr, err := f.G().GetPerUserKeyring()
+	if err != nil {
+		return nil, err
+	}
+	// XXX this seems to be necessary:
+	if err := kr.Sync(ctx); err != nil {
+		return nil, err
+	}
+	encKey, err := kr.GetEncryptionKeyBySeqno(ctx, box.PerUserKeySeqno)
+	if err != nil {
+		return nil, err
+	}
+
+	return encKey, nil
 }
 
 func (f *finder) UsernameForUID(ctx context.Context, uid keybase1.UID) (string, error) {
