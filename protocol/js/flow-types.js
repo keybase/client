@@ -4939,6 +4939,14 @@ export type PerTeamKey = {
   encKID: KID,
 }
 
+export type PerTeamKeySeed = any
+
+export type PerTeamKeySeedItem = {
+  seed: PerTeamKeySeed,
+  generation: int,
+  seqno: Seqno,
+}
+
 export type PerUserKey = {
   gen: int,
   seqno: Seqno,
@@ -5670,6 +5678,12 @@ export type TeamChangeReq = {
   writers?: ?Array<string>,
   readers?: ?Array<string>,
   none?: ?Array<string>,
+}
+
+export type TeamData = {
+  chain: TeamSigChainState,
+  perTeamKeySeeds?: ?Array<PerTeamKeySeedItem>,
+  readerKeyMasks?: ?Array<ReaderKeyMask>,
 }
 
 export type TeamID = string
