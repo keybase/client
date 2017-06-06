@@ -392,6 +392,8 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 	paperSigKey := ctx.LoginContext.GetUnlockedPaperSigKey()
 	paperEncKeyGeneric := ctx.LoginContext.GetUnlockedPaperEncKey()
 	if paperSigKey == nil && paperEncKeyGeneric == nil {
+		// GPG provisioning is not supported when the user has per-user-keys.
+		// This is the error that manifests. See CORE-4960
 		return nil, errors.New("missing paper key in login context")
 	}
 	if paperSigKey == nil {
