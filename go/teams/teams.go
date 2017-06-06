@@ -20,7 +20,7 @@ type Team struct {
 	Box            TeamBox
 	ReaderKeyMasks []keybase1.ReaderKeyMask
 
-	factory *TeamKeyFactory
+	keyManager *TeamKeyManager
 
 	me *libkb.User
 }
@@ -30,7 +30,7 @@ func NewTeam(g *libkb.GlobalContext, name string) *Team {
 }
 
 func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
-	if t.factory == nil {
+	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
 			return nil, err
@@ -41,16 +41,16 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		factory, err := NewTeamKeyFactoryWithSecret(t.G(), secret, t.Box.Generation)
+		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}
 
-		signingKey, err := factory.SigningKey()
+		signingKey, err := keyManager.SigningKey()
 		if err != nil {
 			return nil, err
 		}
-		encryptionKey, err := factory.EncryptionKey()
+		encryptionKey, err := keyManager.EncryptionKey()
 		if err != nil {
 			return nil, err
 		}
@@ -72,11 +72,11 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 		// user that signed the link.
 		// See CORE-5399
 
-		// all checks passed, ok to hold onto the factory for this secret
-		t.factory = factory
+		// all checks passed, ok to hold onto the keyManager for this secret
+		t.keyManager = keyManager
 	}
 
-	return t.factory.SharedSecret(), nil
+	return t.keyManager.SharedSecret(), nil
 }
 
 func (t *Team) KBFSKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
@@ -331,11 +331,11 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 		return libkb.SigMultiItem{}, err
 	}
 
-	signingKey, err := t.factory.SigningKey()
+	signingKey, err := t.keyManager.SigningKey()
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	encryptionKey, err := t.factory.EncryptionKey()
+	encryptionKey, err := t.keyManager.EncryptionKey()
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -408,10 +408,10 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 			return nil, nil, err
 		}
-		return t.factory.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+		return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
 	}
 
-	boxes, err := t.factory.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	boxes, err := t.keyManager.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, err
 	}

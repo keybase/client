@@ -38,20 +38,20 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	}
 
 	// These boxes will get posted along with the sig below.
-	f, err := NewTeamKeyFactory(g)
+	m, err := NewTeamKeyManager(g)
 	if err != nil {
 		return err
 	}
-	secretboxes, err := f.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	secretboxes, err := m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return err
 	}
 
-	perTeamSigningKey, err := f.SigningKey()
+	perTeamSigningKey, err := m.SigningKey()
 	if err != nil {
 		return err
 	}
-	perTeamEncryptionKey, err := f.EncryptionKey()
+	perTeamEncryptionKey, err := m.EncryptionKey()
 	if err != nil {
 		return err
 	}
@@ -311,20 +311,20 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		me.GetName(): *ownerLatest,
 	}
 	// These boxes will get posted along with the sig below.
-	f, err := NewTeamKeyFactory(g)
+	m, err := NewTeamKeyManager(g)
 	if err != nil {
 		return nil, nil, err
 	}
-	boxes, err = f.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	boxes, err = m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return
 	}
 
-	perTeamSigningKey, err := f.SigningKey()
+	perTeamSigningKey, err := m.SigningKey()
 	if err != nil {
 		return nil, nil, err
 	}
-	perTeamEncryptionKey, err := f.EncryptionKey()
+	perTeamEncryptionKey, err := m.EncryptionKey()
 	if err != nil {
 		return nil, nil, err
 	}
