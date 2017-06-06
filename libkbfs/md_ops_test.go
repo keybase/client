@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -171,7 +172,8 @@ func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 }
 
 func verifyMDForPrivateHelper(
-	config *ConfigMock, rmds *RootMetadataSigned, minTimes, maxTimes int) {
+	config *ConfigMock, rmds *RootMetadataSigned, minTimes, maxTimes int,
+	forceFinal bool) {
 	mdCopy, err := rmds.MD.DeepCopy(config.Codec())
 	if err != nil {
 		panic(err)
@@ -185,9 +187,10 @@ func verifyMDForPrivateHelper(
 		gomock.Any(), kbfscrypto.TLFCryptKey{}).
 		MinTimes(minTimes).MaxTimes(maxTimes).Return(pmd, nil)
 
-	if rmds.MD.IsFinal() {
-		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(gomock.Any(), gomock.Any(),
-			gomock.Any()).AnyTimes().Return(nil)
+	if rmds.MD.IsFinal() || forceFinal {
+		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(
+			gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+
 	} else {
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
@@ -197,7 +200,7 @@ func verifyMDForPrivateHelper(
 
 func verifyMDForPrivate(
 	config *ConfigMock, rmds *RootMetadataSigned) {
-	verifyMDForPrivateHelper(config, rmds, 1, 1)
+	verifyMDForPrivateHelper(config, rmds, 1, 1, false)
 }
 
 func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
@@ -550,6 +553,7 @@ func makeRMDSRange(t *testing.T, config Config,
 
 type keyBundleMDServer struct {
 	MDServer
+	nextHead     *RootMetadataSigned
 	nextGetRange []*RootMetadataSigned
 
 	lock sync.RWMutex
@@ -585,6 +589,14 @@ func (mds *keyBundleMDServer) processRMDSes(
 		mds.putWKB(rmds.MD.GetTLFWriterKeyBundleID(), extraV3.wkb)
 		mds.putRKB(rmds.MD.GetTLFReaderKeyBundleID(), extraV3.rkb)
 	}
+}
+
+func (mds *keyBundleMDServer) GetForTLF(
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (
+	*RootMetadataSigned, error) {
+	rmd := mds.nextHead
+	mds.nextHead = nil
+	return rmd, nil
 }
 
 func (mds *keyBundleMDServer) GetRange(
@@ -665,7 +677,7 @@ func testMDOpsGetRangeFailBadPrevRoot(t *testing.T, ver MetadataVer) {
 	// Verification is parallelized, so we have to expect at most one
 	// verification for each rmds.
 	for _, rmds := range rmdses {
-		verifyMDForPrivateHelper(config, rmds, 0, 1)
+		verifyMDForPrivateHelper(config, rmds, 0, 1, false)
 	}
 
 	mdServer := makeKeyBundleMDServer(config.MDServer())
@@ -843,7 +855,7 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver MetadataVer) {
 	// Verification is parallelized, so we have to expect at most one
 	// verification for each rmds.
 	for _, rmds := range rmdses {
-		verifyMDForPrivateHelper(config, rmds, 0, 1)
+		verifyMDForPrivateHelper(config, rmds, 0, 1, false)
 	}
 
 	mdServer := makeKeyBundleMDServer(config.MDServer())
@@ -855,6 +867,45 @@ func testMDOpsGetRangeFailFinal(t *testing.T, ver MetadataVer) {
 	}
 	_, err := config.MDOps().GetRange(ctx, rmdses[0].MD.TlfID(), start, stop)
 	require.IsType(t, MDMismatchError{}, err)
+}
+
+func testMDOpsGetFinalSuccess(t *testing.T, ver MetadataVer) {
+	mockCtrl, config, ctx := mdOpsInit(t, ver)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	rmdses, extras := makeRMDSRange(
+		t, config, kbfsmd.RevisionInitial, 5, kbfsmd.ID{})
+
+	now := time.Now()
+	finalizedInfo, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, libkb.NormalizedUsername("<unknown>"),
+		now)
+	require.NoError(t, err)
+	finalRMDS, err := rmdses[len(rmdses)-1].MakeFinalCopy(
+		config.Codec(), now, finalizedInfo)
+	require.NoError(t, err)
+	verifyMDForPrivateHelper(config, finalRMDS, 1, 1, false)
+
+	config.SetMDCache(NewMDCacheStandard(10))
+	mdServer := makeKeyBundleMDServer(config.MDServer())
+	config.SetMDServer(mdServer)
+
+	// A finalized head will force MDOps to fetch the preceding range
+	// of MDs, in order to check the authenticity of the copied writer
+	// MD.  However the key that signed that MD could be a pre-reset
+	// key, so we need to make calls to get unverified keys.
+	mdServer.nextHead = finalRMDS
+	mdServer.nextGetRange = rmdses
+	for i, e := range extras {
+		mdServer.processRMDSes(rmdses[i], e)
+	}
+
+	for _, rmds := range rmdses {
+		verifyMDForPrivateHelper(config, rmds, 1, 1, true)
+	}
+
+	_, err = config.MDOps().GetForTLF(ctx, finalRMDS.MD.TlfID())
+	require.NoError(t, err)
 }
 
 func TestMDOps(t *testing.T) {
@@ -879,6 +930,7 @@ func TestMDOps(t *testing.T) {
 		testMDOpsPutPrivateSuccess,
 		testMDOpsPutFailEncode,
 		testMDOpsGetRangeFailFinal,
+		testMDOpsGetFinalSuccess,
 	}
 	runTestsOverMetadataVers(t, "testMDOps", tests)
 }

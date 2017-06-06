@@ -54,12 +54,31 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
+// CtxAllowUnverifiedKeysType is the type for a context value allowing
+// for unverified keys to have signed MD updates.
+type CtxAllowUnverifiedKeysType int
+
+const (
+	// CtxAllowUnverifiedKeys is set in the context when an MD update
+	// is allowed to have been signed by an unverified key (e.g.,
+	// because the TLF has been finalized).
+	CtxAllowUnverifiedKeys CtxAllowUnverifiedKeysType = iota
+)
+
+func unverifiedKeysAllowed(ctx context.Context, handle *TlfHandle) bool {
+	// TODO: technically we should only allow unverified keys if the
+	// writer has been reset.  But it's pretty difficult to know which
+	// users have been reset here (note that multiple users could be
+	// reset at this point).
+	return handle.IsFinal() || ctx.Value(CtxAllowUnverifiedKeys) != nil
+}
+
 func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	rmds *RootMetadataSigned, handle *TlfHandle,
 	getRangeLock *sync.Mutex) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		var err error
-		if handle.IsFinal() {
+		if unverifiedKeysAllowed(ctx, handle) {
 			err = md.config.KBPKI().HasUnverifiedVerifyingKey(ctx,
 				rmds.MD.LastModifyingWriter(),
 				rmds.GetWriterMetadataSigInfo().VerifyingKey)
@@ -103,6 +122,12 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 		defer getRangeLock.Unlock()
 	}
 
+	if handle.IsFinal() {
+		// Checks of all the predecessors should allow unverified
+		// keys, since the TLF has been finalized.
+		ctx = context.WithValue(ctx, CtxAllowUnverifiedKeys, "true")
+	}
+
 	// The server timestamp on rmds does not reflect when the
 	// writer MD was actually signed, since it was copied from a
 	// previous revision.  Search backwards for the most recent
@@ -119,8 +144,8 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 		// extra work by downloading the same MDs twice (for those
 		// that aren't yet in the cache).  That should be so rare that
 		// it's not worth optimizing.
-		prevMDs, err := getMDRange(ctx, md.config, rmds.MD.TlfID(), rmds.MD.BID(),
-			startRev, prevHead, rmds.MD.MergedStatus())
+		prevMDs, err := getMDRange(ctx, md.config, rmds.MD.TlfID(),
+			rmds.MD.BID(), startRev, prevHead, rmds.MD.MergedStatus())
 		if err != nil {
 			return err
 		}
@@ -189,7 +214,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, err
 	}
 
-	if handle.IsFinal() {
+	if unverifiedKeysAllowed(ctx, handle) {
 		err = md.config.KBPKI().HasUnverifiedVerifyingKey(
 			ctx, rmds.MD.GetLastModifyingUser(),
 			rmds.SigInfo.VerifyingKey)
