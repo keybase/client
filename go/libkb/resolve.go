@@ -4,13 +4,15 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"time"
+
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
-	"runtime/debug"
 	"stathat.com/c/ramcache"
 )
 
@@ -210,6 +212,15 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
+	if au.IsTeamID() {
+		ateam, ok := au.(AssertionTeamID)
+		if !ok {
+			res.err = errors.New("au.IsTeamID() == true, but failed type cast")
+			return res
+		}
+		return r.resolveTeamIDViaServerLookup(ctx, ateam, input, withBody)
+	}
+
 	var key, val string
 	var ares *APIRes
 	var l int
@@ -276,6 +287,39 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 
 	return
+}
+
+type teamLookup struct {
+	ID     keybase1.TeamID `json:"id"`
+	Name   string          `json:"name"`
+	Status AppStatus       `json:"status"`
+}
+
+func (t *teamLookup) GetAppStatus() *AppStatus {
+	return &t.Status
+}
+
+func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam AssertionTeamID, input string, withBody bool) (res ResolveResult) {
+	key, val, err := ateam.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	arg := NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = make(HTTPArgs)
+	arg.Args[key] = S{Val: val}
+	arg.Args["lookup_only"] = B{Val: true}
+
+	var lookup teamLookup
+	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+
+	return res
 }
 
 type ResolveCacheStats struct {
