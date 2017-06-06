@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         if (hasGoChanges) {
-                                            testNixGo("Linux")
+                                            testNixGo("test_linux_go_")
                                         }
                                     }},
                                     test_linux_js: { withEnv([
@@ -368,14 +368,19 @@ def testNixGo(prefix) {
         for (i=0; i<dirs.size(); i++) {
             def d = dirs[i]
             def dirPath = d.replaceAll(curDir, '')
-            def testName = dirPath.replaceAll('/', '_')
-            tests[prefix + testName] = {
-                dir(dirPath) {
-                    println "Building tests for $dirPath"
-                    sh 'go test -i'
-                    sh 'go test -c -o test.test'
-                    println "Running tests for $dirPath"
-                    sh "./test.test -test.timeout 10m"
+            dir(dirPath) {
+                println "Building tests for $dirPath"
+                sh 'go test -i'
+                sh 'go test -c -o test.test'
+            }
+            // Only run the test if a test binary should have been produced.
+            if (fileExists('test.test')) {
+                def testName = dirPath.replaceAll('/', '_')
+                tests[prefix + testName] = {
+                    dir(dirPath) {
+                        println "Running tests for $dirPath"
+                        sh "./test.test -test.timeout 10m"
+                    }
                 }
             }
         }
