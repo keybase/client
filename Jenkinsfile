@@ -308,7 +308,7 @@ helpers.rootLinuxNode(env, {
                                         //},
                                         test_macos_go: {
                                             if (hasGoChanges) {
-                                                testNixGo("test_macos_")
+                                                testNixGo("test_macos_go_")
                                             }
                                         }
                                     )
@@ -378,7 +378,7 @@ def testNixGo(prefix) {
                 tests[prefix + testName] = {
                     dir(dirPath) {
                         println "Running tests for $dirPath"
-                        sh "./test.test -test.timeout 10m"
+                        sh "./test.test -test.timeout 15m"
                     }
                 }
             }
