@@ -5,6 +5,9 @@ import Box from './box'
 import Emoji from './emoji'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
+import {NativeClipboard} from './native-wrappers.native'
+import openURL from '../util/open-url'
+import {Alert} from 'react-native'
 
 import type {Props} from './markdown'
 
@@ -14,9 +17,9 @@ const codeSnippetStyle = {
   fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
-  //...globalStyles.rounded,
-  //paddingLeft: globalMargins.xtiny,
-  //paddingRight: globalMargins.xtiny,
+  // ...globalStyles.rounded,
+  // paddingLeft: globalMargins.xtiny,
+  // paddingRight: globalMargins.xtiny,
 }
 
 const codeSnippetBlockStyle = {
@@ -58,6 +61,20 @@ function previewCreateComponent(style) {
   }
 }
 
+const _urlCopy = (url: ?string) => {
+  if (!url) return
+  NativeClipboard.setString(url)
+}
+
+const _urlChooseOption = (url: ?string) => {
+  if (!url) return
+  Alert.alert('', url, [
+    {style: 'cancel', text: 'Cancel'},
+    {onPress: () => openURL(url), text: 'Open Link'},
+    {onPress: () => _urlCopy(url), text: 'Copy Link'},
+  ])
+}
+
 function messageCreateComponent(style) {
   return function(type, key, children, options) {
     switch (type) {
@@ -73,7 +90,15 @@ function messageCreateComponent(style) {
         )
       case 'link':
         return (
-          <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
+          <Text
+            type="BodyPrimaryLink"
+            key={key}
+            style={linkStyle}
+            onClickURL={options.href}
+            onLongPress={() => _urlChooseOption(options.href)}
+          >
+            {children}
+          </Text>
         )
       case 'text-block':
         return (
