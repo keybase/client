@@ -1244,3 +1244,27 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 		RemoteTracks: uV2.Current.RemoteTracks,
 	}
 }
+
+// "foo" for seqno 1 or "foo%6"
+func (u UserVersion) PercentForm() string {
+	if u.EldestSeqno == 1 {
+		return u.Username
+	}
+	return fmt.Sprintf("%s%%%d", u.Username, u.EldestSeqno)
+}
+
+func (k CryptKey) Material() Bytes32 {
+	return k.Key
+}
+
+func (k CryptKey) Generation() int {
+	return k.KeyGeneration
+}
+
+func (k TeamApplicationKey) Material() Bytes32 {
+	return k.Key
+}
+
+func (k TeamApplicationKey) Generation() int {
+	return k.KeyGeneration
+}

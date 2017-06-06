@@ -158,25 +158,24 @@ func (e FSErrorType) String() string {
 }
 
 type FSNotification struct {
-	PublicTopLevelFolder bool               `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
-	Filename             string             `codec:"filename" json:"filename"`
-	Status               string             `codec:"status" json:"status"`
-	StatusCode           FSStatusCode       `codec:"statusCode" json:"statusCode"`
-	NotificationType     FSNotificationType `codec:"notificationType" json:"notificationType"`
-	ErrorType            FSErrorType        `codec:"errorType" json:"errorType"`
-	Params               map[string]string  `codec:"params" json:"params"`
-	WriterUid            UID                `codec:"writerUid" json:"writerUid"`
-	LocalTime            Time               `codec:"localTime" json:"localTime"`
+	Filename         string             `codec:"filename" json:"filename"`
+	Status           string             `codec:"status" json:"status"`
+	StatusCode       FSStatusCode       `codec:"statusCode" json:"statusCode"`
+	NotificationType FSNotificationType `codec:"notificationType" json:"notificationType"`
+	ErrorType        FSErrorType        `codec:"errorType" json:"errorType"`
+	Params           map[string]string  `codec:"params" json:"params"`
+	WriterUid        UID                `codec:"writerUid" json:"writerUid"`
+	LocalTime        Time               `codec:"localTime" json:"localTime"`
+	FolderType       FolderType         `codec:"folderType" json:"folderType"`
 }
 
 func (o FSNotification) DeepCopy() FSNotification {
 	return FSNotification{
-		PublicTopLevelFolder: o.PublicTopLevelFolder,
-		Filename:             o.Filename,
-		Status:               o.Status,
-		StatusCode:           o.StatusCode.DeepCopy(),
-		NotificationType:     o.NotificationType.DeepCopy(),
-		ErrorType:            o.ErrorType.DeepCopy(),
+		Filename:         o.Filename,
+		Status:           o.Status,
+		StatusCode:       o.StatusCode.DeepCopy(),
+		NotificationType: o.NotificationType.DeepCopy(),
+		ErrorType:        o.ErrorType.DeepCopy(),
 		Params: (func(x map[string]string) map[string]string {
 			ret := make(map[string]string)
 			for k, v := range x {
@@ -186,8 +185,9 @@ func (o FSNotification) DeepCopy() FSNotification {
 			}
 			return ret
 		})(o.Params),
-		WriterUid: o.WriterUid.DeepCopy(),
-		LocalTime: o.LocalTime.DeepCopy(),
+		WriterUid:  o.WriterUid.DeepCopy(),
+		LocalTime:  o.LocalTime.DeepCopy(),
+		FolderType: o.FolderType.DeepCopy(),
 	}
 }
 
@@ -214,20 +214,20 @@ func (o FSSyncStatusRequest) DeepCopy() FSSyncStatusRequest {
 }
 
 type FSPathSyncStatus struct {
-	PublicTopLevelFolder bool   `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
-	Path                 string `codec:"path" json:"path"`
-	SyncingBytes         int64  `codec:"syncingBytes" json:"syncingBytes"`
-	SyncingOps           int64  `codec:"syncingOps" json:"syncingOps"`
-	SyncedBytes          int64  `codec:"syncedBytes" json:"syncedBytes"`
+	FolderType   FolderType `codec:"folderType" json:"folderType"`
+	Path         string     `codec:"path" json:"path"`
+	SyncingBytes int64      `codec:"syncingBytes" json:"syncingBytes"`
+	SyncingOps   int64      `codec:"syncingOps" json:"syncingOps"`
+	SyncedBytes  int64      `codec:"syncedBytes" json:"syncedBytes"`
 }
 
 func (o FSPathSyncStatus) DeepCopy() FSPathSyncStatus {
 	return FSPathSyncStatus{
-		PublicTopLevelFolder: o.PublicTopLevelFolder,
-		Path:                 o.Path,
-		SyncingBytes:         o.SyncingBytes,
-		SyncingOps:           o.SyncingOps,
-		SyncedBytes:          o.SyncedBytes,
+		FolderType:   o.FolderType.DeepCopy(),
+		Path:         o.Path,
+		SyncingBytes: o.SyncingBytes,
+		SyncingOps:   o.SyncingOps,
+		SyncedBytes:  o.SyncedBytes,
 	}
 }
 
