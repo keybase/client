@@ -5,7 +5,9 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
@@ -75,5 +77,40 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	}
 	if len(up2.RevokedDeviceKeys) != 2 {
 		t.Errorf("revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
+	}
+}
+
+// TestMerkleHashMetaAndFirstAppearedInKeyFamily tests new user & key family features:
+//   * FirstAppearedMerkleSeqnoUnverified in sig chain links
+//   * EldestSeqno in sig chain links
+//   * HashMeta in sig chain links
+// We should be able to see these fields in sigchains and also propagated through
+// to the KeyFamilies
+func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	CreateAndSignupFakeUser(tc, "login")
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	require.NoError(t, err)
+
+	ckf := me.GetComputedKeyFamily()
+	checkKey := func(key libkb.GenericKey, cki libkb.ComputedKeyInfo, err error) {
+		require.NoError(t, err)
+		require.NotNil(t, key, "non-nil key")
+		require.Equal(t, len(cki.DelegatedAtHashMeta), 32, "needed a SHA256 hash for merkle hash_meta")
+		require.True(t, (cki.FirstAppearedUnverified > 0), "need a >0 merkle root first appeared in")
+	}
+	checkSibkey := func(kid keybase1.KID) {
+		checkKey(ckf.FindActiveSibkey(kid))
+	}
+	checkSubkey := func(kid keybase1.KID) {
+		checkKey(ckf.FindActiveEncryptionSubkey(kid))
+	}
+
+	for _, sibkey := range ckf.GetAllActiveSibkeys() {
+		checkSibkey(sibkey.GetKID())
+	}
+	for _, subkey := range ckf.GetAllActiveSubkeys() {
+		checkSubkey(subkey.GetKID())
 	}
 }
