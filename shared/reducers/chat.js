@@ -340,7 +340,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updateMessage': {
       const {messageID, message, conversationIDKey} = action.payload
-      return updateStateWithMessageChanged(state, conversationIDKey, messageID, message)
+      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, message)
     }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
