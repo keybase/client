@@ -365,7 +365,8 @@ def testNixGo(prefix) {
         def dirs = getTestDirs()
         def tests = [:]
         def curDir = sh(returnStdout: true, script: "pwd").trim() + "/"
-        for (d in dirs) {
+        for (i=0; i<dirs.size(); i++) {
+            def d = dirs[i]
             def dirPath = d.replaceAll(curDir, '')
             def testName = dirPath.replaceAll('/', '_')
             tests[prefix + testName] = {
