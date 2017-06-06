@@ -49,7 +49,8 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 		writer = libkb.NormalizedUsername("uid: " +
 			rmds.MD.LastModifyingWriter().String())
 	}
-	md.log.CDebugf(ctx, "Unverifiable update for TLF %s", rmds.MD.TlfID())
+	md.log.CDebugf(ctx, "Unverifiable update for TLF %s: %+v",
+		rmds.MD.TlfID(), err)
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
