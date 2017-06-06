@@ -193,11 +193,15 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var sigsList []libkb.JSONPayload
 
 	// Push the per-user-key sig
+
+	// Seqno when the per-user-key will be signed in.
+	var newPukSeqno keybase1.Seqno
 	if e.G().Env.GetSupportPerUserKey() && addingNewPUK {
 		sig1, err := libkb.PerUserKeyProofReverseSigned(me, *newPukSeed, newPukGeneration, sigKey)
 		if err != nil {
 			return err
 		}
+		newPukSeqno = me.GetSigChainLastKnownSeqno()
 		sigsList = append(sigsList, sig1)
 	}
 
@@ -232,7 +236,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		if err != nil {
 			return err
 		}
-		err = pukring.AddKey(ctx.NetContext, newPukGeneration, *newPukSeed)
+		err = pukring.AddKey(ctx.NetContext, newPukGeneration, newPukSeqno, *newPukSeed)
 		if err != nil {
 			return err
 		}

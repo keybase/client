@@ -143,6 +143,8 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+	// Seqno when the per-user-key will be signed in.
+	pukSeqno := me.GetSigChainLastKnownSeqno()
 
 	var sigsList []libkb.JSONPayload
 	sigsList = append(sigsList, sig1)
@@ -163,7 +165,7 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	e.DidNewKey = true
 
 	// Add the per-user-key locally
-	err = pukring.AddKey(ctx.GetNetContext(), gen1, pukSeed)
+	err = pukring.AddKey(ctx.GetNetContext(), gen1, pukSeqno, pukSeed)
 	if err != nil {
 		return err
 	}
