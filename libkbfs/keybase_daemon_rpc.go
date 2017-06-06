@@ -62,9 +62,11 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
 
-	ctx, cancel := context.WithCancel(context.Background())
-	k.keepAliveCancel = cancel
-	go k.keepAliveLoop(ctx)
+	if config.Mode() != InitMinimal {
+		ctx, cancel := context.WithCancel(context.Background())
+		k.keepAliveCancel = cancel
+		go k.keepAliveLoop(ctx)
+	}
 
 	return k
 }
