@@ -23,13 +23,8 @@ const getUsers = createSelector(
     )
 )
 
-const getBadgeNumber = (state: TypedState) => {
-  const navBadges = state.notifications.get('navBadges')
-  return navBadges.get(chatTab)
-}
-
 const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
-  badgeNumber: getBadgeNumber(state),
+  badgeNumber: state.notifications.get('navBadges').get(chatTab),
   muted: Constants.getMuted(state),
   sidePanelOpen,
   users: getUsers(state),
