@@ -145,17 +145,18 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const messageFromYou =
           message.deviceName === yourDeviceName && message.author && yourName === message.author
 
+        let pendingMessage
         if (
           (message.type === 'Text' || message.type === 'Attachment') &&
-          message.outboxID &&
-          messageFromYou
+          messageFromYou &&
+          message.outboxID
         ) {
+          pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, message.outboxID)
+        }
+
+        if (pendingMessage) {
           if (message.type === 'Attachment') {
-            const pendingMessage = yield select(
-              Shared.messageOutboxIDSelector,
-              conversationIDKey,
-              message.outboxID
-            )
+            // Copy locally-generated preview
             message.previewPath = pendingMessage.previewPath
           }
 
