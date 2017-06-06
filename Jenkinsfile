@@ -358,6 +358,8 @@ def testNixGo(prefix) {
     withEnv([
         "KEYBASE_LOG_SETUPTEST_FUNCS=1",
     ]) {
+        def goversion = sh(returnStdout: true, script: 'go version').trim()
+        println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         sh "go get github.com/stretchr/testify/require"
         sh "go get github.com/stretchr/testify/assert"
         def dirs = getTestDirs()
@@ -365,14 +367,12 @@ def testNixGo(prefix) {
         def curDir = sh(returnStdout: true, script: "pwd").trim() + "/"
         for (d in dirs) {
             def dirPath = d.replaceAll(curDir, '')
-            println "Building tests for $dirPath"
-            dir(dirPath) {
-                sh 'go test -i'
-                sh 'go test -c -o test.test'
-            }
             def testName = dirPath.replaceAll('/', '_')
             tests[prefix + testName] = {
                 dir(dirPath) {
+                    println "Building tests for $dirPath"
+                    sh 'go test -i'
+                    sh 'go test -c -o test.test'
                     println "Running tests for $dirPath"
                     sh "./test.test -test.timeout 10m"
                 }
