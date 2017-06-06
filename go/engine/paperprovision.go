@@ -13,12 +13,14 @@ import (
 
 type PaperProvisionEngine struct {
 	libkb.Contextified
-	Username   string
-	DeviceName string
-	PaperKey   string
-	result     error
-	lks        *libkb.LKSec
-	User       *libkb.User
+	Username       string
+	DeviceName     string
+	PaperKey       string
+	keepPaperKey   bool
+	result         error
+	lks            *libkb.LKSec
+	User           *libkb.User
+	perUserKeyring *libkb.PerUserKeyring
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
@@ -106,6 +108,13 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 	if uid.NotEqual(e.User.GetUID()) {
 		e.G().Log.Debug("paper key entered was for a different user")
 		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.User.GetUID())
+	}
+
+	if e.G().Env.GetSupportPerUserKey() {
+		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
+		if err != nil {
+			return err
+		}
 	}
 
 	// Make new device keys and sign them with this paper key
@@ -224,10 +233,11 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs
 	}
 
 	return &DeviceWrapArgs{
-		Me:         e.User,
-		DeviceName: e.DeviceName,
-		DeviceType: "desktop",
-		Lks:        e.lks,
+		Me:             e.User,
+		DeviceName:     e.DeviceName,
+		DeviceType:     "desktop",
+		Lks:            e.lks,
+		PerUserKeyring: e.perUserKeyring,
 	}, nil
 }
 
