@@ -31,7 +31,7 @@ func NewTeam(g *libkb.GlobalContext, name string) *Team {
 
 func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 	if t.secret == nil {
-		userEncKey, err := t.perUserEncryptionKey(ctx)
+		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -141,32 +141,7 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	return members, nil
 }
 
-func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, error) {
-	// TeamBox has PerUserKeySeqno but libkb.PerUserKeyring has no seqnos.
-	// ComputedKeyInfos does, though, so let's find the key there first, then
-	// look for it in libkb.PerUserKeyring.
-
-	me, err := t.loadMe()
-	if err != nil {
-		return nil, err
-	}
-
-	cki := me.GetComputedKeyInfos()
-	if cki == nil {
-		return nil, errors.New("no computed key infos for self")
-	}
-
-	var encKID keybase1.KID
-	for _, key := range cki.PerUserKeys {
-		if key.Seqno == t.Box.PerUserKeySeqno {
-			encKID = key.EncKID
-			break
-		}
-	}
-	if encKID.IsNil() {
-		return nil, libkb.NotFoundError{Msg: fmt.Sprintf("per-user-key not found seqno=%d", t.Box.PerUserKeySeqno)}
-	}
-
+func (t *Team) perUserEncryptionKeyForBox(ctx context.Context) (*libkb.NaclDHKeyPair, error) {
 	kr, err := t.G().GetPerUserKeyring()
 	if err != nil {
 		return nil, err
@@ -175,11 +150,12 @@ func (t *Team) perUserEncryptionKey(ctx context.Context) (*libkb.NaclDHKeyPair, 
 	if err := kr.Sync(ctx); err != nil {
 		return nil, err
 	}
-	encKey, err := kr.GetEncryptionKeyByKID(ctx, encKID)
+	encKey, err := kr.GetEncryptionKeyBySeqno(ctx, t.Box.PerUserKeySeqno)
 	if err != nil {
 		return nil, err
 	}
 	if encKey.Private == nil {
+		// Should never happen
 		return nil, errors.New("per user enckey is locked")
 	}
 
