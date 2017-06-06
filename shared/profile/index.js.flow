@@ -38,6 +38,7 @@ export type Props = {
   reason: ?string,
   error: ?string,
   showComingSoon: boolean,
+  searchv3: boolean,
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
