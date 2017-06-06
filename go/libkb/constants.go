@@ -580,7 +580,7 @@ const (
 )
 
 func CurrentSaltpackVersion() saltpack.Version {
-	return saltpack.Version1()
+	return saltpack.Version2()
 }
 
 const (
