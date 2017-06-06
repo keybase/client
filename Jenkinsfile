@@ -268,7 +268,7 @@ helpers.rootLinuxNode(env, {
                             }
                         }
                     },
-                    test_osx: {
+                    test_macos: {
                         // TODO: If we re-enable tests other than Go tests on
                         // macOS, this check should go away.
                         if (hasGoChanges) {
@@ -306,10 +306,9 @@ helpers.rootLinuxNode(env, {
                                         //        }
                                         //    }
                                         //},
-                                        test_osx: {
-                                            println "Test OS X"
+                                        test_macos_go: {
                                             if (hasGoChanges) {
-                                                testNixGo("OS X")
+                                                testNixGo("test_macos_")
                                             }
                                         }
                                     )
