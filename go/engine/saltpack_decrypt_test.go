@@ -276,6 +276,10 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	}
 }
 
+// The error info that this test is looking for is only available in legacy
+// encryption-only mode messages. Modern encryption-only messages are
+// all-anonymous-recipients by default, and signcryption messages have opaque
+// receivers.
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 
 	// device X (provisioner) context:
@@ -317,10 +321,17 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 			Recipients: []string{
 				userX.Username,
 			},
+			// The error messages in this test only work for visible
+			// recipients, which is only a thing in encryption-only mode. Even
+			// still, we need a testing flag to enable them, below.
+			EncryptionOnlyMode: true,
 		},
 	}
 	enc := NewSaltpackEncrypt(arg, tcZ.G)
-	enc.skipTLFKeysForTesting = true
+	// The error messages in this test only work for visible recipients, which
+	// aren't the default anymore.
+	enc.visibleRecipientsForTesting = true
+
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}

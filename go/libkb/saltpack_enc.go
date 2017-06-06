@@ -18,6 +18,8 @@ type SaltpackEncryptArg struct {
 	Binary             bool
 	EncryptionOnlyMode bool
 	SymmetricReceivers []saltpack.ReceiverSymmetricKey
+
+	VisibleRecipientsForTesting bool
 }
 
 // SaltpackEncrypt reads from the given source, encrypts it for the given
@@ -26,8 +28,13 @@ type SaltpackEncryptArg struct {
 func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	var receiverBoxKeys []saltpack.BoxPublicKey
 	for _, k := range arg.Receivers {
-		// Since signcryption became the default, we never use visible recipients in encryption mode.
-		receiverBoxKeys = append(receiverBoxKeys, hiddenNaclBoxPublicKey(k))
+		// Since signcryption became the default, we never use visible
+		// recipients in encryption mode, except in tests.
+		if arg.VisibleRecipientsForTesting {
+			receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
+		} else {
+			receiverBoxKeys = append(receiverBoxKeys, hiddenNaclBoxPublicKey(k))
+		}
 	}
 
 	var bsk saltpack.BoxSecretKey

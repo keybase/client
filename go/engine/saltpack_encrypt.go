@@ -32,6 +32,11 @@ type SaltpackEncrypt struct {
 	// signcryption mode with just device keys, which normally isn't exposed to
 	// the CLI.
 	skipTLFKeysForTesting bool
+
+	// Legacy encryption-only messages include a lot more information about
+	// receivers, and it's nice to keep the helpful errors working while those
+	// messages are still around.
+	visibleRecipientsForTesting bool
 }
 
 // NewSaltpackEncrypt creates a SaltpackEncrypt engine.
@@ -192,6 +197,8 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		Binary:             e.arg.Opts.Binary,
 		EncryptionOnlyMode: e.arg.Opts.EncryptionOnlyMode,
 		SymmetricReceivers: symmetricReceivers,
+
+		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }
