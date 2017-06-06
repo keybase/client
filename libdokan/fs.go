@@ -352,7 +352,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
-		x := f.stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
+		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 		return oc.returnFileNoCleanup(x)
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
@@ -418,6 +418,9 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	// User checking was handled by original file open, this is no longer true.
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
+
+	// isPotentialRenamePath filters out some special paths
+	// for rename. Especially those provided by fakeroot.go.
 	if !isPotentialRenamePath(source.Path()) {
 		f.log.Errorf("Refusing MoveFile access: not potential rename path")
 		return dokan.ErrAccessDenied
@@ -545,8 +548,6 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	return nil
 }
 
-// isPotentialRenamePath filters out some special paths
-// for rename. Especially those provided by fakeroot.go.
 func isPotentialRenamePath(s string) bool {
 	if len(s) < 3 || s[0] != '\\' {
 		return false
@@ -623,15 +624,6 @@ func (f *FS) logEnter(ctx context.Context, s string) {
 
 func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
 	f.log.CDebugf(ctx, "=> "+fmt, args...)
-}
-
-func (f *FS) stringReadFile(contents string) dokan.File {
-	return &SpecialReadFile{
-		read: func(context.Context) ([]byte, time.Time, error) {
-			return []byte(contents), time.Time{}, nil
-		},
-		fs: f,
-	}
 }
 
 // UserChanged is called from libfs.
