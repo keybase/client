@@ -57,9 +57,9 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		},
 	}
 
-	// A temporary flag. Soon this will be the default. (Note that the regular
-	// RunMode() config has not yet been parsed from the command line, so we
-	// use DefaultRunMode instead.)
+	// TODO: This mode is now the default, and we're only retaining this flag
+	// for backwards compatibility with the docker tests. Remove it after the
+	// switchover is landed.
 	if libkb.DefaultRunMode == libkb.DevelRunMode {
 		flags = append(flags, cli.BoolFlag{
 			Name:  "signcrypt",
@@ -134,7 +134,10 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.currentDevicesOnly = ctx.Bool("current-devices-only")
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	if c.noSelfEncrypt && !c.currentDevicesOnly {
-		return errors.New("--no-self requires --current-devices-only")
+		// TODO: Back-compat hack for docker tests. Remove this after landing,
+		// and re-enable the error below.
+		c.currentDevicesOnly = true
+		// return errors.New("--no-self requires --current-devices-only")
 	}
 	c.binary = ctx.Bool("binary")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
