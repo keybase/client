@@ -290,6 +290,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 	}
 
 	return &keybase1.FSNotification{
+		FolderType:       handle.Type().FolderType(),
 		Filename:         string(handle.GetCanonicalPath()),
 		StatusCode:       code,
 		NotificationType: keybase1.FSNotificationType_REKEYING,
@@ -392,6 +393,7 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		panic(fmt.Sprintf("Unknown mode: %v", mode))
 	}
 	return &keybase1.FSNotification{
+		FolderType:       t.FolderType(),
 		Filename:         filename,
 		StatusCode:       keybase1.FSStatusCode_ERROR,
 		Status:           err.Error(),
@@ -408,6 +410,7 @@ func mdReadSuccessNotification(handle *TlfHandle,
 		params[errorParamTlf] = string(handle.GetCanonicalName())
 	}
 	return &keybase1.FSNotification{
+		FolderType:       handle.Type().FolderType(),
 		Filename:         string(handle.GetCanonicalPath()),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
