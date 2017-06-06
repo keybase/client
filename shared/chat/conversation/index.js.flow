@@ -19,6 +19,8 @@ export type Props = {|
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   sidePanelOpen: boolean,
   threadLoadedOffline: boolean,
+  showSearch: boolean,
+  searchV3Enabled: boolean,
 |}
 
 export default class Conversation extends Component<void, Props, void> {}

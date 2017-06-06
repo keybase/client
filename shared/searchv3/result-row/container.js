@@ -3,23 +3,18 @@ import {connect} from 'react-redux'
 import SearchResultRow from '.'
 
 import type {TypedState} from '../../constants/reducer'
+import type {SearchResultId} from '../../constants/searchv3'
 
-const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath: Array<string>}) => {
+const mapStateToProps = (
+  state: TypedState,
+  {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
+) => {
+  // $FlowIssue doesn't understand getIn
   return {
-    // $FlowIssue doesnt like getIn
-    ...state.entities.getIn(keyPath.concat([id])),
+    ...state.entities.getIn(['searchResults', id]).toObject(),
+    onClick,
+    onShowTracker,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
-  onShowTracker: () => {
-    console.log('todo: dispatch action')
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SearchResultRow)
+export default connect(mapStateToProps)(SearchResultRow)

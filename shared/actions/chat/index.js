@@ -8,6 +8,7 @@ import * as Messages from './messages'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
+import featureFlags from '../../util/feature-flags'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {Map} from 'immutable'
@@ -29,7 +30,7 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector} from '../../constants/selectors'
+import {usernameSelector, tempSearchConversationSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -715,6 +716,11 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+  // TODO handle participants from action into the new chat
+  if (featureFlags.searchv3Enabled) {
+    return
+  }
+
   yield put(searchReset())
 
   const metaData = (yield select(Shared.metaDataSelector): any)
@@ -774,6 +780,9 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+
+  // TODO remove this
+  yield put(Creators.exitSearch())
 
   // Load the inbox item always
   if (conversationIDKey) {
@@ -973,6 +982,25 @@ function* _updateTyping({
   }
 }
 
+function* _updateTempSearchConversation(
+  action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
+) {
+  const {payload: {user}} = action
+  const me = yield select(usernameSelector)
+
+  const tempSearchConversation = yield select(tempSearchConversationSelector)
+  // TODO don't do this when users click an existing conversation
+  if (action.type === 'chat:stageUserForSearch') {
+    const nextTempSearchConv = tempSearchConversation.push(user)
+    yield put(Creators.createTempSearchConversation(nextTempSearchConv))
+    yield put(Creators.startConversation(nextTempSearchConv.toArray()))
+  } else if (action.type === 'chat:unstageUserForSearch') {
+    const nextTempSearchConv = tempSearchConversation.filterNot(u => u === user)
+    yield put(Creators.createTempSearchConversation(nextTempSearchConv))
+    yield put(Creators.startConversation(nextTempSearchConv.toArray()))
+  }
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -1012,6 +1040,8 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
+  yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
+  yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
 }
 
 export default chatSaga

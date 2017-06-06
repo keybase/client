@@ -355,6 +355,9 @@ export const StateRecord = Record({
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
   searchResults: List(),
+  selectedUsersInSearch: List(),
+  inSearch: false,
+  tempSearchConversation: List(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -380,6 +383,9 @@ export type State = Record<{
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
   searchResults: List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: List<SearchConstants.SearchResultId>,
+  inSearch: boolean,
+  tempSearchConversation: Participants,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -403,13 +409,21 @@ export type BlockConversation = NoErrorTypedAction<
   {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
+export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
   {failureDescription: string, outboxID: OutboxIDKey}
 >
+export type ClearTempSearchConversation = NoErrorTypedAction<'chat:clearTempSearchConversation', {}>
+export type CreateTempSearchConversation = NoErrorTypedAction<
+  'chat:createTempSearchConversation',
+  {participants: Participants}
+>
+
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
+export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
@@ -501,6 +515,10 @@ export type SetUnboxing = TypedAction<
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
+export type StageUserForSearch = NoErrorTypedAction<
+  'chat:stageUserForSearch',
+  {user: SearchConstants.SearchResultId}
+>
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean}
@@ -508,6 +526,10 @@ export type StartConversation = NoErrorTypedAction<
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}
+>
+export type UnstageUserForSearch = NoErrorTypedAction<
+  'chat:unstageUserForSearch',
+  {user: SearchConstants.SearchResultId}
 >
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',

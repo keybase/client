@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import featureFlags from '../util/feature-flags'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -226,6 +227,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
+    case 'chat:clearSearchResults': {
+      return state.set('searchResults', initialState.searchResults)
+    }
+
     case 'chat:setLoaded': {
       const {conversationIDKey, isLoaded} = action.payload
       const newConversationStates = state
@@ -581,6 +586,13 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setInitialConversation': {
       return state.set('initialConversation', action.payload.conversationIDKey)
     }
+    case 'chat:stageUserForSearch': {
+      const {payload: {user}} = action
+      if (state.selectedUsersInSearch.includes(user)) {
+        return state
+      }
+      return state.update('selectedUsersInSearch', l => l.push(user))
+    }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
       const newConversationStates = state
@@ -612,6 +624,26 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:updateSearchResults': {
       const {payload: {searchResults}} = action
       return state.set('searchResults', List(searchResults))
+    }
+    case 'chat:unstageUserForSearch': {
+      const {payload: {user}} = action
+      return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
+    }
+    case 'chat:clearTempSearchConversation': {
+      return state.set('tempSearchConversation', initialState.tempSearchConversation)
+    }
+    case 'chat:createTempSearchConversation': {
+      const {payload: {participants}} = action
+      return state.set('tempSearchConversation', participants)
+    }
+    case 'chat:newChat': {
+      if (featureFlags.searchv3Enabled) {
+        return state.set('inSearch', true)
+      }
+      return state
+    }
+    case 'chat:exitSearch': {
+      return state.set('inSearch', false)
     }
   }
 

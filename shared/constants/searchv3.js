@@ -17,9 +17,10 @@ export type Service = $Keys<typeof services>
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
+// This is what the api expects/returns
 export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
 
-export type SearchResultId = string
+export type SearchResultId = string // i.e. marcopolo or marcopolo@github
 export type SearchQuery = string
 
 export type RowProps = {|
@@ -38,6 +39,7 @@ export type RowProps = {|
 
   showTrackerButton: boolean,
   onShowTracker: () => void,
+  onClick: () => void,
 |}
 
 // A normalized version of the row props above.
@@ -58,12 +60,12 @@ export type SearchResult = {|
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
-  {term: string, service: SearchPlatform, actionTypeToFire: TypeToFire}
+  {term: string, service: Service, actionTypeToFire: TypeToFire}
 >
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
-  {searchResults: Array<SearchResultId>, searchTerm: string, service: SearchPlatform}
+  {searchResults: Array<SearchResultId>, searchTerm: string, service: Service}
 >
 
 // Generic so others can make their own version

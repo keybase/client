@@ -7,6 +7,7 @@ import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'
+import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -43,6 +44,19 @@ function serviceNameToSearchPlatform(serviceName: string): Constants.SearchPlatf
   }[serviceName]
 }
 
+function _serviceToApiServiceName(service: Service): string {
+  return (
+    {
+      Facebook: 'facebook',
+      GitHub: 'github',
+      'Hacker News': 'hackernews',
+      Keybase: '',
+      Reddit: 'reddit',
+      Twitter: 'twitter',
+    }[service] || ''
+  )
+}
+
 function serviceNameToService(serviceName: string): Constants.Service {
   return {
     keybase: 'Keybase',
@@ -55,7 +69,10 @@ function serviceNameToService(serviceName: string): Constants.Service {
 }
 
 function _rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
-  return `${serviceName}-${serviceUsername}`
+  if (serviceName.toLowerCase() === 'keybase' || serviceName === '') {
+    return serviceUsername
+  }
+  return `${serviceUsername}@${serviceName}`
 }
 
 function _toSearchQuery(serviceName: string, searchTerm: string): Constants.SearchQuery {
@@ -139,6 +156,7 @@ function _parseRawResultToRow(result: RawResult, service: Constants.SearchPlatfo
 }
 
 function _apiSearch(searchTerm: string, service: string = '', limit: number = 20) {
+  service = service === 'Keybase' ? '' : service
   return apiserverGetWithSessionRpcPromise({
     param: {
       args: [
@@ -160,7 +178,8 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
   }
 
   try {
-    const searchResults = yield call(_apiSearch, term, service)
+    yield call(onIdlePromise, 1e3)
+    const searchResults = yield call(_apiSearch, term, _serviceToApiServiceName(service))
     const rows = searchResults.list.map((result: RawResult) => {
       return _parseRawResultToRow(result, service || 'Keybase')
     })
