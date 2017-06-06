@@ -74,7 +74,7 @@ func (c *CmdLogSend) Run() error {
 		// pid will be -1 if not found here
 		pid, err2 := getPid(c.G())
 		if err2 == nil {
-			// See if the pid file is present. os.FindProcess()
+			// Look for the process. os.FindProcess()
 			// only fails if on Windows and no process is found.
 			_, err2 := os.FindProcess(pid)
 			if err2 != nil {
