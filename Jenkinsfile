@@ -349,6 +349,7 @@ def getTestDirs() {
         returnStdout: true,
         script: "go list -f '{{.Dir}}' ./... | grep -v 'vendor\\|bind'"
     ).trim()
+    println "Running tests for dirs: " + dirs
     return dirs.split("[\\r\\n]+")
 }
 
@@ -371,15 +372,17 @@ def testNixGo(prefix) {
                 println "Building tests for $dirPath"
                 sh 'go test -i'
                 sh 'go test -c -o test.test'
-            }
-            // Only run the test if a test binary should have been produced.
-            if (fileExists("${dirPath}/test.test")) {
-                def testName = dirPath.replaceAll('/', '_')
-                tests[prefix + testName] = {
-                    dir(dirPath) {
-                        println "Running tests for $dirPath"
-                        sh "./test.test -test.timeout 15m"
+                // Only run the test if a test binary should have been produced.
+                if (fileExists("test.test")) {
+                    def testName = dirPath.replaceAll('/', '_')
+                    tests[prefix + testName] = {
+                        dir(dirPath) {
+                            println "Running tests for $dirPath"
+                            sh "./test.test -test.timeout 15m"
+                        }
                     }
+                } else {
+                    println "Skipping tests for $dirPath because no test binary was produced."
                 }
             }
         }
