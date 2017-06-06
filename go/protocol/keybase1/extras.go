@@ -250,6 +250,10 @@ func (d DeviceID) Eq(d2 DeviceID) bool {
 	return d == d2
 }
 
+func (t TeamID) Eq(t2 TeamID) bool {
+	return t == t2
+}
+
 func UIDFromString(s string) (UID, error) {
 	if len(s) != hex.EncodedLen(UID_LEN) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)

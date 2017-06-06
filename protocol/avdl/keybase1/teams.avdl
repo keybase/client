@@ -39,6 +39,15 @@ protocol teams {
       KID encKID;
   }
 
+  fixed PerTeamKeySeed(32);
+
+  // Secret from which team keys are derived
+  record PerTeamKeySeedItem {
+    PerTeamKeySeed seed;
+    int generation;
+    Seqno seqno;
+  }
+
   record TeamMembers {
     array<string> owners;
     array<string> admins;
@@ -57,6 +66,13 @@ protocol teams {
   record UserVersion {
     string username;
     Seqno eldestSeqno;
+  }
+
+  record TeamData {
+    TeamSigChainState chain;
+    // Sorted by generation ascending.
+    array<PerTeamKeySeedItem> perTeamKeySeeds;
+    array<ReaderKeyMask> readerKeyMasks;
   }
 
   // State of a parsed team sigchain.

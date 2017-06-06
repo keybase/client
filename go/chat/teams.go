@@ -31,11 +31,7 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis chat1
 		return res, err
 	}
 	res.CanonicalName = name
-	if team.Chain == nil {
-		t.Debug(ctx, "Lookup: team chain is nil, not able to get ID: %s", name)
-		return res, fmt.Errorf("no team chain found")
-	}
-	res.ID = chat1.TLFID(team.Chain.GetID().ToBytes())
+	res.ID = chat1.TLFID(team.GetID().ToBytes())
 	if vis == chat1.TLFVisibility_PRIVATE {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {
