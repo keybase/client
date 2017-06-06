@@ -4,7 +4,7 @@ const baseConfig = require('./webpack.config.base')
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
 const DashboardPlugin = require('webpack-dashboard/plugin')
-const {isHot, HMRUrl, RHLPatch, noSourceMaps, mockRule} = require('./webpack.common')
+const {isHot, HMRPrefix, noSourceMaps, mockRule} = require('./webpack.common')
 
 const isUsingDLL = getenv.boolish('USING_DLL', false)
 const noServer = getenv.boolish('NO_SERVER', false)
@@ -34,7 +34,7 @@ const makePlugins = () => {
   })
 
   const dashboardPlugin = !noServer && [new DashboardPlugin()]
-  const hmrPlugin = isHot && [new webpack.HotModuleReplacementPlugin()]
+  const hmrPlugin = isHot && [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
   const dllPlugin = isUsingDLL && [
     new webpack.DllReferencePlugin({
       context: './renderer',
@@ -75,7 +75,7 @@ const makeEntries = () => {
     const oldEntry = oldEntries[name]
 
     if (name === 'index') {
-      map[name] = [RHLPatch, ...oldEntry]
+      map[name] = [...HMRPrefix, ...oldEntry]
     } else if (name === 'main') {
       if (!isUsingDLL) {
         // If we are running a hot server and using a DLL we want to be fast.
@@ -85,7 +85,7 @@ const makeEntries = () => {
       }
     } else {
       // Note: all entry points need `if (module.hot) {module.hot.accept()}` to allow hot auto loads to work
-      map[name] = [HMRUrl, ...oldEntry]
+      map[name] = [...HMRPrefix, ...oldEntry]
     }
     return map
   }, {})

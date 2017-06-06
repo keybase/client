@@ -16,14 +16,16 @@ const mockRule = {
 }
 
 const isHot = getenv.boolish('HOT', false)
-const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', true)
+const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', false)
 
-const HMRUrl = 'webpack-hot-middleware/client?path=http://localhost:4000/__webpack_hmr'
-const RHLPatch = 'react-hot-loader/patch'
+const HMRPrefix = [
+  'react-hot-loader/patch',
+  'webpack-dev-server/client?http://localhost:4000',
+  'webpack/hot/only-dev-server',
+]
 
 module.exports = {
-  HMRUrl,
-  RHLPatch,
+  HMRPrefix,
   fileLoaderRule,
   isHot,
   mockRule,
