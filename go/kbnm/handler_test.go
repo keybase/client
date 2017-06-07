@@ -56,6 +56,7 @@ func TestHandlerQueryError(t *testing.T) {
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
+		_ = ranCmd
 		io.WriteString(cmd.Stderr, queryResponseErr)
 		return nil
 	}
@@ -84,6 +85,7 @@ func TestHandlerQueryErrorUnexpected(t *testing.T) {
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
+		_ = ranCmd
 		io.WriteString(cmd.Stderr, queryResponseErrUnexpected)
 		return nil
 	}
