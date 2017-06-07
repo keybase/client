@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -25,6 +26,12 @@ const (
 
 	// CtxOpID is the display name for the unique operation Dokan ID tag.
 	CtxOpID = "DID"
+
+	// WrongUserErrorFileName is the name of error directory for other users.
+	WrongUserErrorFileName = `kbfs.access.denied.for.other.windows.users.txt`
+
+	// WrongUserErrorContents is the contents of the file.
+	WrongUserErrorContents = `Access to KBFS is limited to the windows user (sid) running KBFS.`
 )
 
 // CtxTagKey is the type used for unique context tags
@@ -120,4 +127,40 @@ func lowerTranslateCandidate(oc *openContext, s string) string {
 		return ""
 	}
 	return c
+}
+
+func stringReadFile(contents string) dokan.File {
+	return &stringFile{data: contents}
+}
+
+type stringFile struct {
+	emptyFile
+	data string
+}
+
+// GetFileInformation does stats for dokan.
+func (s *stringFile) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (*dokan.Stat, error) {
+	a, err := defaultFileInformation()
+	if err != nil {
+		return nil, err
+	}
+	a.FileAttributes |= dokan.FileAttributeReadonly
+	a.FileSize = int64(len(s.data))
+	t := time.Now()
+	a.LastWrite = t
+	a.LastAccess = t
+	a.Creation = t
+	return a, nil
+}
+
+// ReadFile does reads for dokan.
+func (s *stringFile) ReadFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
+	data := s.data
+	if offset >= int64(len(data)) {
+		return 0, nil
+	}
+
+	data = data[int(offset):]
+
+	return copy(bs, data), nil
 }

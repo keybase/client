@@ -272,8 +272,8 @@ func newSyntheticOpenContext() *openContext {
 func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(currentUserSID) {
-		f.log.Errorf("Refusing access: SID match error")
-		return nil, false, dokan.ErrAccessDenied
+		f.log.Errorf("FS CreateFile - Refusing real access: SID match error")
+		return openFakeRoot(ctx, f, fi)
 	}
 	f.logEnter(ctx, "FS CreateFile")
 	return f.openRaw(ctx, fi, cd)
@@ -352,7 +352,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
-		x := f.stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
+		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 		return oc.returnFileNoCleanup(x)
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
@@ -415,7 +415,17 @@ func (f *FS) ErrorPrint(err error) {
 
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
-	// User checking is handled by the opening of the source file
+	// User checking was handled by original file open, this is no longer true.
+	// However we only allow fake files with names that are not potential rename
+	// paths. Filter those out here.
+
+	// isPotentialRenamePath filters out some special paths
+	// for rename. Especially those provided by fakeroot.go.
+	if !isPotentialRenamePath(source.Path()) {
+		f.log.Errorf("Refusing MoveFile access: not potential rename path")
+		return dokan.ErrAccessDenied
+	}
+
 	f.logEnter(ctx, "FS MoveFile")
 	// No racing deletions or renames.
 	// Note that this calls Cleanup multiple times, however with nil
@@ -538,6 +548,16 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	return nil
 }
 
+func isPotentialRenamePath(s string) bool {
+	if len(s) < 3 || s[0] != '\\' {
+		return false
+	}
+	s = s[1:]
+	return strings.HasPrefix(s, PrivateName) ||
+		strings.HasPrefix(s, PublicName) ||
+		strings.HasPrefix(s, TeamName)
+}
+
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
 	ef, ok := src.(*EmptyFolder)
 	f.log.CDebugf(ctx, "FS Rename folderlist %v", ef)
@@ -604,15 +624,6 @@ func (f *FS) logEnter(ctx context.Context, s string) {
 
 func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
 	f.log.CDebugf(ctx, "=> "+fmt, args...)
-}
-
-func (f *FS) stringReadFile(contents string) dokan.File {
-	return &SpecialReadFile{
-		read: func(context.Context) ([]byte, time.Time, error) {
-			return []byte(contents), time.Time{}, nil
-		},
-		fs: f,
-	}
 }
 
 // UserChanged is called from libfs.
