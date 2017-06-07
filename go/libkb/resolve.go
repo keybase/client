@@ -18,11 +18,14 @@ import (
 
 type ResolveResult struct {
 	uid                keybase1.UID
+	teamID             keybase1.TeamID
 	body               *jsonw.Wrapper
 	err                error
 	queriedKbUsername  string
 	queriedByUID       bool
 	resolvedKbUsername string
+	queriedByTeamID    bool
+	resolvedTeamName   string
 	cachedAt           time.Time
 	mutable            bool
 }
@@ -50,6 +53,17 @@ func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
 }
 func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
+}
+
+func (res *ResolveResult) WasTeamIDAssertion() bool {
+	return res.queriedByTeamID
+}
+
+func (res *ResolveResult) GetTeamID() keybase1.TeamID {
+	return res.teamID
+}
+func (res *ResolveResult) GetTeamName() string {
+	return res.resolvedTeamName
 }
 
 func (res *ResolveResult) WasKBAssertion() bool {
@@ -218,7 +232,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 			res.err = errors.New("au.IsTeamID() == true, but failed type cast")
 			return res
 		}
-		return r.resolveTeamIDViaServerLookup(ctx, ateam, input, withBody)
+		return r.resolveTeamIDViaServerLookup(ctx, ateam)
 	}
 
 	var key, val string
@@ -299,7 +313,8 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
-func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam AssertionTeamID, input string, withBody bool) (res ResolveResult) {
+func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam AssertionTeamID) (res ResolveResult) {
+	res.queriedByTeamID = true
 	key, val, err := ateam.ToLookup()
 	if err != nil {
 		res.err = err
@@ -318,6 +333,7 @@ func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam Asser
 		res.err = err
 		return res
 	}
+	res.resolvedTeamName = lookup.Name
 
 	return res
 }

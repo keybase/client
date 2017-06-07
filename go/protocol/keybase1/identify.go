@@ -198,8 +198,8 @@ type IdentifyInterface interface {
 	// Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
 	// an error.
 	Resolve(context.Context, string) (UID, error)
-	// Resolve an assertion to a (UID,username). On failure, returns an error.
-	Resolve2(context.Context, string) (User, error)
+	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+	Resolve2(context.Context, string) (UserOrTeamLite, error)
 	// DEPRECATED:  use identify2
 	//
 	// Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
@@ -309,8 +309,8 @@ func (c IdentifyClient) Resolve(ctx context.Context, assertion string) (res UID,
 	return
 }
 
-// Resolve an assertion to a (UID,username). On failure, returns an error.
-func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res User, err error) {
+// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res UserOrTeamLite, err error) {
 	__arg := Resolve2Arg{Assertion: assertion}
 	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve2", []interface{}{__arg}, &res)
 	return

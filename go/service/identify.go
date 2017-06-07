@@ -120,15 +120,21 @@ func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1
 	return rres.GetUID(), rres.GetError()
 }
 
-func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
+func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
 	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
 	err = rres.GetError()
-	if err == nil {
-		u.Uid, u.Username = rres.GetUID(), rres.GetNormalizedUsername().String()
+	if err != nil {
+		return u, err
 	}
-	return u, err
+
+	if rres.WasTeamIDAssertion() {
+		u.Id, u.Name = rres.GetTeamID().AsUserOrTeam(), rres.GetTeamName()
+	} else {
+		u.Id, u.Name = rres.GetUID().AsUserOrTeam(), rres.GetNormalizedUsername().String()
+	}
+	return u, nil
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {
