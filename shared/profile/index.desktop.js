@@ -270,8 +270,8 @@ class ProfileRender extends PureComponent<void, Props, State> {
               textStyle={{color: globalColors.white}}
               iconStyle={{color: globalColors.white}}
             />}
-          {this.props.searchv3 &&
-            <Box onClick={() => console.log('activate search')} style={styleSearchContainer}>
+          {this.props.searchv3Enabled &&
+            <Box onClick={() => this.props.onSearch()} style={styleSearchContainer}>
               <Icon style={styleSearch} type="iconfont-search" />
               <Text style={styleSearchText} type="Body">Search people</Text>
             </Box>}
