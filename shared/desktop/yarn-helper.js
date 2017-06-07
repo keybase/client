@@ -52,7 +52,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Bundle the code that the main node thread uses',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`,
+    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`, // TEMP
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn'},
@@ -69,7 +69,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress`,
+    shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress --json > ~/webpack2/dll.txt`,
   },
   'debug-main': {
     env: {ELECTRON_RUN_AS_NODE: 'true'},
