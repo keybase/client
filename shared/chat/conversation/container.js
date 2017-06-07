@@ -9,6 +9,7 @@ import Rekey from './rekey/container'
 import {debounce} from 'lodash'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
+import {getProfile} from '../../actions/tracker'
 import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
 
@@ -101,8 +102,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
     dispatch(Creators.stageUserForSearch(id))
     dispatch(Creators.clearSearchResults(id))
   },
-  // TODO
-  onShowTrackerInSearch: () => {},
+  onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {

@@ -15,6 +15,7 @@ const mapStateToProps = (
     ...state.entities.getIn(['searchResults', id], Map()).toObject(),
     onClick,
     onShowTracker,
+    showTrackerButton: !!onShowTracker,
   }
 }
 
