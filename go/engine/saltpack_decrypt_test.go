@@ -59,6 +59,7 @@ func TestSaltpackDecrypt(t *testing.T) {
 		Sink:   sink,
 	}
 	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -162,17 +163,19 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 		},
 	}
 	enc := NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.String()
 
-	// Also output a hidden-sender message
-	arg.Opts.HideSelf = true
+	// Also output a anonymous-sender message
+	arg.Opts.AnonymousSender = true
 	sink = libkb.NewBufferCloser()
 	arg.Source = strings.NewReader(msg)
 	arg.Sink = sink
 	enc = NewSaltpackEncrypt(arg, tc.G)
+	enc.skipTLFKeysForTesting = true
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -273,6 +276,10 @@ func TestSaltpackDecryptBrokenTrack(t *testing.T) {
 	}
 }
 
+// The error info that this test is looking for is only available in legacy
+// encryption-only mode messages. Modern encryption-only messages are
+// all-anonymous-recipients by default, and signcryption messages have opaque
+// receivers.
 func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 
 	// device X (provisioner) context:
@@ -314,9 +321,17 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 			Recipients: []string{
 				userX.Username,
 			},
+			// The error messages in this test only work for visible
+			// recipients, which is only a thing in encryption-only mode. Even
+			// still, we need a testing flag to enable them, below.
+			EncryptionOnlyMode: true,
 		},
 	}
 	enc := NewSaltpackEncrypt(arg, tcZ.G)
+	// The error messages in this test only work for visible recipients, which
+	// aren't the default anymore.
+	enc.visibleRecipientsForTesting = true
+
 	if err := RunEngine(enc, ctx); err != nil {
 		t.Fatal(err)
 	}

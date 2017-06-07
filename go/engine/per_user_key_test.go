@@ -41,17 +41,22 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	require.NotNil(t, sigKey)
 	require.NotNil(t, sigKey.Private)
 
-	encKey, err := kr.GetEncryptionKey(context.TODO(), keybase1.PerUserKeyGeneration(1))
+	encKey, err := kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(1))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	_, err = kr.GetEncryptionKey(context.TODO(), keybase1.PerUserKeyGeneration(2))
+	encKey, err = kr.GetEncryptionKeyBySeqno(context.TODO(), keybase1.Seqno(3))
+	require.NoError(t, err)
+	require.NotNil(t, encKey)
+	require.NotNil(t, encKey.Private)
+
+	_, err = kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(2))
 	require.Error(t, err)
 
-	kr2, err := kr.Update(context.Background())
+	err = kr.Sync(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, kr2.CurrentGeneration(), gen)
+	require.Equal(t, kr.CurrentGeneration(), gen)
 }
 
 func TestPerUserKeySignupPlusPaper(t *testing.T) {
@@ -80,15 +85,20 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	require.NotNil(t, sigKey)
 	require.NotNil(t, sigKey.Private)
 
-	encKey, err := kr.GetEncryptionKey(context.TODO(), keybase1.PerUserKeyGeneration(1))
+	encKey, err := kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(1))
 	require.NoError(t, err)
 	require.NotNil(t, encKey)
 	require.NotNil(t, encKey.Private)
 
-	_, err = kr.GetEncryptionKey(context.TODO(), keybase1.PerUserKeyGeneration(2))
+	encKey, err = kr.GetEncryptionKeyBySeqno(context.TODO(), keybase1.Seqno(3))
+	require.NoError(t, err)
+	require.NotNil(t, encKey)
+	require.NotNil(t, encKey.Private)
+
+	_, err = kr.GetEncryptionKeyByGeneration(context.TODO(), keybase1.PerUserKeyGeneration(2))
 	require.Error(t, err)
 
-	kr2, err := kr.Update(context.Background())
+	err = kr.Sync(context.Background())
 	require.Nil(t, err)
-	require.Equal(t, kr2.CurrentGeneration(), gen)
+	require.Equal(t, kr.CurrentGeneration(), gen)
 }

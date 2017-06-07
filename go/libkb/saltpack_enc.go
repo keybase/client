@@ -10,16 +10,16 @@ import (
 )
 
 type SaltpackEncryptArg struct {
-	Source         io.Reader
-	Sink           io.WriteCloser
-	Receivers      []NaclDHKeyPublic
-	Sender         NaclDHKeyPair
-	SenderSigning  NaclSigningKeyPair
-	Binary         bool
-	HideRecipients bool
-	// Temporary
-	Signcrypt          bool
+	Source             io.Reader
+	Sink               io.WriteCloser
+	Receivers          []NaclDHKeyPublic
+	Sender             NaclDHKeyPair
+	SenderSigning      NaclSigningKeyPair
+	Binary             bool
+	EncryptionOnlyMode bool
 	SymmetricReceivers []saltpack.ReceiverSymmetricKey
+
+	VisibleRecipientsForTesting bool
 }
 
 // SaltpackEncrypt reads from the given source, encrypts it for the given
@@ -28,10 +28,12 @@ type SaltpackEncryptArg struct {
 func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	var receiverBoxKeys []saltpack.BoxPublicKey
 	for _, k := range arg.Receivers {
-		if arg.HideRecipients {
-			receiverBoxKeys = append(receiverBoxKeys, hiddenNaclBoxPublicKey(k))
-		} else {
+		// Since signcryption became the default, we never use visible
+		// recipients in encryption mode, except in tests.
+		if arg.VisibleRecipientsForTesting {
 			receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
+		} else {
+			receiverBoxKeys = append(receiverBoxKeys, hiddenNaclBoxPublicKey(k))
 		}
 	}
 
@@ -42,11 +44,15 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 
 	var plainsink io.WriteCloser
 	var err error
-	if arg.Signcrypt {
+	if !arg.EncryptionOnlyMode {
+		var signer saltpack.SigningSecretKey
+		if !arg.SenderSigning.IsNil() {
+			signer = saltSigner{arg.SenderSigning}
+		}
 		if arg.Binary {
-			plainsink, err = saltpack.NewSigncryptSealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, arg.SymmetricReceivers)
+			plainsink, err = saltpack.NewSigncryptSealStream(arg.Sink, emptyKeyring{}, signer, receiverBoxKeys, arg.SymmetricReceivers)
 		} else {
-			plainsink, err = saltpack.NewSigncryptArmor62SealStream(arg.Sink, emptyKeyring{}, saltSigner{arg.SenderSigning}, receiverBoxKeys, arg.SymmetricReceivers, KeybaseSaltpackBrand)
+			plainsink, err = saltpack.NewSigncryptArmor62SealStream(arg.Sink, emptyKeyring{}, signer, receiverBoxKeys, arg.SymmetricReceivers, KeybaseSaltpackBrand)
 		}
 	} else {
 		if arg.Binary {

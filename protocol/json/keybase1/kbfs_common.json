@@ -55,10 +55,6 @@
       "name": "FSNotification",
       "fields": [
         {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
-        },
-        {
           "type": "string",
           "name": "filename"
         },
@@ -93,6 +89,10 @@
         {
           "type": "Time",
           "name": "localTime"
+        },
+        {
+          "type": "FolderType",
+          "name": "folderType"
         }
       ]
     },
@@ -125,8 +125,8 @@
       "name": "FSPathSyncStatus",
       "fields": [
         {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
+          "type": "FolderType",
+          "name": "folderType"
         },
         {
           "type": "string",

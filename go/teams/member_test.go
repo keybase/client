@@ -152,6 +152,41 @@ func TestMemberChangeRole(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
 
+func TestMemberRemoveRotatesKeys(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	before, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Box.Generation != 1 {
+		t.Fatalf("initial team generation: %d, expected 1", before.Box.Generation)
+	}
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	after, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Box.Generation != 2 {
+		t.Errorf("after member remove: team generation: %d, expected 2", after.Box.Generation)
+	}
+
+	if after.Box.Ctext == before.Box.Ctext {
+		t.Error("TeamBox.Ctext did not change when member removed")
+	}
+}
+
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {

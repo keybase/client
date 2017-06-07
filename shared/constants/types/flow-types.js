@@ -2386,6 +2386,21 @@ export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function merkleGetCurrentMerkleRootRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>) {
+  engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+
+export function merkleGetCurrentMerkleRootRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+export function merkleGetCurrentMerkleRootRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, callback, incomingCallMap) })
+}
+
+export function merkleGetCurrentMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): Promise<merkleGetCurrentMerkleRootResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing('keybase.1.metadata.authenticate', request)
 }
@@ -4320,7 +4335,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
-  publicTopLevelFolder: boolean,
   filename: string,
   status: string,
   statusCode: FSStatusCode,
@@ -4329,6 +4343,7 @@ export type FSNotification = {
   params: {[key: string]: string},
   writerUid: UID,
   localTime: Time,
+  folderType: FolderType,
 }
 
 export type FSNotificationType =
@@ -4346,7 +4361,7 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
-  publicTopLevelFolder: boolean,
+  folderType: FolderType,
   path: string,
   syncingBytes: int64,
   syncingOps: int64,
@@ -4715,6 +4730,12 @@ export type MaskB64 = bytes
 export type MerkleRoot = {
   version: int,
   root: bytes,
+}
+
+export type MerkleRootAndTime = {
+  root: MerkleRootV2,
+  updateTime: Time,
+  fetchTime: Time,
 }
 
 export type MerkleRootV2 = {
@@ -5228,11 +5249,10 @@ export type SaltpackDecryptOptions = {
 
 export type SaltpackEncryptOptions = {
   recipients?: ?Array<string>,
-  hideSelf: boolean,
+  anonymousSender: boolean,
+  encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
-  hideRecipients: boolean,
-  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -6345,6 +6365,10 @@ export type loginUnlockWithPassphraseRpcParam = Exact<{
   passphrase: string
 }>
 
+export type merkleGetCurrentMerkleRootRpcParam = Exact<{
+  freshnessMsec: int
+}>
+
 export type metadataAuthenticateRpcParam = Exact<{
   signature: string
 }>
@@ -6993,6 +7017,7 @@ type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 type loginUiGetEmailOrUsernameResult = string
 type loginUiPromptRevokePaperKeysResult = boolean
+type merkleGetCurrentMerkleRootResult = MerkleRootAndTime
 type metadataAuthenticateResult = int
 type metadataGetChallengeResult = ChallengeInfo
 type metadataGetFolderHandleResult = bytes
@@ -7193,6 +7218,7 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
+  | merkleGetCurrentMerkleRootRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc

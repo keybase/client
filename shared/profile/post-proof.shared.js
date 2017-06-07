@@ -69,8 +69,8 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: <FacebookDescription />,
         proofText: null,
-        proofActionText: 'Make a Facebook post',
-        proofActionIcon: 'iconfont-open-browser',
+        proofActionText: null,
+        proofActionIcon: 'icon-facebook-continue',
         onCompleteText: 'OK posted! Check for it!',
       }
     case 'github':

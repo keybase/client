@@ -1,5 +1,6 @@
 @namespace("keybase.1")
 protocol UPK {
+  import idl "common.avdl";
 
   enum KeyType {
       NONE_0,

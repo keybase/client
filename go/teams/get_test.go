@@ -49,7 +49,7 @@ func TestTeamApplicationKey(t *testing.T) {
 		t.Errorf("key application: %d, expected %d", chatKey.Application, keybase1.TeamApplication_CHAT)
 	}
 	if chatKey.Generation() != 1 {
-		t.Errorf("key generation: %d, expected 1", chatKey.Generation)
+		t.Errorf("key generation: %d, expected 1", chatKey.Generation())
 	}
 	if len(chatKey.Key) != 32 {
 		t.Errorf("key length: %d, expected 32", len(chatKey.Key))
