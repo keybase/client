@@ -124,8 +124,6 @@ export default compose(
     renderComponent(NoConversation)
   ),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
-  // TODO this will be different since we still need the conversation content
-  // branch((props: Props) => props.inSearch, renderComponent(Search)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
