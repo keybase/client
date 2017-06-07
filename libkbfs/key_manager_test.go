@@ -1522,6 +1522,33 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	}
 }
 
+func keyManagerTestSimulateSelfRekeyBit(
+	t *testing.T, ctx context.Context, config Config, tlfID tlf.ID) {
+	// Simulate the mdserver sending back this node's own rekey
+	// request.  This shouldn't increase the MD version.  Since this
+	// doesn't kick off a rekey request, we don't need to wait for the
+	// whole rekey to finish; we just wait for the event to be
+	// processed.
+	rekeyWaiter := make(chan struct{})
+	ops := getOps(config, tlfID)
+	rev1 := ops.head.Revision()
+	ops.rekeyFSM.listenOnEvent(rekeyRequestEvent, func(e RekeyEvent) {
+		close(rekeyWaiter)
+	}, false)
+	ops.rekeyFSM.Event(newRekeyRequestEventWithContext(ctx))
+	<-rekeyWaiter
+	rev2 := ops.head.Revision()
+
+	if rev1 != rev2 {
+		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
+	}
+
+	// Make sure just the rekey bit is set
+	if !ops.head.IsRekeySet() {
+		t.Fatalf("Couldn't set rekey bit")
+	}
+}
+
 // This tests 2 variations of the situation where clients w/o the folder key set the rekey bit.
 // In one case the client is a writer and in the other a reader. They both blindly copy the existing
 // metadata and simply set the rekey bit. Then another participant rekeys the folder and they try to read.
@@ -1603,6 +1630,11 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
+	// Do it again, to simulate the mdserver sending back this node's
+	// own rekey request.
+	keyManagerTestSimulateSelfRekeyBit(
+		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
+
 	// user 1 syncs from server
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
@@ -1637,6 +1669,14 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	if err != nil {
 		t.Fatalf("Device 2 couldn't read a: %+v", err)
 	}
+
+	// Cancel the original promptPaper timer for user2 now that the
+	// TLF is readable; otherwise the rekey later on will hang because
+	// it looks like prompt for paper was already set.  TODO: should
+	// KBFS cancel a promptPaper request when it sees a rekey was
+	// already done by another node?
+	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
+	ops.rekeyFSM.Event(newRekeyCancelEventForTest())
 
 	config3Dev2 := ConfigAsUser(config1, u3)
 	// we don't check the config because this device can't read all of the md blocks.
@@ -1921,28 +1961,12 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 		t.Fatalf("First rekey failed %+v", err)
 	}
 
-	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	rev1 := ops.head.Revision()
-
 	t.Log("Doing second rekey")
 
 	// Do it again, to simulate the mdserver sending back this node's
-	// own rekey request.  This shouldn't increase the MD version.
-	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
-		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Second rekey failed %+v", err)
-	}
-	rev2 := ops.head.Revision()
-
-	if rev1 != rev2 {
-		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
-	}
-
-	// Make sure just the rekey bit is set
-	if !ops.head.IsRekeySet() {
-		t.Fatalf("Couldn't set rekey bit")
-	}
+	// own rekey request.
+	keyManagerTestSimulateSelfRekeyBit(
+		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	t.Log("Switching crypto")
 
@@ -1951,6 +1975,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
+	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
 	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
 	select {
 	case <-c:
@@ -2053,30 +2078,15 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 		t.Fatalf("First rekey failed %+v", err)
 	}
 
-	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	rev1 := ops.head.Revision()
-
 	t.Log("Doing second rekey")
 
 	// Do it again, to simulate the mdserver sending back this node's
-	// own rekey request.  This shouldn't increase the MD version.
-	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
-		kbfsOps2Dev2, rootNode1.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Second rekey failed %+v", err)
-	}
-	rev2 := ops.head.Revision()
-
-	if rev1 != rev2 {
-		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
-	}
-
-	// Make sure just the rekey bit is set
-	if !ops.head.IsRekeySet() {
-		t.Fatalf("Couldn't set rekey bit")
-	}
+	// own rekey request.
+	keyManagerTestSimulateSelfRekeyBit(
+		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// Simulate a restart after the rekey bit was set
+	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
 	ops.rekeyFSM.Event(newRekeyCancelEventForTest())
 
 	t.Log("Doing third rekey")
