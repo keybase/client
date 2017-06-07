@@ -982,7 +982,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
-  yield Saga.safeTakeEvery('chat:loadAttachment', Attachment.onLoadAttachment)
+  yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
