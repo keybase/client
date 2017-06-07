@@ -37,9 +37,9 @@ const codeSnippetBlockTextStyle = {
 
 const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
 
-// The styles are applied by the Text component. We want styles applied
-// to the Markdown component to cascade and not be overridden by the
-// Text component styles.
+// The Text component adds default styles which we need to unset so that
+// styles applied to Markdown parent take effect. For instance, we need
+// to unset the default color applied by so that works.
 const neutralStyle = {color: undefined, fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
