@@ -1,8 +1,10 @@
 // @flow
 import {List} from 'immutable'
+import {amIFollowing, usernameSelector} from './selectors'
 
 import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
+import type {TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,
@@ -82,4 +84,16 @@ function serviceIdToService(serviceId: string): Service {
   }[serviceId]
 }
 
-export {serviceIdToService}
+function followStateHelper(state: TypedState, username: string, service: Service) {
+  const me = usernameSelector(state)
+  if (service === 'Keybase') {
+    if (username === me) {
+      return 'You'
+    } else {
+      return amIFollowing(state, username) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
+}
+
+export {serviceIdToService, followStateHelper}

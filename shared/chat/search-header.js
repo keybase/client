@@ -21,17 +21,19 @@ type OwnProps = {
   onSelectService: (s: string) => void,
 }
 
-const mapStateToProps = ({chat: {inboxSearch}, entities: {searchResults}}: TypedState) => {
-  // TODO upgrade results that have keybase user (? do we want this ?)
+const mapStateToProps = (state: TypedState) => {
+  const {chat: {inboxSearch}} = state
+
   const userItems = inboxSearch.map(id => {
     const {username, serviceId} = parseUserId(id)
+    const service = SearchConstants.serviceIdToService(serviceId)
     return {
       id: id,
-      followState: 'NoState', // TODO get from elsewhere in the store
+      followState: SearchConstants.followStateHelper(state, username, service),
       // $FlowIssue ??
       icon: serviceIdToIcon(serviceId),
       username,
-      service: SearchConstants.serviceIdToService(serviceId),
+      service,
     }
   })
 
