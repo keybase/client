@@ -14,9 +14,9 @@ const codeSnippetStyle = {
   fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
-  //...globalStyles.rounded,
-  //paddingLeft: globalMargins.xtiny,
-  //paddingRight: globalMargins.xtiny,
+  // ...globalStyles.rounded,
+  // paddingLeft: globalMargins.xtiny,
+  // paddingRight: globalMargins.xtiny,
 }
 
 const codeSnippetBlockStyle = {
@@ -37,7 +37,7 @@ const codeSnippetBlockTextStyle = {
 
 const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
 
-const neutralStyle = {color: undefined, fontWeight: undefined}
+const neutralStyle = {fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
 const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
