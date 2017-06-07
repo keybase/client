@@ -37,7 +37,8 @@ const codeSnippetBlockTextStyle = {
 
 const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
 
-const neutralStyle = {fontWeight: undefined}
+// Setting undefined here overrides styles applied via Markdown
+const neutralStyle = {color: undefined, fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
 const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}

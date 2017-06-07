@@ -27,6 +27,12 @@ class Text extends Component<void, Props, void> {
       ...this.props.style,
     }
 
+    if (style['color'] === undefined) {
+      console.warn(
+        'Text color is not being set propertly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
+      )
+    }
+
     return (
       <NativeText
         ref={ref => {
