@@ -222,12 +222,6 @@ function addPending(
   return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
 }
 
-function removePendingConversations(
-  convIDs: Array<Constants.ConversationIDKey>
-): Constants.RemovePendingConversations {
-  return {payload: {conversationIDKeys: convIDs}, type: 'chat:removePendingConversations'}
-}
-
 function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
   return {payload: {finalizedState}, type: 'chat:updateFinalizedState'}
 }
@@ -639,7 +633,6 @@ export {
   showEditor,
   stageUserForSearch,
   startConversation,
-  removePendingConversations,
   threadLoadedOffline,
   unstageUserForSearch,
   untrustedInboxVisible,

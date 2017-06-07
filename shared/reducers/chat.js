@@ -534,18 +534,16 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const {participants, temporary} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
+      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
       return state
-        .set('pendingConversations', state.get('pendingConversations').set(conversationIDKey, List(sorted)))
-        .update('tempPendingConversations', tempPendingConversation =>
-          tempPendingConversation.set(conversationIDKey, temporary)
+        .update('pendingConversations', pendingConversations =>
+          // TODO use deleteAll when we update immutable
+          pendingConversations
+            .filterNot((v, k) => tempPendingConvIDs.includes(k))
+            .set(conversationIDKey, List(sorted))
         )
-    }
-    case 'chat:removePendingConversations': {
-      const {conversationIDKeys} = action.payload
-      return state
-        .set('pendingConversations', state.get('pendingConversations').deleteAll(conversationIDKeys))
-        .update('tempPendingConversations', tempPendingConversation =>
-          tempPendingConversation.deleteAll(conversationIDKeys)
+        .update('tempPendingConversations', tempPendingConversations =>
+          tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
         )
     }
     case 'chat:pendingToRealConversation': {

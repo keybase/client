@@ -670,12 +670,6 @@ function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, an
   yield put(Creators.startConversation(users))
 }
 
-function* _clearTemporaryPendingConvs() {
-  const tempPendingConversations = yield select((state: TypedState) => state.chat.tempPendingConversations)
-  const tempPendingConvIDs = tempPendingConversations.filter(v => v).keySeq().toArray()
-  yield put(Creators.removePendingConversations(tempPendingConvIDs))
-}
-
 function* _startConversation(action: Constants.StartConversation): SagaGenerator<any, any> {
   const {users, forceImmediate, temporary} = action.payload
   const me = yield select(usernameSelector)
@@ -701,7 +695,6 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield call(_clearTemporaryPendingConvs)
     yield put(Creators.addPending(users, temporary))
     yield put(Creators.selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
@@ -811,7 +804,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
-    // TODO likely only do this if search is visible
     if (inSearch) {
       const me = yield select(usernameSelector)
       yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
@@ -996,22 +988,23 @@ function* _updateTempSearchConversation(
   action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
 ) {
   const {payload: {user}} = action
+  const me = yield select(usernameSelector)
 
   const inboxSearch = yield select(inboxSearchSelector)
-  // TODO don't do this when users click an existing conversation
   if (action.type === 'chat:stageUserForSearch') {
     const nextTempSearchConv = inboxSearch.push(user)
     yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
     if (!nextTempSearchConv.isEmpty()) {
       yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
     } else {
-      yield put(Creators.setInboxSearch(nextTempSearchConv.toArray()))
       yield put(Creators.selectConversation(null, false))
     }
 
+    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   }
 }

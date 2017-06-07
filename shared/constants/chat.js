@@ -402,11 +402,6 @@ export type AddPendingConversation = NoErrorTypedAction<
   {participants: Array<string>, temporary: boolean}
 >
 
-export type RemovePendingConversations = NoErrorTypedAction<
-  'chat:removePendingConversations',
-  {conversationIDKeys: Array<ConversationIDKey>}
->
-
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
   {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
