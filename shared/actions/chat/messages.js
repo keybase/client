@@ -9,6 +9,7 @@ import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
 
+import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
@@ -71,7 +72,10 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
 
-  yield put(Creators.exitSearch())
+  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  if (inSearch) {
+    yield put(Creators.exitSearch())
+  }
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
