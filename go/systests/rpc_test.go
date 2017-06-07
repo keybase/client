@@ -70,16 +70,16 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 	// here.
 	if res, err := cli.Resolve2(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
 		t.Fatalf("Resolve failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong username: %s != 't_tracy", res.Username)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong username: %s != 't_tracy", res.Name)
 	}
 
 	if res, err := cli.Resolve2(context.TODO(), "t_tracy@rooter"); err != nil {
 		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
 	}
 
 	if _, err := cli.Resolve2(context.TODO(), "foobag@rooter"); err == nil {
@@ -90,10 +90,10 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 
 	if res, err := cli.Resolve2(context.TODO(), "t_tracy"); err != nil {
 		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
 	}
 }
 
