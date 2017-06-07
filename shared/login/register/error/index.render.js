@@ -47,8 +47,8 @@ const renderError = (error: RPCError) => {
                 You can't provision using solely a passphrase, since you have active device keys.
               </Text>
             </Box>
-            <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-              <Text type="BodySemibold">You have options:</Text>
+            <Box style={{...styleText, marginTop: 16}}>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
             </Box>
             <Box style={{styleList}}>
               <Text type="Body">
@@ -82,8 +82,8 @@ const renderError = (error: RPCError) => {
                 You can't provision using a passphrase, since you've established a PGP key.
               </Text>
             </Box>
-            <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-              <Text type="BodySemibold">You have options:</Text>
+            <Box style={{...styleText, marginTop: 16}}>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
             </Box>
             <Box style={styleList}>
               <Text type="Body">
@@ -167,8 +167,8 @@ const renderError = (error: RPCError) => {
               Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.
             </Text>
           </Box>
-          <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-            <Text type="BodySemibold">You have options:</Text>
+          <Box style={{...styleText, marginTop: 16}}>
+            <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
           </Box>
           <Box style={styleList}>
             <Text type="Body">
@@ -231,14 +231,11 @@ const styleHeader = {
 const styleText = {
   marginBottom: 10,
   maxWidth: 460,
-  textAlign: 'center',
 }
 
 const styleList = {
   ...styleText,
   ...globalStyles.flexBoxColumn,
-  textAlign: 'left',
-  lineHeight: '20px',
   marginLeft: globalMargins.tiny,
 }
 

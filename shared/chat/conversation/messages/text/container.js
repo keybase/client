@@ -11,10 +11,10 @@ import type {OwnProps} from './container'
 
 const getProps = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
-  (message: Constants.TextMessage, editingMessage) => ({
+  (message: ?Constants.TextMessage, editingMessage) => ({
     isEditing: message === editingMessage,
-    text: message.message.stringValue(),
-    type: message.messageState,
+    text: message ? message.message.stringValue() : null,
+    type: message ? message.messageState : null,
   })
 )((state, messageKey) => messageKey)
 

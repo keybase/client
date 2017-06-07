@@ -1,5 +1,7 @@
 // @flow
 
 // FIXME: stub placeholder for mobile version
-function AutosizeInput() {}
+function AutosizeInput() {
+  return null
+}
 export default AutosizeInput

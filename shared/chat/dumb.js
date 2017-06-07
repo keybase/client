@@ -98,6 +98,7 @@ const commonConvoProps = {
   metaDataMap: Map(metaData),
   followingMap,
   messages: List(messages),
+  messageKeys: List(),
   users: users,
   moreToLoad: false,
   isRequesting: false,
@@ -105,6 +106,7 @@ const commonConvoProps = {
   selectedConversation: 'convo1',
   onShowProfile: (username: string) => console.log('on show profile', username),
   onBack: () => console.log('back clicked'),
+  typing: [],
 }
 
 const emptyConvoProps = {
