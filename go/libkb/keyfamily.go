@@ -32,6 +32,10 @@ type KeybaseTime struct {
 type ComputedKeyInfo struct {
 	Contextified
 
+	// Repeat the KID inside, for lookups if we get here via the
+	// `Sigs` map in ComputedKeyInfos
+	KID keybase1.KID
+
 	Status KeyStatus
 	Eldest bool
 	Sibkey bool
@@ -184,8 +188,8 @@ type ComputedKeyFamily struct {
 
 // Insert inserts the given ComputedKeyInfo object 1 or 2 times,
 // depending on if a KID or PGPFingerprint or both are available.
-func (cki *ComputedKeyInfos) Insert(k keybase1.KID, i *ComputedKeyInfo) {
-	cki.Infos[k] = i
+func (cki *ComputedKeyInfos) Insert(i *ComputedKeyInfo) {
+	cki.Infos[i.KID] = i
 	cki.dirty = true
 }
 
@@ -298,8 +302,9 @@ func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 	}
 }
 
-func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int64, activePGPHash string) ComputedKeyInfo {
+func NewComputedKeyInfo(kid keybase1.KID, eldest, sibkey bool, status KeyStatus, ctime, etime int64, activePGPHash string) ComputedKeyInfo {
 	return ComputedKeyInfo{
+		KID:           kid,
 		Eldest:        eldest,
 		Sibkey:        sibkey,
 		Status:        status,
@@ -313,8 +318,8 @@ func NewComputedKeyInfo(eldest, sibkey bool, status KeyStatus, ctime, etime int6
 func (cki ComputedKeyInfos) InsertLocalEldestKey(kid keybase1.KID) {
 	// CTime and ETime are both initialized to zero, meaning that (until we get
 	// updates from the server) this key never expires.
-	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, 0, 0, "" /* activePGPHash */)
-	cki.Insert(kid, &eldestCki)
+	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, 0, 0, "" /* activePGPHash */)
+	cki.Insert(&eldestCki)
 }
 
 // For use when there are no chain links at all, so all we can do is trust the
@@ -330,8 +335,9 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 		// there's no sigchain link over the key to specify a different etime.
 		match, ctime, etime := pgp.CheckIdentity(kbid)
 		if match {
-			eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, "" /* activePGPHash */)
-			cki.Insert(eldestKey.GetKID(), &eldestCki)
+			kid := eldestKey.GetKID()
+			eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, "" /* activePGPHash */)
+			cki.Insert(&eldestCki)
 			return nil
 		}
 		return KeyFamilyError{"InsertServerEldestKey found a non-matching eldest key."}
@@ -352,9 +358,9 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 	ctime := tcl.GetCTime().Unix()
 	etime := tcl.GetETime().Unix()
 
-	eldestCki := NewComputedKeyInfo(true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
+	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
 
-	ckf.cki.Insert(kid, &eldestCki)
+	ckf.cki.Insert(&eldestCki)
 	return nil
 }
 
@@ -585,7 +591,7 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	if !found {
-		newInfo := NewComputedKeyInfo(false, false, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
+		newInfo := NewComputedKeyInfo(kid, false, false, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid] = info
@@ -696,7 +702,7 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig]; !found {
-	} else if kid, found := info.Delegations[sig]; found {
+	} else if _, found := info.Delegations[sig]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
@@ -705,6 +711,7 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 			return err
 		}
 		info.RevokedAtHashMeta = mhm
+		kid := info.KID
 
 		if KIDIsPGP(kid) {
 			ckf.ClearActivePGPHash(kid)
