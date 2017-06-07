@@ -103,7 +103,6 @@ type ChainLinkUnpacked struct {
 	sigVersion                         int
 	stubbed                            bool
 	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
-	eldestSeqno                        keybase1.Seqno
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -300,7 +299,6 @@ func (c *ChainLink) Pack() error {
 		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
 		p.SetKey("sig_version", jsonw.NewInt(c.unpacked.sigVersion))
 		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
-		p.SetKey("eldest_seqno", jsonw.NewInt64(int64(c.unpacked.eldestSeqno)))
 	}
 
 	if c.cki != nil {
@@ -518,9 +516,6 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 
 	if i, err := c.packed.AtKey("merkle_seqno").GetInt64(); err == nil {
 		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
-	}
-	if i, err := c.packed.AtKey("eldest_seqno").GetInt64(); err == nil {
-		tmp.eldestSeqno = keybase1.Seqno(i)
 	}
 
 	if jw := c.packed.AtKey("payload_json"); !jw.IsNil() {

@@ -582,7 +582,7 @@ func (u *User) BaseProofSet() *ProofSet {
 // localDelegateKey takes the given GenericKey and provisions it locally so that
 // we can use the key without needing a refresh from the server.  The eventual
 // refresh we do get from the server will clobber our work here.
-func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybase1.KID, isSibkey bool, isEldest bool, mhm keybase1.HashMeta, fau keybase1.Seqno) (err error) {
+func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybase1.KID, isSibkey bool, isEldest bool, merkleHashMeta keybase1.HashMeta, firstAppearedUnverified keybase1.Seqno) (err error) {
 	if err = u.keyFamily.LocalDelegate(key); err != nil {
 		return
 	}
@@ -590,7 +590,7 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey, mhm, fau)
+	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey, merkleHashMeta, firstAppearedUnverified)
 	if isEldest {
 		eldestKID := key.GetKID()
 		u.leaf.eldest = eldestKID
