@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -261,6 +260,22 @@ func (r *rekeyStateScheduled) reactToEvent(event RekeyEvent) rekeyState {
 	case rekeyTimeupEvent:
 		return newRekeyStateStarted(r.fsm, r.task)
 	case rekeyRequestEvent:
+		if r.task.promptPaper && !event.request.promptPaper {
+			// KBFS-2251: If fbo concludes that paper key would be needed in
+			// order for rekey to proceed, it writes a MD to mdserver with
+			// rekey set at the same time. To prevent the FSM from being kicked
+			// of to rekeyStateStarted right away after receiving this update
+			// (through FoldersNeedRekey) from mdserver, we just reuse the same
+			// timer if r.task.promptPaper is set.
+			//
+			// If the request has promptPaper set, then it's from the KBFS
+			// client, likely due to a read request. In this case, we should
+			// shorten the wait timer according the the request.
+			r.fsm.log.CDebugf(r.task.ctx.context(), "Reusing existing timer "+
+				"without possibly shortening due to r.task.promptPaper==true")
+			return r
+		}
+
 		task := r.task
 		task.promptPaper = task.promptPaper || event.request.promptPaper
 		if task.timeout == nil {
@@ -391,8 +406,8 @@ type rekeyFSMListener struct {
 }
 
 type rekeyFSM struct {
+	shutdownCh chan struct{}
 	reqs       chan RekeyEvent
-	reqsClosed int32
 
 	fbo *folderBranchOps
 	log logger.Logger
@@ -406,9 +421,10 @@ type rekeyFSM struct {
 // NewRekeyFSM creates a new rekey FSM.
 func NewRekeyFSM(fbo *folderBranchOps) RekeyFSM {
 	fsm := &rekeyFSM{
-		reqs: make(chan RekeyEvent, rekeyQueueSize),
-		fbo:  fbo,
-		log:  fbo.config.MakeLogger("RekeyFSM"),
+		reqs:       make(chan RekeyEvent, rekeyQueueSize),
+		shutdownCh: make(chan struct{}),
+		fbo:        fbo,
+		log:        fbo.config.MakeLogger("RekeyFSM"),
 
 		listeners: make(map[rekeyEventType][]rekeyFSMListener),
 	}
@@ -418,18 +434,28 @@ func NewRekeyFSM(fbo *folderBranchOps) RekeyFSM {
 }
 
 func (m *rekeyFSM) loop() {
-	for e := range m.reqs {
-		if e.eventType == rekeyShutdownEvent {
-			atomic.StoreInt32(&m.reqsClosed, 1)
-			close(m.reqs)
+	reqs := m.reqs
+	for {
+		select {
+		case e := <-reqs:
+			if e.eventType == rekeyShutdownEvent {
+				// Set reqs to nil so on next iteration, we will skip any
+				// content in reqs. So if there are multiple
+				// rekeyShutdownEvent, we won't close m.shutdownCh multiple
+				// times.
+				reqs = nil
+				close(m.shutdownCh)
+			}
+
+			next := m.current.reactToEvent(e)
+			m.log.Debug("RekeyFSM transition: %T + %s -> %T",
+				m.current, e, next)
+			m.current = next
+
+			m.triggerCallbacksForTest(e)
+		case <-m.shutdownCh:
+			return
 		}
-
-		next := m.current.reactToEvent(e)
-		m.log.Debug("RekeyFSM transition: %T + %s -> %T",
-			m.current, e, next)
-		m.current = next
-
-		m.triggerCallbacksForTest(e)
 	}
 }
 
@@ -437,23 +463,8 @@ func (m *rekeyFSM) loop() {
 func (m *rekeyFSM) Event(event RekeyEvent) {
 	select {
 	case m.reqs <- event:
-		return
-	default:
+	case <-m.shutdownCh:
 	}
-	go func() {
-		// We use a spinning loop here to avoid doing a naked `m.reqs <- event`,
-		// which in racy conditions could cause a panic due to sending to closed
-		// channel. The spinning loop is fine here since reactToEvent
-		// implementations of states are supposed to consume events from m.reqs
-		// pretty fast.
-		for atomic.LoadInt32(&m.reqsClosed) == 0 {
-			select {
-			case m.reqs <- event:
-				return
-			default:
-			}
-		}
-	}()
 }
 
 // Shutdown implements RekeyFSM interface for rekeyFSM.
