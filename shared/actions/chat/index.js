@@ -30,11 +30,7 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {
-  usernameSelector,
-  tempSearchConversationSelector,
-  inboxSearchSelector,
-} from '../../constants/selectors'
+import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -1019,11 +1015,6 @@ function* _exitSearch() {
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
-
-  const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
-  if (selectedConversationIDKey === '__SearchConversation__') {
-    yield put(Creators.selectConversation(null, false))
-  }
 }
 
 function* chatSaga(): SagaGenerator<any, any> {

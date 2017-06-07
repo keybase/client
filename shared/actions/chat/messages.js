@@ -7,7 +7,7 @@ import HiddenString from '../../util/hidden-string'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
-import {usernameSelector, tempSearchConversationSelector} from '../../constants/selectors'
+import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 

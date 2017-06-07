@@ -5,7 +5,6 @@ import ConversationList from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
-import {tempSearchConversationSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
 

@@ -1,12 +1,12 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/searchv3'
 import * as Creators from '../../actions/chat/creators'
 import * as SearchCreators from '../../actions/searchv3/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import {debounce} from 'lodash'
-import Search from '../search'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
 import {hideKeyboard} from '../../actions/app'
@@ -24,6 +24,8 @@ type StateProps = {|
   supersedes: ?Constants.SupersedeInfo,
   threadLoadedOffline: boolean,
   inSearch: boolean,
+  searchResultIds: Array<SearchConstants.SearchResultId>,
+  showSearchResults: boolean,
 |}
 
 type DispatchProps = {|
@@ -33,6 +35,10 @@ type DispatchProps = {|
   ) => void,
   _hideKeyboard: () => void,
   onBack: () => void,
+  _search: (term: string, service: SearchConstants.Service) => void,
+  _clearSearchResults: () => void,
+  _onClickSearchResult: (id: string) => void,
+  onShowTrackerInSearch: (id: string) => void,
 |}
 
 const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps => {
@@ -95,6 +101,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
     dispatch(Creators.stageUserForSearch(id))
     dispatch(Creators.clearSearchResults(id))
   },
+  // TODO
   onShowTrackerInSearch: () => {},
 })
 

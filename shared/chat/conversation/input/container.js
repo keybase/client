@@ -19,10 +19,7 @@ const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
   let typing = []
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
-    if (
-      !Constants.isPendingConversationIDKey(selectedConversationIDKey || '') &&
-      !Constants.isTempSearchConversationIDKey(selectedConversationIDKey)
-    ) {
+    if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
       if (conversationState) {
         isLoading = !conversationState.isLoaded

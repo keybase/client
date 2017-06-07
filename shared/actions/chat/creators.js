@@ -86,23 +86,6 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
-// TODO kill this?
-function clearTempSearchConversation(): Constants.ClearTempSearchConversation {
-  return {
-    type: 'chat:clearTempSearchConversation',
-    payload: {},
-  }
-}
-
-function createTempSearchConversation(
-  participants: Constants.Participants
-): Constants.CreateTempSearchConversation {
-  return {
-    type: 'chat:createTempSearchConversation',
-    payload: {participants},
-  }
-}
-
 function exitSearch(): Constants.ExitSearch {
   return {
     type: 'chat:exitSearch',
@@ -611,7 +594,6 @@ export {
   clearSearchResults,
   clearRekey,
   createPendingFailure,
-  createTempSearchConversation,
   deleteMessage,
   downloadProgress,
   editMessage,

@@ -71,7 +71,7 @@ export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
 
-function serviceIdToService(serviceId: string): Constants.Service {
+function serviceIdToService(serviceId: string): Service {
   return {
     keybase: 'Keybase',
     twitter: 'Twitter',

@@ -11,8 +11,8 @@ import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
 
+import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {PlatformsExpandedType} from '../../constants/types/more'
 
 type RawResult = {
   score: number,
@@ -24,7 +24,7 @@ type RawResult = {
     is_followee: boolean,
   },
   service: ?{
-    service_name: PlatformsExpandedType,
+    service_name: ServiceId,
     username: string,
     picture_url: ?string,
     bio: ?string,
@@ -33,19 +33,7 @@ type RawResult = {
   },
 }
 
-function serviceNameToSearchPlatform(serviceName: string): Constants.SearchPlatform {
-  return {
-    keybase: 'Keybase',
-    twitter: 'Twitter',
-    github: 'Github',
-    reddit: 'Reddit',
-    hackernews: 'Hackernews',
-    pgp: 'Pgp',
-    facebook: 'Facebook',
-  }[serviceName]
-}
-
-function _serviceToApiServiceName(service: Service): string {
+function _serviceToApiServiceName(service: Constants.Service): string {
   return (
     {
       Facebook: 'facebook',
@@ -123,7 +111,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     const service = result.service
     return {
       id: _rawResultToId(service.service_name, service.username),
-      leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftIcon: serviceIdToLogo24(service.service_name),
       leftUsername: service.username,
       leftService: Constants.serviceIdToService(service.service_name),
 
@@ -137,7 +125,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
   throw new SearchError('Invalid raw result for service search. Missing result.service', result)
 }
 
-function _parseRawResultToRow(result: RawResult, service: Constants.SearchPlatform) {
+function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
   if (service === '' || service === 'Keybase') {
     return _parseKeybaseRawResult(result, true)
   } else {

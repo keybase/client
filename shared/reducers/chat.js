@@ -132,7 +132,6 @@ function updateStateWithMessageChanged(
 ) {
   let messageKey
 
-  // $FlowIssue
   let newState = state.update('conversationStates', conversationStates =>
     updateConversationMessage(conversationStates, conversationIDKey, pred, m => {
       messageKey = m.key
@@ -193,7 +192,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
       const messageKey = Constants.messageKey(conversationIDKey, 'outboxIDText', outboxID)
-      // $FlowIssue
       return state
         .update('conversationStates', conversationStates =>
           updateConversation(conversationStates, conversationIDKey, conversation =>
@@ -222,7 +220,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         messages: newMessages,
         seenMessages: newSeenMessages,
       })
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
@@ -349,7 +346,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         updateConversation(
           conversationStates,
@@ -361,7 +357,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:setTypers': {
       const {conversationIDKey, typing} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         updateConversation(conversationStates, conversationIDKey, conversation =>
           conversation.set('typing', Set(typing))
@@ -414,7 +409,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
@@ -576,17 +570,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updateFinalizedState': {
       const fs = action.payload.finalizedState
-      // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
     }
     case 'chat:updateSupersedesState': {
       const ss = action.payload.supersedesState
-      // $FlowIssue doesn't recognize updates
       return state.update('supersedesState', supersedesState => supersedesState.merge(ss))
     }
     case 'chat:updateSupersededByState': {
       const sbs = action.payload.supersededByState
-      // $FlowIssue doesn't recognize updates
       return state.update('supersededByState', supersededByState => supersededByState.merge(sbs))
     }
     case 'chat:showEditor': {
@@ -637,13 +628,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:unstageUserForSearch': {
       const {payload: {user}} = action
       return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
-    }
-    case 'chat:clearTempSearchConversation': {
-      return state.set('tempSearchConversation', initialState.tempSearchConversation)
-    }
-    case 'chat:createTempSearchConversation': {
-      const {payload: {participants}} = action
-      return state.set('tempSearchConversation', participants)
     }
     case 'chat:newChat': {
       if (featureFlags.searchv3Enabled) {

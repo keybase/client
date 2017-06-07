@@ -37,7 +37,7 @@ class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
   }
 }
 
-class NewConversation extends PureComponent<void, {onNewChat: () => void}, void> {
+class NewConversation extends PureComponent<void, {}, void> {
   render() {
     return (
       <div

@@ -1,5 +1,6 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
+import type {IconType} from '../common-adapters/icon'
 
 const FriendlyNames = {
   none: 'None',
@@ -61,6 +62,7 @@ export function subtitle(platform: PlatformsExpandedType): ?string {
 
 export type ServiceId = $Keys<typeof friendlyName>
 
+// $FlowIssue ??
 export function serviceIdToIcon(service: ServiceId): IconType {
   return {
     keybase: 'iconfont-identity-devices',
@@ -73,6 +75,7 @@ export function serviceIdToIcon(service: ServiceId): IconType {
   }[service]
 }
 
+// $FlowIssue ??
 export function serviceIdToLogo24(service: ServiceId): IconType {
   return {
     keybase: 'icon-keybase-logo-24',
@@ -93,6 +96,7 @@ export function parseUserId(id: UserId): {username: string, serviceId: ServiceId
   const [username, serviceId = 'keybase'] = id.split('@')
   return {
     username,
+    // $FlowIssue
     serviceId,
   }
 }

@@ -1,33 +1,34 @@
 // @flow
 import React from 'react'
-import * as Immutable from 'immutable'
 import * as Creators from '../actions/chat/creators'
 import * as SearchConstants from '../constants/searchv3'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
-import {List} from 'immutable'
 import {Box, Icon} from '../common-adapters'
-import {compose, renderComponent, branch, withState, defaultProps, withHandlers} from 'recompose'
+import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
-import {createSelector} from 'reselect'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalMargins} from '../styles'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
 
 import type {TypedState} from '../constants/reducer'
-import type {UserDetails} from '../searchv3/user-input'
 
-type OwnProps = {}
+type OwnProps = {
+  search: (term: string, service: SearchConstants.Service) => void,
+  searchText: string,
+  onChangeSearchText: (s: string) => void,
+  usernameText: string,
+  selectedService: string,
+  onSelectService: (s: string) => void,
+}
 
-const mapStateToProps = (
-  {chat: {inboxSearch}, entities: {searchResults}}: TypedState,
-  {sidePanelOpen}: OwnProps
-) => {
+const mapStateToProps = ({chat: {inboxSearch}, entities: {searchResults}}: TypedState) => {
   // TODO upgrade results that have keybase user (? do we want this ?)
   const userItems = inboxSearch.map(id => {
     const {username, serviceId} = parseUserId(id)
     return {
       id: id,
       followState: 'NoState', // TODO get from elsewhere in the store
+      // $FlowIssue ??
       icon: serviceIdToIcon(serviceId),
       username,
       service: SearchConstants.serviceIdToService(serviceId),
@@ -36,16 +37,10 @@ const mapStateToProps = (
 
   return {userItems}
 }
-const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
   exitSearch: () => dispatch(Creators.exitSearch()),
 })
-
-type InProps = {
-  search: (term: string, service: ConstantsService) => void,
-  searchText: string,
-  onChangeSearchText: string,
-}
 
 const SearchHeader = props => {
   return (
@@ -75,17 +70,15 @@ const SearchHeader = props => {
   )
 }
 
-// TODO clear results when you search an empty string
-
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
   withHandlers({
-    onChangeText: props => nextText => {
+    onChangeText: (props: OwnProps & {_onSelectService: Function}) => nextText => {
       props.onChangeSearchText(nextText)
       props.search(nextText, props.selectedService)
     },
-    onSelectService: props => nextService => {
+    onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
     },
