@@ -29,7 +29,7 @@ const config = {
     publicPath: 'http://localhost:4000/dist/',
   },
   plugins: makePlugins(),
-  target: 'electron-renderer',
+  target: 'electron-main',
 }
 
 module.exports = config

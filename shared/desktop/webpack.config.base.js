@@ -30,7 +30,7 @@ const makeRules = () => {
         [
           'env',
           {
-            debug: true,
+            debug: false, // TEMP messes up output to analyzer, put back
             exclude: ['transform-regenerator'],
             modules: false,
             targets: {

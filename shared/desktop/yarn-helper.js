@@ -52,7 +52,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Bundle the code that the main node thread uses',
     nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors`,
+    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`,
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn'},
