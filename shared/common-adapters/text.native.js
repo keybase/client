@@ -29,7 +29,7 @@ class Text extends Component<void, Props, void> {
 
     if (style['color'] === undefined) {
       console.warn(
-        'Text color is not being set propertly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
+        'Text color is not being set properly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
       )
     }
 

@@ -37,7 +37,8 @@ const codeSnippetBlockTextStyle = {
 
 const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
 
-// Setting undefined here overrides styles applied via Markdown
+// Override styles set by the Markdown component style so they aren't
+// applied to the Text component.
 const neutralStyle = {color: undefined, fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
