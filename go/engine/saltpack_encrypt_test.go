@@ -141,7 +141,7 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 	run([]string{u1.Username, u2.Username, u3.Username})
 }
 
-func TestSaltpackEncryptAnonymous(t *testing.T) {
+func TestSaltpackEncryptAnonymousSigncryption(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
@@ -166,6 +166,92 @@ func TestSaltpackEncryptAnonymous(t *testing.T) {
 				Recipients:      Recips,
 				AnonymousSender: true,
 				Binary:          true,
+				// HERE! This is what we're testing. (Signcryption mode is the
+				// default. EncryptionOnlyMode is false.)
+			},
+			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
+			Sink:   encsink,
+		}
+
+		enceng := NewSaltpackEncrypt(encarg, tc.G)
+		enceng.skipTLFKeysForTesting = true
+		if err := RunEngine(enceng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		encout := encsink.Bytes()
+		if len(encout) == 0 {
+			t.Fatal("no output")
+		}
+
+		// Decode the header.
+		var header saltpack.EncryptionHeader
+		hdec := codec.NewDecoderBytes(encout, &codec.MsgpackHandle{WriteExt: true})
+		var hbytes []byte
+		if err := hdec.Decode(&hbytes); err != nil {
+			t.Fatal(err)
+		}
+		hdec = codec.NewDecoderBytes(hbytes, &codec.MsgpackHandle{WriteExt: true})
+		if err := hdec.Decode(&header); err != nil {
+			t.Fatal(err)
+		}
+
+		decsink := libkb.NewBufferCloser()
+		decarg := &SaltpackDecryptArg{
+			Source: strings.NewReader(encsink.String()),
+			Sink:   decsink,
+		}
+		deceng := NewSaltpackDecrypt(decarg, tc.G)
+		if err := RunEngine(deceng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		if !saltpackUI.DidDecrypt {
+			t.Fatal("fake saltpackUI not called")
+		}
+
+		// The message should not contain the sender's public key (in the sender secretbox).
+		// Instead, the sender key should be the ephemeral key.
+		// This tests that the sender type is anonymous.
+		if saltpackUI.LastSender.SenderType != keybase1.SaltpackSenderType_ANONYMOUS {
+			t.Fatal("sender type not anonymous:", saltpackUI.LastSender.SenderType)
+		}
+	}
+
+	run([]string{u1.Username, u2.Username})
+
+	// If we add ourselves, we should be smart and not error out
+	// (We are u3 in this case)
+	run([]string{u1.Username, u2.Username, u3.Username})
+}
+
+func TestSaltpackEncryptAnonymousEncryptionOnly(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+	u2 := CreateAndSignupFakeUser(tc, "nalcp")
+	u3 := CreateAndSignupFakeUser(tc, "nalcp")
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	saltpackUI := &fakeSaltpackUI2{}
+	ctx := &Context{
+		IdentifyUI: trackUI,
+		SecretUI:   u3.NewSecretUI(),
+		SaltpackUI: saltpackUI,
+	}
+
+	run := func(Recips []string) {
+		encsink := libkb.NewBufferCloser()
+		encarg := &SaltpackEncryptArg{
+			Opts: keybase1.SaltpackEncryptOptions{
+				Recipients:      Recips,
+				AnonymousSender: true,
+				Binary:          true,
+				// HERE! This is what we're testing.
+				EncryptionOnlyMode: true,
 			},
 			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
 			Sink:   encsink,
