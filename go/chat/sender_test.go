@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -110,12 +109,12 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
-func newConvTriple(t *testing.T, tlf types.TLFInfoSource, username string) chat1.ConversationIDTriple {
-	cres, err := tlf.CryptKeys(context.TODO(), username)
+func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
+	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username,
+		chat1.ConversationMembersType_KBFS, false)
 	require.NoError(t, err)
-
 	trip := chat1.ConversationIDTriple{
-		Tlfid:     cres.NameIDBreaks.TlfID.ToBytes(),
+		Tlfid:     nameInfo.ID,
 		TopicType: chat1.TopicType_CHAT,
 		TopicID:   []byte{0},
 	}
@@ -133,7 +132,7 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
-func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener, kbtest.TlfMock) {
+func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -141,7 +140,8 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	g := globals.NewContext(tc.G, tc.ChatG)
-	boxer := NewBoxer(g, tlf)
+	ctx := newTestContextWithTlfMock(tc, tlf)
+	boxer := NewBoxer(g)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
 	sender := NewNonblockingSender(g, baseSender)
@@ -155,11 +155,13 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 	}
 	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
-	g.InboxSource = NewHybridInboxSource(g, getRI, tlf)
+	g.InboxSource = NewHybridInboxSource(g, getRI)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
 	g.NotifyRouter.SetListener(&listener)
-	g.MessageDeliverer = NewDeliverer(g, baseSender)
-	g.MessageDeliverer.(*Deliverer).SetClock(world.Fc)
+	deliverer := NewDeliverer(g, baseSender)
+	deliverer.SetClock(world.Fc)
+	deliverer.setTestingNameInfoSource(tlf)
+	g.MessageDeliverer = deliverer
 	g.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
 	g.MessageDeliverer.Connected(context.TODO())
 	g.FetchRetrier = NewFetchRetrier(g)
@@ -168,6 +170,7 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	g.FetchRetrier.Start(context.TODO(), u.User.GetUID().ToBytes())
 	bgLoader := NewBackgroundConvLoader(g)
 	bgLoader.loads = listener.bgConvLoads
+	bgLoader.setTestingNameInfoSource(tlf)
 	g.ConvLoader = bgLoader
 	g.ConvLoader.Start(context.TODO(), u.User.GetUID().ToBytes())
 	chatSyncer := NewSyncer(g)
@@ -175,51 +178,22 @@ func setupTest(t *testing.T, numUsers int) (*kbtest.ChatMockWorld, chat1.RemoteI
 	g.Syncer = chatSyncer
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 
-	return world, ri, sender, baseSender, &listener, tlf
-}
-
-func startConv(t *testing.T,
-	u *kbtest.FakeUser, trip chat1.ConversationIDTriple, blockingSender Sender,
-	ri chat1.RemoteInterface, tc *kbtest.ChatTestContext) chat1.NewConversationRemoteRes {
-
-	uid := u.User.GetUID().ToBytes()
-	m1box, _, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_METADATA,
-			Prev:        nil,
-		},
-	}, nil)
-	require.NoError(t, err, "box initial failed")
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
-		IdTriple:   trip,
-		TLFMessage: *m1box,
-	})
-	require.NoError(t, err)
-
-	// Check that the initial message stored as a success.
-	tv, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, nil)
-	require.NoError(t, err)
-	require.Equal(t, 1, len(tv.Messages))
-	require.True(t, tv.Messages[0].IsValid(), "initial message invalid")
-	return res
+	return ctx, world, ri, sender, baseSender, &listener
 }
 
 func TestNonblockChannel(t *testing.T) {
-	world, ri, sender, blockingSender, listener, tlf := setupTest(t, 1)
+	ctx, world, ri, sender, blockingSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
-	trip := newConvTriple(t, tlf, u.Username)
+	uid := u.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	res := startConv(t, u, trip, blockingSender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
 
 	// Send nonblock
-	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	obid, _, _, err := sender.Send(context.TODO(), conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:      trip,
+			Conv:      conv.Metadata.IdTriple,
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
@@ -265,12 +239,13 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	world, ri, _, baseSender, listener, tlf := setupTest(t, 1)
+	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
 	clock := world.Fc
-	trip := newConvTriple(t, tlf, u.Username)
+	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -280,9 +255,10 @@ func TestNonblockTimer(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := baseSender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	firstMessageBoxed, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
 		TLFMessage: *firstMessageBoxed,
 	})
@@ -291,7 +267,7 @@ func TestNonblockTimer(t *testing.T) {
 	// Send a bunch of nonblocking messages
 	var sentRef []sentRecord
 	for i := 0; i < 5; i++ {
-		_, msgBoxed, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
@@ -309,12 +285,11 @@ func TestNonblockTimer(t *testing.T) {
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
 	}
 
-	tc := userTc(t, world, u)
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	var obids []chat1.OutboxID
 	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
-		obr, err := outbox.PushMessage(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:      trip,
 				Sender:    u.User.GetUID().ToBytes(),
@@ -341,7 +316,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Send a bunch of nonblocking messages
 	for i := 0; i < 5; i++ {
-		_, msgBoxed, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		_, msgBoxed, _, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
 				Sender:      u.User.GetUID().ToBytes(),
@@ -361,12 +336,12 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Check get thread, make sure it makes sense
 	typs := []chat1.MessageType{chat1.MessageType_TEXT}
-	tres, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+	tres, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
 		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
 	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs}, true)
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
-	require.NoError(t, outbox.SprinkleIntoThread(context.TODO(), res.ConvID, &tres))
+	require.NoError(t, outbox.SprinkleIntoThread(ctx, res.ConvID, &tres))
 	checkThread(t, tres, sentRef)
 	clock.Advance(5 * time.Minute)
 
@@ -395,12 +370,15 @@ func TestNonblockTimer(t *testing.T) {
 type FailingSender struct {
 }
 
+var _ Sender = (*FailingSender)(nil)
+
 func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
 	return chat1.OutboxID{}, nil, nil, fmt.Errorf("I always fail!!!!")
 }
 
-func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []chat1.Asset, error) {
+func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
+	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, error) {
 	return nil, nil, nil
 }
 
@@ -413,11 +391,12 @@ func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxReco
 
 func TestFailingSender(t *testing.T) {
 
-	world, ri, sender, _, listener, tlf := setupTest(t, 1)
+	ctx, world, ri, sender, _, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
-	trip := newConvTriple(t, tlf, u.Username)
+	tc := userTc(t, world, u)
+	trip := newConvTriple(ctx, t, tc, u.Username)
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: trip,
 		TLFMessage: chat1.MessageBoxed{
@@ -431,7 +410,6 @@ func TestFailingSender(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tc := userTc(t, world, u)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 
 	// Send nonblock
@@ -474,22 +452,22 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	world, ri, sender, baseSender, listener, tlf := setupTest(t, 1)
+	ctx, world, ri, sender, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
 	cl := world.Fc
-	trip := newConvTriple(t, tlf, u.Username)
 	tc := userTc(t, world, u)
-	res := startConv(t, u, trip, baseSender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, baseSender, u.Username)
 
-	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
+	tc.ChatG.MessageDeliverer.Disconnected(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 
 	// If not offline for long enough, we should be able to get a send by just reconnecting
-	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	obid, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:      trip,
+			Conv:      conv.Metadata.IdTriple,
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
@@ -502,7 +480,7 @@ func TestDisconnectedFailure(t *testing.T) {
 		require.Fail(t, "no failed message")
 	default:
 	}
-	tc.ChatG.MessageDeliverer.Connected(context.TODO())
+	tc.ChatG.MessageDeliverer.Connected(ctx)
 	select {
 	case inc := <-listener.incoming:
 		require.Equal(t, 1, inc)
@@ -512,16 +490,16 @@ func TestDisconnectedFailure(t *testing.T) {
 	}
 	listener.obids = nil
 
-	tc.ChatG.MessageDeliverer.Disconnected(context.TODO())
+	tc.ChatG.MessageDeliverer.Disconnected(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
 	cl.Advance(time.Hour)
 
 	// Send nonblock
 	obids := []chat1.OutboxID{}
 	for i := 0; i < 3; i++ {
-		obid, _, _, err = sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		obid, _, _, err = sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:      trip,
+				Conv:      conv.Metadata.IdTriple,
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
@@ -566,15 +544,15 @@ func TestDisconnectedFailure(t *testing.T) {
 	recordCompare(t, obids, allrecvd)
 
 	t.Logf("reconnecting and checking for successes")
-	<-tc.ChatG.MessageDeliverer.Stop(context.TODO())
-	<-tc.ChatG.MessageDeliverer.Stop(context.TODO())
+	<-tc.ChatG.MessageDeliverer.Stop(ctx)
+	<-tc.ChatG.MessageDeliverer.Stop(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(baseSender)
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(context.TODO(), obid))
+		require.NoError(t, outbox.RetryMessage(ctx, obid))
 	}
-	tc.ChatG.MessageDeliverer.Connected(context.TODO())
-	tc.ChatG.MessageDeliverer.Start(context.TODO(), u.User.GetUID().ToBytes())
+	tc.ChatG.MessageDeliverer.Connected(ctx)
+	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
 
 	for {
 		select {
@@ -596,18 +574,18 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
-	trip := newConvTriple(t, tlf, u.Username)
+	uid := u.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	res := startConv(t, u, trip, blockingSender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
 
 	// Send a message and two edits.
-	_, firstMessageBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, firstMessageBoxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_TEXT,
@@ -616,9 +594,9 @@ func TestDeletionHeaders(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 	firstMessageID := firstMessageBoxed.GetMessageID()
-	_, editBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, editBoxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_EDIT,
@@ -628,9 +606,9 @@ func TestDeletionHeaders(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 	editID := editBoxed.GetMessageID()
-	_, editBoxed2, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, editBoxed2, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_EDIT,
@@ -644,7 +622,7 @@ func TestDeletionHeaders(t *testing.T) {
 	// Now prepare a deletion.
 	deletion := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_DELETE,
@@ -652,7 +630,8 @@ func TestDeletionHeaders(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, _, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
+	preparedDeletion, _, err := blockingSender.Prepare(ctx, deletion,
+		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
 	// Assert that the deletion gets the edit too.
@@ -675,20 +654,19 @@ func TestDeletionHeaders(t *testing.T) {
 }
 
 func TestPrevPointerAddition(t *testing.T) {
-	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
 	uid := u.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	trip := newConvTriple(t, tlf, u.Username)
-	res := startConv(t, u, trip, blockingSender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
 
 	// Send a bunch of messages on this convo
 	for i := 0; i < 10; i++ {
-		_, _, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+		_, _, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:        trip,
+				Conv:        conv.Metadata.IdTriple,
 				Sender:      uid,
 				TlfName:     u.Username,
 				MessageType: chat1.MessageType_TEXT,
@@ -699,24 +677,24 @@ func TestPrevPointerAddition(t *testing.T) {
 	}
 
 	// Nuke the body cache
-	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, res.ConvID, uid))
+	require.NoError(t, storage.New(tc.Context()).MaybeNuke(true, nil, conv.GetConvID(), uid))
 
 	// Fetch a subset into the cache
-	_, _, err := tc.ChatG.ConvSource.Pull(context.TODO(), res.ConvID, uid, nil, &chat1.Pagination{
+	_, _, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, nil, &chat1.Pagination{
 		Num: 2,
 	})
 	require.NoError(t, err)
 
 	// Prepare a message and make sure it gets prev pointers
-	boxed, pendingAssetDeletes, err := blockingSender.Prepare(context.TODO(), chat1.MessagePlaintext{
+	boxed, pendingAssetDeletes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
+			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
 			TlfName:     u.Username,
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, &res.ConvID)
+	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 	require.Empty(t, pendingAssetDeletes)
 	require.NotEmpty(t, boxed.ClientHeader.Prev, "empty prev pointers")
@@ -725,13 +703,14 @@ func TestPrevPointerAddition(t *testing.T) {
 // Test a DELETE attempts to delete all associated assets.
 // func TestDeletionHeaders(t *testing.T) { // <- TODO delete this line
 func TestDeletionAssets(t *testing.T) {
-	world, ri, _, blockingSender, _, tlf := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
-	trip := newConvTriple(t, tlf, u.Username)
+	uid := u.User.GetUID().ToBytes()
 	tc := userTc(t, world, u)
-	res := startConv(t, u, trip, blockingSender, ri, tc)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+	trip := conv.Metadata.IdTriple
 
 	var doomedAssets []chat1.Asset
 	mkAsset := func() chat1.Asset {
@@ -745,7 +724,7 @@ func TestDeletionAssets(t *testing.T) {
 
 	// Send an attachment message and 3 MessageAttachUploaded's.
 	tmp1 := mkAsset()
-	_, firstMessageBoxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, firstMessageBoxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -769,7 +748,7 @@ func TestDeletionAssets(t *testing.T) {
 		MessageType: chat1.MessageType_ATTACHMENTUPLOADED,
 		Supersedes:  firstMessageID,
 	}
-	_, edit1Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, edit1Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -779,7 +758,7 @@ func TestDeletionAssets(t *testing.T) {
 	}, 0)
 	require.NoError(t, err)
 	edit1ID := edit1Boxed.GetMessageID()
-	_, edit2Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, edit2Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -788,7 +767,7 @@ func TestDeletionAssets(t *testing.T) {
 		}),
 	}, 0)
 	edit2ID := edit2Boxed.GetMessageID()
-	_, edit3Boxed, _, err := blockingSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	_, edit3Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: editHeader,
 		MessageBody: chat1.NewMessageBodyWithAttachmentuploaded(chat1.MessageAttachmentUploaded{
 			MessageID: firstMessageID,
@@ -812,7 +791,8 @@ func TestDeletionAssets(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, pendingAssetDeletes, err := blockingSender.Prepare(context.TODO(), deletion, &res.ConvID)
+	preparedDeletion, pendingAssetDeletes, err := blockingSender.Prepare(ctx, deletion,
+		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
 	assertAssetSetsEqual(t, pendingAssetDeletes, doomedAssets)

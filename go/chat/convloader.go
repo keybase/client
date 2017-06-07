@@ -30,15 +30,16 @@ type clTask struct {
 type BackgroundConvLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
 	started       bool
 	queue         chan clTask
 	stop          chan bool
 	identNotifier *IdentifyNotifier
 
-	loads chan chat1.ConversationID // for testing, make this and can check conv load successes
-
-	sync.Mutex
+	// for testing, make this and can check conv load successes
+	loads                 chan chat1.ConversationID
+	testingNameInfoSource types.NameInfoSource
 }
 
 var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
@@ -102,6 +103,10 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	return nil
 }
 
+func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
+	b.testingNameInfoSource = ni
+}
+
 func (b *BackgroundConvLoader) loop(uid gregor1.UID) {
 	bgctx := context.Background()
 	b.Debug(bgctx, "starting conv loader loop for %s", uid)
@@ -138,7 +143,10 @@ func (b *BackgroundConvLoader) load(ctx context.Context, task clTask, uid gregor
 	b.Debug(ctx, "loading conversation %s", task.convID)
 
 	var breaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, b.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks, b.identNotifier)
+	ctx = Context(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &breaks, b.identNotifier)
+	if b.testingNameInfoSource != nil {
+		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
+	}
 
 	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := &chat1.Pagination{Num: 50}

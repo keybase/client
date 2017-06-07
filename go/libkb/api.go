@@ -568,7 +568,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if a.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())

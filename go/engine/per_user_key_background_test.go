@@ -264,7 +264,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	advance(arg.Settings.Interval + time.Second)
 	expectMeta(t, metaCh, "woke-interval")
 	advance(arg.Settings.WakeUp + time.Second)
-	expectMeta(t, metaCh, "woke-wakeup")
+	expectMeta(t, metaCh, "woke-wakeup") // this line has flaked before (CORE-5410)
 	select {
 	case x := <-roundResCh:
 		require.Equal(t, nil, x, "round result")
@@ -366,7 +366,7 @@ func expectMeta(t *testing.T, metaCh <-chan string, s string) {
 		select {
 		case x := <-metaCh:
 			require.Equal(t, s, x)
-		case <-time.After(time.Second):
+		case <-time.After(5 * time.Second):
 			require.FailNow(t, "channel timed out")
 		}
 	}

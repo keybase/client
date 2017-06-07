@@ -63,6 +63,10 @@ func (h1 NodeHashShort) bytes() []byte {
 	return h1[:]
 }
 
+func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
+	return keybase1.HashMeta(h1.bytes())
+}
+
 func (h1 NodeHashLong) String() string {
 	return hex.EncodeToString(h1[:])
 }
@@ -516,6 +520,69 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
+func (mc *MerkleClient) FetchRootFromServer(ctx context.Context, freshness time.Duration) (mr *MerkleRoot, err error) {
+	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServer", func() error { return err })()
+	root := mc.LastRoot()
+	if freshness == 0 && root != nil {
+		mc.G().Log.CDebugf(ctx, "freshness=0, returning non-nil previously fetched root")
+		return root, nil
+	}
+	now := mc.G().Clock().Now()
+	if root != nil && freshness > 0 && now.Sub(root.fetched) < freshness {
+		mc.G().Log.CDebugf(ctx, "freshness=%d, and was current enough, so returning non-nil previously fetched root", freshness)
+		return root, nil
+	}
+	return mc.fetchRootFromServer(ctx, root)
+}
+
+func (mc *MerkleClient) fetchRootFromServer(ctx context.Context, lastRoot *MerkleRoot) (mr *MerkleRoot, err error) {
+	defer mc.G().CTrace(ctx, "MerkleClient#fetchRootFromServer", func() error { return err })()
+	var ss SkipSequence
+	var apiRes *APIRes
+
+	mr, ss, apiRes, err = mc.lookupRootAndSkipSequence(ctx, lastRoot)
+	if err != nil {
+		return nil, err
+	}
+	if err = mc.verifySkipSequenceAndRootThenStore(ctx, ss, mr, lastRoot, apiRes); err != nil {
+		return nil, err
+	}
+	return mr, nil
+}
+
+func (mc *MerkleClient) lookupRootAndSkipSequence(ctx context.Context, lastRoot *MerkleRoot) (mr *MerkleRoot, ss SkipSequence, apiRes *APIRes, err error) {
+	q := NewHTTPArgs()
+
+	// Get back a series of skips from the last merkle root we had to the new
+	// one we're getting back, and hold the server to it.
+	lastSeqno := lastRoot.Seqno()
+	if lastSeqno != nil {
+		q.Add("last", I{int(*lastSeqno)})
+	}
+
+	apiRes, err = mc.G().API.Get(APIArg{
+		Endpoint:       "merkle/root",
+		SessionType:    APISessionTypeNONE,
+		Args:           q,
+		AppStatusCodes: []int{SCOk},
+		NetContext:     ctx,
+	})
+
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	mr, err = readRootFromAPIRes(mc.G(), apiRes.Body)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	ss, err = mc.readSkipSequenceFromAPIRes(ctx, apiRes, mr, lastRoot)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return mr, ss, apiRes, err
+}
+
 func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
@@ -583,6 +650,15 @@ func readSkipSequenceFromStringList(v []string) (ret SkipSequence, err error) {
 	return ret, nil
 }
 
+func readRootFromAPIRes(g *GlobalContext, jw *jsonw.Wrapper) (*MerkleRoot, error) {
+	ret, err := NewMerkleRootFromJSON(jw, g)
+	if err != nil {
+		return nil, err
+	}
+	ret.fetched = g.Clock().Now()
+	return ret, nil
+}
+
 // readSkipSequenceFromAPIRes returns a SkipSequence. We construct the sequence by starting with the
 // most recent merkle root, adding the "skip" pointers returned by the server, and finally bookending
 // with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
@@ -631,11 +707,10 @@ func (mc *MerkleClient) readPathFromAPIRes(ctx context.Context, res *APIRes) (re
 		Contextified: NewContextified(mc.G()),
 	}
 
-	ret.root, err = NewMerkleRootFromJSON(res.Body.AtKey("root"), mc.G())
+	ret.root, err = readRootFromAPIRes(mc.G(), res.Body.AtKey("root"))
 	if err != nil {
 		return nil, err
 	}
-	ret.root.fetched = mc.G().Clock().Now()
 
 	ret.uid, err = GetUID(res.Body.AtKey("uid"))
 	if err != nil {
@@ -695,6 +770,18 @@ func (mc *MerkleClient) LastRoot() *MerkleRoot {
 		return nil
 	}
 	return mc.lastRoot.ShallowCopy()
+}
+
+func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
+	hashMeta := mr.ShortHash()
+	return keybase1.MerkleRootAndTime{
+		Root: keybase1.MerkleRootV2{
+			Seqno:    mr.payload.unpacked.Body.Seqno,
+			HashMeta: hashMeta[:],
+		},
+		UpdateTime: keybase1.TimeFromSeconds(mr.payload.unpacked.Ctime),
+		FetchTime:  keybase1.ToTime(mr.fetched),
+	}
 }
 
 // storeRoot stores the root in the db and mem.
@@ -763,6 +850,10 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 			return nil
 		}
 		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
+	}
+	if *thisRoot.Seqno() == *lastRoot.Seqno() {
+		mc.G().Log.CDebugf(ctx, "| No change since last check (seqno %d)", *thisRoot.Seqno())
+		return nil
 	}
 	return ss.verify(ctx, mc.G(), *thisRoot.Seqno(), *lastRoot.Seqno())
 }
@@ -1116,6 +1207,24 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 	return
 }
 
+func (mc *MerkleClient) verifySkipSequenceAndRootThenStore(ctx context.Context, ss SkipSequence, curr *MerkleRoot, prev *MerkleRoot, apiRes *APIRes) (err error) {
+
+	defer func() {
+		if err != nil {
+			mc.G().Log.CDebugf(ctx, "| Full APIRes was: %s", apiRes.Body.MarshalToDebug())
+		}
+	}()
+
+	// It's important to check the merkle skip sequence before verifying the root.
+	if err = mc.verifySkipSequence(ctx, ss, curr, prev); err != nil {
+		return err
+	}
+	if err = mc.verifyAndStoreRoot(ctx, curr, prev.Seqno()); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
 
 	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupUser(%v)", q)
@@ -1139,24 +1248,14 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 		return nil, err
 	}
 
-	// It's important to check the merkle skip sequence before verifying the root.
-	mc.G().Log.CDebugf(ctx, "| VerifySkipSequence")
-	if err = mc.verifySkipSequence(ctx, ss, path.root, rootBeforeCall); err != nil {
-		mc.G().Log.CDebugf(ctx, "| Full APIRes was: %s", apiRes.Body.MarshalToDebug())
+	if err = mc.verifySkipSequenceAndRootThenStore(ctx, ss, path.root, rootBeforeCall, apiRes); err != nil {
 		return nil, err
 	}
 
-	mc.G().Log.CDebugf(ctx, "| VerifyRoot")
-	if err = mc.verifyAndStoreRoot(ctx, path.root, rootBeforeCall.Seqno()); err != nil {
-		return nil, err
-	}
-
-	mc.G().Log.CDebugf(ctx, "| VerifyUser")
 	if u, err = path.verifyUser(ctx); err != nil {
 		return nil, err
 	}
 
-	mc.G().Log.CDebugf(ctx, "| VerifyUsername")
 	if u.username, err = path.verifyUsername(ctx); err != nil {
 		return nil, err
 	}

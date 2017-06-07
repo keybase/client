@@ -27,6 +27,16 @@ type SaltpackEncrypt struct {
 	arg *SaltpackEncryptArg
 	libkb.Contextified
 	me *libkb.User
+
+	// Resolving TLF keys is impossible in the engine tests. This lets us test
+	// signcryption mode with just device keys, which normally isn't exposed to
+	// the CLI.
+	skipTLFKeysForTesting bool
+
+	// Legacy encryption-only messages include a lot more information about
+	// receivers, and it's nice to keep the helpful errors working while those
+	// messages are still around.
+	visibleRecipientsForTesting bool
 }
 
 // NewSaltpackEncrypt creates a SaltpackEncrypt engine.
@@ -137,7 +147,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	var senderDH libkb.NaclDHKeyPair
-	if !e.arg.Opts.HideSelf && e.me != nil {
+	if !e.arg.Opts.AnonymousSender && e.me != nil {
 		secretKeyArgDH := libkb.SecretKeyArg{
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
@@ -154,7 +164,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	var senderSigning libkb.NaclSigningKeyPair
-	if e.arg.Opts.Signcrypt && e.me != nil {
+	if !e.arg.Opts.EncryptionOnlyMode && !e.arg.Opts.AnonymousSender && e.me != nil {
 		secretKeyArgSigning := libkb.SecretKeyArg{
 			Me:      e.me,
 			KeyType: libkb.DeviceSigningKeyType,
@@ -171,7 +181,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	var symmetricReceivers []saltpack.ReceiverSymmetricKey
-	if e.arg.Opts.Signcrypt && !e.arg.Opts.NoSelfEncrypt {
+	if !e.arg.Opts.EncryptionOnlyMode && !e.skipTLFKeysForTesting {
 		symmetricReceivers, err = e.makeSymmetricReceivers(ctx)
 		if err != nil {
 			return err
@@ -185,9 +195,10 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		Sender:             senderDH,
 		SenderSigning:      senderSigning,
 		Binary:             e.arg.Opts.Binary,
-		HideRecipients:     e.arg.Opts.HideRecipients,
-		Signcrypt:          e.arg.Opts.Signcrypt,
+		EncryptionOnlyMode: e.arg.Opts.EncryptionOnlyMode,
 		SymmetricReceivers: symmetricReceivers,
+
+		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }

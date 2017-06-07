@@ -168,7 +168,7 @@ func isSaltpackBinary(b []byte, sc *StreamClassification) bool {
 		return false
 	}
 	switch sphp.Type {
-	case saltpack.MessageTypeEncryption:
+	case saltpack.MessageTypeEncryption | saltpack.MessageTypeSigncryption:
 		sc.Type = CryptoMessageTypeEncryption
 	case saltpack.MessageTypeAttachedSignature:
 		sc.Type = CryptoMessageTypeAttachedSignature

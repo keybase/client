@@ -83,14 +83,22 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 	}
 }
 
+type subchainSummary struct {
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
+	Sibkeys     int            `json:"sibkeys"`
+	Subkeys     int            `json:"subkeys"`
+}
+
 // One of the test cases from the JSON list of all tests.
 type TestCase struct {
-	Input   string `json:"input"`
-	Len     int    `json:"len"`
-	Sibkeys int    `json:"sibkeys"`
-	Subkeys int    `json:"subkeys"`
-	ErrType string `json:"err_type"`
-	Eldest  string `json:"eldest"`
+	Input         string            `json:"input"`
+	Len           int               `json:"len"`
+	Sibkeys       int               `json:"sibkeys"`
+	Subkeys       int               `json:"subkeys"`
+	ErrType       string            `json:"err_type"`
+	Eldest        string            `json:"eldest"`
+	EldestSeqno   *keybase1.Seqno   `json:"eldest_seqno,omitempty"`
+	PrevSubchains []subchainSummary `json:"previous_subchains,omitempty"`
 }
 
 // The JSON list of all test cases.
@@ -197,7 +205,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf, true)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -271,6 +279,30 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		t.Fatal(fatalStr)
 	}
 
+	if testCase.EldestSeqno != nil && sigchain.EldestSeqno() != *testCase.EldestSeqno {
+		t.Fatalf("wrong eldest seqno: wanted %d but got %d", *testCase.EldestSeqno, sigchain.EldestSeqno())
+	}
+	if testCase.PrevSubchains != nil {
+		if len(testCase.PrevSubchains) != len(sigchain.prevSubchains) {
+			t.Fatalf("wrong number of historical subchains; wanted %d but got %d", len(testCase.PrevSubchains), len(sigchain.prevSubchains))
+		}
+		for i, expected := range testCase.PrevSubchains {
+			received := sigchain.prevSubchains[i]
+			if received.EldestSeqno() != expected.EldestSeqno {
+				t.Fatalf("For historical subchain %d, wrong eldest seqno; wanted %d but got %d", i, expected.EldestSeqno, received.EldestSeqno())
+			}
+			ckf := ComputedKeyFamily{kf: keyFamily, cki: received.GetComputedKeyInfos()}
+			n := len(ckf.GetAllSibkeysUnchecked())
+			if n != expected.Sibkeys {
+				t.Fatalf("For historical subchain %d, wrong number of sibkeys; wanted %d but got %d", i, expected.Sibkeys, n)
+			}
+			m := len(ckf.GetAllSubkeysUnchecked())
+			if m != expected.Subkeys {
+				t.Fatalf("For historical subchain %d, wrong number of subkeys; wanted %d but got %d", i, expected.Sibkeys, m)
+			}
+		}
+	}
+
 	storeAndLoad(t, tc, &sigchain)
 	// Success!
 }
@@ -285,8 +317,9 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 			name: chain.username.String(),
 			id:   chain.uid,
 		},
-		self:    false,
-		allKeys: true,
+		self:         false,
+		allKeys:      true,
+		allSubchains: true,
 		leaf: &MerkleUserLeaf{
 			public: chain.GetCurrentTailTriple(),
 			uid:    chain.uid,

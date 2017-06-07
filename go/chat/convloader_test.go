@@ -11,10 +11,11 @@ import (
 )
 
 func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWorld, *chatListener, chat1.NewConversationRemoteRes) {
-	world, ri, _, baseSender, listener, tlf := setupTest(t, 1)
+	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 
 	u := world.GetUsers()[0]
-	trip := newConvTriple(t, tlf, u.Username)
+	tc := world.Tcs[u.Username]
+	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        trip,
@@ -24,16 +25,14 @@ func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWor
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := baseSender.Prepare(context.TODO(), firstMessagePlaintext, nil)
+	firstMessageBoxed, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
-	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
 		TLFMessage: *firstMessageBoxed,
 	})
 	require.NoError(t, err)
-
-	tc := userTc(t, world, u)
-
 	return tc, world, listener, res
 }
 

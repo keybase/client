@@ -165,6 +165,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
+  'icon-facebook-continue': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-continue.png'),
+  },
   'icon-facebook-logo-16': {
     isFont: false,
     extension: 'png',

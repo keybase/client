@@ -94,7 +94,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase, true)
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
@@ -253,7 +253,7 @@ func TestFullSelfCacherFlushTwoMachines(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase, true)
+	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}

@@ -800,16 +800,14 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  if (conversationIDKey) {
-    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
-    yield put(navigateTo([conversationIDKey], [chatTab]))
-  } else {
-    yield put(navigateTo([], [chatTab]))
-  }
-
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
+    // Don't navigate into errored conversations
+    if (inbox.get('state') === 'error') {
+      return
+    }
+
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
@@ -818,6 +816,13 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
       const me = yield select(usernameSelector)
       yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
     }
+  }
+
+  if (conversationIDKey) {
+    yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
+    yield put(navigateTo([conversationIDKey], [chatTab]))
+  } else {
+    yield put(navigateTo([], [chatTab]))
   }
 
   // Do this here because it's possible loadMoreMessages bails early

@@ -8,6 +8,7 @@ import (
 
 // ***
 // If we change this, make sure to update libkb.EncryptionReasonChatLocalStorage as well!
+// Also see the encrypteddb package's cryptoVersion.
 // ***
 const cryptoVersion = 1
 

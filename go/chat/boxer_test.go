@@ -5,7 +5,6 @@ package chat
 
 import (
 	"crypto/sha256"
-	"strings"
 	"testing"
 	"time"
 
@@ -59,13 +58,16 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 	}
 }
 
-func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
+func setupChatTest(t *testing.T, name string) (*kbtest.ChatTestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	g := globals.NewContext(tc.G, nil)
-	return tc, NewBoxer(g, NewKBFSTLFInfoSource(g))
+	ctc := kbtest.ChatTestContext{
+		TestContext: tc,
+		ChatG:       &globals.ChatContext{},
+	}
+	return &ctc, NewBoxer(ctc.Context())
 }
 
-func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
+func getSigningKeyPairForTest(t *testing.T, tc *kbtest.ChatTestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
 	var err error
 	if u == nil {
 		u, err = kbtest.CreateAndSignupFakeUser("unbox", tc.G)
@@ -84,7 +86,7 @@ func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.Fake
 	return signKP
 }
 
-func getActiveDevicesAndKeys(tc libkb.TestContext, u *kbtest.FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
 	arg.PublicKeyOptional = true
 	user, err := libkb.LoadUser(arg)
@@ -103,7 +105,7 @@ func getActiveDevicesAndKeys(tc libkb.TestContext, u *kbtest.FakeUser) ([]*libkb
 	return activeDevices, append(sibkeys, subkeys...)
 }
 
-func doRevokeDevice(tc libkb.TestContext, u *kbtest.FakeUser, id keybase1.DeviceID, force bool) error {
+func doRevokeDevice(tc *kbtest.ChatTestContext, u *kbtest.FakeUser, id keybase1.DeviceID, force bool) error {
 	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: id, Force: force}, tc.G)
 	ctx := &engine.Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -272,19 +274,17 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		tc, boxer := setupChatTest(t, "unbox")
 		defer tc.Cleanup()
 
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
+		u := world.GetUsers()[0]
+		tc = world.Tcs[u.Username]
+		uid := u.User.GetUID().ToBytes()
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlfInfoSource = tlf
+		ctx := newTestContextWithTlfMock(tc, tlf)
 
 		header := chat1.MessageClientHeader{
-			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
-			TlfPublic: true,
-			TlfName:   "hi",
+			Sender:    uid,
+			TlfPublic: false,
+			TlfName:   u.Username,
 		}
 		text := "hi"
 		msg := textMsgWithHeader(t, text, header)
@@ -298,9 +298,8 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 			return sum[:]
 		}
 
-		ctx := context.Background()
 		boxer.boxWithVersion = mbVersion
-		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+		boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_KBFS, signKP)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -315,9 +314,14 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 
 		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
 		convID := header.Conv.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
 
 		// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-		decmsg, err := boxer.UnboxMessage(ctx, *boxed, convID, nil /* finalizeInfo */)
+		decmsg, err := boxer.UnboxMessage(ctx, *boxed, conv)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -332,49 +336,26 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 		tc, boxer := setupChatTest(t, "unbox")
 		defer tc.Cleanup()
 
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tc = world.Tcs[u.Username]
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlfInfoSource = tlf
+		ctx := newTestContextWithTlfMock(tc, tlf)
 
 		header := chat1.MessageClientHeader{
-			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
-			TlfPublic: true,
-			TlfName:   "hi",
+			Sender:    uid,
+			TlfPublic: false,
+			TlfName:   u.Username + "M",
 		}
 		text := "hi"
 		msg := textMsgWithHeader(t, text, header)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		ctx := context.Background()
 		boxer.boxWithVersion = mbVersion
-		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// need to give it a server header...
-		boxed.ServerHeader = &chat1.MessageServerHeader{
-			Ctime: gregor1.ToTime(time.Now()),
-		}
-
-		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
-		convID := header.Conv.ToConversationID([2]byte{0, 0})
-
-		// This should produce a non-permanent error. So err will be set.
-		bctx := context.WithValue(ctx, kfKey, NewKeyFinderMock(nil))
-		decmsg, ierr := boxer.UnboxMessage(bctx, *boxed, convID, nil /* finalizeInfo */)
-		if !strings.Contains(ierr.Error(), "no key found") {
-			t.Fatalf("error should contain 'no key found': %v", ierr)
-		}
-		if decmsg.IsValid() {
-			t.Fatalf("message should not be unboxable")
-		}
+		_, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_KBFS, signKP)
+		require.Error(t, err)
 	})
 }
 
@@ -604,29 +585,24 @@ func TestChatMessagePublic(t *testing.T) {
 		tc, boxer := setupChatTest(t, "unbox")
 		defer tc.Cleanup()
 
-		// need a real user
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		world := kbtest.NewChatMockWorld(t, "unbox", 4)
+		u := world.GetUsers()[0]
+		uid := u.User.GetUID().ToBytes()
+		tc = world.Tcs[u.Username]
 		tlf := kbtest.NewTlfMock(world)
-		boxer.tlfInfoSource = tlf
+		ctx := newTestContextWithTlfMock(tc, tlf)
 
 		header := chat1.MessageClientHeader{
-			Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
+			Sender:    uid,
 			TlfPublic: true,
-			TlfName:   "hi",
+			TlfName:   u.Username,
 		}
 		msg := textMsgWithHeader(t, text, header)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		ctx := context.Background()
-
 		boxer.boxWithVersion = mbVersion
-		boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+		boxed, err := boxer.BoxMessage(ctx, msg, chat1.ConversationMembersType_KBFS, signKP)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -639,8 +615,13 @@ func TestChatMessagePublic(t *testing.T) {
 
 		// NOTE: this is hashing a lot of zero values, and it might break when we add more checks
 		convID := header.Conv.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
 
-		decmsg, err := boxer.UnboxMessage(ctx, *boxed, convID, nil /* finalizeInfo */)
+		decmsg, err := boxer.UnboxMessage(ctx, *boxed, conv)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1155,6 +1136,11 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 		// can still extract the ConvID from it.
 		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
 		convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
 		boxed, err := boxer.box(msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
@@ -1167,18 +1153,18 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 		}
 
 		// Unbox the message once.
-		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, conv)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Unbox it again. This should be fine.
-		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, conv)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed the second time too")
 
 		// Now try to unbox it again with a different MessageID. This must fail.
 		boxed.ServerHeader.MessageID = 2
-		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, convID, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed, conv)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "replay must be detected")
 	})
@@ -1202,6 +1188,11 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 
 		// Everything below will use the zero convID.
 		convID := chat1.ConversationIDTriple{}.ToConversationID([2]byte{0, 0})
+		conv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: convID,
+			},
+		}
 
 		makeMsg := func(id chat1.MessageID, prevs []chat1.MessagePreviousPointer) *chat1.MessageBoxed {
 			msg := textMsgWithSender(t, "foo text", gregor1.UID(u.User.GetUID().ToBytes()))
@@ -1222,7 +1213,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		// Now unbox the first message. That caches its header hash. Leave the
 		// second one out of the cache for now though. (We'll use it to cause an
 		// error later.)
-		unboxed1, err := boxer.UnboxMessage(boxerContext, *boxed1, convID, nil)
+		unboxed1, err := boxer.UnboxMessage(boxerContext, *boxed1, conv)
 		require.NoError(t, err)
 
 		// Create two more messages, which both have bad prev pointers. Msg3 has a
@@ -1252,16 +1243,16 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 			},
 		})
 
-		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed3, convID, nil)
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed3, conv)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "msg3 has a known bad prev pointer and must fail to unbox")
 
-		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed4, convID, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed4, conv)
 		require.NoError(t, err)
 		requireValidMessage(t, unboxed, "we expected msg4 to succeed")
 
 		// Now try to unbox msg2. Because of msg4's bad pointer, this should fail.
-		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed2, convID, nil)
+		unboxed, err = boxer.UnboxMessage(boxerContext, *boxed2, conv)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "msg2 should fail to unbox, because of msg4's bad pointer")
 	})
@@ -1300,7 +1291,13 @@ func TestChatMessageBadConvID(t *testing.T) {
 			Tlfid: []byte("random non-matching TLF ID"),
 		}
 		badConvID := badTriple.ToConversationID([2]byte{0, 0})
-		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, badConvID, nil)
+		badConv := chat1.Conversation{
+			Metadata: chat1.ConversationMetadata{
+				ConversationID: badConvID,
+			},
+		}
+
+		unboxed, err := boxer.UnboxMessage(boxerContext, *boxed, badConv)
 		require.NoError(t, err)
 		requireErrorMessage(t, unboxed, "expected a bad convID to fail the unboxing")
 	})
@@ -1316,9 +1313,15 @@ func NewKeyFinderMock(cryptKeys []keybase1.CryptKey) KeyFinder {
 	return &KeyFinderMock{cryptKeys}
 }
 
-func (k *KeyFinderMock) Find(ctx context.Context, tlf types.TLFInfoSource, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
-	return keybase1.GetTLFCryptKeysRes{CryptKeys: k.cryptKeys}, nil
+func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
+	membersType chat1.ConversationMembersType, tlfPublic bool) (res types.NameInfo, err error) {
+	for _, key := range k.cryptKeys {
+		res.CryptKeys = append(res.CryptKeys, key)
+	}
+	return res, nil
 }
+
+func (k *KeyFinderMock) SetNameInfoSourceOverride(ni types.NameInfoSource) {}
 
 func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) *chat1.MessageBoxed {
 	// encode

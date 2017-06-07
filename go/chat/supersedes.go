@@ -10,16 +10,14 @@ import (
 
 type supersedesTransform interface {
 	Run(ctx context.Context,
-		convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
-		finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+		conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
 type nullSupersedesTransform struct {
 }
 
 func (t nullSupersedesTransform) Run(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 	return originalMsgs, nil
 }
 
@@ -27,8 +25,7 @@ func newNullSupersedesTransform() nullSupersedesTransform {
 	return nullSupersedesTransform{}
 }
 
-type getMessagesFunc func(context.Context, chat1.ConversationID, gregor1.UID, []chat1.MessageID,
-	*chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error)
+type getMessagesFunc func(context.Context, chat1.Conversation, gregor1.UID, []chat1.MessageID) ([]chat1.MessageUnboxed, error)
 
 type basicSupersedesTransform struct {
 	globals.Contextified
@@ -111,8 +108,7 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 }
 
 func (t *basicSupersedesTransform) Run(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed,
-	finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, error) {
+	conv chat1.Conversation, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
 
 	// MessageIDs that supersede
 	var superMsgIDs []chat1.MessageID
@@ -133,7 +129,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	}
 
 	// Get superseding messages
-	msgs, err := t.messagesFunc(ctx, convID, uid, superMsgIDs, finalizeInfo)
+	msgs, err := t.messagesFunc(ctx, conv, uid, superMsgIDs)
 	if err != nil {
 		return nil, err
 	}

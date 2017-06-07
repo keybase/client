@@ -7,6 +7,7 @@ package engine
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -30,7 +31,7 @@ func NewLogin(g *libkb.GlobalContext, deviceType string, usernameOrEmail string,
 	return &Login{
 		Contextified:    libkb.NewContextified(g),
 		deviceType:      deviceType,
-		usernameOrEmail: usernameOrEmail,
+		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
 		clientType:      ct,
 	}
 }
