@@ -335,14 +335,14 @@ def hasChanges(subdir) {
 def getTestDirsNix() {
     def dirs = sh(
         returnStdout: true,
-        script: "go list -f '{{.Dir}}' ./... | grep -v 'vendor\\|bind'"
+        script: "go list ./... | grep -v 'vendor\\|bind'"
     ).trim()
     println "Running tests for dirs: " + dirs
     return dirs.tokenize()
 }
 
 def getTestDirsWindows() {
-    def dirs = bat(returnStdout: true, script: "go list -f \"{{.Dir}}\" ./... | find /V \"vendor\" | find /V \"/go/bind\"").trim()
+    def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"vendor\" | find /V \"/go/bind\"").trim()
     println "Running tests for dirs: " + dirs
     return dirs.tokenize()
 }
@@ -355,30 +355,29 @@ def testGo(prefix) {
         def shell
         def dirs
         def slash
+        def goversion
         if (isUnix()) {
             shell = { params -> sh params }
             dirs = getTestDirsNix()
             slash = '/'
-            curDir = pwd() + slash
+            goversion = sh(returnStdout: true, script: "go version").trim()
         } else {
             shell = { params -> bat params }
             dirs = getTestDirsWindows()
             slash = '\\'
-            curDir = bat(returnStdout: true, script: 'echo %cd%').trim() + slash
-            curDir = curDir.replaceAll('\\', '\\\\')
+            goversion = bat(returnStdout: true, script: "@go version").trim()
         }
-        def goversion = shell(returnStdout: true, script: 'go version').trim()
-        println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}, in ${curDir}."
-        shell "go get github.com/stretchr/testify/require"
-        shell "go get github.com/stretchr/testify/assert"
+        println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
+        shell "go get \"github.com/stretchr/testify/require\""
+        shell "go get \"github.com/stretchr/testify/assert\""
         def tests = [:]
         for (def i=0; i<dirs.size(); i++) {
             def d = dirs[i]
-            def dirPath = d.replaceAll(curDir, '')
+            def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
             dir(dirPath) {
-                shell 'go test -i'
-                shell 'go test -c -o test.test'
+                shell "go test -i"
+                shell "go test -c -o test.test"
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
                     def testName = dirPath.replaceAll(slash, '_')
