@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import {RouteDefNode} from '../../route-tree'
-import Login from './'
+import Login from './container'
 import UsernameOrEmail from '../register/username-or-email'
 import SelectOtherDevice from '../register/select-other-device'
 import Passphrase from '../register/passphrase'
@@ -11,8 +11,13 @@ import SetPublicName from '../register/set-public-name'
 import Success from '../register/success'
 import RegisterError from '../register/error'
 import GPGSign from '../register/gpg-sign'
+import Feedback from '../../settings/feedback-container'
 
 const recursiveLazyRoutes = I.Seq({
+  feedback: {
+    component: Feedback,
+    tags: {hideStatusBar: true, fullscreen: true},
+  },
   login: {
     component: Login,
   },

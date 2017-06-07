@@ -1,19 +1,22 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalColors} from '../../styles'
+
+import type {Props} from '.'
 
 class LoginRender extends Component<void, Props, void> {
   render() {
     const inputProps = {
       hintText: 'Passphrase',
+      floatingHintTextOverride: '',
       style: {marginBottom: 0},
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
       autoFocus: true,
+      value: this.props.passphrase,
     }
 
     const checkboxProps = [
@@ -27,8 +30,8 @@ class LoginRender extends Component<void, Props, void> {
     ]
 
     return (
-      <Box style={styles.container}>
-        <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+      <Box style={stylesContainer}>
+        <UserCard username={this.props.selectedUser}>
           <Dropdown
             type="Username"
             value={this.props.selectedUser}
@@ -44,7 +47,6 @@ class LoginRender extends Component<void, Props, void> {
           <Button
             waiting={this.props.waitingForResponse}
             style={{marginTop: 0}}
-            fullWidth={true}
             type="Primary"
             label="Log in"
             onClick={() => this.props.onSubmit()}
@@ -53,12 +55,12 @@ class LoginRender extends Component<void, Props, void> {
             link={true}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassphrase}
-            style={{marginTop: globalMargins.medium, textAlign: 'center'}}
+            style={{marginTop: 24}}
           >
             Forgot passphrase?
           </Text>
         </UserCard>
-        <Text style={{marginTop: globalMargins.xlarge}} type="BodyBigLink" onClick={this.props.onSignup}>
+        <Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
           Create an account
         </Text>
       </Box>
@@ -66,17 +68,12 @@ class LoginRender extends Component<void, Props, void> {
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: globalColors.white,
-  },
-  card: {
-    marginTop: globalMargins.tiny,
-    width: '100%',
-  },
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: 1,
+  backgroundColor: globalColors.white,
 }
 
 export default LoginRender
