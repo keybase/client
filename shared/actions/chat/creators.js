@@ -86,23 +86,6 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
-// TODO kill this?
-function clearTempSearchConversation(): Constants.ClearTempSearchConversation {
-  return {
-    type: 'chat:clearTempSearchConversation',
-    payload: {},
-  }
-}
-
-function createTempSearchConversation(
-  participants: Constants.Participants
-): Constants.CreateTempSearchConversation {
-  return {
-    type: 'chat:createTempSearchConversation',
-    payload: {participants},
-  }
-}
-
 function exitSearch(): Constants.ExitSearch {
   return {
     type: 'chat:exitSearch',
@@ -157,9 +140,10 @@ function openTlfInChat(tlf: string): Constants.OpenTlfInChat {
 
 function startConversation(
   users: Array<string>,
-  forceImmediate?: boolean = false
+  forceImmediate?: boolean = false,
+  temporary?: boolean = false
 ): Constants.StartConversation {
-  return {payload: {forceImmediate, users: uniq(users)}, type: 'chat:startConversation'}
+  return {payload: {forceImmediate, users: uniq(users), temporary}, type: 'chat:startConversation'}
 }
 
 function newChat(existingParticipants: Array<string>): Constants.NewChat {
@@ -231,8 +215,17 @@ function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
   return {payload: {message}, type: 'chat:deleteMessage'}
 }
 
-function addPending(participants: Array<string>): Constants.AddPendingConversation {
-  return {payload: {participants}, type: 'chat:addPendingConversation'}
+function addPending(
+  participants: Array<string>,
+  temporary: boolean = false
+): Constants.AddPendingConversation {
+  return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
+}
+
+function removePendingConversations(
+  convIDs: Array<Constants.ConversationIDKey>
+): Constants.RemovePendingConversations {
+  return {payload: {conversationIDKeys: convIDs}, type: 'chat:removePendingConversations'}
 }
 
 function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
@@ -601,7 +594,6 @@ export {
   clearSearchResults,
   clearRekey,
   createPendingFailure,
-  createTempSearchConversation,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -647,6 +639,7 @@ export {
   showEditor,
   stageUserForSearch,
   startConversation,
+  removePendingConversations,
   threadLoadedOffline,
   unstageUserForSearch,
   untrustedInboxVisible,

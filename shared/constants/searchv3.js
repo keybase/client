@@ -71,29 +71,15 @@ export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
 
-// Platform icons
-function platformToIcon(platform: SearchPlatform): IconType {
+function serviceIdToService(serviceId: string): Service {
   return {
-    Keybase: 'iconfont-identity-devices',
-    Twitter: 'iconfont-identity-twitter',
-    Github: 'iconfont-identity-github',
-    Reddit: 'iconfont-identity-reddit',
-    Hackernews: 'iconfont-identity-hn',
-    Pgp: 'iconfont-identity-pgp',
-    Facebook: 'iconfont-identity-facebook',
-  }[platform]
+    keybase: 'Keybase',
+    twitter: 'Twitter',
+    github: 'GitHub',
+    reddit: 'Reddit',
+    hackernews: 'Hacker News',
+    facebook: 'Facebook',
+  }[serviceId]
 }
 
-function platformToLogo24(platform: SearchPlatform): IconType {
-  return {
-    Keybase: 'icon-keybase-logo-24',
-    Twitter: 'icon-twitter-logo-24',
-    Github: 'icon-github-logo-24',
-    Reddit: 'icon-reddit-logo-24',
-    Hackernews: 'icon-hacker-news-logo-24',
-    Pgp: 'icon-pgp-key-24',
-    Facebook: 'icon-facebook-logo-24',
-  }[platform]
-}
-
-export {platformToIcon, platformToLogo24}
+export {serviceIdToService}

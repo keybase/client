@@ -7,11 +7,12 @@ import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'
+import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
 
+import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {PlatformsExpandedType} from '../../constants/types/more'
 
 type RawResult = {
   score: number,
@@ -23,7 +24,7 @@ type RawResult = {
     is_followee: boolean,
   },
   service: ?{
-    service_name: PlatformsExpandedType,
+    service_name: ServiceId,
     username: string,
     picture_url: ?string,
     bio: ?string,
@@ -32,19 +33,7 @@ type RawResult = {
   },
 }
 
-function serviceNameToSearchPlatform(serviceName: string): Constants.SearchPlatform {
-  return {
-    keybase: 'Keybase',
-    twitter: 'Twitter',
-    github: 'Github',
-    reddit: 'Reddit',
-    hackernews: 'Hackernews',
-    pgp: 'Pgp',
-    facebook: 'Facebook',
-  }[serviceName]
-}
-
-function _serviceToApiServiceName(service: Service): string {
+function _serviceToApiServiceName(service: Constants.Service): string {
   return (
     {
       Facebook: 'facebook',
@@ -55,17 +44,6 @@ function _serviceToApiServiceName(service: Service): string {
       Twitter: 'twitter',
     }[service] || ''
   )
-}
-
-function serviceNameToService(serviceName: string): Constants.Service {
-  return {
-    keybase: 'Keybase',
-    twitter: 'Twitter',
-    github: 'GitHub',
-    reddit: 'Reddit',
-    hackernews: 'Hacker News',
-    facebook: 'Facebook',
-  }[serviceName]
 }
 
 function _rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
@@ -89,8 +67,8 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
       leftService: 'Keybase',
 
       rightFullname: keybase.full_name,
-      rightIcon: Constants.platformToIcon(serviceNameToSearchPlatform(service.service_name)),
-      rightService: serviceNameToService(service.service_name),
+      rightIcon: serviceIdToIcon(service.service_name),
+      rightService: Constants.serviceIdToService(service.service_name),
       rightUsername: service.username,
     }
   }
@@ -118,9 +96,9 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     const {service, keybase} = result
     return {
       id: _rawResultToId(service.service_name, service.username),
-      leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftIcon: serviceIdToLogo24(service.service_name),
       leftUsername: service.username,
-      leftService: serviceNameToService(service.service_name),
+      leftService: Constants.serviceIdToService(service.service_name),
 
       rightFullname: keybase.full_name,
       rightIcon: null,
@@ -133,9 +111,9 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     const service = result.service
     return {
       id: _rawResultToId(service.service_name, service.username),
-      leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftIcon: serviceIdToLogo24(service.service_name),
       leftUsername: service.username,
-      leftService: serviceNameToService(service.service_name),
+      leftService: Constants.serviceIdToService(service.service_name),
 
       rightFullname: service.full_name,
       rightIcon: null,
@@ -147,7 +125,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
   throw new SearchError('Invalid raw result for service search. Missing result.service', result)
 }
 
-function _parseRawResultToRow(result: RawResult, service: Constants.SearchPlatform) {
+function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
   if (service === '' || service === 'Keybase') {
     return _parseKeybaseRawResult(result, true)
   } else {

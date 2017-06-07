@@ -231,7 +231,7 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 
 	attempts := 1
 	nextTime := f.nextAttemptTime(attempts, f.clock.Now())
-	ctx = BackgroundContext(ctx, f.G().Env)
+	ctx = BackgroundContext(ctx, f.G())
 	go func() {
 		for {
 			select {

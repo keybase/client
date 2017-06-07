@@ -339,6 +339,7 @@ protocol local {
     string topicName;
     TLFVisibility visibility;
     ConversationStatus status;
+    ConversationMembersType membersType;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
@@ -442,11 +443,16 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  record NameQuery {
+    string name;
+    ConversationMembersType membersType;
+  }
+
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
-    union { null, string } tlfName;
+    union { null, NameQuery } name;
     union { null, string } topicName;
 
     array<ConversationID> convIDs;
@@ -623,7 +629,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  FindConversationsLocalRes findConversationsLocal(string tlfName, TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
+  FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing);

@@ -64,11 +64,10 @@ const PostProof = (props: Props) => {
           {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
           {!!noteText && <Text style={styleNoteText} type="Body">{noteText}</Text>}
           {!!proofAction &&
-            !!proofActionText &&
             !!proofActionIcon &&
             <LinkWithIcon
               style={styleProofAction}
-              label={proofActionText}
+              label={proofActionText || ''}
               icon={proofActionIcon}
               color={globalColors.blue}
               onClick={() => proofAction()}

@@ -32,7 +32,7 @@
         },
         {
           "type": "int",
-          "name": "generation"
+          "name": "keyGeneration"
         },
         {
           "type": "Bytes32",
@@ -118,6 +118,47 @@
             "items": "string"
           },
           "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamChangeReq",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "none"
         }
       ]
     },
@@ -236,6 +277,86 @@
         }
       ],
       "response": "TeamMembers"
+    },
+    "teamChangeMembership": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "req",
+          "type": "TeamChangeReq"
+        }
+      ],
+      "response": null
+    },
+    "teamAddMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "teamRemoveMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamEditMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

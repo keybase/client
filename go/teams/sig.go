@@ -9,6 +9,7 @@ package teams
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -121,6 +122,13 @@ func NewSubteamID() keybase1.TeamID {
 }
 
 func ChangeMembershipSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+
+	if teamSection.PerTeamKey != nil {
+		if teamSection.PerTeamKey.ReverseSig != "" {
+			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
+		}
+	}
+
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeChangeMembership,

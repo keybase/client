@@ -1,4 +1,5 @@
 // @flow
+import {Map} from 'immutable'
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
 
@@ -9,9 +10,9 @@ const mapStateToProps = (
   state: TypedState,
   {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
 ) => {
-  // $FlowIssue doesn't understand getIn
   return {
-    ...state.entities.getIn(['searchResults', id]).toObject(),
+    // $FlowIssue doesn't understand getIn
+    ...state.entities.getIn(['searchResults', id], Map()).toObject(),
     onClick,
     onShowTracker,
   }

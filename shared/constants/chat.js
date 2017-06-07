@@ -24,7 +24,7 @@ import type {
   ConversationID as RPCConversationID,
   TyperInfo,
 } from './types/flow-types-chat'
-import type {DeviceType} from './types/more'
+import type {DeviceType, LooseRecord} from './types/more'
 import type {TypedState} from './reducer'
 
 export type Username = string
@@ -335,7 +335,8 @@ export type RekeyInfo = Record<{
   youCanRekey: boolean,
 }>
 
-export const StateRecord = Record({
+// $FlowIssue with cast
+export const StateRecord: LooseRecord<T> = Record({
   messageMap: Map(),
   inbox: List(),
   inboxFilter: List(),
@@ -354,15 +355,15 @@ export const StateRecord = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
-  searchResults: List(),
+  searchResults: null,
   selectedUsersInSearch: List(),
   inSearch: false,
-  tempSearchConversation: List(),
+  tempPendingConversations: Map(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type State = Record<{
+export type State = LooseRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
@@ -378,14 +379,14 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  tempPendingConversations: Map<ConversationIDKey, boolean>,
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
-  searchResults: List<SearchConstants.SearchResultId>,
+  searchResults: ?List<SearchConstants.SearchResultId>,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
-  tempSearchConversation: Participants,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -394,11 +395,18 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
+export const blankChat = 'chat:blankChat'
 
 export type AddPendingConversation = NoErrorTypedAction<
   'chat:addPendingConversation',
-  {participants: Array<string>}
+  {participants: Array<string>, temporary: boolean}
 >
+
+export type RemovePendingConversations = NoErrorTypedAction<
+  'chat:removePendingConversations',
+  {conversationIDKeys: Array<ConversationIDKey>}
+>
+
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
   {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
@@ -415,12 +423,6 @@ export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
   {failureDescription: string, outboxID: OutboxIDKey}
 >
-export type ClearTempSearchConversation = NoErrorTypedAction<'chat:clearTempSearchConversation', {}>
-export type CreateTempSearchConversation = NoErrorTypedAction<
-  'chat:createTempSearchConversation',
-  {participants: Participants}
->
-
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
@@ -521,7 +523,7 @@ export type StageUserForSearch = NoErrorTypedAction<
 >
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
-  {users: Array<string>, forceImmediate: boolean}
+  {users: Array<string>, forceImmediate: boolean, temporary: boolean}
 >
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -998,12 +1000,10 @@ const getMuted = createSelector(
 )
 
 const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
-  // $FlowIssue getIn
   state.chat.getIn(['messageMap', messageKey])
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  // $FlowIssue getIn
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 

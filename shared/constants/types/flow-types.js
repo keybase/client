@@ -2386,6 +2386,21 @@ export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function merkleGetCurrentMerkleRootRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>) {
+  engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+
+export function merkleGetCurrentMerkleRootRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+export function merkleGetCurrentMerkleRootRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, callback, incomingCallMap) })
+}
+
+export function merkleGetCurrentMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): Promise<merkleGetCurrentMerkleRootResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing('keybase.1.metadata.authenticate', request)
 }
@@ -3436,6 +3451,36 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
+}
+
+export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
+}
+export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAddMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamChangeMembershipRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request)
+}
+
+export function teamsTeamChangeMembershipRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamChangeMembership', request)
+}
+export function teamsTeamChangeMembershipRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamChangeMembershipRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamChangeMembershipRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamCreateRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamCreate', request)
 }
@@ -3451,6 +3496,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
+}
+
+export function teamsTeamEditMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
+}
+export function teamsTeamEditMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamEditMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamEditMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamEditMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamGet', request)
 }
@@ -3464,6 +3524,21 @@ export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, r
 
 export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): Promise<teamsTeamGetResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
+}
+
+export function teamsTeamRemoveMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
+}
+export function teamsTeamRemoveMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamRemoveMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
@@ -4260,7 +4335,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
-  publicTopLevelFolder: boolean,
   filename: string,
   status: string,
   statusCode: FSStatusCode,
@@ -4269,6 +4343,7 @@ export type FSNotification = {
   params: {[key: string]: string},
   writerUid: UID,
   localTime: Time,
+  folderType: FolderType,
 }
 
 export type FSNotificationType =
@@ -4286,7 +4361,7 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
-  publicTopLevelFolder: boolean,
+  folderType: FolderType,
   path: string,
   syncingBytes: int64,
   syncingOps: int64,
@@ -4436,6 +4511,8 @@ export type GetTLFCryptKeysRes = {
 export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
+
+export type HashMeta = bytes
 
 export type Hello2Res = {
   encryptionKey: KID,
@@ -4657,9 +4734,15 @@ export type MerkleRoot = {
   root: bytes,
 }
 
+export type MerkleRootAndTime = {
+  root: MerkleRootV2,
+  updateTime: Time,
+  fetchTime: Time,
+}
+
 export type MerkleRootV2 = {
   seqno: Seqno,
-  hashMeta: bytes,
+  hashMeta: HashMeta,
 }
 
 export type MerkleTreeID =
@@ -5168,11 +5251,10 @@ export type SaltpackDecryptOptions = {
 
 export type SaltpackEncryptOptions = {
   recipients?: ?Array<string>,
-  hideSelf: boolean,
+  anonymousSender: boolean,
+  encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
-  hideRecipients: boolean,
-  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -5600,8 +5682,16 @@ export type TeamApplication =
 
 export type TeamApplicationKey = {
   application: TeamApplication,
-  generation: int,
+  keyGeneration: int,
   key: Bytes32,
+}
+
+export type TeamChangeReq = {
+  owners?: ?Array<string>,
+  admins?: ?Array<string>,
+  writers?: ?Array<string>,
+  readers?: ?Array<string>,
+  none?: ?Array<string>,
 }
 
 export type TeamID = string
@@ -6277,6 +6367,10 @@ export type loginUnlockWithPassphraseRpcParam = Exact<{
   passphrase: string
 }>
 
+export type merkleGetCurrentMerkleRootRpcParam = Exact<{
+  freshnessMsec: int
+}>
+
 export type metadataAuthenticateRpcParam = Exact<{
   signature: string
 }>
@@ -6395,8 +6489,7 @@ export type notifyCtlSetNotificationsRpcParam = Exact<{
 export type paperprovisionPaperProvisionRpcParam = Exact<{
   username: string,
   deviceName: string,
-  paperKey: string,
-  keepPaperKey: boolean
+  paperKey: string
 }>
 
 export type pgpPgpDecryptRpcParam = Exact<{
@@ -6711,12 +6804,35 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsTeamAddMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole,
+  sendChatNotification: boolean
+}>
+
+export type teamsTeamChangeMembershipRpcParam = Exact<{
+  name: string,
+  req: TeamChangeReq
+}>
+
 export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamEditMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole
+}>
+
 export type teamsTeamGetRpcParam = Exact<{
   name: string
+}>
+
+export type teamsTeamRemoveMemberRpcParam = Exact<{
+  name: string,
+  username: string
 }>
 
 export type testPanicRpcParam = Exact<{
@@ -6903,6 +7019,7 @@ type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 type loginUiGetEmailOrUsernameResult = string
 type loginUiPromptRevokePaperKeysResult = boolean
+type merkleGetCurrentMerkleRootResult = MerkleRootAndTime
 type metadataAuthenticateResult = int
 type metadataGetChallengeResult = ChallengeInfo
 type metadataGetFolderHandleResult = bytes
@@ -7103,6 +7220,7 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
+  | merkleGetCurrentMerkleRootRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc
@@ -7173,8 +7291,12 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsTeamAddMemberRpc
+  | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
+  | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
+  | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

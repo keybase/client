@@ -16,7 +16,6 @@ func TestPerUserKeyUpgrade(t *testing.T) {
 	defer tc.Cleanup()
 
 	tc.Tp.UpgradePerUserKey = false
-	tc.Tp.SupportPerUserKey = false
 
 	fu := CreateAndSignupFakeUserPaper(tc, "pukup")
 

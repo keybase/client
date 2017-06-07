@@ -1,0 +1,21 @@
+@namespace("keybase.1")
+
+protocol merkle {
+  import idl "common.avdl";
+  import idl "upk.avdl";
+
+  record MerkleRootAndTime {
+    MerkleRootV2 root;
+    Time updateTime; // when the root was commited on the server
+    Time fetchTime;  // when it was fetched from the server
+  }
+
+  /**
+   * getCurrentMerkleRoot gets the current-most Merkle root from the keybase server.
+   * The caller can specify how stale a result can be with freshnessMsec.
+   * If 0 is specified, then any amount of staleness is OK. If -1 is specified, then
+   * we force a GET and a round-trip.
+   */
+  MerkleRootAndTime getCurrentMerkleRoot(int freshnessMsec);
+}
+

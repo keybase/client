@@ -65,13 +65,16 @@ func (c *CmdPaperProvision) Run() (err error) {
 		return err
 	}
 
+	if c.keepPaperKey {
+		c.G().Log.Warning("'--keep-paper-key' has no effect")
+	}
+
 	err = client.PaperProvision(context.TODO(),
 		keybase1.PaperProvisionArg{
-			Username:     c.username,
-			DeviceName:   c.deviceName,
-			PaperKey:     c.paperKey,
-			SessionID:    c.SessionID,
-			KeepPaperKey: c.keepPaperKey,
+			Username:   c.username,
+			DeviceName: c.deviceName,
+			PaperKey:   c.paperKey,
+			SessionID:  c.SessionID,
 		})
 
 	return

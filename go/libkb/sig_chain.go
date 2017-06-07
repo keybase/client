@@ -13,6 +13,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ChainLinks []*ChainLink
+
 //
 // As of Sigchain V2, there are 3 types of sigchain links you might
 // encounter.
@@ -41,7 +43,7 @@ type SigChain struct {
 
 	uid               keybase1.UID
 	username          NormalizedUsername
-	chainLinks        []*ChainLink
+	chainLinks        ChainLinks // the current subchain
 	idVerified        bool
 	allKeys           bool
 	loadedFromLinkOne bool
@@ -64,13 +66,26 @@ type SigChain struct {
 	// done a reset (or just created a fresh account) but not yet made any
 	// signatures, this seqno refers to a link that doesn't yet exist.
 	currentSubchainStart keybase1.Seqno
+
+	// In some cases, it is useful to load all existing subchains for this user.
+	// If so, they will be slotted into this slice.
+	prevSubchains []ChainLinks
 }
 
 func (sc SigChain) Len() int {
 	return len(sc.chainLinks)
 }
 
-func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool) (err error) {
+func (c ChainLinks) EldestSeqno() keybase1.Seqno {
+	if len(c) == 0 {
+		return keybase1.Seqno(0)
+	}
+	return c[0].GetSeqno()
+}
+
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool, mhm keybase1.HashMeta, fau keybase1.Seqno) (err error) {
+
+	sc.G().Log.Debug("SigChain#LocalDelegate(key: %s, sigID: %s, signingKid: %s, isSibkey: %v)", key.GetKID(), sigID, signingKid, isSibkey)
 
 	cki := sc.localCki
 	l := sc.GetLastLink()
@@ -90,7 +105,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau)
 	}
 
 	return
@@ -116,6 +131,18 @@ func (sc *SigChain) LocalDelegatePerUserKey(perUserKey keybase1.PerUserKey) erro
 	return err
 }
 
+func (sc *SigChain) EldestSeqno() keybase1.Seqno {
+	return sc.currentSubchainStart
+}
+
+func (c ChainLinks) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
+	ll := last(c)
+	if ll == nil {
+		return nil
+	}
+	return ll.cki
+}
+
 func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	cki = sc.localCki
 	if cki == nil {
@@ -137,39 +164,39 @@ func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
 	return
 }
 
-func reverse(links []*ChainLink) {
+func reverse(links ChainLinks) {
 	for i, j := 0, len(links)-1; i < j; i, j = i+1, j-1 {
 		links[i], links[j] = links[j], links[i]
 	}
 }
 
-func first(links []*ChainLink) (ret *ChainLink) {
+func first(links ChainLinks) (ret *ChainLink) {
 	if len(links) == 0 {
 		return nil
 	}
 	return links[0]
 }
 
-func last(links []*ChainLink) (ret *ChainLink) {
+func last(links ChainLinks) (ret *ChainLink) {
 	if len(links) == 0 {
 		return nil
 	}
 	return links[len(links)-1]
 }
 
-func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret []*ChainLink) {
+func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 	last := sc.GetLastLink()
 	if last == nil || !last.sigVerified {
-		return
+		return nil
 	}
 	start := -1
 	for i := len(sc.chainLinks) - 1; i >= 0 && sc.chainLinks[i].MatchFingerprint(fp); i-- {
 		start = i
 	}
 	if start >= 0 {
-		ret = sc.chainLinks[start:]
+		ret = ChainLinks(sc.chainLinks[start:])
 	}
-	return
+	return ret
 }
 
 func (sc *SigChain) Bump(mt MerkleTriple) {
@@ -214,7 +241,7 @@ func (sc *SigChain) LoadFromServer(ctx context.Context, t *MerkleTriple, selfUID
 
 	sc.G().Log.CDebugf(ctx, "| Got back %d new entries", lim)
 
-	var links []*ChainLink
+	var links ChainLinks
 	var tail *ChainLink
 
 	for i := 0; i < lim; i++ {
@@ -385,41 +412,49 @@ var hardcodedResets = map[keybase1.SigID]bool{
 // GetCurrentSubchain takes the given sigchain and walks backward until it
 // finds the start of the current subchain, returning all the links in the
 // subchain. See isSubchainStart for the details of the logic here.
-func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) ([]*ChainLink, error) {
+func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (ChainLinks, error) {
+	return cropToRightmostSubchain(sc.chainLinks, eldest)
+}
+
+// cropToRightmostSubchain takes the given set of chain links, and then limits the tail
+// of the chain to just those that correspond to the eldest key given by `eldest`.
+func cropToRightmostSubchain(links []*ChainLink, eldest keybase1.KID) (ChainLinks, error) {
 	// Check for a totally empty chain (that is, a totally new account).
-	if len(sc.chainLinks) == 0 {
+	if len(links) == 0 {
 		return nil, nil
 	}
 	// Confirm that the last link is not stubbed. This would prevent us from
 	// reading the eldest_kid, so the server should never do it.
-	lastLink := sc.chainLinks[len(sc.chainLinks)-1]
+	lastLink := links[len(links)-1]
 	if lastLink.IsStubbed() {
 		return nil, errors.New("the last chain link is unexpectedly stubbed in GetCurrentSunchain")
 	}
 	// Check whether the eldest KID doesn't match the latest link. That means
 	// the account has just been reset, and so as with a new account, there is
 	// no current subchain.
-	if !sc.chainLinks[len(sc.chainLinks)-1].ToEldestKID().Equal(eldest) {
+	if !lastLink.ToEldestKID().Equal(eldest) {
 		return nil, nil
 	}
 	// The usual case: The eldest kid we're looking for matches the latest
 	// link, and we need to loop backwards through every pair of links we have.
 	// If we find a subchain start, return that subslice of links.
-	for i := len(sc.chainLinks) - 1; i > 0; i-- {
-		curr := sc.chainLinks[i]
-		prev := sc.chainLinks[i-1]
+	for i := len(links) - 1; i > 0; i-- {
+		curr := links[i]
+		prev := links[i-1]
 		if isSubchainStart(curr, prev) {
-			return sc.chainLinks[i:], nil
+			return links[i:], nil
 		}
 	}
 	// If we didn't find a start anywhere in the middle of the chain, then this
 	// user has no resets, and we'll return the whole chain. Sanity check that
 	// we actually loaded everything back to seqno 1. (Anything else would be
 	// some kind of bug in chain loading.)
-	if sc.chainLinks[0].GetSeqno() != 1 {
+	if links[0].GetSeqno() != 1 {
 		return nil, errors.New("chain ended unexpectedly before seqno 1 in GetCurrentSubchain")
 	}
-	return sc.chainLinks, nil
+
+	// In this last case, we're returning the whole chain.
+	return links, nil
 }
 
 // When we're *in the middle of a subchain* (see the note below), there are
@@ -478,7 +513,7 @@ func (sc *SigChain) Dump(w io.Writer) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*ChainLink) (cached bool, cki *ComputedKeyInfos, err error) {
+func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
 	un := sc.username
 
 	sc.G().Log.CDebugf(ctx, "+ verifySubchain")
@@ -540,9 +575,11 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
-		isModifyingKeys := isDelegating || tcl.Type() == DelegationTypePGPUpdate
+		isModifyingKeys := isDelegating || tcl.Type() == string(DelegationTypePGPUpdate)
 		isFinalLink := (linkIndex == len(links)-1)
 		hasRevocations := link.HasRevocations()
+		sc.G().VDL.Log(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
+			isDelegating, isModifyingKeys, isFinalLink, hasRevocations)
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
@@ -597,22 +634,22 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links []*C
 	return cached, cki, err
 }
 
-func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, err error) {
+func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, linksConsumed int, err error) {
 
 	cached = false
-	sc.G().Log.CDebugf(ctx, "+ VerifySigsAndComputeKeys for user %s (eldest = %s)", sc.uid, eldest)
+	sc.G().Log.CDebugf(ctx, "+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
 	defer func() {
-		sc.G().Log.CDebugf(ctx, "- VerifySigsAndComputeKeys for user %s -> %s", sc.uid, ErrToOk(err))
+		sc.G().Log.CDebugf(ctx, "- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
 	if err = sc.VerifyChain(ctx); err != nil {
-		return
+		return cached, 0, err
 	}
 
 	if sc.allKeys || sc.loadedFromLinkOne {
 		if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
 			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
-			return
+			return cached, 0, err
 		}
 	}
 
@@ -634,11 +671,12 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 		sc.G().Log.CDebugf(ctx, "| VerifyWithKey short-circuit, since no Key available")
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		ckf.cki = sc.localCki
-		return
+		return cached, 0, err
 	}
-	links, err := sc.GetCurrentSubchain(eldest)
+
+	links, err := cropToRightmostSubchain(sc.chainLinks, eldest)
 	if err != nil {
-		return
+		return cached, 0, err
 	}
 
 	// Update the subchain start if we're in case 3 from above.
@@ -652,11 +690,11 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 		sc.localCki = NewComputedKeyInfos(sc.G())
 		err = sc.localCki.InsertServerEldestKey(eldestKey, sc.username)
 		ckf.cki = sc.localCki
-		return
+		return cached, 0, err
 	}
 
 	if cached, ckf.cki, err = sc.verifySubchain(ctx, *ckf.kf, links); err != nil {
-		return
+		return cached, len(links), err
 	}
 
 	// We used to check for a self-signature of one's keybase username
@@ -665,7 +703,89 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	// the id_table.  See LoadUser in user.go and
 	// https://github.com/keybase/go/issues/43
 
-	return
+	return cached, len(links), nil
+}
+
+func reverseListOfChainLinks(arr []ChainLinks) {
+	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
+		arr[i], arr[j] = arr[j], arr[i]
+	}
+}
+
+func (c ChainLinks) popNRightmostLinks(n int) ChainLinks {
+	return c[0 : len(c)-n]
+}
+
+// VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
+// multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false othewise.
+func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily, loadAllSubchains bool) (bool, error) {
+	// First consume the currently active sigchain.
+	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
+	if !loadAllSubchains || err != nil || ckf.kf == nil {
+		return cached, err
+	}
+
+	allCached := cached
+
+	// Now let's examine any historical subchains, if there are any.
+	historicalLinks := sc.chainLinks.popNRightmostLinks(numLinksConsumed)
+	if len(historicalLinks) > 0 {
+		sc.G().Log.CDebugf(ctx, "After consuming %d links, there are %d historical links left",
+			numLinksConsumed, len(historicalLinks))
+		// ignore error here, since it shouldn't kill the overall load if historical subchains don't run
+		// correctly.
+		cached, _ = sc.verifySigsAndComputeKeysHistorical(ctx, historicalLinks, *ckf.kf)
+		if !cached {
+			allCached = false
+		}
+	}
+
+	return allCached, nil
+}
+
+func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allLinks ChainLinks, kf KeyFamily) (allCached bool, err error) {
+
+	defer sc.G().CTrace(ctx, "verifySigsAndComputeKeysHistorical", func() error { return err })()
+	var cached bool
+
+	var prevSubchains []ChainLinks
+
+	for {
+		if len(allLinks) == 0 {
+			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; no futher links")
+			break
+		}
+
+		i := len(allLinks) - 1
+		eldest := allLinks[i].ToEldestKID()
+		if eldest.IsNil() {
+			sc.G().Log.CDebugf(ctx, "Ending iteration through previous subchains; saw a nil eldest (@%d)", i)
+			break
+		}
+		sc.G().Log.CDebugf(ctx, "Examining subchain that ends at %d with eldest %s", i, eldest)
+
+		var links ChainLinks
+		links, err = cropToRightmostSubchain(allLinks, eldest)
+		if err != nil {
+			sc.G().Log.CInfof(ctx, "Error backtracking all links from %d: %s", i, err)
+			break
+		}
+
+		cached, _, err = sc.verifySubchain(ctx, kf, links)
+		if err != nil {
+			sc.G().Log.CInfof(ctx, "Error verifying subchain from %d: %s", i, err)
+			break
+		}
+		if !cached {
+			allCached = false
+		}
+		prevSubchains = append(prevSubchains, links)
+		allLinks = allLinks.popNRightmostLinks(len(links))
+	}
+	reverseListOfChainLinks(prevSubchains)
+	sc.G().Log.CDebugf(ctx, "Loaded %d additional historical subchains", len(prevSubchains))
+	sc.prevSubchains = prevSubchains
+	return allCached, nil
 }
 
 func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
@@ -719,10 +839,11 @@ type SigChainLoader struct {
 	user                 *User
 	self                 bool
 	allKeys              bool
+	allSubchains         bool
 	leaf                 *MerkleUserLeaf
 	chain                *SigChain
 	chainType            *ChainType
-	links                []*ChainLink
+	links                ChainLinks
 	ckf                  ComputedKeyFamily
 	dirtyTail            *MerkleTriple
 	currentSubchainStart keybase1.Seqno
@@ -759,7 +880,7 @@ func (l *SigChainLoader) AccessPreload() bool {
 	}
 	l.G().Log.Debug("| Preload successful")
 	src := l.preload.chainLinks
-	l.links = make([]*ChainLink, len(src))
+	l.links = make(ChainLinks, len(src))
 	copy(l.links, src)
 	return true
 }
@@ -792,7 +913,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		l.G().Log.CDebugf(l.ctx, "tried to load previous link ID %s, but link not found", mt.LinkID.String())
 		return nil
 	}
-	links := []*ChainLink{currentLink}
+	links := ChainLinks{currentLink}
 
 	// Walk the links we have stored locally to load the current subchain and
 	// record the start of it. We might find out later when we check freshness
@@ -957,10 +1078,16 @@ func (l *SigChainLoader) LoadFromServer() (err error) {
 
 func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	l.G().Log.CDebugf(l.ctx, "VerifySigsAndComputeKeys(): l.leaf: %v, l.leaf.eldest: %v, l.ckf: %v", l.leaf, l.leaf.eldest, l.ckf)
-	if l.ckf.kf != nil {
-		_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf)
+	if l.ckf.kf == nil {
+		return nil
 	}
-	return
+	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf, l.allSubchains)
+	if err != nil {
+		return err
+	}
+
+	// TODO: replay older sigchains if the flag specifies to do so.
+	return nil
 }
 
 func (l *SigChainLoader) dbKey() DbKey {

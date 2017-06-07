@@ -30,7 +30,7 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector, tempSearchConversationSelector} from '../../constants/selectors'
+import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -670,12 +670,19 @@ function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, an
   yield put(Creators.startConversation(users))
 }
 
+function* _clearTemporaryPendingConvs() {
+  const tempPendingConversations = yield select((state: TypedState) => state.chat.tempPendingConversations)
+  const tempPendingConvIDs = tempPendingConversations.filter(v => v).keySeq().toArray()
+  yield put(Creators.removePendingConversations(tempPendingConvIDs))
+}
+
 function* _startConversation(action: Constants.StartConversation): SagaGenerator<any, any> {
-  const {users, forceImmediate} = action.payload
+  const {users, forceImmediate, temporary} = action.payload
   const me = yield select(usernameSelector)
 
   if (!users.includes(me)) {
-    throw new Error('Attempted to start a chat without the current user')
+    users.push(me)
+    console.warn('Attempted to start a chat without the current user')
   }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
@@ -694,7 +701,8 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield put(Creators.addPending(users))
+    yield call(_clearTemporaryPendingConvs)
+    yield put(Creators.addPending(users, temporary))
     yield put(Creators.selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
@@ -718,6 +726,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
+    yield put(Creators.selectConversation(null, false))
     return
   }
 
@@ -781,9 +790,6 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
-  // TODO remove this
-  yield put(Creators.exitSearch())
-
   // Load the inbox item always
   if (conversationIDKey) {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
@@ -794,20 +800,29 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  if (inbox) {
+    // Don't navigate into errored conversations
+    if (inbox.get('state') === 'error') {
+      return
+    }
+
+    const participants = inbox.get('participants').toArray()
+    yield put(Creators.updateMetadata(participants))
+    // Update search but don't update the filter
+    // TODO likely only do this if search is visible
+    if (inSearch) {
+      const me = yield select(usernameSelector)
+      yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
+    }
+  }
+
   if (conversationIDKey) {
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
     yield put(navigateTo([], [chatTab]))
-  }
-
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  if (inbox) {
-    const participants = inbox.get('participants').toArray()
-    yield put(Creators.updateMetadata(participants))
-    // Update search but don't update the filter
-    // TODO likely only do this if search is visible
-    yield put(Creators.setInboxSearch(participants))
   }
 
   // Do this here because it's possible loadMoreMessages bails early
@@ -981,19 +996,30 @@ function* _updateTempSearchConversation(
   action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
 ) {
   const {payload: {user}} = action
-  const me = yield select(usernameSelector)
 
-  const tempSearchConversation = yield select(tempSearchConversationSelector)
+  const inboxSearch = yield select(inboxSearchSelector)
   // TODO don't do this when users click an existing conversation
   if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = tempSearchConversation.push(user)
-    yield put(Creators.createTempSearchConversation(nextTempSearchConv))
-    yield put(Creators.startConversation(nextTempSearchConv.toArray()))
+    const nextTempSearchConv = inboxSearch.push(user)
+    yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = tempSearchConversation.filterNot(u => u === user)
-    yield put(Creators.createTempSearchConversation(nextTempSearchConv))
-    yield put(Creators.startConversation(nextTempSearchConv.toArray()))
+    const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
+    if (!nextTempSearchConv.isEmpty()) {
+      yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    } else {
+      yield put(Creators.setInboxSearch(nextTempSearchConv.toArray()))
+      yield put(Creators.selectConversation(null, false))
+    }
+
+    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   }
+}
+
+function* _exitSearch() {
+  yield put(Creators.clearSearchResults())
+  yield put(Creators.setInboxSearch([]))
+  yield put(Creators.setInboxFilter([]))
 }
 
 function* chatSaga(): SagaGenerator<any, any> {
@@ -1037,6 +1063,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
   yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
+  yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
 }
 
 export default chatSaga

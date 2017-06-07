@@ -56,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) =>
     }
   },
   onDownloadAttachment: () => {
-    dispatchProps._onDownloadAttachment(stateProps.selectedConversation, stateProps.message.messageID)
+    dispatchProps._onDownloadAttachment(stateProps.routePath.get(1), stateProps.message.messageID)
   },
   onOpenInFileUI: () => {
     dispatchProps._onOpenInFileUI(stateProps.message.savedPath)

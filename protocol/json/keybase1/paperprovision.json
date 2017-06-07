@@ -25,10 +25,6 @@
         {
           "name": "paperKey",
           "type": "string"
-        },
-        {
-          "name": "keepPaperKey",
-          "type": "boolean"
         }
       ],
       "response": null,

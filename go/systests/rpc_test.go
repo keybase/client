@@ -6,13 +6,12 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	context "golang.org/x/net/context"
+	"testing"
 )
 
 func TestRPCs(t *testing.T) {
@@ -43,6 +42,7 @@ func TestRPCs(t *testing.T) {
 	testLoadUserWithNoKeys(t, tc2.G)
 	testCheckDevicesForUser(t, tc2.G)
 	testIdentify2(t, tc2.G)
+	testMerkle(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -217,5 +217,21 @@ func testIdentify2(t *testing.T, g *libkb.GlobalContext) {
 	})
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Fatalf("Expected a not-found error, but got: %v (%T)", err, err)
+	}
+}
+
+func testMerkle(t *testing.T, g *libkb.GlobalContext) {
+
+	cli, err := client.GetMerkleClient(g)
+	if err != nil {
+		t.Fatalf("failed to get new merkle client: %v", err)
+	}
+
+	root, err := cli.GetCurrentMerkleRoot(context.TODO(), int(-1))
+	if err != nil {
+		t.Fatalf("GetCurrentMerkleRoot failed: %v\n", err)
+	}
+	if root.Root.Seqno <= keybase1.Seqno(0) {
+		t.Fatalf("Failed basic sanity check")
 	}
 }

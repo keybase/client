@@ -18,7 +18,7 @@ type DeviceKeygenArgs struct {
 	DeviceType     string
 	Lks            *libkb.LKSec
 	IsEldest       bool
-	PerUserKeyring *libkb.PerUserKeyring // optional in some cases
+	PerUserKeyring *libkb.PerUserKeyring
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -374,6 +374,12 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 	}
 	// Assuming this is a paperkey provision.
 
+	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+	if len(upak.Base.PerUserKeys) == 0 {
+		e.G().Log.CDebugf(ctx.GetNetContext(), "DeviceKeygen skipping per-user-keys, none exist")
+		return nil, nil
+	}
+
 	pukring := e.args.PerUserKeyring
 	if pukring == nil {
 		return nil, errors.New("missing PerUserKeyring")
@@ -385,6 +391,11 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 
 	paperSigKey := ctx.LoginContext.GetUnlockedPaperSigKey()
 	paperEncKeyGeneric := ctx.LoginContext.GetUnlockedPaperEncKey()
+	if paperSigKey == nil && paperEncKeyGeneric == nil {
+		// GPG provisioning is not supported when the user has per-user-keys.
+		// This is the error that manifests. See CORE-4960
+		return nil, errors.New("missing paper key in login context")
+	}
 	if paperSigKey == nil {
 		return nil, errors.New("missing paper sig key")
 	}
@@ -396,7 +407,6 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 		return nil, errors.New("Unexpected encryption key type")
 	}
 
-	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
 	paperDeviceID, err := upak.GetDeviceID(paperSigKey.GetKID())
 	if err != nil {
 		return nil, err

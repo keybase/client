@@ -27,7 +27,7 @@ type DeviceWrapArgs struct {
 	IsEldest       bool
 	Signer         libkb.GenericKey
 	EldestKID      keybase1.KID
-	PerUserKeyring *libkb.PerUserKeyring // optional in some cases
+	PerUserKeyring *libkb.PerUserKeyring
 }
 
 // NewDeviceWrap creates a DeviceWrap engine.

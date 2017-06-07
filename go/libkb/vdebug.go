@@ -17,6 +17,7 @@ type VDebugLog struct {
 	log              logger.Logger
 	lev              VDebugLevel
 	dumpSiteLoadUser bool
+	dumpPayload      bool
 }
 
 type VDebugLevel int
@@ -52,6 +53,10 @@ func (v *VDebugLog) DumpSiteLoadUser() bool {
 	return v.dumpSiteLoadUser
 }
 
+func (v *VDebugLog) DumpPayload() bool {
+	return v.dumpPayload
+}
+
 func (v *VDebugLog) Configure(s string) {
 	if len(s) == 0 {
 		return
@@ -71,6 +76,8 @@ func (v *VDebugLog) Configure(s string) {
 			v.lev = VLog3
 		case "dump-site-load-user":
 			v.dumpSiteLoadUser = true
+		case "dump-payload":
+			v.dumpPayload = true
 		default:
 			v.log.Warning("Ignoring Vdebug log directive: %q", s)
 		}
