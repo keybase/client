@@ -50,6 +50,7 @@ func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: nil}
 }
 
+// Create a team with me as the owner
 func createTeam(tc libkb.TestContext) string {
 	b, err := libkb.RandBytes(4)
 	if err != nil {
@@ -63,10 +64,13 @@ func createTeam(tc libkb.TestContext) string {
 	return name
 }
 
-func createTeamWithUsers(tc libkb.TestContext, users []*kbtest.FakeUser) string {
+// Create a team with me as the owner and writers as writers.
+// Writers must not include me.
+func createTeamWithWriters(tc libkb.TestContext, writers []*kbtest.FakeUser) string {
 	name := createTeam(tc)
-	for _, u := range users {
-		teams.SetRoleWriter(context.TODO(), tc.G, name, u.Username)
+	for _, u := range writers {
+		err := teams.SetRoleWriter(context.TODO(), tc.G, name, u.Username)
+		require.NoError(tc.T, err, "team set role")
 	}
 	return name
 }
@@ -234,21 +238,28 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	var err error
 
+	t.Logf("mustCreateConversationForTestNoAdvanceClock")
+	t.Logf("creator: %v", creator.Username)
+	for _, o := range others {
+		t.Logf("other: %v", o.Username)
+	}
+
 	// Create conversation name based on list of users
 	var name string
 	switch membersType {
 	case chat1.ConversationMembersType_KBFS:
-		var othersStr []string
+		var memberStr []string
 		for _, other := range others {
-			othersStr = append(othersStr, other.Username)
+			memberStr = append(memberStr, other.Username)
 		}
-		name = strings.Join(othersStr, ",") + "," + creator.Username
+		memberStr = append(memberStr, creator.Username)
+		name = strings.Join(memberStr, ",")
 	case chat1.ConversationMembersType_TEAM:
 		tc := ctc.world.Tcs[creator.Username]
 		users := append(others, creator)
 		key := teamKey(users)
 		if tn, ok := ctc.teamCache[key]; !ok {
-			name = createTeamWithUsers(tc.TestContext, users)
+			name = createTeamWithWriters(tc.TestContext, others)
 			ctc.teamCache[key] = name
 		} else {
 			name = tn
@@ -1368,8 +1379,7 @@ func TestGetThreadNonblock(t *testing.T) {
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
 		ctx := ctc.as(t, users[0]).startCtx
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, users[0])
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
 				ConversationID:   conv.Id,
@@ -1435,8 +1445,7 @@ func TestGetThreadNonblockError(t *testing.T) {
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, users[0])
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		for i := 0; i < numMsgs; i++ {
@@ -1489,8 +1498,7 @@ func TestGetInboxNonblockError(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, users[0])
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		for i := 0; i < numMsgs; i++ {
