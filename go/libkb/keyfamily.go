@@ -594,7 +594,7 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 		info.CTime = ctime.Unix()
 		info.ETime = etime.Unix()
 	}
-	info.Delegations[sigid] = kid
+	info.Delegations[sigid] = signingKid
 	info.Sibkey = isSibkey
 	info.DelegatedAtHashMeta = merkleHashMeta.DeepCopy()
 	info.FirstAppearedUnverified = fau
