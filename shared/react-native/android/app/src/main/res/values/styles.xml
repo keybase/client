@@ -4,6 +4,7 @@
         <!-- Customize your theme here. -->
         <item name="android:windowBackground">@color/white</item>
         <item name="android:colorBackground">@color/white</item>
+        <item name="android:navigationBarColor">#FF082640</item>
     </style>
 
     <style name="SplashTheme" parent="AppTheme">
