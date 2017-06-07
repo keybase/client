@@ -138,6 +138,11 @@ func (fl *FolderList) Create(ctx context.Context, req *fuse.CreateRequest, resp 
 	fl.fs.log.CDebugf(ctx, "FL Create")
 	tlfName := libkbfs.CanonicalTlfName(req.Name)
 	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
+	if strings.HasPrefix(req.Name, "._") {
+		// Quietly ignore writes to special macOS files, without
+		// triggering a notification.
+		return nil, nil, libkbfs.WriteUnsupportedError{}.Errno()
+	}
 	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 
@@ -146,6 +151,11 @@ func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.N
 	fl.fs.log.CDebugf(ctx, "FL Mkdir")
 	tlfName := libkbfs.CanonicalTlfName(req.Name)
 	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
+	if strings.HasPrefix(req.Name, "._") {
+		// Quietly ignore writes to special macOS files, without
+		// triggering a notification.
+		return nil, libkbfs.WriteUnsupportedError{}.Errno()
+	}
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 

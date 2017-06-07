@@ -482,6 +482,11 @@ var _ fs.NodeCreater = (*Root)(nil)
 func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
 	r.log().CDebugf(ctx, "FS Create")
 	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	if strings.HasPrefix(req.Name, "._") {
+		// Quietly ignore writes to special macOS files, without
+		// triggering a notification.
+		return nil, nil, libkbfs.WriteUnsupportedError{}.Errno()
+	}
 	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
@@ -489,6 +494,11 @@ func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.C
 func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	r.log().CDebugf(ctx, "FS Mkdir")
 	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	if strings.HasPrefix(req.Name, "._") {
+		// Quietly ignore writes to special macOS files, without
+		// triggering a notification.
+		return nil, libkbfs.WriteUnsupportedError{}.Errno()
+	}
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
 }
 
