@@ -333,22 +333,30 @@ func TestChatNewConversationLocal(t *testing.T) {
 }
 
 func TestChatNewConversationLocalDebugging(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
-	defer ctc.cleanup()
-	users := ctc.users()
+	func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
 
-	mt := chat1.ConversationMembersType_TEAM
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
 
-	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
-		ctc.as(t, users[1]).user())
+		conv := ctc.world.GetConversationByID(created.Id)
+		if len(conv.MaxMsgs) == 0 {
+			t.Fatalf("created conversation does not have a message")
+		}
 
-	conv := ctc.world.GetConversationByID(created.Id)
-	if len(conv.MaxMsgs) == 0 {
-		t.Fatalf("created conversation does not have a message")
-	}
-
-	teamName := ctc.teamCache[teamKey(ctc.users())]
-	require.Equal(t, teamName, conv.MaxMsgs[0].ClientHeader.TlfName)
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			if conv.MaxMsgs[0].ClientHeader.TlfName !=
+				string(kbtest.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+				t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
+			}
+		case chat1.ConversationMembersType_TEAM:
+			teamName := ctc.teamCache[teamKey(ctc.users())]
+			require.Equal(t, teamName, conv.MaxMsgs[0].ClientHeader.TlfName)
+		}
+	}(chat1.ConversationMembersType_TEAM)
 }
 
 func TestChatNewChatConversationLocalTwice(t *testing.T) {
