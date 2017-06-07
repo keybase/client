@@ -64,7 +64,7 @@ class Checkbox extends Component<void, Props, State> {
     }
 
     return (
-      <NativeTouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
+      <NativeTouchableWithoutFeedback onPress={onClick} delayPressIn={0}>
         <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
             <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
