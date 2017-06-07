@@ -217,6 +217,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
 
 const servicesResultsListMapCommon = {
   mockStore: {
+    config: {
+      username: 'tester',
+      following: {},
+    },
     entities: new EntitiesStateRecord({
       searchv3Chat: Map(servicesResultsListMapCommonRows),
     }),
