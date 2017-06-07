@@ -12,7 +12,7 @@ func mdForceQROne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
 	dryRun bool) error {
 	// Get the latest head, and add a QR record up to that point.
-	irmd, _, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
+	irmd, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
 	if err != nil {
 		return err
 	}

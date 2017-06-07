@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
@@ -168,20 +167,20 @@ func mdParseAndGet(ctx context.Context, config libkbfs.Config, input string) (
 }
 
 func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
-	tlfPath string) (libkbfs.ImmutableRootMetadata, keybase1.UID, error) {
+	tlfPath string) (libkbfs.ImmutableRootMetadata, error) {
 	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
 	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+		return libkbfs.ImmutableRootMetadata{}, err
 	}
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+		return libkbfs.ImmutableRootMetadata{}, err
 	}
 
 	// Make sure we're a writer before doing anything else.
 	if !handle.IsWriter(session.UID) {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""),
+		return libkbfs.ImmutableRootMetadata{},
 			libkbfs.NewWriteAccessError(
 				handle, session.Name, handle.GetCanonicalPath())
 	}
@@ -191,10 +190,10 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	_, unmergedIRMD, err := config.MDOps().GetForHandle(
 		ctx, handle, libkbfs.Unmerged)
 	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+		return libkbfs.ImmutableRootMetadata{}, err
 	}
 	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), fmt.Errorf(
+		return libkbfs.ImmutableRootMetadata{}, fmt.Errorf(
 			"%s has unmerged data; try unstaging it first",
 			tlfPath)
 	}
@@ -204,13 +203,13 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	_, irmd, err := config.MDOps().GetForHandle(
 		ctx, handle, libkbfs.Merged)
 	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+		return libkbfs.ImmutableRootMetadata{}, err
 	}
 
 	if irmd == (libkbfs.ImmutableRootMetadata{}) {
 		fmt.Printf("No TLF found for %q\n", tlfPath)
-		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), nil
+		return libkbfs.ImmutableRootMetadata{}, nil
 	}
 
-	return irmd, session.UID, nil
+	return irmd, nil
 }

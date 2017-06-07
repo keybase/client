@@ -10,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -117,4 +119,26 @@ func checkContext(ctx context.Context) error {
 	default:
 		return nil
 	}
+}
+
+func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
+	handle *TlfHandle) (keybase1.UserOrTeamID, error) {
+	if handle.Type() == tlf.SingleTeam {
+		chargedTo := handle.FirstResolvedWriter()
+		if chargedTo.AsTeamOrBust().IsSubTeam() {
+			// TODO after CORE-5445: ask the service for the root team
+			// ID for this subteam, since that's what should be
+			// charged.
+			panic(fmt.Sprintf("Trying to charge blocks to subteam %v in TLF %s",
+				chargedTo, handle.GetCanonicalName()))
+		}
+		return chargedTo, nil
+	}
+
+	// For private and public folders, use the session user.
+	session, err := sessionGetter.GetCurrentSession(ctx)
+	if err != nil {
+		return keybase1.UserOrTeamID(""), err
+	}
+	return session.UID.AsUserOrTeam(), nil
 }

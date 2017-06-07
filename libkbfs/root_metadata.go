@@ -467,7 +467,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 
 	// uid, crypto and bsplitter aren't used for simply getting the
 	// indirect pointers, so set them to nil.
-	var uid keybase1.UID
+	var id keybase1.UserOrTeamID
 	file := path{
 		FolderBranch{md.TlfID(), MasterBranch},
 		[]pathNode{{
@@ -475,7 +475,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 			fmt.Sprintf("<MD with revision %d>", md.Revision()),
 		}},
 	}
-	fd := newFileData(file, uid, nil, nil, md.ReadOnly(),
+	fd := newFileData(file, id, nil, nil, md.ReadOnly(),
 		func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
 			_ path, _ blockReqType) (*FileBlock, bool, error) {
 			fblock, ok := fileBlocks[ptr]

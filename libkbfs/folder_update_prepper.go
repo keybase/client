@@ -43,12 +43,12 @@ func (fup *folderUpdatePrepper) nowUnixNano() int64 {
 }
 
 func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
-	kmd KeyMetadata, currBlock Block, uid keybase1.UID,
+	kmd KeyMetadata, currBlock Block, chargedTo keybase1.UserOrTeamID,
 	bps *blockPutState, bType keybase1.BlockType) (
 	info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
 		ReadyBlock(ctx, fup.config.BlockCache(), fup.config.BlockOps(),
-			fup.config.cryptoPure(), kmd, currBlock, uid, bType)
+			fup.config.cryptoPure(), kmd, currBlock, chargedTo, bType)
 	if err != nil {
 		return
 	}
@@ -59,7 +59,7 @@ func (fup *folderUpdatePrepper) readyBlockMultiple(ctx context.Context,
 
 func (fup *folderUpdatePrepper) unembedBlockChanges(
 	ctx context.Context, bps *blockPutState, md *RootMetadata,
-	changes *BlockChanges, uid keybase1.UID) error {
+	changes *BlockChanges, chargedTo keybase1.UserOrTeamID) error {
 	buf, err := fup.config.Codec().Encode(changes)
 	if err != nil {
 		return err
@@ -68,17 +68,17 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	// Treat the block change list as a file so we can reuse all the
 	// indirection code in fileData.
 	block := NewFileBlock().(*FileBlock)
-	bid, err := fup.config.cryptoPure().MakeTemporaryBlockID()
+	id, err := fup.config.cryptoPure().MakeTemporaryBlockID()
 	if err != nil {
 		return err
 	}
 	ptr := BlockPointer{
-		ID:         bid,
+		ID:         id,
 		KeyGen:     md.LatestKeyGeneration(),
 		DataVer:    fup.config.DataVersion(),
 		DirectType: DirectBlock,
 		Context: kbfsblock.MakeFirstContext(
-			uid.AsUserOrTeam(), keybase1.BlockType_MD),
+			chargedTo, keybase1.BlockType_MD),
 	}
 	file := path{fup.folderBranch,
 		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
@@ -109,7 +109,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	}
 
 	df := newDirtyFile(file, dirtyBcache)
-	fd := newFileData(file, uid, fup.config.cryptoPure(),
+	fd := newFileData(file, chargedTo, fup.config.cryptoPure(),
 		fup.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fup.log)
 
 	// Write all the data.
@@ -142,7 +142,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 
 	// Ready the top block.
 	info, _, err := fup.readyBlockMultiple(
-		ctx, md.ReadOnly(), block, uid, bps, keybase1.BlockType_MD)
+		ctx, md.ReadOnly(), block, chargedTo, bps, keybase1.BlockType_MD)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 //
 // TODO: deal with multiple nodes for indirect blocks
 func (fup *folderUpdatePrepper) prepUpdateForPath(
-	ctx context.Context, lState *lockState, uid keybase1.UID,
+	ctx context.Context, lState *lockState, chargedTo keybase1.UserOrTeamID,
 	md *RootMetadata, newBlock Block, dir path, name string,
 	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
 	lbc localBcache) (path, DirEntry, *blockPutState, error) {
@@ -194,7 +194,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	now := fup.nowUnixNano()
 	for len(newPath.path) < len(dir.path)+1 {
 		info, plainSize, err := fup.readyBlockMultiple(
-			ctx, md.ReadOnly(), currBlock, uid, bps, keybase1.BlockType_DATA)
+			ctx, md.ReadOnly(), currBlock, chargedTo, bps, keybase1.BlockType_DATA)
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
@@ -356,9 +356,9 @@ const (
 // prepTree returns the merged blockPutState for itself and all of its
 // children.
 func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
-	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
-	node *pathTreeNode, stopAt BlockPointer, lbc localBcache,
-	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
+	unmergedChains *crChains, newMD *RootMetadata,
+	chargedTo keybase1.UserOrTeamID, node *pathTreeNode, stopAt BlockPointer,
+	lbc localBcache, newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache,
 	copyBehavior prepFolderCopyBehavior) (
 	*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
@@ -443,7 +443,7 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		// Assume the mtime/ctime are already fixed up in the blocks
 		// in the lbc.
 		_, _, bps, err := fup.prepUpdateForPath(
-			ctx, lState, uid, newMD, block,
+			ctx, lState, chargedTo, newMD, block,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
 			entryType, false, false, stopAt, lbc)
 		if err != nil {
@@ -468,7 +468,7 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 			localStopAt = stopAt
 		}
 		childBps, err := fup.prepTree(
-			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
+			ctx, lState, unmergedChains, newMD, chargedTo, child, localStopAt, lbc,
 			newFileBlocks, dirtyBcache, copyBehavior)
 		if err != nil {
 			return nil, err
@@ -963,7 +963,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 	blocksToDelete []kbfsblock.ID, err error) {
 	updates = make(map[BlockPointer]BlockPointer)
 
-	session, err := fup.config.KBPKI().GetCurrentSession(ctx)
+	chargedTo, err := chargedToForTLF(
+		ctx, fup.config.KBPKI(), md.GetTlfHandle())
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -998,7 +999,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 
 		if root != nil {
 			bps, err = fup.prepTree(ctx, lState, unmergedChains,
-				md, session.UID, root, BlockPointer{}, lbc, newFileBlocks,
+				md, chargedTo, root, BlockPointer{}, lbc, newFileBlocks,
 				dirtyBcache, copyBehavior)
 			if err != nil {
 				return nil, nil, nil, err
@@ -1270,8 +1271,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			md.data.Changes.Ops = append(md.data.Changes.Ops, newResolutionOp())
 		}
 
-		err = fup.unembedBlockChanges(ctx, bps, md,
-			&md.data.Changes, session.UID)
+		err = fup.unembedBlockChanges(
+			ctx, bps, md, &md.data.Changes, chargedTo)
 		if err != nil {
 			return nil, nil, nil, err
 		}

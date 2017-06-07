@@ -30,28 +30,28 @@ type dirtyBlockCacher func(ptr BlockPointer, block Block) error
 // within a file.  It's meant for use within a single scope, not for
 // long-term storage.  The caller must ensure goroutine-safety.
 type fileData struct {
-	file   path
-	uid    keybase1.UID
-	crypto cryptoPure
-	kmd    KeyMetadata
-	bsplit BlockSplitter
-	getter fileBlockGetter
-	cacher dirtyBlockCacher
-	log    logger.Logger
+	file      path
+	chargedTo keybase1.UserOrTeamID
+	crypto    cryptoPure
+	kmd       KeyMetadata
+	bsplit    BlockSplitter
+	getter    fileBlockGetter
+	cacher    dirtyBlockCacher
+	log       logger.Logger
 }
 
-func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
+func newFileData(file path, chargedTo keybase1.UserOrTeamID, crypto cryptoPure,
 	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
 	cacher dirtyBlockCacher, log logger.Logger) *fileData {
 	return &fileData{
-		file:   file,
-		uid:    uid,
-		crypto: crypto,
-		bsplit: bsplit,
-		kmd:    kmd,
-		getter: getter,
-		cacher: cacher,
-		log:    log,
+		file:      file,
+		chargedTo: chargedTo,
+		crypto:    crypto,
+		bsplit:    bsplit,
+		kmd:       kmd,
+		getter:    getter,
+		cacher:    cacher,
+		log:       log,
 	}
 }
 
@@ -698,8 +698,7 @@ func (fd *fileData) createIndirectBlock(
 						KeyGen:  fd.kmd.LatestKeyGeneration(),
 						DataVer: dver,
 						Context: kbfsblock.MakeFirstContext(
-							fd.uid.AsUserOrTeam(),
-							fd.rootBlockPointer().GetBlockType()),
+							fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
 						DirectType: fd.rootBlockPointer().DirectType,
 					},
 					EncodedSize: 0,
@@ -803,7 +802,7 @@ func (fd *fileData) newRightBlock(
 			KeyGen:  fd.kmd.LatestKeyGeneration(),
 			DataVer: dver,
 			Context: kbfsblock.MakeFirstContext(
-				fd.uid.AsUserOrTeam(), fd.rootBlockPointer().GetBlockType()),
+				fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
 			DirectType: IndirectBlock,
 		}
 
@@ -1663,7 +1662,7 @@ func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
 			}
 
 			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.uid,
+				ctx, bcache, bops, fd.crypto, fd.kmd, pb.pblock, fd.chargedTo,
 				fd.rootBlockPointer().GetBlockType())
 			if err != nil {
 				return nil, err
@@ -1866,7 +1865,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		if err != nil {
 			return zeroPtr, nil, err
 		}
-		newTopPtr.SetWriter(fd.uid.AsUserOrTeam())
+		newTopPtr.SetWriter(fd.chargedTo)
 
 		if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
 			return zeroPtr, nil, err
@@ -1919,7 +1918,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 					if err != nil {
 						return zeroPtr, nil, err
 					}
-					iptr.SetWriter(fd.uid.AsUserOrTeam())
+					iptr.SetWriter(fd.chargedTo)
 					pblock.IPtrs[i] = iptr
 					allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
 				} else {
@@ -1938,7 +1937,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 						KeyGen:  fd.kmd.LatestKeyGeneration(),
 						DataVer: dataVer,
 						Context: kbfsblock.MakeFirstContext(
-							fd.uid.AsUserOrTeam(),
+							fd.chargedTo,
 							fd.rootBlockPointer().GetBlockType()),
 						DirectType: IndirectBlock,
 					}
@@ -1969,7 +1968,7 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 		KeyGen:  fd.kmd.LatestKeyGeneration(),
 		DataVer: dataVer,
 		Context: kbfsblock.MakeFirstContext(
-			fd.uid.AsUserOrTeam(), fd.rootBlockPointer().GetBlockType()),
+			fd.chargedTo, fd.rootBlockPointer().GetBlockType()),
 		DirectType: IndirectBlock,
 	}
 	fd.log.CDebugf(ctx, "Deep copied indirect file %s: %v -> %v",

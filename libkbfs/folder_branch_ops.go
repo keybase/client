@@ -1324,14 +1324,15 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 		return nil, nil
 	}
 
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	chargedTo, err := chargedToForTLF(
+		ctx, fbo.config.KBPKI(), md.GetTlfHandle())
 	if err != nil {
 		return nil, err
 	}
 
 	bps := newBlockPutState(1)
 	err = fbo.prepper.unembedBlockChanges(
-		ctx, bps, md, &md.data.Changes, session.UID)
+		ctx, bps, md, &md.data.Changes, chargedTo)
 	if err != nil {
 		return nil, err
 	}
@@ -1358,12 +1359,16 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 // ResetRootBlock creates a new empty dir block and sets the given
 // metadata's root block to it.
 func ResetRootBlock(ctx context.Context, config Config,
-	currentUID keybase1.UID, rmd *RootMetadata) (
-	Block, BlockInfo, ReadyBlockData, error) {
+	rmd *RootMetadata) (Block, BlockInfo, ReadyBlockData, error) {
 	newDblock := NewDirBlock()
+	chargedTo, err := chargedToForTLF(ctx, config.KBPKI(), rmd.GetTlfHandle())
+	if err != nil {
+		return nil, BlockInfo{}, ReadyBlockData{}, err
+	}
+
 	info, plainSize, readyBlockData, err :=
 		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
-			config.Crypto(), rmd.ReadOnly(), newDblock, currentUID,
+			config.Crypto(), rmd.ReadOnly(), newDblock, chargedTo,
 			keybase1.BlockType_DATA)
 	if err != nil {
 		return nil, BlockInfo{}, ReadyBlockData{}, err
@@ -1461,8 +1466,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	// create a dblock since one doesn't exist yet
-	newDblock, info, readyBlockData, err :=
-		ResetRootBlock(ctx, fbo.config, session.UID, md)
+	newDblock, info, readyBlockData, err := ResetRootBlock(ctx, fbo.config, md)
 	if err != nil {
 		return err
 	}
@@ -2596,7 +2600,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+
+	chargedTo, err := chargedToForTLF(
+		ctx, fbo.config.KBPKI(), md.GetTlfHandle())
 	if err != nil {
 		return nil, DirEntry{}, err
 	}
@@ -2607,7 +2613,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		DataVer:    fbo.config.DataVersion(),
 		DirectType: DirectBlock,
 		Context: kbfsblock.MakeFirstContext(
-			session.UID.AsUserOrTeam(), keybase1.BlockType_DATA),
+			chargedTo, keybase1.BlockType_DATA),
 	}
 	co.AddRefBlock(newPtr)
 	co.AddSelfUpdate(parentPtr)
@@ -3751,11 +3757,6 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 			fbo.blocks.ClearCacheInfo(lState, file)
 	}
 
-	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-	if err != nil {
-		return false, true, nil, nil, nil, fileSyncState{}, nil, err
-	}
-
 	if file.isValidForNotification() {
 		// notify the daemon that a write is being performed
 		fbo.config.Reporter().Notify(ctx, writeNotification(file, false))
@@ -3763,7 +3764,7 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	}
 
 	fblock, bps, lbc, syncState, err =
-		fbo.blocks.StartSync(ctx, lState, md, session.UID, file)
+		fbo.blocks.StartSync(ctx, lState, md, file)
 	cleanup = func(ctx context.Context, lState *lockState,
 		blocksToRemove []BlockPointer, err error) {
 		fbo.blocks.CleanupSyncState(

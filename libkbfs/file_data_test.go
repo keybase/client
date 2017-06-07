@@ -29,7 +29,7 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	}
 	id := tlf.FakeID(1, tlf.Private)
 	file := path{FolderBranch{Tlf: id}, []pathNode{{ptr, "file"}}}
-	uid := keybase1.MakeTestUID(1)
+	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
 	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
 	bsplit := &BlockSplitterSimple{maxBlockSize, maxPtrsPerBlock, 10}
 	kmd := emptyKeyMetadata{id, 1}
@@ -60,7 +60,8 @@ func setupFileDataTest(t *testing.T, maxBlockSize int64,
 	}
 
 	fd := newFileData(
-		file, uid, crypto, bsplit, kmd, getter, cacher, logger.NewTestLogger(t))
+		file, chargedTo, crypto, bsplit, kmd, getter, cacher,
+		logger.NewTestLogger(t))
 	df := newDirtyFile(file, dirtyBcache)
 	return fd, cleanCache, dirtyBcache, df
 }

@@ -14,7 +14,7 @@ import (
 func mdResetOne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
 	checkValid, dryRun, force bool) error {
-	irmd, uid, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
+	irmd, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func mdResetOne(
 	// TODO: Add an option to scan for and use the last known good
 	// root block.
 	_, info, readyBlockData, err :=
-		libkbfs.ResetRootBlock(ctx, config, uid, rmdNext)
+		libkbfs.ResetRootBlock(ctx, config, rmdNext)
 	if err != nil {
 		return err
 	}
