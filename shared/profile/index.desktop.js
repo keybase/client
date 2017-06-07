@@ -33,6 +33,8 @@ import type {Props} from './index'
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
+export const BACK_ZINDEX = 12
+export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
   foldersExpanded: boolean,
@@ -266,7 +268,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           {this.props.onBack &&
             <BackButton
               onClick={this.props.onBack}
-              style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
+              style={{position: 'absolute', left: 14, top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
               iconStyle={{color: globalColors.white}}
             />}
@@ -473,7 +475,7 @@ const styleSearchContainer = {
   minWidth: 273,
   position: 'absolute',
   top: 12,
-  zIndex: 13,
+  zIndex: SEARCH_CONTAINER_ZINDEX,
 }
 
 const styleSearch = {

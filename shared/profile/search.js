@@ -15,12 +15,10 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {TypedState} from '../constants/reducer'
 
-type OwnProps = {}
-
-const mapStateToProps = ({chat: {searchResults}}: TypedState, {sidePanelOpen}: OwnProps) => ({
+type OwnProps = {navigateUp: () => void}
+const mapStateToProps = ({chat: {searchResults}}: TypedState) => ({
   ids: searchResults.toArray(),
 })
-
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
   _search: debounce(
     (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
@@ -36,7 +34,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: Own
 })
 
 const Search = props => {
-  console.warn('in search render')
   return (
     <Box style={styleSearchContainer}>
       <Box style={{...styleSearchRow}}>
