@@ -45,6 +45,22 @@ const BOOL isDebug = NO;
   return success;
 }
 
+- (void) setDirectoryAttributesRecursively:(NSString*) path attributes:(NSDictionary*)attributes
+{
+  NSFileManager* fm = [NSFileManager defaultManager];
+  NSArray *subPaths = [fm subpathsAtPath:path];
+  [fm setAttributes:attributes ofItemAtPath:path error:nil];
+  for (NSString *aPath in subPaths) {
+    BOOL isDirectory;
+    [fm fileExistsAtPath:aPath isDirectory:&isDirectory];
+    if (isDirectory) {
+      [self setDirectoryAttributesRecursively:aPath attributes:attributes];
+    } else {
+      [fm setAttributes:attributes ofItemAtPath:aPath error:nil];
+    }
+  }
+}
+
 - (void) createBackgroundReadableDirectory:(NSString*) path
 {
   NSFileManager* fm = [NSFileManager defaultManager];
@@ -55,7 +71,7 @@ const BOOL isDebug = NO;
   [fm createDirectoryAtPath:path withIntermediateDirectories:YES
                  attributes:noProt
                       error:nil];
-  [fm setAttributes:noProt ofItemAtPath:path error:nil];
+  [self setDirectoryAttributesRecursively:path attributes:noProt];
 }
 
 - (void) setupGo
