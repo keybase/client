@@ -380,7 +380,7 @@ def testGo(prefix) {
                 shell "go test -c -o test.test"
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
-                    def testName = dirPath.replaceAll(slash, '_')
+                    def testName = dirPath.replaceAll('/', '_')
                     tests[prefix + testName] = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
