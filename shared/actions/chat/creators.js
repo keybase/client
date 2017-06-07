@@ -85,6 +85,42 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
+const attachmentLoadedTransformer = ({
+  type,
+  payload: {conversationIDKey, messageID, isPreview},
+}: Constants.AttachmentLoaded) => ({
+  payload: {
+    conversationIDKey,
+    messageID,
+    isPreview,
+  },
+  type,
+})
+
+const downloadProgressTransformer = ({
+  type,
+  payload: {conversationIDKey, messageID, isPreview, bytesComplete},
+}: Constants.DownloadProgress) => ({
+  payload: {
+    conversationIDKey,
+    messageID,
+    isPreview,
+    progress: bytesComplete === 0 ? 'zero' : bytesComplete === 1 ? 'one' : 'partial',
+  },
+  type,
+})
+
+const loadAttachmentPreviewTransformer = ({
+  type,
+  payload: {message: {conversationIDKey, messageID}},
+}: Constants.LoadAttachmentPreview) => ({
+  payload: {
+    conversationIDKey,
+    messageID,
+  },
+  type,
+})
+
 function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
   return {
     logTransformer: loadedInboxActionTransformer,
@@ -371,7 +407,11 @@ function loadAttachment(
 }
 
 function loadAttachmentPreview(message: Constants.AttachmentMessage): Constants.LoadAttachmentPreview {
-  return {payload: {message}, type: 'chat:loadAttachmentPreview'}
+  return {
+    logTransformer: loadAttachmentPreviewTransformer,
+    payload: {message},
+    type: 'chat:loadAttachmentPreview',
+  }
 }
 
 function saveAttachment(
@@ -387,7 +427,11 @@ function attachmentLoaded(
   path: ?string,
   isPreview: boolean
 ): Constants.AttachmentLoaded {
-  return {payload: {conversationIDKey, isPreview, messageID, path}, type: 'chat:attachmentLoaded'}
+  return {
+    logTransformer: attachmentLoadedTransformer,
+    payload: {conversationIDKey, isPreview, messageID, path},
+    type: 'chat:attachmentLoaded',
+  }
 }
 
 function attachmentSaved(
@@ -406,6 +450,7 @@ function downloadProgress(
   bytesTotal?: number
 ): Constants.DownloadProgress {
   return {
+    logTransformer: downloadProgressTransformer,
     payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID},
     type: 'chat:downloadProgress',
   }
