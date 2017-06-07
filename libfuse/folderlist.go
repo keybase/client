@@ -151,11 +151,6 @@ func (fl *FolderList) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.N
 	fl.fs.log.CDebugf(ctx, "FL Mkdir")
 	tlfName := libkbfs.CanonicalTlfName(req.Name)
 	defer func() { fl.reportErr(ctx, libkbfs.WriteMode, tlfName, err) }()
-	if strings.HasPrefix(req.Name, "._") {
-		// Quietly ignore writes to special macOS files, without
-		// triggering a notification.
-		return nil, libkbfs.WriteUnsupportedError{}.Errno()
-	}
 	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(fl.PathType(), string(tlfName)))
 }
 
