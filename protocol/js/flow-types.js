@@ -4512,6 +4512,8 @@ export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
 
+export type HashMeta = bytes
+
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
@@ -4740,7 +4742,7 @@ export type MerkleRootAndTime = {
 
 export type MerkleRootV2 = {
   seqno: Seqno,
-  hashMeta: bytes,
+  hashMeta: HashMeta,
 }
 
 export type MerkleTreeID =

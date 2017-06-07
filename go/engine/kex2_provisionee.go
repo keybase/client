@@ -425,7 +425,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	s := libkb.DeviceStatusActive
 	e.device.Status = &s
 	e.device.Kid = e.eddsa.GetKID()
-	dw, err := e.device.Export(libkb.DelegationTypeSibkey)
+	dw, err := e.device.Export(libkb.LinkType(libkb.DelegationTypeSibkey))
 	if err != nil {
 		return err
 	}
