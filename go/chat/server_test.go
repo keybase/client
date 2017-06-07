@@ -332,6 +332,25 @@ func TestChatNewConversationLocal(t *testing.T) {
 	})
 }
 
+func TestChatNewConversationLocalDebugging(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	mt := chat1.ConversationMembersType_TEAM
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+		ctc.as(t, users[1]).user())
+
+	conv := ctc.world.GetConversationByID(created.Id)
+	if len(conv.MaxMsgs) == 0 {
+		t.Fatalf("created conversation does not have a message")
+	}
+
+	teamName := ctc.teamCache[teamKey(ctc.users())]
+	require.Equal(t, teamName, conv.MaxMsgs[0].ClientHeader.TlfName)
+}
+
 func TestChatNewChatConversationLocalTwice(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
