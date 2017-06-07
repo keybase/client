@@ -15,12 +15,12 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {TypedState} from '../constants/reducer'
 
 type OwnProps = {navigateUp: () => void}
-const mapStateToProps = ({chat: {searchResults}}: TypedState) => ({
+const mapStateToProps = ({profile: {searchResults}}: TypedState) => ({
   ids: searchResults.toArray(),
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: OwnProps) => ({
   _search: debounce(
-    (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
+    (term: string, service) => dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service)),
     1e3
   ),
   _onClick: username => {
