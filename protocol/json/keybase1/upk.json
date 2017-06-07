@@ -18,6 +18,12 @@
     },
     {
       "type": "record",
+      "name": "HashMeta",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "MerkleRootV2",
       "fields": [
         {
@@ -25,7 +31,7 @@
           "name": "seqno"
         },
         {
-          "type": "bytes",
+          "type": "HashMeta",
           "name": "hashMeta"
         }
       ]
