@@ -4,7 +4,6 @@ import {onUserClick} from '../actions/profile'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/searchv3/creators'
 import {debounce} from 'lodash'
-import {navigateUp} from '../actions/route-tree'
 import SearchHeader from '../chat/search-header'
 import ServiceFilter from '../searchv3/services-filter'
 import ResultsList from '../searchv3/results-list'
@@ -19,7 +18,7 @@ type OwnProps = {navigateUp: () => void}
 const mapStateToProps = ({chat: {searchResults}}: TypedState) => ({
   ids: searchResults.toArray(),
 })
-const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: OwnProps) => ({
   _search: debounce(
     (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
     1e3
