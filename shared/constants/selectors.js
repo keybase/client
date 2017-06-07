@@ -14,4 +14,13 @@ const searchResult = ({entities: {searchResults}}: TypedState, searchResultId: S
 
 const tempSearchConversationSelector = ({chat: {tempSearchConversation}}: TypedState) =>
   tempSearchConversation
-export {cachedSearchResults, usernameSelector, loggedInSelector, tempSearchConversationSelector}
+
+const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
+
+export {
+  cachedSearchResults,
+  inboxSearchSelector,
+  loggedInSelector,
+  tempSearchConversationSelector,
+  usernameSelector,
+}

@@ -537,13 +537,22 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       )
     }
     case 'chat:addPendingConversation': {
-      const {participants} = action.payload
+      const {participants, temporary} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
-      return state.set(
-        'pendingConversations',
-        state.get('pendingConversations').set(conversationIDKey, List(sorted))
-      )
+      return state
+        .set('pendingConversations', state.get('pendingConversations').set(conversationIDKey, List(sorted)))
+        .update('tempPendingConversations', tempPendingConversation =>
+          tempPendingConversation.set(conversationIDKey, temporary)
+        )
+    }
+    case 'chat:removePendingConversations': {
+      const {conversationIDKeys} = action.payload
+      return state
+        .set('pendingConversations', state.get('pendingConversations').deleteAll(conversationIDKeys))
+        .update('tempPendingConversations', tempPendingConversation =>
+          tempPendingConversation.deleteAll(conversationIDKeys)
+        )
     }
     case 'chat:pendingToRealConversation': {
       const {oldKey} = action.payload

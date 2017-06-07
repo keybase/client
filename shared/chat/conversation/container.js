@@ -1,8 +1,11 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as Creators from '../../actions/chat/creators'
+import * as SearchCreators from '../../actions/searchv3/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
+import {debounce} from 'lodash'
 import Search from '../search'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
@@ -57,6 +60,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     }
   }
 
+  const searchResults = state.chat.searchResults
+
   return {
     finalizeInfo,
     rekeyInfo,
@@ -66,6 +71,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersedes,
     threadLoadedOffline,
     inSearch: state.chat.inSearch,
+    searchResultIds: searchResults ? searchResults.toArray() : [],
+    showSearchResults: !!searchResults,
   }
 }
 
@@ -79,6 +86,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
   },
   _hideKeyboard: () => dispatch(hideKeyboard()),
   onBack: () => dispatch(navigateUp()),
+  _search: debounce(
+    (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
+    1e3
+  ),
+  _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
+  _onClickSearchResult: id => {
+    dispatch(Creators.stageUserForSearch(id))
+    dispatch(Creators.clearSearchResults(id))
+  },
+  onShowTrackerInSearch: () => {},
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
@@ -96,16 +113,17 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
   branch(
-    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected,
+    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
   ),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   // TODO this will be different since we still need the conversation content
-  branch((props: Props) => props.inSearch, renderComponent(Search)),
+  // branch((props: Props) => props.inSearch, renderComponent(Search)),
   withState('sidePanelOpen', 'setSidePanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
+  withState('searchText', 'onChangeSearchText', ''),
   withHandlers({
     onCloseSidePanel: props => () => props.setSidePanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
@@ -114,6 +132,18 @@ export default compose(
     onToggleSidePanel: props => () => {
       !props.sidePanelOpen && props._hideKeyboard()
       props.setSidePanelOpen(!props.sidePanelOpen)
+    },
+    search: props => (term, service) => {
+      if (term) {
+        props._search(term, service)
+      } else {
+        props._clearSearchResults()
+      }
+    },
+    onClickSearchResult: props => id => {
+      props.onChangeSearchText('')
+      props._onClickSearchResult(id)
+      props._clearSearchResults()
     },
   }),
   lifecycle({

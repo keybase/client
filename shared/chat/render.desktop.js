@@ -8,7 +8,6 @@ const Render = ({children}: {children: any}) => (
   <div style={style}>
     <Inbox />
     {children}
-    <DummySearchV3 />
   </div>
 )
 

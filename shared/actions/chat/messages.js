@@ -7,7 +7,7 @@ import HiddenString from '../../util/hidden-string'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
-import {usernameSelector} from '../../constants/selectors'
+import {usernameSelector, tempSearchConversationSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -70,6 +70,8 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
 function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
+
+  yield put(Creators.exitSearch())
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey

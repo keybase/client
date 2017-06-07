@@ -7,6 +7,7 @@ import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'
+import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
 
@@ -57,17 +58,6 @@ function _serviceToApiServiceName(service: Service): string {
   )
 }
 
-function serviceNameToService(serviceName: string): Constants.Service {
-  return {
-    keybase: 'Keybase',
-    twitter: 'Twitter',
-    github: 'GitHub',
-    reddit: 'Reddit',
-    hackernews: 'Hacker News',
-    facebook: 'Facebook',
-  }[serviceName]
-}
-
 function _rawResultToId(serviceName: string, serviceUsername: string): Constants.SearchResultId {
   if (serviceName.toLowerCase() === 'keybase' || serviceName === '') {
     return serviceUsername
@@ -89,8 +79,8 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
       leftService: 'Keybase',
 
       rightFullname: keybase.full_name,
-      rightIcon: Constants.platformToIcon(serviceNameToSearchPlatform(service.service_name)),
-      rightService: serviceNameToService(service.service_name),
+      rightIcon: serviceIdToIcon(service.service_name),
+      rightService: Constants.serviceIdToService(service.service_name),
       rightUsername: service.username,
     }
   }
@@ -118,9 +108,9 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     const {service, keybase} = result
     return {
       id: _rawResultToId(service.service_name, service.username),
-      leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
+      leftIcon: serviceIdToLogo24(service.service_name),
       leftUsername: service.username,
-      leftService: serviceNameToService(service.service_name),
+      leftService: Constants.serviceIdToService(service.service_name),
 
       rightFullname: keybase.full_name,
       rightIcon: null,
@@ -135,7 +125,7 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
       id: _rawResultToId(service.service_name, service.username),
       leftIcon: Constants.platformToLogo24(serviceNameToSearchPlatform(service.service_name)),
       leftUsername: service.username,
-      leftService: serviceNameToService(service.service_name),
+      leftService: Constants.serviceIdToService(service.service_name),
 
       rightFullname: service.full_name,
       rightIcon: null,

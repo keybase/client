@@ -26,7 +26,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: Own
     (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
     1e3
   ),
-  _onClick: id => dispatch(Creators.stageUserForSearch(id)),
+  _onClick: id => {
+    dispatch(Creators.stageUserForSearch(id))
+    dispatch(Creators.clearSearchResults())
+  },
   _clearSearchResults: id => dispatch(Creators.clearSearchResults()),
   onShowTracker: id => console.log('show tracker of', id),
 })

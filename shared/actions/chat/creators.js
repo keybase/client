@@ -157,9 +157,10 @@ function openTlfInChat(tlf: string): Constants.OpenTlfInChat {
 
 function startConversation(
   users: Array<string>,
-  forceImmediate?: boolean = false
+  forceImmediate?: boolean = false,
+  temporary?: boolean = false
 ): Constants.StartConversation {
-  return {payload: {forceImmediate, users: uniq(users)}, type: 'chat:startConversation'}
+  return {payload: {forceImmediate, users: uniq(users), temporary}, type: 'chat:startConversation'}
 }
 
 function newChat(existingParticipants: Array<string>): Constants.NewChat {
@@ -231,8 +232,17 @@ function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
   return {payload: {message}, type: 'chat:deleteMessage'}
 }
 
-function addPending(participants: Array<string>): Constants.AddPendingConversation {
-  return {payload: {participants}, type: 'chat:addPendingConversation'}
+function addPending(
+  participants: Array<string>,
+  temporary: boolean = false
+): Constants.AddPendingConversation {
+  return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
+}
+
+function removePendingConversations(
+  convIDs: Array<Constants.ConversationIDKey>
+): Constants.RemovePendingConversations {
+  return {payload: {conversationIDKeys: convIDs}, type: 'chat:removePendingConversations'}
 }
 
 function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
@@ -647,6 +657,7 @@ export {
   showEditor,
   stageUserForSearch,
   startConversation,
+  removePendingConversations,
   threadLoadedOffline,
   unstageUserForSearch,
   untrustedInboxVisible,

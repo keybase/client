@@ -354,10 +354,11 @@ export const StateRecord = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
-  searchResults: List(),
+  searchResults: null,
   selectedUsersInSearch: List(),
   inSearch: false,
   tempSearchConversation: List(),
+  tempPendingConversations: Map(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -378,11 +379,12 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  tempPendingConversations: Map<ConversationIDKey, boolean>,
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
-  searchResults: List<SearchConstants.SearchResultId>,
+  searchResults: ?List<SearchConstants.SearchResultId>,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
   tempSearchConversation: Participants,
@@ -394,11 +396,18 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
+export const blankChat = 'chat:blankChat'
 
 export type AddPendingConversation = NoErrorTypedAction<
   'chat:addPendingConversation',
-  {participants: Array<string>}
+  {participants: Array<string>, temporary: boolean}
 >
+
+export type RemovePendingConversations = NoErrorTypedAction<
+  'chat:removePendingConversations',
+  {conversationIDKeys: Array<ConversationIDKey>}
+>
+
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
   {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
@@ -521,7 +530,7 @@ export type StageUserForSearch = NoErrorTypedAction<
 >
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
-  {users: Array<string>, forceImmediate: boolean}
+  {users: Array<string>, forceImmediate: boolean, temporary: boolean}
 >
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',

@@ -37,6 +37,42 @@ class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
   }
 }
 
+class NewConversation extends PureComponent<void, {onNewChat: () => void}, void> {
+  render() {
+    return (
+      <div
+        style={{
+          ...globalStyles.flexBoxRow,
+          backgroundColor: globalColors.white,
+          alignItems: 'center',
+          flexShrink: 0,
+          minHeight: 48,
+        }}
+      >
+        <div
+          style={{
+            ...globalStyles.flexBoxRow,
+            ...globalStyles.clickable,
+            alignItems: 'center',
+          }}
+        >
+          <Icon
+            type="iconfont-add"
+            style={{
+              color: globalColors.lightGrey2,
+              backgroundColor: globalColors.white,
+              fontSize: 32,
+              marginLeft: globalMargins.tiny,
+              marginRight: globalMargins.tiny,
+            }}
+          />
+          <Text style={{color: globalColors.black_75}} type="BodyBigLink">New Conversation</Text>
+        </div>
+      </div>
+    )
+  }
+}
+
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
 function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
@@ -290,6 +326,7 @@ class ConversationList extends PureComponent<void, Props, void> {
     return (
       <div style={containerStyle}>
         <AddNewRow onNewChat={this.props.onNewChat} />
+        {this.props.showNewConversation && <NewConversation />}
         <div style={scrollableStyle} onScroll={this._onScroll}>
           <ReactList
             ref={this._setRef}
