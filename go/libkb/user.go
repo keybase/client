@@ -590,7 +590,6 @@ func (u *User) localDelegateKey(key GenericKey, sigID keybase1.SigID, kid keybas
 		err = NoSigChainError{}
 		return
 	}
-	u.G().Log.Debug("User LocalDelegateKey kid: %s; merkleHashMeta: %s", kid, mhm)
 	err = u.sigChain().LocalDelegate(u.keyFamily, key, sigID, kid, isSibkey, mhm, fau)
 	if isEldest {
 		eldestKID := key.GetKID()
