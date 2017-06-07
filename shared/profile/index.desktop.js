@@ -26,6 +26,7 @@ import {
   metaPending,
 } from '../constants/tracker'
 import {stateColors} from '../util/tracker'
+import featureFlags from '../util/feature-flags'
 
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
@@ -268,12 +269,12 @@ class ProfileRender extends PureComponent<void, Props, State> {
           {this.props.onBack &&
             <BackButton
               onClick={this.props.onBack}
-              style={{position: 'absolute', left: 14, top: 16, zIndex: BACK_ZINDEX}}
+              style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: globalColors.white}}
               iconStyle={{color: globalColors.white}}
             />}
-          {this.props.searchv3Enabled &&
-            <Box onClick={() => this.props.onSearch()} style={styleSearchContainer}>
+          {featureFlags.searchv3Enabled &&
+            <Box onClick={this.props.onSearch} style={styleSearchContainer}>
               <Icon style={styleSearch} type="iconfont-search" />
               <Text style={styleSearchText} type="Body">Search people</Text>
             </Box>}

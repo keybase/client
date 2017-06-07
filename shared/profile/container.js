@@ -181,7 +181,6 @@ export default connect(
       onSearch: () => dispatchProps.onSearch(),
       onUnfollow: () => dispatchProps.onUnfollow(username),
       refresh,
-      searchv3Enabled: true,
       username,
     }
 
