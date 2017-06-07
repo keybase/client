@@ -5718,6 +5718,10 @@ export type TeamMembers = {
   readers?: ?Array<string>,
 }
 
+export type TeamNameParts = {
+  parts?: ?Array<string>,
+}
+
 export type TeamRole =
     0 // NONE_0
   | 1 // OWNER_1

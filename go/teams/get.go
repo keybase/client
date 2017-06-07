@@ -98,7 +98,7 @@ func (f *finder) UsernameForUID(ctx context.Context, uid keybase1.UID) (string, 
 
 type rawTeam struct {
 	ID             keybase1.TeamID          `json:"id"`
-	Name           string                   `json:"name"`
+	Name           keybase1.TeamNameParts   `json:"name"`
 	Status         libkb.AppStatus          `json:"status"`
 	Chain          []json.RawMessage        `json:"chain"`
 	Box            TeamBox                  `json:"box"`

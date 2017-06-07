@@ -679,7 +679,18 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	}
 	defer finisher()
 
-	dec := json.NewDecoder(resp.Body)
+	var reader io.Reader
+	reader = resp.Body
+	if a.G().Env.GetAPIDump() {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		a.G().Log.CDebugf(arg.NetContext, "| response body: %s", string(body))
+		reader = bytes.NewReader(body)
+	}
+
+	dec := json.NewDecoder(reader)
 	if err = dec.Decode(&v); err != nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, Decode error: %s", err)
 		return err

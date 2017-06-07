@@ -304,9 +304,9 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 }
 
 type teamLookup struct {
-	ID     keybase1.TeamID `json:"id"`
-	Name   string          `json:"name"`
-	Status AppStatus       `json:"status"`
+	ID     keybase1.TeamID        `json:"id"`
+	Name   keybase1.TeamNameParts `json:"name"`
+	Status AppStatus              `json:"status"`
 }
 
 func (t *teamLookup) GetAppStatus() *AppStatus {
@@ -333,7 +333,7 @@ func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam Asser
 		res.err = err
 		return res
 	}
-	res.resolvedTeamName = lookup.Name
+	res.resolvedTeamName = lookup.Name.String()
 
 	return res
 }

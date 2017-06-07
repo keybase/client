@@ -1314,3 +1314,7 @@ func (t TeamMembers) AllUsernames() []string {
 	}
 	return all
 }
+
+func (t TeamNameParts) String() string {
+	return strings.Join(t.Parts, ".")
+}
