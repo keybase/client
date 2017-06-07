@@ -114,7 +114,7 @@ const Intro = (props: Props) => (
       <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
       <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
       <Button style={stylesSignupButton} type="Primary" onClick={props.onSignup} label="Create an account" />
-      <Box style={{flex: 1, backgroundColor: 'red'}} />
+      <Box style={{flex: 1}} />
       <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
       <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
       <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
