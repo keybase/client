@@ -38,7 +38,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
     1e3
   ),
   onClose: () => dispatch(navigateUp()),
-  onShowTracker: id => console.log('show tracker of', id),
 })
 
 const Search = props => {
