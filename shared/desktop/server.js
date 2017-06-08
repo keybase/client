@@ -1,13 +1,15 @@
 // @flow
 // Builds our code, serves changes if NO_SERVER is false
-const express = require('express')
+const path = require('path')
 const webpack = require('webpack')
+const WebpackDevServer = require('webpack-dev-server')
 const getenv = require('getenv')
 
 const config = getenv.boolish('DUMB', false)
   ? Object.assign({}, require('./webpack.config.dumb'))
   : Object.assign({}, require('./webpack.config.development'))
 const PORT = 4000
+
 const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
@@ -32,24 +34,20 @@ if (NO_SERVER) {
     }
   })
 } else {
-  const app = express()
+  const server = new WebpackDevServer(compiler, {
+    compress: true,
+    contentBase: path.join(__dirname, 'dist'),
+    hot: true,
+    lazy: false,
+    publicPath: 'http://localhost:4000/dist/',
+    quiet: false,
+    stats: {
+      chunkModules: KEYBASE_VERBOSE_WEBPACK,
+      colors: true,
+    },
+  })
 
-  app.use(
-    require('webpack-dev-middleware')(compiler, {
-      publicPath: config.output.publicPath,
-      hot: true,
-      lazy: false,
-      headers: {'Access-Control-Allow-Origin': '*'},
-      stats: {
-        colors: true,
-        chunkModules: KEYBASE_VERBOSE_WEBPACK,
-      },
-    })
-  )
-
-  app.use(require('webpack-hot-middleware')(compiler))
-
-  app.listen(PORT, 'localhost', err => {
+  server.listen(PORT, 'localhost', err => {
     if (err) {
       console.log(err)
       return
