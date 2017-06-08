@@ -1291,6 +1291,21 @@ export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommo
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getSessionChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function blockGetTeamQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>) {
+  engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request)
+}
+
+export function blockGetTeamQuotaInfoRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
+}
+export function blockGetTeamQuotaInfoRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, callback, incomingCallMap) })
+}
+
+export function blockGetTeamQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): Promise<blockGetTeamQuotaInfoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function blockGetUserQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
   engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request)
 }
@@ -6062,6 +6077,10 @@ export type blockGetBlockRpcParam = Exact<{
   folder: string
 }>
 
+export type blockGetTeamQuotaInfoRpcParam = Exact<{
+  tid: TeamID
+}>
+
 export type blockPutBlockAgainRpcParam = Exact<{
   folder: string,
   ref: BlockReference,
@@ -7022,6 +7041,7 @@ type blockBlockPingResult = BlockPingResponse
 type blockDelReferenceWithCountResult = DowngradeReferenceRes
 type blockGetBlockResult = GetBlockRes
 type blockGetSessionChallengeResult = ChallengeInfo
+type blockGetTeamQuotaInfoResult = bytes
 type blockGetUserQuotaInfoResult = bytes
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 type configGetBootstrapStatusResult = BootstrapStatus
@@ -7193,6 +7213,7 @@ export type rpc =
   | blockDelReferenceWithCountRpc
   | blockGetBlockRpc
   | blockGetSessionChallengeRpc
+  | blockGetTeamQuotaInfoRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockAgainRpc
   | blockPutBlockRpc

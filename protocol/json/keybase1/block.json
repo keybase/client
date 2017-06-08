@@ -231,6 +231,15 @@
       "request": [],
       "response": "bytes"
     },
+    "getTeamQuotaInfo": {
+      "request": [
+        {
+          "name": "tid",
+          "type": "TeamID"
+        }
+      ],
+      "response": "bytes"
+    },
     "blockPing": {
       "request": [],
       "response": "BlockPingResponse"

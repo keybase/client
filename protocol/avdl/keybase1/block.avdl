@@ -48,6 +48,7 @@ protocol block {
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
   bytes getUserQuotaInfo();
+  bytes getTeamQuotaInfo(TeamID tid);
 
   BlockPingResponse blockPing();
 }
