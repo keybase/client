@@ -109,6 +109,10 @@ type blockRetrievalQueue struct {
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
 	workerQueue chan chan<- *blockRetrieval
+	// This is a channel of channels to maximize the time that each request is
+	// in the heap, allowing preemption as long as possible. This way, a
+	// request only exits the heap once a worker is ready.
+	prefetchWorkerQueue chan chan<- *blockRetrieval
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
@@ -125,7 +129,7 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call Work (more than
 // numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int,
+func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
 		config:      config,
@@ -133,11 +137,17 @@ func newBlockRetrievalQueue(numWorkers int,
 		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
-		workers:     make([]*blockRetrievalWorker, 0, numWorkers),
-		doneCh:      make(chan struct{}),
+		prefetchWorkerQueue: make(chan chan<- *blockRetrieval,
+			numPrefetchWorkers),
+		workers: make([]*blockRetrievalWorker, 0, numWorkers+numPrefetchWorkers),
+		doneCh:  make(chan struct{}),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
 	for i := 0; i < numWorkers; i++ {
+		q.workers = append(q.workers,
+			newBlockRetrievalWorker(config.blockGetter(), q))
+	}
+	for i := 0; i < numPrefetchWorkers; i++ {
 		q.workers = append(q.workers,
 			newBlockRetrievalWorker(config.blockGetter(), q))
 	}
@@ -351,6 +361,11 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 // Work accepts a worker's channel to assign work.
 func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
 	brq.workerQueue <- ch
+}
+
+// PrefetchWork accepts a worker's channel to assign work.
+func (brq *blockRetrievalQueue) PrefetchWork(ch chan<- *blockRetrieval) {
+	brq.prefetchWorkerQueue <- ch
 }
 
 // FinalizeRequest is the last step of a retrieval request once a block has
