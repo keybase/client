@@ -379,6 +379,7 @@ func (o ListTrackingJSONArg) DeepCopy() ListTrackingJSONArg {
 type SearchArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Query     string `codec:"query" json:"query"`
+	Service   string `codec:"service" json:"service"`
 }
 
 func (o SearchArg) DeepCopy() SearchArg {

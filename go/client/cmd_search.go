@@ -18,8 +18,9 @@ import (
 
 type CmdSearch struct {
 	libkb.Contextified
-	query string
-	json  bool
+	query   string
+	service string
+	json    bool
 }
 
 func (c *CmdSearch) ParseArgv(ctx *cli.Context) error {
@@ -27,6 +28,14 @@ func (c *CmdSearch) ParseArgv(ctx *cli.Context) error {
 	if c.query == "" {
 		return fmt.Errorf("Search query must not be empty.")
 	}
+
+	// Support user@service queries
+	parts := strings.Split(c.query, "@")
+	if len(parts) == 2 {
+		c.query = parts[0]
+		c.service = parts[1]
+	}
+
 	c.json = ctx.Bool("json")
 	return nil
 }
@@ -41,7 +50,10 @@ func (c *CmdSearch) Run() (err error) {
 		return err
 	}
 
-	results, err := cli.Search(context.TODO(), keybase1.SearchArg{Query: c.query})
+	results, err := cli.Search(context.TODO(), keybase1.SearchArg{
+		Query:   c.query,
+		Service: c.service,
+	})
 	if err != nil {
 		return err
 	}

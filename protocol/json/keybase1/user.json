@@ -452,6 +452,10 @@
         {
           "name": "query",
           "type": "string"
+        },
+        {
+          "name": "service",
+          "type": "string"
         }
       ],
       "response": {

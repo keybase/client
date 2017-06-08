@@ -108,7 +108,7 @@ protocol user {
   /**
     Search for users who match a given query.
     */
-  array<SearchResult> search(int sessionID, string query);
+  array<SearchResult> search(int sessionID, string query, string service);
 
   /**
     Load all the user's public keys (even those in reset key families)
