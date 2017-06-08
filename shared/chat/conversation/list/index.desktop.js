@@ -22,7 +22,6 @@ type State = {
 }
 
 const lockedToBottomSlop = 20
-const listBottomMargin = 10
 
 class BaseList extends Component<void, Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
@@ -398,7 +397,6 @@ const containerStyle = {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
-  paddingBottom: listBottomMargin,
 }
 
 export default PopupEnabledList
