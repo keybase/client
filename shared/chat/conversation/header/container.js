@@ -6,6 +6,7 @@ import Header from '.'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {onUserClick} from '../../../actions/profile'
+import {chatTab} from '../../../constants/tabs'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -22,6 +23,7 @@ const getUsers = createSelector(
 )
 
 const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
+  badgeNumber: state.notifications.get('navBadges').get(chatTab),
   muted: Constants.getMuted(state),
   sidePanelOpen,
   users: getUsers(state),
