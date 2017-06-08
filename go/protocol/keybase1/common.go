@@ -72,6 +72,12 @@ func (o SigID) DeepCopy() SigID {
 	return o
 }
 
+type LeaseID string
+
+func (o LeaseID) DeepCopy() LeaseID {
+	return o
+}
+
 type KID string
 
 func (o KID) DeepCopy() KID {

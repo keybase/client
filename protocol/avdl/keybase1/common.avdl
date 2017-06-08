@@ -30,6 +30,9 @@ protocol Common {
   @typedef("string")
   record SigID {}
 
+  @typedef("string")
+  record LeaseID {}
+
   // Most appearances of KIDs in protocol are in hex....
   @typedef("string")
   record KID {}
