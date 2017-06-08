@@ -93,11 +93,7 @@ const makeRules = () => {
       use: [babelRule],
     },
     {
-      test: /emoji-datasource.*\.(gif|png)$/,
-      use: [fileLoaderRule],
-    },
-    {
-      test: /\.ttf$/,
+      test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
       use: [fileLoaderRule],
     },
     {
