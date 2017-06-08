@@ -1,4 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+const path = require('path')
 const webpack = require('webpack')
 const baseConfig = require('./webpack.config.base')
 const getenv = require('getenv')
@@ -37,8 +38,7 @@ const makePlugins = () => {
   const hmrPlugin = isHot && [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
   const dllPlugin = isUsingDLL && [
     new webpack.DllReferencePlugin({
-      context: './renderer',
-      manifest: require('./dll/vendor-manifest.json'),
+      manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
     }),
   ]
 
@@ -91,15 +91,62 @@ const makeEntries = () => {
   }, {})
 }
 
-const config = {
+const mainThreadConfig = {
+  ...baseConfig,
+  bail: true,
+  devtool: undefined,
+  entry: {
+    main: ['./desktop/app/index.js'],
+  },
+  name: 'node-thread'
+  output: {
+    ...baseConfig.output,
+    publicPath: 'http://localhost:4000/dist/',
+  },
+  plugins: makePlugins(),
+  target: 'electron-main',
+}
+
+const dllConfig = {
+  name: 'vendor',
+  entry: [
+    'qrcode-generator',
+    'emoji-mart',
+    'lodash',
+    'material-ui',
+    'moment',
+    'react-dom',
+    'semver',
+    'prop-types',
+    'inline-style-prefixer',
+    'react-virtualized',
+    'redux-logger',
+    'lodash.debounce',
+  ],
+  output: {
+    path: path.resolve(__dirname, 'dist/dll'),
+    filename: 'dll.js',
+    library: 'vendor_[hash]',
+  },
+  plugins: [
+    new webpack.DllPlugin({
+      name: 'vendor_[hash]',
+      path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
+    }),
+  ],
+}
+
+const devConfig = {
   ...baseConfig,
   cache: true,
+  dependencies: ['vendor'],
   devtool: noSourceMaps ? undefined : 'cheap-module-source-map',
   entry: makeEntries(),
   module: {
     ...baseConfig.module,
     rules: makeRules(),
   },
+  name: 'dev',
   output: {
     ...baseConfig.output,
     publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
@@ -107,5 +154,7 @@ const config = {
   plugins: makePlugins(),
   target: 'electron-renderer',
 }
+
+const config = [mainThreadConfig, dllConfig, devConfig]
 
 module.exports = config

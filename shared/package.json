@@ -171,6 +171,7 @@
     "webpack": "2.6.1",
     "webpack-dashboard": "0.4.0",
     "webpack-dev-middleware": "1.10.2",
-    "webpack-dev-server": "2.4.5"
+    "webpack-dev-server": "2.4.5",
+    "webpack-merge": "4.1.0"
   }
 }

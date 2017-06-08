@@ -35,7 +35,8 @@ function pad(s, num) {
 }
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
-const webpackCmd = `${nodeCmd} ./node_modules/.bin/webpack`
+const webpackCmd =
+  './node_modules/.bin/webpack --config ./desktop/webpack/config.babel.js --progress --profile --colors --json > log.txt'
 
 const commands = {
   'apply-new-fonts': {
@@ -46,37 +47,38 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     nodeEnv: 'production',
-    shell: `${nodeCmd} desktop/server.js`,
+    shell: webpackCmd,
   },
-  'build-main-thread': {
-    env: {BABEL_ENV: 'yarn', HOT: 'true'},
-    help: 'Bundle the code that the main node thread uses',
-    nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`, // TEMP
-  },
+  // 'build-main-thread': {
+  // env: {BABEL_ENV: 'yarn', HOT: 'true'},
+  // help: 'Bundle the code that the main node thread uses',
+  // nodeEnv: 'development',
+  // shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`, // TEMP
+  // },
   'build-prod': {
     env: {BABEL_ENV: 'yarn'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
-    shell: `${webpackCmd} --config desktop/webpack.config.production.js --progress --profile --colors`,
+    shell: webpackCmd,
   },
-  'build-profile': {
-    help: 'Make a production build of the js code',
-    nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.development.js --progress --profile --json > /tmp/stats.json`,
-  },
-  'build-wpdll': {
-    env: {BABEL_ENV: 'yarn'},
-    help: 'Make a production build of the js code',
-    nodeEnv: 'development',
-    shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress --json > ~/webpack2/dll.txt`,
-  },
-  'debug-main': {
-    env: {ELECTRON_RUN_AS_NODE: 'true'},
-    help: 'Debug the main process with node-inspector',
-    nodeEnv: 'development',
-    shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
-  },
+  // 'build-profile': {
+  // env: {BABEL_ENV: 'yarn', HOT: 'false', NO_SERVER: 'true', USING_DLL: 'true'},
+  // help: 'Make a production build of the js code',
+  // nodeEnv: 'development',
+  // shell: `${webpackCmd} --config desktop/webpack.config.development.js --progress --profile --json > ~/webpack2/dev.txt`,
+  // },
+  // 'build-wpdll': {
+  // env: {BABEL_ENV: 'yarn'},
+  // help: 'Make a production build of the js code',
+  // nodeEnv: 'development',
+  // shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress --profile --json > ~/webpack2/dll.txt`,
+  // },
+  // 'debug-main': {
+  // env: {ELECTRON_RUN_AS_NODE: 'true'},
+  // help: 'Debug the main process with node-inspector',
+  // nodeEnv: 'development',
+  // shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
+  // },
   'generate-font-project': {
     code: generateIcoMoon,
     help: 'Generate the icomoon project file',
