@@ -176,6 +176,52 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 	return refs.put(context, liveBlockRef, "")
 }
 
+// PutAgain implements the BlockServer interface for BlockServerMemory.
+func (b *BlockServerMemory) PutAgain(ctx context.Context, tlfID tlf.ID,
+	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx, "BlockServerMemory.PutAgain id=%s tlfID=%s context=%s "+
+		"size=%d", id, tlfID, context, len(buf))
+	b.lock.Lock()
+	defer b.lock.Unlock()
+
+	if b.m == nil {
+		return errBlockServerMemoryShutdown
+	}
+
+	var refs blockRefMap
+	if entry, ok := b.m[id]; ok {
+		// If the entry already exists, do not store block again,
+		// just add additional
+		// references.
+		if entry.tlfID != tlfID {
+			return fmt.Errorf(
+				"TLF ID mismatch: expected %s, got %s",
+				entry.tlfID, tlfID)
+		}
+		refs = entry.refs
+	} else {
+		data := make([]byte, len(buf))
+		copy(data, buf)
+		refs = make(blockRefMap)
+		b.m[id] = blockMemEntry{
+			tlfID:         tlfID,
+			blockData:     data,
+			keyServerHalf: serverHalf,
+			refs:          refs,
+		}
+	}
+	return refs.put(context, liveBlockRef, "")
+}
+
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {

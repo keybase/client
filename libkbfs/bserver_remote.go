@@ -449,6 +449,39 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	return b.putConn.getClient().PutBlock(ctx, arg)
 }
 
+// PutAgain implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	bContext kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	dbc := b.config.DiskBlockCache()
+	if dbc != nil {
+		go dbc.Put(ctx, tlfID, id, buf, serverHalf)
+	}
+	size := len(buf)
+	b.log.LazyTrace(ctx, "BServer: Put %s", id)
+	defer func() {
+		b.log.LazyTrace(ctx, "BServer: Put %s done (err=%v)", id, err)
+		if err != nil {
+			b.deferLog.CWarningf(
+				ctx, "Put id=%s tlf=%s context=%s sz=%d err=%v",
+				id, tlfID, bContext, size, err)
+		} else {
+			b.deferLog.CDebugf(
+				ctx, "Put id=%s tlf=%s context=%s sz=%d",
+				id, tlfID, bContext, size)
+		}
+	}()
+
+	arg := keybase1.PutBlockAgainArg{
+		BlockKey: serverHalf.String(),
+		Folder:   tlfID.String(),
+		Buf:      buf,
+		Ref:      makeBlockReference(id, bContext),
+	}
+
+	// Handle OverQuota errors at the caller
+	return b.putConn.getClient().PutBlockAgain(ctx, arg)
+}
+
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {

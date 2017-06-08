@@ -67,6 +67,16 @@ func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock
 	return err
 }
 
+// PutAgain implements the BlockServer interface for BlockServerMeasured.
+func (b BlockServerMeasured) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	b.putTimer.Time(func() {
+		err = b.delegate.PutAgain(ctx, tlfID, id, context, buf, serverHalf)
+	})
+	return err
+}
+
 // AddBlockReference implements the BlockServer interface for
 // BlockServerMeasured.
 func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID tlf.ID,
