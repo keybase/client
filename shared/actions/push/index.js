@@ -19,6 +19,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 import {requestPushPermissions, configurePush} from '../platform-specific'
+import {onUserClick} from '../profile'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -60,15 +61,30 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
 
     // Check for conversation ID so we know where to navigate to
     const convID = payload.data ? payload.data.convID : payload.convID
-    if (!convID) {
-      console.error('Push notification payload missing conversation ID')
-      return
+    const type = payload.data ? payload.data.type : payload.type
+    if (type === 'chat.newmessage') {
+      if (!convID) {
+        console.error('Push chat notification payload missing conversation ID')
+        return
+      }
+      // Record that we're going to a push notification conversation, in order
+      // to avoid racing with restoring a saved initial tab.
+      yield put(setLaunchedViaPush(true))
+      yield put(navigateTo([chatTab, convID]))
+    } else if (type === 'follow') {
+      const username = payload.username
+      if (!username) {
+        console.error('Follow notification payload missing username', JSON.stringify(payload))
+        return
+      }
+      console.info('Push notification: follow received, follower= ', username)
+      // Record that we're going to a push notification conversation, in order
+      // to avoid racing with restoring a saved initial tab.
+      yield put(setLaunchedViaPush(true))
+      yield put(onUserClick(username))
+    } else {
+      console.error('Push notification payload missing or unknown type')
     }
-
-    // Record that we're going to a push notification conversation, in order
-    // to avoid racing with restoring a saved initial tab.
-    yield put(setLaunchedViaPush(true))
-    yield put(navigateTo([chatTab, convID]))
   }
 }
 
