@@ -28,13 +28,6 @@ const isDev = process.env.NODE_ENV !== 'production'
 // const path = require('path')
 // const {fileLoaderRule, isHot} = require('./webpack.common')
 
-const fileLoaderRule = {
-  loader: 'file-loader',
-  options: {
-    name: '[name].[ext]',
-  },
-}
-
 // const makeEntries = () => {
 // return {
 // // index: path.resolve(__dirname, '../renderer/index.js'),
@@ -45,6 +38,13 @@ const fileLoaderRule = {
 // }
 
 const makeRules = () => {
+  const fileLoaderRule = {
+    loader: 'file-loader',
+    options: {
+      name: '[name].[ext]',
+    },
+  }
+
   const babelRule = {
     loader: 'babel-loader',
     options: {
@@ -62,7 +62,7 @@ const makeRules = () => {
         [
           'env',
           {
-            debug: false, // TEMP messes up output to analyzer, put back
+            debug: false,
             exclude: ['transform-regenerator'],
             modules: false,
             targets: {
