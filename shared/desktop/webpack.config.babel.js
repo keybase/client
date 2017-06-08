@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
-// noparse
 // dll
+// noparse
 // prefetch
 // commonchunks plugin
 // hints from analyzer
@@ -165,7 +165,16 @@ const makeRenderPlugins = () => {
   const dashboardPlugin = isShowingDashboard ? [new DashboardPlugin()] : []
   const hmrPlugin = isHot ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()] : []
   const noEmitOnErrorsPlugin = [new webpack.NoEmitOnErrorsPlugin()]
-  return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
+
+  const dllPlugin = isDev
+    ? [
+        new webpack.DllReferencePlugin({
+          manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
+        }),
+      ]
+    : []
+
+  return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin, ...dllPlugin].filter(Boolean)
 }
 
 const HMREntries = isHot
@@ -177,6 +186,7 @@ const HMREntries = isHot
   : []
 
 const renderThreadConfig = merge(commonConfig, {
+  dependencies: ['vendor'],
   devtool: undefined, // 'cheap-module-eval-source-map',
   entry: {
     index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
@@ -189,14 +199,55 @@ const renderThreadConfig = merge(commonConfig, {
   name: 'renderThread',
   plugins: makeRenderPlugins(),
   target: 'electron-renderer',
-  // dependencies: ['vendor'],
 })
 
-const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig]
+const dllConfig = {
+  entry: [
+    './markdown/parser',
+    'emoji-mart',
+    'framed-msgpack-rpc',
+    'immutable',
+    'inline-style-prefixer',
+    'lodash',
+    'lodash.curry',
+    'lodash.debounce',
+    'material-ui',
+    'material-ui/svg-icons',
+    'moment',
+    'prop-types',
+    'qrcode-generator',
+    'react-base16-styling',
+    'react-dom',
+    'react-list',
+    'react-redux',
+    'react-virtualized',
+    'recompose',
+    'redux',
+    'redux-devtools-instrument',
+    'redux-devtools-log-monitor',
+    'redux-logger',
+    'redux-saga',
+    'semver',
+  ],
+  name: 'vendor',
+  output: {
+    filename: 'dll.vendor.js',
+    library: 'vendor',
+    path: path.resolve(__dirname, 'dist/dll'),
+  },
+  plugins: [
+    new webpack.DllPlugin({
+      name: 'vendor',
+      path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
+    }),
+  ],
+}
+
+const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
 // const override = {}
 
 // const config = merge(commonConfig, override)
 
-console.log(JSON.stringify(config, null, 2))
+// console.log(JSON.stringify(config, null, 2))
 
 export default config
