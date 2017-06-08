@@ -2056,6 +2056,21 @@ export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function identifyResolve3Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.Resolve3', request)
+}
+
+export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
+}
+export function identifyResolve3RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.Resolve3', request, callback, incomingCallMap) })
+}
+
+export function identifyResolve3RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): Promise<identifyResolve3Result> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyResolveRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
   engineRpcOutgoing('keybase.1.identify.Resolve', request)
 }
@@ -5718,6 +5733,10 @@ export type TeamMembers = {
   readers?: ?Array<string>,
 }
 
+export type TeamNameParts = {
+  parts?: ?Array<string>,
+}
+
 export type TeamRole =
     0 // NONE_0
   | 1 // OWNER_1
@@ -6236,6 +6255,10 @@ export type identifyIdentifyRpcParam = Exact<{
 }>
 
 export type identifyResolve2RpcParam = Exact<{
+  assertion: string
+}>
+
+export type identifyResolve3RpcParam = Exact<{
   assertion: string
 }>
 
@@ -7033,6 +7056,7 @@ type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
+type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
@@ -7220,6 +7244,7 @@ export type rpc =
   | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
+  | identifyResolve3Rpc
   | identifyResolveRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc

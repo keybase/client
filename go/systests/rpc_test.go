@@ -6,12 +6,13 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	context "golang.org/x/net/context"
-	"testing"
 )
 
 func TestRPCs(t *testing.T) {
@@ -37,6 +38,7 @@ func TestRPCs(t *testing.T) {
 
 	// Add test RPC methods here.
 	testIdentifyResolve2(t, tc2.G)
+	testIdentifyResolve3(t, tc2.G)
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
 	testLoadUserWithNoKeys(t, tc2.G)
@@ -94,6 +96,49 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
 	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
 		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
+	}
+}
+
+func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
+
+	cli, err := client.GetIdentifyClient(g)
+	if err != nil {
+		t.Fatalf("failed to get new identifyclient: %v", err)
+	}
+
+	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
+		t.Fatalf("Resolve failed: %v\n", err)
+	}
+
+	// We don't want to hit the cache, since the previous lookup never hit the
+	// server.  For Resolve3, we have to, since we need a username.  So test that
+	// here.
+	if res, err := cli.Resolve3(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
+		t.Fatalf("Resolve failed: %v\n", err)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong username: %s != 't_tracy", res.Name)
+	}
+
+	if res, err := cli.Resolve3(context.TODO(), "t_tracy@rooter"); err != nil {
+		t.Fatalf("Resolve3 failed: %v\n", err)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
+	}
+
+	if _, err := cli.Resolve3(context.TODO(), "foobag@rooter"); err == nil {
+		t.Fatalf("expected an error on a bad resolve, but got none")
+	} else if _, ok := err.(libkb.ResolutionError); !ok {
+		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
+	}
+
+	if res, err := cli.Resolve3(context.TODO(), "t_tracy"); err != nil {
+		t.Fatalf("Resolve3 failed: %v\n", err)
+	} else if res.Name != "t_tracy" {
+		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
+	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
 	}
 }
 

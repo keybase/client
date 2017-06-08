@@ -249,6 +249,19 @@
           "name": "seqno"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNameParts",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
+        }
+      ]
     }
   ],
   "messages": {
