@@ -263,7 +263,9 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	shutdown := false
 	select {
 	case <-ch:
+		t.Fatal("Expected not to retrieve a result from the Request.")
 	case continueCh <- nil:
+		t.Fatal("Expected the block getter not to be receiving.")
 	default:
 		shutdown = true
 	}
