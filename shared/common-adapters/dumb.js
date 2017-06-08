@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
@@ -390,31 +390,46 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
   },
 }
 
-class IconHolder extends Component<void, {iconFont: boolean}, void> {
-  render() {
-    // $FlowIssue
-    const keys: Array<IconType> = Object.keys(iconMeta)
-    const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
-          justifyContent: 'flex-start',
-        }}
-      >
-        {icons.map(i => (
-          <Box key={i}>
-            <Text type="BodySmall">{i}</Text>
-            <Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} />
+const IconHolder = ({iconFont}) => {
+  // $FlowIssue
+  const names: Array<IconType> = Object.keys(iconMeta)
+  const sizes = names.reduce((map: {[key: string]: Array<IconType>}, name: IconType) => {
+    const meta: any = iconMeta[name]
+    if (meta.isFont === iconFont) {
+      const size = meta.gridSize || 'none'
+      if (!map[size]) {
+        map[size] = []
+      }
+      map[size].push(name)
+    }
+    return map
+  }, {})
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+      }}
+    >
+      {Object.keys(sizes).map(size => (
+        <Box key={size} style={{...globalStyles.flexBoxColumn}}>
+          <Text type="HeaderLink">Grid: {size}</Text>
+          <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
+            {sizes[size].map((i: IconType) => (
+              <Box key={i} style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: 4}}>
+                <Text type="BodySmall">{i}</Text>
+                <Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} />
+              </Box>
+            ))}
           </Box>
-        ))}
-      </Box>
-    )
-  }
+        </Box>
+      ))}
+    </Box>
+  )
 }
 
+// $FlowIssue doesn't like stateless
 const iconMap: DumbComponentMap<IconHolder> = {
   component: IconHolder,
   mocks: {
