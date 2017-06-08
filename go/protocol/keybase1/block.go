@@ -123,6 +123,22 @@ func (o PutBlockArg) DeepCopy() PutBlockArg {
 	}
 }
 
+type PutBlockAgainArg struct {
+	Folder   string         `codec:"folder" json:"folder"`
+	Ref      BlockReference `codec:"ref" json:"ref"`
+	BlockKey string         `codec:"blockKey" json:"blockKey"`
+	Buf      []byte         `codec:"buf" json:"buf"`
+}
+
+func (o PutBlockAgainArg) DeepCopy() PutBlockAgainArg {
+	return PutBlockAgainArg{
+		Folder:   o.Folder,
+		Ref:      o.Ref.DeepCopy(),
+		BlockKey: o.BlockKey,
+		Buf:      append([]byte(nil), o.Buf...),
+	}
+}
+
 type GetBlockArg struct {
 	Bid    BlockIdCombo `codec:"bid" json:"bid"`
 	Folder string       `codec:"folder" json:"folder"`
@@ -234,6 +250,7 @@ type BlockInterface interface {
 	GetSessionChallenge(context.Context) (ChallengeInfo, error)
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
+	PutBlockAgain(context.Context, PutBlockAgainArg) error
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
@@ -287,6 +304,22 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						return
 					}
 					err = i.PutBlock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"putBlockAgain": {
+				MakeArg: func() interface{} {
+					ret := make([]PutBlockAgainArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PutBlockAgainArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PutBlockAgainArg)(nil), args)
+						return
+					}
+					err = i.PutBlockAgain(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -430,6 +463,11 @@ func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) 
 
 func (c BlockClient) PutBlock(ctx context.Context, __arg PutBlockArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.putBlock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) PutBlockAgain(ctx context.Context, __arg PutBlockAgainArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.putBlockAgain", []interface{}{__arg}, nil)
 	return
 }
 
