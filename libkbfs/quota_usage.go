@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"golang.org/x/net/context"
 )
@@ -35,6 +36,7 @@ type cachedQuotaUsage struct {
 type EventuallyConsistentQuotaUsage struct {
 	config Config
 	log    logger.Logger
+	tid    keybase1.TeamID
 
 	backgroundInProcess int32
 
@@ -52,12 +54,29 @@ func NewEventuallyConsistentQuotaUsage(
 	}
 }
 
+// NewEventuallyConsistentTeamQuotaUsage creates a new
+// EventuallyConsistentQuotaUsage object.
+func NewEventuallyConsistentTeamQuotaUsage(
+	config Config, tid keybase1.TeamID,
+	loggerSuffix string) *EventuallyConsistentQuotaUsage {
+	return &EventuallyConsistentQuotaUsage{
+		config: config,
+		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
+		tid:    tid,
+	}
+}
+
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	ctx context.Context) (usage cachedQuotaUsage, err error) {
 	defer func() {
 		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
-	quotaInfo, err := q.config.BlockServer().GetUserQuotaInfo(ctx)
+	var quotaInfo *kbfsblock.QuotaInfo
+	if q.tid.IsNil() {
+		quotaInfo, err = q.config.BlockServer().GetUserQuotaInfo(ctx)
+	} else {
+		quotaInfo, err = q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
+	}
 	if err != nil {
 		return cachedQuotaUsage{}, err
 	}
