@@ -386,8 +386,8 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.Conversation, removed []chat1.ConversationID) ([]chat1.ConversationLocal, error) {
-	return nil, nil
+	joined []chat1.Conversation, removed []chat1.ConversationID) error {
+	return nil
 }
 
 type HybridInboxSource struct {
@@ -656,24 +656,15 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joinedConvs []chat1.Conversation, removedConvs []chat1.ConversationID) (joinedLocalConvs []chat1.ConversationLocal, err error) {
+	joinedConvs []chat1.Conversation, removedConvs []chat1.ConversationID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
 	if cerr := storage.NewInbox(s.G(), uid).MembershipUpdate(ctx, vers, joinedConvs, removedConvs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
-		return nil, err
+		return err
 	}
 
-	ibox := chat1.Inbox{
-		ConvsUnverified: joinedConvs,
-	}
-	localizer := NewBlockingLocalizer(s.G())
-	if joinedLocalConvs, err = localizer.Localize(ctx, uid, ibox); err != nil {
-		s.Debug(ctx, "MembershipUpdate: failed to localize joined conversations: %s", err.Error())
-		return nil, err
-	}
-
-	return joinedLocalConvs, nil
+	return nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,

@@ -628,15 +628,14 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 
 		// Write out changes to local storage
-		joinedLocal, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joinedConvs,
-			update.Removed)
-		if err != nil {
+		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joinedConvs,
+			update.Removed); err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err
 		}
 
 		// Send notifications for changed conversations (might need to make this better in the future)
-		convIDs := append(utils.PluckConvIDsLocal(joinedLocal), update.Removed...)
+		convIDs := append(utils.PluckConvIDs(joinedConvs), update.Removed...)
 		g.G().Syncer.SendChatStaleNotifications(ctx, uid, convIDs, false)
 		return nil
 	}(bctx)
