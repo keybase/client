@@ -252,6 +252,54 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	return key, nil
 }
 
+func (t *Team) Rotate(ctx context.Context) error {
+	// make keys for the team
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	// load an empty member set (no membership changes)
+	memSet := newMemberSet()
+
+	// create the team section of the signature
+	section, err := memSet.Section(t.Chain.GetID())
+	if err != nil {
+		return err
+	}
+
+	// get device key
+	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
+	if err != nil {
+		return err
+	}
+
+	// rotate the team key for all current members
+	existing, err := t.Members()
+	if err != nil {
+		return err
+	}
+	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
+		return err
+	}
+	secretBoxes, perTeamKeySection, err := t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	if err != nil {
+		return err
+	}
+	section.PerTeamKey = perTeamKeySection
+
+	// create the change item
+	sigMultiItem, err := t.sigChangeItem(section)
+	if err != nil {
+		return err
+	}
+
+	// make the payload
+	payload := t.sigPayload(sigMultiItem, secretBoxes)
+
+	// send it to the server
+	return t.postMulti(payload)
+}
+
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
 	// create the change membership section + secretBoxes
 	section, secretBoxes, err := t.changeMembershipSection(ctx, req)
@@ -279,7 +327,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	// load the member set specified in req
-	memSet, err := newMemberSet(ctx, t.G(), req)
+	memSet, err := newMemberSetChange(ctx, t.G(), req)
 	if err != nil {
 		return SCTeamSection{}, nil, err
 	}

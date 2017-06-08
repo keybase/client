@@ -21,8 +21,12 @@ type memberSet struct {
 	recipients map[keybase1.UID]keybase1.PerUserKey
 }
 
-func newMemberSet(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
-	set := &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+func newMemberSet() *memberSet {
+	return &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+}
+
+func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
+	set := newMemberSet()
 	if err := set.loadMembers(ctx, g, req); err != nil {
 		return nil, err
 	}
