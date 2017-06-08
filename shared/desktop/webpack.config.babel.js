@@ -1,13 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
 // noparse
-// dsashboard
 // dll
-// new webpack.NoEmitOnErrorsPlugin(),
 // prefetch
 // commonchunks plugin
 // hints from analyzer
-// hmr entries
 //happypack?
 //
 import getenv from 'getenv'
@@ -131,6 +128,7 @@ const commonConfig = {
     contentBase: path.resolve(__dirname, 'dist'),
     hot: isHot,
     lazy: false,
+    overlay: true,
     port: 4000,
     publicPath: 'http://localhost:4000/dist/',
     quiet: false,
@@ -194,7 +192,6 @@ const renderThreadConfig = merge(commonConfig, {
   // dependencies: ['vendor'],
 })
 
-// renderThreadConfig has to be first for devServer configs to be picked up
 const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig]
 // const override = {}
 
