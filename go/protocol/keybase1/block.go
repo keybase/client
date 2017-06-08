@@ -135,7 +135,12 @@ func (o PutBlockAgainArg) DeepCopy() PutBlockAgainArg {
 		Folder:   o.Folder,
 		Ref:      o.Ref.DeepCopy(),
 		BlockKey: o.BlockKey,
-		Buf:      append([]byte(nil), o.Buf...),
+		Buf: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte(nil), x...)
+		})(o.Buf),
 	}
 }
 
