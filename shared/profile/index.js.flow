@@ -29,6 +29,7 @@ export type Props = {
   onViewProof: (proof: Proof) => void,
   onRecheckProof: (proof: Proof) => void,
   onRevokeProof: (proof: Proof) => void,
+  onSearch: () => void,
   username: string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
