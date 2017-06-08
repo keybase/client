@@ -1,6 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
-// hmr
 // noparse
 // dsashboard
 // dll
@@ -15,9 +14,13 @@ import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
+import DashboardPlugin from 'webpack-dashboard/plugin'
 
 const isHot = getenv.boolish('HOT', false)
 const isDev = process.env.NODE_ENV !== 'production'
+const isShowingDashboard = !getenv.boolish('NO_SERVER', false)
+
+// webpack dev server has issues serving mixed hot/not hot so we have to build this separately
 const isJustMain = getenv.boolish('JUST_MAIN', false)
 
 // const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', false)
@@ -161,9 +164,10 @@ const mainThreadConfig = merge(commonConfig, {
 })
 
 const makeRenderPlugins = () => {
+  const dashboardPlugin = isShowingDashboard ? [new DashboardPlugin()] : []
   const hmrPlugin = isHot ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()] : []
   const noEmitOnErrorsPlugin = [new webpack.NoEmitOnErrorsPlugin()]
-  return [...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
+  return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
 }
 
 const HMREntries = isHot
