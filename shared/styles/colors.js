@@ -34,6 +34,7 @@ const colors = {
   red_75: 'rgba(255,0,0,0.75)',
   transparent: 'rgba(0, 0, 0, 0)',
   white: '#ffffff',
+  white_20: 'rgba(255, 255, 255, 0.20)',
   white_40: 'rgba(255, 255, 255, 0.40)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_90: 'rgba(255, 255, 255, 0.90)',
