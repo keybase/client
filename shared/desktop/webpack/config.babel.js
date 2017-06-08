@@ -1,14 +1,19 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+// TODO commonchunks plugin
+// hmr
+// noparse
+// dsashboard
+// dll
+// new webpack.NoEmitOnErrorsPlugin(),
+// prefetch
+// hints from analyzer
+// hmr entries
+//
+//
 import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
-
-// const mockRule = {
-// include: path.resolve(__dirname, '../images/mock'),
-// test: /\.jpg$/,
-// use: [fileLoaderRule],
-// }
 
 const isHot = getenv.boolish('HOT', false)
 const isDev = process.env.NODE_ENV !== 'production'
@@ -30,14 +35,14 @@ const fileLoaderRule = {
   },
 }
 
-const makeEntries = () => {
-  return {
-    // index: path.resolve(__dirname, '../renderer/index.js'),
-    // launcher: path.resolve(__dirname, '../renderer/launcher.js'),
-    main: path.resolve(__dirname, '../app/index.js'),
-    // 'remote-component-loader': path.resolve(__dirname, '../renderer/remote-component-loader.js'),
-  }
-}
+// const makeEntries = () => {
+// return {
+// // index: path.resolve(__dirname, '../renderer/index.js'),
+// // launcher: path.resolve(__dirname, '../renderer/launcher.js'),
+// // main: path.resolve(__dirname, '../app/index.js'),
+// // 'remote-component-loader': path.resolve(__dirname, '../renderer/remote-component-loader.js'),
+// }
+// }
 
 const makeRules = () => {
   const babelRule = {
@@ -73,6 +78,11 @@ const makeRules = () => {
 
   return [
     {
+      include: path.resolve(__dirname, '../../images/mock'),
+      test: /\.jpg$/,
+      use: [isDev ? fileLoaderRule : 'null-loader'],
+    },
+    {
       include: path.resolve(__dirname, '../../images/icons'),
       test: /\.(flow|native\.js|gif|png|jpg)$/,
       use: ['null-loader'],
@@ -97,22 +107,25 @@ const makeRules = () => {
   ]
 }
 
-const makePlugins = () => {
+const makeCommonPlugins = () => {
   const defines = {
-    __HOT__: JSON.stringify(isHot),
     __DEV__: isDev,
+    __HOT__: JSON.stringify(isHot),
     __SCREENSHOT__: false, // TODO
     __VERSION__: isDev ? JSON.stringify('Development') : undefined,
     'process.env.NODE_ENV': isDev ? JSON.stringify('development') : JSON.stringify('production'),
   }
 
   console.warn('Injecting defines: ', defines)
-  return [new webpack.DefinePlugin(defines)]
+  const definePlugin = [new webpack.DefinePlugin(defines)]
+
+  return [...definePlugin].filter(Boolean)
 }
 
 const commonConfig = {
   bail: true,
-  entry: makeEntries(),
+  cache: true,
+  // entry: makeEntries(),
   module: {
     rules: makeRules(),
   },
@@ -122,24 +135,46 @@ const commonConfig = {
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, '../dist'),
-    publicPath: 'http://localhost:4000/dist/',
+    publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
   },
-  plugins: makePlugins(),
+  plugins: makeCommonPlugins(),
   resolve: {
     extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   },
 }
 
 const mainThreadConfig = merge(commonConfig, {
+  entry: {
+    main: path.resolve(__dirname, '../app/index.js'),
+  },
+  name: 'mainThread',
   target: 'electron-main',
 })
 
-const config = mainThreadConfig
+const makeRenderPlugins = () => {
+  const hmrPlugin = isHot ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()] : []
+  const noEmitOnErrorsPlugin = [new webpack.NoEmitOnErrorsPlugin()]
+  return [...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
+}
 
+const renderThreadConfig = merge(commonConfig, {
+  devtool: undefined, // 'cheap-module-eval-source-map',
+  entry: {
+    index: path.resolve(__dirname, '../renderer/index.js'),
+    launcher: path.resolve(__dirname, '../renderer/launcher.js'),
+    'remote-component-loader': path.resolve(__dirname, '../renderer/remote-component-loader.js'),
+  },
+  name: 'renderThread',
+  plugins: makeRenderPlugins(),
+  target: 'electron-renderer',
+  // dependencies: ['vendor'],
+})
+
+const config = [mainThreadConfig, renderThreadConfig]
 // const override = {}
 
 // const config = merge(commonConfig, override)
 
-// console.log(JSON.stringify(config))
+console.log(JSON.stringify(config, null, 2))
 
 export default config

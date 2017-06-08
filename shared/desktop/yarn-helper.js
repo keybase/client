@@ -36,7 +36,7 @@ function pad(s, num) {
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 const webpackCmd =
-  './node_modules/.bin/webpack --config ./desktop/webpack/config.babel.js --progress --profile --colors --json > log.txt'
+  './node_modules/.bin/webpack --config ./desktop/webpack/config.babel.js --progress --profile --colors' // --json > log.txt'
 
 const commands = {
   'apply-new-fonts': {
@@ -46,7 +46,6 @@ const commands = {
   'build-dev': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
-    nodeEnv: 'production',
     shell: webpackCmd,
   },
   // 'build-main-thread': {
