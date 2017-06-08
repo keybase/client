@@ -100,7 +100,6 @@ export default compose(
   withState('searchText', 'onChangeSearchText', ''),
   withHandlers({
     onChangeText: (props: OwnProps & {_onSelectService: Function}) => nextText => {
-      console.warn('in onChangeText', nextText)
       props.onChangeSearchText(nextText)
       props._search(nextText, props.selectedService)
     },
