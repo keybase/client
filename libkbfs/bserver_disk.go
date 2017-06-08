@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -392,11 +393,25 @@ func (b *BlockServerDisk) Shutdown(ctx context.Context) {
 func (b *BlockServerDisk) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
+func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
 
 	// Return a dummy value here.
-	return &kbfsblock.UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+}
+
+// GetTeamQuotaInfo implements the BlockServer interface for BlockServerDisk.
+func (b *BlockServerDisk) GetTeamQuotaInfo(
+	ctx context.Context, _ keybase1.TeamID) (
+	info *kbfsblock.QuotaInfo, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	// TODO: check team membership and return error if not a reader?
+
+	// Return a dummy value here.
+	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
 }

@@ -4069,15 +4069,26 @@ func (_mr *_MockBlockServerRecorder) Shutdown(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
-func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.UserQuotaInfo, error) {
+func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.QuotaInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetUserQuotaInfo", ctx)
-	ret0, _ := ret[0].(*kbfsblock.UserQuotaInfo)
+	ret0, _ := ret[0].(*kbfsblock.QuotaInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 func (_mr *_MockBlockServerRecorder) GetUserQuotaInfo(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
+}
+
+func (_m *MockBlockServer) GetTeamQuotaInfo(ctx context.Context, tid keybase1.TeamID) (*kbfsblock.QuotaInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamQuotaInfo", ctx, tid)
+	ret0, _ := ret[0].(*kbfsblock.QuotaInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlockServerRecorder) GetTeamQuotaInfo(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamQuotaInfo", arg0, arg1)
 }
 
 // Mock of blockServerLocal interface
@@ -4181,15 +4192,26 @@ func (_mr *_MockblockServerLocalRecorder) Shutdown(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown", arg0)
 }
 
-func (_m *MockblockServerLocal) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.UserQuotaInfo, error) {
+func (_m *MockblockServerLocal) GetUserQuotaInfo(ctx context.Context) (*kbfsblock.QuotaInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetUserQuotaInfo", ctx)
-	ret0, _ := ret[0].(*kbfsblock.UserQuotaInfo)
+	ret0, _ := ret[0].(*kbfsblock.QuotaInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 func (_mr *_MockblockServerLocalRecorder) GetUserQuotaInfo(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
+}
+
+func (_m *MockblockServerLocal) GetTeamQuotaInfo(ctx context.Context, tid keybase1.TeamID) (*kbfsblock.QuotaInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamQuotaInfo", ctx, tid)
+	ret0, _ := ret[0].(*kbfsblock.QuotaInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockblockServerLocalRecorder) GetTeamQuotaInfo(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTeamQuotaInfo", arg0, arg1)
 }
 
 func (_m *MockblockServerLocal) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (map[kbfsblock.ID]blockRefMap, error) {

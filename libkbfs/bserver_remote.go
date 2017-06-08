@@ -626,16 +626,31 @@ func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kb
 }
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
-	b.log.LazyTrace(ctx, "BServer: GetQuotaInfo")
+func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
+	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
-		b.log.LazyTrace(ctx, "BServer: GetQuotaInfo done (err=%v)", err)
+		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
 	}()
 	res, err := b.getConn.getClient().GetUserQuotaInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return kbfsblock.UserQuotaInfoDecode(res, b.config.Codec())
+	return kbfsblock.QuotaInfoDecode(res, b.config.Codec())
+}
+
+// GetTeamQuotaInfo implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) GetTeamQuotaInfo(
+	ctx context.Context, tid keybase1.TeamID) (
+	info *kbfsblock.QuotaInfo, err error) {
+	b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo")
+	defer func() {
+		b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo done (err=%v)", err)
+	}()
+	res, err := b.getConn.getClient().GetTeamQuotaInfo(ctx, tid)
+	if err != nil {
+		return nil, err
+	}
+	return kbfsblock.QuotaInfoDecode(res, b.config.Codec())
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

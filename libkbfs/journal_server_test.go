@@ -84,7 +84,7 @@ type quotaBlockServer struct {
 	BlockServer
 
 	quotaInfoLock sync.Mutex
-	quotaInfo     kbfsblock.UserQuotaInfo
+	quotaInfo     kbfsblock.QuotaInfo
 }
 
 func (qbs *quotaBlockServer) setUserQuotaInfo(
@@ -100,7 +100,7 @@ func (qbs *quotaBlockServer) setUserQuotaInfo(
 }
 
 func (qbs *quotaBlockServer) GetUserQuotaInfo(ctx context.Context) (
-	info *kbfsblock.UserQuotaInfo, err error) {
+	info *kbfsblock.QuotaInfo, err error) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	infoCopy := qbs.quotaInfo

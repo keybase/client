@@ -390,11 +390,25 @@ func (b *BlockServerMemory) Shutdown(ctx context.Context) {
 func (b *BlockServerMemory) RefreshAuthToken(_ context.Context) {}
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error) {
+func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
 
 	// Return a dummy value here.
-	return &kbfsblock.UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+}
+
+// GetTeamQuotaInfo implements the BlockServer interface for BlockServerMemory.
+func (b *BlockServerMemory) GetTeamQuotaInfo(
+	ctx context.Context, _ keybase1.TeamID) (
+	info *kbfsblock.QuotaInfo, err error) {
+	if err := checkContext(ctx); err != nil {
+		return nil, err
+	}
+
+	// TODO: check team membership and return error if not a reader?
+
+	// Return a dummy value here.
+	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
 }

@@ -66,7 +66,7 @@ func (u *UsageStat) AccumOne(change int, usage UsageType) {
 	}
 }
 
-// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
+// Accum combines changes to the existing QuotaInfo object using accumulation function accumF.
 func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
 	if another == nil {
 		return
@@ -79,23 +79,23 @@ func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
 	}
 }
 
-// UserQuotaInfo contains a user's quota usage information
-type UserQuotaInfo struct {
+// QuotaInfo contains a user's quota usage information
+type QuotaInfo struct {
 	Folders map[string]*UsageStat
 	Total   *UsageStat
 	Limit   int64
 }
 
-// NewUserQuotaInfo returns a newly constructed UserQuotaInfo.
-func NewUserQuotaInfo() *UserQuotaInfo {
-	return &UserQuotaInfo{
+// NewQuotaInfo returns a newly constructed QuotaInfo.
+func NewQuotaInfo() *QuotaInfo {
+	return &QuotaInfo{
 		Folders: make(map[string]*UsageStat),
 		Total:   NewUsageStat(),
 	}
 }
 
-// AccumOne combines one quota charge to the existing UserQuotaInfo
-func (u *UserQuotaInfo) AccumOne(change int, folder string, usage UsageType) {
+// AccumOne combines one quota charge to the existing QuotaInfo
+func (u *QuotaInfo) AccumOne(change int, folder string, usage UsageType) {
 	if _, ok := u.Folders[folder]; !ok {
 		u.Folders[folder] = NewUsageStat()
 	}
@@ -103,8 +103,8 @@ func (u *UserQuotaInfo) AccumOne(change int, folder string, usage UsageType) {
 	u.Total.AccumOne(change, usage)
 }
 
-// Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
-func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) int64) {
+// Accum combines changes to the existing QuotaInfo object using accumulation function accumF.
+func (u *QuotaInfo) Accum(another *QuotaInfo, accumF func(int64, int64) int64) {
 	if another == nil {
 		return
 	}
@@ -120,15 +120,15 @@ func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) 
 	}
 }
 
-// ToBytes marshals this UserQuotaInfo
-func (u *UserQuotaInfo) ToBytes(codec kbfscodec.Codec) ([]byte, error) {
+// ToBytes marshals this QuotaInfo
+func (u *QuotaInfo) ToBytes(codec kbfscodec.Codec) ([]byte, error) {
 	return codec.Encode(u)
 }
 
-// UserQuotaInfoDecode decodes b into a UserQuotaInfo
-func UserQuotaInfoDecode(b []byte, codec kbfscodec.Codec) (
-	*UserQuotaInfo, error) {
-	var info UserQuotaInfo
+// QuotaInfoDecode decodes b into a QuotaInfo
+func QuotaInfoDecode(b []byte, codec kbfscodec.Codec) (
+	*QuotaInfo, error) {
+	var info QuotaInfo
 	err := codec.Decode(b, &info)
 	if err != nil {
 		return nil, err

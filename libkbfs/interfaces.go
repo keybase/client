@@ -1449,8 +1449,12 @@ type BlockServer interface {
 	// Shutdown is called to shutdown a BlockServer connection.
 	Shutdown(ctx context.Context)
 
-	// GetUserQuotaInfo returns the quota for the user.
-	GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.UserQuotaInfo, err error)
+	// GetUserQuotaInfo returns the quota for the logged-in user.
+	GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error)
+
+	// GetTeamQuotaInfo returns the quota for a team.
+	GetTeamQuotaInfo(ctx context.Context, tid keybase1.TeamID) (
+		info *kbfsblock.QuotaInfo, err error)
 }
 
 // blockServerLocal is the interface for BlockServer implementations
