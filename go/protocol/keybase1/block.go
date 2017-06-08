@@ -244,6 +244,16 @@ func (o GetUserQuotaInfoArg) DeepCopy() GetUserQuotaInfoArg {
 	return GetUserQuotaInfoArg{}
 }
 
+type GetTeamQuotaInfoArg struct {
+	Tid TeamID `codec:"tid" json:"tid"`
+}
+
+func (o GetTeamQuotaInfoArg) DeepCopy() GetTeamQuotaInfoArg {
+	return GetTeamQuotaInfoArg{
+		Tid: o.Tid.DeepCopy(),
+	}
+}
+
 type BlockPingArg struct {
 }
 
@@ -263,6 +273,7 @@ type BlockInterface interface {
 	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) (DowngradeReferenceRes, error)
 	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
+	GetTeamQuotaInfo(context.Context, TeamID) ([]byte, error)
 	BlockPing(context.Context) (BlockPingResponse, error)
 }
 
@@ -436,6 +447,22 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamQuotaInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamQuotaInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamQuotaInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamQuotaInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamQuotaInfo(ctx, (*typedArgs)[0].Tid)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"blockPing": {
 				MakeArg: func() interface{} {
 					ret := make([]BlockPingArg, 1)
@@ -508,6 +535,12 @@ func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg Archiv
 
 func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res)
+	return
+}
+
+func (c BlockClient) GetTeamQuotaInfo(ctx context.Context, tid TeamID) (res []byte, err error) {
+	__arg := GetTeamQuotaInfoArg{Tid: tid}
+	err = c.Cli.Call(ctx, "keybase.1.block.getTeamQuotaInfo", []interface{}{__arg}, &res)
 	return
 }
 
