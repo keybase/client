@@ -520,6 +520,16 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
+func (mc *MerkleClient) FetchRootFromServerBySeqno(ctx context.Context, lowerBound keybase1.Seqno) (mr *MerkleRoot, err error) {
+	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
+	root := mc.LastRoot()
+	if root != nil && *root.Seqno() >= lowerBound {
+		mc.G().Log.CDebugf(ctx, "seqno=%d, and was current enough, so returning non-nil previously fetched root", *root.Seqno())
+		return root, nil
+	}
+	return mc.fetchRootFromServer(ctx, root)
+}
+
 func (mc *MerkleClient) FetchRootFromServer(ctx context.Context, freshness time.Duration) (mr *MerkleRoot, err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServer", func() error { return err })()
 	root := mc.LastRoot()

@@ -73,6 +73,12 @@
     },
     {
       "type": "record",
+      "name": "LeaseID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "KID",
       "fields": [],
       "typedef": "string"
