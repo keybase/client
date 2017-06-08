@@ -17,7 +17,14 @@ class SearchResultsList extends Component<void, Props, void> {
   _itemRenderer = index => {
     const id = this.props.items[index]
     const {onClick, onShowTracker} = this.props
-    return <Row id={id} key={id} onClick={() => onClick(id)} onShowTracker={() => onShowTracker(id)} />
+    return (
+      <Row
+        id={id}
+        key={id}
+        onClick={() => onClick(id)}
+        onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+      />
+    )
   }
 
   render() {

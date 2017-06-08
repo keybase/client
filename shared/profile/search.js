@@ -65,7 +65,7 @@ const Search = props => {
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>
       <Box style={{...styleSearchRow, ...globalStyles.scrollable}}>
-        <ResultsList items={props.ids} onClick={props.onClick} onShowTracker={props.onShowTracker} />
+        <ResultsList items={props.ids} onClick={props.onClick} />
       </Box>
     </Box>
   )
