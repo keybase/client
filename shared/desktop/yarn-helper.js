@@ -36,7 +36,7 @@ function pad(s, num) {
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 const webpackCmd =
-  './node_modules/.bin/webpack --config ./desktop/webpack/config.babel.js --progress --profile --colors' // --json > log.txt'
+  './node_modules/.bin/webpack --config ./desktop/webpack.config.babel.js --progress --profile --colors' // --json > log.txt'
 
 const commands = {
   'apply-new-fonts': {
@@ -46,7 +46,17 @@ const commands = {
   'build-dev': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
+    nodeEnv: 'development',
     shell: webpackCmd,
+  },
+  'hot-server': {
+    env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
+    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
+    nodeEnv: 'development',
+    shell: webpackCmd,
+    // shell: process.env['NO_DASHBOARD']
+    // ? `${nodeCmd} desktop/server.js`
+    // : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
   },
   // 'build-main-thread': {
   // env: {BABEL_ENV: 'yarn', HOT: 'true'},
@@ -92,14 +102,6 @@ const commands = {
           .join('\n')
       )
     },
-  },
-  'hot-server': {
-    env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
-    help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
-    nodeEnv: 'development',
-    shell: process.env['NO_DASHBOARD']
-      ? `${nodeCmd} desktop/server.js`
-      : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
   },
   'inject-code-prod': {
     help: 'Copy current code into currently installed Keybase app',
