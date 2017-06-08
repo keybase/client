@@ -241,6 +241,7 @@ const dllConfig = {
       path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
     }),
   ],
+  target: 'electron-renderer',
 }
 
 const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
