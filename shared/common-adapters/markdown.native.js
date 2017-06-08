@@ -14,9 +14,9 @@ const codeSnippetStyle = {
   fontSize: 13,
   backgroundColor: globalColors.beige,
   // FIXME not yet supported for nested <Text>:
-  //...globalStyles.rounded,
-  //paddingLeft: globalMargins.xtiny,
-  //paddingRight: globalMargins.xtiny,
+  // ...globalStyles.rounded,
+  // paddingLeft: globalMargins.xtiny,
+  // paddingRight: globalMargins.xtiny,
 }
 
 const codeSnippetBlockStyle = {
@@ -37,6 +37,10 @@ const codeSnippetBlockTextStyle = {
 
 const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWidth: 3, paddingLeft: 8}
 
+// The Text component adds default styles which we need to unset so that
+// styles applied to Markdown parent take effect. For instance, we need
+// to unset the default color applied by <Text type="body"> so that
+// <Markdown style={{color: ...}}> works.
 const neutralStyle = {color: undefined, fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
