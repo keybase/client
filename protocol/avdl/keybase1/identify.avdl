@@ -16,7 +16,13 @@ protocol identify {
     Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
    */
   @lint("ignore")
-  UserOrTeamLite Resolve2(string assertion);
+  User Resolve2(string assertion);
+
+  /**
+    Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+   */
+  @lint("ignore")
+  UserOrTeamLite Resolve3(string assertion);
 
   /**
     DEPRECATED:  use identify2

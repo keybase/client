@@ -45,6 +45,23 @@ func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
 }
 
+func (res *ResolveResult) User() keybase1.User {
+	return keybase1.User{
+		Uid:      res.GetUID(),
+		Username: res.GetNormalizedUsername().String(),
+	}
+}
+
+func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
+	var u keybase1.UserOrTeamLite
+	if res.WasTeamIDAssertion() {
+		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName()
+	} else {
+		u.Id, u.Name = res.GetUID().AsUserOrTeam(), res.GetNormalizedUsername().String()
+	}
+	return u
+}
+
 func (res *ResolveResult) GetUsername() string {
 	return res.resolvedKbUsername
 }

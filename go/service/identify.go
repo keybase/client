@@ -165,26 +165,32 @@ func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1
 	return rres.GetUID(), rres.GetError()
 }
 
-func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
+func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	err = res.GetError()
+	if err != nil {
+		return keybase1.User{}, err
+	}
+
+	return res.User(), nil
+}
+
+func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
+	ctx = libkb.WithLogTag(ctx, "RSLV")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()
 	return h.resolveUserOrTeam(ctx, arg)
 }
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 
-	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
-	err = rres.GetError()
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	err = res.GetError()
 	if err != nil {
 		return u, err
 	}
-
-	if rres.WasTeamIDAssertion() {
-		u.Id, u.Name = rres.GetTeamID().AsUserOrTeam(), rres.GetTeamName()
-	} else {
-		u.Id, u.Name = rres.GetUID().AsUserOrTeam(), rres.GetNormalizedUsername().String()
-	}
-	return u, nil
+	return res.UserOrTeam(), nil
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {

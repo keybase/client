@@ -102,6 +102,16 @@ func (o Resolve2Arg) DeepCopy() Resolve2Arg {
 	}
 }
 
+type Resolve3Arg struct {
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
+func (o Resolve3Arg) DeepCopy() Resolve3Arg {
+	return Resolve3Arg{
+		Assertion: o.Assertion,
+	}
+}
+
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
@@ -199,7 +209,9 @@ type IdentifyInterface interface {
 	// an error.
 	Resolve(context.Context, string) (UID, error)
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
-	Resolve2(context.Context, string) (UserOrTeamLite, error)
+	Resolve2(context.Context, string) (User, error)
+	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+	Resolve3(context.Context, string) (UserOrTeamLite, error)
 	// DEPRECATED:  use identify2
 	//
 	// Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
@@ -241,6 +253,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.Resolve2(ctx, (*typedArgs)[0].Assertion)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"Resolve3": {
+				MakeArg: func() interface{} {
+					ret := make([]Resolve3Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]Resolve3Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]Resolve3Arg)(nil), args)
+						return
+					}
+					ret, err = i.Resolve3(ctx, (*typedArgs)[0].Assertion)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -310,9 +338,16 @@ func (c IdentifyClient) Resolve(ctx context.Context, assertion string) (res UID,
 }
 
 // Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
-func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res UserOrTeamLite, err error) {
+func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res User, err error) {
 	__arg := Resolve2Arg{Assertion: assertion}
 	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve2", []interface{}{__arg}, &res)
+	return
+}
+
+// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+func (c IdentifyClient) Resolve3(ctx context.Context, assertion string) (res UserOrTeamLite, err error) {
+	__arg := Resolve3Arg{Assertion: assertion}
+	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve3", []interface{}{__arg}, &res)
 	return
 }
 

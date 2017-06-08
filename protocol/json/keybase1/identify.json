@@ -99,6 +99,17 @@
           "type": "string"
         }
       ],
+      "response": "User",
+      "doc": "Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.",
+      "lint": "ignore"
+    },
+    "Resolve3": {
+      "request": [
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
       "response": "UserOrTeamLite",
       "doc": "Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.",
       "lint": "ignore"
