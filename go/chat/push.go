@@ -576,3 +576,70 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	}, update.ConvID, update.Typing)
 	return nil
 }
+
+func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "MembershipUpdate")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for membership update: nil message body")
+	}
+
+	var update chat1.UpdateConversationMembership
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err = dec.Decode(&update)
+	if err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "MembershipUpdate(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+		defer func() {
+			if err != nil {
+				g.Debug(ctx, "MembershipUpdate: sending inbox stale notification")
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid, nil, true)
+			}
+		}()
+
+		// Load the joined conversations
+		var joinedConvs []chat1.Conversation
+		if len(update.Joined) > 0 {
+			var ibox chat1.Inbox
+			ibox, _, err = g.G().InboxSource.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
+				ConvIDs: update.Joined,
+			}, nil)
+			if err != nil {
+				g.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
+				return
+			}
+			for _, c := range ibox.ConvsUnverified {
+				joinedConvs = append(joinedConvs, c)
+			}
+		}
+
+		// Write out changes to local storage
+		joinedLocal, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joinedConvs,
+			update.Removed)
+		if err != nil {
+			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
+			return err
+		}
+
+		// Send notifications for changed conversations (might need to make this better in the future)
+		convIDs := append(utils.PluckConvIDsLocal(joinedLocal), update.Removed...)
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid, convIDs, false)
+		return nil
+	}(bctx)
+
+	return nil
+}

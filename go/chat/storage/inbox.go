@@ -951,6 +951,42 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	return nil
 }
 
+func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers, joined []chat1.Conversation,
+	removed []chat1.ConversationID) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "MembershipUpdate: updating joined: %d removed: %d", len(joined), len(removed))
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+
+	convs := i.mergeConvs(ibox.Conversations, joined)
+	removedMap := make(map[string]bool)
+	for _, r := range removed {
+		removedMap[r.String()] = true
+	}
+	ibox.Conversations = nil
+	for _, conv := range convs {
+		if !removedMap[conv.GetConvID().String()] {
+			ibox.Conversations = append(ibox.Conversations, conv)
+		}
+	}
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
+	ibox.InboxVersion = vers
+
+	if err = i.writeDiskInbox(ctx, ibox); err != nil {
+		return err
+	}
+	return nil
+}
+
 type InboxVersionSource struct {
 	globals.Contextified
 }
