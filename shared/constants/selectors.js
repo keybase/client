@@ -1,4 +1,6 @@
 // @flow
+import {createSelector} from 'reselect'
+
 import type {TypedState} from './reducer'
 import type {SearchQuery} from './searchv3'
 
@@ -10,5 +12,14 @@ const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, sear
   searchQueryToResult.get(searchQuery)
 
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
-
-export {cachedSearchResults, inboxSearchSelector, loggedInSelector, usernameSelector}
+const profileSearchResultArray = createSelector(
+  ({profile: {searchResults}}: TypedState) => searchResults,
+  searchResults => (searchResults ? searchResults.toArray() : [])
+)
+export {
+  cachedSearchResults,
+  inboxSearchSelector,
+  loggedInSelector,
+  profileSearchResultArray,
+  usernameSelector,
+}

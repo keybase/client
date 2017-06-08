@@ -12,6 +12,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {Box, Icon, Text} from '../common-adapters'
 import {connect} from 'react-redux'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+import {profileSearchResultArray} from '../constants/selectors'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -24,8 +25,8 @@ type OwnProps = {
   selectedService: string,
   usernameText: string,
 }
-const mapStateToProps = ({profile: {searchResults}}: TypedState) => ({
-  ids: searchResults.toArray(),
+const mapStateToProps = (state: TypedState) => ({
+  ids: profileSearchResultArray(state),
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: OwnProps) => ({
   _clearSearchResults: id => dispatch(Creators.clearSearchResults()),
@@ -109,7 +110,7 @@ export default compose(
     },
     onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
       props._onSelectService(nextService)
-      props._search(props.usernameText, nextService)
+      props._search(props.searchText, nextService)
     },
   }),
   defaultProps({
