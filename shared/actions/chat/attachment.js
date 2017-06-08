@@ -211,6 +211,7 @@ function* onLoadAttachment({
         yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
       }
     } catch (err) {
+      console.warn('attachment failed to load:', err)
       yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
     }
   })
