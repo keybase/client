@@ -479,13 +479,23 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 
 // Blocks until a connnection is ready for use or the context is canceled.
 func (c *Connection) waitForConnection(ctx context.Context) error {
-	if c.IsConnected() {
-		// already connected
+	reconnectChan, disconnectStatus, reconnectErrPtr, wait :=
+		func() (chan struct{}, DisconnectStatus, *error, bool) {
+			c.mutex.Lock()
+			defer c.mutex.Unlock()
+			if c.isConnectedLocked() {
+				// already connected
+				return nil, UsingExistingConnection, nil, false
+			}
+			// kick-off a connection and wait for it to complete
+			// or for the caller to cancel.
+			reconnectChan, disconnectStatus, reconnectErrPtr :=
+				c.getReconnectChanLocked()
+			return reconnectChan, disconnectStatus, reconnectErrPtr, true
+		}()
+	if !wait {
 		return nil
 	}
-	// kick-off a connection and wait for it to complete
-	// or for the caller to cancel.
-	reconnectChan, disconnectStatus, reconnectErrPtr := c.getReconnectChan()
 	c.log.Debug("Connection: waitForConnection; status: %d", disconnectStatus)
 	select {
 	case <-ctx.Done():
@@ -503,12 +513,16 @@ func (c *Connection) checkForRetry(err error) bool {
 	return err == io.EOF
 }
 
+func (c *Connection) isConnectedLocked() bool {
+	return c.transport.IsConnected() && c.client != nil
+}
+
 // IsConnected returns true if the connection is connected.  The mutex
 // must not be held by the caller.
 func (c *Connection) IsConnected() bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	return c.transport.IsConnected() && c.client != nil
+	return c.isConnectedLocked()
 }
 
 // This will either kick-off a new reconnection attempt or wait for an
@@ -516,12 +530,10 @@ func (c *Connection) IsConnected() bool {
 // and whether or not a new one was created.  If a fatal error
 // happens, reconnectErrPtr will be filled in before reconnectChan is
 // closed.
-func (c *Connection) getReconnectChan() (
+func (c *Connection) getReconnectChanLocked() (
 	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
 	reconnectErrPtr *error) {
 	c.log.Debug("Connection: getReconnectChan")
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {
 		var ctx context.Context
 		// for canceling the reconnect loop via Shutdown()
@@ -539,6 +551,14 @@ func (c *Connection) getReconnectChan() (
 		disconnectStatus = UsingExistingConnection
 	}
 	return c.reconnectChan, disconnectStatus, c.reconnectErrPtr
+}
+
+func (c *Connection) getReconnectChan() (
+	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
+	reconnectErrPtr *error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	return c.getReconnectChanLocked()
 }
 
 // doReconnect attempts a reconnection.  It assumes that reconnectChan
