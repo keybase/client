@@ -39,7 +39,8 @@ const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWid
 
 // The Text component adds default styles which we need to unset so that
 // styles applied to Markdown parent take effect. For instance, we need
-// to unset the default color applied by so that works.
+// to unset the default color applied by <Text type="body"> so that
+// <Markdown style={{color: ...}}> works.
 const neutralStyle = {color: undefined, fontWeight: undefined}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
