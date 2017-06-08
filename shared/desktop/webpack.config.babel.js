@@ -216,6 +216,7 @@ const dllConfig = {
     'moment',
     'prop-types',
     'qrcode-generator',
+    'react',
     'react-base16-styling',
     'react-dom',
     'react-list',
@@ -229,6 +230,9 @@ const dllConfig = {
     'redux-saga',
     'semver',
   ],
+  module: {
+    noParse: [/qrcode-generator/],
+  },
   name: 'vendor',
   output: {
     filename: 'dll.vendor.js',
@@ -245,9 +249,7 @@ const dllConfig = {
 }
 
 const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
-// const override = {}
-
-// const config = merge(commonConfig, override)
+// const config = dllConfig
 
 // console.log(JSON.stringify(config, null, 2))
 
