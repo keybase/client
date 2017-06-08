@@ -153,7 +153,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
   }
 
   return fork(function* () {
-    const chan = yield actionChannel(pattern)
+    const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
       const action = yield take(chan)
       yield call(wrappedWorker, action, ...args)
