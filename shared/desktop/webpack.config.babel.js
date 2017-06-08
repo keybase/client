@@ -1,7 +1,5 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
-// dll
-// noparse
 // prefetch
 // commonchunks plugin
 // hints from analyzer
@@ -164,7 +162,15 @@ const mainThreadConfig = merge(commonConfig, {
 const makeRenderPlugins = () => {
   const dashboardPlugin = isShowingDashboard ? [new DashboardPlugin()] : []
   const hmrPlugin = isHot ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()] : []
-  const noEmitOnErrorsPlugin = [new webpack.NoEmitOnErrorsPlugin()]
+  const noEmitOnErrorsPlugin = isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
+  const commonChunksPlugin = isDev
+    ? [
+        new webpack.optimize.CommonsChunkPlugin({
+          filename: 'common-chunks.js',
+          name: 'common-chunks',
+        }),
+      ]
+    : []
 
   const dllPlugin = isDev
     ? [
@@ -174,7 +180,13 @@ const makeRenderPlugins = () => {
       ]
     : []
 
-  return [...dashboardPlugin, ...hmrPlugin, ...noEmitOnErrorsPlugin, ...dllPlugin].filter(Boolean)
+  return [
+    ...dashboardPlugin,
+    ...hmrPlugin,
+    ...noEmitOnErrorsPlugin,
+    ...dllPlugin,
+    ...commonChunksPlugin,
+  ].filter(Boolean)
 }
 
 const HMREntries = isHot
@@ -230,9 +242,6 @@ const dllConfig = {
     'redux-saga',
     'semver',
   ],
-  module: {
-    noParse: [/qrcode-generator/],
-  },
   name: 'vendor',
   output: {
     filename: 'dll.vendor.js',

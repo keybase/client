@@ -40,6 +40,10 @@ export default function() {
                 src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
                 async: false,
               },
+              {
+                src: hotPath('common-chunks.js'),
+                async: false,
+              },
             ]
           : []),
         {
