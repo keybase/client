@@ -101,6 +101,19 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, user
 
 }
 
+type MemberChecker interface {
+	IsMember(context.Context, string) bool
+}
+
+func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
+	for k := range m.recipients {
+		if !checker.IsMember(ctx, k) {
+			continue
+		}
+		delete(m.recipients, k)
+	}
+}
+
 // AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) error {
 	// make a map of the None members

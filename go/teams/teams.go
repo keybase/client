@@ -264,29 +264,11 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
-	// make keys for the team
-	if _, err := t.SharedSecret(ctx); err != nil {
-		return err
-	}
-
-	// load the member set specified in req
-	memSet, err := newMemberSet(ctx, t.G(), req)
+	// create the change membership section + secretBoxes
+	section, secretBoxes, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
 		return err
 	}
-
-	// create the team section of the signature
-	section, err := memSet.Section(t.Chain.GetID())
-	if err != nil {
-		return err
-	}
-
-	// create secret boxes for recipients, possibly rotating the key
-	secretBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
-	if err != nil {
-		return err
-	}
-	section.PerTeamKey = perTeamKeySection
 
 	// create the change item
 	sigMultiItem, err := t.sigChangeItem(section)
@@ -299,6 +281,34 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 
 	// send it to the server
 	return t.postMulti(payload)
+}
+
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, error) {
+	// make keys for the team
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return SCTeamSection{}, nil, err
+	}
+
+	// load the member set specified in req
+	memSet, err := newMemberSet(ctx, t.G(), req)
+	if err != nil {
+		return SCTeamSection{}, nil, err
+	}
+
+	// create the team section of the signature
+	section, err := memSet.Section(t.Chain.GetID())
+	if err != nil {
+		return SCTeamSection{}, nil, err
+	}
+
+	// create secret boxes for recipients, possibly rotating the key
+	secretBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
+	if err != nil {
+		return SCTeamSection{}, nil, err
+	}
+	section.PerTeamKey = perTeamKeySection
+
+	return section, secretBoxes, nil
 }
 
 func (t *Team) loadMe() (*libkb.User, error) {
@@ -409,6 +419,13 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 			return nil, nil, err
 		}
 		return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	}
+
+	// don't need keys for existing members
+	memSet.removeExistingMembers(ctx, t)
+	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
+	if len(memSet.recipients) == 0 {
+		return nil, nil, nil
 	}
 
 	boxes, err := t.keyManager.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
