@@ -81,7 +81,11 @@ func (f *finder) chainLinks(ctx context.Context, rawTeam *rawTeam) ([]SCChainLin
 }
 
 func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigChainPlayer, error) {
-	player := NewTeamSigChainPlayer(f.G(), f, NewUserVersion(f.G().Env.GetUsername().String(), 1), false)
+	uv, err := loadUserVersionByUID(ctx, f.G(), f.G().Env.GetUID())
+	if err != nil {
+		return nil, err
+	}
+	player := NewTeamSigChainPlayer(f.G(), f, uv, false)
 	if err := player.AddChainLinks(ctx, links); err != nil {
 		return nil, err
 	}
