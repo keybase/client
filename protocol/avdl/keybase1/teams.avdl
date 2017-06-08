@@ -39,6 +39,12 @@ protocol teams {
       KID encKID;
   }
 
+  record TeamMember {
+    UID uid;
+    string role;
+    Seqno eldestSeqno;
+  }
+
   record TeamMembers {
     array<UserVersion> owners;
     array<UserVersion> admins;

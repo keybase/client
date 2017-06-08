@@ -27,6 +27,10 @@ func (id TLFID) String() string {
 	return hex.EncodeToString(id)
 }
 
+func (id TLFID) Bytes() []byte {
+	return []byte(id)
+}
+
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }

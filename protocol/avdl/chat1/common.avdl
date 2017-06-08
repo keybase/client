@@ -67,6 +67,11 @@ protocol common {
 
   }
 
+  enum ConversationMemberStatus {
+    ACTIVE_0,
+    REMOVED_1
+  }
+
   record Pagination {
     bytes next;
     bytes previous;

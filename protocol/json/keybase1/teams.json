@@ -89,6 +89,24 @@
     },
     {
       "type": "record",
+      "name": "TeamMember",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamMembers",
       "fields": [
         {
