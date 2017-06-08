@@ -50,10 +50,10 @@ const commands = {
     shell: webpackCmd,
   },
   'hot-server': {
-    env: {BABEL_ENV: 'yarn', HOT: 'true', USING_DLL: 'true'},
+    env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
-    shell: webpackCmd,
+    shell: 'JUST_MAIN=true yarn run _helper build-dev && JUST_MAIN=false ./node_modules/.bin/webpack-dev-server --config=./desktop/webpack.config.babel.js',
     // shell: process.env['NO_DASHBOARD']
     // ? `${nodeCmd} desktop/server.js`
     // : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
@@ -163,12 +163,6 @@ const commands = {
   'start-hot': {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Start electron with hot reloading (needs yarn run hot-server)',
-    nodeEnv: 'development',
-    shell: `${nodeCmd} desktop/client.js`,
-  },
-  'start-hot-debug': {
-    env: {HOT: 'true', USE_INSPECTOR: 'true'},
-    help: 'Start electron with hot reloading against a debugged main process',
     nodeEnv: 'development',
     shell: `${nodeCmd} desktop/client.js`,
   },

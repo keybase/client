@@ -30,13 +30,10 @@ const env = {
   ...devToolExtensions,
 }
 
-const handle = () => {
-  const e = spawn(electron, params, {stdio: 'inherit', env})
-  e.on('close', function() {})
-}
-
 const hitServer = () => {
-  var req = http.get('http://localhost:4000/dist/index.bundle.js', handle)
+  var req = http.get('http://localhost:4000/dist/index.bundle.js', () => {
+    spawn(electron, params, {env, stdio: 'inherit'})
+  })
   req.on('error', e => {
     console.log('Error: ', e)
     console.log('Sleeping 5 seconds and retrying. Maybe start the hot-server?')

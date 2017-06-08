@@ -1,14 +1,15 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-// TODO commonchunks plugin
+// TODO
 // hmr
 // noparse
 // dsashboard
 // dll
 // new webpack.NoEmitOnErrorsPlugin(),
 // prefetch
+// commonchunks plugin
 // hints from analyzer
 // hmr entries
-//
+//happypack?
 //
 import getenv from 'getenv'
 import merge from 'webpack-merge'
@@ -17,6 +18,7 @@ import webpack from 'webpack'
 
 const isHot = getenv.boolish('HOT', false)
 const isDev = process.env.NODE_ENV !== 'production'
+const isJustMain = getenv.boolish('JUST_MAIN', false)
 
 // const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', false)
 
@@ -121,7 +123,18 @@ const makeCommonPlugins = () => {
 const commonConfig = {
   bail: true,
   cache: true,
-  // entry: makeEntries(),
+  devServer: {
+    compress: true,
+    contentBase: path.resolve(__dirname, 'dist'),
+    hot: isHot,
+    lazy: false,
+    port: 4000,
+    publicPath: 'http://localhost:4000/dist/',
+    quiet: false,
+    stats: {
+      colors: true,
+    },
+  },
   module: {
     rules: makeRules(),
   },
@@ -153,12 +166,23 @@ const makeRenderPlugins = () => {
   return [...hmrPlugin, ...noEmitOnErrorsPlugin].filter(Boolean)
 }
 
+const HMREntries = isHot
+  ? [
+      'react-hot-loader/patch',
+      'webpack-dev-server/client?http://localhost:4000',
+      'webpack/hot/only-dev-server',
+    ]
+  : []
+
 const renderThreadConfig = merge(commonConfig, {
   devtool: undefined, // 'cheap-module-eval-source-map',
   entry: {
-    index: path.resolve(__dirname, 'renderer/index.js'),
-    launcher: path.resolve(__dirname, 'renderer/launcher.js'),
-    'remote-component-loader': path.resolve(__dirname, 'renderer/remote-component-loader.js'),
+    index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
+    launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
+    'remote-component-loader': [
+      ...HMREntries,
+      path.resolve(__dirname, 'renderer/remote-component-loader.js'),
+    ],
   },
   name: 'renderThread',
   plugins: makeRenderPlugins(),
@@ -166,7 +190,8 @@ const renderThreadConfig = merge(commonConfig, {
   // dependencies: ['vendor'],
 })
 
-const config = [mainThreadConfig, renderThreadConfig]
+// renderThreadConfig has to be first for devServer configs to be picked up
+const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig]
 // const override = {}
 
 // const config = merge(commonConfig, override)
