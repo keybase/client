@@ -10,10 +10,7 @@ import type {FeatureFlags} from './feature-flags'
 let features =
   (featureFlagsOverride && featureFlagsOverride.split(',')) || getenv.array('KEYBASE_FEATURES', 'string', '')
 
-const featureOn = (
-  key: $Keys<FeatureFlags>,
-  includeAdmin: boolean = false // eslint-disable-line space-infix-ops
-) => features.includes(key) || (includeAdmin && featureOn('admin'))
+const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
@@ -23,9 +20,13 @@ const ff: FeatureFlags = {
   tabPeopleEnabled: false,
 }
 
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  searchv3Enabled: true,
+}
+
 // load overrides
 Object.keys(ff).forEach(k => {
-  ff[k] = featureOn(k)
+  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && inAdmin[k])
 })
 
 if (__DEV__) {

@@ -1,6 +1,7 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import featureFlags from '../util/feature-flags'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -131,7 +132,6 @@ function updateStateWithMessageChanged(
 ) {
   let messageKey
 
-  // $FlowIssue
   let newState = state.update('conversationStates', conversationStates =>
     updateConversationMessage(conversationStates, conversationIDKey, pred, m => {
       messageKey = m.key
@@ -192,7 +192,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:removeOutboxMessage': {
       const {conversationIDKey, outboxID} = action.payload
       const messageKey = Constants.messageKey(conversationIDKey, 'outboxIDText', outboxID)
-      // $FlowIssue
       return state
         .update('conversationStates', conversationStates =>
           updateConversation(conversationStates, conversationIDKey, conversation =>
@@ -221,11 +220,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         messages: newMessages,
         seenMessages: newSeenMessages,
       })
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
+    case 'chat:clearSearchResults': {
+      return state.set('searchResults', initialState.searchResults)
+    }
+
     case 'chat:setLoaded': {
       const {conversationIDKey, isLoaded} = action.payload
       const newConversationStates = state
@@ -344,7 +346,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         updateConversation(
           conversationStates,
@@ -356,7 +357,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:setTypers': {
       const {conversationIDKey, typing} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         updateConversation(conversationStates, conversationIDKey, conversation =>
           conversation.set('typing', Set(typing))
@@ -409,7 +409,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload
-      // $FlowIssue
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
@@ -532,13 +531,20 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       )
     }
     case 'chat:addPendingConversation': {
-      const {participants} = action.payload
+      const {participants, temporary} = action.payload
       const sorted = participants.sort()
       const conversationIDKey = Constants.pendingConversationIDKey(sorted.join(','))
-      return state.set(
-        'pendingConversations',
-        state.get('pendingConversations').set(conversationIDKey, List(sorted))
-      )
+      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      return state
+        .update('pendingConversations', pendingConversations =>
+          // TODO use deleteAll when we update immutable
+          pendingConversations
+            .filterNot((v, k) => tempPendingConvIDs.includes(k))
+            .set(conversationIDKey, List(sorted))
+        )
+        .update('tempPendingConversations', tempPendingConversations =>
+          tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
+        )
     }
     case 'chat:pendingToRealConversation': {
       const {oldKey} = action.payload
@@ -562,17 +568,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updateFinalizedState': {
       const fs = action.payload.finalizedState
-      // $FlowIssue doesn't recognize updates
       return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
     }
     case 'chat:updateSupersedesState': {
       const ss = action.payload.supersedesState
-      // $FlowIssue doesn't recognize updates
       return state.update('supersedesState', supersedesState => supersedesState.merge(ss))
     }
     case 'chat:updateSupersededByState': {
       const sbs = action.payload.supersededByState
-      // $FlowIssue doesn't recognize updates
       return state.update('supersededByState', supersededByState => supersededByState.merge(sbs))
     }
     case 'chat:showEditor': {
@@ -580,6 +583,13 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:setInitialConversation': {
       return state.set('initialConversation', action.payload.conversationIDKey)
+    }
+    case 'chat:stageUserForSearch': {
+      const {payload: {user}} = action
+      if (state.selectedUsersInSearch.includes(user)) {
+        return state
+      }
+      return state.update('selectedUsersInSearch', l => l.push(user))
     }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
@@ -612,6 +622,19 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:updateSearchResults': {
       const {payload: {searchResults}} = action
       return state.set('searchResults', List(searchResults))
+    }
+    case 'chat:unstageUserForSearch': {
+      const {payload: {user}} = action
+      return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
+    }
+    case 'chat:newChat': {
+      if (featureFlags.searchv3Enabled) {
+        return state.set('inSearch', true)
+      }
+      return state
+    }
+    case 'chat:exitSearch': {
+      return state.set('inSearch', false)
     }
   }
 

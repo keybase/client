@@ -1,6 +1,8 @@
 // @flow
 import Banner from './banner/container'
 import Header from './header/container'
+import SearchHeader from '../search-header'
+import SearchResultsList from '../../searchv3/results-list'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
@@ -96,42 +98,56 @@ class Conversation extends Component<void, Props, State> {
         onPaste={this._onPaste}
       >
         {offline}
-        <Header
-          sidePanelOpen={this.props.sidePanelOpen}
-          onToggleSidePanel={this.props.onToggleSidePanel}
-          onBack={this.props.onBack}
-        />
-        <List
-          focusInputCounter={this.props.focusInputCounter}
-          listScrollDownCounter={this.props.listScrollDownCounter}
-          onEditLastMessage={this.props.onEditLastMessage}
-          onScrollDown={this.props.onScrollDown}
-          onFocusInput={this.props.onFocusInput}
-          editLastMessageCounter={this.props.editLastMessageCounter}
-        />
-        <Banner />
-        {this.props.showLoader && <LoadingLine />}
-        {this.props.finalizeInfo
-          ? <OldProfileResetNotice />
-          : <Input
-              focusInputCounter={this.props.focusInputCounter}
-              onEditLastMessage={this.props.onEditLastMessage}
-              onScrollDown={this.props.onScrollDown}
+        {this.props.inSearch
+          ? <SearchHeader
+              search={this.props.search}
+              onChangeSearchText={this.props.onChangeSearchText}
+              usernameText={this.props.searchText}
+            />
+          : <Header
+              sidePanelOpen={this.props.sidePanelOpen}
+              onToggleSidePanel={this.props.onToggleSidePanel}
+              onBack={this.props.onBack}
             />}
-        {this.props.sidePanelOpen &&
-          <div
-            style={{
-              ...globalStyles.flexBoxColumn,
-              bottom: 0,
-              position: 'absolute',
-              right: 0,
-              top: 35,
-              width: 320,
-            }}
-          >
-            <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
-          </div>}
-        {dropOverlay}
+        {this.props.showSearchResults
+          ? <SearchResultsList
+              items={this.props.searchResultIds}
+              onClick={this.props.onClickSearchResult}
+              onShowTracker={this.props.onShowTrackerInSearch}
+            />
+          : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              <List
+                focusInputCounter={this.props.focusInputCounter}
+                listScrollDownCounter={this.props.listScrollDownCounter}
+                onEditLastMessage={this.props.onEditLastMessage}
+                onScrollDown={this.props.onScrollDown}
+                onFocusInput={this.props.onFocusInput}
+                editLastMessageCounter={this.props.editLastMessageCounter}
+              />
+              <Banner />
+              {this.props.showLoader && <LoadingLine />}
+              {this.props.finalizeInfo
+                ? <OldProfileResetNotice />
+                : <Input
+                    focusInputCounter={this.props.focusInputCounter}
+                    onEditLastMessage={this.props.onEditLastMessage}
+                    onScrollDown={this.props.onScrollDown}
+                  />}
+              {this.props.sidePanelOpen &&
+                <div
+                  style={{
+                    ...globalStyles.flexBoxColumn,
+                    bottom: 0,
+                    position: 'absolute',
+                    right: 0,
+                    top: 35,
+                    width: 320,
+                  }}
+                >
+                  <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                </div>}
+              {dropOverlay}
+            </div>}
       </Box>
     )
   }
