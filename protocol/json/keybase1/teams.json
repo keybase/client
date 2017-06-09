@@ -230,6 +230,45 @@
     },
     {
       "type": "record",
+      "name": "TeamPlusApplicationKeys",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "onlyReaders"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "applicationKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -442,6 +481,23 @@
         }
       ],
       "response": null
+    },
+    "loadTeamPlusApplicationKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "application",
+          "type": "TeamApplication"
+        }
+      ],
+      "response": "TeamPlusApplicationKeys"
     }
   },
   "namespace": "keybase.1"
