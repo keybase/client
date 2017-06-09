@@ -204,6 +204,23 @@ const renderError = (error: RPCError) => {
           <Text type="Body">Login Cancelled</Text>
         </Box>
       )
+    case ConstantsStatusCode.sckeycorrupted:
+      return (
+        <Box style={styleContent}>
+          <Text type="Body">{error.message}</Text>
+          <Text type="Body">
+            {' '}
+            We were able to generate a PGP signature but it was rejected by the server.
+            This often means that PGP key in your Keybase profile is expired or unusable.
+            You can update your key on
+            {' '}
+            <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/')}>
+              keybase.io
+            </Text>
+            .
+          </Text>
+        </Box>
+      )
     default:
       return (
         <Box style={styleContent}>
