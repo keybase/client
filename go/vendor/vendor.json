@@ -199,10 +199,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "5E4DLEAVDwFt//h5K23zHP1qCew=",
+			"checksumSHA1": "fgFlkfkaotUjBVhJik2979oCeJw=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "b5f4c79208fa609f364833f8c356535100d602ad",
-			"revisionTime": "2017-05-22T12:28:10Z"
+			"revision": "00ac4db533f63ef97576cbc7b07939ff7daf7329",
+			"revisionTime": "2017-06-05T14:56:57Z"
 		},
 		{
 			"checksumSHA1": "+spfcEChljh3yeIg4K/xHOQ2pVM=",
@@ -235,10 +235,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "CXTLNDL5s+SONDJdwuI3kRFGyBk=",
+			"checksumSHA1": "y16ATKgHL/k6rQZqdXP1sIAJxE0=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "b5f4c79208fa609f364833f8c356535100d602ad",
-			"revisionTime": "2017-05-22T12:28:10Z"
+			"revision": "00ac4db533f63ef97576cbc7b07939ff7daf7329",
+			"revisionTime": "2017-06-05T14:56:57Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
@@ -259,10 +259,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "XcdT+EQTxq6KleaC+bA78Ai38SE=",
+			"checksumSHA1": "EByEHRqLqn43oRFBg+pr542YooU=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "dfe7e45ab9ad4b86c06284aa074cfbff4376ce5f",
-			"revisionTime": "2017-05-25T22:27:53Z"
+			"revision": "6c50f8c9981723baf4eea80f5de8f5b33493a126",
+			"revisionTime": "2017-06-08T21:54:08Z"
 		},
 		{
 			"checksumSHA1": "rvlJlCMLMSpfITBgFv6OdWxlhco=",

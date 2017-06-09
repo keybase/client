@@ -83,7 +83,9 @@ func (c ChainLinks) EldestSeqno() keybase1.Seqno {
 	return c[0].GetSeqno()
 }
 
-func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool) (err error) {
+func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool, mhm keybase1.HashMeta, fau keybase1.Seqno) (err error) {
+
+	sc.G().Log.Debug("SigChain#LocalDelegate(key: %s, sigID: %s, signingKid: %s, isSibkey: %v)", key.GetKID(), sigID, signingKid, isSibkey)
 
 	cki := sc.localCki
 	l := sc.GetLastLink()
@@ -103,7 +105,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau)
 	}
 
 	return
@@ -573,9 +575,11 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
-		isModifyingKeys := isDelegating || tcl.Type() == DelegationTypePGPUpdate
+		isModifyingKeys := isDelegating || tcl.Type() == string(DelegationTypePGPUpdate)
 		isFinalLink := (linkIndex == len(links)-1)
 		hasRevocations := link.HasRevocations()
+		sc.G().VDL.Log(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
+			isDelegating, isModifyingKeys, isFinalLink, hasRevocations)
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {

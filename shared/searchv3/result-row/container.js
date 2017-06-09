@@ -1,25 +1,30 @@
 // @flow
+import {Map} from 'immutable'
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
+import {followStateHelper} from '../../constants/searchv3'
 
 import type {TypedState} from '../../constants/reducer'
+import type {SearchResultId} from '../../constants/searchv3'
 
-const mapStateToProps = (state: TypedState, {id, keyPath}: {id: string, keyPath: Array<string>}) => {
+const mapStateToProps = (
+  state: TypedState,
+  {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
+) => {
+  // $FlowIssue doesn't understand getIn
+  const result = state.entities.getIn(['searchResults', id], Map()).toObject()
+
+  const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
+  const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
+
   return {
-    // $FlowIssue doesnt like getIn
-    ...state.entities.getIn(keyPath.concat([id])),
+    ...result,
+    onClick,
+    onShowTracker,
+    showTrackerButton: !!onShowTracker,
+    leftFollowingState,
+    rightFollowingState,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {keyPath, id}) => ({
-  onShowTracker: () => {
-    console.log('todo: dispatch action')
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SearchResultRow)
+export default connect(mapStateToProps)(SearchResultRow)

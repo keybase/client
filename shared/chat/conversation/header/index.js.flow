@@ -3,6 +3,7 @@ import {Component} from 'react'
 import type {UserList} from '../../../common-adapters/usernames'
 
 export type Props = {|
+  badgeNumber?: number,
   muted: boolean,
   onBack: () => void,
   onOpenFolder: () => void,

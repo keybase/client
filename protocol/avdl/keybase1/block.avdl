@@ -37,6 +37,7 @@ protocol block {
   void authenticateSession(string signature);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
+  void putBlockAgain(string folder, BlockReference ref, string blockKey, bytes buf);
   GetBlockRes getBlock(BlockIdCombo bid, string folder);
 
   void addReference(string folder, BlockReference ref);
@@ -47,6 +48,7 @@ protocol block {
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
   bytes getUserQuotaInfo();
+  bytes getTeamQuotaInfo(TeamID tid);
 
   BlockPingResponse blockPing();
 }

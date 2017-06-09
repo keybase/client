@@ -16,12 +16,14 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sys/windows/registry"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 
+	"io/ioutil"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"io/ioutil"
 )
 
 // AutoInstall is not supported on Windows
@@ -159,6 +161,25 @@ func getVersionAndDrivers(logFile *os.File) {
 		logFile.WriteString("Error getting CPU type\n")
 	}
 	logFile.WriteString("\n")
+
+	// Check whether the service shortcut is still present and not disabled
+	if appDataDir, err := libkb.AppDataDir(); err != nil {
+		logFile.WriteString("Error getting AppDataDir\n")
+	} else {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
+			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
+		} else {
+			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
+			if err != nil {
+				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
+			} else {
+				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
+				if err == nil && len(val) > 0 && val[0] != 2 {
+					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
+				}
+			}
+		}
+	}
 
 	// List filesystem drivers
 	outputBytes, err := exec.Command("driverquery").Output()

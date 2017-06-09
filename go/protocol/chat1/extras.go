@@ -220,6 +220,9 @@ func (t ConversationIDTriple) ToConversationID(shardID [2]byte) ConversationID {
 
 func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	h := t.Hash()
+	if len(h) <= 2 || len(cid) <= 2 {
+		return false
+	}
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
@@ -361,6 +364,14 @@ func (c ConversationLocal) GetTopicType() TopicType {
 	return c.Info.Triple.TopicType
 }
 
+func (c ConversationLocal) GetMembersType() ConversationMembersType {
+	return c.Info.MembersType
+}
+
+func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
+	return c.Info.FinalizeInfo
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -371,6 +382,14 @@ func (c Conversation) GetConvID() ConversationID {
 
 func (c Conversation) GetTopicType() TopicType {
 	return c.Metadata.IdTriple.TopicType
+}
+
+func (c Conversation) GetMembersType() ConversationMembersType {
+	return c.Metadata.MembersType
+}
+
+func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
+	return c.Metadata.FinalizeInfo
 }
 
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {

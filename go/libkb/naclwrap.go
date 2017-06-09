@@ -693,6 +693,11 @@ func (k NaclDHKeyPair) IsNil() bool {
 	return bytes.Equal(k.Public[:], empty[:])
 }
 
+func (k NaclSigningKeyPair) IsNil() bool {
+	var empty NaclSigningKeyPublic
+	return bytes.Equal(k.Public[:], empty[:])
+}
+
 // Encrypt a message to the key `k` from the given `sender`. If sender is nil, an ephemeral
 // keypair will be invented
 func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {

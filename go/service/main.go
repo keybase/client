@@ -116,6 +116,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
 		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
+		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -277,11 +278,10 @@ func (d *Service) stopChatModules() {
 func (d *Service) createChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
 	ri := d.gregor.GetClient
-	tlf := chat.NewKBFSTLFInfoSource(g)
 
 	// Set up main chat data sources
-	boxer := chat.NewBoxer(g, tlf)
-	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri, tlf)
+	boxer := chat.NewBoxer(g)
+	g.InboxSource = chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, storage.New(g), ri)
 	g.ServerCacheVersions = storage.NewServerVersions(g)
@@ -299,7 +299,7 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	sender := chat.NewBlockingSender(g, chat.NewBoxer(g, tlf), d.attachmentstore, ri)
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// Set up Offlinables on Syncer
@@ -310,7 +310,7 @@ func (d *Service) createChatModules() {
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
-	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g, tlf))
+	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g))
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -380,6 +380,10 @@ func (d *Service) StartLoopbackServer() error {
 	if l, err = d.G().MakeLoopbackServer(); err != nil {
 		return err
 	}
+
+	// Make sure we have the same keys in memory in standalone mode as we do in
+	// regular service mode.
+	d.tryLogin()
 
 	go d.ListenLoop(l)
 
@@ -800,6 +804,22 @@ func (d *Service) tryLogin() {
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		d.G().Log.Debug("error running LoginOffline on service startup: %s", err)
 		d.G().Log.Debug("trying LoginProvisionedDevice")
+
+		// Standalone mode quirk here. We call tryLogin when client is
+		// launched in standalone to unlock the same keys that we would
+		// have in service mode. But NewLoginProvisionedDevice engine
+		// needs KbKeyrings and not every command sets it up. Ensure
+		// Keyring is available.
+
+		// TODO: We will be phasing out KbKeyrings usage flag, or even
+		// usage flags entirely. Then this will not be needed because
+		// Keyrings will always be loaded.
+
+		if d.G().Keyrings == nil {
+			d.G().Log.Debug("tryLogin: Configuring Keyrings")
+			d.G().ConfigureKeyring()
+		}
+
 		deng := engine.NewLoginProvisionedDevice(d.G(), "")
 		deng.SecretStoreOnly = true
 		ctx := &engine.Context{

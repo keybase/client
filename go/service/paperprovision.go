@@ -33,7 +33,7 @@ func (h *PaperProvisionHandler) PaperProvision(ctx context.Context, arg keybase1
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
 		SessionID:   arg.SessionID,
 	}
-	eng := engine.NewPaperProvisionEngine(h.G(), arg.Username, arg.DeviceName, arg.PaperKey, arg.KeepPaperKey)
+	eng := engine.NewPaperProvisionEngine(h.G(), arg.Username, arg.DeviceName, arg.PaperKey)
 	err := engine.RunEngine(eng, &ectx)
 	if err != nil {
 		return err

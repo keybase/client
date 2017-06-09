@@ -9,11 +9,11 @@ import {getStyle as getTextStyle} from '../../common-adapters/text'
 
 import type {UserDetails, Props} from './'
 
-type UserItemProps = UserDetails & {onRemoveUser: (username: string) => void}
+type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 
 class UserItem extends Component<void, UserItemProps, void> {
   _onRemoveUser = () => {
-    this.props.onRemoveUser(this.props.username)
+    this.props.onRemoveUser(this.props.id)
   }
 
   render() {
@@ -78,7 +78,7 @@ class UserInput extends Component<void, Props, State> {
       ev.target.selectionStart === 0 &&
       ev.target.selectionEnd === 0
     ) {
-      this.props.onRemoveUser(last(this.props.userItems).username)
+      this.props.onRemoveUser(last(this.props.userItems).id)
     }
   }
 
@@ -102,7 +102,7 @@ class UserInput extends Component<void, Props, State> {
         onClick={this._focusInput}
         onMouseDown={this._preventInputDefocus}
       >
-        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.username} />)}
+        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
         <Box style={_inputLineStyle}>
           <AutosizeInput
             ref={el => {

@@ -219,6 +219,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
 
 const servicesResultsListMapCommon = {
   mockStore: {
+    config: {
+      username: 'tester',
+      following: {},
+    },
     entities: new EntitiesStateRecord({
       searchv3Chat: Map(servicesResultsListMapCommonRows),
     }),
@@ -235,21 +239,29 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
   mocks: {
     keybaseResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris', 'cjb', 'jzila'],
       keyPath: ['searchv3Chat'],
     },
     keybaseResultsOne: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris'],
       keyPath: ['searchv3Chat'],
     },
     facebookResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris-fb', 'cjb-fb', 'jzila-fb'],
       keyPath: ['searchv3Chat'],
     },
     noResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: [],
       keyPath: ['searchv3Chat'],
     },
@@ -264,29 +276,55 @@ const commonUserInputMapProps = {
 }
 
 const maxUsers = [
-  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
-  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max'},
-  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'denormalize'},
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max', id: 'max'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'denormalize',
+    id: 'denormalize@twitter',
+  },
 ]
 
 const chrisUsers = [
-  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
-  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris'},
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris', id: 'chris'},
   {
     followingState: 'Following',
     icon: 'icon-hacker-news-logo-16',
     service: 'Hacker News',
     username: 'cnojima',
+    id: 'cnojima@hackernews',
   },
-  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'chriscoyier'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'chriscoyier',
+    id: 'chriscoyier@twitter',
+  },
   {
     followingState: 'NotFollowing',
     icon: 'icon-facebook-logo-16',
     service: 'Facebook',
     username: 'chrisevans',
+    id: 'chrisevans@facebook',
   },
-  {followingState: 'NotFollowing', icon: 'icon-github-logo-16', service: 'GitHub', username: 'defunkt'},
-  {followingState: 'NotFollowing', icon: 'icon-reddit-logo-16', service: 'Reddit', username: 'KeyserSosa'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-github-logo-16',
+    service: 'GitHub',
+    username: 'defunkt',
+    id: 'defunkt@github',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-reddit-logo-16',
+    service: 'Reddit',
+    username: 'KeyserSosa',
+    id: 'KeyserSosa@reddit',
+  },
 ]
 
 const userInputMap: DumbComponentMap<UserInput> = {

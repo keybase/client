@@ -222,7 +222,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G().GetEnv())
+	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "TlfFinalize(goroutine)")()
 		<-cb
@@ -282,7 +282,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G().GetEnv())
+	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "TlfResolve(goroutine)")()
 		<-cb
@@ -323,7 +323,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "Activity")()
 	if m.Body() == nil {
@@ -345,7 +345,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
-	bctx := BackgroundContext(ctx, g.G().GetEnv())
+	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "Activity(goroutine)")()
 		<-cb
@@ -542,7 +542,7 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
-	ctx = Context(ctx, g.G().GetEnv(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
 	defer g.Trace(ctx, func() error { return err }, "Typing")()
 	if m.Body() == nil {

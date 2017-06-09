@@ -156,7 +156,7 @@ func (t *TypingMonitor) removeFromTypers(ctx context.Context, key string, convID
 func (t *TypingMonitor) waitOnTyper(ctx context.Context, chans *typingControlChans,
 	convID chat1.ConversationID) {
 	key := t.key(chans.typer, convID)
-	ctx = BackgroundContext(ctx, t.G().GetEnv())
+	ctx = BackgroundContext(ctx, t.G())
 	deadline := t.clock.Now().Add(t.timeout)
 	go func() {
 		extends := 0

@@ -24,13 +24,6 @@ func clientInfo(g *GlobalContext) *jsonw.Wrapper {
 	return ret
 }
 
-func merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
-	if mc := g.MerkleClient; mc != nil {
-		ret, _ = mc.LastRootToSigJSON()
-	}
-	return ret
-}
-
 type KeySection struct {
 	Key                  GenericKey
 	EldestKID            keybase1.KID
@@ -250,6 +243,17 @@ type ProofMetadata struct {
 	IncludePGPHash bool
 	SigVersion     SigVersion
 	SeqType        int
+	MerkleRoot     *MerkleRoot
+}
+
+func (arg ProofMetadata) merkleRootInfo(g *GlobalContext) (ret *jsonw.Wrapper) {
+	if mr := arg.MerkleRoot; mr != nil {
+		return mr.ToSigJSON()
+	}
+	if mc := g.MerkleClient; mc != nil {
+		ret, _ = mc.LastRootToSigJSON()
+	}
+	return ret
 }
 
 func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error) {
@@ -329,7 +333,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	body.SetKey("key", key)
 	// Capture the most recent Merkle Root, inside of "body"
 	// field.
-	if mr := merkleRootInfo(g); mr != nil {
+	if mr := arg.merkleRootInfo(g); mr != nil {
 		body.SetKey("merkle_root", mr)
 	}
 
@@ -409,6 +413,7 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 		IncludePGPHash: includePGPHash,
 		Seqno:          arg.Seqno,
 		PrevLinkID:     arg.PrevLinkID,
+		MerkleRoot:     arg.MerkleRoot,
 	}.ToJSON(arg.G())
 
 	if err != nil {
@@ -609,6 +614,10 @@ func PerUserKeyProof(me *User,
 	pukEncKID keybase1.KID,
 	generation keybase1.PerUserKeyGeneration,
 	signingKey GenericKey) (*jsonw.Wrapper, error) {
+
+	if me == nil {
+		return nil, fmt.Errorf("missing user object for proof")
+	}
 
 	ret, err := ProofMetadata{
 		Me:         me,

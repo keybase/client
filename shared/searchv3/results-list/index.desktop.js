@@ -16,7 +16,15 @@ const owl = `
 class SearchResultsList extends Component<void, Props, void> {
   _itemRenderer = index => {
     const id = this.props.items[index]
-    return <Row id={id} key={id} keyPath={this.props.keyPath} />
+    const {onClick, onShowTracker} = this.props
+    return (
+      <Row
+        id={id}
+        key={id}
+        onClick={() => onClick(id)}
+        onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+      />
+    )
   }
 
   render() {

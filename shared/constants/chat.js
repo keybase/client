@@ -24,7 +24,7 @@ import type {
   ConversationID as RPCConversationID,
   TyperInfo,
 } from './types/flow-types-chat'
-import type {DeviceType} from './types/more'
+import type {DeviceType, LooseRecord} from './types/more'
 import type {TypedState} from './reducer'
 
 export type Username = string
@@ -335,7 +335,8 @@ export type RekeyInfo = Record<{
   youCanRekey: boolean,
 }>
 
-export const StateRecord = Record({
+// $FlowIssue with cast
+export const StateRecord: LooseRecord<T> = Record({
   messageMap: Map(),
   inbox: List(),
   inboxFilter: List(),
@@ -354,12 +355,15 @@ export const StateRecord = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
-  searchResults: List(),
+  searchResults: null,
+  selectedUsersInSearch: List(),
+  inSearch: false,
+  tempPendingConversations: Map(),
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type State = Record<{
+export type State = LooseRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
   inbox: List<InboxState>,
@@ -375,11 +379,14 @@ export type State = Record<{
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
+  tempPendingConversations: Map<ConversationIDKey, boolean>,
   nowOverride: ?Date,
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
-  searchResults: List<SearchConstants.SearchResultId>,
+  searchResults: ?List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: List<SearchConstants.SearchResultId>,
+  inSearch: boolean,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -388,11 +395,13 @@ export const howLongBetweenTimestampsMs = 1000 * 60 * 15
 export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
+export const blankChat = 'chat:blankChat'
 
 export type AddPendingConversation = NoErrorTypedAction<
   'chat:addPendingConversation',
-  {participants: Array<string>}
+  {participants: Array<string>, temporary: boolean}
 >
+
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
   {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
@@ -403,6 +412,7 @@ export type BlockConversation = NoErrorTypedAction<
   {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
+export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
@@ -410,6 +420,7 @@ export type CreatePendingFailure = NoErrorTypedAction<
 >
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
+export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
@@ -501,13 +512,21 @@ export type SetUnboxing = TypedAction<
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
+export type StageUserForSearch = NoErrorTypedAction<
+  'chat:stageUserForSearch',
+  {user: SearchConstants.SearchResultId}
+>
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
-  {users: Array<string>, forceImmediate: boolean}
+  {users: Array<string>, forceImmediate: boolean, temporary: boolean}
 >
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}
+>
+export type UnstageUserForSearch = NoErrorTypedAction<
+  'chat:unstageUserForSearch',
+  {user: SearchConstants.SearchResultId}
 >
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',
@@ -976,12 +995,10 @@ const getMuted = createSelector(
 )
 
 const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
-  // $FlowIssue getIn
   state.chat.getIn(['messageMap', messageKey])
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  // $FlowIssue getIn
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 

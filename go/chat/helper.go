@@ -5,20 +5,19 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTextByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, text string, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, membersType, ri)
+func SendTextByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string, ri chat1.RemoteInterface) error {
+	helper := newSendHelper(g, name, membersType, ident, ri)
 	return helper.SendText(ctx, text)
 }
 
-func SendMsgByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, body chat1.MessageBody, msgType chat1.MessageType, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, membersType, ri)
+func SendMsgByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody, msgType chat1.MessageType, ri chat1.RemoteInterface) error {
+	helper := newSendHelper(g, name, membersType, ident, ri)
 	return helper.SendBody(ctx, body, msgType)
 }
 
@@ -26,22 +25,24 @@ type sendHelper struct {
 	name        string
 	membersType chat1.ConversationMembersType
 	ri          chat1.RemoteInterface
+	ident       keybase1.TLFIdentifyBehavior
 
 	canonicalName string
 	tlfID         chat1.TLFID
 	convID        chat1.ConversationID
 	triple        chat1.ConversationIDTriple
 
-	infoSrc types.TLFInfoSource
 	globals.Contextified
 }
 
-func newSendHelper(g *globals.Context, name string, membersType chat1.ConversationMembersType, ri chat1.RemoteInterface) *sendHelper {
+func newSendHelper(g *globals.Context, name string, membersType chat1.ConversationMembersType,
+	ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
 		name:         name,
 		membersType:  membersType,
 		ri:           ri,
+		ident:        ident,
 	}
 }
 
@@ -51,6 +52,7 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
+	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
 	if err := s.nameInfo(ctx); err != nil {
 		return err
 	}
@@ -63,16 +65,12 @@ func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype
 }
 
 func (s *sendHelper) nameInfo(ctx context.Context) error {
-	cname, err := s.infoSource().CompleteAndCanonicalizePrivateTlfName(ctx, s.name)
+	nameInfo, err := CtxKeyFinder(ctx, s.G()).Find(ctx, s.name, s.membersType, false)
 	if err != nil {
 		return err
 	}
-	s.tlfID, err = chat1.MakeTLFID(cname.TlfID.String())
-	if err != nil {
-		return err
-	}
-
-	s.canonicalName = cname.CanonicalName.String()
+	s.tlfID = nameInfo.ID
+	s.canonicalName = nameInfo.CanonicalName
 
 	return nil
 }
@@ -86,13 +84,15 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	vis := chat1.TLFVisibility_PRIVATE
 	topic := chat1.TopicType_CHAT
 	query := chat1.GetInboxLocalQuery{
-		TlfName:       &s.canonicalName,
+		Name: &chat1.NameQuery{
+			Name:        s.canonicalName,
+			MembersType: s.membersType,
+		},
 		TlfVisibility: &vis,
 		TopicType:     &topic,
 	}
 
-	localizer := NewBlockingLocalizer(s.G(), s.infoSource())
-	ib, _, err := s.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, &query, nil)
+	ib, _, err := s.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if err != nil {
 		return err
 	}
@@ -129,9 +129,9 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 		},
 	}
 
-	boxer := NewBoxer(s.G(), s.infoSource())
+	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, err := sender.Prepare(ctx, first, nil)
+	mbox, _, err := sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 }
 
 func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	boxer := NewBoxer(s.G(), s.infoSource())
+	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -168,13 +168,6 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 	}
 	_, _, _, err := sender.Send(ctx, s.convID, msg, 0)
 	return err
-}
-
-func (s *sendHelper) infoSource() types.TLFInfoSource {
-	if s.infoSrc == nil {
-		s.infoSrc = NewKBFSTLFInfoSource(s.G())
-	}
-	return s.infoSrc
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
