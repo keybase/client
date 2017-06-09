@@ -35,7 +35,7 @@ func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 	return &Outbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
-		baseBox:      newBaseBox(g, true),
+		baseBox:      newBaseBox(g),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
 	}

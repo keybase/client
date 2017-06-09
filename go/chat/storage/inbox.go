@@ -82,7 +82,7 @@ func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	return &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
-		baseBox:      newBaseBox(g, true),
+		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}
 }

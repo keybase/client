@@ -71,7 +71,17 @@ func (c *CmdLogSend) Run() error {
 	status, err := statusCmd.load()
 	if err != nil {
 		c.G().Log.Info("ignoring error getting keybase status: %s", err)
-		statusJSON = c.errJSON(err)
+		// pid will be -1 if not found here
+		pid, err2 := getPid(c.G())
+		if err2 == nil {
+			// Look for the process. os.FindProcess()
+			// only fails if on Windows and no process is found.
+			_, err2 := os.FindProcess(pid)
+			if err2 != nil {
+				pid = 0
+			}
+		}
+		statusJSON = fmt.Sprintf("{\"pid\":%d, \"Error\":%q}", pid, err)
 	} else {
 		json, err := json.Marshal(status)
 		if err != nil {

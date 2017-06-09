@@ -18,7 +18,7 @@ protocol teams {
 
   record TeamApplicationKey {
     TeamApplication application;
-    int generation;
+    int keyGeneration;
     Bytes32 key; 
   }
   
@@ -98,8 +98,15 @@ protocol teams {
     Seqno seqno;
   }
 
+  // matches the team name struct from api server
+  record TeamNameParts {
+    array<string> parts;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamMembers teamGet(int sessionID, string name);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
+  void teamRemoveMember(int sessionID, string name, string username);
+  void teamEditMember(int sessionID, string name, string username, TeamRole role);
 }

@@ -101,9 +101,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 				super.ConversationID.String())
 		}
 		convSummary.Channel = ChatChannel{
-			Name:      conv.Info.TlfName,
-			Public:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
-			TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
+			Name:        conv.Info.TlfName,
+			Public:      conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			TopicType:   strings.ToLower(conv.Info.Triple.TopicType.String()),
+			MembersType: strings.ToLower(conv.Info.MembersType.String()),
 		}
 
 		cl.Conversations = append(cl.Conversations, convSummary)
@@ -199,9 +200,10 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		msg := MsgSummary{
 			ID: mv.ServerHeader.MessageID,
 			Channel: ChatChannel{
-				Name:      mv.ClientHeader.TlfName,
-				Public:    mv.ClientHeader.TlfPublic,
-				TopicType: strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
+				Name:        mv.ClientHeader.TlfName,
+				Public:      mv.ClientHeader.TlfPublic,
+				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
+				MembersType: strings.ToLower(conv.GetMembersType().String()),
 			},
 			Sender: MsgSender{
 				UID:      mv.ClientHeader.Sender.String(),
@@ -778,22 +780,26 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 	}
 
 	var tlfName string
-	tlfQ := keybase1.TLFQuery{
-		TlfName:          channel.Name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	}
-	if channel.Public {
-		cname, err := tlfClient.PublicCanonicalTLFNameAndID(ctx, tlfQ)
-		if err != nil {
-			return nil, nil, err
+	if channel.GetMembersType() == chat1.ConversationMembersType_KBFS {
+		tlfQ := keybase1.TLFQuery{
+			TlfName:          channel.Name,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
-		tlfName = cname.CanonicalName.String()
+		if channel.Public {
+			cname, err := tlfClient.PublicCanonicalTLFNameAndID(ctx, tlfQ)
+			if err != nil {
+				return nil, nil, err
+			}
+			tlfName = cname.CanonicalName.String()
+		} else {
+			cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQ)
+			if err != nil {
+				return nil, nil, err
+			}
+			tlfName = cname.CanonicalName.String()
+		}
 	} else {
-		cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQ)
-		if err != nil {
-			return nil, nil, err
-		}
-		tlfName = cname.CanonicalName.String()
+		tlfName = channel.Name
 	}
 
 	vis := chat1.TLFVisibility_PRIVATE
@@ -807,6 +813,7 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 
 	findRes, err := client.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
 		TlfName:          tlfName,
+		MembersType:      channel.GetMembersType(),
 		Visibility:       vis,
 		TopicType:        tt,
 		TopicName:        channel.TopicName,

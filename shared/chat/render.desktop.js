@@ -2,13 +2,11 @@
 import React from 'react'
 import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
-import DummySearchV3 from './dummy-search-v3'
 
 const Render = ({children}: {children: any}) => (
   <div style={style}>
     <Inbox />
     {children}
-    <DummySearchV3 />
   </div>
 )
 

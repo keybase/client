@@ -1,6 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
+import * as SearchConstants from '../../constants/searchv3'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -85,6 +86,13 @@ const retryMessageActionTransformer = action => ({
   type: action.type,
 })
 
+function exitSearch(): Constants.ExitSearch {
+  return {
+    type: 'chat:exitSearch',
+    payload: {},
+  }
+}
+
 function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
   return {
     logTransformer: loadedInboxActionTransformer,
@@ -132,9 +140,10 @@ function openTlfInChat(tlf: string): Constants.OpenTlfInChat {
 
 function startConversation(
   users: Array<string>,
-  forceImmediate?: boolean = false
+  forceImmediate?: boolean = false,
+  temporary?: boolean = false
 ): Constants.StartConversation {
-  return {payload: {forceImmediate, users: uniq(users)}, type: 'chat:startConversation'}
+  return {payload: {forceImmediate, users: uniq(users), temporary}, type: 'chat:startConversation'}
 }
 
 function newChat(existingParticipants: Array<string>): Constants.NewChat {
@@ -206,8 +215,11 @@ function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
   return {payload: {message}, type: 'chat:deleteMessage'}
 }
 
-function addPending(participants: Array<string>): Constants.AddPendingConversation {
-  return {payload: {participants}, type: 'chat:addPendingConversation'}
+function addPending(
+  participants: Array<string>,
+  temporary: boolean = false
+): Constants.AddPendingConversation {
+  return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
 }
 
 function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
@@ -270,6 +282,10 @@ function getInboxAndUnbox(
 
 function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
+}
+
+function clearSearchResults(): Constants.ClearSearchResults {
+  return {payload: {}, type: 'chat:clearSearchResults'}
 }
 
 function updateConversationUnreadCounts(
@@ -544,6 +560,14 @@ function setInboxUntrustedState(
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
+function stageUserForSearch(user: SearchConstants.SearchResultId): Constants.StageUserForSearch {
+  return {payload: {user}, type: 'chat:stageUserForSearch'}
+}
+
+function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.UnstageUserForSearch {
+  return {payload: {user}, type: 'chat:unstageUserForSearch'}
+}
+
 function updateThread(
   thread: ChatTypes.ThreadView,
   yourName: string,
@@ -561,11 +585,13 @@ export {
   badgeAppForChat,
   blockConversation,
   clearMessages,
+  clearSearchResults,
   clearRekey,
   createPendingFailure,
   deleteMessage,
   downloadProgress,
   editMessage,
+  exitSearch,
   getInboxAndUnbox,
   inboxStale,
   incomingMessage,
@@ -605,8 +631,10 @@ export {
   setUnboxing,
   setupChatHandlers,
   showEditor,
+  stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,

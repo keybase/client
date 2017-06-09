@@ -10,14 +10,14 @@ import {
   revokeRevokeDeviceRpcPromise,
   rekeyGetRevokeWarningRpcPromise,
 } from '../constants/types/flow-types'
-import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
+import {devicesTab, settingsTab} from '../constants/tabs'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import {isMobile} from '../constants/platform'
 import {keyBy} from 'lodash'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setRevokedSelf} from './login/creators'
+import {navBasedOnLoginState, setRevokedSelf} from './login/creators'
 
 import type {DeviceDetail} from '../constants/types/flow-types'
 import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
@@ -131,7 +131,7 @@ function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
       }
       yield put(setWaiting(true))
       yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
-      yield put(navigateTo([loginTab]))
+      yield call(navBasedOnLoginState)
       yield put(setRevokedSelf(name))
     } catch (e) {
       throw new Error("Can't remove current device")

@@ -152,12 +152,105 @@ func TestMemberChangeRole(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
 
+// make sure that adding a member creates new recipient boxes
+func TestMemberAddHasBoxes(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	// this change request should generate boxes since other.Username
+	// is not a member
+	req := keybase1.TeamChangeReq{Readers: []string{other.Username}}
+	tm, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, boxes, err := tm.changeMembershipSection(context.TODO(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if boxes == nil || len(boxes.Boxes) == 0 {
+		t.Errorf("add member failed to make new boxes")
+	}
+}
+
+// make sure that changing a role does not send new boxes for the
+// member to the server
+func TestMemberChangeRoleNoBoxes(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	// add other.Username as a writer
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+
+	// this change request shouldn't generate any new boxes
+	req := keybase1.TeamChangeReq{Readers: []string{other.Username}}
+	tm, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, boxes, err := tm.changeMembershipSection(context.TODO(), req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if boxes != nil && len(boxes.Boxes) > 0 {
+		t.Errorf("change role made new boxes: %+v", boxes)
+	}
+}
+
+func TestMemberRemoveRotatesKeys(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	before, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Box.Generation != 1 {
+		t.Fatalf("initial team generation: %d, expected 1", before.Box.Generation)
+	}
+
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	after, err := Get(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Box.Generation != 2 {
+		t.Errorf("after member remove: team generation: %d, expected 2", after.Box.Generation)
+	}
+
+	if after.Box.Ctext == before.Box.Ctext {
+		t.Error("TeamBox.Ctext did not change when member removed")
+	}
+}
+
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 	if role != expected {
-		tc.T.Errorf("role: %s, expected %s", role, expected)
+		tc.T.Fatalf("role: %s, expected %s", role, expected)
 	}
 }

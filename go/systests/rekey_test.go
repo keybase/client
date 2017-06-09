@@ -676,6 +676,7 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 			return err
 		}
 		loginClient = keybase1.LoginClient{Cli: cli}
+		_ = loginClient
 		dev2.rekeyClient = keybase1.RekeyClient{Cli: cli}
 		return nil
 	}

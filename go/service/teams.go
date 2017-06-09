@@ -52,9 +52,16 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return nil
 	}
 
-	var breaks []keybase1.TLFIdentifyFailure
-	ctx = chat.Context(ctx, h.G().ExternalG().Env, keybase1.TLFIdentifyBehavior_CHAT_CLI, &breaks, nil)
 	body := fmt.Sprintf("Hi %s, I've invited you to a new team, %s.", arg.Username, arg.Name)
 	gregorCli := h.gregor.GetClient()
-	return chat.SendTextByName(ctx, h.G(), arg.Username, chat1.ConversationMembersType_KBFS, body, gregorCli)
+	return chat.SendTextByName(ctx, h.G(), arg.Username, chat1.ConversationMembersType_KBFS,
+		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli)
+}
+
+func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) error {
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}
+
+func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) error {
+	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
 }

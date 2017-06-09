@@ -100,7 +100,7 @@ const Line = () => (
 
 const SearchResultRow = (props: Constants.RowProps) => {
   return (
-    <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4}>
+    <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4} onClick={props.onClick}>
       <Box style={_rowStyle}>
         <Left
           leftFollowingState={props.leftFollowingState}

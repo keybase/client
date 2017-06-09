@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -19,9 +20,9 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cl.ChooseCommand(&CmdTestFSNotify{Contextified: libkb.NewContextified(g)}, "test-fsnotify", c)
 		},
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "p, public",
-				Usage: "public top level folder",
+			cli.StringFlag{
+				Name:  "t, type",
+				Usage: "type of the folder: private [default], public or team",
 			},
 			cli.StringFlag{
 				Name:  "f, filename",
@@ -41,14 +42,24 @@ func NewCmdTestFSNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 
 type CmdTestFSNotify struct {
 	libkb.Contextified
-	publicTLF bool
-	filename  string
-	action    keybase1.FSNotificationType
-	delay     time.Duration
+	folderType keybase1.FolderType
+	filename   string
+	action     keybase1.FSNotificationType
+	delay      time.Duration
 }
 
 func (s *CmdTestFSNotify) ParseArgv(ctx *cli.Context) error {
-	s.publicTLF = ctx.Bool("public")
+	s.folderType = keybase1.FolderType_PRIVATE
+	switch ctx.String("type") {
+	case "private":
+		// Already set.
+	case "public":
+		s.folderType = keybase1.FolderType_PUBLIC
+	case "team":
+		s.folderType = keybase1.FolderType_TEAM
+	default:
+		return fmt.Errorf("Unknown folder type: %s", ctx.String("type"))
+	}
 
 	s.filename = ctx.String("filename")
 	if len(s.filename) == 0 {
@@ -98,10 +109,10 @@ func (s *CmdTestFSNotify) Run() (err error) {
 	}
 
 	arg := keybase1.FSNotification{
-		PublicTopLevelFolder: s.publicTLF,
-		Filename:             s.filename,
-		NotificationType:     s.action,
-		StatusCode:           keybase1.FSStatusCode_START,
+		FolderType:       s.folderType,
+		Filename:         s.filename,
+		NotificationType: s.action,
+		StatusCode:       keybase1.FSStatusCode_START,
 	}
 	s.G().Log.Debug("sending start event")
 	err = cli.FSEvent(context.TODO(), arg)

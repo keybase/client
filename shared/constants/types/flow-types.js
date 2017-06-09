@@ -1291,6 +1291,21 @@ export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommo
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getSessionChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function blockGetTeamQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>) {
+  engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request)
+}
+
+export function blockGetTeamQuotaInfoRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
+}
+export function blockGetTeamQuotaInfoRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, callback, incomingCallMap) })
+}
+
+export function blockGetTeamQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): Promise<blockGetTeamQuotaInfoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function blockGetUserQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
   engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request)
 }
@@ -1304,6 +1319,21 @@ export function blockGetUserQuotaInfoRpcChannelMapOld (channelConfig: ChannelCon
 
 export function blockGetUserQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): Promise<blockGetUserQuotaInfoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function blockPutBlockAgainRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>) {
+  engineRpcOutgoing('keybase.1.block.putBlockAgain', request)
+}
+
+export function blockPutBlockAgainRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlockAgain', request)
+}
+export function blockPutBlockAgainRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.putBlockAgain', request, callback, incomingCallMap) })
+}
+
+export function blockPutBlockAgainRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.putBlockAgain', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function blockPutBlockRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
@@ -2041,6 +2071,21 @@ export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function identifyResolve3Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.Resolve3', request)
+}
+
+export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
+}
+export function identifyResolve3RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.Resolve3', request, callback, incomingCallMap) })
+}
+
+export function identifyResolve3RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): Promise<identifyResolve3Result> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyResolveRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
   engineRpcOutgoing('keybase.1.identify.Resolve', request)
 }
@@ -2384,6 +2429,21 @@ export function loginUnlockWithPassphraseRpcChannelMapOld (channelConfig: Channe
 
 export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.login.unlockWithPassphrase', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function merkleGetCurrentMerkleRootRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>) {
+  engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+
+export function merkleGetCurrentMerkleRootRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.merkle.getCurrentMerkleRoot', request)
+}
+export function merkleGetCurrentMerkleRootRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, callback, incomingCallMap) })
+}
+
+export function merkleGetCurrentMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: merkleGetCurrentMerkleRootResult) => void} & {param: merkleGetCurrentMerkleRootRpcParam}>): Promise<merkleGetCurrentMerkleRootResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.merkle.getCurrentMerkleRoot', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
@@ -3481,6 +3541,21 @@ export function teamsTeamCreateRpcPromise (request: $Exact<requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
+}
+
+export function teamsTeamEditMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamEditMember', request)
+}
+export function teamsTeamEditMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamEditMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamEditMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamEditMember', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamGet', request)
 }
@@ -3494,6 +3569,21 @@ export function teamsTeamGetRpcChannelMapOld (channelConfig: ChannelConfig<*>, r
 
 export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamGetResult) => void} & {param: teamsTeamGetRpcParam}>): Promise<teamsTeamGetResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
+}
+
+export function teamsTeamRemoveMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
+}
+export function teamsTeamRemoveMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamRemoveMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
@@ -4290,7 +4380,6 @@ export type FSErrorType =
   | 14 // DISK_CACHE_ERROR_LOG_SEND_14
 
 export type FSNotification = {
-  publicTopLevelFolder: boolean,
   filename: string,
   status: string,
   statusCode: FSStatusCode,
@@ -4299,6 +4388,7 @@ export type FSNotification = {
   params: {[key: string]: string},
   writerUid: UID,
   localTime: Time,
+  folderType: FolderType,
 }
 
 export type FSNotificationType =
@@ -4316,7 +4406,7 @@ export type FSNotificationType =
   | 11 // INITIALIZED_11
 
 export type FSPathSyncStatus = {
-  publicTopLevelFolder: boolean,
+  folderType: FolderType,
   path: string,
   syncingBytes: int64,
   syncingOps: int64,
@@ -4466,6 +4556,8 @@ export type GetTLFCryptKeysRes = {
 export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
+
+export type HashMeta = bytes
 
 export type Hello2Res = {
   encryptionKey: KID,
@@ -4687,9 +4779,15 @@ export type MerkleRoot = {
   root: bytes,
 }
 
+export type MerkleRootAndTime = {
+  root: MerkleRootV2,
+  updateTime: Time,
+  fetchTime: Time,
+}
+
 export type MerkleRootV2 = {
   seqno: Seqno,
-  hashMeta: bytes,
+  hashMeta: HashMeta,
 }
 
 export type MerkleTreeID =
@@ -5198,11 +5296,10 @@ export type SaltpackDecryptOptions = {
 
 export type SaltpackEncryptOptions = {
   recipients?: ?Array<string>,
-  hideSelf: boolean,
+  anonymousSender: boolean,
+  encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
-  hideRecipients: boolean,
-  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -5630,7 +5727,7 @@ export type TeamApplication =
 
 export type TeamApplicationKey = {
   application: TeamApplication,
-  generation: int,
+  keyGeneration: int,
   key: Bytes32,
 }
 
@@ -5649,6 +5746,10 @@ export type TeamMembers = {
   admins?: ?Array<string>,
   writers?: ?Array<string>,
   readers?: ?Array<string>,
+}
+
+export type TeamNameParts = {
+  parts?: ?Array<string>,
 }
 
 export type TeamRole =
@@ -5976,6 +6077,17 @@ export type blockGetBlockRpcParam = Exact<{
   folder: string
 }>
 
+export type blockGetTeamQuotaInfoRpcParam = Exact<{
+  tid: TeamID
+}>
+
+export type blockPutBlockAgainRpcParam = Exact<{
+  folder: string,
+  ref: BlockReference,
+  blockKey: string,
+  buf: bytes
+}>
+
 export type blockPutBlockRpcParam = Exact<{
   bid: BlockIdCombo,
   folder: string,
@@ -6165,6 +6277,10 @@ export type identifyResolve2RpcParam = Exact<{
   assertion: string
 }>
 
+export type identifyResolve3RpcParam = Exact<{
+  assertion: string
+}>
+
 export type identifyResolveRpcParam = Exact<{
   assertion: string
 }>
@@ -6315,6 +6431,10 @@ export type loginUnlockWithPassphraseRpcParam = Exact<{
   passphrase: string
 }>
 
+export type merkleGetCurrentMerkleRootRpcParam = Exact<{
+  freshnessMsec: int
+}>
+
 export type metadataAuthenticateRpcParam = Exact<{
   signature: string
 }>
@@ -6433,8 +6553,7 @@ export type notifyCtlSetNotificationsRpcParam = Exact<{
 export type paperprovisionPaperProvisionRpcParam = Exact<{
   username: string,
   deviceName: string,
-  paperKey: string,
-  keepPaperKey: boolean
+  paperKey: string
 }>
 
 export type pgpPgpDecryptRpcParam = Exact<{
@@ -6765,8 +6884,19 @@ export type teamsTeamCreateRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamEditMemberRpcParam = Exact<{
+  name: string,
+  username: string,
+  role: TeamRole
+}>
+
 export type teamsTeamGetRpcParam = Exact<{
   name: string
+}>
+
+export type teamsTeamRemoveMemberRpcParam = Exact<{
+  name: string,
+  username: string
 }>
 
 export type testPanicRpcParam = Exact<{
@@ -6911,6 +7041,7 @@ type blockBlockPingResult = BlockPingResponse
 type blockDelReferenceWithCountResult = DowngradeReferenceRes
 type blockGetBlockResult = GetBlockRes
 type blockGetSessionChallengeResult = ChallengeInfo
+type blockGetTeamQuotaInfoResult = bytes
 type blockGetUserQuotaInfoResult = bytes
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 type configGetBootstrapStatusResult = BootstrapStatus
@@ -6945,6 +7076,7 @@ type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
+type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
@@ -6953,6 +7085,7 @@ type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 type loginUiGetEmailOrUsernameResult = string
 type loginUiPromptRevokePaperKeysResult = boolean
+type merkleGetCurrentMerkleRootResult = MerkleRootAndTime
 type metadataAuthenticateResult = int
 type metadataGetChallengeResult = ChallengeInfo
 type metadataGetFolderHandleResult = bytes
@@ -7080,7 +7213,9 @@ export type rpc =
   | blockDelReferenceWithCountRpc
   | blockGetBlockRpc
   | blockGetSessionChallengeRpc
+  | blockGetTeamQuotaInfoRpc
   | blockGetUserQuotaInfoRpc
+  | blockPutBlockAgainRpc
   | blockPutBlockRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
@@ -7130,6 +7265,7 @@ export type rpc =
   | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
+  | identifyResolve3Rpc
   | identifyResolveRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
@@ -7153,6 +7289,7 @@ export type rpc =
   | loginRecoverAccountFromEmailAddressRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
+  | merkleGetCurrentMerkleRootRpc
   | metadataAuthenticateRpc
   | metadataDeleteKeyRpc
   | metadataGetChallengeRpc
@@ -7226,7 +7363,9 @@ export type rpc =
   | teamsTeamAddMemberRpc
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
+  | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
+  | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
