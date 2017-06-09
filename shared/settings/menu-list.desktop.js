@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {List, ListItem} from 'material-ui'
+import {List, ListItem} from 'material-ui/List'
 import {Box} from '../common-adapters'
 import {globalStyles} from '../styles'
 

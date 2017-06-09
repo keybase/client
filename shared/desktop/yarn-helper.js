@@ -35,7 +35,7 @@ function pad(s, num) {
 }
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
-const webpackLog = 'log.txt'
+const webpackLog = '~/webpack-log.txt'
 const webpackCmd = `webpack --config ./desktop/webpack.config.babel.js --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''}`
 
 const commands = {

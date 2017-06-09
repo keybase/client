@@ -1,7 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
 // prefetch
-// commonchunks plugin
 // hints from analyzer
 //happypack?
 //
@@ -17,25 +16,6 @@ const isShowingDashboard = !getenv.boolish('NO_SERVER', false)
 
 // webpack dev server has issues serving mixed hot/not hot so we have to build this separately
 const isJustMain = getenv.boolish('JUST_MAIN', false)
-
-// const noSourceMaps = getenv.boolish('NO_SOURCE_MAPS', false)
-
-// const HMRPrefix = [
-// 'react-hot-loader/patch',
-// 'webpack-dev-server/client?http://localhost:4000',
-// 'webpack/hot/only-dev-server',
-// ]
-// const path = require('path')
-// const {fileLoaderRule, isHot} = require('./webpack.common')
-
-// const makeEntries = () => {
-// return {
-// // index: path.resolve(__dirname, '../renderer/index.js'),
-// // launcher: path.resolve(__dirname, '../renderer/launcher.js'),
-// // main: path.resolve(__dirname, '../app/index.js'),
-// // 'remote-component-loader': path.resolve(__dirname, '../renderer/remote-component-loader.js'),
-// }
-// }
 
 const makeRules = () => {
   const fileLoaderRule = {
@@ -156,6 +136,10 @@ const mainThreadConfig = merge(commonConfig, {
     main: path.resolve(__dirname, 'app/index.js'),
   },
   name: 'mainThread',
+  plugins: [
+    new webpack.PrefetchPlugin('purepack/lib/pack.js'),
+    new webpack.PrefetchPlugin('framed-msgpack-rpc/lib/main.js'),
+  ],
   target: 'electron-main',
 })
 
@@ -167,6 +151,7 @@ const makeRenderPlugins = () => {
     ? [
         new webpack.optimize.CommonsChunkPlugin({
           filename: 'common-chunks.js',
+          minChunks: 2,
           name: 'common-chunks',
         }),
       ]
@@ -223,8 +208,13 @@ const dllConfig = {
     'lodash',
     'lodash.curry',
     'lodash.debounce',
-    'material-ui',
     'material-ui/svg-icons',
+    'material-ui/Popover',
+    'material-ui/FontIcon',
+    'material-ui/List',
+    'material-ui/styles/spacing',
+    'material-ui/styles/getMuiTheme',
+    'material-ui/styles/MuiThemeProvider',
     'moment',
     'prop-types',
     'qrcode-generator',
@@ -253,12 +243,13 @@ const dllConfig = {
       name: 'vendor',
       path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
     }),
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
   ],
   target: 'electron-renderer',
 }
 
-const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
-// const config = dllConfig
+// const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
+const config = dllConfig
 
 // console.log(JSON.stringify(config, null, 2))
 

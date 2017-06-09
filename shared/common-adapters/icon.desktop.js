@@ -2,7 +2,7 @@
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {FontIcon} from 'material-ui'
+import FontIcon from 'material-ui/FontIcon'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
