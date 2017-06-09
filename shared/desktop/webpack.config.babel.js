@@ -1,5 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
+// TODO production
+// dumb
+// visdiff
 import DashboardPlugin from 'webpack-dashboard/plugin'
+import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
 import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
@@ -91,7 +95,16 @@ const makeCommonConfig = () => {
     console.warn('Injecting defines: ', defines)
     const definePlugin = [new webpack.DefinePlugin(defines)]
 
-    return [...definePlugin].filter(Boolean)
+    const uglifyPlugin = isDev
+      ? []
+      : [
+          new UglifyJSPlugin({
+            comments: false,
+            sourceMaps: true,
+          }),
+        ]
+
+    return [...definePlugin, ...uglifyPlugin].filter(Boolean)
   }
 
   const devServer = {
@@ -110,7 +123,7 @@ const makeCommonConfig = () => {
 
   return {
     bail: true,
-    cache: true,
+    cache: isDev,
     devServer,
     module: {
       rules: makeRules(),
@@ -143,7 +156,7 @@ const makeMainThreadConfig = () => {
 const makeRenderThreadConfig = () => {
   const makeRenderPlugins = () => {
     const dashboardPlugin = isShowingDashboard ? [new DashboardPlugin()] : []
-    const hmrPlugin = isHot
+    const hmrPlugin = isHot && isDev
       ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
       : []
     const noEmitOnErrorsPlugin = isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
@@ -174,7 +187,7 @@ const makeRenderThreadConfig = () => {
     ].filter(Boolean)
   }
 
-  const HMREntries = isHot
+  const HMREntries = isHot && isDev
     ? [
         'react-hot-loader/patch',
         'webpack-dev-server/client?http://localhost:4000',
@@ -183,8 +196,8 @@ const makeRenderThreadConfig = () => {
     : []
 
   return merge(commonConfig, {
-    dependencies: ['vendor'],
-    devtool: 'eval',
+    dependencies: isDev ? ['vendor'] : undefined,
+    devtool: isDev ? 'eval' : 'source-map',
     entry: {
       index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
       launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
@@ -254,7 +267,9 @@ const makeDllConfig = () => {
 const commonConfig = makeCommonConfig()
 const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
-const dllConfig = makeDllConfig()
+const dllConfig = isDev && makeDllConfig()
 
-const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
+const config = isJustMain
+  ? mainThreadConfig
+  : [mainThreadConfig, renderThreadConfig, dllConfig].filter(Boolean)
 export default config

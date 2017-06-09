@@ -54,40 +54,13 @@ const commands = {
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
     shell: `JUST_MAIN=true yarn run _helper build-dev && JUST_MAIN=false ${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
-    // shell: process.env['NO_DASHBOARD']
-    // ? `${nodeCmd} desktop/server.js`
-    // : `webpack-dashboard -- ${nodeCmd} desktop/server.js`,
   },
-  // 'build-main-thread': {
-  // env: {BABEL_ENV: 'yarn', HOT: 'true'},
-  // help: 'Bundle the code that the main node thread uses',
-  // nodeEnv: 'development',
-  // shell: `${webpackCmd} --config desktop/webpack.config.main-thread-only.js --progress --profile --colors --json > ~/webpack2/main.txt`, // TEMP
-  // },
   'build-prod': {
-    env: {BABEL_ENV: 'yarn'},
+    env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
     shell: webpackCmd,
   },
-  // 'build-profile': {
-  // env: {BABEL_ENV: 'yarn', HOT: 'false', NO_SERVER: 'true', USING_DLL: 'true'},
-  // help: 'Make a production build of the js code',
-  // nodeEnv: 'development',
-  // shell: `${webpackCmd} --config desktop/webpack.config.development.js --progress --profile --json > ~/webpack2/dev.txt`,
-  // },
-  // 'build-wpdll': {
-  // env: {BABEL_ENV: 'yarn'},
-  // help: 'Make a production build of the js code',
-  // nodeEnv: 'development',
-  // shell: `${webpackCmd} --config desktop/webpack.config.dll-build.js --progress --profile --json > ~/webpack2/dll.txt`,
-  // },
-  // 'debug-main': {
-  // env: {ELECTRON_RUN_AS_NODE: 'true'},
-  // help: 'Debug the main process with node-inspector',
-  // nodeEnv: 'development',
-  // shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
-  // },
   'generate-font-project': {
     code: generateIcoMoon,
     help: 'Generate the icomoon project file',
