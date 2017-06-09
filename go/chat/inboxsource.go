@@ -386,7 +386,7 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.Conversation, removed []chat1.ConversationID) error {
+	joined []chat1.ConversationID, removed []chat1.ConversationID) error {
 	return nil
 }
 
