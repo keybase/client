@@ -100,7 +100,11 @@ const Line = () => (
 
 const SearchResultRow = (props: Constants.RowProps) => {
   return (
-    <ClickableBox style={_clickableBoxStyle} underlayColor={globalColors.blue4} onClick={props.onClick}>
+    <ClickableBox
+      style={_clickableBoxStyle[!!props.selected]}
+      underlayColor={globalColors.blue4}
+      onClick={props.onClick}
+    >
       <Box style={_rowStyle}>
         <Left
           leftFollowingState={props.leftFollowingState}
@@ -122,7 +126,7 @@ const SearchResultRow = (props: Constants.RowProps) => {
   )
 }
 
-const _clickableBoxStyle = {
+const _clickableBoxStyleCommon = {
   ...globalStyles.flexBoxRow,
   flex: 1,
   maxHeight: globalMargins.large,
@@ -130,8 +134,16 @@ const _clickableBoxStyle = {
   width: '100%',
 }
 
+const _clickableBoxStyle = {
+  [false]: _clickableBoxStyleCommon,
+  [true]: {
+    ..._clickableBoxStyleCommon,
+    backgroundColor: globalColors.blue4,
+  },
+}
+
 const _rowStyle = {
-  ..._clickableBoxStyle,
+  ..._clickableBoxStyleCommon,
   alignItems: 'center',
   justifyContent: 'flex-start',
   position: 'relative',

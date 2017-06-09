@@ -42,6 +42,7 @@ export type RowProps = {|
   showTrackerButton: boolean,
   onShowTracker: () => void,
   onClick: () => void,
+  selected: boolean,
 |}
 
 // A normalized version of the row props above.

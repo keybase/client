@@ -80,6 +80,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     inSearch: state.chat.inSearch,
     searchResultIds: searchResults ? searchResults.toArray() : [],
     showSearchResults: !!searchResults,
+    // TODO
+    selectedSearchId: searchResults ? searchResults.first() : null,
   }
 }
 
