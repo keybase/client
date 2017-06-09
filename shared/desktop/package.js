@@ -7,7 +7,6 @@ import os from 'os'
 import packager from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-import webpackConfig from './webpack.config.production.js'
 import {exec} from 'child_process'
 
 // absolute path relative to this script
@@ -53,15 +52,6 @@ const packagerOpts = {
 }
 
 function main() {
-  // Inject app version
-  webpackConfig.plugins.push(
-    new webpack.DefinePlugin({
-      __VERSION__: JSON.stringify(appVersion),
-    })
-  )
-
-  console.log('Injecting __VERSION__: ', appVersion)
-
   del.sync(desktopPath('dist'))
   del.sync(desktopPath('build'))
 
@@ -109,7 +99,9 @@ function main() {
 }
 
 function startPack() {
-  console.log('start pack...')
+  console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
+  process.env.APP_VERSION = appVersion
+  const webpackConfig = require('./webpack.config.babel.js').default
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       console.error(err)

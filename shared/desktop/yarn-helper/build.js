@@ -1,20 +1,19 @@
 // @flow
-const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
 const webpackLog = null // '~/webpack-log.txt'
-const webpackCmd = `webpack --config ./desktop/webpack.config.babel.js --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''}`
+const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'
 
 const commands = {
   'build-dev': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a development build of the js code',
     nodeEnv: 'development',
-    shell: webpackCmd,
+    shell: `${webpackCmd} --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''}`,
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
     help: 'Make a production build of the js code',
     nodeEnv: 'production',
-    shell: webpackCmd,
+    shell: `${webpackCmd} --progress`,
   },
   'hot-server': {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
@@ -26,7 +25,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
     help: 'Package up the production js code',
     nodeEnv: 'production',
-    shell: `${nodeCmd} desktop/package.js`,
+    shell: `babel-node desktop/package.js`,
   },
 }
 

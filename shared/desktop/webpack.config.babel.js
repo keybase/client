@@ -13,13 +13,14 @@ import path from 'path'
 import webpack from 'webpack'
 
 // External parameters which control the config
+const isDev = process.env.NODE_ENV !== 'production'
 const flags = {
   // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
   isBeforeHot: getenv.boolish('BEFORE_HOT', false),
-  isDev: process.env.NODE_ENV !== 'production',
+  isDev,
   isDumb: getenv.boolish('DUMB', false),
   isHot: getenv.boolish('HOT', false),
-  isShowingDashboard: !getenv.boolish('NO_SERVER', false),
+  isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
   isVisDiff: getenv.boolish('VISDIFF', false),
 }
 console.log('Flags: ', flags)
@@ -98,7 +99,7 @@ const makeCommonConfig = () => {
       __DEV__: flags.isDev,
       __HOT__: JSON.stringify(flags.isHot),
       __SCREENSHOT__: flags.isVisDiff,
-      __VERSION__: flags.isDev ? JSON.stringify('Development') : undefined,
+      __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
     }
     console.warn('Injecting defines: ', defines)
