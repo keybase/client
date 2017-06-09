@@ -396,8 +396,8 @@ const UserInputEditable = compose(
   withState('usernameText', 'onChangeText', ''),
   withState('userItems', 'setUserItems', ({userItems}) => userItems),
   withHandlers({
-    onRemoveUser: ({setUserItems, userItems}) => (username: string) => {
-      setUserItems(userItems.filter(i => i.username !== username))
+    onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
+      setUserItems(userItems.filter(i => i.id !== id))
     },
   })
 )(UserInput)
