@@ -140,8 +140,15 @@ export default connect(
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(showEditor(routeProps.message)),
     onSaveAttachment: message =>
-      dispatch(({type: 'chat:saveAttachmentNative', payload: {message}}: ChatConstants.SaveAttachmentNative)),
+      dispatch(
+        ({
+          type: 'chat:saveAttachmentNative',
+          payload: {messageKey: message.key},
+        }: ChatConstants.SaveAttachmentNative)
+      ),
     onShareAttachment: message =>
-      dispatch(({type: 'chat:shareAttachment', payload: {message}}: ChatConstants.ShareAttachment)),
+      dispatch(
+        ({type: 'chat:shareAttachment', payload: {messageKey: message.key}}: ChatConstants.ShareAttachment)
+      ),
   })
 )(MessagePopup)

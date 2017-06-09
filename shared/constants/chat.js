@@ -133,15 +133,10 @@ export type AttachmentMessage = {
   title: ?string,
   attachmentDurationMs: ?number,
   previewType: ?AttachmentType,
-  previewPath: ?string,
   previewSize: ?AttachmentSize,
   previewDurationMs: ?number,
-  downloadedPath: ?string,
-  savedPath: string | null | false,
   uploadPath?: string,
   outboxID?: ?OutboxIDKey,
-  previewProgress: number | null /* between 0 - 1 */,
-  downloadProgress: number | null /* between 0 - 1 */,
   uploadProgress: number | null /* between 0 - 1 */,
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
@@ -335,9 +330,33 @@ export type RekeyInfo = Record<{
   youCanRekey: boolean,
 }>
 
+export type LocalMessageStateProps = {
+  previewProgress: number | null /* between 0 - 1 */,
+  downloadProgress: number | null /* between 0 - 1 */,
+  previewPath: ?string,
+  downloadedPath: ?string,
+  savedPath: string | null | false,
+}
+
+const LocalMessageState: (
+  props: $Shape<LocalMessageStateProps>
+) => LocalMessageStateProps & Record<LocalMessageStateProps> = Record({
+  previewProgress: null,
+  downloadProgress: null,
+  previewPath: null,
+  downloadedPath: null,
+  savedPath: null,
+})
+
+const defaultLocalMessageState = new LocalMessageState({})
+
+const getLocalMessageStateFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
+  state.chat.localMessageStates.get(messageKey, defaultLocalMessageState)
+
 // $FlowIssue with cast
 export const StateRecord: LooseRecord<T> = Record({
   messageMap: Map(),
+  localMessageStates: Map(),
   inbox: List(),
   inboxFilter: List(),
   inboxSearch: List(),
@@ -366,6 +385,7 @@ export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 export type State = LooseRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
+  localMessageStates: Map<MessageKey, LocalMessageState>,
   inbox: List<InboxState>,
   inboxFilter: List<string>,
   inboxSearch: List<string>,
@@ -599,10 +619,10 @@ export type UpdateBrokenTracker = NoErrorTypedAction<
 export type UploadProgress = NoErrorTypedAction<
   'chat:uploadProgress',
   {
+    conversationIDKey: ConversationIDKey,
     messageID: MessageID,
     bytesComplete: number,
     bytesTotal: number,
-    conversationIDKey: ConversationIDKey,
   }
 >
 export type DownloadProgress = NoErrorTypedAction<
@@ -610,37 +630,45 @@ export type DownloadProgress = NoErrorTypedAction<
   {
     bytesComplete?: number,
     bytesTotal?: number,
-    conversationIDKey: ConversationIDKey,
     isPreview: boolean,
-    messageID: MessageID,
+    messageKey: MessageKey,
   }
 >
 export type LoadAttachment = NoErrorTypedAction<
   'chat:loadAttachment',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     loadPreview: boolean,
   }
 >
 export type SaveAttachment = NoErrorTypedAction<
   'chat:saveAttachment',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
+  }
+>
+export type AttachmentSaveStart = NoErrorTypedAction<
+  'chat:attachmentSaveStart',
+  {
+    messageKey: MessageKey,
+  }
+>
+export type AttachmentSaveFailed = NoErrorTypedAction<
+  'chat:attachmentSaveFailed',
+  {
+    messageKey: MessageKey,
   }
 >
 export type LoadAttachmentPreview = NoErrorTypedAction<
   'chat:loadAttachmentPreview',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 export type AttachmentLoaded = NoErrorTypedAction<
   'chat:attachmentLoaded',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     isPreview: boolean,
     path: ?string,
   }
@@ -648,8 +676,7 @@ export type AttachmentLoaded = NoErrorTypedAction<
 export type AttachmentSaved = NoErrorTypedAction<
   'chat:attachmentSaved',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     path: ?string,
   }
 >
@@ -667,6 +694,14 @@ export type UpdateTempMessage = TypedAction<
   }
 >
 
+export type OutboxMessageBecameReal = NoErrorTypedAction<
+  'chat:outboxMessageBecameReal',
+  {
+    oldMessageKey: MessageKey,
+    newMessageKey: MessageKey,
+  }
+>
+
 export type MarkSeenMessage = NoErrorTypedAction<
   'chat:markSeenMessage',
   {
@@ -678,14 +713,14 @@ export type MarkSeenMessage = NoErrorTypedAction<
 export type SaveAttachmentNative = NoErrorTypedAction<
   'chat:saveAttachmentNative',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 
 export type ShareAttachment = NoErrorTypedAction<
   'chat:shareAttachment',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 
@@ -926,6 +961,14 @@ function messageKey(
   return `${conversationIDKey}:${kind}:${value}`
 }
 
+function splitMessageIDKey(
+  key: MessageKey
+): {conversationIDKey: ConversationIDKey, keyKind: string, messageID: MessageID} {
+  const [conversationIDKey, keyKind, messageIDStr] = key.split(':')
+  const messageID: MessageID = Number(messageIDStr)
+  return {conversationIDKey, keyKind, messageID}
+}
+
 function messageKeyValue(key: MessageKey): string {
   return key.split(':')[2]
 }
@@ -1058,6 +1101,7 @@ export {
   messageKeyKind,
   messageKeyValue,
   messageKeyConversationIDKey,
+  splitMessageIDKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
@@ -1076,5 +1120,8 @@ export {
   getSelectedInbox,
   getTLF,
   getMuted,
+  LocalMessageState,
+  defaultLocalMessageState,
+  getLocalMessageStateFromMessageKey,
   isImageFileName,
 }
