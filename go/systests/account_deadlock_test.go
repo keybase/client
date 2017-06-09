@@ -17,7 +17,7 @@ import (
 )
 
 func TestAccountDeadlock(t *testing.T) {
-	t.Skip("Broken test; see CORE-5356")
+	// t.Skip("Broken test; see CORE-5356")
 	tc := setupTest(t, "resolve2")
 	tc2 := cloneContext(tc)
 

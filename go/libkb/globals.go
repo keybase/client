@@ -466,6 +466,13 @@ func (g *GlobalContext) Shutdown() error {
 
 		epick := FirstErrorPicker{}
 
+		// loginState request loop should be shut down first
+		g.loginStateMu.Lock()
+		if g.loginState != nil {
+			epick.Push(g.loginState.Shutdown())
+		}
+		g.loginStateMu.Unlock()
+
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
 		}
@@ -487,11 +494,6 @@ func (g *GlobalContext) Shutdown() error {
 		if g.LocalChatDb != nil {
 			epick.Push(g.LocalChatDb.Close())
 		}
-		g.loginStateMu.Lock()
-		if g.loginState != nil {
-			epick.Push(g.loginState.Shutdown())
-		}
-		g.loginStateMu.Unlock()
 
 		if g.TrackCache != nil {
 			g.TrackCache.Shutdown()
