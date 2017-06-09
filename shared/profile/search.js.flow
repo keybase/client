@@ -1,6 +1,5 @@
 // @flow
 import {Component} from 'react'
-import * as SearchConstants from '../constants/searchv3'
 import type {UserDetails} from '../searchv3/user-input'
 
 export type Props = {
