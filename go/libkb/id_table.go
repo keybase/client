@@ -36,9 +36,11 @@ type TypedChainLink interface {
 	GetUsername() string
 	GetUID() keybase1.UID
 	GetDelegatedKid() keybase1.KID
+	GetMerkleHashMeta() (keybase1.HashMeta, error)
 	GetParentKid() keybase1.KID
 	VerifyReverseSig(ckf ComputedKeyFamily) error
 	GetMerkleSeqno() keybase1.Seqno
+	GetFirstAppearedMerkleSeqnoUnverified() keybase1.Seqno
 	GetDevice() *Device
 	DoOwnNewLinkFromServerNotifications(g *GlobalContext)
 }
@@ -582,6 +584,44 @@ func (l *TrackChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {
 //=========================================================================
 
 //=========================================================================
+// EldestChainLink
+//
+
+type EldestChainLink struct {
+	GenericChainLink
+	kid    keybase1.KID
+	device *Device
+}
+
+func ParseEldestChainLink(b GenericChainLink) (ret *EldestChainLink, err error) {
+	var kid keybase1.KID
+	var device *Device
+
+	if kid, err = GetKID(b.payloadJSON.AtPath("body.key.kid")); err != nil {
+		err = ChainLinkError{fmt.Sprintf("Bad eldest statement @%s: %s", b.ToDebugString(), err)}
+		return
+	}
+
+	if jw := b.payloadJSON.AtPath("body.device"); !jw.IsNil() {
+		if device, err = ParseDevice(jw, b.GetCTime()); err != nil {
+			return
+		}
+	}
+
+	ret = &EldestChainLink{b, kid, device}
+	return
+}
+
+func (s *EldestChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
+func (s *EldestChainLink) GetRole() KeyRole              { return DLGSibkey }
+func (s *EldestChainLink) Type() string                  { return string(DelegationTypeEldest) }
+func (s *EldestChainLink) ToDisplayString() string       { return s.kid.String() }
+func (s *EldestChainLink) GetDevice() *Device            { return s.device }
+func (s *EldestChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("key") }
+
+//
+//=========================================================================
+//=========================================================================
 // SibkeyChainLink
 //
 
@@ -620,7 +660,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 
 func (s *SibkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
 func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
-func (s *SibkeyChainLink) Type() string                  { return DelegationTypeSibkey }
+func (s *SibkeyChainLink) Type() string                  { return string(DelegationTypeSibkey) }
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
@@ -670,7 +710,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string                  { return DelegationTypeSubkey }
+func (s *SubkeyChainLink) Type() string                  { return string(DelegationTypeSubkey) }
 func (s *SubkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SubkeyChainLink) GetRole() KeyRole              { return DLGSubkey }
 func (s *SubkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
@@ -714,7 +754,7 @@ func ParsePerUserKeyChainLink(b GenericChainLink) (ret *PerUserKeyChainLink, err
 	return ret, err
 }
 
-func (s *PerUserKeyChainLink) Type() string { return LinkTypePerUserKey }
+func (s *PerUserKeyChainLink) Type() string { return string(LinkTypePerUserKey) }
 func (s *PerUserKeyChainLink) ToDisplayString() string {
 	return s.sigKID.String() + " + " + s.encKID.String()
 }
@@ -790,7 +830,7 @@ func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err e
 	return
 }
 
-func (l *PGPUpdateChainLink) Type() string                       { return DelegationTypePGPUpdate }
+func (l *PGPUpdateChainLink) Type() string                       { return string(DelegationTypePGPUpdate) }
 func (l *PGPUpdateChainLink) ToDisplayString() string            { return l.kid.String() }
 func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extractPGPFullHash("pgp_update") }
 func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
@@ -1092,8 +1132,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 		err = fmt.Errorf("No type in signature @%s", base.ToDebugString())
 	} else {
 		switch s {
-		case "eldest":
-			ret, err = ParseSelfSigChainLink(base)
+		case string(DelegationTypeEldest):
+			ret, err = ParseEldestChainLink(base)
 		case "web_service_binding":
 			ret, err = ParseWebServiceBinding(base)
 		case "track":
@@ -1104,11 +1144,11 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret, err = ParseRevokeChainLink(base)
-		case DelegationTypeSibkey:
+		case string(DelegationTypeSibkey):
 			ret, err = ParseSibkeyChainLink(base)
-		case DelegationTypeSubkey:
+		case string(DelegationTypeSubkey):
 			ret, err = ParseSubkeyChainLink(base)
-		case DelegationTypePGPUpdate:
+		case string(DelegationTypePGPUpdate):
 			ret, err = ParsePGPUpdateChainLink(base)
 		case "per_user_key":
 			ret, err = ParsePerUserKeyChainLink(base)

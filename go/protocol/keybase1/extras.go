@@ -108,6 +108,31 @@ func KIDFromStringChecked(s string) (KID, error) {
 	return KID(s), nil
 }
 
+func HashMetaFromString(s string) (ret HashMeta, err error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return ret, err
+	}
+	return HashMeta(b), nil
+}
+
+func (h HashMeta) String() string {
+	return hex.EncodeToString(h)
+}
+
+func (h *HashMeta) UnmarshalJSON(b []byte) error {
+	hm, err := HashMetaFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*h = hm
+	return nil
+}
+
+func (h *HashMeta) MarshalJSON() ([]byte, error) {
+	return Quote(h.String()), nil
+}
+
 func KIDFromString(s string) KID {
 	// there are no validations for KIDs (length, suffixes)
 	return KID(s)
@@ -1267,4 +1292,29 @@ func (k TeamApplicationKey) Material() Bytes32 {
 
 func (k TeamApplicationKey) Generation() int {
 	return k.KeyGeneration
+}
+
+func (t TeamMembers) AllUsernames() []string {
+	m := make(map[string]bool)
+	for _, u := range t.Owners {
+		m[u] = true
+	}
+	for _, u := range t.Admins {
+		m[u] = true
+	}
+	for _, u := range t.Writers {
+		m[u] = true
+	}
+	for _, u := range t.Readers {
+		m[u] = true
+	}
+	var all []string
+	for u := range m {
+		all = append(all, u)
+	}
+	return all
+}
+
+func (t TeamNameParts) String() string {
+	return strings.Join(t.Parts, ".")
 }

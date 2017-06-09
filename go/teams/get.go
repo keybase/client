@@ -81,7 +81,11 @@ func (f *finder) chainLinks(ctx context.Context, rawTeam *rawTeam) ([]SCChainLin
 }
 
 func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigChainPlayer, error) {
-	player := NewTeamSigChainPlayer(f.G(), f, NewUserVersion(f.G().Env.GetUsername().String(), 1), false)
+	uv, err := loadUserVersionByUID(ctx, f.G(), f.G().Env.GetUID())
+	if err != nil {
+		return nil, err
+	}
+	player := NewTeamSigChainPlayer(f.G(), f, uv, false)
 	if err := player.AddChainLinks(ctx, links); err != nil {
 		return nil, err
 	}
@@ -97,9 +101,11 @@ func (f *finder) UsernameForUID(ctx context.Context, uid keybase1.UID) (string, 
 }
 
 type rawTeam struct {
-	Status         libkb.AppStatus
-	Chain          []json.RawMessage
-	Box            TeamBox
+	ID             keybase1.TeamID          `json:"id"`
+	Name           keybase1.TeamNameParts   `json:"name"`
+	Status         libkb.AppStatus          `json:"status"`
+	Chain          []json.RawMessage        `json:"chain"`
+	Box            TeamBox                  `json:"box"`
 	ReaderKeyMasks []keybase1.ReaderKeyMask `json:"reader_key_masks"`
 }
 

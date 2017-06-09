@@ -8,6 +8,7 @@ import * as Messages from './messages'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
+import featureFlags from '../../util/feature-flags'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {Map} from 'immutable'
@@ -29,7 +30,7 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector} from '../../constants/selectors'
+import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -145,17 +146,18 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const messageFromYou =
           message.deviceName === yourDeviceName && message.author && yourName === message.author
 
+        let pendingMessage
         if (
           (message.type === 'Text' || message.type === 'Attachment') &&
-          message.outboxID &&
-          messageFromYou
+          messageFromYou &&
+          message.outboxID
         ) {
+          pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, message.outboxID)
+        }
+
+        if (pendingMessage) {
           if (message.type === 'Attachment') {
-            const pendingMessage = yield select(
-              Shared.messageOutboxIDSelector,
-              conversationIDKey,
-              message.outboxID
-            )
+            // Copy locally-generated preview
             message.previewPath = pendingMessage.previewPath
           }
 
@@ -670,11 +672,12 @@ function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, an
 }
 
 function* _startConversation(action: Constants.StartConversation): SagaGenerator<any, any> {
-  const {users, forceImmediate} = action.payload
+  const {users, forceImmediate, temporary} = action.payload
   const me = yield select(usernameSelector)
 
   if (!users.includes(me)) {
-    throw new Error('Attempted to start a chat without the current user')
+    users.push(me)
+    console.warn('Attempted to start a chat without the current user')
   }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
@@ -693,7 +696,7 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield put(Creators.addPending(users))
+    yield put(Creators.addPending(users, temporary))
     yield put(Creators.selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
@@ -715,6 +718,12 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+  // TODO handle participants from action into the new chat
+  if (featureFlags.searchv3Enabled) {
+    yield put(Creators.selectConversation(null, false))
+    return
+  }
+
   yield put(searchReset())
 
   const metaData = (yield select(Shared.metaDataSelector): any)
@@ -786,6 +795,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   }
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
     // Don't navigate into errored conversations
     if (inbox.get('state') === 'error') {
@@ -795,8 +805,10 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
-    // TODO likely only do this if search is visible
-    yield put(Creators.setInboxSearch(participants))
+    if (inSearch) {
+      const me = yield select(usernameSelector)
+      yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
+    }
   }
 
   if (conversationIDKey) {
@@ -973,6 +985,37 @@ function* _updateTyping({
   }
 }
 
+function* _updateTempSearchConversation(
+  action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
+) {
+  const {payload: {user}} = action
+  const me = yield select(usernameSelector)
+
+  const inboxSearch = yield select(inboxSearchSelector)
+  if (action.type === 'chat:stageUserForSearch') {
+    const nextTempSearchConv = inboxSearch.push(user)
+    yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
+    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
+  } else if (action.type === 'chat:unstageUserForSearch') {
+    const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
+    if (!nextTempSearchConv.isEmpty()) {
+      yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    } else {
+      yield put(Creators.selectConversation(null, false))
+    }
+
+    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
+    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
+  }
+}
+
+function* _exitSearch() {
+  yield put(Creators.clearSearchResults())
+  yield put(Creators.setInboxSearch([]))
+  yield put(Creators.setInboxFilter([]))
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -1012,6 +1055,9 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
+  yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
+  yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
+  yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
 }
 
 export default chatSaga

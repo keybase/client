@@ -98,6 +98,11 @@ protocol teams {
     Seqno seqno;
   }
 
+  // matches the team name struct from api server
+  record TeamNameParts {
+    array<string> parts;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamMembers teamGet(int sessionID, string name);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

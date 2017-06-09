@@ -11,10 +11,12 @@ import type {Props, ProgressBarProps, ImageIconProps} from '.'
 
 const AttachmentTitle = ({
   messageState,
+  filename,
   title,
   onOpenInPopup,
 }: {
   messageState: Constants.AttachmentMessageState,
+  filename: ?string,
   title: ?string,
   onOpenInPopup: ?() => void,
 }) => {
@@ -29,7 +31,7 @@ const AttachmentTitle = ({
       style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }
-  return <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>{title}</Text>
+  return <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>{title || filename}</Text>
 }
 
 function PreviewImage({

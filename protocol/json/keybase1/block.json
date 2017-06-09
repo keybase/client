@@ -116,6 +116,27 @@
       ],
       "response": null
     },
+    "putBlockAgain": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "ref",
+          "type": "BlockReference"
+        },
+        {
+          "name": "blockKey",
+          "type": "string"
+        },
+        {
+          "name": "buf",
+          "type": "bytes"
+        }
+      ],
+      "response": null
+    },
     "getBlock": {
       "request": [
         {
@@ -208,6 +229,15 @@
     },
     "getUserQuotaInfo": {
       "request": [],
+      "response": "bytes"
+    },
+    "getTeamQuotaInfo": {
+      "request": [
+        {
+          "name": "tid",
+          "type": "TeamID"
+        }
+      ],
       "response": "bytes"
     },
     "blockPing": {

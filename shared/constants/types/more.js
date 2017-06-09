@@ -85,3 +85,9 @@ export type DumbComponentMap<C: Component<*, *, *>> = {
     [key: string]: PropsOf<C>,
   },
 }
+
+export type LooseRecord<T> = T & {
+  get<A>(key: $Keys<T>): A,
+  set<A>(key: $Keys<T>, value: A): LooseRecord<T>,
+  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): LooseRecord<T>,
+}

@@ -421,6 +421,7 @@ func (s *testDeviceSet) provision(d *testDevice) {
 			}
 		}
 		loginClient = keybase1.LoginClient{Cli: cli}
+		_ = loginClient
 		return nil
 	}
 

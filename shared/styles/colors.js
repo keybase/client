@@ -1,6 +1,4 @@
 // @flow
-import {isAndroid} from '../constants/platform'
-
 const colors = {
   beige: '#f7f1eb',
   black: '#000000',
@@ -9,7 +7,7 @@ const colors = {
   black_20: 'rgba(0, 0, 0, 0.20)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_60: 'rgba(0, 0, 0, 0.60)',
-  black_75: isAndroid ? '#000000' : 'rgba(0, 0, 0, 0.75)',
+  black_75: 'rgba(0, 0, 0, 0.75)',
   blue2: '#66b8ff',
   blue3: '#a8d7ff',
   blue3_60: 'rgba(168, 215, 255, 0.6)',
@@ -36,6 +34,7 @@ const colors = {
   red_75: 'rgba(255,0,0,0.75)',
   transparent: 'rgba(0, 0, 0, 0)',
   white: '#ffffff',
+  white_20: 'rgba(255, 255, 255, 0.20)',
   white_40: 'rgba(255, 255, 255, 0.40)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_90: 'rgba(255, 255, 255, 0.90)',

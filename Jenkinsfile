@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         if (hasGoChanges) {
-                                            testNixGo("Linux")
+                                            testGo("test_linux_go_")
                                         }
                                     }},
                                     test_linux_js: { withEnv([
@@ -217,22 +217,10 @@ helpers.rootLinuxNode(env, {
                                     parallel (
                                         test_windows_go: {
                                             if (hasGoChanges) {
-                                                println "Test Windows Go"
-                                                dir("go") {
-                                                    dir ("keybase") {
-                                                        bat "go build -a 2>&1 || exit /B 1"
-                                                        bat "echo %errorlevel%"
-                                                    }
-                                                    bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                                    bat "go get \"github.com/stretchr/testify/require\""
-                                                    bat "go get \"github.com/stretchr/testify/assert\""
-                                                    helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                                    def testlist = readFile('testlist.txt')
-                                                    def tests = testlist.tokenize()
-                                                    for (test in tests) {
-                                                        bat "go test -timeout 10m ${test}"
-                                                    }
+                                                dir("go/keybase") {
+                                                    bat "go build"
                                                 }
+                                                testGo("test_windows_go_")
                                             }
                                         },
                                         test_windows_js: {
@@ -268,7 +256,7 @@ helpers.rootLinuxNode(env, {
                             }
                         }
                     },
-                    test_osx: {
+                    test_macos: {
                         // TODO: If we re-enable tests other than Go tests on
                         // macOS, this check should go away.
                         if (hasGoChanges) {
@@ -306,10 +294,9 @@ helpers.rootLinuxNode(env, {
                                         //        }
                                         //    }
                                         //},
-                                        test_osx: {
-                                            println "Test OS X"
+                                        test_macos_go: {
                                             if (hasGoChanges) {
-                                                testNixGo("OS X")
+                                                testGo("test_macos_go_")
                                             }
                                         }
                                     )
@@ -338,16 +325,74 @@ def hasChanges(subdir) {
         def changes = helpers.getChanges(env.COMMIT_HASH, env.CHANGE_TARGET)
         println "Number of changes: " + changes.size()
         if (changes.size() == 0) {
-            println "No Go changes, skipping tests."
+            println "No ${subdir} changes, skipping tests."
             return false
         }
         return true
     }
 }
 
-def testNixGo(prefix) {
+def getTestDirsNix() {
+    def dirs = sh(
+        returnStdout: true,
+        script: "go list ./... | grep -v 'vendor\\|bind'"
+    ).trim()
+    println "Running tests for dirs: " + dirs
+    return dirs.tokenize()
+}
+
+def getTestDirsWindows() {
+    def dirs = bat(returnStdout: true, script: "@go list ./... | find /V \"vendor\" | find /V \"/go/bind\"").trim()
+    println "Running tests for dirs: " + dirs
+    return dirs.tokenize()
+}
+
+def testGo(prefix) {
     dir('go') {
+    withEnv([
+        "KEYBASE_LOG_SETUPTEST_FUNCS=1",
+    ]) {
+        def shell
+        def dirs
+        def slash
+        def goversion
+        if (isUnix()) {
+            shell = { params -> sh params }
+            dirs = getTestDirsNix()
+            slash = '/'
+            goversion = sh(returnStdout: true, script: "go version").trim()
+        } else {
+            shell = { params -> bat params }
+            dirs = getTestDirsWindows()
+            slash = '\\'
+            goversion = bat(returnStdout: true, script: "@go version").trim()
+        }
+        println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
+        shell "go get \"github.com/stretchr/testify/require\""
+        shell "go get \"github.com/stretchr/testify/assert\""
+        def tests = [:]
+        for (def i=0; i<dirs.size(); i++) {
+            def d = dirs[i]
+            def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
+            println "Building tests for $dirPath"
+            dir(dirPath) {
+                shell "go test -i"
+                shell "go test -c -o test.test"
+                // Only run the test if a test binary should have been produced.
+                if (fileExists("test.test")) {
+                    def testName = dirPath.replaceAll('/', '_')
+                    tests[prefix + testName] = {
+                        dir(dirPath) {
+                            println "Running tests for $dirPath"
+                            shell ".${slash}test.test -test.timeout 30m"
+                        }
+                    }
+                } else {
+                    println "Skipping tests for $dirPath because no test binary was produced."
+                }
+            }
+        }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        sh "test/run_tests.sh"
-    }
+        parallel(tests)
+    }}
 }

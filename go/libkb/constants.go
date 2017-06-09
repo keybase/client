@@ -257,25 +257,25 @@ type DelegationType LinkType
 
 const (
 	LinkTypeAuthentication    LinkType = "auth"
-	LinkTypeCryptocurrency             = "cryptocurrency"
-	LinkTypeRevoke                     = "revoke"
-	LinkTypeTrack                      = "track"
-	LinkTypeUntrack                    = "untrack"
-	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
-	LinkTypeUpdateSettings             = "update_settings"
-	LinkTypeWebServiceBinding          = "web_service_binding"
-	LinkTypePerUserKey                 = "per_user_key"
+	LinkTypeCryptocurrency    LinkType = "cryptocurrency"
+	LinkTypeRevoke            LinkType = "revoke"
+	LinkTypeTrack             LinkType = "track"
+	LinkTypeUntrack           LinkType = "untrack"
+	LinkTypeUpdatePassphrase  LinkType = "update_passphrase_hash"
+	LinkTypeUpdateSettings    LinkType = "update_settings"
+	LinkTypeWebServiceBinding LinkType = "web_service_binding"
+	LinkTypePerUserKey        LinkType = "per_user_key"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
-	LinkTypeNewSubteam                = "team.new_subteam"
-	LinkTypeSubteamHead               = "team.subteam_head"
-	LinkTypeChangeMembership          = "team.change_membership"
+	LinkTypeNewSubteam       LinkType = "team.new_subteam"
+	LinkTypeSubteamHead      LinkType = "team.subteam_head"
+	LinkTypeChangeMembership LinkType = "team.change_membership"
 
 	DelegationTypeEldest    DelegationType = "eldest"
-	DelegationTypePGPUpdate                = "pgp_update"
-	DelegationTypeSibkey                   = "sibkey"
-	DelegationTypeSubkey                   = "subkey"
+	DelegationTypePGPUpdate DelegationType = "pgp_update"
+	DelegationTypeSibkey    DelegationType = "sibkey"
+	DelegationTypeSubkey    DelegationType = "subkey"
 )
 
 const (
@@ -571,15 +571,16 @@ type PvlUnparsed struct {
 const SharedTeamKeyBoxVersion1 = 1
 
 const (
-	TeamDHDerivationString       = "Keybase-Derived-Team-NaCl-DH-1"
-	TeamEdDSADerivationString    = "Keybase-Derived-Team-NaCl-EdDSA-1"
-	TeamKBFSDerivationString     = "Keybase-Derived-Team-NaCl-KBFS-1"
-	TeamChatDerivationString     = "Keybase-Derived-Team-NaCl-Chat-1"
-	TeamSaltpackDerivationString = "Keybase-Derived-Team-NaCl-Saltpack-1"
+	TeamDHDerivationString               = "Keybase-Derived-Team-NaCl-DH-1"
+	TeamEdDSADerivationString            = "Keybase-Derived-Team-NaCl-EdDSA-1"
+	TeamKBFSDerivationString             = "Keybase-Derived-Team-NaCl-KBFS-1"
+	TeamChatDerivationString             = "Keybase-Derived-Team-NaCl-Chat-1"
+	TeamSaltpackDerivationString         = "Keybase-Derived-Team-NaCl-Saltpack-1"
+	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1"
 )
 
 func CurrentSaltpackVersion() saltpack.Version {
-	return saltpack.Version1()
+	return saltpack.Version2()
 }
 
 const (

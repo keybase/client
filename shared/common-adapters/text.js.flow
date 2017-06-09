@@ -47,6 +47,7 @@ type Props = {
   onClick?: ?(e: SyntheticEvent) => void,
   onClickURL?: ?string,
   onPress?: void,
+  onLongPress?: () => void,
   style?: Object,
   type: TextType,
   title?: ?string,

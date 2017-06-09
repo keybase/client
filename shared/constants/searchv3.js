@@ -1,8 +1,10 @@
 // @flow
 import {List} from 'immutable'
+import {amIFollowing, usernameSelector} from './selectors'
 
 import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
+import type {TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,
@@ -17,9 +19,10 @@ export type Service = $Keys<typeof services>
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
+// This is what the api expects/returns
 export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
 
-export type SearchResultId = string
+export type SearchResultId = string // i.e. marcopolo or marcopolo@github
 export type SearchQuery = string
 
 export type RowProps = {|
@@ -38,6 +41,7 @@ export type RowProps = {|
 
   showTrackerButton: boolean,
   onShowTracker: () => void,
+  onClick: () => void,
 |}
 
 // A normalized version of the row props above.
@@ -58,40 +62,38 @@ export type SearchResult = {|
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
-  {term: string, service: SearchPlatform, actionTypeToFire: TypeToFire}
+  {term: string, service: Service, actionTypeToFire: TypeToFire}
 >
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
-  {searchResults: Array<SearchResultId>, searchTerm: string, service: SearchPlatform}
+  {searchResults: Array<SearchResultId>, searchTerm: string, service: Service}
 >
 
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
 
-// Platform icons
-function platformToIcon(platform: SearchPlatform): IconType {
+function serviceIdToService(serviceId: string): Service {
   return {
-    Keybase: 'iconfont-identity-devices',
-    Twitter: 'iconfont-identity-twitter',
-    Github: 'iconfont-identity-github',
-    Reddit: 'iconfont-identity-reddit',
-    Hackernews: 'iconfont-identity-hn',
-    Pgp: 'iconfont-identity-pgp',
-    Facebook: 'iconfont-identity-facebook',
-  }[platform]
+    keybase: 'Keybase',
+    twitter: 'Twitter',
+    github: 'GitHub',
+    reddit: 'Reddit',
+    hackernews: 'Hacker News',
+    facebook: 'Facebook',
+  }[serviceId]
 }
 
-function platformToLogo24(platform: SearchPlatform): IconType {
-  return {
-    Keybase: 'icon-keybase-logo-24',
-    Twitter: 'icon-twitter-logo-24',
-    Github: 'icon-github-logo-24',
-    Reddit: 'icon-reddit-logo-24',
-    Hackernews: 'icon-hacker-news-logo-24',
-    Pgp: 'icon-pgp-key-24',
-    Facebook: 'icon-facebook-logo-24',
-  }[platform]
+function followStateHelper(state: TypedState, username: string, service: Service) {
+  const me = usernameSelector(state)
+  if (service === 'Keybase') {
+    if (username === me) {
+      return 'You'
+    } else {
+      return amIFollowing(state, username) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
 }
 
-export {platformToIcon, platformToLogo24}
+export {serviceIdToService, followStateHelper}

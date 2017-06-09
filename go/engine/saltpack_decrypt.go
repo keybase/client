@@ -163,8 +163,11 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	// For signcryption mode.
 	hookSenderSigningKey := func(senderSigningKey saltpack.SigningPublicKey) error {
 		kidToIdentify := libkb.SigningPublicKeyToKeybaseKID(senderSigningKey)
-		// See if the sender signing key is all zeroes.
-		isAnon := bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID())))
+		// See if the sender signing key is nil or all zeroes.
+		isAnon := false
+		if senderSigningKey == nil || bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID()))) {
+			isAnon = true
+		}
 		return e.promptForDecrypt(ctx, kidToIdentify, isAnon)
 	}
 

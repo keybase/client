@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"encoding/hex"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -32,6 +31,7 @@ type Delegator struct {
 	DelegationType       DelegationType
 	Aggregated           bool // During aggregation we skip some steps (posting, updating some state)
 	PerUserKeyGeneration keybase1.PerUserKeyGeneration
+	MerkleRoot           *MerkleRoot
 
 	// Optional precalculated values used by KeyProof
 	Seqno       keybase1.Seqno // kex2 HandleDidCounterSign needs to sign subkey without a user but we know what the last seqno was
@@ -54,6 +54,13 @@ func (d Delegator) getExistingKID() (kid keybase1.KID) {
 	return d.ExistingKey.GetKID()
 }
 
+func (d Delegator) getMerkleHashMeta() (ret keybase1.HashMeta) {
+	if d.MerkleRoot == nil {
+		return ret
+	}
+	return d.MerkleRoot.ShortHash().ExportToHashMeta()
+}
+
 func (d Delegator) GetSigningKey() GenericKey {
 	if d.ExistingKey != nil {
 		return d.ExistingKey
@@ -73,7 +80,7 @@ func (d Delegator) GetMerkleTriple() MerkleTriple { return d.merkleTriple }
 
 func (d *Delegator) CheckArgs() (err error) {
 
-	G.Log.Debug("+ Delegator::checkArgs()")
+	d.G().Log.Debug("+ Delegator::checkArgs()")
 
 	if d.DelegationType == "" {
 		err = MissingDelegationTypeError{}
@@ -85,9 +92,9 @@ func (d *Delegator) CheckArgs() (err error) {
 	}
 
 	if d.ExistingKey != nil {
-		G.Log.Debug("| Picked passed-in signing key")
+		d.G().Log.Debug("| Picked passed-in signing key")
 	} else {
-		G.Log.Debug("| Picking new key for an eldest self-sig")
+		d.G().Log.Debug("| Picking new key for an eldest self-sig")
 		d.DelegationType = DelegationTypeEldest
 	}
 
@@ -99,8 +106,8 @@ func (d *Delegator) CheckArgs() (err error) {
 		d.EldestKID = kid
 	}
 
-	G.Log.Debug("| Picked key %s for signing", d.getSigningKID())
-	G.Log.Debug("- Delegator::checkArgs()")
+	d.G().Log.Debug("| Picked key %s for signing", d.getSigningKID())
+	d.G().Log.Debug("- Delegator::checkArgs()")
 
 	return nil
 }
@@ -112,13 +119,13 @@ func (d *Delegator) CheckArgs() (err error) {
 // lctx can be nil.
 func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 
-	G.Log.Debug("+ Delegator::LoadSigningKey")
+	d.G().Log.Debug("+ Delegator::LoadSigningKey")
 	defer func() {
-		G.Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.GetSigningKey() != nil))
+		d.G().Log.Debug("+ Delegator::LoadSigningKey -> %s, (found=%v)", ErrToOk(err), (d.GetSigningKey() != nil))
 	}()
 
 	if d.ExistingKey != nil {
-		G.Log.Debug("| Was set ahead of time")
+		d.G().Log.Debug("| Was set ahead of time")
 		return
 	}
 
@@ -133,7 +140,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 	}
 
 	if !d.Me.HasActiveKey() {
-		G.Log.Debug("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
+		d.G().Log.Debug("| PGPKeyImportEngine: no active key found, so assuming set of eldest key")
 		return
 	}
 
@@ -156,14 +163,16 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 func (d *Delegator) Run(lctx LoginContext) (err error) {
 	var jw *jsonw.Wrapper
 
-	G.Log.Debug("+ Delegator.Run()")
+	d.G().Log.Debug("+ Delegator.Run()")
 	defer func() {
-		G.Log.Debug("- Delegator.Run() -> %s", ErrToOk(err))
+		d.G().Log.Debug("- Delegator.Run() -> %s", ErrToOk(err))
 	}()
 
 	if err = d.CheckArgs(); err != nil {
 		return
 	}
+
+	d.MerkleRoot = d.G().MerkleClient.LastRoot()
 
 	// We'll need to generate two proofs, so set the Ctime
 	// so that we get the same time both times
@@ -173,12 +182,12 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 	// sibkey, and then embed that signature for the delegating key
 	if d.DelegationType == DelegationTypeSibkey {
 		if jw, err = KeyProof(*d); err != nil {
-			G.Log.Debug("| Failure in intermediate KeyProof()")
+			d.G().Log.Debug("| Failure in intermediate KeyProof()")
 			return err
 		}
 
 		if d.RevSig, _, _, err = SignJSON(jw, d.NewKey); err != nil {
-			G.Log.Debug("| Failure in intermediate SignJson()")
+			d.G().Log.Debug("| Failure in intermediate SignJson()")
 			return err
 		}
 	}
@@ -192,7 +201,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 	}
 
 	if jw, err = KeyProof(*d); err != nil {
-		G.Log.Debug("| Failure in KeyProof()")
+		d.G().Log.Debug("| Failure in KeyProof()")
 		return
 	}
 
@@ -204,12 +213,12 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 	var linkid LinkID
 
 	if d.sig, d.sigID, linkid, err = SignJSON(jw, d.GetSigningKey()); err != nil {
-		G.Log.Debug("| Failure in SignJson()")
+		d.G().Log.Debug("| Failure in SignJson()")
 		return err
 	}
 
 	if err = d.post(lctx); err != nil {
-		G.Log.Debug("| Failure in post()")
+		d.G().Log.Debug("| Failure in post()")
 		return
 	}
 
@@ -223,8 +232,7 @@ func (d *Delegator) SignAndPost(lctx LoginContext, jw *jsonw.Wrapper) (err error
 func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
 	d.Me.SigChainBump(linkid, d.sigID)
 	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
-
-	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest())
+	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest(), d.getMerkleHashMeta(), keybase1.Seqno(0))
 }
 
 func (d *Delegator) post(lctx LoginContext) (err error) {
