@@ -116,9 +116,10 @@ const commands = {
       BABEL_ENV: 'yarn',
       ELECTRON_ENABLE_LOGGING: 1,
       KEYBASE_NO_ENGINE: 1,
+      VISDIFF: 'true',
     },
     help: 'Render images of dumb components',
-    shell: `${webpackCmd} --config desktop/webpack.config.visdiff.js && electron ./desktop/dist/render-visdiff.bundle.js`,
+    shell: 'yarn run _helper build-dev && electron ./desktop/dist/render-visdiff.bundle.js',
   },
   'setup-debug-main': {
     code: setupDebugMain,

@@ -16,6 +16,7 @@ const flags = {
   isDumb: getenv.boolish('DUMB', false),
   isHot: getenv.boolish('HOT', false),
   isShowingDashboard: !getenv.boolish('NO_SERVER', false),
+  isVisDiff: getenv.boolish('VISDIFF', false),
 }
 
 console.log('Flags: ', flags)
@@ -91,7 +92,7 @@ const makeCommonConfig = () => {
     const defines = {
       __DEV__: flags.isDev,
       __HOT__: JSON.stringify(flags.isHot),
-      __SCREENSHOT__: false, // TODO
+      __SCREENSHOT__: flags.isVisDiff,
       __VERSION__: flags.isDev ? JSON.stringify('Development') : undefined,
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
     }
@@ -148,10 +149,20 @@ const makeCommonConfig = () => {
 }
 
 const makeMainThreadConfig = () => {
+  const makeEntries = () => {
+    if (flags.isVisDiff) {
+      return {
+        'render-visdiff': path.resolve(__dirname, 'test/render-visdiff.js'),
+      }
+    } else {
+      return {
+        main: path.resolve(__dirname, 'app/index.js'),
+      }
+    }
+  }
+
   return merge(commonConfig, {
-    entry: {
-      main: path.resolve(__dirname, 'app/index.js'),
-    },
+    entry: makeEntries(),
     name: 'mainThread',
     target: 'electron-main',
   })
@@ -200,18 +211,23 @@ const makeRenderThreadConfig = () => {
     : []
 
   const makeEntries = () => {
-    return flags.isDumb
-      ? {
-          index: [...HMREntries, path.resolve(__dirname, 'renderer/dumb.js')],
-        }
-      : {
-          index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-          launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
-          'remote-component-loader': [
-            ...HMREntries,
-            path.resolve(__dirname, 'renderer/remote-component-loader.js'),
-          ],
-        }
+    if (flags.isVisDiff) {
+      return {
+        visdiff: path.resolve(__dirname, '../test/render-dumb-sheet.js'),
+      }
+    } else if (flags.isDumb) {
+      return {
+        index: [...HMREntries, path.resolve(__dirname, 'renderer/dumb.js')],
+      }
+    } else
+      return {
+        index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
+        launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
+        'remote-component-loader': [
+          ...HMREntries,
+          path.resolve(__dirname, 'renderer/remote-component-loader.js'),
+        ],
+      }
   }
 
   return merge(commonConfig, {
