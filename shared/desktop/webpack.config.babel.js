@@ -1,8 +1,6 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
-// hints from analyzer
 // sourcemap working better
-//
 // happypack?
 //
 import getenv from 'getenv'
@@ -181,7 +179,8 @@ const HMREntries = isHot
 
 const renderThreadConfig = merge(commonConfig, {
   dependencies: ['vendor'],
-  devtool: undefined, // 'cheap-module-eval-source-map',
+  // devtool: 'cheap-source-map', //works
+  devtool: 'cheap-eval-source-map',
   entry: {
     index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
     launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
@@ -246,8 +245,5 @@ const dllConfig = {
 }
 
 const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
-// const config = mainThreadConfig
-
-// console.log(JSON.stringify(config, null, 2))
-
+// const config = renderThreadConfig
 export default config
