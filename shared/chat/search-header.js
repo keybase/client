@@ -42,6 +42,9 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
   exitSearch: () => dispatch(Creators.exitSearch()),
+  onMoveSelectUp: id => dispatch(Creators.selectSearchResultIdWithMovement('up')),
+  onMoveSelectDown: id => dispatch(Creators.selectSearchResultIdWithMovement('down')),
+  _onEnter: id => dispatch(Creators.addSelectedSearchResult()),
 })
 
 const SearchHeader = props => {
@@ -57,8 +60,9 @@ const SearchHeader = props => {
             placeholder={props.placeholder}
             usernameText={props.usernameText}
             onChangeText={props.onChangeText}
-            onMoveSelectUp={() => {}} // TODO
-            onMoveSelectDown={() => {}} // TODO
+            onMoveSelectUp={props.onMoveSelectUp}
+            onMoveSelectDown={props.onMoveSelectDown}
+            onEnter={props.onEnter}
           />
         </Box>
         <Icon
@@ -85,6 +89,10 @@ export default compose(
     onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
+    },
+    onEnter: (props: OwnProps & {_onEnter: Function}) => () => {
+      props._onEnter()
+      props.onChangeSearchText('')
     },
   }),
   defaultProps({

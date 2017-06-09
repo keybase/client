@@ -57,6 +57,7 @@ const Search = props => {
               onChangeText={props.onChangeText}
               onMoveSelectUp={() => {}} // TODO
               onMoveSelectDown={() => {}} // TODO
+              onEnter={() => {}} // TODO
             />
           </Box>
           <Icon style={{alignSelf: 'center'}} type="iconfont-close" onClick={props.onClose} />

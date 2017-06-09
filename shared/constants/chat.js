@@ -689,6 +689,13 @@ export type SelectSearchResultId = NoErrorTypedAction<
   {searchResultId: ?SearchConstants.SearchResultId}
 >
 
+export type SelectSearchResultIdWithMovement = NoErrorTypedAction<
+  'chat:selectSearchResultIdWithMovement',
+  {movement: 'up' | 'down'}
+>
+
+export type AddSelectedSearchResult = NoErrorTypedAction<'chat:addSelectedSearchResult', {}>
+
 export type ShareAttachment = NoErrorTypedAction<
   'chat:shareAttachment',
   {

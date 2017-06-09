@@ -20,6 +20,7 @@ export type Props = {
   onClickAddButton: () => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
+  onEnter: () => void,
 }
 
 export default class UserInput extends Component<void, Props, void> {}

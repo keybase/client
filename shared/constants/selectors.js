@@ -15,6 +15,11 @@ const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
+const chatSearchResultArray = createSelector(
+  ({chat: {searchResults}}: TypedState) => searchResults,
+  searchResults => (searchResults ? searchResults.toArray() : [])
+)
+
 const profileSearchResultArray = createSelector(
   ({profile: {searchResults}}: TypedState) => searchResults,
   searchResults => (searchResults ? searchResults.toArray() : [])
@@ -24,6 +29,7 @@ export {
   amIFollowing,
   amIBeingFollowed,
   cachedSearchResults,
+  chatSearchResultArray,
   inboxSearchSelector,
   loggedInSelector,
   profileSearchResultArray,

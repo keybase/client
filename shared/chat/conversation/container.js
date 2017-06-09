@@ -12,6 +12,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import {getProfile} from '../../actions/tracker'
 import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
+import {chatSearchResultArray} from '../../constants/selectors'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -79,10 +80,9 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersedes,
     threadLoadedOffline,
     inSearch: state.chat.inSearch,
-    searchResultIds: searchResults ? searchResults.toArray() : [],
+    searchResultIds: chatSearchResultArray(state),
     showSearchResults: !!searchResults,
-    // TODO
-    selectedSearchId: searchResults ? searchResults.first() : null,
+    selectedSearchId: state.chat.selectedSearchId,
   }
 }
 
