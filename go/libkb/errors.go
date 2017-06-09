@@ -355,6 +355,20 @@ func (n NoSelectedKeyError) Error() string {
 
 //=============================================================================
 
+type KeyCorruptedError struct {
+	Msg string
+}
+
+func (e KeyCorruptedError) Error() string {
+	msg := "Key corrupted"
+	if len(e.Msg) != 0 {
+		msg = msg + ": " + e.Msg
+	}
+	return msg
+}
+
+//=============================================================================
+
 type KeyExistsError struct {
 	Key *PGPFingerprint
 }

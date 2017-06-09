@@ -713,7 +713,7 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 		lctx.EnsureUsername(e.arg.User.GetNormalizedName())
 
 		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
-			if appErr, ok := err.(libkb.AppStatusError); ok && appErr.Code == 905 {
+			if appErr, ok := err.(libkb.AppStatusError); ok && appErr.Code == libkb.SCKeyCorrupted {
 				// Propagate the error, but display a more descriptive message to the user.
 				e.G().Log.Error("during GPG provisioning.\n We were able to generate a PGP signature with " +
 					"gpg client, but it was rejected by the server. This often means that PGP key in your " +
