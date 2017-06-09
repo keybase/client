@@ -568,3 +568,12 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 	}
 	return nil
 }
+
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication) (keybase1.TeamPlusApplicationKeys, error) {
+	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
+	teamByID, err := GetByID(ctx, g, id)
+	if err != nil {
+		return teamPlusApplicationKeys, err
+	}
+	return teamByID.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+}

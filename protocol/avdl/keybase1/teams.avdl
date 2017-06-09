@@ -72,6 +72,17 @@ protocol teams {
     Seqno eldestSeqno;
   }
 
+  record TeamPlusApplicationKeys {
+      TeamID id;
+      string name;
+      TeamApplication application;
+
+      array<UserVersion> writers;
+      array<UserVersion> onlyReaders;
+
+      array<TeamApplicationKey> applicationKeys;
+  }
+
   // State of a parsed team sigchain.
   // Should be treated as immutable when outside TeamSigChainPlayer.
   // Modified internally to TeamSigChainPlayer.
@@ -131,4 +142,5 @@ protocol teams {
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application);
 }

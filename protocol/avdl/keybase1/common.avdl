@@ -204,7 +204,7 @@ protocol Common {
       array<PublicKey> pgpKeys;
       array<RemoteTrack> remoteTracks;
   }
-
+  
   @go("nostring")
   enum MerkleTreeID {
        MASTER_0,
