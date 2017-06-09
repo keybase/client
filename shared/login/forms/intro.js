@@ -3,7 +3,7 @@ import * as Constants from '../../constants/config'
 import {Splash, Intro, Failure} from '.'
 import {connect} from 'react-redux'
 import {feedbackTab} from '../../constants/settings'
-import {settingsTab} from '../../constants/tabs'
+import {loginTab, settingsTab} from '../../constants/tabs'
 import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
 import * as Creators from '../../actions/login/creators'
@@ -29,7 +29,7 @@ export default compose(
         dispatch(Creators.setLoginFromRevokedDevice(''))
         dispatch(Creators.setRevokedSelf(''))
         dispatch(Creators.setDeletedSelf(''))
-        dispatch(Creators.navBasedOnLoginState())
+        dispatch(navigateTo([loginTab, 'login']))
         dispatch(Creators.startLogin())
       },
       onRetry: () => {
