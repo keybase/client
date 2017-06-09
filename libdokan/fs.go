@@ -414,15 +414,20 @@ func (f *FS) ErrorPrint(err error) {
 }
 
 // MoveFile tries to move a file.
-func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
+func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking was handled by original file open, this is no longer true.
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
 
 	// isPotentialRenamePath filters out some special paths
 	// for rename. Especially those provided by fakeroot.go.
-	if !isPotentialRenamePath(source.Path()) {
+	if !isPotentialRenamePath(sourceFI.Path()) {
 		f.log.Errorf("Refusing MoveFile access: not potential rename path")
+		return dokan.ErrAccessDenied
+	}
+	switch src.(type) {
+	case *FolderList, *File, *Dir, *TLF, *EmptyFolder:
+	default:
 		return dokan.ErrAccessDenied
 	}
 
@@ -438,15 +443,9 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	}()
 
 	oc := newSyntheticOpenContext()
-	src, _, err := f.openRaw(ctx, source, oc.CreateData)
-	f.log.CDebugf(ctx, "FS Rename source open -> %v,%v srcType %T", src, err, src)
-	if err != nil {
-		return err
-	}
-	defer src.Cleanup(ctx, nil)
 
 	// Source directory
-	srcDirPath, err := windowsPathSplit(source.Path())
+	srcDirPath, err := windowsPathSplit(sourceFI.Path())
 	if err != nil {
 		return err
 	}

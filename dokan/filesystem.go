@@ -47,7 +47,7 @@ type FileSystem interface {
 	GetVolumeInformation(ctx context.Context) (VolumeInformation, error)
 
 	// MoveFile corresponds to rename.
-	MoveFile(ctx context.Context, source *FileInfo, targetPath string, replaceExisting bool) error
+	MoveFile(ctx context.Context, sourceHandle File, sourceFileInfo *FileInfo, targetPath string, replaceExisting bool) error
 
 	// ErrorPrint is called when dokan needs notify the program of an error message.
 	// A sensible approach is to print the error.
