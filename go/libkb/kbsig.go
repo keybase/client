@@ -517,11 +517,12 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, devi
 	return ret, nil
 }
 
-func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) (*jsonw.Wrapper, error) {
+func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID, merkleRoot *MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeRevoke,
 		SigningKey: key,
+		MerkleRoot: merkleRoot,
 	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
