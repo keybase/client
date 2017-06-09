@@ -1,8 +1,9 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
 // TODO
-// prefetch
 // hints from analyzer
-//happypack?
+// sourcemap working better
+//
+// happypack?
 //
 import getenv from 'getenv'
 import merge from 'webpack-merge'
@@ -136,10 +137,6 @@ const mainThreadConfig = merge(commonConfig, {
     main: path.resolve(__dirname, 'app/index.js'),
   },
   name: 'mainThread',
-  plugins: [
-    new webpack.PrefetchPlugin('purepack/lib/pack.js'),
-    new webpack.PrefetchPlugin('framed-msgpack-rpc/lib/main.js'),
-  ],
   target: 'electron-main',
 })
 
@@ -248,8 +245,8 @@ const dllConfig = {
   target: 'electron-renderer',
 }
 
-// const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
-const config = dllConfig
+const config = isJustMain ? mainThreadConfig : [mainThreadConfig, renderThreadConfig, dllConfig]
+// const config = mainThreadConfig
 
 // console.log(JSON.stringify(config, null, 2))
 
