@@ -656,10 +656,26 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joinedConvs []chat1.Conversation, removedConvs []chat1.ConversationID) (err error) {
+	joinedConvIDs []chat1.ConversationID, removedConvIDs []chat1.ConversationID) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
-	if cerr := storage.NewInbox(s.G(), uid).MembershipUpdate(ctx, vers, joinedConvs, removedConvs); cerr != nil {
+	// Load the joined conversations
+	var joinedConvs []chat1.Conversation
+	if len(joinedConvIDs) > 0 {
+		var ibox chat1.Inbox
+		ibox, _, err = s.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
+			ConvIDs: joinedConvIDs,
+		}, nil)
+		if err != nil {
+			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
+			return
+		}
+		for _, c := range ibox.ConvsUnverified {
+			joinedConvs = append(joinedConvs, c)
+		}
+	}
+
+	if cerr := storage.NewInbox(s.G(), uid).MembershipUpdate(ctx, vers, joinedConvs, removedConvIDs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return err
 	}

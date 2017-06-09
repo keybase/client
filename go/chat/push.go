@@ -605,38 +605,18 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		defer func() {
-			if err != nil {
-				g.Debug(ctx, "MembershipUpdate: sending inbox stale notification")
-				g.G().Syncer.SendChatStaleNotifications(ctx, uid, nil, true)
-			}
+			// Send notifications for changed conversations (might need to make this better in the future)
+			g.Debug(ctx, "MembershipUpdate: sending inbox stale notification")
+			g.G().Syncer.SendChatStaleNotifications(ctx, uid, nil, true)
 		}()
 
-		// Load the joined conversations
-		var joinedConvs []chat1.Conversation
-		if len(update.Joined) > 0 {
-			var ibox chat1.Inbox
-			ibox, _, err = g.G().InboxSource.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
-				ConvIDs: update.Joined,
-			}, nil)
-			if err != nil {
-				g.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
-				return
-			}
-			for _, c := range ibox.ConvsUnverified {
-				joinedConvs = append(joinedConvs, c)
-			}
-		}
-
 		// Write out changes to local storage
-		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joinedConvs,
+		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
 			update.Removed); err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err
 		}
 
-		// Send notifications for changed conversations (might need to make this better in the future)
-		convIDs := append(utils.PluckConvIDs(joinedConvs), update.Removed...)
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid, convIDs, false)
 		return nil
 	}(bctx)
 

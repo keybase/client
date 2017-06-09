@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"encoding/hex"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -707,4 +709,39 @@ func TestInboxServerVersion(t *testing.T) {
 	idata, err := inbox.readDiskInbox(context.TODO())
 	require.NoError(t, err)
 	require.Equal(t, 5, idata.ServerVersion)
+}
+
+func TestMembershipUpdate(t *testing.T) {
+	_, inbox, _ := setupInboxTest(t, "membership")
+
+	// Create an inbox with a bunch of convos, merge it and read it back out
+	numConvs := 10
+	var convs []chat1.Conversation
+	for i := numConvs - 1; i >= 0; i-- {
+		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+
+	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
+	var joinedConvs []chat1.Conversation
+	numJoinedConvs := 5
+	for i := 0; i < numJoinedConvs; i++ {
+		joinedConvs = append(joinedConvs, makeConvo(gregor1.Time(i), 1, 1))
+	}
+
+	require.NoError(t, inbox.MembershipUpdate(context.TODO(), 2, joinedConvs,
+		[]chat1.ConversationID{convs[5].GetConvID()}))
+
+	vers, res, err := inbox.ReadAll(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, chat1.InboxVers(2), vers)
+	for _, c := range res {
+		if c.GetConvID().Eq(convs[5].GetConvID()) {
+			require.Fail(t, "removed conv returned")
+		}
+	}
+	expected := append(convs[:5], append(convs[6:], joinedConvs...)...)
+	sort.Sort(utils.ConvByConvID(expected))
+	sort.Sort(utils.ConvByConvID(res))
+	require.Equal(t, len(expected), len(res))
+	require.Equal(t, expected, res)
 }
