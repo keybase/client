@@ -1,7 +1,10 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-// TODO
-// visdiff
-// comments
+/* Our bundler for the desktop app.
+ * We build:
+ * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
+ * if isDumb we render just the dumb sheet
+ * is isVisDiff we render screenshots
+ */
 import DashboardPlugin from 'webpack-dashboard/plugin'
 import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
 import getenv from 'getenv'
@@ -9,6 +12,7 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 
+// External parameters which control the config
 const flags = {
   // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
   isBeforeHot: getenv.boolish('BEFORE_HOT', false),
@@ -18,9 +22,9 @@ const flags = {
   isShowingDashboard: !getenv.boolish('NO_SERVER', false),
   isVisDiff: getenv.boolish('VISDIFF', false),
 }
-
 console.log('Flags: ', flags)
 
+// The common config all other derive from
 const makeCommonConfig = () => {
   const makeRules = () => {
     const fileLoaderRule = {
@@ -63,6 +67,7 @@ const makeCommonConfig = () => {
 
     return [
       {
+        // Don't include large mock images in a prod build
         include: path.resolve(__dirname, '../images/mock'),
         test: /\.jpg$/,
         use: [flags.isDev ? fileLoaderRule : 'null-loader'],
@@ -96,7 +101,6 @@ const makeCommonConfig = () => {
       __VERSION__: flags.isDev ? JSON.stringify('Development') : undefined,
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
     }
-
     console.warn('Injecting defines: ', defines)
     const definePlugin = [new webpack.DefinePlugin(defines)]
 
@@ -112,6 +116,7 @@ const makeCommonConfig = () => {
     return [...definePlugin, ...uglifyPlugin].filter(Boolean)
   }
 
+  // If we use the hot server it pulls in this config
   const devServer = {
     compress: true,
     contentBase: path.resolve(__dirname, 'dist'),
@@ -170,11 +175,15 @@ const makeMainThreadConfig = () => {
 
 const makeRenderThreadConfig = () => {
   const makeRenderPlugins = () => {
+    // Visual dashboard to see what the hot server is doing
     const dashboardPlugin = flags.isShowingDashboard ? [new DashboardPlugin()] : []
+    // Allow hot module reload when editing files
     const hmrPlugin = flags.isHot && flags.isDev
       ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
       : []
+    // Don't spit out errors while building
     const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
+    // Put common code between the entries into a sep. file
     const commonChunksPlugin = flags.isDev
       ? [
           new webpack.optimize.CommonsChunkPlugin({
@@ -185,6 +194,7 @@ const makeRenderThreadConfig = () => {
         ]
       : []
 
+    // Put our vendored stuff into its own thing
     const dllPlugin = flags.isDev
       ? [
           new webpack.DllReferencePlugin({
@@ -202,6 +212,7 @@ const makeRenderThreadConfig = () => {
     ].filter(Boolean)
   }
 
+  // Have to inject some additional code if we're using HMR
   const HMREntries = flags.isHot && flags.isDev
     ? [
         'react-hot-loader/patch',
@@ -232,6 +243,7 @@ const makeRenderThreadConfig = () => {
 
   return merge(commonConfig, {
     dependencies: flags.isDev ? ['vendor'] : undefined,
+    // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     devtool: flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
     name: 'renderThread',
@@ -242,6 +254,7 @@ const makeRenderThreadConfig = () => {
 
 const makeDllConfig = () => {
   return {
+    // This list came from looking at the webpack analyzer and choosing the largest / slowest items
     entry: [
       './markdown/parser',
       'emoji-mart',
@@ -286,6 +299,7 @@ const makeDllConfig = () => {
         name: 'vendor',
         path: path.resolve(__dirname, 'dll/vendor-manifest.json'),
       }),
+      // Don't include all the moment locales
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     ],
     target: 'electron-renderer',
@@ -297,6 +311,7 @@ const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
 const dllConfig = flags.isDev && makeDllConfig()
 
+// When we start the hot server we want to build the main/dll without hot reloading statically
 const config = flags.isBeforeHot
   ? [mainThreadConfig, dllConfig]
   : [mainThreadConfig, renderThreadConfig, dllConfig].filter(Boolean)
