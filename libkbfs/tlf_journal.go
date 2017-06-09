@@ -192,7 +192,7 @@ type tlfJournal struct {
 	uid                 keybase1.UID
 	key                 kbfscrypto.VerifyingKey
 	tlfID               tlf.ID
-	tid                 keybase1.TeamID
+	chargedTo           keybase1.UserOrTeamID
 	dir                 string
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
@@ -263,35 +263,42 @@ type tlfJournalInfo struct {
 	UID          keybase1.UID
 	VerifyingKey kbfscrypto.VerifyingKey
 	TlfID        tlf.ID
-	TID          keybase1.TeamID // for single-team TLFs
+	ChargedTo    keybase1.UserOrTeamID
 }
 
 func readTLFJournalInfoFile(dir string) (
-	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID, keybase1.TeamID, error) {
+	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID,
+	keybase1.UserOrTeamID, error) {
 	var info tlfJournalInfo
 	err := ioutil.DeserializeFromJSONFile(
 		getTLFJournalInfoFilePath(dir), &info)
 	if err != nil {
 		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, tlf.ID{},
-			keybase1.TeamID(""), err
+			keybase1.UserOrTeamID(""), err
 	}
 
-	return info.UID, info.VerifyingKey, info.TlfID, info.TID, nil
+	chargedTo := info.UID.AsUserOrTeam()
+	if info.ChargedTo.Exists() {
+		chargedTo = info.ChargedTo
+	}
+
+	return info.UID, info.VerifyingKey, info.TlfID, chargedTo, nil
 }
 
 func writeTLFJournalInfoFile(dir string, uid keybase1.UID,
-	key kbfscrypto.VerifyingKey, tlfID tlf.ID, tid keybase1.TeamID) error {
-	info := tlfJournalInfo{uid, key, tlfID, tid}
+	key kbfscrypto.VerifyingKey, tlfID tlf.ID,
+	chargedTo keybase1.UserOrTeamID) error {
+	info := tlfJournalInfo{uid, key, tlfID, chargedTo}
 	return ioutil.SerializeToJSONFile(info, getTLFJournalInfoFilePath(dir))
 }
 
 func makeTLFJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	dir string, tlfID tlf.ID, tid keybase1.TeamID, config tlfJournalConfig,
-	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
-	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener, diskLimiter DiskLimiter) (
-	*tlfJournal, error) {
+	dir string, tlfID tlf.ID, chargedTo keybase1.UserOrTeamID,
+	config tlfJournalConfig, delegateBlockServer BlockServer,
+	bws TLFJournalBackgroundWorkStatus, bwDelegate tlfJournalBWDelegate,
+	onBranchChange branchChangeListener, onMDFlush mdFlushListener,
+	diskLimiter DiskLimiter) (*tlfJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -302,17 +309,18 @@ func makeTLFJournal(
 		return nil, errors.New("Empty tlf.ID")
 	}
 
-	if tlfID.Type() == tlf.SingleTeam && tid.IsNil() {
+	if tlfID.Type() == tlf.SingleTeam && chargedTo.IsUser() {
 		return nil, errors.New("Team ID required for single-team TLF")
-	} else if tlfID.Type() != tlf.SingleTeam && tid.Exists() {
-		return nil, errors.New("Team ID required to be nil for non-team TLF")
+	} else if tlfID.Type() != tlf.SingleTeam && !chargedTo.IsUser() {
+		return nil, errors.New("User ID required for non-team TLF")
 	}
 
-	readUID, readKey, readTlfID, readTeamID, err := readTLFJournalInfoFile(dir)
+	readUID, readKey, readTlfID, readChargedTo, err :=
+		readTLFJournalInfoFile(dir)
 	switch {
 	case ioutil.IsNotExist(err):
 		// Info file doesn't exist, so write it.
-		err := writeTLFJournalInfoFile(dir, uid, key, tlfID, tid)
+		err := writeTLFJournalInfoFile(dir, uid, key, tlfID, chargedTo)
 		if err != nil {
 			return nil, err
 		}
@@ -339,9 +347,9 @@ func makeTLFJournal(
 				"Expected TLF ID %s, got %s", tlfID, readTlfID)
 		}
 
-		if tid != readTeamID {
+		if chargedTo != readChargedTo {
 			return nil, errors.Errorf(
-				"Expected team ID %s, got %s", tid, readTeamID)
+				"Expected chargedTo ID %s, got %s", chargedTo, readChargedTo)
 		}
 	}
 
@@ -368,7 +376,7 @@ func makeTLFJournal(
 		uid:                  uid,
 		key:                  key,
 		tlfID:                tlfID,
-		tid:                  tid,
+		chargedTo:            chargedTo,
 		dir:                  dir,
 		config:               config,
 		delegateBlockServer:  delegateBlockServer,
@@ -415,7 +423,7 @@ func makeTLFJournal(
 	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	storedFiles := j.blockJournal.getStoredFiles()
 	availableBytes, availableFiles := j.diskLimiter.onJournalEnable(
-		ctx, storedBytes, unflushedBytes, storedFiles)
+		ctx, storedBytes, unflushedBytes, storedFiles, j.chargedTo)
 
 	retry := backoff.NewExponentialBackOff()
 	retry.MaxElapsedTime = 0
@@ -941,7 +949,7 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 			storedBytesBefore, storedBytesAfter))
 	}
 
-	j.diskLimiter.onBlocksFlush(ctx, flushedBytes)
+	j.diskLimiter.onBlocksFlush(ctx, flushedBytes, j.chargedTo)
 
 	return nil
 }
@@ -1659,7 +1667,7 @@ func (j *tlfJournal) shutdown(ctx context.Context) {
 	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	storedFiles := j.blockJournal.getStoredFiles()
 	j.diskLimiter.onJournalDisable(
-		ctx, storedBytes, unflushedBytes, storedFiles)
+		ctx, storedBytes, unflushedBytes, storedFiles, j.chargedTo)
 
 	// Make further accesses error out.
 	j.blockJournal = nil
@@ -1790,7 +1798,7 @@ func (j *tlfJournal) putBlockData(
 
 	bufLen := int64(len(buf))
 	availableBytes, availableFiles, err := j.diskLimiter.beforeBlockPut(
-		acquireCtx, bufLen, filesPerBlockMax)
+		acquireCtx, bufLen, filesPerBlockMax, j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -1814,7 +1822,7 @@ func (j *tlfJournal) putBlockData(
 	var putData bool
 	defer func() {
 		j.diskLimiter.afterBlockPut(
-			ctx, bufLen, filesPerBlockMax, putData)
+			ctx, bufLen, filesPerBlockMax, putData, j.chargedTo)
 	}()
 
 	j.journalLock.Lock()
@@ -1862,7 +1870,7 @@ func (j *tlfJournal) putBlockData(
 }
 
 func (j *tlfJournal) getQuotaInfo() (usedQuotaBytes, quotaBytes int64) {
-	return j.diskLimiter.getQuotaInfo()
+	return j.diskLimiter.getQuotaInfo(j.chargedTo)
 }
 
 func (j *tlfJournal) addBlockReference(
@@ -2166,7 +2174,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// Treat ignored blocks as flushed for the purposes of
 	// accounting.
-	j.diskLimiter.onBlocksFlush(ctx, totalIgnoredBytes)
+	j.diskLimiter.onBlocksFlush(ctx, totalIgnoredBytes, j.chargedTo)
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
 	err = j.blockJournal.markMDRevision(

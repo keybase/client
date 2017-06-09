@@ -59,13 +59,17 @@ func setupJournalServerTest(t *testing.T) (
 		}
 	}()
 
-	quotaUsage, err = config.EnableDiskLimiter(tempdir)
+	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 	jServer, err = GetJournalServer(config)
 	require.NoError(t, err)
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	quotaUsage = config.getQuotaUsage(session.UID.AsUserOrTeam())
 
 	setupSucceeded = true
 	return tempdir, ctx, cancel, config, quotaUsage, jServer
@@ -84,15 +88,28 @@ type quotaBlockServer struct {
 	BlockServer
 
 	quotaInfoLock sync.Mutex
-	quotaInfo     kbfsblock.QuotaInfo
+	userQuotaInfo kbfsblock.QuotaInfo
+	teamQuotaInfo kbfsblock.QuotaInfo
 }
 
 func (qbs *quotaBlockServer) setUserQuotaInfo(
 	remoteUsageBytes, limitBytes int64) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
-	qbs.quotaInfo.Limit = limitBytes
-	qbs.quotaInfo.Total = &kbfsblock.UsageStat{
+	qbs.userQuotaInfo.Limit = limitBytes
+	qbs.userQuotaInfo.Total = &kbfsblock.UsageStat{
+		Bytes: map[kbfsblock.UsageType]int64{
+			kbfsblock.UsageWrite: remoteUsageBytes,
+		},
+	}
+}
+
+func (qbs *quotaBlockServer) setTeamQuotaInfo(
+	remoteUsageBytes, limitBytes int64) {
+	qbs.quotaInfoLock.Lock()
+	defer qbs.quotaInfoLock.Unlock()
+	qbs.teamQuotaInfo.Limit = limitBytes
+	qbs.teamQuotaInfo.Total = &kbfsblock.UsageStat{
 		Bytes: map[kbfsblock.UsageType]int64{
 			kbfsblock.UsageWrite: remoteUsageBytes,
 		},
@@ -103,7 +120,16 @@ func (qbs *quotaBlockServer) GetUserQuotaInfo(ctx context.Context) (
 	info *kbfsblock.QuotaInfo, err error) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
-	infoCopy := qbs.quotaInfo
+	infoCopy := qbs.userQuotaInfo
+	return &infoCopy, nil
+}
+
+func (qbs *quotaBlockServer) GetTeamQuotaInfo(
+	ctx context.Context, _ keybase1.TeamID) (
+	info *kbfsblock.QuotaInfo, err error) {
+	qbs.quotaInfoLock.Lock()
+	defer qbs.quotaInfoLock.Unlock()
+	infoCopy := qbs.teamQuotaInfo
 	return &infoCopy, nil
 }
 
@@ -111,6 +137,14 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	tempdir, ctx, cancel, config, quotaUsage, jServer :=
 		setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	name := libkb.NormalizedUsername("t1")
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name)
+	teamID := teamInfos[0].TID
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	AddTeamWriterForTestOrBust(t, config, teamID, session.UID)
+	teamQuotaUsage := config.getQuotaUsage(teamID.AsUserOrTeam())
 
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
@@ -120,16 +154,26 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 
 	// Set initial quota usage and refresh quotaUsage's cache.
 	qbs.setUserQuotaInfo(1010, 1000)
-	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
+	_, _, _, err = quotaUsage.Get(ctx, 0, 0)
+	require.NoError(t, err)
+
+	// Set team quota to be under the limit for now.
+	qbs.setTeamQuotaInfo(0, 1000)
+	_, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
 	tlfID1 := tlf.FakeID(1, tlf.Private)
 	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
+	tlfID2 := tlf.FakeID(2, tlf.SingleTeam)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "t1", tlf.SingleTeam)
+	require.NoError(t, err)
+	err = jServer.Enable(ctx, tlfID2, h, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
 
-	h, err := ParseTlfHandle(
+	h, err = ParseTlfHandle(
 		ctx, config.KBPKI(), "test_user1,test_user2", tlf.Private)
 	require.NoError(t, err)
 	id1 := h.ResolvedWriters()[0]
@@ -150,6 +194,10 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	}
 	require.Equal(t, expectedQuotaError, err)
 
+	// Teams shouldn't get an error.
+	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
 	// Putting it again shouldn't encounter an error.
 	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
@@ -164,6 +212,19 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	clock.Add(30 * time.Second)
 	err = blockServer.Put(ctx, tlfID1, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
+
+	// Now up the team usage, so teams should get an error.
+	qbs.setTeamQuotaInfo(1010, 1000)
+	_, _, _, err = teamQuotaUsage.Get(ctx, 0, 0)
+	require.NoError(t, err)
+	clock.Add(time.Minute)
+	err = blockServer.Put(ctx, tlfID2, bID, bCtx, data, serverHalf)
+	expectedQuotaError = kbfsblock.BServerErrorOverQuota{
+		Usage:     1014,
+		Limit:     1000,
+		Throttled: false,
+	}
+	require.Equal(t, expectedQuotaError, err)
 }
 
 type tlfJournalConfigWithDiskLimitTimeout struct {
@@ -195,6 +256,10 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	chargedTo := session.UID.AsUserOrTeam()
+
 	// Replace the tlfJournal config with one that has a really small
 	// delay.
 	tj, ok := jServer.getTLFJournal(tlfID1, nil)
@@ -204,7 +269,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 		dlTimeout:        3 * time.Microsecond,
 	}
 	tj.diskLimiter.onJournalEnable(
-		ctx, math.MaxInt64, 0, math.MaxInt64-1)
+		ctx, math.MaxInt64, 0, math.MaxInt64-1, chargedTo)
 
 	blockServer := config.BlockServer()
 
@@ -711,7 +776,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 
 	tj, ok := jServer.getTLFJournal(tlfID, nil)
 	require.True(t, ok)
-	require.Equal(t, id, tj.tid)
+	require.Equal(t, id.AsUserOrTeam(), tj.chargedTo)
 
 	// Get the block.
 

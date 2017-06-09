@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -35,14 +36,17 @@ type DiskLimiter interface {
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0. The updated available byte
 	// and file count must be returned.
-	onJournalEnable(
-		ctx context.Context, journalStoredBytes, journalUnflushedBytes, journalFiles int64) (
+	onJournalEnable(ctx context.Context,
+		journalStoredBytes, journalUnflushedBytes, journalFiles int64,
+		chargedTo keybase1.UserOrTeamID) (
 		availableBytes, availableFiles int64)
 
 	// onJournalDisable is called when shutting down a TLF journal
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0.
-	onJournalDisable(ctx context.Context, journalStoredBytes, journalUnflushedBytes, journalFiles int64)
+	onJournalDisable(ctx context.Context,
+		journalStoredBytes, journalUnflushedBytes, journalFiles int64,
+		chargedTo keybase1.UserOrTeamID)
 
 	// beforeBlockPut is called before putting a block of the
 	// given byte and file count, both of which must be > 0. It
@@ -51,7 +55,7 @@ type DiskLimiter interface {
 	// updated available byte and file count must be returned,
 	// even if err is non-nil.
 	beforeBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64) (
+		blockBytes, blockFiles int64, chargedTo keybase1.UserOrTeamID) (
 		availableBytes, availableFiles int64, err error)
 
 	// afterBlockPut is called after putting a block of the given
@@ -60,13 +64,15 @@ type DiskLimiter interface {
 	// was actually put; if it's false, it's either because of an
 	// error or because the block already existed.
 	afterBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64, putData bool)
+		blockBytes, blockFiles int64, putData bool,
+		chargedTo keybase1.UserOrTeamID)
 
 	// onBlocksFlush is called after flushing blocks of the given
 	// byte count, which must be >= 0. (Flushing a block with a
 	// zero byte count shouldn't happen, but may as well let it go
 	// through.)
-	onBlocksFlush(ctx context.Context, blockBytes int64)
+	onBlocksFlush(ctx context.Context, blockBytes int64,
+		chargedTo keybase1.UserOrTeamID)
 
 	// onBlocksDelete is called after deleting blocks of the given
 	// byte and file count, both of which must be >= 0. (Deleting
@@ -76,7 +82,8 @@ type DiskLimiter interface {
 
 	// getQuotaInfo returns the quota info as known by the disk
 	// limiter.
-	getQuotaInfo() (usedQuotaBytes, quotaBytes int64)
+	getQuotaInfo(chargedTo keybase1.UserOrTeamID) (
+		usedQuotaBytes, quotaBytes int64)
 
 	// getDiskLimitInfo returns the usage and limit info for the disk,
 	// as known by the disk limiter.
@@ -85,5 +92,5 @@ type DiskLimiter interface {
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.
-	getStatus() interface{}
+	getStatus(chargedTo keybase1.UserOrTeamID) interface{}
 }

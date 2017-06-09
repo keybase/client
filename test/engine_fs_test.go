@@ -601,7 +601,7 @@ func (e *fsEngine) InitTest(ver libkbfs.MetadataVer,
 		e.tb.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
 			journalRoot := filepath.Join(jdir, users[i].String())
-			_, err = c.EnableDiskLimiter(journalRoot)
+			err = c.EnableDiskLimiter(journalRoot)
 			if err != nil {
 				panic(fmt.Sprintf("No disk limiter for %d: %+v", i, err))
 			}

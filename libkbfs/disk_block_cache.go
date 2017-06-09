@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -907,8 +908,11 @@ func (cache *DiskBlockCacheStandard) Status() *DiskBlockCacheStatus {
 	}
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	// The disk cache status doesn't depend on the chargedTo ID, and
+	// we don't have easy access to the UID here, so pass in a dummy.
 	limiterStatus :=
-		cache.config.DiskLimiter().getStatus().(backpressureDiskLimiterStatus)
+		cache.config.DiskLimiter().getStatus(
+			keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	return &DiskBlockCacheStatus{
 		NumBlocks:       uint64(cache.numBlocks),
 		BlockBytes:      cache.currBytes,

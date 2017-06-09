@@ -119,6 +119,8 @@ type ConfigLocal struct {
 	metadataVersion MetadataVer
 
 	mode InitMode
+
+	quotaUsage map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -318,6 +320,8 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.bgFlushDirOpBatchSize = bgFlushDirOpBatchSizeDefault
 	config.bgFlushPeriod = bgFlushPeriodDefault
 	config.metadataVersion = defaultClientMetadataVer
+	config.quotaUsage =
+		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 
 	return config
 }
@@ -1062,19 +1066,41 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	return nil
 }
 
+func (c *ConfigLocal) getQuotaUsage(
+	chargedTo keybase1.UserOrTeamID) *EventuallyConsistentQuotaUsage {
+	c.lock.RLock()
+	quota, ok := c.quotaUsage[chargedTo]
+	if ok {
+		c.lock.RUnlock()
+		return quota
+	}
+	c.lock.RUnlock()
+
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	quota, ok = c.quotaUsage[chargedTo]
+	if !ok {
+		if chargedTo.IsTeamOrSubteam() {
+			quota = NewEventuallyConsistentTeamQuotaUsage(
+				c, chargedTo.AsTeamOrBust(), "BDL")
+		} else {
+			quota = NewEventuallyConsistentQuotaUsage(c, "BDL")
+		}
+		c.quotaUsage[chargedTo] = quota
+	}
+	return quota
+}
+
 // EnableDiskLimiter fills in c.ciskLimiter for use in journaling and
 // disk caching. It returns the EventuallyConsistentQuotaUsage object
 // used by the disk limiter.
-func (c *ConfigLocal) EnableDiskLimiter(configRoot string) (
-	*EventuallyConsistentQuotaUsage, error) {
+func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	if c.diskLimiter != nil {
-		return nil, errors.New("c.diskLimiter is already non-nil")
+		return errors.New("c.diskLimiter is already non-nil")
 	}
 
-	// TODO: Ideally, we'd have a shared instance in the Config.
-	quotaUsage := NewEventuallyConsistentQuotaUsage(c, "BDL")
 	params := makeDefaultBackpressureDiskLimiterParams(
-		configRoot, quotaUsage)
+		configRoot, c.getQuotaUsage)
 	log := c.MakeLogger("")
 	log.Debug("Setting disk storage byte limit to %d and file limit to %d",
 		params.byteLimit, params.fileLimit)
@@ -1082,10 +1108,10 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) (
 
 	diskLimiter, err := newBackpressureDiskLimiter(log, params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	c.diskLimiter = diskLimiter
-	return quotaUsage, err
+	return nil
 }
 
 // EnableJournaling creates a JournalServer and attaches it to

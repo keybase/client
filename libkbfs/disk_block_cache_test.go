@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -72,7 +73,8 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 				freeBytes := maxBytes - int64(cache.currBytes)
 				return freeBytes, maxFiles, nil
 			},
-			quotaFn: func(context.Context) (int64, int64) {
+			quotaFn: func(
+				context.Context, keybase1.UserOrTeamID) (int64, int64) {
 				return 0, math.MaxInt64
 			},
 		}

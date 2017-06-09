@@ -611,7 +611,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	config.SetBlockServer(bserv)
 
-	_, err = config.EnableDiskLimiter(params.StorageRoot)
+	err = config.EnableDiskLimiter(params.StorageRoot)
 	if err != nil {
 		log.Warning("Could not enable disk limiter: %+v", err)
 		return nil, err

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfssync"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -82,7 +83,8 @@ func newSemaphoreDiskLimiter(
 
 func (sdl semaphoreDiskLimiter) onJournalEnable(
 	ctx context.Context,
-	journalStoredBytes, journalUnflushedBytes, journalFiles int64) (
+	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
+	_ keybase1.UserOrTeamID) (
 	availableBytes, availableFiles int64) {
 	if journalStoredBytes != 0 {
 		availableBytes = sdl.byteSemaphore.ForceAcquire(journalStoredBytes)
@@ -102,7 +104,8 @@ func (sdl semaphoreDiskLimiter) onJournalEnable(
 
 func (sdl semaphoreDiskLimiter) onJournalDisable(
 	ctx context.Context,
-	journalStoredBytes, journalUnflushedBytes, journalFiles int64) {
+	journalStoredBytes, journalUnflushedBytes, journalFiles int64,
+	_ keybase1.UserOrTeamID) {
 	if journalStoredBytes != 0 {
 		sdl.byteSemaphore.Release(journalStoredBytes)
 	}
@@ -129,8 +132,8 @@ func (sdl semaphoreDiskLimiter) onDiskBlockCacheDisable(
 }
 
 func (sdl semaphoreDiskLimiter) beforeBlockPut(
-	ctx context.Context, blockBytes, blockFiles int64) (
-	availableBytes, availableFiles int64, err error) {
+	ctx context.Context, blockBytes, blockFiles int64,
+	_ keybase1.UserOrTeamID) (availableBytes, availableFiles int64, err error) {
 	// Better to return an error than to panic in Acquire.
 	if blockBytes == 0 {
 		return sdl.byteSemaphore.Count(), sdl.fileSemaphore.Count(), errors.New(
@@ -157,7 +160,8 @@ func (sdl semaphoreDiskLimiter) beforeBlockPut(
 }
 
 func (sdl semaphoreDiskLimiter) afterBlockPut(
-	ctx context.Context, blockBytes, blockFiles int64, putData bool) {
+	ctx context.Context, blockBytes, blockFiles int64, putData bool,
+	_ keybase1.UserOrTeamID) {
 	if !putData {
 		sdl.byteSemaphore.Release(blockBytes)
 		sdl.fileSemaphore.Release(blockFiles)
@@ -166,7 +170,7 @@ func (sdl semaphoreDiskLimiter) afterBlockPut(
 }
 
 func (sdl semaphoreDiskLimiter) onBlocksFlush(
-	ctx context.Context, blockBytes int64) {
+	ctx context.Context, blockBytes int64, _ keybase1.UserOrTeamID) {
 	sdl.quotaTracker.onBlocksFlush(blockBytes)
 }
 
@@ -201,7 +205,7 @@ func (sdl semaphoreDiskLimiter) afterDiskBlockCachePut(ctx context.Context,
 	}
 }
 
-func (sdl semaphoreDiskLimiter) getQuotaInfo() (
+func (sdl semaphoreDiskLimiter) getQuotaInfo(_ keybase1.UserOrTeamID) (
 	usedQuotaBytes, quotaBytes int64) {
 	return sdl.quotaTracker.getQuotaInfo()
 }
@@ -229,7 +233,7 @@ type semaphoreDiskLimiterStatus struct {
 	QuotaUsed  int64
 }
 
-func (sdl semaphoreDiskLimiter) getStatus() interface{} {
+func (sdl semaphoreDiskLimiter) getStatus(_ keybase1.UserOrTeamID) interface{} {
 	byteFree := sdl.byteSemaphore.Count()
 	fileFree := sdl.fileSemaphore.Count()
 	usedQuotaBytes, quotaBytes := sdl.quotaTracker.getQuotaInfo()

@@ -179,7 +179,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 		err := ioutil.RemoveAll(tempdir)
 		assert.NoError(t, err)
 	}()
-	_, err = config1.EnableDiskLimiter(tempdir)
+	err = config1.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config1.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
@@ -240,7 +240,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 
 	// now re-login u1
 	config1B := ConfigAsUser(config1, userName1)
-	_, err = config1B.EnableDiskLimiter(tempdir)
+	err = config1B.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	defer CheckConfigAndShutdown(ctx, t, config1B)
 	err = config1B.EnableJournaling(

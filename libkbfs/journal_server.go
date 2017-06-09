@@ -342,7 +342,7 @@ func (j *JournalServer) EnableExistingJournals(
 			}
 
 			dir := filepath.Join(j.rootPath(), name)
-			uid, key, tlfID, tid, err := readTLFJournalInfoFile(dir)
+			uid, key, tlfID, chargedTo, err := readTLFJournalInfoFile(dir)
 			if err != nil {
 				j.log.CDebugf(
 					groupCtx, "Skipping non-TLF dir %q: %+v", name, err)
@@ -373,7 +373,7 @@ func (j *JournalServer) EnableExistingJournals(
 
 			// Allow enable even if dirty, since any dirty writes
 			// in flight are most likely for another user.
-			tj, err := j.enableLocked(groupCtx, tlfID, tid, bws, true)
+			tj, err := j.enableLocked(groupCtx, tlfID, chargedTo, bws, true)
 			if err != nil {
 				// Don't treat per-TLF errors as fatal.
 				j.log.CWarningf(
@@ -424,7 +424,7 @@ func (j *JournalServer) EnableExistingJournals(
 // responsibility to add it to `j.tlfJournals`.  This allows this
 // method to be called in parallel during initialization, if desired.
 func (j *JournalServer) enableLocked(
-	ctx context.Context, tlfID tlf.ID, tid keybase1.TeamID,
+	ctx context.Context, tlfID tlf.ID, chargedTo keybase1.UserOrTeamID,
 	bws TLFJournalBackgroundWorkStatus, allowEnableIfDirty bool) (
 	tj *tlfJournal, err error) {
 	j.log.CDebugf(ctx, "Enabling journal for %s (%s)", tlfID, bws)
@@ -475,7 +475,8 @@ func (j *JournalServer) enableLocked(
 	tlfDir := j.tlfJournalPathLocked(tlfID)
 	tj, err = makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
-		tlfID, tid, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
+		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
+		j.delegateBlockServer,
 		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter())
 	if err != nil {
 		return nil, err
@@ -490,7 +491,7 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 	h *TlfHandle, bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	var tid keybase1.TeamID
+	chargedTo := j.currentUID.AsUserOrTeam()
 	if tlfID.Type() == tlf.SingleTeam {
 		if h == nil {
 			// Any path that creates a single-team TLF journal should
@@ -501,12 +502,9 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 				"No handle provided for single-team TLF %s", tlfID))
 		}
 
-		tid, err = h.FirstResolvedWriter().AsTeam()
-		if err != nil {
-			return err
-		}
+		chargedTo = h.FirstResolvedWriter()
 	}
-	tj, err := j.enableLocked(ctx, tlfID, tid, bws, false)
+	tj, err := j.enableLocked(ctx, tlfID, chargedTo, bws, false)
 	if err != nil {
 		return err
 	}
@@ -758,7 +756,8 @@ func (j *JournalServer) Status(
 		StoredBytes:         totalStoredBytes,
 		StoredFiles:         totalStoredFiles,
 		UnflushedBytes:      totalUnflushedBytes,
-		DiskLimiterStatus:   j.config.DiskLimiter().getStatus(),
+		DiskLimiterStatus: j.config.DiskLimiter().getStatus(
+			j.currentUID.AsUserOrTeam()),
 	}, tlfIDs
 }
 

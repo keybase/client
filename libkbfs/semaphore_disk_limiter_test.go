@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,8 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 
 	ctx := context.Background()
 
-	availBytes, availFiles, err := sdl.beforeBlockPut(ctx, 9, 1)
+	u := keybase1.UserOrTeamID("")
+	availBytes, availFiles, err := sdl.beforeBlockPut(ctx, 9, 1, u)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), availBytes)
 	require.Equal(t, int64(1), availFiles)
@@ -26,25 +28,25 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	require.Equal(t, int64(1), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(1), sdl.fileSemaphore.Count())
 
-	usedQuotaBytes, quotaBytes := sdl.getQuotaInfo()
+	usedQuotaBytes, quotaBytes := sdl.getQuotaInfo(u)
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
-	sdl.afterBlockPut(ctx, 9, 1, true)
+	sdl.afterBlockPut(ctx, 9, 1, true, u)
 
 	require.Equal(t, int64(1), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(1), sdl.fileSemaphore.Count())
 
-	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo()
+	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo(u)
 	require.Equal(t, int64(9), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
-	sdl.onBlocksFlush(ctx, 9)
+	sdl.onBlocksFlush(ctx, 9, u)
 
 	require.Equal(t, int64(1), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(1), sdl.fileSemaphore.Count())
 
-	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo()
+	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo(u)
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
@@ -53,7 +55,7 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	require.Equal(t, int64(10), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(2), sdl.fileSemaphore.Count())
 
-	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo()
+	usedQuotaBytes, quotaBytes = sdl.getQuotaInfo(u)
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 }
@@ -69,7 +71,8 @@ func TestSemaphoreDiskLimiterBeforeBlockPutError(t *testing.T) {
 		context.Background(), 3*time.Millisecond)
 	defer cancel()
 
-	availBytes, availFiles, err := sdl.beforeBlockPut(ctx, 10, 2)
+	availBytes, availFiles, err := sdl.beforeBlockPut(
+		ctx, 10, 2, keybase1.UserOrTeamID(""))
 	require.Equal(t, context.DeadlineExceeded, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
