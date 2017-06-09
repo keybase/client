@@ -179,8 +179,7 @@ const HMREntries = isHot
 
 const renderThreadConfig = merge(commonConfig, {
   dependencies: ['vendor'],
-  // devtool: 'cheap-source-map', //works
-  devtool: 'cheap-eval-source-map',
+  devtool: 'eval',
   entry: {
     index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
     launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
