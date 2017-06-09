@@ -7,12 +7,15 @@ const followingStateToStyle = (followingState: Constants.FollowingState) => {
     Following: {
       color: globalColors.green2,
     },
-    NoState: {},
+    NoState: {
+      color: globalColors.black,
+    },
     NotFollowing: {
       color: globalColors.blue,
     },
     You: {
       fontStyle: 'italic',
+      color: globalColors.black,
     },
   }[followingState]
 }

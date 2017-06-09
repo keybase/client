@@ -1074,7 +1074,7 @@ const autosizeInputMap: DumbComponentMap<AutosizeInput> = {
       value: 'styled inputs work too!',
       placeholder: '',
       inputStyle: {
-        background: 'papayawhip',
+        backgroundColor: 'papayawhip',
         borderWidth: 2,
         fontSize: 20,
         padding: 10,

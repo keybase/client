@@ -1,5 +1,4 @@
 // @flow
-import * as Constants from '../../constants/searchv3'
 import {last} from 'lodash'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon, ClickableBox} from '../../common-adapters'
@@ -8,27 +7,9 @@ import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
 
-import type {IconType} from '../../common-adapters/icon'
+import type {UserDetails, Props} from './'
 
-export type UserDetails = {
-  id: string,
-  followingState: Constants.FollowingState,
-  icon: ?IconType,
-  service: Constants.Service,
-  username: string,
-}
-
-export type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
-
-export type Props = {
-  placeholder?: string,
-  userItems: Array<UserDetails>,
-  usernameText: string,
-  showAddButton: boolean,
-  onChangeText: (usernameText: string) => void,
-  onRemoveUser: (username: string) => void,
-  onClickAddButton: () => void,
-}
+type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 
 class UserItem extends Component<void, UserItemProps, void> {
   _onRemoveUser = () => {
@@ -45,7 +26,6 @@ class UserItem extends Component<void, UserItemProps, void> {
           username={username}
           avatarSize={16}
           style={{
-            fontSize: 16,
             // Add more space to the left of square icons
             marginLeft: service === 'Hacker News' || service === 'Facebook' ? 3 : 0,
           }}
@@ -89,17 +69,10 @@ class UserInput extends Component<void, Props, void> {
   }
 
   render() {
-    const {
-      placeholder,
-      userItems,
-      usernameText,
-      onChangeText,
-      showAddButton,
-      onClickAddButton,
-      onRemoveUser,
-    } = this.props
+    const {placeholder, userItems, usernameText, onChangeText, onClickAddButton, onRemoveUser} = this.props
 
     const inputLeftPadding = userItems.length ? {paddingLeft: globalMargins.xtiny} : null
+    const showAddButton = !!userItems.length && !usernameText.length
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
@@ -107,9 +80,8 @@ class UserInput extends Component<void, Props, void> {
           ref={el => {
             this._textInput = el
           }}
-          flex={1}
           inputStyle={{..._inputStyle, ...inputLeftPadding}}
-          placeholder={placeholder}
+          placeholder={userItems.length ? '' : placeholder}
           value={usernameText}
           onChange={onChangeText}
           onKeyDown={this._onInputKeyDown}

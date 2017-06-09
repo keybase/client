@@ -1,10 +1,12 @@
 // @flow
+import {compose, withHandlers, withState} from 'recompose'
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import UserInput from './user-input'
 import {StateRecord as EntitiesStateRecord} from '../constants/entities'
 import {Map} from 'immutable'
+import {isMobile} from '../constants/platform'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -267,7 +269,7 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
 }
 
 const commonUserInputMapProps = {
-  showAddButton: true,
+  placeholder: 'Type someone',
   onChangeText: text => console.log(`username text change: ${text}`),
   onRemoveUser: username => console.log(`user removed: ${username}`),
   onClickAddButton: () => console.log('username input add button clicked'),
@@ -332,8 +334,6 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: [],
       usernameText: '',
-      placeholder: 'Type someone',
-      showAddButton: false,
     },
     'Users + Add': {
       ...commonUserInputMapProps,
@@ -344,15 +344,16 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: maxUsers,
       usernameText: 'ma',
-      showAddButton: false,
     },
     'Users (Wrap)': {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 480,
+          width: isMobile ? 300 : 480,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
@@ -362,9 +363,11 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 370,
+          width: isMobile ? 300 : 370,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: maxUsers,
@@ -376,19 +379,60 @@ const userInputMap: DumbComponentMap<UserInput> = {
         style: {
           width: 460,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
       usernameText: 'Chris Hemswor',
-      showAddButton: false,
     },
   },
 }
 
+const UserInputEditable = compose(
+  withState('usernameText', 'onChangeText', ''),
+  withState('userItems', 'setUserItems', ({userItems}) => userItems),
+  withHandlers({
+    onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
+      setUserItems(userItems.filter(i => i.id !== id))
+    },
+  })
+)(UserInput)
+
+const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
+  component: UserInputEditable,
+  mocks: {
+    Empty: {
+      ...commonUserInputMapProps,
+      userItems: [],
+    },
+    'Users + Add (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 480,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
+    },
+  },
+}
+
+const desktopOnly = !isMobile
+  ? {
+      'SearchV3 result': servicesResultMap,
+      'SearchV3 resultsList': servicesResultsListMap,
+    }
+  : {}
+
 export default {
   'SearchV3 filter': servicesFilterMap,
-  'SearchV3 result': servicesResultMap,
-  'SearchV3 resultsList': servicesResultsListMap,
   'SearchV3 user input': userInputMap,
+  'SearchV3 user input (editable)': userInputEditableMap,
+  ...desktopOnly,
 }
