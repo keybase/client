@@ -83,14 +83,16 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 
 func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.GetInboxAndUnboxLocalArg, error) {
-	if len(req.TopicName) > 0 && req.TopicType == chat1.TopicType_CHAT {
-		return chat1.GetInboxAndUnboxLocalArg{},
-			errors.New("we are not supporting setting topic name for chat conversations yet")
-	}
 
 	var nameQuery *chat1.NameQuery
 	switch req.MembersType {
 	case chat1.ConversationMembersType_KBFS:
+
+		if len(req.TopicName) > 0 && req.TopicType == chat1.TopicType_CHAT {
+			return chat1.GetInboxAndUnboxLocalArg{},
+				errors.New("multiple topics only supported for teams and dev conversations")
+		}
+
 		if len(req.TlfName) > 0 {
 			err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
 			if err != nil {
