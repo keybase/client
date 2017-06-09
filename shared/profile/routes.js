@@ -9,7 +9,8 @@ import ProveWebsiteChoice from './prove-website-choice-container'
 import RevokeContainer from './revoke/container'
 import PostProof from './post-proof-container'
 import ConfirmOrPending from './confirm-or-pending-container'
-import SearchPopup from './search'
+import SearchPopup from './search-container'
+import {isMobile} from '../constants/platform'
 
 const proveEnterUsername = new RouteDefNode({
   component: ProveEnterUsername,
@@ -55,7 +56,7 @@ export const profileRoute = new RouteDefNode({
     search: {
       children: {},
       component: SearchPopup,
-      tags: {layerOnTop: true},
+      tags: {layerOnTop: !isMobile},
     },
   },
 })

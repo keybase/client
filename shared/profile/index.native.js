@@ -27,14 +27,19 @@ import {
 } from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
+import featureFlags from '../util/feature-flags'
 
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
+featureFlags.searchv3Enabled = true
+
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 64
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
+export const BACK_ZINDEX = 12
+export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
   currentFriendshipsTab: FriendshipsTab,
@@ -218,6 +223,11 @@ class Profile extends Component<void, Props, State> {
               style={{marginLeft: 16}}
               iconStyle={{color: globalColors.white}}
             />}
+          {featureFlags.searchv3Enabled &&
+            <Box onClick={this.props.onSearch} style={styleSearchContainer}>
+              <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
+              <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
+            </Box>}
         </Box>
         <NativeScrollView
           style={{flex: 1, backgroundColor: trackerStateColors.header.background}}
@@ -346,6 +356,31 @@ const styleFolderIcon = {
   marginRight: globalMargins.tiny,
   textAlign: 'center',
   color: globalColors.black_75,
+}
+
+const styleSearchContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  backgroundColor: globalColors.white_20,
+  borderRadius: 100,
+  justifyContent: 'center',
+  left: 64,
+  minHeight: 24,
+  minWidth: 273,
+  position: 'absolute',
+  top: 30,
+  zIndex: SEARCH_CONTAINER_ZINDEX,
+}
+
+const styleSearch = {
+  color: globalColors.white,
+  padding: 3,
+}
+
+const styleSearchText = {
+  ...styleSearch,
+  position: 'relative',
+  top: 1,
 }
 
 export default Profile
