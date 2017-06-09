@@ -79,6 +79,12 @@ class UserInput extends Component<void, Props, State> {
       ev.target.selectionEnd === 0
     ) {
       this.props.onRemoveUser(last(this.props.userItems).id)
+    } else if (ev.key === 'ArrowUp') {
+      this.props.onMoveSelectUp()
+      ev.preventDefault()
+    } else if (ev.key === 'ArrowDown') {
+      this.props.onMoveSelectDown()
+      ev.preventDefault()
     }
   }
 

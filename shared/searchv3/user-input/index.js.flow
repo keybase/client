@@ -18,6 +18,8 @@ export type Props = {
   onChangeText: (usernameText: string) => void,
   onRemoveUser: (id: string) => void,
   onClickAddButton: () => void,
+  onMoveSelectUp: () => void,
+  onMoveSelectDown: () => void,
 }
 
 export default class UserInput extends Component<void, Props, void> {}

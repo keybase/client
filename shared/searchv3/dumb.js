@@ -273,6 +273,8 @@ const commonUserInputMapProps = {
   onChangeText: text => console.log(`username text change: ${text}`),
   onRemoveUser: username => console.log(`user removed: ${username}`),
   onClickAddButton: () => console.log('username input add button clicked'),
+  onMoveSelectUp: () => console.log('username input moveSelectUp'),
+  onMoveSelectDown: () => console.log('username input moveSelectDown'),
 }
 
 const maxUsers = [
