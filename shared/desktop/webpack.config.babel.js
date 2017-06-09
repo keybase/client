@@ -1,7 +1,7 @@
 /* eslint-disable flowtype/require-valid-file-annotation */
-// TODO production
-// dumb
+// TODO
 // visdiff
+// comments
 import DashboardPlugin from 'webpack-dashboard/plugin'
 import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
 import getenv from 'getenv'
@@ -9,12 +9,16 @@ import merge from 'webpack-merge'
 import path from 'path'
 import webpack from 'webpack'
 
-const isHot = getenv.boolish('HOT', false)
-const isDev = process.env.NODE_ENV !== 'production'
-const isShowingDashboard = !getenv.boolish('NO_SERVER', false)
+const flags = {
+  // webpack dev server has issues serving mixed hot/not hot so we have to build non-hot things separately
+  isBeforeHot: getenv.boolish('BEFORE_HOT', false),
+  isDev: process.env.NODE_ENV !== 'production',
+  isDumb: getenv.boolish('DUMB', false),
+  isHot: getenv.boolish('HOT', false),
+  isShowingDashboard: !getenv.boolish('NO_SERVER', false),
+}
 
-// webpack dev server has issues serving mixed hot/not hot so we have to build this separately
-const isJustMain = getenv.boolish('JUST_MAIN', false)
+console.log('Flags: ', flags)
 
 const makeCommonConfig = () => {
   const makeRules = () => {
@@ -60,7 +64,7 @@ const makeCommonConfig = () => {
       {
         include: path.resolve(__dirname, '../images/mock'),
         test: /\.jpg$/,
-        use: [isDev ? fileLoaderRule : 'null-loader'],
+        use: [flags.isDev ? fileLoaderRule : 'null-loader'],
       },
       {
         include: path.resolve(__dirname, '../images/icons'),
@@ -85,17 +89,17 @@ const makeCommonConfig = () => {
 
   const makeCommonPlugins = () => {
     const defines = {
-      __DEV__: isDev,
-      __HOT__: JSON.stringify(isHot),
+      __DEV__: flags.isDev,
+      __HOT__: JSON.stringify(flags.isHot),
       __SCREENSHOT__: false, // TODO
-      __VERSION__: isDev ? JSON.stringify('Development') : undefined,
-      'process.env.NODE_ENV': isDev ? JSON.stringify('development') : JSON.stringify('production'),
+      __VERSION__: flags.isDev ? JSON.stringify('Development') : undefined,
+      'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
     }
 
     console.warn('Injecting defines: ', defines)
     const definePlugin = [new webpack.DefinePlugin(defines)]
 
-    const uglifyPlugin = isDev
+    const uglifyPlugin = flags.isDev
       ? []
       : [
           new UglifyJSPlugin({
@@ -110,7 +114,7 @@ const makeCommonConfig = () => {
   const devServer = {
     compress: true,
     contentBase: path.resolve(__dirname, 'dist'),
-    hot: isHot,
+    hot: flags.isHot,
     lazy: false,
     overlay: true,
     port: 4000,
@@ -123,7 +127,7 @@ const makeCommonConfig = () => {
 
   return {
     bail: true,
-    cache: isDev,
+    cache: flags.isDev,
     devServer,
     module: {
       rules: makeRules(),
@@ -134,7 +138,7 @@ const makeCommonConfig = () => {
     output: {
       filename: '[name].bundle.js',
       path: path.resolve(__dirname, 'dist'),
-      publicPath: isHot ? 'http://localhost:4000/dist/' : '../dist/',
+      publicPath: flags.isHot ? 'http://localhost:4000/dist/' : '../dist/',
     },
     plugins: makeCommonPlugins(),
     resolve: {
@@ -155,12 +159,12 @@ const makeMainThreadConfig = () => {
 
 const makeRenderThreadConfig = () => {
   const makeRenderPlugins = () => {
-    const dashboardPlugin = isShowingDashboard ? [new DashboardPlugin()] : []
-    const hmrPlugin = isHot && isDev
+    const dashboardPlugin = flags.isShowingDashboard ? [new DashboardPlugin()] : []
+    const hmrPlugin = flags.isHot && flags.isDev
       ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
       : []
-    const noEmitOnErrorsPlugin = isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
-    const commonChunksPlugin = isDev
+    const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
+    const commonChunksPlugin = flags.isDev
       ? [
           new webpack.optimize.CommonsChunkPlugin({
             filename: 'common-chunks.js',
@@ -170,7 +174,7 @@ const makeRenderThreadConfig = () => {
         ]
       : []
 
-    const dllPlugin = isDev
+    const dllPlugin = flags.isDev
       ? [
           new webpack.DllReferencePlugin({
             manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
@@ -187,7 +191,7 @@ const makeRenderThreadConfig = () => {
     ].filter(Boolean)
   }
 
-  const HMREntries = isHot && isDev
+  const HMREntries = flags.isHot && flags.isDev
     ? [
         'react-hot-loader/patch',
         'webpack-dev-server/client?http://localhost:4000',
@@ -195,17 +199,25 @@ const makeRenderThreadConfig = () => {
       ]
     : []
 
+  const makeEntries = () => {
+    return flags.isDumb
+      ? {
+          index: [...HMREntries, path.resolve(__dirname, 'renderer/dumb.js')],
+        }
+      : {
+          index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
+          launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
+          'remote-component-loader': [
+            ...HMREntries,
+            path.resolve(__dirname, 'renderer/remote-component-loader.js'),
+          ],
+        }
+  }
+
   return merge(commonConfig, {
-    dependencies: isDev ? ['vendor'] : undefined,
-    devtool: isDev ? 'eval' : 'source-map',
-    entry: {
-      index: [...HMREntries, path.resolve(__dirname, 'renderer/index.js')],
-      launcher: [...HMREntries, path.resolve(__dirname, 'renderer/launcher.js')],
-      'remote-component-loader': [
-        ...HMREntries,
-        path.resolve(__dirname, 'renderer/remote-component-loader.js'),
-      ],
-    },
+    dependencies: flags.isDev ? ['vendor'] : undefined,
+    devtool: flags.isDev ? 'eval' : 'source-map',
+    entry: makeEntries(),
     name: 'renderThread',
     plugins: makeRenderPlugins(),
     target: 'electron-renderer',
@@ -267,9 +279,10 @@ const makeDllConfig = () => {
 const commonConfig = makeCommonConfig()
 const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
-const dllConfig = isDev && makeDllConfig()
+const dllConfig = flags.isDev && makeDllConfig()
 
-const config = isJustMain
-  ? mainThreadConfig
+const config = flags.isBeforeHot
+  ? [mainThreadConfig, dllConfig]
   : [mainThreadConfig, renderThreadConfig, dllConfig].filter(Boolean)
+
 export default config

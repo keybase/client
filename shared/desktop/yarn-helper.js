@@ -35,7 +35,7 @@ function pad(s, num) {
 }
 
 const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
-const webpackLog = '~/webpack-log.txt'
+const webpackLog = null // '~/webpack-log.txt'
 const webpackCmd = `webpack --config ./desktop/webpack.config.babel.js --progress --profile --colors ${webpackLog ? `--json > ${webpackLog}` : ''}`
 
 const commands = {
@@ -53,7 +53,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
-    shell: `JUST_MAIN=true yarn run _helper build-dev && JUST_MAIN=false ${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
+    shell: `BEFORE_HOT=true yarn run _helper build-dev && BEFORE_HOT=false ${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
   },
   'build-prod': {
     env: {BABEL_ENV: 'yarn', NO_SERVER: 'true'},
