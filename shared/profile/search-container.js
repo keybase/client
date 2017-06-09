@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
 
-import type Props from './search'
+import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => ({

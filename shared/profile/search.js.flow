@@ -4,6 +4,11 @@ import * as SearchConstants from '../constants/searchv3'
 import type {UserDetails} from '../searchv3/user-input'
 
 export type Props = {
+  _clearSearchResults: () => void,
+  _onClick: () => void,
+  _onChangeText: (s: string) => void,
+  _onSelectService: () => void,
+  _search: (term: string, service: SearchConstants.Service) => void,
   ids: Array<SearchConstants.SearchResultId>,
   navigateUp: () => void,
   onClick: () => void,
@@ -14,8 +19,6 @@ export type Props = {
   onRemoveUser: () => void,
   onSelectService: (s: string) => void,
   placeholder: string,
-  _onSelectService: () => void,
-  _search: (term: string, service: SearchConstants.Service) => void,
   searchText: string,
   selectedService: string,
   showAddButton: boolean,
