@@ -216,6 +216,8 @@ function setupHMR(store) {
     module.hot.accept('../../local-debug-live', () => {
       store.dispatch(updateDebugConfig(require('../../local-debug-live')))
     })
+
+  module.hot && module.hot.accept('../../common-adapters/index.js', () => {})
 }
 
 function load() {
