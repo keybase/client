@@ -14,6 +14,7 @@ import LoginMap from '../../login/dumb'
 import MessagesMap from '../../chat/conversation/messages/dumb'
 import ProfileMap from '../../profile/dumb'
 import SearchMap from '../../search/dumb'
+import SearchV3Map from '../../searchv3/dumb'
 import Tracker from '../../tracker/dumb.native'
 import Settings from '../../settings/dumb.native'
 
@@ -31,6 +32,7 @@ const map: any = {
   ...pick(MessagesMap, 'Text Message', 'Stacked Text Message', 'Attachment Message'),
   ...ProfileMap,
   ...SearchMap,
+  ...SearchV3Map,
   ...Settings,
   ...Tracker,
   ...LoginMap,
