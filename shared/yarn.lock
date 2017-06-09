@@ -3174,15 +3174,7 @@ fs-extra@^2.0.0:
     graceful-fs "^4.1.2"
     jsonfile "^2.1.0"
 
-fs-extra@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-3.0.1.tgz#3794f378c58b342ea7dbbb23095109c4b3b62291"
-  dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^3.0.0"
-    universalify "^0.1.0"
-
-"fs-extra@git://github.com/keybase/node-fs-extra#80cec860b639db7b6c11893615b7f6495a82b985":
+fs-extra@^3.0.0, "fs-extra@git://github.com/keybase/node-fs-extra#80cec860b639db7b6c11893615b7f6495a82b985":
   version "3.0.1"
   resolved "git://github.com/keybase/node-fs-extra#80cec860b639db7b6c11893615b7f6495a82b985"
   dependencies:
