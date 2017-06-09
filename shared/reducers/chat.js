@@ -636,6 +636,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
     }
+    case 'chat:selectSearchResultId': {
+      return state.set('selectedSearchId', action.payload.searchResultId)
+    }
   }
 
   return state

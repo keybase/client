@@ -101,7 +101,7 @@ const Line = () => (
 const SearchResultRow = (props: Constants.RowProps) => {
   return (
     <ClickableBox
-      style={_clickableBoxStyle[!!props.selected]}
+      style={_clickableBoxStyle[(!!props.selected).toString()]}
       underlayColor={globalColors.blue4}
       onClick={props.onClick}
     >
@@ -135,8 +135,8 @@ const _clickableBoxStyleCommon = {
 }
 
 const _clickableBoxStyle = {
-  [false]: _clickableBoxStyleCommon,
-  [true]: {
+  false: _clickableBoxStyleCommon,
+  true: {
     ..._clickableBoxStyleCommon,
     backgroundColor: globalColors.blue4,
   },

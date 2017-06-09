@@ -613,6 +613,12 @@ function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.U
   return {payload: {user}, type: 'chat:unstageUserForSearch'}
 }
 
+function selectSearchResultId(
+  searchResultId: ?SearchConstants.SearchResultId
+): Constants.SelectSearchResultId {
+  return {payload: {searchResultId}, type: 'chat:selectSearchResultId'}
+}
+
 function updateThread(
   thread: ChatTypes.ThreadView,
   yourName: string,
@@ -666,6 +672,7 @@ export {
   saveAttachment,
   selectAttachment,
   selectConversation,
+  selectSearchResultId,
   setInboxFilter,
   setInboxSearch,
   setInboxUntrustedState,

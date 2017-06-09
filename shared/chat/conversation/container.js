@@ -27,6 +27,7 @@ type StateProps = {|
   inSearch: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   showSearchResults: boolean,
+  selectedSearchId: ?SearchConstants.SearchResultId,
 |}
 
 type DispatchProps = {|

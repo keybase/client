@@ -359,6 +359,7 @@ export const StateRecord: LooseRecord<T> = Record({
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
+  selectedSearchId: null,
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -387,6 +388,7 @@ export type State = LooseRecord<{
   searchResults: ?List<SearchConstants.SearchResultId>,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
+  selectedSearchId: ?SearchConstants.SearchResultId,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -680,6 +682,11 @@ export type SaveAttachmentNative = NoErrorTypedAction<
   {
     message: AttachmentMessage,
   }
+>
+
+export type SelectSearchResultId = NoErrorTypedAction<
+  'chat:selectSearchResultId',
+  {searchResultId: ?SearchConstants.SearchResultId}
 >
 
 export type ShareAttachment = NoErrorTypedAction<

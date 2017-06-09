@@ -232,6 +232,7 @@ const servicesResultsListMapCommon = {
       width: 420,
     },
   },
+  selectedId: null,
 }
 
 const servicesResultsListMap: DumbComponentMap<ResultsList> = {
