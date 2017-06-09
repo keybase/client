@@ -1,9 +1,11 @@
 // @flow
 import {Component} from 'react'
+
+import type {SearchResultId} from '../constants/searchv3'
 import type {UserDetails} from '../searchv3/user-input'
 
 export type Props = {
-  ids: Array<SearchConstants.SearchResultId>,
+  ids: Array<SearchResultId>,
   navigateUp: () => void,
   onClick: () => void,
   onClickAddButton: () => void,
