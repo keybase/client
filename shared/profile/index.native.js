@@ -33,8 +33,6 @@ import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
-featureFlags.searchv3Enabled = true
-
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 64
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
