@@ -9,7 +9,7 @@ import {getStyle as getTextStyle} from '../../common-adapters/text'
 
 import type {UserDetails, Props} from './'
 
-type UserItemProps = UserDetails & {onRemoveUser: (username: string) => void}
+type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 type UserItemState = {isSelected: boolean, selectAnim: Animated.Value}
 
 class UserItem extends Component<void, UserItemProps, UserItemState> {
@@ -19,7 +19,7 @@ class UserItem extends Component<void, UserItemProps, UserItemState> {
   }
 
   _onRemoveUser = () => {
-    this.props.onRemoveUser(this.props.username)
+    this.props.onRemoveUser(this.props.id)
   }
 
   _onSelect = () => {
@@ -131,9 +131,7 @@ class UserInput extends Component<void, Props, State> {
     return (
       <ClickableBox feedback={false} onClick={this._focusInput}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
-          {userItems.map(item => (
-            <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.username} />
-          ))}
+          {userItems.map(item => <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />)}
           <Box
             style={{
               ...globalStyles.flexBoxRow,
