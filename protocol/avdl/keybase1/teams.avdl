@@ -110,6 +110,15 @@ protocol teams {
     array<string> parts;
   }
 
+  // team.clkr gregor message body
+  @lint("ignore")
+  record TeamCLKRMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int generation;
+    int score;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamMembersUsernames teamGet(int sessionID, string name);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

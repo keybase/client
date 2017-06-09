@@ -296,6 +296,26 @@
           "name": "parts"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamCLKRMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {

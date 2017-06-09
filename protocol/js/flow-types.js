@@ -5733,6 +5733,12 @@ export type TeamApplicationKey = {
   key: Bytes32,
 }
 
+export type TeamCLKRMsg = {
+  teamID: TeamID,
+  generation: int,
+  score: int,
+}
+
 export type TeamChangeReq = {
   owners?: ?Array<UID>,
   admins?: ?Array<UID>,

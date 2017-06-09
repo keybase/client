@@ -148,9 +148,13 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 
 func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
-		ID:      (SCTeamID)(teamID),
-		Members: new(SCTeamMembers),
+		ID: (SCTeamID)(teamID),
 	}
+	if m.empty() {
+		return teamSection, nil
+	}
+
+	teamSection.Members = new(SCTeamMembers)
 	var err error
 	teamSection.Members.Owners, err = m.nameSeqList(m.Owners)
 	if err != nil {
@@ -178,4 +182,8 @@ func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 
 func (m *memberSet) HasRemoval() bool {
 	return len(m.None) > 0
+}
+
+func (m *memberSet) empty() bool {
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.None) == 0
 }
