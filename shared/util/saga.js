@@ -1,7 +1,17 @@
 // @flow
 import _ from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {actionChannel, take, call, put, race, fork, takeEvery, takeLatest, cancelled} from 'redux-saga/effects'
+import {
+  actionChannel,
+  take,
+  call,
+  put,
+  race,
+  fork,
+  takeEvery,
+  takeLatest,
+  cancelled,
+} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
@@ -152,7 +162,7 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
-  return fork(function* () {
+  return fork(function*() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
       const action = yield take(chan)
