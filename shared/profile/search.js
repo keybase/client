@@ -55,6 +55,8 @@ const Search = props => {
               placeholder={props.placeholder}
               usernameText={props.searchText}
               onChangeText={props.onChangeText}
+              onMoveSelectUp={() => {}} // TODO
+              onMoveSelectDown={() => {}} // TODO
             />
           </Box>
           <Icon style={{alignSelf: 'center'}} type="iconfont-close" onClick={props.onClose} />
