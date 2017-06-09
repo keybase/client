@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -396,7 +397,7 @@ func (b *BlockServerMemory) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 	}
 
 	// Return a dummy value here.
-	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: math.MaxInt64}, nil
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerMemory.
@@ -410,5 +411,5 @@ func (b *BlockServerMemory) GetTeamQuotaInfo(
 	// TODO: check team membership and return error if not a reader?
 
 	// Return a dummy value here.
-	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: math.MaxInt64}, nil
 }

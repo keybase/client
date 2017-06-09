@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -399,7 +400,7 @@ func (b *BlockServerDisk) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock
 	}
 
 	// Return a dummy value here.
-	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: math.MaxInt64}, nil
 }
 
 // GetTeamQuotaInfo implements the BlockServer interface for BlockServerDisk.
@@ -413,5 +414,5 @@ func (b *BlockServerDisk) GetTeamQuotaInfo(
 	// TODO: check team membership and return error if not a reader?
 
 	// Return a dummy value here.
-	return &kbfsblock.QuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+	return &kbfsblock.QuotaInfo{Limit: math.MaxInt64}, nil
 }
