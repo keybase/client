@@ -117,7 +117,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
@@ -193,7 +193,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	// Find the branch ID.
-	tlfJournal, ok := jServer.getTLFJournal(id)
+	tlfJournal, ok := jServer.getTLFJournal(id, nil)
 	require.True(t, ok)
 	bid := tlfJournal.mdJournal.branchID
 
@@ -297,7 +297,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(2))
@@ -329,7 +329,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
@@ -356,10 +356,10 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
-	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	tlfJournal, ok := jServer.getTLFJournal(id)
+	tlfJournal, ok := jServer.getTLFJournal(id, nil)
 	require.True(t, ok)
 
 	// Prepare the md journal to have a leading local squash revision.

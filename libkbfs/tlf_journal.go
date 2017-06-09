@@ -192,6 +192,7 @@ type tlfJournal struct {
 	uid                 keybase1.UID
 	key                 kbfscrypto.VerifyingKey
 	tlfID               tlf.ID
+	tid                 keybase1.TeamID
 	dir                 string
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
@@ -262,29 +263,31 @@ type tlfJournalInfo struct {
 	UID          keybase1.UID
 	VerifyingKey kbfscrypto.VerifyingKey
 	TlfID        tlf.ID
+	TID          keybase1.TeamID // for single-team TLFs
 }
 
 func readTLFJournalInfoFile(dir string) (
-	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID, error) {
+	keybase1.UID, kbfscrypto.VerifyingKey, tlf.ID, keybase1.TeamID, error) {
 	var info tlfJournalInfo
 	err := ioutil.DeserializeFromJSONFile(
 		getTLFJournalInfoFilePath(dir), &info)
 	if err != nil {
-		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, tlf.ID{}, err
+		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, tlf.ID{},
+			keybase1.TeamID(""), err
 	}
 
-	return info.UID, info.VerifyingKey, info.TlfID, nil
+	return info.UID, info.VerifyingKey, info.TlfID, info.TID, nil
 }
 
 func writeTLFJournalInfoFile(dir string, uid keybase1.UID,
-	key kbfscrypto.VerifyingKey, tlfID tlf.ID) error {
-	info := tlfJournalInfo{uid, key, tlfID}
+	key kbfscrypto.VerifyingKey, tlfID tlf.ID, tid keybase1.TeamID) error {
+	info := tlfJournalInfo{uid, key, tlfID, tid}
 	return ioutil.SerializeToJSONFile(info, getTLFJournalInfoFilePath(dir))
 }
 
 func makeTLFJournal(
 	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	dir string, tlfID tlf.ID, config tlfJournalConfig,
+	dir string, tlfID tlf.ID, tid keybase1.TeamID, config tlfJournalConfig,
 	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
 	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener, diskLimiter DiskLimiter) (
@@ -299,11 +302,17 @@ func makeTLFJournal(
 		return nil, errors.New("Empty tlf.ID")
 	}
 
-	readUID, readKey, readTlfID, err := readTLFJournalInfoFile(dir)
+	if tlfID.Type() == tlf.SingleTeam && tid.IsNil() {
+		return nil, errors.New("Team ID required for single-team TLF")
+	} else if tlfID.Type() != tlf.SingleTeam && tid.Exists() {
+		return nil, errors.New("Team ID required to be nil for non-team TLF")
+	}
+
+	readUID, readKey, readTlfID, readTeamID, err := readTLFJournalInfoFile(dir)
 	switch {
 	case ioutil.IsNotExist(err):
 		// Info file doesn't exist, so write it.
-		err := writeTLFJournalInfoFile(dir, uid, key, tlfID)
+		err := writeTLFJournalInfoFile(dir, uid, key, tlfID, tid)
 		if err != nil {
 			return nil, err
 		}
@@ -329,6 +338,11 @@ func makeTLFJournal(
 			return nil, errors.Errorf(
 				"Expected TLF ID %s, got %s", tlfID, readTlfID)
 		}
+
+		if tid != readTeamID {
+			return nil, errors.Errorf(
+				"Expected team ID %s, got %s", tid, readTeamID)
+		}
 	}
 
 	log := config.MakeLogger("TLFJ")
@@ -346,10 +360,15 @@ func makeTLFJournal(
 		return nil, err
 	}
 
+	// TODO(KBFS-2217): if this is a team TLF, transform the given
+	// disk limiter into one that checks the team's quota, not the
+	// user's.
+
 	j := &tlfJournal{
 		uid:                  uid,
 		key:                  key,
 		tlfID:                tlfID,
+		tid:                  tid,
 		dir:                  dir,
 		config:               config,
 		delegateBlockServer:  delegateBlockServer,

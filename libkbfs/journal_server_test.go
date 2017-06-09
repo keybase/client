@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -123,7 +124,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	require.NoError(t, err)
 
 	tlfID1 := tlf.FakeID(1, tlf.Private)
-	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -191,12 +192,12 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	require.NoError(t, err)
 
 	tlfID1 := tlf.FakeID(1, tlf.Private)
-	err = jServer.Enable(ctx, tlfID1, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, tlfID1, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	// Replace the tlfJournal config with one that has a really small
 	// delay.
-	tj, ok := jServer.getTLFJournal(tlfID1)
+	tj, ok := jServer.getTLFJournal(tlfID1, nil)
 	require.True(t, ok)
 	tj.config = tlfJournalConfigWithDiskLimitTimeout{
 		tlfJournalConfig: tj.config,
@@ -267,7 +268,7 @@ func TestJournalServerRestart(t *testing.T) {
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -338,7 +339,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -410,7 +411,7 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	jServer.dirtyOpStart(tlfID)
@@ -443,7 +444,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -492,7 +493,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	serviceLoggedIn(
 		ctx, config, "test_user2", TLFJournalBackgroundWorkPaused)
 
-	err = jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
+	err = jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	session, err = config.KBPKI().GetCurrentSession(ctx)
@@ -645,4 +646,83 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
+}
+
+func TestJournalServerTeamTLFWithRestart(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	name := libkb.NormalizedUsername("t1")
+	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name)
+	id := teamInfos[0].TID
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	require.NoError(t, err)
+	AddTeamWriterForTestOrBust(t, config, id, session.UID)
+
+	// Use a shutdown-only BlockServer so that it errors if the
+	// journal tries to access it.
+	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
+
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), string(name), tlf.SingleTeam)
+	require.NoError(t, err)
+
+	tlfID := tlf.FakeID(2, tlf.SingleTeam)
+	err = jServer.Enable(ctx, tlfID, h, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	blockServer := config.BlockServer()
+	mdOps := config.MDOps()
+
+	// Put a block.
+
+	bCtx := kbfsblock.MakeFirstContext(
+		id.AsUserOrTeam(), keybase1.BlockType_DATA)
+	data := []byte{1, 2, 3, 4}
+	bID, err := kbfsblock.MakePermanentID(data)
+	require.NoError(t, err)
+	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	// Put an MD.
+
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
+	require.NoError(t, err)
+	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(FirstValidKeyGen)
+
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
+	require.NoError(t, err)
+
+	// Simulate a restart.
+
+	jServer = makeJournalServer(
+		config, jServer.log, tempdir, jServer.delegateBlockCache,
+		jServer.delegateDirtyBlockCache,
+		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
+	err = jServer.EnableExistingJournals(
+		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+	config.SetBlockCache(jServer.blockCache())
+	config.SetBlockServer(jServer.blockServer())
+	config.SetMDOps(jServer.mdOps())
+
+	// Make sure the team ID was persisted.
+
+	tj, ok := jServer.getTLFJournal(tlfID, nil)
+	require.True(t, ok)
+	require.Equal(t, id, tj.tid)
+
+	// Get the block.
+
+	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
+	require.NoError(t, err)
+	require.Equal(t, data, buf)
+	require.Equal(t, serverHalf, key)
+
+	// Get the MD.
+
+	head, err := mdOps.GetForTLF(ctx, tlfID)
+	require.NoError(t, err)
+	require.Equal(t, rmd.Revision(), head.Revision())
 }

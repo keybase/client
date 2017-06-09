@@ -59,3 +59,29 @@ func TestTeamsWriterReader(t *testing.T) {
 		),
 	)
 }
+
+func TestTeamsTwoWritersJournal(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob"),
+		team("ab", "alice,bob", ""),
+		inSingleTeamTlf("ab"),
+		as(alice,
+			// The tests don't support enabling journaling on a
+			// non-existent TF, so force the TLF creation first.
+			mkfile("foo", "bar"),
+			rm("foo"),
+		),
+		as(alice,
+			enableJournal(),
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			enableJournal(),
+			read("a", "hello"),
+			mkfile("b", "world"),
+		),
+		as(alice,
+			read("b", "world"),
+		),
+	)
+}

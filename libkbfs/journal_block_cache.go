@@ -16,7 +16,7 @@ var _ BlockCache = journalBlockCache{}
 // CheckForKnownPtr implements BlockCache.
 func (j journalBlockCache) CheckForKnownPtr(
 	tlfID tlf.ID, block *FileBlock) (BlockPointer, error) {
-	_, ok := j.jServer.getTLFJournal(tlfID)
+	_, ok := j.jServer.getTLFJournal(tlfID, nil)
 	if !ok {
 		return j.BlockCache.CheckForKnownPtr(tlfID, block)
 	}

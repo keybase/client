@@ -639,7 +639,12 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	return jServer.Enable(ctx, dir.GetFolderBranch().Tlf,
+	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, t)
+	if err != nil {
+		return err
+	}
+
+	return jServer.Enable(ctx, dir.GetFolderBranch().Tlf, h,
 		libkbfs.TLFJournalBackgroundWorkEnabled)
 }
 

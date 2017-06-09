@@ -24,7 +24,7 @@ func (j journalBlockServer) getBlockFromJournal(
 	tlfID tlf.ID, id kbfsblock.ID) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	found bool, err error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(tlfID)
+	tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil)
 	if !ok {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, nil
 	}
@@ -48,7 +48,7 @@ func (j journalBlockServer) getBlockFromJournal(
 func (j journalBlockServer) getBlockSizeFromJournal(
 	tlfID tlf.ID, id kbfsblock.ID) (
 	size uint32, found bool, err error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(tlfID)
+	tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil)
 	if !ok {
 		return 0, false, nil
 	}
@@ -95,7 +95,7 @@ func (j journalBlockServer) Put(
 	// called in parallel anyway. Rely on caller (usually
 	// doBlockPuts) to do the tracing.
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
@@ -125,7 +125,7 @@ func (j journalBlockServer) AddBlockReference(
 		j.jServer.deferLog.LazyTrace(ctx, "jBServer: AddRef %s done (err=%v)", id, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
 		if !j.enableAddBlockReference {
 			// TODO: Temporarily return an error until KBFS-1149 is
 			// fixed. This is needed despite
@@ -192,7 +192,7 @@ func (j journalBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 		j.jServer.deferLog.LazyTrace(ctx, "jBServer: IsUnflushed %s done (err=%v)", id, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID, nil); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()

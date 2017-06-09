@@ -271,7 +271,7 @@ func setupTLFJournalTest(
 	diskLimitSemaphore := newSemaphoreDiskLimiter(
 		math.MaxInt64, math.MaxInt64, math.MaxInt64)
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
-		tempdir, config.tlfID, config, delegateBlockServer,
+		tempdir, config.tlfID, "", config, delegateBlockServer,
 		bwStatus, delegate, nil, nil, diskLimitSemaphore)
 	require.NoError(t, err)
 

@@ -79,7 +79,7 @@ func (j journalMDOps) getHeadFromJournal(
 	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(id)
+	tlfJournal, ok := j.jServer.getTLFJournal(id, handle)
 	if !ok {
 		return ImmutableRootMetadata{}, nil
 	}
@@ -159,7 +159,7 @@ func (j journalMDOps) getRangeFromJournal(
 	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	start, stop kbfsmd.Revision) (
 	[]ImmutableRootMetadata, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(id)
+	tlfJournal, ok := j.jServer.getTLFJournal(id, nil)
 	if !ok {
 		return nil, nil
 	}
@@ -412,7 +412,8 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata,
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: Put %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(
+		rmd.TlfID(), rmd.GetTlfHandle()); ok {
 		// Just route to the journal.
 		irmd, err := tlfJournal.putMD(ctx, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {
@@ -436,7 +437,8 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata,
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(
+		rmd.TlfID(), rmd.GetTlfHandle()); ok {
 		rmd.SetUnmerged()
 		irmd, err := tlfJournal.putMD(ctx, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {
@@ -459,7 +461,7 @@ func (j journalMDOps) PruneBranch(
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PruneBranch %s %s (err=%v)", id, bid, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(id, nil); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
 		switch errors.Cause(err).(type) {
@@ -485,7 +487,7 @@ func (j journalMDOps) ResolveBranch(
 		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s (err=%v)", id, bid, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(id, rmd.GetTlfHandle()); ok {
 		irmd, err := tlfJournal.resolveBranch(
 			ctx, bid, blocksToDelete, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {

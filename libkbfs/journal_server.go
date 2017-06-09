@@ -216,7 +216,8 @@ func (j *JournalServer) getEnableAutoLocked() (
 	return j.serverConfig.getEnableAuto(j.currentUID)
 }
 
-func (j *JournalServer) getTLFJournal(tlfID tlf.ID) (*tlfJournal, bool) {
+func (j *JournalServer) getTLFJournal(
+	tlfID tlf.ID, h *TlfHandle) (*tlfJournal, bool) {
 	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
@@ -229,7 +230,7 @@ func (j *JournalServer) getTLFJournal(tlfID tlf.ID) (*tlfJournal, bool) {
 		ctx := context.TODO() // plumb through from callers
 		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
 			tlfID, enableAuto, enableAutoSetByUser)
-		err := j.Enable(ctx, tlfID, TLFJournalBackgroundWorkEnabled)
+		err := j.Enable(ctx, tlfID, h, TLFJournalBackgroundWorkEnabled)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
@@ -341,7 +342,7 @@ func (j *JournalServer) EnableExistingJournals(
 			}
 
 			dir := filepath.Join(j.rootPath(), name)
-			uid, key, tlfID, err := readTLFJournalInfoFile(dir)
+			uid, key, tlfID, tid, err := readTLFJournalInfoFile(dir)
 			if err != nil {
 				j.log.CDebugf(
 					groupCtx, "Skipping non-TLF dir %q: %+v", name, err)
@@ -372,7 +373,7 @@ func (j *JournalServer) EnableExistingJournals(
 
 			// Allow enable even if dirty, since any dirty writes
 			// in flight are most likely for another user.
-			tj, err := j.enableLocked(groupCtx, tlfID, bws, true)
+			tj, err := j.enableLocked(groupCtx, tlfID, tid, bws, true)
 			if err != nil {
 				// Don't treat per-TLF errors as fatal.
 				j.log.CWarningf(
@@ -423,8 +424,9 @@ func (j *JournalServer) EnableExistingJournals(
 // responsibility to add it to `j.tlfJournals`.  This allows this
 // method to be called in parallel during initialization, if desired.
 func (j *JournalServer) enableLocked(
-	ctx context.Context, tlfID tlf.ID, bws TLFJournalBackgroundWorkStatus,
-	allowEnableIfDirty bool) (tj *tlfJournal, err error) {
+	ctx context.Context, tlfID tlf.ID, tid keybase1.TeamID,
+	bws TLFJournalBackgroundWorkStatus, allowEnableIfDirty bool) (
+	tj *tlfJournal, err error) {
 	j.log.CDebugf(ctx, "Enabling journal for %s (%s)", tlfID, bws)
 	defer func() {
 		if err != nil {
@@ -473,7 +475,7 @@ func (j *JournalServer) enableLocked(
 	tlfDir := j.tlfJournalPathLocked(tlfID)
 	tj, err = makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
-		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
+		tlfID, tid, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
 		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter())
 	if err != nil {
 		return nil, err
@@ -482,12 +484,37 @@ func (j *JournalServer) enableLocked(
 	return tj, nil
 }
 
-// Enable turns on the write journal for the given TLF.
+// Enable turns on the write journal for the given TLF.  If h is nil,
+// it will be attempted to be fetched from the remote MD server.
 func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
-	bws TLFJournalBackgroundWorkStatus) error {
+	h *TlfHandle, bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	tj, err := j.enableLocked(ctx, tlfID, bws, false)
+	var tid keybase1.TeamID
+	if tlfID.Type() == tlf.SingleTeam {
+		if h == nil {
+			// We must have a handle for SingleTeam TLFs, so try to
+			// get one from the server.  This is an untrusted mapping
+			// since it's just using whatever the server tells it.
+			// It's the job of folderBranchOps to do proper identifies
+			// based on a handle before any data from the TLF is
+			// consumed.
+			irmd, err := j.delegateMDOps.GetForTLF(ctx, tlfID)
+			if err != nil {
+				return err
+			}
+			if irmd == (ImmutableRootMetadata{}) {
+				return errors.Errorf("Can't find handle for team TLF %s", tlfID)
+			}
+			h = irmd.GetTlfHandle()
+		}
+
+		tid, err = h.FirstResolvedWriter().AsTeam()
+		if err != nil {
+			return err
+		}
+	}
+	tj, err := j.enableLocked(ctx, tlfID, tid, bws, false)
 	if err != nil {
 		return err
 	}
@@ -550,7 +577,7 @@ func (j *JournalServer) dirtyOpEnd(tlfID tlf.ID) {
 // not already paused.
 func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling pause for %s", tlfID)
-	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		tlfJournal.pauseBackgroundWork()
 		return
 	}
@@ -564,7 +591,7 @@ func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 // not already resumed.
 func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling resume for %s", tlfID)
-	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		tlfJournal.resumeBackgroundWork()
 		return
 	}
@@ -577,7 +604,7 @@ func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) 
 // Flush flushes the write journal for the given TLF.
 func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Flushing journal for %s", tlfID)
-	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		return tlfJournal.flush(ctx)
 	}
 
@@ -591,7 +618,7 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 // context without leaving the journal in a partially-flushed state.
 func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
-	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		return tlfJournal.wait(ctx)
 	}
 
@@ -747,7 +774,7 @@ func (j *JournalServer) Status(
 // suitable for diagnostics.
 func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
 	TLFJournalStatus, error) {
-	tlfJournal, ok := j.getTLFJournal(tlfID)
+	tlfJournal, ok := j.getTLFJournal(tlfID, nil)
 	if !ok {
 		return TLFJournalStatus{},
 			errors.Errorf("Journal not enabled for %s", tlfID)
@@ -761,7 +788,7 @@ func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
 // unflushed entries.
 func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
 	tlfID tlf.ID, cpp chainsPathPopulator) (TLFJournalStatus, error) {
-	tlfJournal, ok := j.getTLFJournal(tlfID)
+	tlfJournal, ok := j.getTLFJournal(tlfID, nil)
 	if !ok {
 		return TLFJournalStatus{},
 			errors.Errorf("Journal not enabled for %s", tlfID)
