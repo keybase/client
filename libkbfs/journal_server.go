@@ -493,20 +493,12 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 	var tid keybase1.TeamID
 	if tlfID.Type() == tlf.SingleTeam {
 		if h == nil {
-			// We must have a handle for SingleTeam TLFs, so try to
-			// get one from the server.  This is an untrusted mapping
-			// since it's just using whatever the server tells it.
-			// It's the job of folderBranchOps to do proper identifies
-			// based on a handle before any data from the TLF is
-			// consumed.
-			irmd, err := j.delegateMDOps.GetForTLF(ctx, tlfID)
-			if err != nil {
-				return err
-			}
-			if irmd == (ImmutableRootMetadata{}) {
-				return errors.Errorf("Can't find handle for team TLF %s", tlfID)
-			}
-			h = irmd.GetTlfHandle()
+			// Any path that creates a single-team TLF journal should
+			// also provide a handle.  If not, we'd have to fetch it
+			// from the server, which isn't a trusted path.  So panic
+			// instead; if we hit this, we might need to rethink this.
+			panic(fmt.Sprintf(
+				"No handle provided for single-team TLF %s", tlfID))
 		}
 
 		tid, err = h.FirstResolvedWriter().AsTeam()
