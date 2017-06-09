@@ -23,7 +23,14 @@ func (ob outputBuffer) Close() error {
 // Encrypt a message, and make sure recipients can decode it, and
 // non-recipients can't decode it.
 func TestSaltpackEncDec(t *testing.T) {
+	tc := SetupTest(t, "GetUPAKLoader()", 1)
+
 	senderKP, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	senderSigningKP, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,12 +56,13 @@ func TestSaltpackEncDec(t *testing.T) {
 	var buf outputBuffer
 
 	arg := SaltpackEncryptArg{
-		Source:    strings.NewReader(message),
-		Sink:      &buf,
-		Receivers: receiverPKs,
-		Sender:    senderKP,
+		Source:        strings.NewReader(message),
+		Sink:          &buf,
+		Receivers:     receiverPKs,
+		Sender:        senderKP,
+		SenderSigning: senderSigningKP,
 	}
-	if err := SaltpackEncrypt(G, &arg); err != nil {
+	if err := SaltpackEncrypt(tc.G, &arg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -69,7 +77,7 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	for _, key := range receiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(context.TODO(), G,
+		_, err = SaltpackDecrypt(context.TODO(), tc.G,
 			strings.NewReader(ciphertext),
 			&buf, key, nil, nil)
 		if err != nil {
@@ -88,9 +96,12 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	for _, kp := range nonReceiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(context.TODO(), G,
+		_, err = SaltpackDecrypt(context.TODO(), tc.G,
 			strings.NewReader(ciphertext), &buf, kp, nil, nil)
-		if err != saltpack.ErrNoDecryptionKey {
+		// Decryption failures manifest as login errors here, because when all
+		// the device keys fail, the next step is TLF resolution, and that
+		// requires login.
+		if _, ok := err.(LoginRequiredError); !ok {
 			t.Fatal(err)
 		}
 	}

@@ -27,6 +27,12 @@ class Text extends Component<void, Props, void> {
       ...this.props.style,
     }
 
+    if (style['color'] === undefined) {
+      console.warn(
+        'Text color is not being set properly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
+      )
+    }
+
     return (
       <NativeText
         ref={ref => {
@@ -35,6 +41,7 @@ class Text extends Component<void, Props, void> {
         style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
+        onLongPress={this.props.onLongPress}
       >
         {this.props.children}
       </NativeText>

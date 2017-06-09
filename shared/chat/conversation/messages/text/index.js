@@ -35,7 +35,9 @@ const sentStyle = {
   ...globalStyles.selectable,
   flex: 1,
   ...(isMobile
-    ? {}
+    ? {
+        color: globalColors.black_75,
+      }
     : {
         whiteSpace: 'pre-wrap',
       }),

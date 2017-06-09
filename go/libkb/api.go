@@ -568,7 +568,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if a.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
@@ -679,7 +679,18 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	}
 	defer finisher()
 
-	dec := json.NewDecoder(resp.Body)
+	var reader io.Reader
+	reader = resp.Body
+	if a.G().Env.GetAPIDump() {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		a.G().Log.CDebugf(arg.NetContext, "| response body: %s", string(body))
+		reader = bytes.NewReader(body)
+	}
+
+	dec := json.NewDecoder(reader)
 	if err = dec.Decode(&v); err != nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, Decode error: %s", err)
 		return err

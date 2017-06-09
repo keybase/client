@@ -46,6 +46,12 @@ class Icon extends Component<void, Exact<Props>, void> {
 
     const isFontIcon = iconType.startsWith('iconfont-')
     const fontSizeHint = shared.fontSize(iconType)
+    const onClick =
+      !!this.props.onClick &&
+      (e => {
+        e.stopPropagation()
+        this.props.onClick && this.props.onClick(e)
+      })
 
     if (isFontIcon) {
       const cleanStyle = {
@@ -71,14 +77,14 @@ class Icon extends Component<void, Exact<Props>, void> {
             ...styles.icon,
             ...fontSizeHint,
             ...cleanStyle,
-            ...(this.props.onClick ? globalStyles.clickable : {}),
+            ...(onClick ? globalStyles.clickable : {}),
           }}
           className={this.props.className || ''}
           color={color}
-          hoverColor={this.props.onClick ? hoverColor : null}
+          hoverColor={onClick ? hoverColor : null}
           onMouseEnter={this.props.onMouseEnter}
           onMouseLeave={this.props.onMouseLeave}
-          onClick={this.props.onClick}
+          onClick={onClick}
         >
           {String.fromCharCode(iconMeta[iconType].charCode || 0)}
         </FontIcon>
@@ -91,9 +97,9 @@ class Icon extends Component<void, Exact<Props>, void> {
           style={{
             ...globalStyles.noSelect,
             ...this.props.style,
-            ...(this.props.onClick ? globalStyles.clickable : {}),
+            ...(onClick ? globalStyles.clickable : {}),
           }}
-          onClick={this.props.onClick}
+          onClick={onClick}
           srcSet={iconTypeToSrcSet(iconType)}
         />
       )

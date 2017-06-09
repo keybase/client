@@ -2,6 +2,7 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import {globalStyles} from '../styles'
@@ -24,6 +25,8 @@ export default class BackButton extends Component {
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...(clickableVisible ? visibleStyle : {}), ...this.props.style}}>
           <Icon type="iconfont-back" style={{...styles.icon, ...this.props.iconStyle}} />
+          {(this.props.badgeNumber || 0) > 0 &&
+            <Badge badgeNumber={this.props.badgeNumber} badgeStyle={{marginLeft: -3, marginTop: -12}} />}
         </Box>
       </NativeTouchableWithoutFeedback>
     )
@@ -38,9 +41,9 @@ export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    marginRight: 8,
   },
   icon: {
     fontSize: 24,
-    marginRight: 8,
   },
 }

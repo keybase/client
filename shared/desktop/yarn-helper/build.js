@@ -1,6 +1,9 @@
 // @flow
+import os from 'os'
+
 const webpackLog = null // '~/webpack-log.txt'
 const webpackCmd = 'webpack --config ./desktop/webpack.config.babel.js'
+const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
 
 const commands = {
   'build-dev': {
@@ -25,7 +28,7 @@ const commands = {
     env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
     help: 'Package up the production js code',
     nodeEnv: 'production',
-    shell: `babel-node desktop/package.js`,
+    shell: `babel-node ${spaceArg} desktop/package.js`,
   },
 }
 

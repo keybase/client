@@ -1,10 +1,12 @@
 // @flow
+import {compose, withHandlers, withState} from 'recompose'
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import UserInput from './user-input'
 import {StateRecord as EntitiesStateRecord} from '../constants/entities'
 import {Map} from 'immutable'
+import {isMobile} from '../constants/platform'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -217,6 +219,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
 
 const servicesResultsListMapCommon = {
   mockStore: {
+    config: {
+      username: 'tester',
+      following: {},
+    },
     entities: new EntitiesStateRecord({
       searchv3Chat: Map(servicesResultsListMapCommonRows),
     }),
@@ -233,21 +239,29 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
   mocks: {
     keybaseResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris', 'cjb', 'jzila'],
       keyPath: ['searchv3Chat'],
     },
     keybaseResultsOne: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris'],
       keyPath: ['searchv3Chat'],
     },
     facebookResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: ['chris-fb', 'cjb-fb', 'jzila-fb'],
       keyPath: ['searchv3Chat'],
     },
     noResults: {
       ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
       items: [],
       keyPath: ['searchv3Chat'],
     },
@@ -255,36 +269,64 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
 }
 
 const commonUserInputMapProps = {
-  showAddButton: true,
+  placeholder: 'Type someone',
   onChangeText: text => console.log(`username text change: ${text}`),
   onRemoveUser: username => console.log(`user removed: ${username}`),
   onClickAddButton: () => console.log('username input add button clicked'),
+  onMoveSelectUp: () => console.log('username input moveSelectUp'),
+  onMoveSelectDown: () => console.log('username input moveSelectDown'),
 }
 
 const maxUsers = [
-  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
-  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max'},
-  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'denormalize'},
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max', id: 'max'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'denormalize',
+    id: 'denormalize@twitter',
+  },
 ]
 
 const chrisUsers = [
-  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode'},
-  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris'},
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris', id: 'chris'},
   {
     followingState: 'Following',
     icon: 'icon-hacker-news-logo-16',
     service: 'Hacker News',
     username: 'cnojima',
+    id: 'cnojima@hackernews',
   },
-  {followingState: 'NotFollowing', icon: 'icon-twitter-logo-16', service: 'Twitter', username: 'chriscoyier'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'chriscoyier',
+    id: 'chriscoyier@twitter',
+  },
   {
     followingState: 'NotFollowing',
     icon: 'icon-facebook-logo-16',
     service: 'Facebook',
     username: 'chrisevans',
+    id: 'chrisevans@facebook',
   },
-  {followingState: 'NotFollowing', icon: 'icon-github-logo-16', service: 'GitHub', username: 'defunkt'},
-  {followingState: 'NotFollowing', icon: 'icon-reddit-logo-16', service: 'Reddit', username: 'KeyserSosa'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-github-logo-16',
+    service: 'GitHub',
+    username: 'defunkt',
+    id: 'defunkt@github',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-reddit-logo-16',
+    service: 'Reddit',
+    username: 'KeyserSosa',
+    id: 'KeyserSosa@reddit',
+  },
 ]
 
 const userInputMap: DumbComponentMap<UserInput> = {
@@ -294,8 +336,6 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: [],
       usernameText: '',
-      placeholder: 'Type someone',
-      showAddButton: false,
     },
     'Users + Add': {
       ...commonUserInputMapProps,
@@ -306,15 +346,16 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: maxUsers,
       usernameText: 'ma',
-      showAddButton: false,
     },
     'Users (Wrap)': {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 480,
+          width: isMobile ? 300 : 480,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
@@ -324,9 +365,11 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       parentProps: {
         style: {
-          width: 370,
+          width: isMobile ? 300 : 370,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: maxUsers,
@@ -338,19 +381,60 @@ const userInputMap: DumbComponentMap<UserInput> = {
         style: {
           width: 460,
           padding: 4,
-          boxShadow: '0 0 3px rgba(0, 0, 0, .25)',
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
         },
       },
       userItems: chrisUsers,
       usernameText: 'Chris Hemswor',
-      showAddButton: false,
     },
   },
 }
 
+const UserInputEditable = compose(
+  withState('usernameText', 'onChangeText', ''),
+  withState('userItems', 'setUserItems', ({userItems}) => userItems),
+  withHandlers({
+    onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
+      setUserItems(userItems.filter(i => i.id !== id))
+    },
+  })
+)(UserInput)
+
+const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
+  component: UserInputEditable,
+  mocks: {
+    Empty: {
+      ...commonUserInputMapProps,
+      userItems: [],
+    },
+    'Users + Add (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 480,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
+    },
+  },
+}
+
+const desktopOnly = !isMobile
+  ? {
+      'SearchV3 result': servicesResultMap,
+      'SearchV3 resultsList': servicesResultsListMap,
+    }
+  : {}
+
 export default {
   'SearchV3 filter': servicesFilterMap,
-  'SearchV3 result': servicesResultMap,
-  'SearchV3 resultsList': servicesResultsListMap,
   'SearchV3 user input': userInputMap,
+  'SearchV3 user input (editable)': userInputEditableMap,
+  ...desktopOnly,
 }

@@ -55,6 +55,7 @@ const (
 	PromptDescriptorEnterChatMessage
 	PromptDescriptorDeviceRevoke
 	PromptDescriptorFSOverwrite
+	PromptDescriptorRemoveMember
 )
 
 const (

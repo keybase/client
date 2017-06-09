@@ -17,6 +17,9 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		Subcommands: []cli.Command{
 			newCmdTeamCreate(cl, g),
 			newCmdTeamListMemberships(cl, g),
+			newCmdTeamAddMember(cl, g),
+			newCmdTeamRemoveMember(cl, g),
+			newCmdTeamEditMember(cl, g),
 		},
 	}
 }

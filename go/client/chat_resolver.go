@@ -19,10 +19,11 @@ type chatConversationResolvingRequestContext struct {
 }
 
 type chatConversationResolvingRequest struct {
-	TlfName    string
-	TopicName  string
-	TopicType  chat1.TopicType
-	Visibility chat1.TLFVisibility
+	TlfName     string
+	TopicName   string
+	TopicType   chat1.TopicType
+	Visibility  chat1.TLFVisibility
+	MembersType chat1.ConversationMembersType
 
 	ctx *chatConversationResolvingRequestContext
 }
@@ -87,13 +88,25 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 			errors.New("we are not supporting setting topic name for chat conversations yet")
 	}
 
-	var tlfName *string
-	if len(req.TlfName) > 0 {
-		err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
-		if err != nil {
-			return chat1.GetInboxAndUnboxLocalArg{}, err
+	var nameQuery *chat1.NameQuery
+	switch req.MembersType {
+	case chat1.ConversationMembersType_KBFS:
+		if len(req.TlfName) > 0 {
+			err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
+			if err != nil {
+				return chat1.GetInboxAndUnboxLocalArg{}, err
+			}
+			nameQuery = &chat1.NameQuery{
+				Name:        req.ctx.canonicalizedTlfName,
+				MembersType: chat1.ConversationMembersType_KBFS,
+			}
 		}
-		tlfName = &req.ctx.canonicalizedTlfName
+	case chat1.ConversationMembersType_TEAM:
+		req.ctx.canonicalizedTlfName = req.TlfName
+		nameQuery = &chat1.NameQuery{
+			Name:        req.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		}
 	}
 
 	var topicName *string
@@ -103,7 +116,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 
 	return chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			TlfName:       tlfName,
+			Name:          nameQuery,
 			TopicName:     topicName,
 			TopicType:     &req.TopicType,
 			TlfVisibility: &req.Visibility,
@@ -120,8 +133,9 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 
 	// Convert argument
 	var fcArg chat1.FindConversationsLocalArg
-	if arg.Query.TlfName != nil {
-		fcArg.TlfName = *arg.Query.TlfName
+	if arg.Query.Name != nil {
+		fcArg.TlfName = arg.Query.Name.Name
+		fcArg.MembersType = arg.Query.Name.MembersType
 	}
 	if arg.Query.TlfVisibility != nil {
 		fcArg.Visibility = *arg.Query.TlfVisibility
@@ -203,6 +217,7 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		TopicName:     tnp,
 		TopicType:     req.TopicType,
 		TlfVisibility: req.Visibility,
+		MembersType:   req.MembersType,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating conversation error: %v\n", err)

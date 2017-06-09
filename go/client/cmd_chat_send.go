@@ -30,6 +30,7 @@ type cmdChatSend struct {
 	clearHeadline bool
 	hasTTY        bool
 	nonBlock      bool
+	team          bool
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -149,6 +150,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
+	c.team = ctx.Bool("team")
 
 	var tlfName string
 	// Get the TLF name from the first position arg

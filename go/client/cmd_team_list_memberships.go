@@ -6,7 +6,6 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -39,10 +38,12 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 }
 
 func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) != 1 {
-		return errors.New("list-memberships requires team name argument")
+	var err error
+	c.team, err = ParseOneTeamName(ctx)
+	if err != nil {
+		return err
 	}
-	c.team = ctx.Args()[0]
+
 	c.json = ctx.Bool("json")
 	return nil
 }

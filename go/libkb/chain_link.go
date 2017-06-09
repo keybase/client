@@ -86,22 +86,23 @@ func (l LinkID) Eq(i2 LinkID) bool {
 }
 
 type ChainLinkUnpacked struct {
-	prev           LinkID
-	seqno          keybase1.Seqno
-	payloadJSONStr string
-	ctime, etime   int64
-	pgpFingerprint *PGPFingerprint
-	kid            keybase1.KID
-	eldestKID      keybase1.KID
-	sig            string
-	sigID          keybase1.SigID
-	uid            keybase1.UID
-	username       string
-	typ            string
-	proofText      string
-	outerLinkV2    *OuterLinkV2WithMetadata
-	sigVersion     int
-	stubbed        bool
+	prev                               LinkID
+	seqno                              keybase1.Seqno
+	payloadJSONStr                     string
+	ctime, etime                       int64
+	pgpFingerprint                     *PGPFingerprint
+	kid                                keybase1.KID
+	eldestKID                          keybase1.KID
+	sig                                string
+	sigID                              keybase1.SigID
+	uid                                keybase1.UID
+	username                           string
+	typ                                string
+	proofText                          string
+	outerLinkV2                        *OuterLinkV2WithMetadata
+	sigVersion                         int
+	stubbed                            bool
+	firstAppearedMerkleSeqnoUnverified keybase1.Seqno
 }
 
 // A template for some of the reasons in badChainLinks below.
@@ -263,6 +264,13 @@ func (c *ChainLink) GetETime() time.Time {
 	return UnixToTimeMappingZero(c.unpacked.etime)
 }
 
+func (c *ChainLink) GetFirstAppearedMerkleSeqnoUnverified() keybase1.Seqno {
+	if c.IsStubbed() {
+		return keybase1.Seqno(0)
+	}
+	return c.unpacked.firstAppearedMerkleSeqnoUnverified
+}
+
 func (c *ChainLink) GetUID() keybase1.UID {
 	return c.unpacked.uid
 }
@@ -290,7 +298,7 @@ func (c *ChainLink) Pack() error {
 		p.SetKey("sig_verified", jsonw.NewBool(c.sigVerified))
 		p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
 		p.SetKey("sig_version", jsonw.NewInt(c.unpacked.sigVersion))
-
+		p.SetKey("merkle_seqno", jsonw.NewInt64(int64(c.unpacked.firstAppearedMerkleSeqnoUnverified)))
 	}
 
 	if c.cki != nil {
@@ -311,6 +319,21 @@ func (c *ChainLink) GetMerkleSeqno() keybase1.Seqno {
 		i = 0
 	}
 	return keybase1.Seqno(i)
+}
+
+func (c *ChainLink) GetMerkleHashMeta() (keybase1.HashMeta, error) {
+	if c.IsStubbed() {
+		return nil, nil
+	}
+	s, err := c.payloadJSON.AtPath("body.merkle_root.hash_meta").GetString()
+	if err != nil {
+		return nil, nil
+	}
+	ret, err := keybase1.HashMetaFromString(s)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (c *ChainLink) GetRevocations() []keybase1.SigID {
@@ -490,6 +513,11 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 	if err != nil {
 		return err
 	}
+
+	if i, err := c.packed.AtKey("merkle_seqno").GetInt64(); err == nil {
+		tmp.firstAppearedMerkleSeqnoUnverified = keybase1.Seqno(i)
+	}
+
 	if jw := c.packed.AtKey("payload_json"); !jw.IsNil() {
 		payloadJSONStr, err := jw.GetString()
 		if err != nil {

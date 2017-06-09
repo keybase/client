@@ -1044,6 +1044,7 @@ export type ConversationInfoLocal = {
   topicName: string,
   visibility: TLFVisibility,
   status: ConversationStatus,
+  membersType: ConversationMembersType,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -1158,7 +1159,7 @@ export type GetInboxByTLFIDRemoteRes = {
 }
 
 export type GetInboxLocalQuery = {
-  tlfName?: ?string,
+  name?: ?NameQuery,
   topicName?: ?string,
   convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
@@ -1530,6 +1531,11 @@ export type MessageUnboxedValid = {
   headerSignature?: ?SignatureInfo,
   verificationKey?: ?bytes,
   senderDeviceRevokedAt?: ?gregor1.Time,
+}
+
+export type NameQuery = {
+  name: string,
+  membersType: ConversationMembersType,
 }
 
 export type NewConversationInfo = {
@@ -1909,6 +1915,7 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
 
 export type localFindConversationsLocalRpcParam = Exact<{
   tlfName: string,
+  membersType: ConversationMembersType,
   visibility: TLFVisibility,
   topicType: TopicType,
   topicName: string,

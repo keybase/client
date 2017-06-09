@@ -15,7 +15,7 @@ import {selectConversation} from '../../actions/chat/creators'
 import type {TypedState} from '../../constants/reducer'
 import type {ConversationIDKey} from '../../constants/chat'
 
-function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected) {
+function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected) {
   // Derived props
 
   // If it's finalized we don't show the rekey as they can't solve it themselves
@@ -24,7 +24,9 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected) {
   const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
 
   const hasUnread = !!unreadCount
-  const subColor = isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+  const subColor = isError
+    ? globalColors.red
+    : isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
   const showBold = !isSelected && hasUnread
   const backgroundColor = isSelected
     ? globalColors.white
@@ -69,6 +71,7 @@ const makeSelector = conversationIDKey => {
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
       (isSelected, participants, nowOverride) => ({
         conversationIDKey,
+        isError: false,
         isMuted: false,
         isSelected,
         participants,
@@ -76,7 +79,7 @@ const makeSelector = conversationIDKey => {
         snippet: '',
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
         unreadCount: 0,
-        ..._rowDerivedProps(null, null, 0, isSelected),
+        ..._rowDerivedProps(null, null, 0, false, isSelected),
       })
     )
   } else {
@@ -90,17 +93,25 @@ const makeSelector = conversationIDKey => {
         getNowOverride,
         makeGetFinalizedInfo(conversationIDKey),
       ],
-      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => ({
-        conversationIDKey,
-        isMuted: conversation.get('status') === 'muted',
-        isSelected,
-        participants: participantFilter(conversation.get('participants'), you),
-        rekeyInfo,
-        snippet: conversation.get('snippet'),
-        timestamp: formatTimeForConversationList(conversation.get('time'), nowOverride),
-        unreadCount: unreadCount || 0,
-        ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isSelected),
-      })
+      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => {
+        const isError = conversation.get('state') === 'error'
+        const isMuted = conversation.get('status') === 'muted'
+        const participants = participantFilter(conversation.get('participants'), you)
+        const snippet = conversation.get('snippet')
+        const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
+        return {
+          conversationIDKey,
+          isError,
+          isMuted,
+          isSelected,
+          participants,
+          rekeyInfo,
+          snippet,
+          timestamp,
+          unreadCount: unreadCount || 0,
+          ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
+        }
+      }
     )
   }
 }

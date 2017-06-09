@@ -67,17 +67,52 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	netCtx = libkb.WithLogTag(netCtx, "IDL")
 	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
 
-	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
-	logui := h.getLogUI(arg.SessionID)
-	ctx := engine.Context{
-		LogUI:      logui,
-		IdentifyUI: iui,
-		SessionID:  arg.SessionID,
-		NetContext: netCtx,
+	var forTeam bool
+	forTeam, res, err = h.identifyLiteTeam(netCtx, arg)
+	if forTeam {
+		return res, err
 	}
 
-	// TODO: Make a real version of this that can distinguish UIDs and
-	// TeamIDs.  For now, only support UIDs.
+	return h.identifyLiteUser(netCtx, arg)
+}
+
+func (h *IdentifyHandler) identifyLiteTeam(ctx context.Context, arg keybase1.IdentifyLiteArg) (ok bool, res keybase1.IdentifyLiteRes, err error) {
+	if arg.Id.Exists() {
+		// check if the id is for a team
+		if !arg.Id.IsTeamOrSubteam() {
+			return false, res, nil
+		}
+
+		h.G().Log.CDebugf(ctx, "IdentifyLite on team id: %s", arg.Id)
+		// no identify on teams, just resolve team id => team name
+		ul, err := h.resolveUserOrTeam(ctx, fmt.Sprintf("tid:%s", arg.Id))
+		if err != nil {
+			return true, res, err
+		}
+		res.Ul = ul
+		return true, res, nil
+	}
+
+	// check to see if the assertion is for a team
+	assertion, err := libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+	if err == nil && assertion.IsTeamID() {
+		h.G().Log.CDebugf(ctx, "IdentifyLite on team id assertion: %s", arg.Assertion)
+		// no identify on teams, just resolve team id => team name
+		ul, err := h.resolveUserOrTeam(ctx, arg.Assertion)
+		if err != nil {
+			return true, res, err
+		}
+		res.Ul = ul
+		return true, res, nil
+	}
+
+	// not a team
+	return false, res, nil
+}
+
+func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {
+	h.G().Log.CDebugf(netCtx, "IdentifyLite on user")
+
 	var uid keybase1.UID
 	if arg.Id.Exists() {
 		uid, err = arg.Id.AsUser()
@@ -85,6 +120,7 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 			return res, err
 		}
 	}
+
 	id2arg := keybase1.Identify2Arg{
 		SessionID:             arg.SessionID,
 		Uid:                   uid,
@@ -100,6 +136,15 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 		CanSuppressUI:         arg.CanSuppressUI,
 		IdentifyBehavior:      arg.IdentifyBehavior,
 		ForceDisplay:          arg.ForceDisplay,
+	}
+
+	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
+	logui := h.getLogUI(arg.SessionID)
+	ctx := engine.Context{
+		LogUI:      logui,
+		IdentifyUI: iui,
+		SessionID:  arg.SessionID,
+		NetContext: netCtx,
 	}
 
 	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
@@ -123,12 +168,29 @@ func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1
 func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
-	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
-	err = rres.GetError()
-	if err == nil {
-		u.Uid, u.Username = rres.GetUID(), rres.GetNormalizedUsername().String()
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	err = res.GetError()
+	if err != nil {
+		return keybase1.User{}, err
 	}
-	return u, err
+
+	return res.User(), nil
+}
+
+func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
+	ctx = libkb.WithLogTag(ctx, "RSLV")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()
+	return h.resolveUserOrTeam(ctx, arg)
+}
+
+func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
+
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	err = res.GetError()
+	if err != nil {
+		return u, err
+	}
+	return res.UserOrTeam(), nil
 }
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {

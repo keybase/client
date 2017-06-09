@@ -37,13 +37,14 @@ const filteredInbox = createImmutableEqualSelector(
       .map(i => i.conversationIDKey)
   }
 )
-const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) =>
-  I.List(pending.keys()).concat(inbox)
-)
+const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
+  return I.List(pending.keys()).concat(inbox)
+})
 
 export default connect(
   (state: TypedState) => ({
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     rows: getRows(state),
   }),
   (dispatch: Dispatch) => ({

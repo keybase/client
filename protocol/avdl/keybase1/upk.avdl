@@ -1,5 +1,6 @@
 @namespace("keybase.1")
 protocol UPK {
+  import idl "common.avdl";
 
   enum KeyType {
       NONE_0,
@@ -7,9 +8,12 @@ protocol UPK {
       PGP_2
   }
 
+  @typedef("bytes")
+  record HashMeta {}
+
   record MerkleRootV2 {
       Seqno seqno;
-      bytes hashMeta;
+      HashMeta hashMeta;
   }
 
   record SignatureMetadata {

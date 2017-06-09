@@ -6,6 +6,7 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import type {Props} from '.'
 
 const ConversationHeader = ({
+  badgeNumber,
   muted,
   onBack,
   onOpenFolder,
@@ -16,6 +17,7 @@ const ConversationHeader = ({
 }: Props) => (
   <Box style={containerStyle}>
     <BackButton
+      badgeNumber={badgeNumber}
       title={null}
       onClick={onBack}
       iconStyle={{color: globalColors.black_40}}
