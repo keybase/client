@@ -1,7 +1,6 @@
 // Copyright 2016 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
-
 package libkbfs
 
 import (
@@ -9,6 +8,7 @@ import (
 	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -263,13 +263,26 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	shutdown := false
 	select {
 	case <-ch:
+		t.Fatal("Expected not to retrieve a result from the Request.")
 	case continueCh <- nil:
+		t.Fatal("Expected the block getter not to be receiving.")
 	default:
 		shutdown = true
 	}
 	require.True(t, shutdown)
-	w.Shutdown()
-	require.True(t, shutdown)
+
+	// Ensure the test completes in a reasonable time.
+	timer := time.NewTimer(10 * time.Second)
+	doneCh := make(chan struct{})
+	go func() {
+		w.Shutdown()
+		close(doneCh)
+	}()
+	select {
+	case <-timer.C:
+		t.Fatal("Expected another Shutdown not to block.")
+	case <-doneCh:
+	}
 }
 
 func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
