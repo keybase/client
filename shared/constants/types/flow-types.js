@@ -95,6 +95,7 @@ export const CommonMerkleTreeID = {
   master: 0,
   kbfsPublic: 1,
   kbfsPrivate: 2,
+  kbfsPrivateteam: 3,
 }
 
 export const ConfigForkType = {
@@ -4794,6 +4795,7 @@ export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
+  | 3 // KBFS_PRIVATETEAM_3
 
 export type MetadataResponse = {
   folderID: string,
