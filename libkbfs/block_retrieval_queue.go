@@ -173,6 +173,35 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 		}
 	// Get the next queued worker
 	case ch := <-brq.workerQueue:
+		// Workers can only work on on-demand requests.
+		retrieval := brq.popIfNotEmpty()
+		if retrieval.priority < defaultOnDemandRequestPriority {
+			// TODO: the request can still be preempted by an on-demand
+			// priority request. How to deal?
+			brq.notifyPrefetchWorker()
+			return
+		}
+		ch <- retrieval
+	// Get the next prefetch worker
+	case ch := <-brq.prefetchWorkerQueue:
+		// Prefetch workers can work on any kind of request.
+		retrieval := brq.popIfNotEmpty()
+		ch <- retrieval
+	}
+}
+
+// notifyPrefetchWorker notifies prefetch workers that there is a new request
+// for processing.
+func (brq *blockRetrievalQueue) notifyPrefetchWorker() {
+	select {
+	case <-brq.doneCh:
+		retrieval := brq.popIfNotEmpty()
+		if retrieval != nil {
+			brq.FinalizeRequest(retrieval, nil, io.EOF)
+		}
+	// Get the next prefetch worker
+	case ch := <-brq.prefetchWorkerQueue:
+		// Prefetch workers can work on any kind of request.
 		retrieval := brq.popIfNotEmpty()
 		ch <- retrieval
 	}
