@@ -110,11 +110,13 @@ type TLFJournalStatus struct {
 	// The byte counters below are signed because
 	// os.FileInfo.Size() is signed. The file counter is signed
 	// for consistency.
-	StoredBytes    int64
-	StoredFiles    int64
-	UnflushedBytes int64
-	UnflushedPaths []string
-	LastFlushErr   string `json:",omitempty"`
+	StoredBytes     int64
+	StoredFiles     int64
+	UnflushedBytes  int64
+	UnflushedPaths  []string
+	QuotaUsedBytes  int64
+	QuotaLimitBytes int64
+	LastFlushErr    string `json:",omitempty"`
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -1429,16 +1431,19 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	storedBytes := j.blockJournal.getStoredBytes()
 	storedFiles := j.blockJournal.getStoredFiles()
 	unflushedBytes := j.blockJournal.getUnflushedBytes()
+	quotaUsed, quotaLimit := j.diskLimiter.getQuotaInfo(j.chargedTo)
 	return TLFJournalStatus{
-		Dir:            j.dir,
-		BranchID:       j.mdJournal.getBranchID().String(),
-		RevisionStart:  earliestRevision,
-		RevisionEnd:    latestRevision,
-		BlockOpCount:   blockEntryCount,
-		StoredBytes:    storedBytes,
-		StoredFiles:    storedFiles,
-		UnflushedBytes: unflushedBytes,
-		LastFlushErr:   lastFlushErr,
+		Dir:             j.dir,
+		BranchID:        j.mdJournal.getBranchID().String(),
+		RevisionStart:   earliestRevision,
+		RevisionEnd:     latestRevision,
+		BlockOpCount:    blockEntryCount,
+		StoredBytes:     storedBytes,
+		StoredFiles:     storedFiles,
+		QuotaUsedBytes:  quotaUsed,
+		QuotaLimitBytes: quotaLimit,
+		UnflushedBytes:  unflushedBytes,
+		LastFlushErr:    lastFlushErr,
 	}, nil
 }
 
