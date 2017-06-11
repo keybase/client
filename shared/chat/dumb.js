@@ -119,7 +119,7 @@ const inbox = [
     conversationIDKey: 'convo1',
     status: 'unfiled',
     time: now,
-    snippet: 'five',
+    snippet: 'fiveTEMPTEMP',
     unreadCount: 3,
   }),
   new InboxStateRecord({
