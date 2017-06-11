@@ -43,9 +43,8 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 		files = append(files, nullfd, nullfd, nullfd)
 	}
 
-	// On 'nix this would include Setsid: true, which means
-	// the new process inherits the session/terminal from the parent.
-	// This is default on windows and need not be specified.
+	// Create the process with its own console, so it
+	// can outlive the parent process's console.
 	attr := syscall.ProcAttr{
 		Env:   os.Environ(),
 		Files: files,
