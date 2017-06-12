@@ -1,11 +1,12 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Text, Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 
-class PassphraseRender extends Component<void, Props, void> {
+import type {Props} from '.'
+
+class Passphrase extends Component<void, Props, void> {
   render() {
     return (
       <Container
@@ -58,4 +59,4 @@ const stylesCard = {
   alignSelf: 'stretch',
 }
 
-export default PassphraseRender
+export default Passphrase

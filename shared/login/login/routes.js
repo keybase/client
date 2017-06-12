@@ -1,16 +1,16 @@
 // @flow
 import * as I from 'immutable'
 import {RouteDefNode} from '../../route-tree'
-import Login from './'
-import UsernameOrEmail from '../register/username-or-email'
-import SelectOtherDevice from '../register/select-other-device'
-import Passphrase from '../register/passphrase'
-import PaperKey from '../register/paper-key'
-import CodePage from '../register/code-page'
-import SetPublicName from '../register/set-public-name'
-import Success from '../register/success'
-import RegisterError from '../register/error'
-import GPGSign from '../register/gpg-sign'
+import Login from './container'
+import UsernameOrEmail from '../register/username-or-email/container'
+import SelectOtherDevice from '../register/select-other-device/container'
+import Passphrase from '../register/passphrase/container'
+import PaperKey from '../register/paper-key/container'
+import CodePage from '../register/code-page/container'
+import SetPublicName from '../register/set-public-name/container'
+import Success from '../register/success/container'
+import RegisterError from '../register/error/container'
+import GPGSign from '../register/gpg-sign/container'
 
 const recursiveLazyRoutes = I.Seq({
   login: {

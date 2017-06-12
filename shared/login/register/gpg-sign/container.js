@@ -1,10 +1,11 @@
 // @flow
-import RenderGPGSign from './index.render'
+import GPGSign from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 
-// $FlowIssue
-export default connect(null, dispatch => ({
+const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(Creators.onBack()),
   onSubmit: exportKey => dispatch(Creators.chooseGPGMethod(exportKey)),
-}))(RenderGPGSign)
+})
+// $FlowIssue
+export default connect(null, mapDispatchToProps)(GPGSign)

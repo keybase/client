@@ -51,7 +51,6 @@ const _headerStyle = {
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: StyleSheet.hairlineWidth,
   justifyContent: 'flex-start',
-  marginTop: statusBarHeight,
   minHeight: globalMargins.xlarge - statusBarHeight,
   paddingRight: globalMargins.small,
   position: 'relative',

@@ -1,13 +1,13 @@
 // @flow
-import Container from '../../forms/container'
+import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Input, Button, UserCard} from '../../../common-adapters'
-import {globalColors, globalMargins} from '../../../styles'
+import {globalColors} from '../../../styles'
 
+import type {Props} from '.'
 type State = {usernameOrEmail: string}
 
-class UsernameOrEmailRender extends Component<void, Props, State> {
+class UsernameOrEmail extends Component<void, Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -31,22 +31,21 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
       <Container
         style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.white}}
-        onBack={this.props.onBack}
+        onBack={() => this.props.onBack()}
       >
-        <UserCard style={stylesCard}>
+        <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
             autoFocus={true}
             style={stylesInput}
             hintText="Username or email"
-            floatingHintTextOverride="Username or email"
-            onChangeText={text => this.onChange(text)}
             onEnterKeyDown={() => this.onSubmit()}
+            onChangeText={text => this.onChange(text)}
             value={this.state.usernameOrEmail}
           />
           <Button
-            fullWidth={true}
             label="Continue"
             type="Primary"
+            style={{alignSelf: 'center'}}
             onClick={() => this.onSubmit()}
             enabled={this.state.usernameOrEmail}
             waiting={this.props.waitingForResponse}
@@ -59,13 +58,17 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
 
 const stylesContainer = {
   flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
 }
 const stylesInput = {
-  flexGrow: 1,
-  marginBottom: globalMargins.small,
+  marginBottom: 48,
+}
+const stylesOuterCard = {
+  marginTop: 40,
 }
 const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default UsernameOrEmailRender
+export default UsernameOrEmail
