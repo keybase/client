@@ -11,12 +11,14 @@ import (
 type ChatAttachmentUploadOutboxIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
+	Nojima    int      `codec:"nojima" json:"nojima"`
 }
 
 func (o ChatAttachmentUploadOutboxIDArg) DeepCopy() ChatAttachmentUploadOutboxIDArg {
 	return ChatAttachmentUploadOutboxIDArg{
 		SessionID: o.SessionID,
 		OutboxID:  o.OutboxID.DeepCopy(),
+		Nojima:    o.Nojima,
 	}
 }
 
