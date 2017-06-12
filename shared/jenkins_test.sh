@@ -26,17 +26,19 @@ check_rc() {
 }
 
 has_js_files() {
+    extra_commands=$1
     if [ $against_master -eq 1 ]; then
         echo 'Missing $change_target, forcing has_js_files to true'
         return
     fi
     echo 'git fetch'
-    git fetch
+    # git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
     git diff --name-only "$change_base...$commit_hash"
     # ignore test.sh for now
-    diff_files=`git diff --name-only "$change_base...$commit_hash" | grep '^shared/' | grep -v '^shared/jenkins_test\.sh'`
+    cmd="git diff --name-only $change_base...$commit_hash | grep '^shared/' | grep -v '^shared/jenkins_test\.sh' $extra_commands"
+    diff_files=`eval "$cmd"`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in $diff_files"
 }
@@ -60,10 +62,11 @@ js_tests() {
     check_rc $? 'yarn test fail' 1
 }
 
+visdiff_extra_commands="| grep -v '^shared/constants/types/flow-types'"
+
 visdiff() {
     echo 'visdiff'
-    has_js_files
-
+    has_js_files $visdiff_extra_commands
     if [ $against_master -eq 1 ]; then
         echo 'No $change_target, skipping visdiff'
     else
@@ -74,7 +77,7 @@ visdiff() {
 
 visdiff_install() {
     echo 'visdiff-install'
-    has_js_files
+    has_js_files $visdiff_extra_commands
     if [ $against_master -eq 1 ]; then
         echo 'No $change_target, skipping visdiff'
     else
