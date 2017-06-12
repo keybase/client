@@ -1,12 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
+import Login from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../actions/login/creators'
 import {requestAutoInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'
-import type {Props} from './index.render'
+import type {Props} from '.'
 
 type State = {
   selectedUser: ?string,
@@ -14,7 +14,8 @@ type State = {
   passphrase: string,
 }
 
-class Login extends Component {
+// TODO remove this class
+class _Login extends Component {
   state: State
 
   constructor(props: Props & {lastUser: ?string}) {
@@ -35,7 +36,7 @@ class Login extends Component {
 
   render() {
     return (
-      <Render
+      <Login
         {...this.props}
         onSubmit={() => this._onSubmit()}
         passphrase={this.state.passphrase}
@@ -49,30 +50,30 @@ class Login extends Component {
   }
 }
 
-export default connect(
-  (state: TypedState) => {
-    const users = (state.login.configuredAccounts &&
-      state.login.configuredAccounts.map(c => c.username)) || []
-    let lastUser = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
+const mapStateToProps = (state: TypedState) => {
+  const users = (state.login.configuredAccounts && state.login.configuredAccounts.map(c => c.username)) || []
+  let lastUser = state.config.extendedConfig && state.config.extendedConfig.defaultUsername
 
-    if (users.indexOf(lastUser) === -1 && users.length) {
-      lastUser = users[0]
-    }
+  if (users.indexOf(lastUser) === -1 && users.length) {
+    lastUser = users[0]
+  }
 
-    return {
-      serverURI: 'https://keybase.io',
-      users,
-      lastUser,
-      error: state.login.loginError,
-      waitingForResponse: state.login.waitingForResponse,
-    }
+  return {
+    serverURI: 'https://keybase.io',
+    users,
+    lastUser,
+    error: state.login.loginError,
+    waitingForResponse: state.login.waitingForResponse,
+  }
+}
+
+const mapDispatchToProps = (dispatch: any) => ({
+  onForgotPassphrase: () => dispatch(Creators.openAccountResetPage()),
+  onLogin: (user, passphrase) => dispatch(Creators.relogin(user, passphrase)),
+  onSignup: () => dispatch(requestAutoInvite()),
+  onSomeoneElse: () => {
+    dispatch(Creators.startLogin())
   },
-  (dispatch: any) => ({
-    onForgotPassphrase: () => dispatch(Creators.openAccountResetPage()),
-    onLogin: (user, passphrase) => dispatch(Creators.relogin(user, passphrase)),
-    onSignup: () => dispatch(requestAutoInvite()),
-    onSomeoneElse: () => {
-      dispatch(Creators.startLogin())
-    },
-  })
-)(Login)
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(_Login)
