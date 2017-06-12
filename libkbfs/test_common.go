@@ -79,9 +79,10 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 	}
 }
 
-// MakeTestConfigOrBust creates and returns a config suitable for
-// unit-testing with the given list of users.
-func MakeTestConfigOrBust(t logger.TestLogBackend,
+// MakeTestConfigOrBustLoggedIn creates and returns a config suitable for
+// unit-testing with the given list of users. loggedInIndex specifies the
+// index (in the list) of the user being logged in.
+func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
 	users ...libkb.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)
 	config := newConfigForTest(InitDefault, func(m string) logger.Logger {
@@ -96,7 +97,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	config.SetMDOps(NewMDOpsStandard(config))
 
 	localUsers := MakeLocalUsers(users)
-	loggedInUser := localUsers[0]
+	loggedInUser := localUsers[loggedInIndex]
 
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
 		config.Codec())
@@ -183,6 +184,13 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	config.allKnownConfigsForTesting = &configs
 
 	return config
+}
+
+// MakeTestConfigOrBust creates and returns a config suitable for
+// unit-testing with the given list of users.
+func MakeTestConfigOrBust(t logger.TestLogBackend,
+	users ...libkb.NormalizedUsername) *ConfigLocal {
+	return MakeTestConfigOrBustLoggedIn(t, 0, users...)
 }
 
 func configAsUserWithMode(config *ConfigLocal,

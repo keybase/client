@@ -4019,6 +4019,16 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
+func (_m *MockBlockServer) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockServerRecorder) PutAgain(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutAgain", arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 func (_m *MockBlockServer) AddBlockReference(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) error {
 	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, tlfID, id, context)
 	ret0, _ := ret[0].(error)
@@ -4140,6 +4150,16 @@ func (_m *MockblockServerLocal) Put(ctx context.Context, tlfID tlf.ID, id kbfsbl
 
 func (_mr *_MockblockServerLocalRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+func (_m *MockblockServerLocal) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "PutAgain", ctx, tlfID, id, context, buf, serverHalf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockblockServerLocalRecorder) PutAgain(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutAgain", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 func (_m *MockblockServerLocal) AddBlockReference(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) error {

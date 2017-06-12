@@ -183,11 +183,42 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 		return errBlockServerDiskShutdown
 	}
 
-	_, err = tlfStorage.store.put(id, context, buf, serverHalf, "")
+	_, err = tlfStorage.store.put(true, id, context, buf, serverHalf, "")
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// PutAgain implements the BlockServer interface for BlockServerDisk.
+func (b *BlockServerDisk) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx, "BlockServerDisk.PutAgain id=%s tlfID=%s context=%s size=%d",
+		id, tlfID, context, len(buf))
+
+	tlfStorage, err := b.getStorage(tlfID)
+	if err != nil {
+		return err
+	}
+
+	tlfStorage.lock.Lock()
+	defer tlfStorage.lock.Unlock()
+	if tlfStorage.store == nil {
+		return errBlockServerDiskShutdown
+	}
+
+	_, err = tlfStorage.store.put(false, id, context, buf, serverHalf, "")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -93,8 +93,8 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 	return entry.blockData, entry.keyServerHalf, nil
 }
 
-func validateBlockPut(
-	id kbfsblock.ID, context kbfsblock.Context, buf []byte) error {
+func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.Context,
+	buf []byte) error {
 	var emptyID keybase1.UserOrTeamID
 	if context.GetCreator() == emptyID {
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
@@ -105,28 +105,20 @@ func validateBlockPut(
 			context.GetCreator(), context.GetWriter())
 	}
 
-	if context.GetRefNonce() != kbfsblock.ZeroRefNonce {
+	if checkNonzeroRef && context.GetRefNonce() != kbfsblock.ZeroRefNonce {
 		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
 	return kbfsblock.VerifyID(buf, id)
 }
 
-// Put implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
-	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	if err := checkContext(ctx); err != nil {
-		return err
-	}
-
+// doPut consolidates the put logic for implementing both the Put and PutAgain interface.
+func (b *BlockServerMemory) doPut(isRegularPut bool, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
-	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
-		"size=%d", id, tlfID, context, len(buf))
-
-	err = validateBlockPut(id, context, buf)
+	err = validateBlockPut(isRegularPut, id, context, buf)
 	if err != nil {
 		return err
 	}
@@ -154,7 +146,7 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 		// check that it's equal to entry.data (since that was
 		// presumably already checked previously).
 
-		if entry.keyServerHalf != serverHalf {
+		if isRegularPut && entry.keyServerHalf != serverHalf {
 			return fmt.Errorf(
 				"key server half mismatch: expected %s, got %s",
 				entry.keyServerHalf, serverHalf)
@@ -174,6 +166,32 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
 	}
 
 	return refs.put(context, liveBlockRef, "")
+}
+
+// Put implements the BlockServer interface for BlockServerMemory.
+func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID,
+	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
+		"size=%d", id, tlfID, context, len(buf))
+
+	return b.doPut(true, tlfID, id, context, buf, serverHalf)
+}
+
+// PutAgain implements the BlockServer interface for BlockServerMemory.
+func (b *BlockServerMemory) PutAgain(ctx context.Context, tlfID tlf.ID,
+	id kbfsblock.ID, context kbfsblock.Context, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	if err := checkContext(ctx); err != nil {
+		return err
+	}
+	b.log.CDebugf(ctx, "BlockServerMemory.PutAgain id=%s tlfID=%s context=%s "+
+		"size=%d", id, tlfID, context, len(buf))
+
+	return b.doPut(false, tlfID, id, context, buf, serverHalf)
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
