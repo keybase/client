@@ -1,9 +1,10 @@
 // @flow
-import React, {Component} from 'react'
-import RenderPassphrase from './index.render'
-import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
+import Passphrase from '.'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
+
 import type {TypedState} from '../../../constants/reducer'
 
 type State = {
@@ -21,7 +22,8 @@ type Props = {
   username: ?string,
 }
 
-class Passphrase extends Component<void, Props, State> {
+// TODO remove this class
+class _Passphrase extends Component<void, Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -35,7 +37,7 @@ class Passphrase extends Component<void, Props, State> {
 
   render() {
     return (
-      <RenderPassphrase
+      <Passphrase
         error={this.props.error}
         onBack={this.props.onBack}
         prompt={this.props.prompt}
@@ -55,14 +57,22 @@ class Passphrase extends Component<void, Props, State> {
   }
 }
 
-export default connect(
-  (state: TypedState) => ({waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc')}),
-  (dispatch: any) => ({
-    onForgotPassphrase: () => {
-      dispatch(Creators.openAccountResetPage())
-    },
-    onBack: () => dispatch(Creators.onBack()),
-    onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase, false))),
-  }),
-  (stateProps, dispatchProps, {routeProps}) => ({...stateProps, ...dispatchProps, ...routeProps})
-)(Passphrase)
+const mapStateToProps = (state: TypedState) => ({
+  waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
+})
+
+const mapDispatchToProps = (dispatch: any) => ({
+  onForgotPassphrase: () => {
+    dispatch(Creators.openAccountResetPage())
+  },
+  onBack: () => dispatch(Creators.onBack()),
+  onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase, false))),
+})
+
+const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...routeProps,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Passphrase)

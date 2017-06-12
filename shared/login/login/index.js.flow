@@ -18,4 +18,4 @@ export type Props = {
   onSubmit: () => void,
 }
 
-export default class LoginRender extends Component<void, Props, void> {}
+export default class Login extends Component<void, Props, void> {}

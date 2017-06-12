@@ -1,13 +1,14 @@
 // @flow
 import React, {Component} from 'react'
-import RenderSetPublicName from './index.render'
-import type {Props, State} from './index.render'
+import SetPublicName from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 
 import type {TypedState} from '../../../constants/reducer'
+import type {Props, State} from '.'
 
-class SetPublicName extends Component<void, Props, State> {
+// TODO remove this class
+class _SetPublicName extends Component<void, Props, State> {
   props: Props
   state: State
 
@@ -29,7 +30,7 @@ class SetPublicName extends Component<void, Props, State> {
       : null
 
     return (
-      <RenderSetPublicName
+      <SetPublicName
         deviceName={this.state.deviceName}
         onChange={deviceName => this.setState({deviceName})}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
@@ -50,15 +51,15 @@ type OwnProps = {
   },
 }
 
+const mapStateToProps = (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
+  existingDevices,
+  deviceNameError,
+  waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
+})
+
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(Creators.onBack()),
+  onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
+})
 // $FlowIssue
-export default connect(
-  (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
-    existingDevices,
-    deviceNameError,
-    waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
-  }),
-  dispatch => ({
-    onBack: () => dispatch(Creators.onBack()),
-    onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
-  })
-)(SetPublicName)
+export default connect(mapStateToProps, mapDispatchToProps)(_SetPublicName)

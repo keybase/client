@@ -4,9 +4,9 @@ import React, {Component} from 'react'
 import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
 
-import type {Props} from './index.render'
+import type {Props} from '.'
 
-class PassphraseRender extends Component<void, Props, void> {
+class Passphrase extends Component<void, Props, void> {
   render() {
     const {showTyping, toggleShowTyping} = this.props
 
@@ -65,4 +65,4 @@ const usernameStyle = {
   textAlign: 'center',
 }
 
-export default PassphraseRender
+export default Passphrase

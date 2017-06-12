@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/unlock-folders'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
-import Render from '../../login/register/paper-key/index.render'
+import PaperKey from '../../login/register/paper-key'
 import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'
@@ -19,7 +19,8 @@ type Props = {
   checkPaperKey: (paperKey: HiddenString) => void,
 }
 
-class PaperKey extends Component<void, Props, {paperKey: string}> {
+// TODO remove this class
+class _PaperKey extends Component<void, Props, {paperKey: string}> {
   state = {
     paperKey: '',
   }
@@ -37,7 +38,7 @@ class PaperKey extends Component<void, Props, {paperKey: string}> {
 
   render() {
     return (
-      <Render
+      <PaperKey
         onSubmit={() => {
           this.props.toPaperKeyInput()
           this.props.checkPaperKey(new HiddenString(this.state.paperKey))
@@ -74,4 +75,4 @@ export default connect(
       dispatch(onBackFromPaperKey())
     },
   })
-)(PaperKey)
+)(_PaperKey)

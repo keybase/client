@@ -131,7 +131,7 @@ function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
       }
       yield put(setWaiting(true))
       yield call(loginDeprovisionRpcPromise, {param: {doRevoke: true, username}})
-      yield call(navigateTo([loginTab]))
+      yield put(navigateTo([loginTab]))
       yield put(setRevokedSelf(name))
     } catch (e) {
       throw new Error("Can't remove current device")
