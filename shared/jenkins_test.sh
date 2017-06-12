@@ -32,7 +32,7 @@ has_js_files() {
         return
     fi
     echo 'git fetch'
-    # git fetch
+    git fetch
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
     git diff --name-only "$change_base...$commit_hash"
