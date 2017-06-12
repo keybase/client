@@ -1038,13 +1038,13 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 	return &user, nil
 }
 
+// TODO: test whether jw == nil causes the right behavior
 func parseMerkleUserLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserLeaf, err error) {
 	g.Log.CDebugf(ctx, "+ ParsingMerkleUserLeaf")
 
 	if jw == nil {
 		g.Log.CDebugf(ctx, "| empty leaf found; user wasn't in tree")
-		user = &MerkleUserLeaf{}
-		return
+		return nil, MerkleNotFoundError{"", ""}
 	}
 
 	l, err := jw.Len()
