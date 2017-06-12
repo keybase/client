@@ -90,12 +90,6 @@ const stylesIcon = {
   marginLeft: 0,
   marginRight: globalMargins.small,
 }
-const stylesButtonContainer = {
-  ...globalStyles.flexBoxRow,
-  flexGrow: 1,
-  justifyContent: 'flex-end',
-}
-
 const stylesWont = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
