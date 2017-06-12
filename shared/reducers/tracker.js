@@ -34,6 +34,7 @@ function initialTrackerState(username: string): Constants.TrackerState {
     tlfs: [],
     trackToken: null,
     trackerState: initialProofState,
+    trackersLoaded: false,
     trackers: [],
     tracking: [],
     type: 'tracker',
