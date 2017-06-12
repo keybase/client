@@ -19,9 +19,9 @@ protocol teams {
   record TeamApplicationKey {
     TeamApplication application;
     int keyGeneration;
-    Bytes32 key; 
+    Bytes32 key;
   }
-  
+
   @typedef("bytes")
   record MaskB64 {}
 
@@ -40,6 +40,13 @@ protocol teams {
   }
 
   record TeamMembers {
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+  }
+
+  record TeamMembersUsernames {
     array<string> owners;
     array<string> admins;
     array<string> writers;
@@ -47,15 +54,15 @@ protocol teams {
   }
 
   record TeamChangeReq {
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
-    array<string> none;
+    array<UID> owners;
+    array<UID> admins;
+    array<UID> writers;
+    array<UID> readers;
+    array<UID> none;
   }
 
   record UserVersion {
-    string username;
+    UID uid;
     Seqno eldestSeqno;
   }
 
@@ -104,7 +111,7 @@ protocol teams {
   }
 
   void teamCreate(int sessionID, string name);
-  TeamMembers teamGet(int sessionID, string name);
+  TeamMembersUsernames teamGet(int sessionID, string name);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

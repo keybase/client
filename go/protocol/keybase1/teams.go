@@ -128,14 +128,58 @@ func (o PerTeamKey) DeepCopy() PerTeamKey {
 }
 
 type TeamMembers struct {
+	Owners  []UserVersion `codec:"owners" json:"owners"`
+	Admins  []UserVersion `codec:"admins" json:"admins"`
+	Writers []UserVersion `codec:"writers" json:"writers"`
+	Readers []UserVersion `codec:"readers" json:"readers"`
+}
+
+func (o TeamMembers) DeepCopy() TeamMembers {
+	return TeamMembers{
+		Owners: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Owners),
+		Admins: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Admins),
+		Writers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Writers),
+		Readers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Readers),
+	}
+}
+
+type TeamMembersUsernames struct {
 	Owners  []string `codec:"owners" json:"owners"`
 	Admins  []string `codec:"admins" json:"admins"`
 	Writers []string `codec:"writers" json:"writers"`
 	Readers []string `codec:"readers" json:"readers"`
 }
 
-func (o TeamMembers) DeepCopy() TeamMembers {
-	return TeamMembers{
+func (o TeamMembersUsernames) DeepCopy() TeamMembersUsernames {
+	return TeamMembersUsernames{
 		Owners: (func(x []string) []string {
 			var ret []string
 			for _, v := range x {
@@ -172,51 +216,51 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 }
 
 type TeamChangeReq struct {
-	Owners  []string `codec:"owners" json:"owners"`
-	Admins  []string `codec:"admins" json:"admins"`
-	Writers []string `codec:"writers" json:"writers"`
-	Readers []string `codec:"readers" json:"readers"`
-	None    []string `codec:"none" json:"none"`
+	Owners  []UID `codec:"owners" json:"owners"`
+	Admins  []UID `codec:"admins" json:"admins"`
+	Writers []UID `codec:"writers" json:"writers"`
+	Readers []UID `codec:"readers" json:"readers"`
+	None    []UID `codec:"none" json:"none"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 	return TeamChangeReq{
-		Owners: (func(x []string) []string {
-			var ret []string
+		Owners: (func(x []UID) []UID {
+			var ret []UID
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Owners),
-		Admins: (func(x []string) []string {
-			var ret []string
+		Admins: (func(x []UID) []UID {
+			var ret []UID
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Admins),
-		Writers: (func(x []string) []string {
-			var ret []string
+		Writers: (func(x []UID) []UID {
+			var ret []UID
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Writers),
-		Readers: (func(x []string) []string {
-			var ret []string
+		Readers: (func(x []UID) []UID {
+			var ret []UID
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Readers),
-		None: (func(x []string) []string {
-			var ret []string
+		None: (func(x []UID) []UID {
+			var ret []UID
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
@@ -225,13 +269,13 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 }
 
 type UserVersion struct {
-	Username    string `codec:"username" json:"username"`
-	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldestSeqno"`
+	Uid         UID   `codec:"uid" json:"uid"`
+	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldestSeqno"`
 }
 
 func (o UserVersion) DeepCopy() UserVersion {
 	return UserVersion{
-		Username:    o.Username,
+		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 	}
 }
@@ -416,7 +460,7 @@ func (o TeamEditMemberArg) DeepCopy() TeamEditMemberArg {
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
-	TeamGet(context.Context, TeamGetArg) (TeamMembers, error)
+	TeamGet(context.Context, TeamGetArg) (TeamMembersUsernames, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
@@ -536,7 +580,7 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err e
 	return
 }
 
-func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamMembers, err error) {
+func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamMembersUsernames, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
 	return
 }

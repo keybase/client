@@ -15,7 +15,7 @@ type SCTeamID string
 // A (username, seqno) pair.
 // The username is adorned with "%n" at the end
 // where n is the seqno IF the seqno is not 1.
-type SCTeamMember string
+type SCTeamMember keybase1.UserVersion
 
 type SCTeamSection struct {
 	ID         SCTeamID       `json:"id"`
@@ -49,6 +49,19 @@ type SCPerTeamKey struct {
 	EncKID     keybase1.KID `json:"encryption_kid"`
 	SigKID     keybase1.KID `json:"signing_kid"`
 	ReverseSig string       `json:"reverse_sig"`
+}
+
+func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
+	uv, err := ParseUserVersion(keybase1.Unquote(b))
+	if err != nil {
+		return err
+	}
+	*s = SCTeamMember(uv)
+	return nil
+}
+
+func (sc *SCTeamMember) MarshalJSON() (b []byte, err error) {
+	return keybase1.Quote(keybase1.UserVersion(*sc).PercentForm()), nil
 }
 
 // Non-team-specific stuff below the line
