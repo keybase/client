@@ -3,6 +3,7 @@
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
+import os from 'os'
 
 const [, , command, ...rest] = process.argv
 
@@ -34,7 +35,8 @@ function pad(s, num) {
   return s
 }
 
-const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+const spaceArg = os.platform() === 'win32' ? ' --max_old_space_size=4096' : ''
+const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types' + spaceArg
 
 const commands = {
   'apply-new-fonts': {

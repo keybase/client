@@ -4,23 +4,28 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"time"
+
+	"runtime/debug"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
-	"runtime/debug"
 	"stathat.com/c/ramcache"
 )
 
 type ResolveResult struct {
 	uid                keybase1.UID
+	teamID             keybase1.TeamID
 	body               *jsonw.Wrapper
 	err                error
 	queriedKbUsername  string
 	queriedByUID       bool
 	resolvedKbUsername string
+	queriedByTeamID    bool
+	resolvedTeamName   string
 	cachedAt           time.Time
 	mutable            bool
 }
@@ -40,6 +45,23 @@ func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
 }
 
+func (res *ResolveResult) User() keybase1.User {
+	return keybase1.User{
+		Uid:      res.GetUID(),
+		Username: res.GetNormalizedUsername().String(),
+	}
+}
+
+func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
+	var u keybase1.UserOrTeamLite
+	if res.WasTeamIDAssertion() {
+		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName()
+	} else {
+		u.Id, u.Name = res.GetUID().AsUserOrTeam(), res.GetNormalizedUsername().String()
+	}
+	return u
+}
+
 func (res *ResolveResult) GetUsername() string {
 	return res.resolvedKbUsername
 }
@@ -48,6 +70,17 @@ func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
 }
 func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
+}
+
+func (res *ResolveResult) WasTeamIDAssertion() bool {
+	return res.queriedByTeamID
+}
+
+func (res *ResolveResult) GetTeamID() keybase1.TeamID {
+	return res.teamID
+}
+func (res *ResolveResult) GetTeamName() string {
+	return res.resolvedTeamName
 }
 
 func (res *ResolveResult) WasKBAssertion() bool {
@@ -210,6 +243,15 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
+	if au.IsTeamID() {
+		ateam, ok := au.(AssertionTeamID)
+		if !ok {
+			res.err = errors.New("au.IsTeamID() == true, but failed type cast")
+			return res
+		}
+		return r.resolveTeamIDViaServerLookup(ctx, ateam)
+	}
+
 	var key, val string
 	var ares *APIRes
 	var l int
@@ -276,6 +318,41 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 
 	return
+}
+
+type teamLookup struct {
+	ID     keybase1.TeamID        `json:"id"`
+	Name   keybase1.TeamNameParts `json:"name"`
+	Status AppStatus              `json:"status"`
+}
+
+func (t *teamLookup) GetAppStatus() *AppStatus {
+	return &t.Status
+}
+
+func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam AssertionTeamID) (res ResolveResult) {
+	res.queriedByTeamID = true
+	key, val, err := ateam.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	arg := NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = make(HTTPArgs)
+	arg.Args[key] = S{Val: val}
+	arg.Args["lookup_only"] = B{Val: true}
+
+	var lookup teamLookup
+	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+	res.resolvedTeamName = lookup.Name.String()
+
+	return res
 }
 
 type ResolveCacheStats struct {

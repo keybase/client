@@ -95,6 +95,7 @@ export const CommonMerkleTreeID = {
   master: 0,
   kbfsPublic: 1,
   kbfsPrivate: 2,
+  kbfsPrivateteam: 3,
 }
 
 export const ConfigForkType = {
@@ -1291,6 +1292,21 @@ export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommo
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getSessionChallenge', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function blockGetTeamQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>) {
+  engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request)
+}
+
+export function blockGetTeamQuotaInfoRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.getTeamQuotaInfo', request)
+}
+export function blockGetTeamQuotaInfoRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, callback, incomingCallMap) })
+}
+
+export function blockGetTeamQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetTeamQuotaInfoResult) => void} & {param: blockGetTeamQuotaInfoRpcParam}>): Promise<blockGetTeamQuotaInfoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getTeamQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function blockGetUserQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
   engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request)
 }
@@ -1304,6 +1320,21 @@ export function blockGetUserQuotaInfoRpcChannelMapOld (channelConfig: ChannelCon
 
 export function blockGetUserQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): Promise<blockGetUserQuotaInfoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.getUserQuotaInfo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function blockPutBlockAgainRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>) {
+  engineRpcOutgoing('keybase.1.block.putBlockAgain', request)
+}
+
+export function blockPutBlockAgainRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.block.putBlockAgain', request)
+}
+export function blockPutBlockAgainRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.block.putBlockAgain', request, callback, incomingCallMap) })
+}
+
+export function blockPutBlockAgainRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockAgainRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.block.putBlockAgain', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function blockPutBlockRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
@@ -2039,6 +2070,21 @@ export function identifyResolve2RpcChannelMapOld (channelConfig: ChannelConfig<*
 
 export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): Promise<identifyResolve2Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function identifyResolve3Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>) {
+  engineRpcOutgoing('keybase.1.identify.Resolve3', request)
+}
+
+export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
+}
+export function identifyResolve3RpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.identify.Resolve3', request, callback, incomingCallMap) })
+}
+
+export function identifyResolve3RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}>): Promise<identifyResolve3Result> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function identifyResolveRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
@@ -4512,6 +4558,8 @@ export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
 
+export type HashMeta = bytes
+
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
@@ -4740,13 +4788,14 @@ export type MerkleRootAndTime = {
 
 export type MerkleRootV2 = {
   seqno: Seqno,
-  hashMeta: bytes,
+  hashMeta: HashMeta,
 }
 
 export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
+  | 3 // KBFS_PRIVATETEAM_3
 
 export type MetadataResponse = {
   folderID: string,
@@ -5249,11 +5298,10 @@ export type SaltpackDecryptOptions = {
 
 export type SaltpackEncryptOptions = {
   recipients?: ?Array<string>,
-  hideSelf: boolean,
+  anonymousSender: boolean,
+  encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
-  hideRecipients: boolean,
-  signcrypt: boolean,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -5686,20 +5734,31 @@ export type TeamApplicationKey = {
 }
 
 export type TeamChangeReq = {
-  owners?: ?Array<string>,
-  admins?: ?Array<string>,
-  writers?: ?Array<string>,
-  readers?: ?Array<string>,
-  none?: ?Array<string>,
+  owners?: ?Array<UID>,
+  admins?: ?Array<UID>,
+  writers?: ?Array<UID>,
+  readers?: ?Array<UID>,
+  none?: ?Array<UID>,
 }
 
 export type TeamID = string
 
 export type TeamMembers = {
+  owners?: ?Array<UserVersion>,
+  admins?: ?Array<UserVersion>,
+  writers?: ?Array<UserVersion>,
+  readers?: ?Array<UserVersion>,
+}
+
+export type TeamMembersUsernames = {
   owners?: ?Array<string>,
   admins?: ?Array<string>,
   writers?: ?Array<string>,
   readers?: ?Array<string>,
+}
+
+export type TeamNameParts = {
+  parts?: ?Array<string>,
 }
 
 export type TeamRole =
@@ -5909,7 +5968,7 @@ export type UserSummary2Set = {
 }
 
 export type UserVersion = {
-  username: string,
+  uid: UID,
   eldestSeqno: Seqno,
 }
 
@@ -6025,6 +6084,17 @@ export type blockDelReferenceWithCountRpcParam = Exact<{
 export type blockGetBlockRpcParam = Exact<{
   bid: BlockIdCombo,
   folder: string
+}>
+
+export type blockGetTeamQuotaInfoRpcParam = Exact<{
+  tid: TeamID
+}>
+
+export type blockPutBlockAgainRpcParam = Exact<{
+  folder: string,
+  ref: BlockReference,
+  blockKey: string,
+  buf: bytes
 }>
 
 export type blockPutBlockRpcParam = Exact<{
@@ -6213,6 +6283,10 @@ export type identifyIdentifyRpcParam = Exact<{
 }>
 
 export type identifyResolve2RpcParam = Exact<{
+  assertion: string
+}>
+
+export type identifyResolve3RpcParam = Exact<{
   assertion: string
 }>
 
@@ -6976,6 +7050,7 @@ type blockBlockPingResult = BlockPingResponse
 type blockDelReferenceWithCountResult = DowngradeReferenceRes
 type blockGetBlockResult = GetBlockRes
 type blockGetSessionChallengeResult = ChallengeInfo
+type blockGetTeamQuotaInfoResult = bytes
 type blockGetUserQuotaInfoResult = bytes
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 type configGetBootstrapStatusResult = BootstrapStatus
@@ -7010,6 +7085,7 @@ type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
 type identifyResolve2Result = User
+type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
@@ -7069,7 +7145,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
-type teamsTeamGetResult = TeamMembers
+type teamsTeamGetResult = TeamMembersUsernames
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7146,7 +7222,9 @@ export type rpc =
   | blockDelReferenceWithCountRpc
   | blockGetBlockRpc
   | blockGetSessionChallengeRpc
+  | blockGetTeamQuotaInfoRpc
   | blockGetUserQuotaInfoRpc
+  | blockPutBlockAgainRpc
   | blockPutBlockRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
@@ -7196,6 +7274,7 @@ export type rpc =
   | identifyIdentifyLiteRpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
+  | identifyResolve3Rpc
   | identifyResolveRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc

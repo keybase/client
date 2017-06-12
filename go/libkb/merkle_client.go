@@ -63,6 +63,10 @@ func (h1 NodeHashShort) bytes() []byte {
 	return h1[:]
 }
 
+func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
+	return keybase1.HashMeta(h1.bytes())
+}
+
 func (h1 NodeHashLong) String() string {
 	return hex.EncodeToString(h1[:])
 }

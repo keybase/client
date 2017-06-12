@@ -206,7 +206,8 @@ protocol Common {
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,
-       KBFS_PRIVATE_2
+       KBFS_PRIVATE_2,
+       KBFS_PRIVATETEAM_3
   }
 
   /**

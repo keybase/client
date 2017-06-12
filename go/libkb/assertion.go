@@ -404,7 +404,7 @@ func (a AssertionUID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error
 }
 
 func (a AssertionTeamID) ToLookup() (key, value string, err error) {
-	return "tid", a.Value, nil
+	return "id", a.Value, nil
 }
 
 func (a AssertionTeamID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {

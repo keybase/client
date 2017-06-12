@@ -6,7 +6,7 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, take, put, select, cancel, fork, join} from 'redux-saga/effects'
+import {call, take, put, select, cancel, fork, join, spawn} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
@@ -43,7 +43,7 @@ function* onLoadAttachmentPreview({
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
   const {filename, messageID, conversationIDKey} = message
   if (filename && messageID) {
-    yield call(onLoadAttachment, Creators.loadAttachment(conversationIDKey, messageID, true))
+    yield put(Creators.loadAttachment(conversationIDKey, messageID, true))
   }
 }
 
@@ -140,6 +140,9 @@ const loadAttachmentSagaMap = (conversationIDKey, messageID, loadPreview) => ({
 function* onLoadAttachment({
   payload: {conversationIDKey, messageID, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
+  // Check if we should download the attachment. Only one instance of this saga
+  // should executes at any time, so that these checks don't interleave with
+  // updating initial progress on the download.
   const existingMessage = yield select(Shared.messageSelector, conversationIDKey, messageID)
   if (!existingMessage) {
     console.log('onLoadAttachment: message does not exist', conversationIDKey, messageID)
@@ -179,35 +182,39 @@ function* onLoadAttachment({
     return
   }
 
-  // set initial progress value
-  yield put(Creators.downloadProgress(conversationIDKey, messageID, loadPreview))
+  // Set initial progress value
+  yield put.resolve(Creators.downloadProgress(conversationIDKey, messageID, loadPreview))
 
-  const param = {
-    conversationID: Constants.keyToConversationID(conversationIDKey),
-    messageID,
-    filename: destPath,
-    preview: loadPreview,
-    identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
-  }
+  // Perform the download in a fork so that the next loadAttachment action can be handled.
+  yield spawn(function*() {
+    const param = {
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      messageID,
+      filename: destPath,
+      preview: loadPreview,
+      identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
+    }
 
-  const downloadFileRpc = new EngineRpc.EngineRpcCall(
-    loadAttachmentSagaMap(conversationIDKey, messageID, loadPreview),
-    ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
-    `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
-    {param}
-  )
+    const downloadFileRpc = new EngineRpc.EngineRpcCall(
+      loadAttachmentSagaMap(conversationIDKey, messageID, loadPreview),
+      ChatTypes.localDownloadFileAttachmentLocalRpcChannelMap,
+      `localDownloadFileAttachmentLocal-${conversationIDKey}-${messageID}`,
+      {param}
+    )
 
-  try {
-    const result = yield call(downloadFileRpc.run)
-    if (EngineRpc.isFinished(result)) {
-      yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
-    } else {
-      console.warn('downloadFileRpc bailed early')
+    try {
+      const result = yield call(downloadFileRpc.run)
+      if (EngineRpc.isFinished(result)) {
+        yield put(Creators.attachmentLoaded(conversationIDKey, messageID, destPath, loadPreview))
+      } else {
+        console.warn('downloadFileRpc bailed early')
+        yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
+      }
+    } catch (err) {
+      console.warn('attachment failed to load:', err)
       yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
     }
-  } catch (err) {
-    yield put(Creators.attachmentLoaded(conversationIDKey, messageID, null, loadPreview))
-  }
+  })
 }
 
 function* _appendAttachmentPlaceholder(

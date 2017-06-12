@@ -94,6 +94,40 @@
         {
           "type": {
             "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersUsernames",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
             "items": "string"
           },
           "name": "owners"
@@ -128,35 +162,35 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "readers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "none"
         }
@@ -167,8 +201,8 @@
       "name": "UserVersion",
       "fields": [
         {
-          "type": "string",
-          "name": "username"
+          "type": "UID",
+          "name": "uid"
         },
         {
           "type": "Seqno",
@@ -249,6 +283,19 @@
           "name": "seqno"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNameParts",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
+        }
+      ]
     }
   ],
   "messages": {
@@ -276,7 +323,7 @@
           "type": "string"
         }
       ],
-      "response": "TeamMembers"
+      "response": "TeamMembersUsernames"
     },
     "teamChangeMembership": {
       "request": [

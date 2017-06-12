@@ -384,7 +384,7 @@ def testGo(prefix) {
                     tests[prefix + testName] = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
-                            shell ".${slash}test.test -test.timeout 15m"
+                            shell ".${slash}test.test -test.timeout 30m"
                         }
                     }
                 } else {

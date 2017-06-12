@@ -3,10 +3,10 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {List} from 'immutable'
 import Header from '.'
-import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {onUserClick} from '../../../actions/profile'
+import {chatTab} from '../../../constants/tabs'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -23,6 +23,7 @@ const getUsers = createSelector(
 )
 
 const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
+  badgeNumber: state.notifications.get('navBadges').get(chatTab),
   muted: Constants.getMuted(state),
   sidePanelOpen,
   users: getUsers(state),
@@ -35,4 +36,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: Own
   onToggleSidePanel,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Header)
+export default connect(mapStateToProps, mapDispatchToProps)(Header)

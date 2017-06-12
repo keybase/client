@@ -121,6 +121,9 @@ export default connect(
         )
       )
     },
+    onSearch: () => {
+      dispatch(navigateAppend([{props: {}, selected: 'search'}]))
+    },
     onUnfollow: username => {
       dispatch(onUnfollow(username))
     },
@@ -175,6 +178,7 @@ export default connect(
       onClickFollowers: () => dispatchProps.onClickFollowers(username),
       onClickFollowing: () => dispatchProps.onClickFollowing(username),
       onFollow: () => dispatchProps.onFollow(username),
+      onSearch: () => dispatchProps.onSearch(),
       onUnfollow: () => dispatchProps.onUnfollow(username),
       refresh,
       username,

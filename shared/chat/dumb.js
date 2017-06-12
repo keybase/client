@@ -226,6 +226,10 @@ const header = {
       ...commonConvoProps,
       muted: true,
     },
+    Badged: {
+      ...commonConvoProps,
+      badgeNumber: 12,
+    },
   },
 }
 

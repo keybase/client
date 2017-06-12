@@ -15,6 +15,7 @@ func TestProcess(t *testing.T) {
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
 		ranCmd = strings.Join(cmd.Args, " ")
+		_ = ranCmd
 		return nil
 	}
 	h.FindKeybaseBinary = func() (string, error) {
