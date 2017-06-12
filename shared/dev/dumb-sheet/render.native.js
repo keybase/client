@@ -260,7 +260,16 @@ class DumbSheetRender extends Component<void, Props, any> {
           />
         </Box>
         <Box style={styleBox}>
-          <Text type="BodySmall">{key}: {mockKey}</Text>
+          <Text type="BodySmall">
+            {key}
+            :
+            {' '}
+            {mockKey}
+            {' '}
+            {!!mock.parentProps && !!mock.parentProps.style && Object.keys(mock.parentProps.style).length
+              ? ' (with parent props style) '
+              : ''}
+          </Text>
           <Box style={styleSmallScreen}>
             <Box {...mock.parentProps}>
               {this._makeStoreWrapper(component)}
