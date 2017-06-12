@@ -1273,9 +1273,9 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 // "foo" for seqno 1 or "foo%6"
 func (u UserVersion) PercentForm() string {
 	if u.EldestSeqno == 1 {
-		return u.Username
+		return string(u.Uid)
 	}
-	return fmt.Sprintf("%s%%%d", u.Username, u.EldestSeqno)
+	return fmt.Sprintf("%s%%%d", u.Uid, u.EldestSeqno)
 }
 
 func (k CryptKey) Material() Bytes32 {
@@ -1294,21 +1294,21 @@ func (k TeamApplicationKey) Generation() int {
 	return k.KeyGeneration
 }
 
-func (t TeamMembers) AllUsernames() []string {
-	m := make(map[string]bool)
+func (t TeamMembers) AllUIDs() []UID {
+	m := make(map[UID]bool)
 	for _, u := range t.Owners {
-		m[u] = true
+		m[u.Uid] = true
 	}
 	for _, u := range t.Admins {
-		m[u] = true
+		m[u.Uid] = true
 	}
 	for _, u := range t.Writers {
-		m[u] = true
+		m[u.Uid] = true
 	}
 	for _, u := range t.Readers {
-		m[u] = true
+		m[u.Uid] = true
 	}
-	var all []string
+	var all []UID
 	for u := range m {
 		all = append(all, u)
 	}

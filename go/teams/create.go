@@ -33,8 +33,8 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	if ownerLatest == nil {
 		return errors.New("can't create a new team without having provisioned a per-user key")
 	}
-	secretboxRecipients := map[string]keybase1.PerUserKey{
-		me.GetName(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
+		me.GetUID(): *ownerLatest,
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -186,11 +186,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 }
 
 func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
-	ownerName, err := libkb.MakeNameWithEldestSeqno(owner.GetName(), owner.GetCurrentEldestSeqno())
-	// An error happens here if the seqno isn't loaded for some reason.
-	if err != nil {
-		return SCTeamSection{}, err
-	}
+	ownerUserVersion := owner.ToUserVersion()
 
 	teamID := RootTeamIDFromName(teamName)
 
@@ -203,7 +199,7 @@ func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID k
 			EncKID:     perTeamEncryptionKID,
 		},
 		Members: &SCTeamMembers{
-			Owners:  &[]SCTeamMember{SCTeamMember(ownerName)},
+			Owners:  &[]SCTeamMember{SCTeamMember(ownerUserVersion)},
 			Admins:  &[]SCTeamMember{},
 			Writers: &[]SCTeamMember{},
 			Readers: &[]SCTeamMember{},
@@ -307,8 +303,8 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		err = errors.New("can't create a new team without having provisioned a per-user key")
 		return
 	}
-	secretboxRecipients := map[string]keybase1.PerUserKey{
-		me.GetName(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
+		me.GetUID(): *ownerLatest,
 	}
 	// These boxes will get posted along with the sig below.
 	m, err := NewTeamKeyManager(g)
@@ -386,11 +382,7 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 }
 
 func makeSubteamTeamSection(subteamName TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
-	ownerName, err := libkb.MakeNameWithEldestSeqno(owner.GetName(), owner.GetCurrentEldestSeqno())
-	// An error happens here if the seqno isn't loaded for some reason.
-	if err != nil {
-		return SCTeamSection{}, err
-	}
+	ownerUserVersion := owner.ToUserVersion()
 
 	teamSection := SCTeamSection{
 		Name: (*SCTeamName)(&subteamName),
@@ -408,7 +400,7 @@ func makeSubteamTeamSection(subteamName TeamName, subteamID keybase1.TeamID, par
 			// Only root teams can have owners. Make the current user an admin by default.
 			// TODO: Plumb through more control over the initial set of admins.
 			Owners:  &[]SCTeamMember{},
-			Admins:  &[]SCTeamMember{SCTeamMember(ownerName)},
+			Admins:  &[]SCTeamMember{SCTeamMember(ownerUserVersion)},
 			Writers: &[]SCTeamMember{},
 			Readers: &[]SCTeamMember{},
 		},

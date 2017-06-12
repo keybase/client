@@ -85,19 +85,11 @@ func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigCh
 	if err != nil {
 		return nil, err
 	}
-	player := NewTeamSigChainPlayer(f.G(), f, uv, false)
+	player := NewTeamSigChainPlayer(f.G(), uv, false)
 	if err := player.AddChainLinks(ctx, links); err != nil {
 		return nil, err
 	}
 	return player, nil
-}
-
-func (f *finder) UsernameForUID(ctx context.Context, uid keybase1.UID) (string, error) {
-	name, err := f.G().GetUPAKLoader().LookupUsername(ctx, uid)
-	if err != nil {
-		return "", err
-	}
-	return name.String(), nil
 }
 
 type rawTeam struct {

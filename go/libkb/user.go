@@ -113,6 +113,13 @@ func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	return u.sigChain().currentSubchainStart
 }
 
+func (u *User) ToUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{
+		Uid:         u.GetUID(),
+		EldestSeqno: u.GetCurrentEldestSeqno(),
+	}
+}
+
 func (u *User) IsNewerThan(v *User) (bool, error) {
 	var idvU, idvV int64
 	var err error
@@ -791,20 +798,6 @@ func (u User) PartialCopy() *User {
 		ret.keyFamily = u.keyFamily.ShallowCopy()
 	}
 	return ret
-}
-
-// TODO: This and keybase1.UserVersion should be reconciled
-type NameWithEldestSeqno string
-
-func MakeNameWithEldestSeqno(name string, seqno keybase1.Seqno) (NameWithEldestSeqno, error) {
-	if seqno < 1 {
-		return "", EldestSeqnoMissingError{}
-	} else if seqno == 1 {
-		// For users that have never reset, we use their name unmodified.
-		return NameWithEldestSeqno(name), nil
-	} else {
-		return NameWithEldestSeqno(fmt.Sprintf("%s%%%d", name, seqno)), nil
-	}
 }
 
 func ValidateNormalizedUsername(username string) (NormalizedUsername, error) {
