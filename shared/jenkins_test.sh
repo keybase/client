@@ -46,7 +46,7 @@ has_js_files() {
 js_tests() {
     echo 'js-tests'
     node --version
-    has_js_files
+    has_js_files ""
 
     echo 'yarn install'
     yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
