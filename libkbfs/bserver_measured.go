@@ -19,6 +19,7 @@ type BlockServerMeasured struct {
 	delegate                    BlockServer
 	getTimer                    metrics.Timer
 	putTimer                    metrics.Timer
+	putAgainTimer               metrics.Timer
 	addBlockReferenceTimer      metrics.Timer
 	removeBlockReferencesTimer  metrics.Timer
 	archiveBlockReferencesTimer metrics.Timer
@@ -71,7 +72,7 @@ func (b BlockServerMeasured) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock
 func (b BlockServerMeasured) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
-	b.putTimer.Time(func() {
+	b.putAgainTimer.Time(func() {
 		err = b.delegate.PutAgain(ctx, tlfID, id, context, buf, serverHalf)
 	})
 	return err

@@ -427,7 +427,7 @@ func (j *blockJournal) putData(
 		return false, err
 	}
 
-	putData, err = j.s.put(id, context, buf, serverHalf, next.String())
+	putData, err = j.s.put(true, id, context, buf, serverHalf, next.String())
 	if err != nil {
 		return false, err
 	}
