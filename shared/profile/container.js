@@ -167,6 +167,7 @@ export default connect(
       ...dispatchProps,
       bioEditFns,
       currentFriendshipsTab: stateProps.currentFriendshipsTab,
+      followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,
