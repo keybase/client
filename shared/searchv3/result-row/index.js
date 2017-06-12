@@ -100,8 +100,8 @@ const Line = () => (
             height: NativeStyleSheet.hairlineWidth,
           }
         : {
-            maxHeight: 10,
-            minHeight: 10,
+            maxHeight: 1,
+            minHeight: 1,
           }),
     }}
   />
