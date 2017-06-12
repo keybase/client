@@ -81,7 +81,7 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 
 // MakeTestConfigOrBustLoggedIn creates and returns a config suitable for
 // unit-testing with the given list of users. loggedInIndex specifies the
-// index (in the list) of the user being logged in
+// index (in the list) of the user being logged in.
 func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
 	users ...libkb.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)

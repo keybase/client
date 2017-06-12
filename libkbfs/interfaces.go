@@ -1399,7 +1399,7 @@ type BlockServer interface {
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 
 	// PutAgain re-stores a previously deleted block under the same ID
-	// with the same data
+	// with the same data.
 	PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context,
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 
