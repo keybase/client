@@ -235,6 +235,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return LoginRequiredError{s.Desc}
 	case SCNoSession:
 		return NoSessionError{}
+	case SCKeyCorrupted:
+		return KeyCorruptedError{s.Desc}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -242,7 +244,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		}
 		return KeyExistsError{fp}
 	case SCKeyNotFound:
-		return NoKeyError{}
+		return NoKeyError{s.Desc}
 	case SCKeyNoEldest:
 		return NoSigChainError{}
 	case SCStreamExists:
@@ -736,6 +738,17 @@ func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
 	s.Code = SCInputCanceled
 	s.Name = "CANCELED"
 	s.Desc = "Input canceled due to skip secret prompt"
+	return
+}
+
+//=============================================================================
+
+func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
+	s.Code = SCKeyCorrupted
+	s.Name = "KEY_CORRUPTED"
+	if c.Msg != "" {
+		s.Desc = c.Msg
+	}
 	return
 }
 

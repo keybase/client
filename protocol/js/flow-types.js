@@ -134,6 +134,7 @@ export const ConstantsStatusCode = {
   scbadinvitationcode: 707,
   scmissingresult: 801,
   sckeynotfound: 901,
+  sckeycorrupted: 905,
   sckeyinuse: 907,
   sckeybadgen: 913,
   sckeynosecret: 914,
@@ -5620,6 +5621,7 @@ export type StatusCode =
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
   | 901 // SCKeyNotFound_901
+  | 905 // SCKeyCorrupted_905
   | 907 // SCKeyInUse_907
   | 913 // SCKeyBadGen_913
   | 914 // SCKeyNoSecret_914

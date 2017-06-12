@@ -30,6 +30,7 @@ protocol constants {
     SCBadInvitationCode_707,
     SCMissingResult_801,
     SCKeyNotFound_901,
+    SCKeyCorrupted_905,
     SCKeyInUse_907,
     SCKeyBadGen_913,
     SCKeyNoSecret_914,
