@@ -32,7 +32,20 @@ import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
 import type {Props} from './index.render'
 
-class CodePageRender extends Component<void, Props, void> {
+type State = {
+  qrCodeScanned: boolean,
+}
+
+class CodePageRender extends Component<void, Props, State> {
+  state: State
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      qrCodeScanned: false,
+    }
+  }
+
   renderShowCode() {
     return (
       <Qr
@@ -44,13 +57,20 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
+  _onScan = code => {
+    this.setState({
+      qrCodeScanned: true,
+    })
+    this.props.qrScanned(code)
+  }
+
   renderScanCode() {
-    if (this.props.qrCodeScanned) {
+    if (this.state.qrCodeScanned) {
       // If we are provisioning from existing phone, after scanning we should continue on other device
       const continueOnOtherDevice = this.props.myDeviceRole === codePageDeviceRoleExistingPhone
       const scanMessage = continueOnOtherDevice
         ? 'You should follow the instructions on the other device to continue.'
-        : null
+        : 'Please wait...'
       return (
         <Box
           style={{
@@ -69,7 +89,7 @@ class CodePageRender extends Component<void, Props, void> {
     return (
       <Qr
         scanning={true}
-        onBarCodeRead={code => this.props.qrScanned(code)}
+        onBarCodeRead={code => this._onScan(code)}
         style={stylesQRScan}
         qrCode={this.props.qrCode}
       >
