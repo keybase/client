@@ -1,10 +1,11 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
 import React from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
+import {Box, Icon, ClickableBox, Text, NativeStyleSheet} from '../../common-adapters/index.native'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
+import {isMobile} from '../../constants/platform'
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
@@ -56,12 +57,13 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
             width: 12,
           }}
         />
-        <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
-          {rightUsername}
-        </Text>
+        {!!rightUsername &&
+          <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
+            {rightUsername}
+          </Text>}
       </Box>
       {!!rightFullname &&
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Box
             style={{
               maxWidth: 15,
@@ -91,9 +93,15 @@ const Line = () => (
       ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black_05,
       left: 54,
-      maxHeight: 1,
-      minHeight: 1,
       top: undefined,
+      ...(isMobile
+        ? {
+            height: NativeStyleSheet.hairlineWidth,
+          }
+        : {
+            maxHeight: 10,
+            minHeight: 10,
+          }),
     }}
   />
 )
@@ -135,6 +143,11 @@ const _rowStyle = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   position: 'relative',
+  ...(isMobile
+    ? {
+        minHeight: 56,
+      }
+    : {}),
 }
 
 export default SearchResultRow
