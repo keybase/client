@@ -265,7 +265,6 @@ class DumbSheetRender extends Component<void, Props, any> {
             :
             {' '}
             {mockKey}
-            {' '}
             {!!mock.parentProps && !!mock.parentProps.style && Object.keys(mock.parentProps.style).length
               ? ' (with parent props style) '
               : ''}
