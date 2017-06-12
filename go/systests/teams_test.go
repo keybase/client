@@ -1,12 +1,17 @@
 package systests
 
 import (
-	"context"
+	"strings"
 	"testing"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func TestTeamCreate(t *testing.T) {
@@ -27,12 +32,34 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 
+	time.Sleep(1 * time.Second)
+
 	team := tt.users[0].createTeam()
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
+
+	// get the before state of the team
+	before, err := teams.Get(context.TODO(), tt.users[0].tc.G, team)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if before.Generation() != 1 {
+		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
+	}
+
 	tt.users[1].revokePaperKey()
-	// tt.users[0].waitForCLKRMessage()
+	tt.users[0].waitForRotate(team)
 
 	// check that key was rotated for team
+	after, err := teams.Get(context.TODO(), tt.users[0].tc.G, team)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Generation() != 2 {
+		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
+	}
+	if after.Box.Ctext == before.Box.Ctext {
+		t.Errorf("team box ctext did not change with rotation")
+	}
 }
 
 type teamTester struct {
@@ -49,10 +76,10 @@ func (tt *teamTester) addUser(pre string) {
 	tctx.Tp.UpgradePerUserKey = true
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
-	u.device.start(1)
+	u.device.start(0)
 
 	userInfo := randomUser(pre)
-	tc := u.device.popClone()
+	tc := u.device.tctx
 	g := tc.G
 	signupUI := signupUI{
 		info:         userInfo,
@@ -70,11 +97,24 @@ func (tt *teamTester) addUser(pre string) {
 	u.uid = libkb.UsernameToUID(u.username)
 	u.tc = tc
 
-	cli, _, err := client.GetRPCClientWithContext(g)
+	cli, xp, err := client.GetRPCClientWithContext(g)
 	if err != nil {
 		tt.t.Fatal(err)
 	}
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
+
+	// register for notifications
+	u.notifications = newTeamNotifyHandler()
+	srv := rpc.NewServer(xp, nil)
+	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
+		tt.t.Fatal(err)
+	}
+	ncli := keybase1.NotifyCtlClient{Cli: cli}
+	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		Team: true,
+	}); err != nil {
+		tt.t.Fatal(err)
+	}
 
 	tt.users = append(tt.users, &u)
 }
@@ -86,11 +126,12 @@ func (tt *teamTester) cleanup() {
 }
 
 type userPlusDevice struct {
-	uid          keybase1.UID
-	username     string
-	device       *deviceWrapper
-	tc           *libkb.TestContext
-	deviceClient keybase1.DeviceClient
+	uid           keybase1.UID
+	username      string
+	device        *deviceWrapper
+	tc            *libkb.TestContext
+	deviceClient  keybase1.DeviceClient
+	notifications *teamNotifyHandler
 }
 
 func (u *userPlusDevice) createTeam() string {
@@ -99,11 +140,11 @@ func (u *userPlusDevice) createTeam() string {
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}
-	create.TeamName = name
+	create.TeamName = strings.ToLower(name)
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
-	return name
+	return create.TeamName
 }
 
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
@@ -143,4 +184,53 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	}
 	u.tc.T.Fatal("no paper key found")
 	return keybase1.DeviceID("")
+}
+
+func (u *userPlusDevice) waitForRotate(team string) {
+	// jump start the clkr queue processing loop
+	u.kickTeamRekeyd()
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("rotate received: %+v", arg)
+			if arg.TeamName == team {
+				u.tc.T.Logf("rotate matched: %q == %q", arg.TeamName, team)
+				return
+			}
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) kickTeamRekeyd() {
+	apiArg := libkb.APIArg{
+		Endpoint: "test/accelerate_team_rekeyd",
+		Args: libkb.HTTPArgs{
+			"timeout": libkb.I{Val: 2000},
+		},
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	_, err := u.tc.G.API.Post(apiArg)
+	if err != nil {
+		u.tc.T.Fatalf("Failed to accelerate team rekeyd: %s", err)
+	}
+}
+
+type teamNotifyHandler struct {
+	rotateCh chan keybase1.TeamKeyRotatedArg
+}
+
+func newTeamNotifyHandler() *teamNotifyHandler {
+	return &teamNotifyHandler{
+		rotateCh: make(chan keybase1.TeamKeyRotatedArg),
+	}
+}
+
+func (n *teamNotifyHandler) TeamKeyRotated(ctx context.Context, arg keybase1.TeamKeyRotatedArg) error {
+	n.rotateCh <- arg
+	return nil
 }

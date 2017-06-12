@@ -23,7 +23,8 @@ type Team struct {
 
 	keyManager *TeamKeyManager
 
-	me *libkb.User
+	me      *libkb.User
+	rotated bool
 }
 
 func NewTeam(g *libkb.GlobalContext, name string) *Team {
@@ -280,7 +281,14 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	return t.postChangeItem(section, secretBoxes, libkb.LinkTypeRotateKey)
+	if err := t.postChangeItem(section, secretBoxes, libkb.LinkTypeRotateKey); err != nil {
+		return err
+	}
+
+	// send notification that team key rotated
+	t.G().NotifyRouter.HandleTeamKeyRotated(ctx, t.Chain.GetID(), t.Name)
+
+	return nil
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
@@ -291,7 +299,16 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	}
 
 	// post the change to the server
-	return t.postChangeItem(section, secretBoxes, libkb.LinkTypeChangeMembership)
+	if err := t.postChangeItem(section, secretBoxes, libkb.LinkTypeChangeMembership); err != nil {
+		return err
+	}
+
+	if t.rotated {
+		// send notification that team key rotated
+		t.G().NotifyRouter.HandleTeamKeyRotated(ctx, t.Chain.GetID(), t.Name)
+	}
+
+	return nil
 }
 
 func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, error) {
@@ -471,6 +488,9 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
+
+	t.rotated = true
+
 	return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
 }
 
