@@ -15,6 +15,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
         alignItems: 'center',
         height: '100%',
         paddingLeft: globalMargins.tiny,
+        // TODO we might want to change this for the mobile version. Will play around with it more
         width: 215,
       }}
     >
