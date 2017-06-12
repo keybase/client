@@ -32,8 +32,6 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.addUser("onr")
 	tt.addUser("wtr")
 
-	time.Sleep(1 * time.Second)
-
 	team := tt.users[0].createTeam()
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
 
@@ -226,7 +224,7 @@ type teamNotifyHandler struct {
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		rotateCh: make(chan keybase1.TeamKeyRotatedArg),
+		rotateCh: make(chan keybase1.TeamKeyRotatedArg, 1),
 	}
 }
 
