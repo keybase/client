@@ -537,8 +537,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 				// This triple already exists.
 				h.Debug(ctx, "NewConversationLocal: conv exists: %v", cerr.ConvID)
 
-				if triple.TopicType != chat1.TopicType_CHAT {
-					// Not a chat conversation. Multiples are fine. Just retry with a
+				if triple.TopicType != chat1.TopicType_CHAT ||
+					arg.MembersType == chat1.ConversationMembersType_TEAM {
+					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
 					// different topic ID.
 					continue
 				}
