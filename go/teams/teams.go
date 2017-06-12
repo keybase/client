@@ -87,8 +87,8 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
-func (t *Team) IsMember(ctx context.Context, username string) bool {
-	role, err := t.MemberRole(ctx, username)
+func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
+	role, err := t.MemberRole(ctx, uid)
 	if err != nil {
 		t.G().Log.Debug("error getting user role: %s", err)
 		return false
@@ -99,52 +99,41 @@ func (t *Team) IsMember(ctx context.Context, username string) bool {
 	return true
 }
 
-func (t *Team) MemberRole(ctx context.Context, username string) (keybase1.TeamRole, error) {
-	uv, err := loadUserVersionByUsername(ctx, t.G(), username)
+func (t *Team) MemberRole(ctx context.Context, uid keybase1.UID) (keybase1.TeamRole, error) {
+	uv, err := loadUserVersionByUID(ctx, t.G(), uid)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
 	return t.Chain.GetUserRole(uv)
 }
 
-func (t *Team) UsernamesWithRole(role keybase1.TeamRole) ([]libkb.NormalizedUsername, error) {
-	uvs, err := t.Chain.GetUsersWithRole(role)
-	if err != nil {
-		return nil, err
-	}
-	names := make([]libkb.NormalizedUsername, len(uvs))
-	for i, uv := range uvs {
-		names[i] = libkb.NewNormalizedUsername(uv.Username)
-	}
-	return names, nil
+func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
+	return t.Chain.GetUsersWithRole(role)
 }
 
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 
-	x, err := t.UsernamesWithRole(keybase1.TeamRole_OWNER)
+	x, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Owners = libkb.NormalizedUsernamesToStrings(x)
-
-	x, err = t.UsernamesWithRole(keybase1.TeamRole_ADMIN)
+	members.Owners = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Admins = libkb.NormalizedUsernamesToStrings(x)
-
-	x, err = t.UsernamesWithRole(keybase1.TeamRole_WRITER)
+	members.Admins = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_WRITER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Writers = libkb.NormalizedUsernamesToStrings(x)
-
-	x, err = t.UsernamesWithRole(keybase1.TeamRole_READER)
+	members.Writers = x
+	x, err = t.UsersWithRole(keybase1.TeamRole_READER)
 	if err != nil {
 		return keybase1.TeamMembers{}, err
 	}
-	members.Readers = libkb.NormalizedUsernamesToStrings(x)
+	members.Readers = x
 
 	return members, nil
 }

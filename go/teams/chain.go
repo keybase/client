@@ -25,9 +25,9 @@ import (
 type TeamName string
 
 // Create a new user/version pair.
-func NewUserVersion(username string, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
+func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
 	return keybase1.UserVersion{
-		Username:    string(libkb.NewNormalizedUsername(username)),
+		Uid:         uid,
 		EldestSeqno: eldestSeqno,
 	}
 }
@@ -41,7 +41,7 @@ func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
 	if len(parts) != 2 {
 		return res, fmt.Errorf("invalid user version: %s", s)
 	}
-	username, err := libkb.ValidateNormalizedUsername(parts[0])
+	uid, err := libkb.UIDFromHex(parts[0])
 	if err != nil {
 		return res, err
 	}
@@ -50,7 +50,7 @@ func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
 		return res, fmt.Errorf("invalid eldest seqno: %s", err)
 	}
 	return keybase1.UserVersion{
-		Username:    string(username),
+		Uid:         uid,
 		EldestSeqno: keybase1.Seqno(eldestSeqno),
 	}, nil
 }
@@ -177,17 +177,10 @@ func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRol
 	})
 }
 
-// UsernameFinder is an interface for TeamSigChainPlayer that can be mocked out for tests.
-type UsernameFinder interface {
-	UsernameForUID(context.Context, keybase1.UID) (string, error)
-}
-
 // Threadsafe handle to a local model of a team sigchain.
 type TeamSigChainPlayer struct {
 	libkb.Contextified
 	sync.Mutex
-
-	helper UsernameFinder
 
 	// information about the reading user
 	reader keybase1.UserVersion
@@ -198,14 +191,12 @@ type TeamSigChainPlayer struct {
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(g *libkb.GlobalContext, helper UsernameFinder, reader keybase1.UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion, isSubTeam bool) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		Contextified: libkb.NewContextified(g),
-
-		helper:      helper,
-		reader:      reader,
-		isSubTeam:   isSubTeam,
-		storedState: nil,
+		reader:       reader,
+		isSubTeam:    isSubTeam,
+		storedState:  nil,
 	}
 }
 
@@ -351,16 +342,8 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 
 	// TODO support validating signatures even after account reset.
 	//      we need the specified eldest seqno from the server for this.
-	signerUID, err := keybase1.UIDFromString(string(link.UID))
-	if err != nil {
-		return res, fmt.Errorf("outer link signer uid: %s", err)
-	}
-	username, err := t.helper.UsernameForUID(ctx, signerUID)
-	if err != nil {
-		return res, err
-	}
 	// TODO for now just assume seqno=1. Need to do something else to support links made by since-reset users.
-	res.signingUser = NewUserVersion(username, 1)
+	res.signingUser = NewUserVersion(link.UID, 1)
 
 	// check that the outer link matches the server info
 	err = outerLink.AssertSomeFields(link.Version, link.Seqno)
@@ -781,13 +764,10 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 	seen := make(map[keybase1.UserVersion]bool)
 
 	for _, pair := range all {
-		uv, err := ParseUserVersion(string(pair.m))
-		if err != nil {
-			return nil, err
-		}
+		uv := keybase1.UserVersion(pair.m)
 
 		if seen[uv] {
-			return nil, fmt.Errorf("duplicate username in members: %s", uv.Username)
+			return nil, fmt.Errorf("duplicate UID in members: %s", uv.Uid)
 		}
 
 		res[pair.role] = append(res[pair.role], uv)

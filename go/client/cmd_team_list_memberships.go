@@ -62,7 +62,7 @@ func (c *CmdTeamListMemberships) Run() error {
 	return c.output(members)
 }
 
-func (c *CmdTeamListMemberships) output(members keybase1.TeamMembers) error {
+func (c *CmdTeamListMemberships) output(members keybase1.TeamMembersUsernames) error {
 	if c.json {
 		return c.outputJSON(members)
 	}
@@ -70,7 +70,7 @@ func (c *CmdTeamListMemberships) output(members keybase1.TeamMembers) error {
 	return c.outputTerminal(members)
 }
 
-func (c *CmdTeamListMemberships) outputJSON(members keybase1.TeamMembers) error {
+func (c *CmdTeamListMemberships) outputJSON(members keybase1.TeamMembersUsernames) error {
 	b, err := json.MarshalIndent(members, "", "    ")
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (c *CmdTeamListMemberships) outputJSON(members keybase1.TeamMembers) error 
 	return err
 }
 
-func (c *CmdTeamListMemberships) outputTerminal(members keybase1.TeamMembers) error {
+func (c *CmdTeamListMemberships) outputTerminal(members keybase1.TeamMembersUsernames) error {
 	c.outputRole("owner", members.Owners)
 	c.outputRole("admin", members.Admins)
 	c.outputRole("writer", members.Writers)

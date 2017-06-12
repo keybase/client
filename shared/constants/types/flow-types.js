@@ -5734,16 +5734,23 @@ export type TeamApplicationKey = {
 }
 
 export type TeamChangeReq = {
-  owners?: ?Array<string>,
-  admins?: ?Array<string>,
-  writers?: ?Array<string>,
-  readers?: ?Array<string>,
-  none?: ?Array<string>,
+  owners?: ?Array<UID>,
+  admins?: ?Array<UID>,
+  writers?: ?Array<UID>,
+  readers?: ?Array<UID>,
+  none?: ?Array<UID>,
 }
 
 export type TeamID = string
 
 export type TeamMembers = {
+  owners?: ?Array<UserVersion>,
+  admins?: ?Array<UserVersion>,
+  writers?: ?Array<UserVersion>,
+  readers?: ?Array<UserVersion>,
+}
+
+export type TeamMembersUsernames = {
   owners?: ?Array<string>,
   admins?: ?Array<string>,
   writers?: ?Array<string>,
@@ -5961,7 +5968,7 @@ export type UserSummary2Set = {
 }
 
 export type UserVersion = {
-  username: string,
+  uid: UID,
   eldestSeqno: Seqno,
 }
 
@@ -7138,7 +7145,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
-type teamsTeamGetResult = TeamMembers
+type teamsTeamGetResult = TeamMembersUsernames
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
