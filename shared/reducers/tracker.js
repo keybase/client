@@ -351,6 +351,7 @@ function updateUserState(
 
       return {
         ...state,
+        trackersLoaded: true,
         trackers: action.payload.trackers,
         tracking: action.payload.tracking,
       }
