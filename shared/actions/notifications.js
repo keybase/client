@@ -53,6 +53,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
     service: true,
     session: true,
     tracking: true,
+    team: false,
     users: true,
   }
 
