@@ -210,9 +210,9 @@ const renderError = (error: RPCError) => {
           <Text type="Body">{error.message}</Text>
           <Text type="Body">
             {' '}
-            We were able to generate a PGP signature but it was rejected by the server.
-            This often means that PGP key in your Keybase profile is expired or unusable.
-            You can update your key on
+            We were able to generate a PGP signature but it was rejected
+            by the server. This often means that this PGP key is expired
+            or unusable. You can update your key on
             {' '}
             <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/')}>
               keybase.io
