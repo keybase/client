@@ -414,6 +414,7 @@ const getPassphraseSaga = onBackSaga =>
   }
 
 function* handleProvisioningError(error) {
+  yield put(Creators.provisioningError(error))
   yield put(
     navigateAppend(
       [
