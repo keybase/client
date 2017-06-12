@@ -38,6 +38,8 @@ has_js_files() {
     git diff --name-only "$change_base...$commit_hash"
     # ignore test.sh for now
     cmd="git diff --name-only $change_base...$commit_hash | grep '^shared/' | grep -v '^shared/jenkins_test\.sh' $extra_commands"
+    echo 'filter cmd'
+    echo "$cmd"
     diff_files=`eval "$cmd"`
     check_rc $? 'no files js cares about' 0
     echo "continuing due to changes in $diff_files"
