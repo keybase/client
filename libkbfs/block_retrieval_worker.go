@@ -50,7 +50,7 @@ func newBlockRetrievalWorker(bg blockGetter,
 // blockGetter.getBlock, and responds to the subscribed requestors with the
 // results.
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
-	if isPrefetch {
+	if brw.isPrefetch {
 		brw.queue.PrefetchWork(brw.workCh)
 	} else {
 		brw.queue.Work(brw.workCh)

@@ -46,7 +46,7 @@ func newConfigForTest(mode InitMode,
 	config := NewConfigLocal(mode, loggerFn, "")
 
 	bops := NewBlockOpsStandard(config,
-		testBlockRetrievalWorkerQueueSize)
+		testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize)
 	config.SetBlockOps(bops)
 
 	config.SetBlockSplitter(&BlockSplitterSimple{

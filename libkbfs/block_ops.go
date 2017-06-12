@@ -34,13 +34,13 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config blockOpsConfig,
-	queueSize int) *BlockOpsStandard {
+	queueSize, prefetchQueueSize int) *BlockOpsStandard {
 	bg := &realBlockGetter{config: config}
 	qConfig := &realBlockRetrievalConfig{
 		blockRetrievalPartialConfig: config,
 		bg: bg,
 	}
-	q := newBlockRetrievalQueue(queueSize, qConfig)
+	q := newBlockRetrievalQueue(queueSize, prefetchQueueSize, qConfig)
 	bops := &BlockOpsStandard{
 		config: config,
 		log:    traceLogger{config.MakeLogger("")},

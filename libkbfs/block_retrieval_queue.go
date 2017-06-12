@@ -16,10 +16,15 @@ import (
 )
 
 const (
-	defaultBlockRetrievalWorkerQueueSize int = 100
-	minimalBlockRetrievalWorkerQueueSize int = 2
-	testBlockRetrievalWorkerQueueSize    int = 5
-	defaultOnDemandRequestPriority       int = 100
+	defaultBlockRetrievalWorkerQueueSize int  = 100
+	defaultPrefetchWorkerQueueSize       int  = 2
+	minimalBlockRetrievalWorkerQueueSize int  = 2
+	minimalPrefetchWorkerQueueSize       int  = 1
+	testBlockRetrievalWorkerQueueSize    int  = 5
+	testPrefetchWorkerQueueSize          int  = 1
+	defaultOnDemandRequestPriority       int  = 100
+	prefetchWorker                       bool = true
+	onDemandWorker                       bool = false
 )
 
 type blockRetrievalPartialConfig interface {
@@ -145,11 +150,11 @@ func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	q.prefetcher = newBlockPrefetcher(q, config)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers,
-			newBlockRetrievalWorker(config.blockGetter(), q))
+			newBlockRetrievalWorker(config.blockGetter(), q, onDemandWorker))
 	}
 	for i := 0; i < numPrefetchWorkers; i++ {
 		q.workers = append(q.workers,
-			newBlockRetrievalWorker(config.blockGetter(), q))
+			newBlockRetrievalWorker(config.blockGetter(), q, prefetchWorker))
 	}
 	return q
 }
@@ -164,7 +169,11 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 }
 
 // notifyWorker notifies workers that there is a new request for processing.
-func (brq *blockRetrievalQueue) notifyWorker() {
+func (brq *blockRetrievalQueue) notifyWorker(priority int) {
+	workerQueue := brq.workerQueue
+	if priority < defaultOnDemandRequestPriority {
+		workerQueue = brq.prefetchWorkerQueue
+	}
 	select {
 	case <-brq.doneCh:
 		retrieval := brq.popIfNotEmpty()
@@ -172,38 +181,11 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 			brq.FinalizeRequest(retrieval, nil, io.EOF)
 		}
 	// Get the next queued worker
-	case ch := <-brq.workerQueue:
-		// Workers can only work on on-demand requests.
-		retrieval := brq.popIfNotEmpty()
-		if retrieval.priority < defaultOnDemandRequestPriority {
-			// TODO: the request can still be preempted by an on-demand
-			// priority request. How to deal?
-			brq.notifyPrefetchWorker()
-			return
-		}
-		ch <- retrieval
-	// Get the next prefetch worker
-	case ch := <-brq.prefetchWorkerQueue:
-		// Prefetch workers can work on any kind of request.
-		retrieval := brq.popIfNotEmpty()
-		ch <- retrieval
-	}
-}
-
-// notifyPrefetchWorker notifies prefetch workers that there is a new request
-// for processing.
-func (brq *blockRetrievalQueue) notifyPrefetchWorker() {
-	select {
-	case <-brq.doneCh:
+	case ch := <-workerQueue:
 		retrieval := brq.popIfNotEmpty()
 		if retrieval != nil {
-			brq.FinalizeRequest(retrieval, nil, io.EOF)
+			ch <- retrieval
 		}
-	// Get the next prefetch worker
-	case ch := <-brq.prefetchWorkerQueue:
-		// Prefetch workers can work on any kind of request.
-		retrieval := brq.popIfNotEmpty()
-		ch <- retrieval
 	}
 }
 
@@ -357,7 +339,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 			brq.insertionCount++
 			brq.ptrs[bpLookup] = br
 			heap.Push(brq.heap, br)
-			go brq.notifyWorker()
+			go brq.notifyWorker(priority)
 		} else {
 			err := br.ctx.AddContext(ctx)
 			if err == context.Canceled {
@@ -379,9 +361,19 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		// If the new request priority is higher, elevate the retrieval in the
 		// queue.  Skip this if the request is no longer in the queue (which
 		// means it's actively being processed).
-		if br.index != -1 && priority > br.priority {
+		oldPriority := br.priority
+		if br.index != -1 && priority > oldPriority {
 			br.priority = priority
 			heap.Fix(brq.heap, br.index)
+			if oldPriority < defaultOnDemandRequestPriority &&
+				priority >= defaultOnDemandRequestPriority {
+				// We've crossed the priority threshold for prefetch workers,
+				// so we now need an on-demand worker to pick up the request.
+				// This means that we might have up to two worker goroutines
+				// per request. However, they won't leak because if a worker
+				// sees an empty queue, it ends its goroutine.
+				go brq.notifyWorker(priority)
+			}
 		}
 		return ch
 	}

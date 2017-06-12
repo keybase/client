@@ -62,7 +62,7 @@ func initPrefetcherTest(t *testing.T) (*blockRetrievalQueue,
 	// _actually_ completed.
 	bg := newFakeBlockGetter(false)
 	config := newTestBlockRetrievalConfig(t, bg, nil)
-	q := newBlockRetrievalQueue(1, config)
+	q := newBlockRetrievalQueue(1, 1, config)
 	require.NotNil(t, q)
 
 	return q, bg, config
