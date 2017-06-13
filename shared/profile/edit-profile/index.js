@@ -4,8 +4,9 @@ import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
-import type {TypedState} from '../../constants/reducer'
 import {navigateUp} from '../../actions/route-tree'
+
+import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
@@ -34,6 +35,6 @@ export default compose(
     bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
   })),
   withHandlers({
-    onSubmit: ({bio, fullname, location, onSubmit}) => () => onSubmit({bio, fullname, location}),
+    onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile({bio, fullname, location}),
   })
 )(Render)
