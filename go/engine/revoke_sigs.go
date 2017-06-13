@@ -70,6 +70,11 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		return err
 	}
 
+	lease, merkleRoot, err := libkb.RequestDowngradeLeaseBySigIDs(ctx.NetContext, e.G(), sigIDsToRevoke)
+	if err != nil {
+		return err
+	}
+
 	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
@@ -81,7 +86,7 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
-	proof, err := me.RevokeSigsProof(sigKey, sigIDsToRevoke)
+	proof, err := me.RevokeSigsProof(sigKey, sigIDsToRevoke, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -94,8 +99,9 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		Endpoint:    "sig/revoke",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"signing_kid": libkb.S{Val: kid.String()},
-			"sig":         libkb.S{Val: sig},
+			"signing_kid":        libkb.S{Val: kid.String()},
+			"sig":                libkb.S{Val: sig},
+			"downgrade_lease_id": libkb.S{Val: string(lease.LeaseID)},
 		},
 	})
 	if err != nil {

@@ -33,6 +33,13 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	return set, nil
 }
 
+func (m *memberSet) nonAdmins() []member {
+	var ret []member
+	ret = append(ret, m.Readers...)
+	ret = append(ret, m.Writers...)
+	return ret
+}
+
 func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) error {
 	var err error
 	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, false)

@@ -4729,6 +4729,8 @@ export type KeybaseTime = {
   chain: int,
 }
 
+export type LeaseID = string
+
 export type LinkCheckResult = {
   proofId: int,
   proofResult: ProofResult,
