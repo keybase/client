@@ -4832,6 +4832,7 @@ export type NotificationChannels = {
   kbfsrequest: boolean,
   badges: boolean,
   reachability: boolean,
+  team: boolean,
 }
 
 export type NotifyBadgesBadgeStateRpcParam = Exact<{
@@ -4886,6 +4887,11 @@ export type NotifySessionClientOutOfDateRpcParam = Exact<{
 
 export type NotifySessionLoggedInRpcParam = Exact<{
   username: string
+}>
+
+export type NotifyTeamTeamKeyRotatedRpcParam = Exact<{
+  teamID: TeamID,
+  teamName: string
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -5733,6 +5739,12 @@ export type TeamApplicationKey = {
   application: TeamApplication,
   keyGeneration: int,
   key: Bytes32,
+}
+
+export type TeamCLKRMsg = {
+  teamID: TeamID,
+  generation: int,
+  score: int,
 }
 
 export type TeamChangeReq = {
@@ -7736,6 +7748,13 @@ export type incomingCallMapType = Exact<{
       upgradeTo: string,
       upgradeURI: string,
       upgradeMsg: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTeam.teamKeyRotated'?: (
+    params: Exact<{
+      teamID: TeamID,
+      teamName: string
     }>,
     response: CommonResponseHandler
   ) => void,

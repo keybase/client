@@ -1128,6 +1128,7 @@ func (n *serverChatListener) PGPKeyInSecretStoreFile()                          
 func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)  {}
+func (n *serverChatListener) TeamKeyRotated(teamID keybase1.TeamID, teamName string)              {}
 func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
 func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {

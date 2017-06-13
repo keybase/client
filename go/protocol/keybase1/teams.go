@@ -386,6 +386,20 @@ func (o TeamNameParts) DeepCopy() TeamNameParts {
 	}
 }
 
+type TeamCLKRMsg struct {
+	TeamID     TeamID `codec:"teamID" json:"team_id"`
+	Generation int    `codec:"generation" json:"generation"`
+	Score      int    `codec:"score" json:"score"`
+}
+
+func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
+	return TeamCLKRMsg{
+		TeamID:     o.TeamID.DeepCopy(),
+		Generation: o.Generation,
+		Score:      o.Score,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`

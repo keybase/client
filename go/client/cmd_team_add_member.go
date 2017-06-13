@@ -15,9 +15,10 @@ import (
 
 type CmdTeamAddMember struct {
 	libkb.Contextified
-	team     string
-	username string
-	role     keybase1.TeamRole
+	Team                 string
+	Username             string
+	Role                 keybase1.TeamRole
+	SkipChatNotification bool
 }
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -26,7 +27,7 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
 		Usage:        "add a user to a team",
 		Action: func(c *cli.Context) {
-			cmd := &CmdTeamAddMember{Contextified: libkb.NewContextified(g)}
+			cmd := NewCmdTeamAddMemberRunner(g)
 			cl.ChooseCommand(cmd, "add-member", c)
 		},
 		Flags: []cli.Flag{
@@ -46,9 +47,13 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	}
 }
 
+func NewCmdTeamAddMemberRunner(g *libkb.GlobalContext) *CmdTeamAddMember {
+	return &CmdTeamAddMember{Contextified: libkb.NewContextified(g)}
+}
+
 func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 	var err error
-	c.team, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
@@ -57,7 +62,7 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 		return errors.New("add-member via email address not yet supported")
 	}
 
-	c.username, c.role, err = ParseUserAndRole(ctx)
+	c.Username, c.Role, err = ParseUserAndRole(ctx)
 	if err != nil {
 		return err
 	}
@@ -72,10 +77,10 @@ func (c *CmdTeamAddMember) Run() error {
 	}
 
 	arg := keybase1.TeamAddMemberArg{
-		Name:                 c.team,
-		Username:             c.username,
-		Role:                 c.role,
-		SendChatNotification: true,
+		Name:                 c.Team,
+		Username:             c.Username,
+		Role:                 c.Role,
+		SendChatNotification: !c.SkipChatNotification,
 	}
 
 	if err = cli.TeamAddMember(context.Background(), arg); err != nil {
@@ -83,7 +88,7 @@ func (c *CmdTeamAddMember) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Success! A keybase chat message has been sent to %s.\n", c.username)
+	dui.Printf("Success! A keybase chat message has been sent to %s.\n", c.Username)
 
 	return nil
 }

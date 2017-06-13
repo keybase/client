@@ -21,8 +21,12 @@ type memberSet struct {
 	recipients map[keybase1.UID]keybase1.PerUserKey
 }
 
-func newMemberSet(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
-	set := &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+func newMemberSet() *memberSet {
+	return &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+}
+
+func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
+	set := newMemberSet()
 	if err := set.loadMembers(ctx, g, req); err != nil {
 		return nil, err
 	}
@@ -31,34 +35,34 @@ func newMemberSet(ctx context.Context, g *libkb.GlobalContext, req keybase1.Team
 
 func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) error {
 	var err error
-	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true)
+	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, false)
 	if err != nil {
 		return err
 	}
-	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true)
+	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true, false)
 	if err != nil {
 		return err
 	}
-	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true)
+	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true, false)
 	if err != nil {
 		return err
 	}
-	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true)
+	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, false)
 	if err != nil {
 		return err
 	}
-	m.None, err = m.loadGroup(ctx, g, req.None, false)
+	m.None, err = m.loadGroup(ctx, g, req.None, false, false)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UID, storeRecipient bool) ([]member, error) {
+func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UID, storeRecipient, force bool) ([]member, error) {
 	members := make([]member, len(group))
 	var err error
 	for i, uid := range group {
-		members[i], err = m.loadMember(ctx, g, uid, storeRecipient)
+		members[i], err = m.loadMember(ctx, g, uid, storeRecipient, force)
 		if err != nil {
 			return nil, err
 		}
@@ -66,9 +70,12 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	return members, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, storeRecipient bool) (member, error) {
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, storeRecipient, force bool) (member, error) {
 	// load upak for uid
 	arg := libkb.NewLoadUserByUIDArg(ctx, g, uid)
+	if force {
+		arg.ForcePoll = true
+	}
 	upak, _, err := g.GetUPAKLoader().Load(arg)
 	if err != nil {
 		return member{}, err
@@ -123,7 +130,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		if _, ok := m.recipients[u]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, u, true); err != nil {
+		if _, err := m.loadMember(ctx, g, u, true, true); err != nil {
 			return err
 		}
 	}
@@ -144,9 +151,13 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 
 func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
-		ID:      (SCTeamID)(teamID),
-		Members: new(SCTeamMembers),
+		ID: (SCTeamID)(teamID),
 	}
+	if m.empty() {
+		return teamSection, nil
+	}
+
+	teamSection.Members = new(SCTeamMembers)
 	var err error
 	teamSection.Members.Owners, err = m.nameSeqList(m.Owners)
 	if err != nil {
@@ -174,4 +185,8 @@ func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 
 func (m *memberSet) HasRemoval() bool {
 	return len(m.None) > 0
+}
+
+func (m *memberSet) empty() bool {
+	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.None) == 0
 }
