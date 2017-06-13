@@ -15,7 +15,7 @@ const commands = {
       VISDIFF: 'true',
     },
     help: 'Render images of dumb components',
-    shell: 'yarn run _helper build-dev && electron ./desktop/dist/render-visdiff.bundle.js',
+    shell: 'VISDIFF=true yarn run _helper build-dev && electron ./desktop/dist/render-visdiff.bundle.js',
   },
 }
 
