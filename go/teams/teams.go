@@ -308,9 +308,7 @@ func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error
 		uids = append(uids, member.version.Uid)
 	}
 
-	toCheck := append([]member{}, ms.Writers...)
-	toCheck = append(toCheck, ms.Readers...)
-	for _, member := range toCheck {
+	for _, member := range ms.nonAdmins() {
 		admin, err := t.isAdminOrOwner(member.version)
 		if err != nil {
 			return nil, err
@@ -384,7 +382,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, mr *libkb.MerkleRoot) error {
+func (t *Team) postChangeItem(section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
 	// create the change item
 	sigMultiItem, err := t.sigChangeItem(section, linkType, merkleRoot)
 	if err != nil {
