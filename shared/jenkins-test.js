@@ -9,6 +9,8 @@ var againstMaster
 
 var defaultExecSyncOptions = {encoding: 'utf8'}
 
+console.log('aaaa', process.argv)
+
 if (!process.argv[4]) {
   againstMaster = true
 } else {
