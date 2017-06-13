@@ -121,7 +121,7 @@ func NewSubteamID() keybase1.TeamID {
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
-func ChangeMembershipSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+func ChangeMembershipSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
@@ -137,6 +137,7 @@ func ChangeMembershipSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
 		SeqType:    libkb.SeqTypeSemiprivate,
+		MerkleRoot: merkleRoot,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err

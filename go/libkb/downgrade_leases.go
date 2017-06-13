@@ -72,6 +72,23 @@ func RequestDowngradeLeaseBySigIDs(ctx context.Context, g *GlobalContext, sigIDs
 	return leaseWithMerkleRoot(ctx, g, res)
 }
 
+func RequestDowngradeLeaseByTeam(ctx context.Context, g *GlobalContext, teamID keybase1.TeamID, users []string) (lease *Lease, mr *MerkleRoot, err error) {
+	var res leaseReply
+	err = g.API.PostDecode(APIArg{
+		Endpoint:    "downgrade/team",
+		SessionType: APISessionTypeREQUIRED,
+		NetContext:  ctx,
+		Args: HTTPArgs{
+			"team_id":   S{string(teamID)},
+			"usernames": S{strings.Join(users, ",")},
+		},
+	}, &res)
+	if err != nil {
+		return nil, nil, err
+	}
+	return leaseWithMerkleRoot(ctx, g, res)
+}
+
 func leaseWithMerkleRoot(ctx context.Context, g *GlobalContext, res leaseReply) (lease *Lease, mr *MerkleRoot, err error) {
 	mr, err = g.MerkleClient.FetchRootFromServerBySeqno(ctx, res.Lease.MerkleSeqno)
 	if err != nil {
