@@ -1139,8 +1139,9 @@ func parseMerkleTeamLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContex
 	if err != nil {
 		return
 	}
-	if l != 4 {
-		err = fmt.Errorf("Expected an array of length 4 but got %v", l)
+	// length should be 4, but only use the first 3, and allow larger for forward compatibility.
+	if l < 3 {
+		err = fmt.Errorf("Expected an array of length >=3 but got %v", l)
 		return
 	}
 
