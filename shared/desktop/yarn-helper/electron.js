@@ -21,7 +21,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: 'electron ./desktop/dist/main.bundle.js',
+    shell: `electron ${path.resolve(__dirname, '../desktop/dist/main.bundle.js')}`,
   },
   'start-hot': {
     code: startHot,
@@ -36,10 +36,10 @@ const commands = {
 
 function startHot() {
   try {
-    fs.mkdirSync(path.join(__dirname, 'dist'))
+    fs.mkdirSync(path.join(__dirname, '../dist'))
   } catch (i) {}
 
-  const name = path.join(__dirname, 'dist', 'main.bundle.js')
+  const name = path.join(__dirname, '..', 'dist', 'main.bundle.js')
   const params = [name]
 
   // Find extensions

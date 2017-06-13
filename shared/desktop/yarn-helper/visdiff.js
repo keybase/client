@@ -1,10 +1,7 @@
 // @flow
-import path from 'path'
-
 const commands = {
   'local-visdiff': {
     env: {
-      KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
       VISDIFF_DRY_RUN: 1,
     },
     help: 'Perform a local visdiff',

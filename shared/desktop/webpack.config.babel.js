@@ -97,7 +97,7 @@ const makeCommonConfig = () => {
   const makeCommonPlugins = () => {
     const defines = {
       __DEV__: flags.isDev,
-      __HOT__: JSON.stringify(flags.isHot),
+      __HOT__: flags.isHot,
       __SCREENSHOT__: flags.isVisDiff,
       __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
@@ -119,7 +119,7 @@ const makeCommonConfig = () => {
 
   // If we use the hot server it pulls in this config
   const devServer = {
-    compress: true,
+    compress: false,
     contentBase: path.resolve(__dirname, 'dist'),
     hot: flags.isHot,
     lazy: false,
