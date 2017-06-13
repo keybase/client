@@ -43,6 +43,10 @@ class ConversationInput extends Component<void, Props, void> {
       if (response.didCancel) {
         return
       }
+      if (response.error) {
+        console.error(response.error)
+        throw new Error(response.error)
+      }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
       const conversationIDKey = this.props.selectedConversationIDKey
       if (!response.didCancel && conversationIDKey) {
