@@ -185,7 +185,7 @@ const makeRenderThreadConfig = () => {
     // Don't spit out errors while building
     const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
     // Put common code between the entries into a sep. file
-    const commonChunksPlugin = flags.isDev && !flags.isVisdiff
+    const commonChunksPlugin = flags.isDev && !flags.isVisDiff
       ? [
           new webpack.optimize.CommonsChunkPlugin({
             filename: 'common-chunks.js',
@@ -196,7 +196,7 @@ const makeRenderThreadConfig = () => {
       : []
 
     // Put our vendored stuff into its own thing
-    const dllPlugin = flags.isDev
+    const dllPlugin = flags.isDev && !flags.isVisDiff
       ? [
           new webpack.DllReferencePlugin({
             manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
@@ -243,7 +243,7 @@ const makeRenderThreadConfig = () => {
   }
 
   return merge(commonConfig, {
-    dependencies: flags.isDev ? ['vendor'] : undefined,
+    dependencies: flags.isDev && !flags.isVisDiff ? ['vendor'] : undefined,
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
     devtool: flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
