@@ -75,6 +75,9 @@ export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCo
 export const loginDone = 'login:loginDone'
 export type LoginDone = TypedAction<'login:relogin', {}, Error>
 
+export const provisioningError = 'login:provisioningError'
+export type ProvisioningError = NoErrorTypedAction<'login:provisioningError', {error: Error}>
+
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export type UpdateForgotPasswordEmail = NoErrorTypedAction<
   'login:actionUpdateForgotPasswordEmailAddress',
