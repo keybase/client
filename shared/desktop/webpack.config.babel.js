@@ -185,7 +185,7 @@ const makeRenderThreadConfig = () => {
     // Don't spit out errors while building
     const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
     // Put common code between the entries into a sep. file
-    const commonChunksPlugin = flags.isDev
+    const commonChunksPlugin = flags.isDev && !flags.isVisdiff
       ? [
           new webpack.optimize.CommonsChunkPlugin({
             filename: 'common-chunks.js',
