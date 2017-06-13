@@ -151,7 +151,7 @@ helpers.rootLinuxNode(env, {
                         // Install kbfsfuse first so we can start on dockerizing.
                         sh "go install github.com/keybase/kbfs/kbfsfuse"
                         sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                        withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
+                        withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
                             println "Building Docker"
                             sh '''
                                 set +x
