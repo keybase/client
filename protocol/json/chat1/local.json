@@ -557,6 +557,13 @@
             "SignatureInfo"
           ],
           "name": "headerSignature"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRoot"
+          ],
+          "name": "merkleRoot"
         }
       ]
     },
