@@ -372,7 +372,9 @@ func kbfsLibdokanMoveFile(
 	if cancel != nil {
 		defer cancel()
 	}
-	err := getfs(pfi).MoveFile(ctx, makeFI(oldFName, pfi), newPath, bool(replaceExisiting != 0))
+	// On error nil, not a dummy file like in getfi.
+	file := fiTableGetFile(uint32(pfi.Context))
+	err := getfs(pfi).MoveFile(ctx, file, makeFI(oldFName, pfi), newPath, bool(replaceExisiting != 0))
 	return errToNT(err)
 }
 

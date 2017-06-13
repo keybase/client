@@ -277,7 +277,7 @@ func (t emptyFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length i
 	debug("emptyFile.SetAllocationSize")
 	return nil
 }
-func (t emptyFS) MoveFile(ctx context.Context, source *FileInfo, targetPath string, replaceExisting bool) error {
+func (t emptyFS) MoveFile(ctx context.Context, src File, sourceFI *FileInfo, targetPath string, replaceExisting bool) error {
 	debug("emptyFS.MoveFile")
 	return nil
 }
