@@ -310,7 +310,7 @@ const makeDllConfig = () => {
 const commonConfig = makeCommonConfig()
 const mainThreadConfig = makeMainThreadConfig()
 const renderThreadConfig = makeRenderThreadConfig()
-const dllConfig = flags.isDev && makeDllConfig()
+const dllConfig = flags.isDev && !flags.isVisDiff && makeDllConfig()
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
 const config = flags.isBeforeHot
