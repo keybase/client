@@ -55,6 +55,11 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
 }
 
 
+export const CommonConversationMemberStatus = {
+  active: 0,
+  removed: 1,
+}
+
 export const CommonConversationMembersType = {
   kbfs: 0,
   team: 1,
@@ -1061,6 +1066,10 @@ export type ConversationLocal = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
+export type ConversationMemberStatus =
+    0 // ACTIVE_0
+  | 1 // REMOVED_1
+
 export type ConversationMembersType =
     0 // KBFS_0
   | 1 // TEAM_1
@@ -1847,6 +1856,12 @@ export type UnreadUpdateFull = {
   ignore: boolean,
   inboxVers: InboxVers,
   updates?: ?Array<UnreadUpdate>,
+}
+
+export type UpdateConversationMembership = {
+  inboxVers: InboxVers,
+  joined?: ?Array<ConversationID>,
+  removed?: ?Array<ConversationID>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
