@@ -2,8 +2,6 @@
 import * as Constants from '../../constants/config'
 import {Splash, Intro, Failure} from '.'
 import {connect} from 'react-redux'
-import {loginTab} from '../../constants/tabs'
-import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
 import * as Creators from '../../actions/login/creators'
 import {requestAutoInvite} from '../../actions/signup'
@@ -24,19 +22,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
     dispatch(navigateAppend(['feedback']))
   },
   onLogin: () => {
-    dispatch(Creators.setLoginFromRevokedDevice(''))
-    dispatch(Creators.setRevokedSelf(''))
-    dispatch(Creators.setDeletedSelf(''))
-    dispatch(navigateTo([loginTab, 'login']))
     dispatch(Creators.startLogin())
   },
   onRetry: () => {
     dispatch(retryBootstrap())
   },
   onSignup: () => {
-    dispatch(Creators.setLoginFromRevokedDevice(''))
-    dispatch(Creators.setRevokedSelf(''))
-    dispatch(Creators.setDeletedSelf(''))
     dispatch(requestAutoInvite())
   },
 })
