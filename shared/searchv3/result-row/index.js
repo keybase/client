@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
 import React from 'react'
-import {Box, Icon, ClickableBox, Text, NativeStyleSheet} from '../../common-adapters/index.native'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
+import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {isMobile} from '../../constants/platform'
@@ -95,14 +95,8 @@ const Line = () => (
       backgroundColor: globalColors.black_05,
       left: 54,
       top: undefined,
-      ...(isMobile
-        ? {
-            height: NativeStyleSheet.hairlineWidth,
-          }
-        : {
-            maxHeight: 1,
-            minHeight: 1,
-          }),
+      maxHeight: hairlineWidth,
+      minHeight: hairlineWidth,
     }}
   />
 )
