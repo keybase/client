@@ -71,8 +71,11 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 type conversationListView []chat1.ConversationLocal
 
-// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
-func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
+func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.ConversationLocal) string {
+	return fmt.Sprintf("%s [%s]", conv.Info.TlfName, conv.Info.TopicName)
+}
+
+func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
 		name = publicConvNamePrefix + strings.Join(conv.Info.WriterNames, ",")
@@ -92,6 +95,17 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	}
 
 	return name
+}
+
+// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return v.convNameTeam(g, conv)
+	case chat1.ConversationMembersType_KBFS:
+		return v.convNameKBFS(g, conv, myUsername)
+	}
+	return ""
 }
 
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.

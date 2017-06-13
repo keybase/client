@@ -374,6 +374,39 @@ func TestChatNewDevConversationLocalTwice(t *testing.T) {
 	})
 }
 
+func TestChatNewConversationMultiTeam(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "NewConversationLocalTeams", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		tc := ctc.as(t, users[0])
+		topicName := "MIKETIME"
+		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: chat1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.NoError(t, err)
+			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
+			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
+		case chat1.ConversationMembersType_KBFS:
+			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
+		}
+		if err != nil {
+			t.Fatalf("NewConversationLocal error: %v\n", err)
+		}
+	})
+}
+
 func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)

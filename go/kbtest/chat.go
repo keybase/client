@@ -483,6 +483,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
 		}
 		if arg.IdTriple.TopicType == chat1.TopicType_CHAT &&
+			arg.MembersType != chat1.ConversationMembersType_TEAM &&
 			conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
 			// Existing CHAT conv
