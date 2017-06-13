@@ -61,7 +61,6 @@ const containerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
   backgroundColor: globalColors.darkBlue4,
-  borderLeft: `1px solid ${globalColors.black_20}`,
   flex: 1,
   justifyContent: 'flex-start',
 }

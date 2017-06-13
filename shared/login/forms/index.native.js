@@ -170,7 +170,6 @@ const stylesBannerBlue = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  textAlign: 'center',
 }
 
 const stylesBannerGreen = {
