@@ -479,7 +479,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	// NOTE: The CLI already does this. It is hard to move that code completely into the service, since
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
-	// should hopefully just result in a bunch of cache hits on the second invokation.
+	// should hopefully just result in a bunch of cache hits on the second invocation.
 	findRes, err := h.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
 		TlfName:          arg.TlfName,
 		MembersType:      arg.MembersType,
