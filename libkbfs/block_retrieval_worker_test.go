@@ -44,7 +44,8 @@ func newFakeBlockGetter(respectCancel bool) *fakeBlockGetter {
 // setBlockToReturn sets the block that will be returned for a given
 // BlockPointer. Returns a writeable channel that getBlock will wait on, to
 // allow synchronization of tests.
-func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) (startCh <-chan struct{}, continueCh chan<- error) {
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer,
+	block Block) (startCh <-chan struct{}, continueCh chan<- error) {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
 	sCh, cCh := make(chan struct{}), make(chan error)
@@ -57,7 +58,8 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) 
 }
 
 // getBlock implements the interface for realBlockGetter.
-func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
+func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata,
+	blockPtr BlockPointer, block Block) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[blockPtr]
@@ -122,7 +124,8 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
-	ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block, NoCacheEntry)
+	ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
+		NoCacheEntry)
 	continueCh1 <- nil
 	err := <-ch
 	require.NoError(t, err)
@@ -143,8 +146,10 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 
 	t.Log("Make 2 requests for 2 different blocks")
 	block := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block, NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block, NoCacheEntry)
+	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
+		NoCacheEntry)
+	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block,
+		NoCacheEntry)
 
 	t.Log("Allow the second request to complete before the first")
 	continueCh2 <- nil
@@ -153,7 +158,8 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	require.Equal(t, block2, block)
 
 	t.Log("Make another request for ptr2")
-	req2Ch = q.Request(context.Background(), 1, makeKMD(), ptr2, block, NoCacheEntry)
+	req2Ch = q.Request(context.Background(), 1, makeKMD(), ptr2, block,
+		NoCacheEntry)
 	continueCh2 <- nil
 	err = <-req2Ch
 	require.NoError(t, err)
@@ -173,23 +179,31 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t), makeRandomBlockPointer(t)
-	block1, block2, block3 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
+	ptr1, ptr2, ptr3 := makeRandomBlockPointer(t), makeRandomBlockPointer(t),
+		makeRandomBlockPointer(t)
+	block1, block2, block3 := makeFakeFileBlock(t, false),
+		makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
 	startCh1, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 	_, continueCh3 := bg.setBlockToReturn(ptr3, block3)
 
-	t.Log("Make 3 retrievals for 3 different blocks. All retrievals after the first should be queued.")
+	t.Log("Make 3 retrievals for 3 different blocks. All retrievals after " +
+		"the first should be queued.")
 	block := &FileBlock{}
 	testBlock1 := &FileBlock{}
 	testBlock2 := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block, NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block, NoCacheEntry)
-	req3Ch := q.Request(context.Background(), 1, makeKMD(), ptr3, testBlock1, NoCacheEntry)
+	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, block,
+		NoCacheEntry)
+	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, block,
+		NoCacheEntry)
+	req3Ch := q.Request(context.Background(), 1, makeKMD(), ptr3, testBlock1,
+		NoCacheEntry)
 	// Ensure the worker picks up the first request
 	<-startCh1
-	t.Log("Make a high priority request for the third block, which should complete next.")
-	req4Ch := q.Request(context.Background(), 2, makeKMD(), ptr3, testBlock2, NoCacheEntry)
+	t.Log("Make a high priority request for the third block, which should " +
+		"complete next.")
+	req4Ch := q.Request(context.Background(), 2, makeKMD(), ptr3, testBlock2,
+		NoCacheEntry)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
 	continueCh1 <- nil
@@ -197,7 +211,8 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
 
-	t.Log("Allow the ptr3 retrieval to complete. Both waiting requests should complete.")
+	t.Log("Allow the ptr3 retrieval to complete. Both waiting requests " +
+		"should complete.")
 	continueCh3 <- nil
 	err1 := <-req3Ch
 	err2 := <-req4Ch
@@ -278,7 +293,8 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 }
 
 func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
-	t.Log("Test that we can retrieve the same block into different block types.")
+	t.Log("Test that we can retrieve the same block into different block " +
+		"types.")
 	codec := kbfscodec.NewMsgpack()
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
@@ -293,11 +309,14 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	err := kbfscodec.Update(codec, testCommonBlock, block1)
 	require.NoError(t, err)
 
-	t.Log("Make a retrieval for the same block twice, but with a different target block type.")
+	t.Log("Make a retrieval for the same block twice, but with a different " +
+		"target block type.")
 	testBlock1 := &FileBlock{}
 	testBlock2 := &CommonBlock{}
-	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock1, NoCacheEntry)
-	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock2, NoCacheEntry)
+	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock1,
+		NoCacheEntry)
+	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock2,
+		NoCacheEntry)
 
 	t.Log("Allow the first ptr1 retrieval to complete.")
 	continueCh1 <- nil
@@ -310,4 +329,8 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock2, testCommonBlock)
+}
+
+func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
+	t.Log("TODO")
 }
