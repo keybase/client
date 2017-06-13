@@ -13,7 +13,6 @@ const initialState: Constants.State = {
     myDeviceRole: null,
     otherDeviceRole: null,
     qrCode: null,
-    qrCodeScanned: false,
     qrScanned: null,
     textCode: null,
   },
@@ -66,7 +65,7 @@ export default function(state: Constants.State = initialState, action: any): Con
       toMerge = {codePage: {qrCode: action.payload.qrCode}}
       break
     case Constants.qrScanned:
-      toMerge = {codePage: {qrCodeScanned: true, qrScanned: action.payload}}
+      toMerge = {codePage: {qrScanned: action.payload}}
       break
     case Constants.actionUpdateForgotPasswordEmailAddress:
       toMerge = {
@@ -108,9 +107,6 @@ export default function(state: Constants.State = initialState, action: any): Con
       } else {
         return state
       }
-      break
-    case Constants.provisioningError:
-      toMerge = {codePage: {qrCodeScanned: false}}
       break
     case Constants.setRevokedSelf:
       toMerge = {justRevokedSelf: action.payload}
