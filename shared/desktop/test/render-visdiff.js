@@ -43,7 +43,9 @@ app.on('ready', () => {
     console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
-        app.quit()
+        if (!DEBUG_WINDOWS) {
+          app.quit()
+        }
       }
       return
     }
@@ -89,6 +91,9 @@ app.on('ready', () => {
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
+      if (DEBUG_WINDOWS) {
+        workerWin.webContents.openDevTools()
+      }
       workerWin.webContents.on('did-finish-load', () => {
         if (DEBUG_WINDOWS) {
           workerWin.webContents.openDevTools('right')

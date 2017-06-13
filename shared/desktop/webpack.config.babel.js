@@ -23,6 +23,7 @@ const flags = {
   isShowingDashboard: !getenv.boolish('NO_SERVER', !isDev),
   isVisDiff: getenv.boolish('VISDIFF', false),
 }
+
 console.log('Flags: ', flags)
 
 // The common config all other derive from
@@ -245,7 +246,7 @@ const makeRenderThreadConfig = () => {
   return merge(commonConfig, {
     dependencies: flags.isDev && !flags.isVisDiff ? ['vendor'] : undefined,
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
-    devtool: flags.isDev ? 'eval' : 'source-map',
+    devtool: flags.isVisDiff ? undefined : flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
     name: 'renderThread',
     plugins: makeRenderPlugins(),
