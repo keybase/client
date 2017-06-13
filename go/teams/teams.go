@@ -302,23 +302,25 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 	return res, nil
 }
 
-func (t *Team) getDowngradedUsers(ms *memberSet) (users []string, err error) {
+func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error) {
 
 	for _, member := range ms.None {
-		users = append(users, member.version.Username)
+		uids = append(uids, member.version.Uid)
 	}
 
-	for _, member := range ms.Writers {
+	toCheck := append([]member{}, ms.Writers...)
+	toCheck = append(toCheck, ms.Readers...)
+	for _, member := range toCheck {
 		admin, err := t.isAdminOrOwner(member.version)
 		if err != nil {
 			return nil, err
 		}
 		if admin {
-			users = append(users, member.version.Username)
+			uids = append(uids, member.version.Uid)
 		}
 	}
 
-	return users, nil
+	return uids, nil
 }
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
