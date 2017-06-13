@@ -96,7 +96,7 @@
           "name": "uid"
         },
         {
-          "type": "string",
+          "type": "TeamRole",
           "name": "role"
         },
         {

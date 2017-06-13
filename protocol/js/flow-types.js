@@ -5747,7 +5747,7 @@ export type TeamID = string
 
 export type TeamMember = {
   uid: UID,
-  role: string,
+  role: TeamRole,
   eldestSeqno: Seqno,
 }
 

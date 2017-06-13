@@ -41,7 +41,7 @@ protocol teams {
 
   record TeamMember {
     UID uid;
-    string role;
+    TeamRole role;
     Seqno eldestSeqno;
   }
 

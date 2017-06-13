@@ -128,15 +128,15 @@ func (o PerTeamKey) DeepCopy() PerTeamKey {
 }
 
 type TeamMember struct {
-	Uid         UID    `codec:"uid" json:"uid"`
-	Role        string `codec:"role" json:"role"`
-	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldestSeqno"`
+	Uid         UID      `codec:"uid" json:"uid"`
+	Role        TeamRole `codec:"role" json:"role"`
+	EldestSeqno Seqno    `codec:"eldestSeqno" json:"eldestSeqno"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
 	return TeamMember{
 		Uid:         o.Uid.DeepCopy(),
-		Role:        o.Role,
+		Role:        o.Role.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 	}
 }
