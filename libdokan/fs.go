@@ -428,6 +428,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	switch src.(type) {
 	case *FolderList, *File, *Dir, *TLF, *EmptyFolder:
 	default:
+		f.log.Errorf("Refusing MoveFile access: wrong type source argument")
 		return dokan.ErrAccessDenied
 	}
 
