@@ -156,4 +156,15 @@ function backgroundURL(...to: Array<string>): string {
   return ''
 }
 
-export {backgroundURL, transitionColor, transition, globalStyles, globalMargins, windowStyle, globalColors}
+const hairlineWidth = 1
+
+export {
+  backgroundURL,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  hairlineWidth,
+  transition,
+  transitionColor,
+  windowStyle,
+}
