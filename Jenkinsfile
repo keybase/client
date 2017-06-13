@@ -136,7 +136,7 @@ helpers.rootLinuxNode(env, {
                                     ]) {
                                         dir("shared") {
                                             stage("JS Tests") {
-                                                sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                sh "node ./jenkins-test.js js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                             }
                                         }
                                         // Only run visdiff for PRs
@@ -156,13 +156,13 @@ helpers.rootLinuxNode(env, {
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
                                                 dir("shared") {
-                                                    sh "./jenkins_test.sh visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                    sh "node ./jenkins-test.js visdiff-install ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                 }
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("shared") {
                                                             stage("js visdiff") {
-                                                                sh "./jenkins_test.sh visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
+                                                                sh "node ./jenkins-test.js visdiff ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                                                             }
                                                         }
                                                     }
