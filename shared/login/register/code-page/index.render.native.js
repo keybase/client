@@ -166,7 +166,7 @@ class CodePageRender extends Component<void, Props, State> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
           <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         {this.renderScanCode()}
         {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
@@ -193,7 +193,7 @@ class CodePageRender extends Component<void, Props, State> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         <TabBar style={{flex: 1}} underlined={true}>
           <TabBarItem
@@ -253,7 +253,7 @@ class CodePageRender extends Component<void, Props, State> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Type text code</Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         <TabBar underlined={true} style={{flex: 1}}>
           <TabBarItem
