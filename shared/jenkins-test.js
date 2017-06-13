@@ -3,7 +3,7 @@ var childProcess = require('child_process')
 
 var testType = process.argv[2]
 var commitHash = process.argv[3]
-var changeTarget = process.argv + 'origin/' + process.argv[4]
+var changeTarget = 'origin/' + process.argv[4]
 var changeBase
 var againstMaster
 
