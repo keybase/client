@@ -385,6 +385,11 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 	return nil, nil
 }
 
+func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	joined []chat1.ConversationID, removed []chat1.ConversationID) error {
+	return nil
+}
+
 type HybridInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -648,6 +653,34 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 	s.notifyTlfFinalize(ctx, finalizeInfo.ResetUser)
 
 	return convs, nil
+}
+
+func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	joinedConvIDs []chat1.ConversationID, removedConvIDs []chat1.ConversationID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
+
+	// Load the joined conversations
+	var joinedConvs []chat1.Conversation
+	if len(joinedConvIDs) > 0 {
+		var ibox chat1.Inbox
+		ibox, _, err = s.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
+			ConvIDs: joinedConvIDs,
+		}, nil)
+		if err != nil {
+			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
+			return
+		}
+		for _, c := range ibox.ConvsUnverified {
+			joinedConvs = append(joinedConvs, c)
+		}
+	}
+
+	if cerr := storage.NewInbox(s.G(), uid).MembershipUpdate(ctx, vers, joinedConvs, removedConvIDs); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return err
+	}
+
+	return nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,

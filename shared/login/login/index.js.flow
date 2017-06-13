@@ -16,6 +16,8 @@ export type Props = {
   passphraseChange: (passphrase: string) => void,
   showTypingChange: (typingChange: boolean) => void,
   onSubmit: () => void,
+  onFeedback: () => void,
+  onLogin: (user: string, passphrase: string) => void,
 }
 
 export default class LoginRender extends Component<void, Props, void> {}

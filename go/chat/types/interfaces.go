@@ -80,6 +80,8 @@ type InboxSource interface {
 		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
+	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		joinedConvs []chat1.ConversationID, removedConvs []chat1.ConversationID) error
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
@@ -133,6 +135,7 @@ type PushHandler interface {
 	TlfResolve(context.Context, gregor.OutOfBandMessage) error
 	Activity(context.Context, gregor.OutOfBandMessage) error
 	Typing(context.Context, gregor.OutOfBandMessage) error
+	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
 }
 
 type AppState interface {

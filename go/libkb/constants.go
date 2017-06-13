@@ -182,6 +182,7 @@ const (
 	SCBadInvitationCode      = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
+	SCKeyCorrupted           = int(keybase1.StatusCode_SCKeyCorrupted)
 	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
 	SCKeyBadGen              = int(keybase1.StatusCode_SCKeyBadGen)
 	SCKeyNoSecret            = int(keybase1.StatusCode_SCKeyNoSecret)
@@ -271,6 +272,7 @@ const (
 	LinkTypeNewSubteam       LinkType = "team.new_subteam"
 	LinkTypeSubteamHead      LinkType = "team.subteam_head"
 	LinkTypeChangeMembership LinkType = "team.change_membership"
+	LinkTypeRotateKey        LinkType = "team.rotate_key"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

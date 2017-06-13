@@ -44,7 +44,7 @@ protocol gregor {
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
     }
-
+    
     record UnreadUpdate {
         ConversationID convID;
         // The count of unread messages to display
@@ -69,5 +69,11 @@ protocol gregor {
         gregor1.DeviceID deviceID;
         ConversationID convID;
         boolean typing; 
+    }
+   
+    record UpdateConversationMembership {
+        InboxVers inboxVers;
+        array<ConversationID> joined;
+        array<ConversationID> removed;
     }
 }

@@ -109,6 +109,9 @@ export default function(state: Constants.State = initialState, action: any): Con
         return state
       }
       break
+    case Constants.provisioningError:
+      toMerge = {codePage: {qrCodeScanned: false}}
+      break
     case Constants.setRevokedSelf:
       toMerge = {justRevokedSelf: action.payload}
       break

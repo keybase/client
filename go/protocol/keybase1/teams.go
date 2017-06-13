@@ -127,6 +127,20 @@ func (o PerTeamKey) DeepCopy() PerTeamKey {
 	}
 }
 
+type TeamMember struct {
+	Uid         UID      `codec:"uid" json:"uid"`
+	Role        TeamRole `codec:"role" json:"role"`
+	EldestSeqno Seqno    `codec:"eldestSeqno" json:"eldestSeqno"`
+}
+
+func (o TeamMember) DeepCopy() TeamMember {
+	return TeamMember{
+		Uid:         o.Uid.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
 type TeamMembers struct {
 	Owners  []UserVersion `codec:"owners" json:"owners"`
 	Admins  []UserVersion `codec:"admins" json:"admins"`
@@ -280,6 +294,47 @@ func (o UserVersion) DeepCopy() UserVersion {
 	}
 }
 
+type TeamPlusApplicationKeys struct {
+	Id              TeamID               `codec:"id" json:"id"`
+	Name            string               `codec:"name" json:"name"`
+	Application     TeamApplication      `codec:"application" json:"application"`
+	Writers         []UserVersion        `codec:"writers" json:"writers"`
+	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
+	ApplicationKeys []TeamApplicationKey `codec:"applicationKeys" json:"applicationKeys"`
+}
+
+func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
+	return TeamPlusApplicationKeys{
+		Id:          o.Id.DeepCopy(),
+		Name:        o.Name,
+		Application: o.Application.DeepCopy(),
+		Writers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Writers),
+		OnlyReaders: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.OnlyReaders),
+		ApplicationKeys: (func(x []TeamApplicationKey) []TeamApplicationKey {
+			var ret []TeamApplicationKey
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ApplicationKeys),
+	}
+}
+
 type TeamSigChainState struct {
 	Reader       UserVersion                    `codec:"reader" json:"reader"`
 	Id           TeamID                         `codec:"id" json:"id"`
@@ -372,6 +427,20 @@ func (o TeamNameParts) DeepCopy() TeamNameParts {
 	}
 }
 
+type TeamCLKRMsg struct {
+	TeamID     TeamID `codec:"teamID" json:"team_id"`
+	Generation int    `codec:"generation" json:"generation"`
+	Score      int    `codec:"score" json:"score"`
+}
+
+func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
+	return TeamCLKRMsg{
+		TeamID:     o.TeamID.DeepCopy(),
+		Generation: o.Generation,
+		Score:      o.Score,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -458,6 +527,20 @@ func (o TeamEditMemberArg) DeepCopy() TeamEditMemberArg {
 	}
 }
 
+type LoadTeamPlusApplicationKeysArg struct {
+	SessionID   int             `codec:"sessionID" json:"sessionID"`
+	Id          TeamID          `codec:"id" json:"id"`
+	Application TeamApplication `codec:"application" json:"application"`
+}
+
+func (o LoadTeamPlusApplicationKeysArg) DeepCopy() LoadTeamPlusApplicationKeysArg {
+	return LoadTeamPlusApplicationKeysArg{
+		SessionID:   o.SessionID,
+		Id:          o.Id.DeepCopy(),
+		Application: o.Application.DeepCopy(),
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamMembersUsernames, error)
@@ -465,6 +548,7 @@ type TeamsInterface interface {
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -567,6 +651,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadTeamPlusApplicationKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadTeamPlusApplicationKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadTeamPlusApplicationKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadTeamPlusApplicationKeys(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -602,5 +702,10 @@ func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMembe
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res)
 	return
 }

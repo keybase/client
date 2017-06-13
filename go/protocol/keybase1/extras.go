@@ -129,6 +129,15 @@ func (h *HashMeta) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (l *LeaseID) UnmarshalJSON(b []byte) error {
+	decoded, err := hex.DecodeString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*l = LeaseID(hex.EncodeToString(decoded))
+	return nil
+}
+
 func (h *HashMeta) MarshalJSON() ([]byte, error) {
 	return Quote(h.String()), nil
 }

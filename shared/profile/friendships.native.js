@@ -9,6 +9,7 @@ import {
   TabBar,
   NativeListView,
   NativeDimensions,
+  ProgressIndicator,
 } from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -111,6 +112,14 @@ class FriendshipsRender extends Component<void, Props, State> {
   }
 
   render() {
+    if (!this.props.followersLoaded) {
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingBottom: 20, paddingTop: 2}}>
+          <ProgressIndicator />
+        </Box>
+      )
+    }
+
     const {height, width} = NativeDimensions.get('window')
     const {isYou} = this.props
     const textWhenEmptyYou = {

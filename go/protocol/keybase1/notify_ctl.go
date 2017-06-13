@@ -23,6 +23,7 @@ type NotificationChannels struct {
 	Kbfsrequest  bool `codec:"kbfsrequest" json:"kbfsrequest"`
 	Badges       bool `codec:"badges" json:"badges"`
 	Reachability bool `codec:"reachability" json:"reachability"`
+	Team         bool `codec:"team" json:"team"`
 }
 
 func (o NotificationChannels) DeepCopy() NotificationChannels {
@@ -41,6 +42,7 @@ func (o NotificationChannels) DeepCopy() NotificationChannels {
 		Kbfsrequest:  o.Kbfsrequest,
 		Badges:       o.Badges,
 		Reachability: o.Reachability,
+		Team:         o.Team,
 	}
 }
 

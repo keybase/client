@@ -25,6 +25,7 @@ type LoadUserArg struct {
 	StaleOK                  bool // if stale cached versions are OK (for immutable fields)
 	CachedOnly               bool // only return cached data (StaleOK should be true as well)
 	AllKeys                  bool
+	AllSubchains             bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool
 	ResolveBody              *jsonw.Wrapper // some load paths plumb this through
@@ -40,9 +41,9 @@ type LoadUserArg struct {
 }
 
 func (arg LoadUserArg) String() string {
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AllSubchains:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
 		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
-		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
+		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AllSubchains, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
@@ -269,7 +270,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(ctx, arg.AllKeys, &ret.leaf, arg.Self); err != nil {
+	if err = ret.LoadSigChains(ctx, arg.AllKeys, arg.AllSubchains, &ret.leaf, arg.Self); err != nil {
 		return ret, err
 	}
 
