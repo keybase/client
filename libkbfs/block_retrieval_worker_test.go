@@ -81,7 +81,8 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata,
 			if err != nil {
 				return err
 			}
-			return kbfscodec.Update(bg.codec, block, source.block)
+			block.Set(source.block)
+			return nil
 		case <-cancelCh:
 			return ctx.Err()
 		}
@@ -295,7 +296,6 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	t.Log("Test that we can retrieve the same block into different block " +
 		"types.")
-	codec := kbfscodec.NewMsgpack()
 	bg := newFakeBlockGetter(false)
 	q := newBlockRetrievalQueue(0, 1, newTestBlockRetrievalConfig(t, bg, nil))
 	require.NotNil(t, q)
@@ -306,8 +306,8 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	block1 := makeFakeFileBlock(t, false)
 	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	testCommonBlock := &CommonBlock{}
-	err := kbfscodec.Update(codec, testCommonBlock, block1)
-	require.NoError(t, err)
+	testCommonBlock.Set(block1)
+	require.Equal(t, &CommonBlock{}, testCommonBlock)
 
 	t.Log("Make a retrieval for the same block twice, but with a different " +
 		"target block type.")
@@ -320,7 +320,7 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 
 	t.Log("Allow the first ptr1 retrieval to complete.")
 	continueCh1 <- nil
-	err = <-req1Ch
+	err := <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock1, block1)
 
@@ -332,5 +332,49 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 }
 
 func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
-	t.Log("TODO")
+	t.Log("Test that we can escalate the priority of a request and it " +
+		"correctly switches workers.")
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(1, 1, newTestBlockRetrievalConfig(t, bg, nil))
+	require.NotNil(t, q)
+	defer q.Shutdown()
+
+	t.Log("Setup source blocks")
+	ptr1, ptr2 := makeRandomBlockPointer(t), makeRandomBlockPointer(t)
+	block1, block2 := makeFakeFileBlock(t, false), makeFakeFileBlock(t, false)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
+
+	t.Log("Make a low-priority request. This will get to the worker.")
+	testBlock1 := &FileBlock{}
+	req1Ch := q.Request(context.Background(), 1, makeKMD(), ptr1, testBlock1,
+		NoCacheEntry)
+
+	t.Log("Make another low-priority request. This will block.")
+	testBlock2 := &FileBlock{}
+	req2Ch := q.Request(context.Background(), 1, makeKMD(), ptr2, testBlock2,
+		NoCacheEntry)
+
+	t.Log("Make an on-demand request for the same block as the blocked " +
+		"request.")
+	testBlock3 := &FileBlock{}
+	req3Ch := q.Request(context.Background(), defaultOnDemandRequestPriority,
+		makeKMD(), ptr2, testBlock3, NoCacheEntry)
+
+	t.Log("Release the requests for the second block first. " +
+		"Since the prefetch worker is still blocked, this confirms that the " +
+		"escalation to an on-demand worker was successful.")
+	continueCh2 <- nil
+	err := <-req3Ch
+	require.NoError(t, err)
+	require.Equal(t, testBlock3, block2)
+	err = <-req2Ch
+	require.NoError(t, err)
+	require.Equal(t, testBlock2, block2)
+
+	t.Log("Allow the initial ptr1 request to complete.")
+	continueCh1 <- nil
+	err = <-req1Ch
+	require.NoError(t, err)
+	require.Equal(t, testBlock1, block1)
 }
