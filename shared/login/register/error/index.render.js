@@ -21,7 +21,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body" style={{textAlign: 'center'}}>
+            <Text type="Body" style={centerText}>
               You can't authorize by passphrase, since you have established device or paper keys. You can go back and pick a device or paper key, or
               {' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
@@ -126,7 +126,7 @@ const renderError = (error: RPCError) => {
           {error.desc
             ? <Markdown>{error.desc}</Markdown>
             : <Box style={styleText}>
-                <Text type="Body" style={{textAlign: 'center'}}>
+                <Text type="Body" style={centerText}>
                   Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run
                   {' '}
                   <Text type="TerminalInline">keybase login</Text>
@@ -140,7 +140,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body" style={{textAlign: 'center'}}>
+            <Text type="Body" style={centerText}>
               The username you provided doesn't exist on Keybase, please try logging in again with a different username.
             </Text>
           </Box>
@@ -154,7 +154,7 @@ const renderError = (error: RPCError) => {
             <Text
               type="BodyPrimaryLink"
               onClick={() => openURL('https://keybase.io/#password-reset')}
-              style={{textAlign: 'center'}}
+              style={centerText}
             >
               Reset your passphrase?
             </Text>
@@ -167,7 +167,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body" style={{textAlign: 'center'}}>
+            <Text type="Body" style={centerText}>
               Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.
             </Text>
           </Box>
@@ -225,6 +225,11 @@ const Render = ({onBack, error}: Props) => (
     {renderError(error)}
   </Container>
 )
+
+const centerText = {
+  textAlign: 'center',
+  ...(isMobile ? {} : {display: 'inline-block'}),
+}
 
 const styleHeader = {
   alignSelf: 'center',
