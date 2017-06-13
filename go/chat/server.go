@@ -26,7 +26,7 @@ import (
 )
 
 type ServerConnection interface {
-	Reconnect(context.Context) error
+	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
 }
 
@@ -110,7 +110,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 		res.SetOffline()
 
 		// Reconnect Gregor if we think we are online
-		if err := h.serverConn.Reconnect(ctx); err != nil {
+		if _, err := h.serverConn.Reconnect(ctx); err != nil {
 			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
 		}
 

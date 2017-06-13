@@ -1217,7 +1217,7 @@ func (g *gregorHandler) isReachable() bool {
 	}
 	if err != nil {
 		g.chatLog.Debug(ctx, "isReachable: error: terminating connection: %s", err.Error())
-		if err := g.Reconnect(ctx); err != nil {
+		if _, err := g.Reconnect(ctx); err != nil {
 			g.chatLog.Debug(ctx, "isReachable: error reconnecting: %s", err.Error())
 		}
 		return false
@@ -1226,15 +1226,17 @@ func (g *gregorHandler) isReachable() bool {
 	return true
 }
 
-func (g *gregorHandler) Reconnect(ctx context.Context) error {
+func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err error) {
 	if g.IsConnected() {
+		didShutdown = true
 		g.chatLog.Debug(ctx, "Reconnect: reconnecting to server")
 		g.Shutdown()
-		return g.Connect(g.uri)
+		return didShutdown, g.Connect(g.uri)
 	}
 
+	didShutdown = false
 	g.chatLog.Debug(ctx, "Reconnect: skipping reconnect, already disconnected")
-	return nil
+	return didShutdown, nil
 }
 
 func (g *gregorHandler) pingLoop() {
@@ -1296,11 +1298,19 @@ func (g *gregorHandler) pingLoop() {
 				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
 				if err == context.DeadlineExceeded {
 					g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
-					if err := g.Reconnect(ctx); err != nil {
-						g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id, err.Error())
+					var didShutdown bool
+					var err error
+					if didShutdown, err = g.Reconnect(ctx); err != nil {
+						g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id,
+							err.Error())
 					}
-					shutdownCancel()
-					return
+					// It is possible that we have already reconnected by the time we call Reconnect
+					// above. If that is the case, we don't want to terminate the ping loop. Only
+					// if Reconnect has actually reset the connection do we stop this ping loop.
+					if didShutdown {
+						shutdownCancel()
+						return
+					}
 				}
 			}
 		case <-g.shutdownCh:
