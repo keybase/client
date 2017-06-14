@@ -72,6 +72,12 @@ func (o SigID) DeepCopy() SigID {
 	return o
 }
 
+type LeaseID string
+
+func (o LeaseID) DeepCopy() LeaseID {
+	return o
+}
+
 type KID string
 
 func (o KID) DeepCopy() KID {
@@ -509,23 +515,26 @@ func (o UserPlusAllKeys) DeepCopy() UserPlusAllKeys {
 type MerkleTreeID int
 
 const (
-	MerkleTreeID_MASTER       MerkleTreeID = 0
-	MerkleTreeID_KBFS_PUBLIC  MerkleTreeID = 1
-	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
+	MerkleTreeID_MASTER           MerkleTreeID = 0
+	MerkleTreeID_KBFS_PUBLIC      MerkleTreeID = 1
+	MerkleTreeID_KBFS_PRIVATE     MerkleTreeID = 2
+	MerkleTreeID_KBFS_PRIVATETEAM MerkleTreeID = 3
 )
 
 func (o MerkleTreeID) DeepCopy() MerkleTreeID { return o }
 
 var MerkleTreeIDMap = map[string]MerkleTreeID{
-	"MASTER":       0,
-	"KBFS_PUBLIC":  1,
-	"KBFS_PRIVATE": 2,
+	"MASTER":           0,
+	"KBFS_PUBLIC":      1,
+	"KBFS_PRIVATE":     2,
+	"KBFS_PRIVATETEAM": 3,
 }
 
 var MerkleTreeIDRevMap = map[MerkleTreeID]string{
 	0: "MASTER",
 	1: "KBFS_PUBLIC",
 	2: "KBFS_PRIVATE",
+	3: "KBFS_PRIVATETEAM",
 }
 
 // SocialAssertionService is a service that can be used to assert proofs for a
