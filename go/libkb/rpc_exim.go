@@ -924,7 +924,7 @@ func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.Pub
 	}
 	if info.DelegatedAt != nil {
 		base.Provisioning = keybase1.SignatureMetadata{
-			Time: keybase1.Time(info.DelegatedAt.Unix),
+			Time: keybase1.TimeFromSeconds(info.DelegatedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.DelegatedAtHashMeta,
 				Seqno:    keybase1.Seqno(info.DelegatedAt.Chain),
@@ -938,7 +938,7 @@ func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.Pub
 	}
 	if info.RevokedAt != nil {
 		base.Revocation = &keybase1.SignatureMetadata{
-			Time: keybase1.Time(info.RevokedAt.Unix),
+			Time: keybase1.TimeFromSeconds(info.RevokedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.RevokedAtHashMeta,
 				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
@@ -1210,16 +1210,8 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
 	current.Uvv = u.ExportToVersionVector(idTime)
-
-	remoteTracks := []keybase1.RemoteTrack{}
-	for _, track := range u.IDTable().GetTrackList() {
-		remoteTracks = append(remoteTracks, keybase1.RemoteTrack{
-			Username: string(track.whomUsername),
-			Uid:      track.whomUID,
-			LinkID:   keybase1.LinkID(hex.EncodeToString(track.LinkID())),
-		})
-	}
-	current.RemoteTracks = remoteTracks
+	// NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
+	current.RemoteTracks = u.ExportRemoteTracks()
 
 	return keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
@@ -1233,6 +1225,7 @@ func (s remoteTrackSorter) Len() int           { return len(s) }
 func (s remoteTrackSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s remoteTrackSorter) Less(i, j int) bool { return s[i].Username < s[j].Username }
 
+// NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
 func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
 	var ret []keybase1.RemoteTrack
 	if u.IDTable() == nil {

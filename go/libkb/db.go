@@ -166,7 +166,8 @@ const (
 	DBUser                    = 0x00
 	DBSig                     = 0x0f
 	DBTeamChain               = 0x10
-	DBUserPlusAllKeys         = 0x19
+	DBUserPlusAllKeysV1       = 0x19
+	DBUserPlusKeysAIV2        = 0x1a
 	DBLink                    = 0xe0
 	DBLocalTrack              = 0xe1
 	DBPGPKey                  = 0xe3

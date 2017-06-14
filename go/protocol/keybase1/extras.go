@@ -1066,9 +1066,27 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
+	for _, k := range u.Current.DeviceKeys {
+		if k.DeviceID.Eq(d) {
+			return &k
+		}
+	}
+	return nil
+}
+
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	for _, k := range u.DeviceKeys {
 		if k.KID.Equal(needle) {
+			return &k
+		}
+	}
+	return nil
+}
+
+func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
+	for _, k := range u.DeviceKeys {
+		if k.Base.Kid.Equal(needle) {
 			return &k
 		}
 	}
@@ -1085,6 +1103,17 @@ func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 		return true
 	}
 	if u.Base.Uvv.Id < v.Base.Uvv.Id {
+		return true
+	}
+	return false
+}
+
+// IsOlderThan returns true if any of the versions of u are older than v
+func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnations) bool {
+	if u.Current.Uvv.SigChain < v.Current.Uvv.SigChain {
+		return true
+	}
+	if u.Current.Uvv.Id < v.Current.Uvv.Id {
 		return true
 	}
 	return false
