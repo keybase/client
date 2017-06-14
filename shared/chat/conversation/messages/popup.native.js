@@ -45,11 +45,13 @@ function _attachmentMessagePopupHelper({
 }: AttachmentProps) {
   const attachment: ChatConstants.AttachmentMessage = message
   const items = []
+  let itemType = 'File'
+  if (attachment.filename != null && ChatConstants.isImageFileName(attachment.filename)) itemType = 'Image'
   items.push({
     onClick: () => {
       onSaveAttachment && onSaveAttachment(attachment)
     },
-    title: 'Save Image',
+    title: 'Save ' + itemType,
   })
 
   if (isIOS && onShareAttachment) {
@@ -57,7 +59,7 @@ function _attachmentMessagePopupHelper({
       onClick: () => {
         onShareAttachment && onShareAttachment(attachment)
       },
-      title: 'Share Image',
+      title: 'Share ' + itemType,
     })
   }
 
