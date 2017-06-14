@@ -595,3 +595,5 @@ const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
 )
+
+var CITimeMultiplier time.Duration = 1
