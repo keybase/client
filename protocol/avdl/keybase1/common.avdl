@@ -30,6 +30,9 @@ protocol Common {
   @typedef("string")
   record SigID {}
 
+  @typedef("string")
+  record LeaseID {}
+
   // Most appearances of KIDs in protocol are in hex....
   @typedef("string")
   record KID {}
@@ -201,12 +204,13 @@ protocol Common {
       array<PublicKey> pgpKeys;
       array<RemoteTrack> remoteTracks;
   }
-
+  
   @go("nostring")
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,
-       KBFS_PRIVATE_2
+       KBFS_PRIVATE_2,
+       KBFS_PRIVATETEAM_3
   }
 
   /**

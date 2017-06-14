@@ -404,3 +404,33 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 	}
 	return true
 }
+
+func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.ConversationID) {
+	for _, conv := range convs {
+		res = append(res, conv.GetConvID())
+	}
+	return res
+}
+
+func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
+	for _, conv := range convs {
+		res = append(res, conv.GetConvID())
+	}
+	return res
+}
+
+type ConvLocalByConvID []chat1.ConversationLocal
+
+func (c ConvLocalByConvID) Len() int      { return len(c) }
+func (c ConvLocalByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ConvLocalByConvID) Less(i, j int) bool {
+	return c[i].GetConvID().Less(c[j].GetConvID())
+}
+
+type ConvByConvID []chat1.Conversation
+
+func (c ConvByConvID) Len() int      { return len(c) }
+func (c ConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ConvByConvID) Less(i, j int) bool {
+	return c[i].GetConvID().Less(c[j].GetConvID())
+}

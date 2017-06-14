@@ -100,6 +100,14 @@ function setOtherDeviceCodeState(otherDeviceRole: Constants.DeviceRole): Constan
   return {type: Constants.setOtherDeviceCodeState, payload: otherDeviceRole}
 }
 
+function provisioningError(error: Error) {
+  return {type: Constants.provisioningError, payload: {error}}
+}
+
+function resetQRCodeScanned() {
+  return {type: Constants.resetQRCodeScanned}
+}
+
 function loginDone(error?: {message: string}) {
   if (error) {
     return {type: Constants.loginDone, error: true, payload: error}
@@ -163,9 +171,11 @@ export {
   onFinish,
   onWont,
   openAccountResetPage,
+  provisioningError,
   provisionTextCodeEntered,
   qrScanned,
   relogin,
+  resetQRCodeScanned,
   selectDeviceId,
   setCameraBrokenMode,
   setCodePageMode,

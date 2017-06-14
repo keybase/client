@@ -43,7 +43,9 @@ app.on('ready', () => {
     console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
-        app.quit()
+        if (!DEBUG_WINDOWS) {
+          app.quit()
+        }
       }
       return
     }

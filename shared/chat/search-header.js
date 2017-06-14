@@ -57,6 +57,8 @@ const SearchHeader = props => {
             placeholder={props.placeholder}
             usernameText={props.usernameText}
             onChangeText={props.onChangeText}
+            onMoveSelectUp={() => {}} // TODO
+            onMoveSelectDown={() => {}} // TODO
           />
         </Box>
         <Icon

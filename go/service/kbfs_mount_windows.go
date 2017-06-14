@@ -18,6 +18,12 @@ var (
 	kernel32DLL        = windows.NewLazySystemDLL("kernel32.dll")
 	getVolumeProc      = kernel32DLL.NewProc("GetVolumeInformationW")
 	queryDosDeviceProc = kernel32DLL.NewProc("QueryDosDeviceW")
+	getDriveTypeProc   = kernel32DLL.NewProc("GetDriveTypeW")
+)
+
+const (
+	driveUnknown   = 0
+	driveNoRootDir = 1
 )
 
 // getVolumeName requires a drive letter and colon with a
@@ -70,6 +76,15 @@ func isCdRom(path string) bool {
 	return false
 }
 
+func isDriveFree(drive string) bool {
+	driveType, _, _ := getDriveTypeProc.Call(uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(drive))))
+	// 3rd return value is non-null even in success case
+	if driveType == driveUnknown || driveType == driveNoRootDir {
+		return true
+	}
+	return false
+}
+
 func getMountDirs() ([]string, error) {
 	//start with drive D
 	i := uint(3)
@@ -87,6 +102,9 @@ func getMountDirs() ([]string, error) {
 		// including errors retrieving same.
 		// (we plan to change from KBFS to Keybase)
 		if len(volume) > 0 && volume != "KBFS" && volume != "Keybase" {
+			continue
+		}
+		if !isDriveFree(path + "\\") {
 			continue
 		}
 		drives = append(drives, path)

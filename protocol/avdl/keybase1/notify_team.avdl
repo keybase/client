@@ -1,0 +1,7 @@
+
+@namespace("keybase.1")
+protocol NotifyTeam {
+  import idl "common.avdl";
+
+  void teamKeyRotated(TeamID teamID, string teamName) oneway;
+}

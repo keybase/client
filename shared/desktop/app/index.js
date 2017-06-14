@@ -25,6 +25,9 @@ function start() {
     const shouldQuit = app.makeSingleInstance(() => {
       if (mainWindow) {
         mainWindow.show(true)
+        if (isWindows) {
+          mainWindow.window && mainWindow.window.focus()
+        }
       }
     })
 

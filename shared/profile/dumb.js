@@ -254,6 +254,7 @@ const propsBase: RenderProps = {
   bioEditFns: null,
   proofs: proofsDefault,
   tlfs: folders,
+  followersLoaded: true,
   followers,
   following,
   error: null,

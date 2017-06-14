@@ -1,7 +1,17 @@
 // @flow
 import _ from 'lodash'
 import {buffers, channel} from 'redux-saga'
-import {take, call, put, race, takeEvery, takeLatest, cancelled} from 'redux-saga/effects'
+import {
+  actionChannel,
+  take,
+  call,
+  put,
+  race,
+  fork,
+  takeEvery,
+  takeLatest,
+  cancelled,
+} from 'redux-saga/effects'
 import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
@@ -133,6 +143,34 @@ function cancelWhen(predicate: (originalAction: Action, checkAction: Action) => 
   return wrappedWorker
 }
 
+function safeTakeSerially(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
+  const wrappedWorker = function*(...args) {
+    try {
+      yield call(worker, ...args)
+    } catch (error) {
+      // Convert to global error so we don't kill the loop
+      yield put(dispatch => {
+        dispatch({
+          payload: convertToError(error),
+          type: globalError,
+        })
+      })
+    } finally {
+      if (yield cancelled()) {
+        console.log('safeTakeSerially cancelled')
+      }
+    }
+  }
+
+  return fork(function*() {
+    const chan = yield actionChannel(pattern, buffers.expanding(10))
+    while (true) {
+      const action = yield take(chan)
+      yield call(wrappedWorker, action, ...args)
+    }
+  })
+}
+
 export {
   cancelWhen,
   closeChannelMap,
@@ -143,6 +181,7 @@ export {
   safeTakeEvery,
   safeTakeLatest,
   safeTakeLatestWithCatch,
+  safeTakeSerially,
   singleFixedChannelConfig,
   takeFromChannelMap,
 }

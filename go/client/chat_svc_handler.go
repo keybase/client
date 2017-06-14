@@ -105,6 +105,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 			Public:      conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
 			TopicType:   strings.ToLower(conv.Info.Triple.TopicType.String()),
 			MembersType: strings.ToLower(conv.Info.MembersType.String()),
+			TopicName:   conv.Info.TopicName,
 		}
 
 		cl.Conversations = append(cl.Conversations, convSummary)

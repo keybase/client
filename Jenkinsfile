@@ -262,7 +262,7 @@ helpers.rootLinuxNode(env, {
                         if (hasGoChanges) {
                             def mountDir='/Volumes/untitled/client'
                             helpers.nodeWithCleanup('macstadium', {}, {
-                                    sh "rm -rf ${mountDir}"
+                                    sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
                                 }) {
                                 def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                                 def GOPATH="${BASEDIR}/go"

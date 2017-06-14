@@ -26,7 +26,7 @@ import (
 )
 
 type ServerConnection interface {
-	Reconnect(context.Context) error
+	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
 }
 
@@ -110,7 +110,7 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 		res.SetOffline()
 
 		// Reconnect Gregor if we think we are online
-		if err := h.serverConn.Reconnect(ctx); err != nil {
+		if _, err := h.serverConn.Reconnect(ctx); err != nil {
 			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
 		}
 
@@ -462,6 +462,45 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		return chat1.NewConversationLocalRes{}, err
 	}
 
+	// Handle a nil topic name with default values for the members type specified
+	if arg.TopicName == nil {
+		// We never want a blank topic name in team chats, always default to the default team name
+		switch arg.MembersType {
+		case chat1.ConversationMembersType_TEAM:
+			arg.TopicName = &DefaultTeamTopic
+		default:
+			arg.TopicName = new(string)
+		}
+	}
+
+	// Find any existing conversations that match this argument specifically. We need to do this check
+	// here in the client since we can't see the topic name on the server.
+
+	// NOTE: The CLI already does this. It is hard to move that code completely into the service, since
+	// there is a ton of logic in there to try and present a nice looking menu to help out the
+	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
+	// should hopefully just result in a bunch of cache hits on the second invocation.
+	findRes, err := h.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+		TlfName:          arg.TlfName,
+		MembersType:      arg.MembersType,
+		Visibility:       arg.TlfVisibility,
+		TopicType:        arg.TopicType,
+		TopicName:        *arg.TopicName,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	})
+	if err != nil {
+		return chat1.NewConversationLocalRes{}, err
+	}
+	// If we find one conversation, then just return it as if we created it.
+	if len(findRes.Conversations) == 1 {
+		return chat1.NewConversationLocalRes{
+			Conv:             findRes.Conversations[0],
+			RateLimits:       findRes.RateLimits,
+			IdentifyFailures: findRes.IdentifyFailures,
+		}, nil
+	}
+	res.RateLimits = append(res.RateLimits, findRes.RateLimits...)
+
 	info, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType,
 		arg.TlfVisibility == chat1.TLFVisibility_PUBLIC)
 	if err != nil {
@@ -503,8 +542,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 				// This triple already exists.
 				h.Debug(ctx, "NewConversationLocal: conv exists: %v", cerr.ConvID)
 
-				if triple.TopicType != chat1.TopicType_CHAT {
-					// Not a chat conversation. Multiples are fine. Just retry with a
+				if triple.TopicType != chat1.TopicType_CHAT ||
+					arg.MembersType == chat1.ConversationMembersType_TEAM {
+					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
 					// different topic ID.
 					continue
 				}
@@ -552,6 +592,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
 		}
 
+		res.RateLimits = utils.AggRateLimits(res.RateLimits)
 		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
@@ -559,11 +600,14 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return chat1.NewConversationLocalRes{}, reserr
 }
 
+var DefaultTeamTopic = "#general"
+
 func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
 	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
 	topicName *string) (*chat1.MessageBoxed, error) {
 	var msg chat1.MessagePlaintext
-	if topicName != nil {
+
+	if topicName != nil || *topicName != "" {
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,

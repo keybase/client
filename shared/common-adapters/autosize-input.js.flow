@@ -7,6 +7,8 @@ export type Props = {
   inputStyle?: Object,
   onChange: (text: string) => void,
   onKeyDown?: (ev: SyntheticInputEvent) => void,
+  onFocus?: (ev: SyntheticInputEvent) => void,
+  onBlur?: (ev: SyntheticInputEvent) => void,
 }
 
 export default class AutosizeInput extends Component<void, Props, void> {

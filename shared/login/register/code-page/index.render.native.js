@@ -33,6 +33,10 @@ import type {Mode} from '../../../constants/login'
 import type {Props} from './index.render'
 
 class CodePageRender extends Component<void, Props, void> {
+  componentDidMount() {
+    this.props.resetQRCodeScanned()
+  }
+
   renderShowCode() {
     return (
       <Qr
@@ -50,7 +54,7 @@ class CodePageRender extends Component<void, Props, void> {
       const continueOnOtherDevice = this.props.myDeviceRole === codePageDeviceRoleExistingPhone
       const scanMessage = continueOnOtherDevice
         ? 'You should follow the instructions on the other device to continue.'
-        : null
+        : 'Please wait...'
       return (
         <Box
           style={{

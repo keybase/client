@@ -101,16 +101,33 @@ const Intro = (props: Props) => (
           Your device has been revoked, please log in again.
         </Text>
       </Box>}
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        width: '100%',
+      }}
+    >
       <Icon type="icon-keybase-logo-80" />
       <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
       <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
       <Button style={stylesSignupButton} type="Primary" onClick={props.onSignup} label="Create an account" />
+      <Box style={{flex: 1}} />
       <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
       <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
+      <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
+        Problems logging in?
+      </Text>
     </Box>
   </Box>
 )
+
+const stylesFeedback = {
+  alignSelf: 'flex-end',
+  margin: globalMargins.tiny,
+}
 
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
@@ -129,7 +146,6 @@ const stylesHeaderSub = {
 }
 
 const stylesLoginHeader = {
-  marginTop: 176,
   textAlign: 'center',
 }
 
@@ -138,7 +154,7 @@ const stylesSignupButton = {
 }
 
 const stylesLoginButton = {
-  marginTop: globalMargins.small,
+  margin: globalMargins.small,
 }
 
 const stylesBannerBlue = {
@@ -154,7 +170,6 @@ const stylesBannerBlue = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  textAlign: 'center',
 }
 
 const stylesBannerGreen = {

@@ -294,6 +294,7 @@ class Profile extends Component<void, Props, State> {
               currentTab={this.state.currentFriendshipsTab}
               onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
               onUserClick={this.props.onUserClick}
+              followersLoaded={this.props.followersLoaded}
               followers={this.props.followers}
               following={this.props.following}
             />}
