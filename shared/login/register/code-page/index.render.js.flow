@@ -13,6 +13,7 @@ export type Props = {
   setCodePageMode: (requestedMode: Mode) => void,
   qrScanned: Function,
   qrCodeScanned: boolean,
+  resetQRCodeScanned: () => void,
   setCameraBrokenMode: Function,
   textEntered: Function,
   onChangeText: Function,
