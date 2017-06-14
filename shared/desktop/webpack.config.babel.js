@@ -111,7 +111,7 @@ const makeCommonConfig = () => {
       : [
           new UglifyJSPlugin({
             comments: false,
-            sourceMaps: true,
+            sourceMap: true,
           }),
         ]
 
@@ -316,8 +316,8 @@ const renderThreadConfig = makeRenderThreadConfig()
 const dllConfig = flags.isDev && !flags.isVisDiff && makeDllConfig()
 
 // When we start the hot server we want to build the main/dll without hot reloading statically
-const config = flags.isBeforeHot
+const config = (flags.isBeforeHot
   ? [mainThreadConfig, dllConfig]
-  : [mainThreadConfig, renderThreadConfig, dllConfig].filter(Boolean)
+  : [mainThreadConfig, renderThreadConfig, dllConfig]).filter(Boolean)
 
 export default config
