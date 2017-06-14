@@ -238,17 +238,26 @@ type MerkleUserLeaf struct {
 	eldest    keybase1.KID // may be empty
 }
 
+type MerkleTeamLeaf struct {
+	TeamID  keybase1.TeamID
+	Public  *MerkleTriple
+	Private *MerkleTriple
+}
+
 type PathSteps []*PathStep
 
-type VerificationPath struct {
-	Contextified
+type merkleUserInfoT struct {
 	uid           keybase1.UID
-	root          *MerkleRoot
-	path          PathSteps
 	uidPath       PathSteps
 	idVersion     int64
 	username      string
 	usernameCased string
+}
+
+type VerificationPath struct {
+	Contextified
+	root *MerkleRoot
+	path PathSteps
 }
 
 type MerkleRootPayload struct {
@@ -593,7 +602,52 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(ctx context.Context, lastRoot 
 	return mr, ss, apiRes, err
 }
 
-func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
+func (mc *MerkleClient) lookupPathAndSkipSequenceUser(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, userInfo *merkleUserInfoT, apiRes *APIRes, err error) {
+	apiRes, err = mc.lookupPathAndSkipSequenceHelper(ctx, q, sigHints, lastRoot, true)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	if sigHints != nil {
+		if err = sigHints.RefreshWith(ctx, apiRes.Body.AtKey("sigs")); err != nil {
+			return nil, nil, nil, nil, err
+		}
+	}
+
+	vp, userInfo, err = mc.readPathFromAPIResUser(ctx, apiRes)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	ss, err = mc.readSkipSequenceFromAPIRes(ctx, apiRes, vp.root, lastRoot)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	return vp, ss, userInfo, apiRes, nil
+}
+
+func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(ctx context.Context, q HTTPArgs, lastRoot *MerkleRoot) (vp *VerificationPath, ss SkipSequence, res *APIRes, err error) {
+	apiRes, err := mc.lookupPathAndSkipSequenceHelper(ctx, q, nil, lastRoot, true)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	vp, err = mc.readPathFromAPIResTeam(ctx, apiRes)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	ss, err = mc.readSkipSequenceFromAPIRes(ctx, apiRes, vp.root, lastRoot)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return vp, ss, apiRes, nil
+}
+
+// `isUser` is true for loading a user and false for loading a team.
+func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
 	defer mc.G().CTrace(ctx, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
@@ -611,7 +665,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 		q.Add("last", I{int(*lastSeqno)})
 	}
 
-	res, err = mc.G().API.Get(APIArg{
+	apiRes, err = mc.G().API.Get(APIArg{
 		Endpoint:       "merkle/path",
 		SessionType:    APISessionTypeNONE,
 		Args:           q,
@@ -620,33 +674,18 @@ func (mc *MerkleClient) lookupPathAndSkipSequence(ctx context.Context, q HTTPArg
 	})
 
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
-	switch res.AppStatus.Code {
+	switch apiRes.AppStatus.Code {
 	case SCNotFound:
 		err = NotFoundError{}
-		return nil, nil, nil, err
+		return nil, err
 	case SCDeleted:
 		err = DeletedError{}
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	if sigHints != nil {
-		if err = sigHints.RefreshWith(ctx, res.Body.AtKey("sigs")); err != nil {
-			return nil, nil, nil, err
-		}
-	}
-
-	var ret *VerificationPath
-	ret, err = mc.readPathFromAPIRes(ctx, res)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	ss, err = mc.readSkipSequenceFromAPIRes(ctx, res, ret.root, lastRoot)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return ret, ss, res, err
+	return apiRes, err
 }
 
 func readSkipSequenceFromStringList(v []string) (ret SkipSequence, err error) {
@@ -710,48 +749,64 @@ func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *API
 	return ret, nil
 }
 
-func (mc *MerkleClient) readPathFromAPIRes(ctx context.Context, res *APIRes) (ret *VerificationPath, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#readPathFromAPIRes", func() error { return err })()
-
-	ret = &VerificationPath{
-		Contextified: NewContextified(mc.G()),
+func (mc *MerkleClient) readPathFromAPIResUser(ctx context.Context, res *APIRes) (vp *VerificationPath, userInfo *merkleUserInfoT, err error) {
+	vp, err = mc.readPathFromAPIResHelper(ctx, res, true)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	ret.root, err = readRootFromAPIRes(mc.G(), res.Body.AtKey("root"))
-	if err != nil {
-		return nil, err
-	}
+	userInfo = &merkleUserInfoT{}
 
-	ret.uid, err = GetUID(res.Body.AtKey("uid"))
+	userInfo.uid, err = GetUID(res.Body.AtKey("uid"))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// We don't trust this version, but it's useful to tell us if there
 	// are new versions unsigned data, like basics, and maybe uploaded
 	// keys
-	ret.idVersion, err = res.Body.AtKey("id_version").GetInt64()
+	userInfo.idVersion, err = res.Body.AtKey("id_version").GetInt64()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userInfo.uidPath, err = importPathFromJSON(res.Body.AtKey("uid_proof_path"))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	userInfo.username, err = res.Body.AtKey("username").GetString()
+	if err != nil {
+		return nil, nil, err
+	}
+	userInfo.usernameCased, _ = res.Body.AtKey("username_cased").GetString()
+
+	return vp, userInfo, nil
+}
+
+func (mc *MerkleClient) readPathFromAPIResTeam(ctx context.Context, res *APIRes) (ret *VerificationPath, err error) {
+	return mc.readPathFromAPIResHelper(ctx, res, false)
+}
+
+// `isUser` is true for loading a user and false for loading a team
+func (mc *MerkleClient) readPathFromAPIResHelper(ctx context.Context, res *APIRes, isUser bool) (vp *VerificationPath, err error) {
+	defer mc.G().CTrace(ctx, "MerkleClient#readPathFromAPIRes", func() error { return err })()
+
+	vp = &VerificationPath{
+		Contextified: NewContextified(mc.G()),
+	}
+
+	vp.root, err = readRootFromAPIRes(mc.G(), res.Body.AtKey("root"))
 	if err != nil {
 		return nil, err
 	}
 
-	ret.path, err = importPathFromJSON(res.Body.AtKey("path"))
+	vp.path, err = importPathFromJSON(res.Body.AtKey("path"))
 	if err != nil {
 		return nil, err
 	}
 
-	ret.uidPath, err = importPathFromJSON(res.Body.AtKey("uid_proof_path"))
-	if err != nil {
-		return nil, err
-	}
-
-	ret.username, err = res.Body.AtKey("username").GetString()
-	if err != nil {
-		return nil, err
-	}
-	ret.usernameCased, _ = res.Body.AtKey("username_cased").GetString()
-
-	return ret, nil
+	return vp, nil
 }
 
 func pathStepFromJSON(jw *jsonw.Wrapper) (ps *PathStep, err error) {
@@ -1090,25 +1145,71 @@ func parseMerkleUserLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContex
 	return
 }
 
-func (vp *VerificationPath) verifyUsername(ctx context.Context) (username string, err error) {
-	if CheckUIDAgainstUsername(vp.uid, vp.username) == nil {
-		vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash", vp.username, vp.uid)
-		username = vp.username
+func parseMerkleTeamLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContext) (leaf *MerkleTeamLeaf, err error) {
+	g.Log.CDebugf(ctx, "+ ParsingMerkleUserLeaf")
+
+	if jw == nil {
+		g.Log.CDebugf(ctx, "| empty leaf found; team wasn't in tree")
+		leaf = &MerkleTeamLeaf{}
 		return
 	}
 
-	vp.G().Log.CDebugf(ctx, "| Failed to map Username %s -> UID %s via direct hash", vp.username, vp.uid)
+	l, err := jw.Len()
+	if err != nil {
+		return
+	}
+	// length should be 4, but only use the first 3, and allow larger for forward compatibility.
+	if l < 3 {
+		err = fmt.Errorf("Expected an array of length >=3 but got %v", l)
+		return
+	}
 
-	if vp.usernameCased != vp.username && strings.ToLower(vp.usernameCased) == vp.username {
-		vp.G().Log.CDebugf(ctx, "| Checking cased username difference: %s v %s", vp.username, vp.usernameCased)
-		if CheckUIDAgainstCasedUsername(vp.uid, vp.usernameCased) == nil {
-			vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash (w/ username casing)", vp.usernameCased, vp.uid)
-			username = vp.username
+	v, err := jw.AtIndex(0).GetInt()
+	if err != nil {
+		return
+	}
+	if v != 2 {
+		err = fmt.Errorf("Expected version 2 but got %v", v)
+		return
+	}
+
+	public, err := parseTriple(jw.AtIndex(1))
+	if err != nil {
+		return
+	}
+
+	private, err := parseTriple(jw.AtIndex(2))
+	if err != nil {
+		return
+	}
+
+	g.Log.CDebugf(ctx, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	return &MerkleTeamLeaf{
+		// TeamID is filled in by the caller
+		Public:  public,
+		Private: private,
+	}, err
+}
+
+func (vp *VerificationPath) verifyUsername(ctx context.Context, userInfo merkleUserInfoT) (username string, err error) {
+	if CheckUIDAgainstUsername(userInfo.uid, userInfo.username) == nil {
+		vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
+		username = userInfo.username
+		return
+	}
+
+	vp.G().Log.CDebugf(ctx, "| Failed to map Username %s -> UID %s via direct hash", userInfo.username, userInfo.uid)
+
+	if userInfo.usernameCased != userInfo.username && strings.ToLower(userInfo.usernameCased) == userInfo.username {
+		vp.G().Log.CDebugf(ctx, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
+		if CheckUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
+			vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
+			username = userInfo.username
 			return
 		}
 	}
 
-	hsh := sha256.Sum256([]byte(strings.ToLower(vp.username)))
+	hsh := sha256.Sum256([]byte(strings.ToLower(userInfo.username)))
 	hshS := hex.EncodeToString(hsh[:])
 	var leaf *jsonw.Wrapper
 
@@ -1117,7 +1218,7 @@ func (vp *VerificationPath) verifyUsername(ctx context.Context) (username string
 		return
 	}
 
-	if leaf, err = vp.uidPath.VerifyPath(vp.root.LegacyUIDRootHash(), hshS); err != nil {
+	if leaf, err = userInfo.uidPath.VerifyPath(vp.root.LegacyUIDRootHash(), hshS); err != nil {
 		return
 	}
 
@@ -1125,27 +1226,27 @@ func (vp *VerificationPath) verifyUsername(ctx context.Context) (username string
 	if uid2, err = GetUID(leaf); err != nil {
 		return
 	}
-	if vp.uid.NotEqual(uid2) {
-		err = UIDMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, vp.uid)}
+	if userInfo.uid.NotEqual(uid2) {
+		err = UIDMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, userInfo.uid)}
 		return
 	}
 
-	vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via Merkle lookup", vp.username, vp.uid)
-	username = vp.username
+	vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via Merkle lookup", userInfo.username, userInfo.uid)
+	username = userInfo.username
 
 	return
 }
 
-func (vp *VerificationPath) verifyUser(ctx context.Context) (user *MerkleUserLeaf, err error) {
+func (vp *VerificationPath) verifyUser(ctx context.Context, userInfo merkleUserInfoT) (user *MerkleUserLeaf, err error) {
 	curr := vp.root.RootHash()
 
 	var leaf *jsonw.Wrapper
-	leaf, err = vp.path.VerifyPath(curr, vp.uid.String())
+	leaf, err = vp.path.VerifyPath(curr, userInfo.uid.String())
 
 	if leaf != nil && err == nil {
 		if leaf, err = leaf.ToArray(); err != nil {
 			msg := fmt.Sprintf("Didn't find a leaf for user in tree: %s", err)
-			err = MerkleNotFoundError{vp.uid.String(), msg}
+			err = MerkleNotFoundError{userInfo.uid.String(), msg}
 		}
 	}
 
@@ -1159,7 +1260,35 @@ func (vp *VerificationPath) verifyUser(ctx context.Context) (user *MerkleUserLea
 
 	user, err = parseMerkleUserLeaf(ctx, leaf, vp.G())
 	if user != nil {
-		user.uid = vp.uid
+		user.uid = userInfo.uid
+	}
+	return
+}
+
+func (vp *VerificationPath) verifyTeam(ctx context.Context, teamID keybase1.TeamID) (teamLeaf *MerkleTeamLeaf, err error) {
+	curr := vp.root.RootHash()
+
+	var leaf *jsonw.Wrapper
+	leaf, err = vp.path.VerifyPath(curr, teamID.String())
+
+	if leaf != nil && err == nil {
+		if leaf, err = leaf.ToArray(); err != nil {
+			msg := fmt.Sprintf("Didn't find a leaf for team in tree: %s", err)
+			err = MerkleNotFoundError{teamID.String(), msg}
+		}
+	}
+
+	if err == nil {
+		// noop
+	} else if _, ok := err.(MerkleNotFoundError); ok {
+		vp.G().Log.CDebugf(ctx, fmt.Sprintf("In checking Merkle tree: %s", err))
+	} else {
+		return
+	}
+
+	teamLeaf, err = parseMerkleTeamLeaf(ctx, leaf, vp.G())
+	if teamLeaf != nil {
+		teamLeaf.TeamID = teamID
 	}
 	return
 }
@@ -1184,6 +1313,10 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 		}
 
 		plen := len(step.prefix)
+		if plen > len(bpath) {
+			err = fmt.Errorf("Path prefix longer than identifier: %v > %v", plen, len(bpath))
+			return nil, err
+		}
 		if plen > 0 && bpath[:plen] != step.prefix {
 			err = fmt.Errorf("Path mismatch at level %d: %s != %s", i, bpath[:plen], step.prefix)
 			break
@@ -1254,7 +1387,57 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 	// was a change on the server side. See CORE-4064.
 	rootBeforeCall := mc.LastRoot()
 
-	if path, ss, apiRes, err = mc.lookupPathAndSkipSequence(ctx, q, sigHints, rootBeforeCall); err != nil {
+	path, ss, userInfo, apiRes, err := mc.lookupPathAndSkipSequenceUser(ctx, q, sigHints, rootBeforeCall)
+	if err != nil {
+		return nil, err
+	}
+	// spot check that the user-specific path attributes were filled
+	if userInfo.uid.IsNil() {
+		return nil, fmt.Errorf("verification path has nil UID")
+	}
+
+	if err = mc.verifySkipSequenceAndRootThenStore(ctx, ss, path.root, rootBeforeCall, apiRes); err != nil {
+		return nil, err
+	}
+
+	if u, err = path.verifyUser(ctx, *userInfo); err != nil {
+		return nil, err
+	}
+
+	if u.username, err = path.verifyUsername(ctx, *userInfo); err != nil {
+		return nil, err
+	}
+
+	u.idVersion = userInfo.idVersion
+
+	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", q)
+	return u, nil
+}
+
+func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
+	// Copied from LookupUser. These methods should be kept relatively in sync.
+
+	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupUser(%v)", teamID)
+
+	var path *VerificationPath
+	var ss SkipSequence
+	var apiRes *APIRes
+
+	if err = mc.init(ctx); err != nil {
+		return nil, err
+	}
+
+	// Grab the cached seqno before the call to get the next one is made.
+	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Checking against the cache after the call completes can cause false-positive rollback
+	// warnings if the first call is super slow, and the second call is super fast, and there
+	// was a change on the server side. See CORE-4064.
+	rootBeforeCall := mc.LastRoot()
+
+	q := NewHTTPArgs()
+	q.Add("leaf_id", S{Val: teamID.String()})
+
+	if path, ss, apiRes, err = mc.lookupPathAndSkipSequenceTeam(ctx, q, rootBeforeCall); err != nil {
 		return nil, err
 	}
 
@@ -1262,18 +1445,12 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 		return nil, err
 	}
 
-	if u, err = path.verifyUser(ctx); err != nil {
+	if leaf, err = path.verifyTeam(ctx, teamID); err != nil {
 		return nil, err
 	}
 
-	if u.username, err = path.verifyUsername(ctx); err != nil {
-		return nil, err
-	}
-
-	u.idVersion = path.idVersion
-
-	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", q)
-	return u, nil
+	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", teamID)
+	return leaf, nil
 }
 
 func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
