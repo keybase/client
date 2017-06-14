@@ -6,7 +6,7 @@ import InviteCode from './invite-code.render'
 import Passphrase from './passphrase'
 import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
-import Success from './success'
+import Success from './success/index.render'
 import UsernameEmail from './username-email-form.render'
 import {isMobile} from '../../constants/platform'
 
