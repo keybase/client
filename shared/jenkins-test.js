@@ -71,9 +71,8 @@ function js_tests() {
   execAndLog('node --version')
   has_js_files('')
 
-  // TEMP
-  // console.log('yarn install')
-  // execAndLog('yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress')
+  console.log('yarn install')
+  execAndLog('yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress')
   console.log('yarn run flow')
   execAndLog('yarn run flow')
   console.log('yarn run lint')
