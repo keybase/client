@@ -91,9 +91,6 @@ app.on('ready', () => {
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
-      if (DEBUG_WINDOWS) {
-        workerWin.webContents.openDevTools()
-      }
       workerWin.webContents.on('did-finish-load', () => {
         if (DEBUG_WINDOWS) {
           workerWin.webContents.openDevTools('right')

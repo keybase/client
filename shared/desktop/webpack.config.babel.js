@@ -246,6 +246,8 @@ const makeRenderThreadConfig = () => {
   return merge(commonConfig, {
     dependencies: flags.isDev && !flags.isVisDiff ? ['vendor'] : undefined,
     // Sourcemaps, eval is very fast, but you might want something else if you want to see the original code
+    // Some eval sourcemaps cause issues with closures in chromium due to some bugs. Visdiff suffers from this and we don't debug it so
+    // lets disable sourcemaps for it
     devtool: flags.isVisDiff ? undefined : flags.isDev ? 'eval' : 'source-map',
     entry: makeEntries(),
     name: 'renderThread',
