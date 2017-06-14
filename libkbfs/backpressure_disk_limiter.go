@@ -404,8 +404,8 @@ func newJournalTracker(
 		return journalTracker{}, err
 	}
 
-	// Test quota parameters -- actually quota trackers will be
-	// created per-chargedTo ID.
+	// Test quota parameters -- actual quota trackers will be created
+	// on a per-chargedTo-ID basis.
 	_, err = newQuotaBackpressureTracker(quotaMinThreshold, quotaMaxThreshold)
 	if err != nil {
 		return journalTracker{}, err
