@@ -172,7 +172,10 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	workerQueue := brq.workerQueue
 	if priority < defaultOnDemandRequestPriority {
+		brq.log.Debug("notifyWorker prefetch request, priority: %d", priority)
 		workerQueue = brq.prefetchWorkerQueue
+	} else {
+		brq.log.Debug("notifyWorker on-demand request, priority: %d", priority)
 	}
 	select {
 	case <-brq.doneCh:
@@ -182,9 +185,14 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 		}
 	// Get the next queued worker
 	case ch := <-workerQueue:
+		brq.log.Debug("notifyWorker(%p) received worker", &ch)
 		retrieval := brq.popIfNotEmpty()
 		if retrieval != nil {
+			brq.log.Debug("notifyWorker(%p) finalizing request %+v",
+				&ch, retrieval.blockPtr)
 			ch <- retrieval
+		} else {
+			brq.log.Debug("notifyWorker(%p) nil request", &ch)
 		}
 	}
 }
@@ -381,11 +389,13 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 
 // Work accepts a worker's channel to assign work.
 func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
+	brq.log.Debug("brq.Work called with %p", &ch)
 	brq.workerQueue <- ch
 }
 
 // PrefetchWork accepts a worker's channel to assign work.
 func (brq *blockRetrievalQueue) PrefetchWork(ch chan<- *blockRetrieval) {
+	brq.log.Debug("brq.PrefetchWork called with %p", &ch)
 	brq.prefetchWorkerQueue <- ch
 }
 
