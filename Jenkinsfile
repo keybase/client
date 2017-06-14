@@ -123,7 +123,7 @@ helpers.rootLinuxNode(env, {
                     test_osx: {
                         def mountDir='/Volumes/untitled/kbfs'
                         helpers.nodeWithCleanup('macstadium', {}, {
-                                sh "rm -rf ${mountDir}"
+                                sh "rm -rf ${mountDir} || echo 'Something went wrong with cleanup.'"
                             }) {
                             def BASEDIR=pwd()
                             def GOPATH="${BASEDIR}/go"
