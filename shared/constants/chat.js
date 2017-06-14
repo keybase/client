@@ -1007,6 +1007,10 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+function isImageFileName(filename: string): boolean {
+  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+}
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1072,4 +1076,5 @@ export {
   getSelectedInbox,
   getTLF,
   getMuted,
+  isImageFileName,
 }
