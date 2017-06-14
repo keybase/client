@@ -119,9 +119,17 @@ const Intro = (props: Props) => (
       <Box style={{flex: 1, width: 1}} />
       <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
       <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
+      <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
+        Problems logging in?
+      </Text>
     </Box>
   </Box>
 )
+
+const stylesFeedback = {
+  alignSelf: 'flex-end',
+  margin: globalMargins.tiny,
+}
 
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
@@ -163,7 +171,6 @@ const stylesBannerBlue = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  textAlign: 'center',
 }
 
 const stylesBannerGreen = {

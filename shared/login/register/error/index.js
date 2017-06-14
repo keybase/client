@@ -21,7 +21,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body">
+            <Text type="Body" style={centerText}>
               You can't authorize by passphrase, since you have established device or paper keys. You can go back and pick a device or paper key, or
               {' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
@@ -47,8 +47,8 @@ const renderError = (error: RPCError) => {
                 You can't provision using solely a passphrase, since you have active device keys.
               </Text>
             </Box>
-            <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-              <Text type="BodySemibold">You have options:</Text>
+            <Box style={{...styleText, marginTop: 16}}>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
             </Box>
             <Box style={{styleList}}>
               <Text type="Body">
@@ -82,8 +82,8 @@ const renderError = (error: RPCError) => {
                 You can't provision using a passphrase, since you've established a PGP key.
               </Text>
             </Box>
-            <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-              <Text type="BodySemibold">You have options:</Text>
+            <Box style={{...styleText, marginTop: 16}}>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
             </Box>
             <Box style={styleList}>
               <Text type="Body">
@@ -126,7 +126,7 @@ const renderError = (error: RPCError) => {
           {error.desc
             ? <Markdown>{error.desc}</Markdown>
             : <Box style={styleText}>
-                <Text type="Body">
+                <Text type="Body" style={centerText}>
                   Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run
                   {' '}
                   <Text type="TerminalInline">keybase login</Text>
@@ -140,7 +140,7 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body">
+            <Text type="Body" style={centerText}>
               The username you provided doesn't exist on Keybase, please try logging in again with a different username.
             </Text>
           </Box>
@@ -151,7 +151,11 @@ const renderError = (error: RPCError) => {
         <Box style={styleContent}>
           <Box style={{...globalStyles.flexBoxColumn, ...styleText}}>
             <Text type="Body">Looks like thats a bad passphrase.</Text>
-            <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#password-reset')}>
+            <Text
+              type="BodyPrimaryLink"
+              onClick={() => openURL('https://keybase.io/#password-reset')}
+              style={centerText}
+            >
               Reset your passphrase?
             </Text>
           </Box>
@@ -163,12 +167,12 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           <Box style={styleText}>
-            <Text type="Body">
+            <Text type="Body" style={centerText}>
               Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.
             </Text>
           </Box>
-          <Box style={{...styleText, textAlign: 'left', marginTop: 16}}>
-            <Text type="BodySemibold">You have options:</Text>
+          <Box style={{...styleText, marginTop: 16}}>
+            <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
           </Box>
           <Box style={styleList}>
             <Text type="Body">
@@ -204,6 +208,23 @@ const renderError = (error: RPCError) => {
           <Text type="Body">Login Cancelled</Text>
         </Box>
       )
+    case ConstantsStatusCode.sckeycorrupted:
+      return (
+        <Box style={styleContent}>
+          <Text type="Body">{error.message}</Text>
+          <Text type="Body">
+            {' '}
+            We were able to generate a PGP signature but it was rejected
+            by the server. This often means that this PGP key is expired
+            or unusable. You can update your key on
+            {' '}
+            <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/')}>
+              keybase.io
+            </Text>
+            .
+          </Text>
+        </Box>
+      )
     default:
       return (
         <Box style={styleContent}>
@@ -213,7 +234,7 @@ const renderError = (error: RPCError) => {
   }
 }
 
-const RenderError = ({onBack, error}: Props) => (
+const Render = ({onBack, error}: Props) => (
   <Container onBack={onBack}>
     <Text type="Header" style={styleHeader}>
       There was an error provisioning
@@ -221,6 +242,11 @@ const RenderError = ({onBack, error}: Props) => (
     {renderError(error)}
   </Container>
 )
+
+const centerText = {
+  textAlign: 'center',
+  ...(isMobile ? {} : {display: 'inline-block'}),
+}
 
 const styleHeader = {
   alignSelf: 'center',
@@ -231,14 +257,11 @@ const styleHeader = {
 const styleText = {
   marginBottom: 10,
   maxWidth: 460,
-  textAlign: 'center',
 }
 
 const styleList = {
   ...styleText,
   ...globalStyles.flexBoxColumn,
-  textAlign: 'left',
-  lineHeight: '20px',
   marginLeft: globalMargins.tiny,
 }
 
@@ -248,4 +271,4 @@ const styleContent = {
   flex: 1,
 }
 
-export default RenderError
+export default Render

@@ -106,6 +106,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ConversationMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "REMOVED_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "Pagination",
       "fields": [

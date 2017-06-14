@@ -27,6 +27,8 @@ const props: LoginProps = {
   showTypingChange: createLogger('showTypingChange'),
   saveInKeychainChange: createLogger('saveInKeychainChange'),
   onSubmit: createLogger('onSubmit'),
+  onLogin: createLogger('onLogin'),
+  onFeedback: createLogger('onFeedback'),
 }
 
 const dumbMap: DumbComponentMap<Login> = {

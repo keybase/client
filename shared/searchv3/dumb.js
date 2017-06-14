@@ -46,9 +46,11 @@ const servicesFilterMap: DumbComponentMap<ServicesFilter> = {
 
 const commonServicesResultMapProps = {
   parentProps: {
-    style: {
-      width: 480,
-    },
+    style: isMobile
+      ? {}
+      : {
+          width: 480,
+        },
   },
   showTrackerButton: false,
   id: 0,
@@ -427,7 +429,6 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
 
 const desktopOnly = !isMobile
   ? {
-      'SearchV3 result': servicesResultMap,
       'SearchV3 resultsList': servicesResultsListMap,
     }
   : {}
@@ -436,5 +437,6 @@ export default {
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
   'SearchV3 user input (editable)': userInputEditableMap,
+  'SearchV3 result': servicesResultMap,
   ...desktopOnly,
 }

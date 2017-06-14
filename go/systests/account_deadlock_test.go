@@ -17,11 +17,15 @@ import (
 )
 
 func TestAccountDeadlock(t *testing.T) {
-	t.Skip("Broken test; see CORE-5356")
-	tc := setupTest(t, "resolve2")
+	tc := setupTest(t, "deadlock")
 	tc2 := cloneContext(tc)
 
 	libkb.G.LocalDb = nil
+
+	libkb.CITimeMultiplier = 2
+	defer func() {
+		libkb.CITimeMultiplier = 1
+	}()
 
 	defer tc.Cleanup()
 

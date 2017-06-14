@@ -1,10 +1,10 @@
 // @flow
 import {ipcMain} from 'electron'
-import {selector as menubarSelector} from '../../menubar'
-import {selector as pineentrySelector} from '../../pinentry'
-import {selector as remotePurgeMessageSelector} from '../../pgp/container.desktop'
-import {selector as trackerSelector} from '../../tracker'
-import {selector as unlockFoldersSelector} from '../../unlock-folders'
+import {selector as menubarSelector} from '../../menubar/selector'
+import {selector as pineentrySelector} from '../../pinentry/selector'
+import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
+import {selector as trackerSelector} from '../../tracker/selector'
+import {selector as unlockFoldersSelector} from '../../unlock-folders/selector'
 
 import type {Components} from '../renderer/remote-component'
 

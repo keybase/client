@@ -38,6 +38,7 @@ const (
 	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
+	StatusCode_SCKeyCorrupted           StatusCode = 905
 	StatusCode_SCKeyInUse               StatusCode = 907
 	StatusCode_SCKeyBadGen              StatusCode = 913
 	StatusCode_SCKeyNoSecret            StatusCode = 914
@@ -130,6 +131,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCBadInvitationCode":      707,
 	"SCMissingResult":          801,
 	"SCKeyNotFound":            901,
+	"SCKeyCorrupted":           905,
 	"SCKeyInUse":               907,
 	"SCKeyBadGen":              913,
 	"SCKeyNoSecret":            914,
@@ -220,6 +222,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	707:  "SCBadInvitationCode",
 	801:  "SCMissingResult",
 	901:  "SCKeyNotFound",
+	905:  "SCKeyCorrupted",
 	907:  "SCKeyInUse",
 	913:  "SCKeyBadGen",
 	914:  "SCKeyNoSecret",

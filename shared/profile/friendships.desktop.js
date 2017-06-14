@@ -2,7 +2,7 @@
 import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
-import {Box, Avatar, Text} from '../common-adapters'
+import {Avatar, Box, ProgressIndicator, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props, FriendshipUserInfo} from './friendships'
@@ -79,6 +79,15 @@ class FriendshipsRender extends Component<void, Props, void> {
     const {isYou} = this.props
     const followers = this.props.followers.length
     const following = this.props.following.length
+
+    if (!this.props.followersLoaded) {
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 40}}>
+          <ProgressIndicator />
+        </Box>
+      )
+    }
+
     return (
       <TabBar style={this.props.style}>
         <TabBarItem

@@ -17,7 +17,7 @@ export function SettingsItem({text, selected, onClick, badgeNumber}: SettingsIte
   )
 }
 
-function SettingsNav({badgeNumbers, selectedTab, onTabChange}: Props) {
+function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
   return (
     <Box style={styleNavBox}>
       <SettingsItem
@@ -44,6 +44,7 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange}: Props) {
         badgeNumber={badgeNumbers[deleteMeTab]}
         onClick={() => onTabChange(deleteMeTab)}
       />
+      <SettingsItem text="Sign out" selected={false} badgeNumber={0} onClick={onLogout} />
       {__DEV__ &&
         <SettingsItem
           text="😎 &nbsp; Dev Menu"

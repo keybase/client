@@ -214,6 +214,30 @@
           "name": "typing"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateConversationMembership",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "joined"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "removed"
+        }
+      ]
     }
   ],
   "messages": {},

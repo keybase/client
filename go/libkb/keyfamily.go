@@ -26,8 +26,12 @@ type KeybaseTime struct {
 	Chain int   // Merkle root chain time
 }
 
-// ComputedKeyInfo is a set of annotations that we apply to a ServerKeyRecord.
-// Everything here has been checked by the client. Each ComputedKeyInfo
+// Struct for the DelegationsList
+type Delegation struct {
+	KID   keybase1.KID
+	SigID keybase1.SigID
+}
+
 // refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
 	Contextified
@@ -53,6 +57,10 @@ type ComputedKeyInfo struct {
 
 	// Map of SigID -> KID
 	Delegations map[keybase1.SigID]keybase1.KID
+
+	// List of the same delegations as above, in a way that preserves ordering.
+	// NOTE: This is not populated in older cached CKI's.
+	DelegationsList []Delegation
 
 	// Merkle Timestamps and Friends for delegation. Suboptimal grouping of concerns
 	// due to backwards compatibility and sensitivity to preexisting ondisk representations.
@@ -601,6 +609,7 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 		info.ETime = etime.Unix()
 	}
 	info.Delegations[sigid] = signingKid
+	info.DelegationsList = append(info.DelegationsList, Delegation{signingKid, sigid})
 	info.Sibkey = isSibkey
 	info.DelegatedAtHashMeta = merkleHashMeta.DeepCopy()
 	info.FirstAppearedUnverified = fau

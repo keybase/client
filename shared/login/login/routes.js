@@ -11,8 +11,13 @@ import SetPublicName from '../register/set-public-name/container'
 import Success from '../register/success/container'
 import RegisterError from '../register/error/container'
 import GPGSign from '../register/gpg-sign/container'
+import Feedback from '../../settings/feedback-container'
 
 const recursiveLazyRoutes = I.Seq({
+  feedback: {
+    component: Feedback,
+    tags: {hideStatusBar: true, fullscreen: true},
+  },
   login: {
     component: Login,
   },

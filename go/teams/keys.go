@@ -18,7 +18,7 @@ type PerTeamSharedSecretBoxes struct {
 	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
 	Nonce         string                  `json:"nonce"`
 	PrevKey       *string                 `json:"prev"`
-	Boxes         map[string]string       `json:"boxes"`
+	Boxes         map[keybase1.UID]string `json:"boxes"`
 }
 
 type PerTeamSharedSecretBox struct {
@@ -89,7 +89,7 @@ func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 
 // SharedSecretBoxes creates the PerTeamSharedSecretBoxes for recipients with the
 // existing team shared secret.
-func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
+func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
 	defer t.G().Trace("SharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix, skipping the zero counter
@@ -105,7 +105,7 @@ func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipient
 
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
-func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
+func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
 	defer t.G().Trace("RotateSharedSecretBoxes", func() error { return err })()
 
 	// make a new secret
@@ -156,7 +156,7 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	return boxes, keySection, nil
 }
 
-func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[string]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
 	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
@@ -175,9 +175,9 @@ func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGene
 	}, nil
 }
 
-func (t *TeamKeyManager) recipientBoxes(secret []byte, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipients map[string]keybase1.PerUserKey) (map[string]string, error) {
-	boxes := make(map[string]string)
-	for username, recipientPerUserKey := range recipients {
+func (t *TeamKeyManager) recipientBoxes(secret []byte, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipients map[keybase1.UID]keybase1.PerUserKey) (map[keybase1.UID]string, error) {
+	boxes := make(map[keybase1.UID]string)
+	for uid, recipientPerUserKey := range recipients {
 		boxStruct, err := t.recipientBox(secret, nonce, senderKey, recipientPerUserKey)
 		if err != nil {
 			return nil, err
@@ -188,7 +188,7 @@ func (t *TeamKeyManager) recipientBoxes(secret []byte, nonce *nonce24, senderKey
 			return nil, err
 		}
 
-		boxes[username] = base64.StdEncoding.EncodeToString(encodedArray)
+		boxes[uid] = base64.StdEncoding.EncodeToString(encodedArray)
 	}
 
 	return boxes, nil
