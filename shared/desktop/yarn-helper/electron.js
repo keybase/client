@@ -21,7 +21,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: `electron ${path.resolve(__dirname, '../desktop/dist/main.bundle.js')}`,
+    shell: `electron ${path.resolve(__dirname, '../dist/main.bundle.js')}`,
   },
   'start-hot': {
     code: startHot,
