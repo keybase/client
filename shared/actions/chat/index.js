@@ -542,7 +542,6 @@ function _unboxedToMessage(
             ...common,
             ...attachmentInfo,
             messageState,
-            uploadProgress: null,
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
@@ -572,7 +571,6 @@ function _unboxedToMessage(
             type: 'UpdateAttachment',
             updates: {
               ...attachmentInfo,
-              uploadProgress: null,
               messageState: 'sent',
             },
           }

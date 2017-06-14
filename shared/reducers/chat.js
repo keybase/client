@@ -415,13 +415,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return updateLocalMessageState(state, messageKey, toMerge)
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
-      const uploadProgress = bytesComplete / bytesTotal
-      const toMerge = {
-        messageState: 'uploading',
-        uploadProgress,
-      }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      const {messageKey, progress} = action.payload
+      return updateLocalMessageState(state, messageKey, {uploadProgress: progress})
     }
     case 'chat:outboxMessageBecameReal': {
       const {oldMessageKey, newMessageKey} = action.payload

@@ -463,13 +463,8 @@ function downloadProgress(
   }
 }
 
-function uploadProgress(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
-  bytesComplete: number,
-  bytesTotal: number
-): Constants.UploadProgress {
-  return {payload: {bytesComplete, bytesTotal, conversationIDKey, messageID}, type: 'chat:uploadProgress'}
+function uploadProgress(messageKey: Constants.MessageKey, progress: ?number): Constants.UploadProgress {
+  return {payload: {progress, messageKey}, type: 'chat:uploadProgress'}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically

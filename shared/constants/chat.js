@@ -137,7 +137,6 @@ export type AttachmentMessage = {
   previewDurationMs: ?number,
   uploadPath?: string,
   outboxID?: ?OutboxIDKey,
-  uploadProgress: number | null /* between 0 - 1 */,
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -333,6 +332,7 @@ export type RekeyInfo = Record<{
 export type LocalMessageStateProps = {
   previewProgress: number | null /* between 0 - 1 */,
   downloadProgress: number | null /* between 0 - 1 */,
+  uploadProgress: number | null /* between 0 - 1 */,
   previewPath: ?string,
   downloadedPath: ?string,
   savedPath: string | null | false,
@@ -343,6 +343,7 @@ const LocalMessageState: (
 ) => LocalMessageStateProps & Record<LocalMessageStateProps> = Record({
   previewProgress: null,
   downloadProgress: null,
+  uploadProgress: null,
   previewPath: null,
   downloadedPath: null,
   savedPath: null,
@@ -619,10 +620,8 @@ export type UpdateBrokenTracker = NoErrorTypedAction<
 export type UploadProgress = NoErrorTypedAction<
   'chat:uploadProgress',
   {
-    conversationIDKey: ConversationIDKey,
-    messageID: MessageID,
-    bytesComplete: number,
-    bytesTotal: number,
+    messageKey: MessageKey,
+    progress: ?number,
   }
 >
 export type DownloadProgress = NoErrorTypedAction<

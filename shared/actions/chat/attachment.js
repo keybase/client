@@ -6,7 +6,7 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, take, put, select, cancel, fork, join, spawn} from 'redux-saga/effects'
+import {call, take, put, select, cancel, fork, join, spawn, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
@@ -208,7 +208,6 @@ function* _appendAttachmentPlaceholder(
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),
     type: 'Attachment',
-    uploadProgress: null,
     you: author,
     ...Constants.getAttachmentInfo(preview),
     title,
@@ -277,40 +276,56 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   const outboxIDResp = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadOutboxID')
   const {outboxID} = outboxIDResp.params
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
-  yield call(_appendAttachmentPlaceholder, conversationIDKey, outboxIDKey, preview, title, filename)
+  const placeholderMessage = yield call(
+    _appendAttachmentPlaceholder,
+    conversationIDKey,
+    outboxIDKey,
+    preview,
+    title,
+    filename
+  )
   outboxIDResp.response.result()
 
-  const finishedTask = yield fork(function*() {
-    const finished = yield Saga.takeFromChannelMap(channelMap, 'finished')
-    if (finished.error) {
-      yield put(
-        Creators.updateTempMessage(
-          conversationIDKey,
-          {
-            messageState: 'failed',
-            failureDescription: 'upload unsuccessful',
-          },
-          outboxIDKey
-        )
-      )
+  const progressTask = yield fork(function*() {
+    // When we receive the attachment placeholder message from the server, the
+    // local message key basis will change from the outboxID to the messageID.
+    // We need to watch for this so that the uploadProgress gets set on the
+    // right message key.
+    let curKey = placeholderMessage.key
+    while (true) {
+      const {progress, keyChanged, finished} = yield race({
+        progress: Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress'),
+        finished: Saga.takeFromChannelMap(channelMap, 'finished'),
+        keyChanged: take(
+          action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === curKey
+        ),
+      })
+      if (keyChanged) {
+        curKey = keyChanged.payload.newMessageKey
+      } else if (progress) {
+        const {bytesComplete, bytesTotal} = progress.params
+        yield put(Creators.uploadProgress(curKey, bytesComplete / bytesTotal))
+      } else if (finished) {
+        if (finished.error) {
+          yield put(
+            Creators.updateTempMessage(
+              conversationIDKey,
+              {
+                messageState: 'failed',
+                failureDescription: 'upload unsuccessful',
+              },
+              outboxIDKey
+            )
+          )
+        }
+        yield put(Creators.uploadProgress(curKey, null))
+        yield cancel()
+      }
     }
-    return finished
   })
 
   const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  const messageID = uploadStart.params.placeholderMsgID
   uploadStart.response.result()
-
-  const progressTask = yield Saga.effectOnChannelMap(
-    c =>
-      Saga.safeTakeEvery(c, function*({response}) {
-        const {bytesComplete, bytesTotal} = response.param
-        yield put(Creators.uploadProgress(conversationIDKey, messageID, bytesComplete, bytesTotal))
-        response.result()
-      }),
-    channelMap,
-    'chat.1.chatUi.chatAttachmentUploadProgress'
-  )
 
   const previewUploadStart = yield Saga.takeFromChannelMap(
     channelMap,
@@ -325,13 +340,9 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
   uploadDone.response.result()
 
-  yield join(finishedTask)
-  yield cancel(progressTask)
+  yield join(progressTask)
   Saga.closeChannelMap(channelMap)
-
   // The message is updated when uploading finishes via an incoming attachmentuploaded message.
-
-  return messageID
 }
 
 function* onRetryAttachment({

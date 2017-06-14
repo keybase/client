@@ -187,8 +187,8 @@ function PreviewImageWithInfo({
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
 }) {
-  const {messageState, uploadProgress} = message
-  const {downloadProgress, previewProgress, savedPath} = localMessageState
+  const {messageState} = message
+  const {downloadProgress, previewProgress, uploadProgress, savedPath} = localMessageState
 
   const overlayProgressBarStyle = {
     bottom: globalMargins.xtiny,
@@ -265,8 +265,8 @@ function AttachmentMessageGeneric({
   onDownloadAttachment: () => void,
   onOpenInPopup: ?() => void,
 }) {
-  const {messageState, uploadProgress} = message
-  const {downloadProgress, savedPath} = localMessageState
+  const {messageState} = message
+  const {downloadProgress, savedPath, uploadProgress} = localMessageState
   const canOpen = messageState !== 'uploading' && messageState !== 'pending'
   return (
     <Box
