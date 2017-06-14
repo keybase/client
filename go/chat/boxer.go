@@ -12,7 +12,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"runtime/debug"
 	"time"
 
 	"golang.org/x/crypto/nacl/secretbox"
@@ -282,7 +281,7 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 }
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
-	b.log().Warning("@@@ unbox message: %+v", boxed)
+	b.Debug(ctx, "Unboxing message version: %v", boxed.Version)
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
 		return b.unboxV1(ctx, boxed, encryptionKey)
@@ -423,7 +422,6 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		headerSignature = header.V1().HeaderSignature
 		hp := header.V1()
 		bodyHash = hp.BodyHash
-		b.log().Warning("@@@ unbox v1 MR: %+v", hp.MerkleRoot)
 		clientHeader = chat1.MessageClientHeaderVerified{
 			Conv:         hp.Conv,
 			TlfName:      hp.TlfName,
@@ -543,7 +541,6 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncry
 	if ierr != nil {
 		return nil, ierr
 	}
-	b.log().Warning("@@@ unbox v2 MR: %+v", clientHeader.MerkleRoot)
 
 	// Whether the body is missing (deleted)
 	isBodyDeleted := (len(boxed.BodyCiphertext.E) == 0)
@@ -918,15 +915,13 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, err
 	}
 
-	b.log().Warning("@@@ box MR: %+v", msg.ClientHeader.MerkleRoot)
-
 	if len(msg.ClientHeader.TlfName) == 0 {
 		msg := fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName,
 			msg.ClientHeader.TlfName)
 		return nil, NewBoxingError(msg, true)
 	}
 
-	boxed, err := b.box(msg, encryptionKey, signingKeyPair, b.boxWithVersion)
+	boxed, err := b.box(ctx, msg, encryptionKey, signingKeyPair, b.boxWithVersion)
 	if err != nil {
 		return nil, NewBoxingError(err.Error(), true)
 	}
@@ -958,8 +953,9 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 	return nil
 }
 
-func (b *Boxer) box(messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
+func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
+	b.Debug(ctx, "Boxing message version: %v", version)
 	switch version {
 	case chat1.MessageBoxedVersion_V1:
 		return b.boxV1(messagePlaintext, encryptionKey, signingKeyPair)
@@ -1093,8 +1089,6 @@ func (b *Boxer) boxV2(messagePlaintext chat1.MessagePlaintext, baseEncryptionKey
 		KeyGeneration:    baseEncryptionKey.Generation(),
 	}
 
-	b.log().Warning("@@@ box result: %+v", *boxed)
-
 	return boxed, nil
 }
 
@@ -1125,8 +1119,6 @@ func (b *Boxer) seal(data interface{}, key libkb.NaclSecretBoxKey) (*chat1.Encry
 // open decrypts chat1.EncryptedData.
 func (b *Boxer) open(data chat1.EncryptedData, key libkb.NaclSecretBoxKey) ([]byte, error) {
 	if len(data.N) != libkb.NaclDHNonceSize {
-		b.log().Warning("@@@ open: bad nonce: %+v", data.N)
-		debug.PrintStack()
 		return nil, libkb.DecryptBadNonceError{}
 	}
 	var nonce [libkb.NaclDHNonceSize]byte
@@ -1226,8 +1218,6 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libk
 
 	var nonce [signencrypt.NonceSize]byte
 	if copy(nonce[:], data.N) != signencrypt.NonceSize {
-		b.log().Warning("@@@ signEncryptOpen: bad nonce: %+v", data.N)
-		debug.PrintStack()
 		return nil, libkb.DecryptBadNonceError{}
 	}
 
