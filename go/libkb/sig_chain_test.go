@@ -340,15 +340,11 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 		t.Fatal(err)
 	}
 
-	// Loading a chain from cache won't load all the links, if there's a
-	// sigchain reset in the middle. So we don't want to check the entire
-	// loaded chain for equality with what we saved. But we can make sure it's
-	// loaded all the links of the *current subchain*. HOWEVER: Loading
-	// sigchains from cache doesn't benefit from knowing the current eldest KID
-	// from the Merkle tree. That means if the account just reset, for example,
-	// loading from cache will still fetch the old chain. Avoid failing on this
-	// case by skipping the comparison when `currentSubchainStart` is 0
-	// (invalid) in the original chain.
+	// Loading sigchains from cache doesn't benefit from knowing the current
+	// eldest KID from the Merkle tree. That means if the account just reset,
+	// for example, loading from cache will still produce the old subchain
+	// start. Avoid failing on this case by skipping the comparison when
+	// `currentSubchainStart` is 0 (invalid) in the original chain.
 	if chain.currentSubchainStart == 0 {
 		// As described above, short circuit when we know loading from cache
 		// would give us a different answer.
@@ -357,20 +353,13 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	if chain.currentSubchainStart != sc2.currentSubchainStart {
 		t.Fatalf("disagreement about currentSubchainStart: %d != %d", chain.currentSubchainStart, sc2.currentSubchainStart)
 	}
-	subchainSeqnos1 := enumerateCurrentSubchain(chain)
-	subchainSeqnos2 := enumerateCurrentSubchain(sc2)
-	if len(subchainSeqnos1) != len(subchainSeqnos2) {
-		t.Fatalf("subchains don't have the same length: %d != %d", len(subchainSeqnos1), len(subchainSeqnos2))
+	if len(chain.chainLinks) != len(sc2.chainLinks) {
+		t.Fatalf("subchains don't have the same length: %d != %d", len(chain.chainLinks), len(sc2.chainLinks))
 	}
-	equal := true
-	for i := 0; i < len(subchainSeqnos1); i++ {
-		if subchainSeqnos1[i] != subchainSeqnos2[i] {
-			equal = false
-			break
+	for i := 0; i < len(chain.chainLinks); i++ {
+		if chain.chainLinks[i].GetSeqno() != sc2.chainLinks[i].GetSeqno() {
+			t.Fatalf("stored and loaded chains mismatched links: %d != %d", chain.chainLinks[i].GetSeqno(), sc2.chainLinks[i].GetSeqno())
 		}
-	}
-	if !equal {
-		t.Fatalf("subchains don't match: %#v != %#v", subchainSeqnos1, subchainSeqnos2)
 	}
 }
 

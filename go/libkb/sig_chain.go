@@ -911,15 +911,15 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 	links := ChainLinks{currentLink}
 
-	// Walk the links we have stored locally to load the current subchain and
-	// record the start of it. We might find out later when we check freshness
-	// that a reset has happened, so this result only gets used if the local
-	// chain turns out to be fresh. Note that unless the current subchain goes
-	// all the way back to seqno 1, we will also load one chain link before it.
-	// (That's necessary to detect some resets.)
+	// Load all the links we have locally, and record the start of the current
+	// subchain as we go. We might find out later when we check freshness that
+	// a reset has happened, so this result only gets used if the local chain
+	// turns out to be fresh.
 	for {
 		if currentLink.GetSeqno() == 1 {
-			l.currentSubchainStart = 1
+			if l.currentSubchainStart == 0 {
+				l.currentSubchainStart = 1
+			}
 			break
 		}
 		prevLink, err := ImportLinkFromStorage(currentLink.GetPrev(), l.selfUID(), l.G())
@@ -931,9 +931,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return nil
 		}
 		links = append(links, prevLink)
-		if isSubchainStart(currentLink, prevLink) {
+		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
-			break
 		}
 		currentLink = prevLink
 	}
