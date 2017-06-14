@@ -98,7 +98,7 @@ func (a *Account) LoggedIn() bool {
 
 // LoggedInLoad will load and check the session with the api server if necessary.
 func (a *Account) LoggedInLoad() (bool, error) {
-	return a.LocalSession().loadAndCheck()
+	return a.LocalSession().LoadAndCheck()
 }
 
 // LoggedInProvisionedCheck will load and check the session with the api server if necessary.
@@ -291,7 +291,7 @@ func (a *Account) Keyring() (*SKBKeyringFile, error) {
 	if a.localSession == nil {
 		a.G().Log.Warning("local session is nil")
 	}
-	a.LocalSession().loadAndCheck()
+	a.LocalSession().LoadAndCheck()
 	if a.localSession == nil {
 		a.G().Log.Warning("local session after load is nil")
 	}

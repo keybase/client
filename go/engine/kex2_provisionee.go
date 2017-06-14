@@ -391,6 +391,11 @@ func (e *Kex2Provisionee) Logout() error {
 	return nil
 }
 
+// LoadAndCheck implements libkb.SessionReader interface.  Noop.
+func (e *Kex2Provisionee) LoadAndCheck() (bool, error) {
+	return true, nil
+}
+
 // Device returns the new device struct.
 func (e *Kex2Provisionee) Device() *libkb.Device {
 	return e.device

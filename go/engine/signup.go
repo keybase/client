@@ -236,18 +236,18 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 
 	// Create the secret store as late as possible here, as the username may
 	// change during the signup process.
-	if s.arg.StoreSecret {
-		secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
-		secret, err := s.lks.GetSecret(a)
-		if err != nil {
-			return err
-		}
-		// Ignore any errors storing the secret.
-		storeSecretErr := secretStore.StoreSecret(secret)
-		if storeSecretErr != nil {
-			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
-		}
+	// if s.arg.StoreSecret {
+	secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
+	secret, err := s.lks.GetSecret(a)
+	if err != nil {
+		return err
 	}
+	// Ignore any errors storing the secret.
+	storeSecretErr := secretStore.StoreSecret(secret)
+	if storeSecretErr != nil {
+		s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+	}
+	//	}
 
 	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())
 	s.G().Log.Debug("eldest kid: %s", s.me.GetEldestKID())
