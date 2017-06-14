@@ -12,7 +12,6 @@ const baseMock = {
   cameraBrokenMode: false,
   setCodePageMode: () => {},
   qrScanned: data => console.log('QR Scanned:', data),
-  qrCodeScanned: false,
   setCameraBrokenMode: () => {},
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
@@ -25,12 +24,6 @@ const scanCodeDeviceMock = {
   ...baseMock,
   mode: 'codePageModeScanCode',
   otherDeviceRole: codePageDeviceRoleExistingPhone,
-}
-
-const scannedCodeDeviceMock = {
-  ...scanCodeDeviceMock,
-  myDeviceRole: codePageDeviceRoleExistingPhone,
-  qrCodeScanned: true,
 }
 
 const showTextDeviceMock = {
@@ -79,7 +72,6 @@ const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
     'Scan Code (Mobile)': scanCodeDeviceMock,
-    'Scanned Code (Mobile)': scannedCodeDeviceMock,
     'Show Text (Mobile)': showTextDeviceMock,
     'Enter Text (Mobile)': enterTextDeviceMock,
     'Show Code (Mobile)': showCodeDeviceMock,

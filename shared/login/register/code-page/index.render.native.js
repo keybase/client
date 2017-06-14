@@ -32,7 +32,20 @@ import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
 import type {Props} from './index.render'
 
-class CodePageRender extends Component<void, Props, void> {
+type State = {
+  qrCodeScanned: boolean,
+}
+
+class CodePageRender extends Component<void, Props, State> {
+  state: State
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      qrCodeScanned: false,
+    }
+  }
+
   renderShowCode() {
     return (
       <Qr
@@ -44,8 +57,15 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
+  _onScan = code => {
+    this.setState({
+      qrCodeScanned: true,
+    })
+    this.props.qrScanned(code)
+  }
+
   renderScanCode() {
-    if (this.props.qrCodeScanned) {
+    if (this.state.qrCodeScanned) {
       // If we are provisioning from existing phone, after scanning we should continue on other device
       const continueOnOtherDevice = this.props.myDeviceRole === codePageDeviceRoleExistingPhone
       const scanMessage = continueOnOtherDevice
@@ -69,7 +89,7 @@ class CodePageRender extends Component<void, Props, void> {
     return (
       <Qr
         scanning={true}
-        onBarCodeRead={code => this.props.qrScanned(code)}
+        onBarCodeRead={code => this._onScan(code)}
         style={stylesQRScan}
         qrCode={this.props.qrCode}
       >
@@ -146,7 +166,7 @@ class CodePageRender extends Component<void, Props, void> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
           <Text type="Body">In the Keybase app on your computer,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         {this.renderScanCode()}
         {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
@@ -173,7 +193,7 @@ class CodePageRender extends Component<void, Props, void> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Scan QR code</Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         <TabBar style={{flex: 1}} underlined={true}>
           <TabBarItem
@@ -233,7 +253,7 @@ class CodePageRender extends Component<void, Props, void> {
         <Box style={stylesIntro}>
           <Text type="Header" style={{marginBottom: 10}}>Type text code</Text>
           <Text type="Body">In the Keybase App on your other phone,</Text>
-          <Text type="Body">{'go to Devices > Add a new device.'}</Text>
+          <Text type="Body">{'go to Settings > Devices > Add a new device.'}</Text>
         </Box>
         <TabBar underlined={true} style={{flex: 1}}>
           <TabBarItem

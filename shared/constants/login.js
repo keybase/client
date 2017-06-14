@@ -130,7 +130,6 @@ export type State = {
     myDeviceRole: ?DeviceRole,
     otherDeviceRole: ?DeviceRole,
     qrCode: ?QRCode,
-    qrCodeScanned: boolean,
     qrScanned: ?QRCode,
     textCode: ?HiddenString,
   },
