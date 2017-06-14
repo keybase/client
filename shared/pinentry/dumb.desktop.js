@@ -1,7 +1,7 @@
 // @flow
-
-import Pinentry from './index.render'
+import Pinentry from '.'
 import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
+
 import type {DumbComponentMap} from '../constants/types/more'
 import type {Props} from './index.render'
 

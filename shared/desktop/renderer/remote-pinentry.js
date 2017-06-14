@@ -1,67 +1,68 @@
 // @flow
-import React, {Component} from 'react'
-import RemoteComponent from './remote-component'
+import React from 'react'
+import RemoteComponentFast from './remote-component-2.desktop'
 import {connect} from 'react-redux'
 import {registerPinentryListener, onCancel, onSubmit} from '../../actions/pinentry'
+import {compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
-import type {PinentryState} from '../../constants/pinentry'
+// import type {PinentryState} from '../../reducers/pinentry'
 import type {GUIEntryFeatures} from '../../constants/types/flow-types'
 
-type Props = {
-  registerPinentryListener: () => void,
-  onCancel: (sessionID: number) => void,
-  onSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
-  pinentryStates: {[key: string]: PinentryState},
+const RemotePinentry = (props: any) => (
+  <div>
+    {props.remoteProps.map(p => <RemoteComponentFast key={p.key} {...p} />)}
+  </div>
+)
+
+// Trying not to touch the store yet so we convert the native thing in the store into something simple over the wire
+const mapReduxToSimpleProps = prop => {
+  // return {
+  // ...prop,
+  // id: parse
+  // }
+  return prop
 }
 
-class RemotePinentry extends Component<void, Props, void> {
-  componentWillMount() {
-    this.props.registerPinentryListener()
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return nextProps.pinentryStates !== this.props.pinentryStates
-  }
-
-  render() {
-    const {pinentryStates} = this.props
-
-    if (!pinentryStates) {
-      return null
+const mapStateToProps = (state: TypedState) => {
+  const states = state.pinentry.pinentryStates || {}
+  const remoteProps = Object.keys(states).reduce((toSend, key) => {
+    const complex = states[key]
+    if (complex.closed) {
+      return toSend
     }
 
-    return (
-      <div>
-        {Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
-          const sid = parseInt(pSessionID, 10)
-          return (
-            <RemoteComponent
-              title="Pinentry"
-              windowsOpts={{width: 440, height: 210}}
-              waitForState={true}
-              onRemoteClose={() => this.props.onCancel(sid)}
-              component="pinentry"
-              key={'pinentry:' + pSessionID}
-              onSubmit={(passphrase, features) => this.props.onSubmit(sid, passphrase, features)}
-              onCancel={() => this.props.onCancel(sid)}
-              sessionID={sid}
-            />
-          )
-        })}
-      </div>
-    )
+    toSend.push(mapReduxToSimpleProps(complex))
+    return toSend
+  }, [])
+
+  return {
+    remoteProps,
   }
 }
 
-export default connect(
-  (state: TypedState, ownProps: {}) => ({
-    pinentryStates: state.pinentry.pinentryStates || {},
-  }),
-  (dispatch: any, ownProps: {}) => ({
-    registerPinentryListener: () => dispatch(registerPinentryListener()),
-    onCancel: (sid: number) => dispatch(onCancel(sid)),
-    onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) =>
-      dispatch(onSubmit(sid, passphrase, features)),
+const mapDispatchToProps = (dispatch: any) => ({
+  onCancel: (sid: number) => dispatch(onCancel(sid)),
+  onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) =>
+    dispatch(onSubmit(sid, passphrase, features)),
+  registerPinentryListener: () => dispatch(registerPinentryListener()),
+})
+
+const mergeProps = (stateProps, dispatchProps) => ({
+  registerPinentryListener: dispatchProps.registerPinentryListener,
+  remoteProps: stateProps.remoteProps.map(s => ({
+    ...s,
+    onCancel: () => dispatchProps.onCancel(s.sessionID),
+    onSubmit: (passphrase: string, features: GUIEntryFeatures) =>
+      dispatchProps.onSubmit(s.sessionID, passphrase, features),
+  })),
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.registerPinentryListener()
+    },
   })
 )(RemotePinentry)
