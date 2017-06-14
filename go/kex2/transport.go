@@ -184,7 +184,8 @@ type ErrBadPacketSequence struct {
 }
 
 func (e ErrBadPacketSequence) Error() string {
-	return fmt.Sprintf("Unexpected out-of-order packet arrival (%+v)", e)
+	return fmt.Sprintf("Unexpected out-of-order packet arrival {SessionID: %v, SenderID: %v, ReceivedSeqno: %d, PrevSeqno: %d})",
+		e.SessionID, e.SenderID, e.ReceivedSeqno, e.PrevSeqno)
 }
 
 func (c *Conn) setReadError(e error) error {
