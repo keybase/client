@@ -20,7 +20,7 @@ class QR extends Component<void, Props, {permissionGranted: ?boolean}> {
       const permissionGranted = await Camera.checkVideoAuthorizationStatus()
       this.setState({permissionGranted})
     } catch (err) {
-      console.warn(err)
+      console.warn("Can't get camera permissions", err)
       this.setState({permissionGranted: false})
     }
   }
