@@ -281,12 +281,19 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 }
 
 func (b *Boxer) unbox(ctx context.Context, boxed chat1.MessageBoxed, encryptionKey types.CryptKey) (*chat1.MessageUnboxedValid, UnboxingError) {
-	b.Debug(ctx, "Unboxing message version: %v", boxed.Version)
 	switch boxed.Version {
 	case chat1.MessageBoxedVersion_VNONE, chat1.MessageBoxedVersion_V1:
-		return b.unboxV1(ctx, boxed, encryptionKey)
+		res, err := b.unboxV1(ctx, boxed, encryptionKey)
+		if err != nil {
+			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
+		}
+		return res, err
 	case chat1.MessageBoxedVersion_V2:
-		return b.unboxV2(ctx, boxed, encryptionKey)
+		res, err := b.unboxV2(ctx, boxed, encryptionKey)
+		if err != nil {
+			b.Debug(ctx, "error unboxing message version: %v", boxed.Version)
+		}
+		return res, err
 	default:
 		return nil,
 			NewPermanentUnboxingError(NewMessageBoxedVersionError(boxed.Version))
@@ -955,12 +962,19 @@ func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintex
 
 func (b *Boxer) box(ctx context.Context, messagePlaintext chat1.MessagePlaintext, encryptionKey types.CryptKey,
 	signingKeyPair libkb.NaclSigningKeyPair, version chat1.MessageBoxedVersion) (*chat1.MessageBoxed, error) {
-	b.Debug(ctx, "Boxing message version: %v", version)
 	switch version {
 	case chat1.MessageBoxedVersion_V1:
-		return b.boxV1(messagePlaintext, encryptionKey, signingKeyPair)
+		res, err := b.boxV1(messagePlaintext, encryptionKey, signingKeyPair)
+		if err != nil {
+			b.Debug(ctx, "error boxing message version: %v", version)
+		}
+		return res, err
 	case chat1.MessageBoxedVersion_V2:
-		return b.boxV2(messagePlaintext, encryptionKey, signingKeyPair)
+		res, err := b.boxV2(messagePlaintext, encryptionKey, signingKeyPair)
+		if err != nil {
+			b.Debug(ctx, "error boxing message version: %v", version)
+		}
+		return res, err
 	default:
 		return nil, fmt.Errorf("invalid version for boxing: %v", version)
 	}
