@@ -46,7 +46,6 @@ func (h *SigsHandler) run(args keybase1.SigListArgs) (*engine.SigsList, error) {
 
 	ea := engine.SigsListArgs{
 		Username: args.Username,
-		AllKeys:  args.AllKeys,
 		Filterx:  args.Filterx,
 		Verbose:  args.Verbose,
 		Revoked:  args.Revoked,

@@ -33,7 +33,6 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	}
 
 	arg := libkb.NewLoadUserByNameArg(tc.G, fu.Username)
-	arg.AllSubchains = true
 	u, err := libkb.LoadUser(arg)
 	require.NoError(t, err)
 

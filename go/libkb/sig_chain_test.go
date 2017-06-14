@@ -205,7 +205,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf, true)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -317,9 +317,7 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 			name: chain.username.String(),
 			id:   chain.uid,
 		},
-		self:         false,
-		allKeys:      true,
-		allSubchains: true,
+		self: false,
 		leaf: &MerkleUserLeaf{
 			public: chain.GetCurrentTailTriple(),
 			uid:    chain.uid,
