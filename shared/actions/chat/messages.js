@@ -8,9 +8,7 @@ import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
-import {getPath} from '../../route-tree'
-import {navigateTo} from '../../actions/route-tree'
-import {chatTab} from '../../constants/tabs'
+import {navigateUp} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -48,7 +46,9 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
       }
     }
 
-    yield put(navigateTo([], [chatTab, conversationIDKey]))
+    // This moves us back up a level so we don't see the attachment. The popup also moves us back up a level. TODO
+    // the navigateUp needs to be context away so we don't have these types of races. But keeping this simple for now
+    yield put(navigateUp())
 
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
       param: {
