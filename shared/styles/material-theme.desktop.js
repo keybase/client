@@ -1,5 +1,6 @@
 // @flow
-import {Spacing, getMuiTheme} from 'material-ui/styles'
+import Spacing from 'material-ui/styles/spacing'
+import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import {globalColors, globalStyles} from '.'
 
 const base = {

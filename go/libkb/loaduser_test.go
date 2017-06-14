@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"testing"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestLoadUserPlusKeys(t *testing.T) {
@@ -83,7 +84,7 @@ func BenchmarkLoadSigChains(b *testing.B) {
 	u.sigChainMem = nil
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = u.LoadSigChains(nil, true, &u.leaf, false); err != nil {
+		if err = u.LoadSigChains(nil, true /* AllKeys */, false /* AllSubchains */, &u.leaf, false); err != nil {
 			b.Fatal(err)
 		}
 		u.sigChainMem = nil

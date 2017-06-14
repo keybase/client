@@ -9,9 +9,10 @@ import {isIOS} from '../../../constants/platform'
 import type {AttachmentInput} from '../../../constants/chat'
 import type {Props} from '.'
 
-class ConversationInput extends Component<void, Props, void> {
-  _waitingOnEndEditing: boolean = false
+// TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
+// See if there's a better workaround later
 
+class ConversationInput extends Component<void, Props, void> {
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
       if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
@@ -29,13 +30,6 @@ class ConversationInput extends Component<void, Props, void> {
       this.props.onShowEditor(null)
       this.props.setText('')
     }
-  }
-
-  _onSubmit = () => {
-    // Force autocorrect
-    this._waitingOnEndEditing = true
-    // We want autocorrect to work when we click send, so we just blur the input and wait for it to be done updating its value
-    this.props.inputBlur()
   }
 
   _openFilePicker = () => {
@@ -60,14 +54,8 @@ class ConversationInput extends Component<void, Props, void> {
       }
     })
   }
-  _onEndEditing = (...args) => {
-    // We only submit when it got blurred and we're waiting for submission
-    if (!this._waitingOnEndEditing) {
-      return
-    }
 
-    this._waitingOnEndEditing = false
-
+  _onSubmit = () => {
     const text = this.props.text
     if (!text) {
       return
@@ -103,7 +91,6 @@ class ConversationInput extends Component<void, Props, void> {
           multiline={true}
           onBlur={this._onBlur}
           onChangeText={this.props.setText}
-          onEndEditing={this._onEndEditing}
           ref={this.props.inputSetRef}
           small={true}
           style={styleInput}

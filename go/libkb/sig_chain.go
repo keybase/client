@@ -712,7 +712,7 @@ func reverseListOfChainLinks(arr []ChainLinks) {
 	}
 }
 
-func (c ChainLinks) popNRightmostLinks(n int) ChainLinks {
+func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 	return c[0 : len(c)-n]
 }
 
@@ -728,7 +728,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase
 	allCached := cached
 
 	// Now let's examine any historical subchains, if there are any.
-	historicalLinks := sc.chainLinks.popNRightmostLinks(numLinksConsumed)
+	historicalLinks := sc.chainLinks.omittingNRightmostLinks(numLinksConsumed)
 	if len(historicalLinks) > 0 {
 		sc.G().Log.CDebugf(ctx, "After consuming %d links, there are %d historical links left",
 			numLinksConsumed, len(historicalLinks))
@@ -780,7 +780,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allL
 			allCached = false
 		}
 		prevSubchains = append(prevSubchains, links)
-		allLinks = allLinks.popNRightmostLinks(len(links))
+		allLinks = allLinks.omittingNRightmostLinks(len(links))
 	}
 	reverseListOfChainLinks(prevSubchains)
 	sc.G().Log.CDebugf(ctx, "Loaded %d additional historical subchains", len(prevSubchains))
