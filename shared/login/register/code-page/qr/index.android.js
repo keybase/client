@@ -9,23 +9,16 @@ import {throttle} from 'lodash'
 
 type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 
-type State = {
-  permissionGranted: ?boolean,
-}
-
-class QR extends Component<void, Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      permissionGranted: null,
-    }
-
-    this.requestCameraPermission()
+class QR extends Component<void, Props, {permissionGranted: ?boolean}> {
+  state = {
+    permissionGranted: null,
   }
 
-  async requestCameraPermission() {
+  componentDidMount() {
+    this._requestCameraPermission()
+  }
+
+  async _requestCameraPermission() {
     try {
       const status: PermissionStatus = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA,
