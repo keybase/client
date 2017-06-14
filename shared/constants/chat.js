@@ -628,8 +628,7 @@ export type UploadProgress = NoErrorTypedAction<
 export type DownloadProgress = NoErrorTypedAction<
   'chat:downloadProgress',
   {
-    bytesComplete?: number,
-    bytesTotal?: number,
+    progress: ?number,
     isPreview: boolean,
     messageKey: MessageKey,
   }

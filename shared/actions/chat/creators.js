@@ -99,12 +99,12 @@ const attachmentLoadedTransformer = ({
 
 const downloadProgressTransformer = ({
   type,
-  payload: {messageKey, isPreview, bytesComplete},
+  payload: {messageKey, isPreview, progress},
 }: Constants.DownloadProgress) => ({
   payload: {
     messageKey,
     isPreview,
-    progress: bytesComplete === 0 ? 'zero' : bytesComplete === 1 ? 'one' : 'partial',
+    progress: progress === 0 ? 'zero' : progress === 1 ? 'one' : 'partial',
   },
   type,
 })
