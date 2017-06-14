@@ -75,10 +75,18 @@ func TestTeamsTwoWritersJournal(t *testing.T) {
 			enableJournal(),
 			mkfile("a", "hello"),
 		),
+		as(alice,
+			// Wait for the flush, after doing a SyncAll().
+			flushJournal(),
+		),
 		as(bob,
 			enableJournal(),
 			read("a", "hello"),
 			mkfile("b", "world"),
+		),
+		as(bob,
+			// Wait for the flush, after doing a SyncAll().
+			flushJournal(),
 		),
 		as(alice,
 			read("b", "world"),
