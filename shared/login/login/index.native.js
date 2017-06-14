@@ -1,11 +1,19 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
+import {
+  Box,
+  UserCard,
+  Text,
+  Button,
+  FormWithCheckbox,
+  Dropdown,
+  NativeScrollView,
+} from '../../common-adapters/index.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 import type {Props} from '.'
 
-class Login extends Component<void, Props, void> {
+class LoginRender extends Component<void, Props, void> {
   render() {
     const inputProps = {
       hintText: 'Passphrase',
@@ -28,41 +36,50 @@ class Login extends Component<void, Props, void> {
     ]
 
     return (
-      <Box style={styles.container}>
-        <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
-          <Dropdown
-            type="Username"
-            value={this.props.selectedUser}
-            onClick={selectedUser => this.props.selectedUserChange(selectedUser)}
-            onOther={() => this.props.onSomeoneElse()}
-            options={this.props.users}
-          />
-          <FormWithCheckbox
-            style={{alignSelf: 'stretch'}}
-            inputProps={inputProps}
-            checkboxesProps={checkboxProps}
-          />
-          <Button
-            waiting={this.props.waitingForResponse}
-            style={{marginTop: 0}}
-            fullWidth={true}
-            type="Primary"
-            label="Log in"
-            onClick={() => this.props.onSubmit()}
-          />
-          <Text
-            link={true}
-            type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotPassphrase}
-            style={{marginTop: globalMargins.medium, textAlign: 'center'}}
-          >
-            Forgot passphrase?
+      <NativeScrollView>
+        <Box style={styles.container}>
+          <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+            <Dropdown
+              type="Username"
+              value={this.props.selectedUser}
+              onClick={this.props.selectedUserChange}
+              onOther={this.props.onSomeoneElse}
+              options={this.props.users}
+            />
+            <FormWithCheckbox
+              style={{alignSelf: 'stretch'}}
+              inputProps={inputProps}
+              checkboxesProps={checkboxProps}
+            />
+            <Button
+              waiting={this.props.waitingForResponse}
+              style={{marginTop: 0}}
+              fullWidth={true}
+              type="Primary"
+              label="Log in"
+              onClick={this.props.onSubmit}
+            />
+            <Text
+              link={true}
+              type="BodySmallSecondaryLink"
+              onClick={this.props.onForgotPassphrase}
+              style={{marginTop: globalMargins.medium, textAlign: 'center'}}
+            >
+              Forgot passphrase?
+            </Text>
+          </UserCard>
+          <Text style={{marginTop: globalMargins.xlarge}} type="BodyBigLink" onClick={this.props.onSignup}>
+            Create an account
           </Text>
-        </UserCard>
-        <Text style={{marginTop: globalMargins.xlarge}} type="BodyBigLink" onClick={this.props.onSignup}>
-          Create an account
-        </Text>
-      </Box>
+          <Text
+            style={{margin: globalMargins.small, marginTop: globalMargins.large, alignSelf: 'flex-end'}}
+            type="BodySmallPrimaryLink"
+            onClick={this.props.onFeedback}
+          >
+            Problems logging in?
+          </Text>
+        </Box>
+      </NativeScrollView>
     )
   }
 }
@@ -80,4 +97,4 @@ const styles = {
   },
 }
 
-export default Login
+export default LoginRender
