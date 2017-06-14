@@ -467,6 +467,9 @@ func (g *GlobalContext) Shutdown() error {
 		epick := FirstErrorPicker{}
 
 		// loginState request loop should be shut down first
+		// so that any active requests can use all of the
+		// services that are about to be shutdown below.
+		// (for example, g.LocalDb)
 		g.loginStateMu.Lock()
 		if g.loginState != nil {
 			epick.Push(g.loginState.Shutdown())
