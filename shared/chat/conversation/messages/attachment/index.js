@@ -63,10 +63,15 @@ function PreviewImage({
     }
 
     const imgWidth = imgMaxWidth()
+    // Don't exceed screen dimensions, keep it scaled
+    const previewRatio = previewSize && previewSize.width
+      ? Math.min(previewSize.width, imgWidth) / previewSize.width
+      : 1
+
     const imgStyle = {
       borderRadius: 4,
       ...(previewSize
-        ? {height: previewSize.height, width: Math.min(previewSize.width, imgWidth)}
+        ? {height: previewRatio * previewSize.height, width: previewRatio * previewSize.width}
         : {maxHeight: imgWidth, maxWidth: imgWidth}),
     }
 

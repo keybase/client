@@ -6,8 +6,5 @@ export type ImageRenderProps = {
   style: Object,
 }
 
-export class ImageRender extends Component<void, ImageRenderProps, void> {}
-
-export function imgMaxWidth() {
-  return 0
-}
+declare export class ImageRender extends Component<void, ImageRenderProps, void> {}
+declare export function imgMaxWidth(): number
