@@ -160,7 +160,7 @@ func (e *PGPKeyImportEngine) checkPregenPrivate() error {
 	if e.arg.Pregen == nil {
 		return nil
 	}
-	if e.arg.Pregen.HasSecretKey() {
+	if e.arg.Pregen.HasSecretKey() || e.arg.GPGFallback {
 		return nil
 	}
 	return libkb.NoSecretKeyError{}
