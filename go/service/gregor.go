@@ -1047,7 +1047,9 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	}
 
 	// Send the oobm to that chat system so that it can potentially handle it
-	g.G().PushHandler.HandleOobm(ctx, obm)
+	if g.G().PushHandler != nil {
+		g.G().PushHandler.HandleOobm(ctx, obm)
+	}
 
 	switch obm.System().String() {
 	case "kbfs.favorites":
