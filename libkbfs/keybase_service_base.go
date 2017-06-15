@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -23,6 +24,7 @@ type KeybaseServiceBase struct {
 	identifyClient  keybase1.IdentifyInterface
 	userClient      keybase1.UserInterface
 	teamsClient     keybase1.TeamsInterface
+	merkleClient    keybase1.MerkleInterface
 	sessionClient   keybase1.SessionInterface
 	favoriteClient  keybase1.FavoriteInterface
 	kbfsClient      keybase1.KbfsInterface
@@ -61,6 +63,7 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 func (k *KeybaseServiceBase) FillClients(
 	identifyClient keybase1.IdentifyInterface,
 	userClient keybase1.UserInterface, teamsClient keybase1.TeamsInterface,
+	merkleClient keybase1.MerkleInterface,
 	sessionClient keybase1.SessionInterface,
 	favoriteClient keybase1.FavoriteInterface,
 	kbfsClient keybase1.KbfsInterface,
@@ -68,6 +71,7 @@ func (k *KeybaseServiceBase) FillClients(
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.teamsClient = teamsClient
+	k.merkleClient = merkleClient
 	k.sessionClient = sessionClient
 	k.favoriteClient = favoriteClient
 	k.kbfsClient = kbfsClient
@@ -452,9 +456,20 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetCurrentMerkleSeqNo(ctx context.Context) (
 	MerkleSeqNo, error) {
-	// TODO: call into the service once they implement a way to get
-	// the current seqno.
-	return UnknownMerkleSeqNo, nil
+	const merkleFreshness = int(time.Second * 60 / time.Millisecond)
+	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshness)
+	if err != nil {
+		return 0, err
+	}
+
+	if res.Root.Seqno < 0 {
+		return 0, fmt.Errorf(
+			"Illegal negative merkle seqno: %d", res.Root.Seqno)
+	}
+
+	// NOTE: `res.Seqno` is an int64, while `MerkleSeqNo` is a uint64,
+	// so casting in this direction should be safe.
+	return MerkleSeqNo(res.Root.Seqno), nil
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
