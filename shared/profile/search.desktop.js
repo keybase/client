@@ -14,6 +14,7 @@ const Search = (props: Props) => (
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
         <Box style={{flexGrow: 1}}>
           <UserInput
+            autoFocus={true}
             userItems={props.userItems}
             onRemoveUser={props.onRemoveUser}
             onClickAddButton={props.onClickAddButton}

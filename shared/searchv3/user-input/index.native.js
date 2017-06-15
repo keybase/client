@@ -125,7 +125,7 @@ class UserInput extends Component<void, Props, State> {
   }
 
   render() {
-    const {placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
+    const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
 
     const showAddButton = !!userItems.length && !usernameText.length
     return (
@@ -142,6 +142,7 @@ class UserInput extends Component<void, Props, State> {
             }}
           >
             <TextInput
+              autoFocus={autoFocus}
               ref={el => {
                 this._textInput = el
               }}
