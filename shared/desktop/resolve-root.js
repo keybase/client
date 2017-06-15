@@ -3,7 +3,6 @@ import path from 'path'
 
 let root
 
-// $FlowIssue doesn't know about this global
 if (__STORYBOOK__) {
   root = path.join(__dirname)
 } else {

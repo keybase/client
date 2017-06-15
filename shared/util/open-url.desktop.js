@@ -1,14 +1,24 @@
 // @flow
-import {shell, ipcRenderer} from 'electron'
+// requires required to make storybook work
 
-export default function openURL(url: ?string) {
-  if (!url) {
-    console.warn('openURL received empty url')
-    return
-  }
-  shell.openExternal(url)
-}
+const openURL = __STORYBOOK__
+  ? (url: ?string) => {}
+  : (url: ?string) => {
+      const shell = require('electron').shell
 
-export function openURLWithHelper(type: string, params: ?string) {
-  ipcRenderer.send('openURL', type, params)
-}
+      if (!url) {
+        console.warn('openURL received empty url')
+        return
+      }
+      shell.openExternal(url)
+    }
+
+const openURLWithHelper = __STORYBOOK__
+  ? (type: string, params: ?string) => {}
+  : (type: string, params: ?string) => {
+      const ipcRenderer = require('electron').ipcRenderer
+      ipcRenderer.send('openURL', type, params)
+    }
+
+export default openURL
+export {openURLWithHelper}

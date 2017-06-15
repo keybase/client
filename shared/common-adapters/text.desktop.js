@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-// import openURL from '../util/open-url'
+// TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
+import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
 import {globalStyles} from '../styles'
@@ -52,7 +53,7 @@ class Text extends Component<void, Props, void> {
   }
 
   _urlClick = () => {
-    // this.props.onClickURL && openURL(this.props.onClickURL)
+    this.props.onClickURL && openURL(this.props.onClickURL)
   }
 
   render() {
