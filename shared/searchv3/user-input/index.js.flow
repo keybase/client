@@ -12,6 +12,7 @@ export type UserDetails = {
 }
 
 export type Props = {
+  autoFocus?: boolean,
   placeholder?: string,
   userItems: Array<UserDetails>,
   usernameText: string,

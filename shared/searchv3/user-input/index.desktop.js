@@ -98,7 +98,15 @@ class UserInput extends Component<void, Props, State> {
   }
 
   render() {
-    const {placeholder, userItems, usernameText, onChangeText, onClickAddButton, onRemoveUser} = this.props
+    const {
+      autoFocus,
+      placeholder,
+      userItems,
+      usernameText,
+      onChangeText,
+      onClickAddButton,
+      onRemoveUser,
+    } = this.props
     const {isFocused} = this.state
 
     const showAddButton = !!userItems.length && !usernameText.length
@@ -114,6 +122,7 @@ class UserInput extends Component<void, Props, State> {
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
         <Box style={_inputLineStyle}>
           <AutosizeInput
+            autoFocus={autoFocus}
             ref={el => {
               this._textInput = el
             }}
