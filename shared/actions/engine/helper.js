@@ -118,7 +118,9 @@ class EngineRpcCall {
       this._cleanedUp = true
       // TODO(mm) should we respond to the pending rpc with error if we hit this?
       // Nojima and Marco think it's okay for now - maybe discuss with core what we should do.
-      yield cancel(...subSagaTasks)
+      if (subSagaTasks.length) {
+        yield cancel(...subSagaTasks)
+      }
       this._engineChannel.close()
       this._subSagaChannel.close()
       yield put(Creators.waitingForRpc(this._rpcNameKey, false))
@@ -149,7 +151,9 @@ class EngineRpcCall {
 
         if (incoming.finished) {
           // Wait for all the subSagas to finish
-          yield join(...subSagaTasks)
+          if (subSagaTasks.length) {
+            yield join(...subSagaTasks)
+          }
           yield call([this, this._cleanup], subSagaTasks)
           const {error, params} = incoming.finished
           return finished({error, params})
