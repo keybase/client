@@ -30,6 +30,7 @@ export type Props = {|
   onChangeSearchText: (s: string) => void,
   search: Function,
   selectedSearchId: ?SearchConstants.SearchResultId,
+  onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
 |}
 
 export default class Conversation extends Component<void, Props, void> {}

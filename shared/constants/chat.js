@@ -359,7 +359,6 @@ export const StateRecord: LooseRecord<T> = Record({
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
-  selectedSearchId: null,
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -388,7 +387,6 @@ export type State = LooseRecord<{
   searchResults: ?List<SearchConstants.SearchResultId>,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
-  selectedSearchId: ?SearchConstants.SearchResultId,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -682,11 +680,6 @@ export type SaveAttachmentNative = NoErrorTypedAction<
   {
     message: AttachmentMessage,
   }
->
-
-export type SelectSearchResultId = NoErrorTypedAction<
-  'chat:selectSearchResultId',
-  {searchResultId: ?SearchConstants.SearchResultId}
 >
 
 export type ShareAttachment = NoErrorTypedAction<
@@ -1014,9 +1007,6 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
-const getSelectedSearchId = (state: TypedState): ?SearchConstants.SearchResultId =>
-  state.chat.selectedSearchId
-
 function isImageFileName(filename: string): boolean {
   return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
 }
@@ -1084,7 +1074,6 @@ export {
   getFollowingMap,
   getMetaDataMap,
   getSelectedInbox,
-  getSelectedSearchId,
   getTLF,
   getMuted,
   isImageFileName,

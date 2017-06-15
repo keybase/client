@@ -10,6 +10,7 @@ import {navigateAppend} from '../../actions/route-tree'
 import {getProfile} from '../../actions/tracker'
 import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
+import {selectedSearchIdHoc} from '../../searchv3/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 
 import type {Props} from '.'
@@ -26,7 +27,6 @@ type StateProps = {|
   inSearch: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   showSearchResults: boolean,
-  selectedSearchId: ?SearchConstants.SearchResultId,
 |}
 
 type DispatchProps = {|
@@ -79,7 +79,6 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     inSearch: state.chat.inSearch,
     searchResultIds: chatSearchResultArray(state),
     showSearchResults: !!searchResults,
-    selectedSearchId: state.chat.selectedSearchId,
   }
 }
 
@@ -125,6 +124,7 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
+  selectedSearchIdHoc,
   withHandlers({
     onCloseSidePanel: props => () => props.setSidePanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),

@@ -102,6 +102,8 @@ class Conversation extends Component<void, Props, State> {
           ? <SearchHeader
               onChangeSearchText={this.props.onChangeSearchText}
               usernameText={this.props.searchText}
+              selectedSearchId={this.props.selectedSearchId}
+              onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
             />
           : <Header
               sidePanelOpen={this.props.sidePanelOpen}

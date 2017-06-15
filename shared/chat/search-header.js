@@ -2,7 +2,6 @@
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/searchv3/creators'
-import * as Constants from '../constants/chat'
 import * as SearchConstants from '../constants/searchv3'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
@@ -23,6 +22,8 @@ type OwnProps = {
   selectedService: string,
   onSelectService: (s: string) => void,
   search: (term: string, service: SearchConstants.Service) => void,
+  selectedSearchId: ?SearchConstants.SearchResultId,
+  onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
 }
 
 const mapStateToProps = (state: TypedState) => {
@@ -44,7 +45,6 @@ const mapStateToProps = (state: TypedState) => {
   return {
     userItems,
     searchResultIds: chatSearchResultArray(state),
-    selectedSearchId: Constants.getSelectedSearchId(state),
   }
 }
 
@@ -59,7 +59,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(Creators.clearSearchResults())
     }
   },
-  onUpdateSelectedSearchResult: id => dispatch(Creators.selectSearchResultId(id)),
   onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
 })
 

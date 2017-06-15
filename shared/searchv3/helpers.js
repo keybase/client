@@ -1,6 +1,6 @@
 // @flow
 
-import {compose, withHandlers, withPropsOnChange} from 'recompose'
+import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
 import * as Constants from '../constants/searchv3'
 import {debounce} from 'lodash'
 
@@ -11,9 +11,21 @@ type OwnProps = {
 
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
-  onUpdateSelectedSearchResult: (id: Constants.SearchResultId) => void,
+  onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
   onStageUserForSearch: (id: Constants.SearchResultId) => void,
 }
+
+// Which search result is highlighted
+const selectedSearchIdHoc = compose(
+  withState('selectedSearchId', 'onUpdateSelectedSearchResult', null),
+  lifecycle({
+    componentWillReceiveProps: function(nextProps: OwnProps) {
+      if (this.props.searchResultIds !== nextProps.searchResultIds) {
+        nextProps.onUpdateSelectedSearchResult(nextProps.searchResultIds[0] || null)
+      }
+    },
+  })
+)
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
@@ -59,4 +71,4 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-export {onChangeSelectedSearchResultHoc}
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc}
