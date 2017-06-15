@@ -488,7 +488,7 @@ func TestCreateAndRemoveDirTreeWithinBatch(t *testing.T) {
 		as(alice,
 			mkdir("a"),
 			mkdir("a/b"),
-			mkfile("a/b/c", "hello"),
+			pwriteBSSync("a/b/c", []byte("hello"), 0, false),
 			rm("a/b/c"),
 			mkdir("b"),
 			rmdir("a/b"),
@@ -496,8 +496,13 @@ func TestCreateAndRemoveDirTreeWithinBatch(t *testing.T) {
 			// Initial check before SyncAll is called.
 			lsdir("", m{"b$": "DIR"}),
 			lsdir("b", m{}),
+			checkDirtyPaths([]string{
+				"alice,bob",
+				"alice,bob/a/b/c",
+			}),
 		),
 		as(alice,
+			checkDirtyPaths(nil),
 			lsdir("", m{"b$": "DIR"}),
 			lsdir("b", m{}),
 		),

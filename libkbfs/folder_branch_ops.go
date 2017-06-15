@@ -3753,8 +3753,12 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 		// perfectly accurate (but at the same time, we'd then have to
 		// fix up the intentional panic in the background flusher to
 		// be more tolerant of long-lived dirty, removed files).
-		return false, true, nil, nil, nil, fileSyncState{}, nil,
-			fbo.blocks.ClearCacheInfo(lState, file)
+		err := fbo.blocks.ClearCacheInfo(lState, file)
+		if err != nil {
+			return false, false, nil, nil, nil, fileSyncState{}, nil, err
+		}
+		fbo.status.rmDirtyNode(node)
+		return false, true, nil, nil, nil, fileSyncState{}, nil, nil
 	}
 
 	if file.isValidForNotification() {
@@ -4002,10 +4006,6 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		if !doSync {
 			if !stillDirty {
-				// TODO(KBFS-2076): delete blocks from the dirty block
-				// cache on a successful sync (in a defer).  Only
-				// newly-created, empty file blocks won't be cleaned
-				// up by the normal file-syncing process.
 				fbo.status.rmDirtyNode(node)
 			}
 			continue
