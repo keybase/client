@@ -727,6 +727,26 @@ func (k *LibKBFS) UnflushedPaths(u User, tlfName string, t tlf.Type) (
 	return status.Journal.UnflushedPaths, nil
 }
 
+// DirtyPaths implements the Engine interface.
+func (k *LibKBFS) DirtyPaths(u User, tlfName string, t tlf.Type) (
+	[]string, error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext(u)
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, t)
+	if err != nil {
+		return nil, err
+	}
+
+	status, _, err := config.KBFSOps().FolderStatus(ctx, dir.GetFolderBranch())
+	if err != nil {
+		return nil, err
+	}
+
+	return status.DirtyPaths, nil
+}
+
 // TogglePrefetch implements the Engine interface.
 func (k *LibKBFS) TogglePrefetch(u User, enable bool) error {
 	config := u.(*libkbfs.ConfigLocal)

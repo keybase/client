@@ -896,6 +896,23 @@ func checkUnflushedPaths(expectedPaths []string) fileOp {
 	}, IsInit, fmt.Sprintf("checkUnflushedPaths(%s)", expectedPaths)}
 }
 
+func checkDirtyPaths(expectedPaths []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		paths, err := c.engine.DirtyPaths(c.user, c.tlfName, c.tlfType)
+		if err != nil {
+			return err
+		}
+
+		sort.Strings(expectedPaths)
+		sort.Strings(paths)
+		if !reflect.DeepEqual(expectedPaths, paths) {
+			return fmt.Errorf("Expected dirty paths %v, got %v",
+				expectedPaths, paths)
+		}
+		return nil
+	}, IsInit, fmt.Sprintf("checkDirtyPaths(%s)", expectedPaths)}
+}
+
 func disablePrefetch() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.TogglePrefetch(c.user, false)

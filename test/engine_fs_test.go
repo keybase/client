@@ -398,6 +398,25 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, t tlf.Type) (
 	return bufStatus.Journal.UnflushedPaths, nil
 }
 
+// DirtyPaths implements the Engine interface.
+func (*fsEngine) DirtyPaths(user User, tlfName string, t tlf.Type) (
+	[]string, error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, t)
+	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
+	if err != nil {
+		return nil, err
+	}
+
+	var bufStatus libkbfs.FolderBranchStatus
+	err = json.Unmarshal(buf, &bufStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return bufStatus.DirtyPaths, nil
+}
+
 // TogglePrefetch implements the Engine interface.
 func (*fsEngine) TogglePrefetch(user User, enable bool) error {
 	u := user.(*fsUser)

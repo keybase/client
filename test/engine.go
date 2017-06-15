@@ -144,6 +144,9 @@ type Engine interface {
 	// paths haven't yet been flushed from the journal.
 	UnflushedPaths(u User, tlfName string, t tlf.Type) (
 		paths []string, err error)
+	// DirtyPaths called by the test harness to find out which
+	// paths haven't yet been flushed out of memory.
+	DirtyPaths(u User, tlfName string, t tlf.Type) (paths []string, err error)
 	// TogglePrefetch is called by the test harness as the given user to toggle
 	// whether prefetching should be enabled
 	TogglePrefetch(u User, enable bool) error
