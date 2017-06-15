@@ -938,7 +938,6 @@ func (m messageSabotagerRemote) GetThreadRemote(ctx context.Context, arg chat1.G
 		return res, err
 	}
 	if len(res.Thread.Messages) > 0 {
-		fmt.Printf("SABOTAGING\n")
 		res.Thread.Messages[0].BodyCiphertext.E[0] += 50
 	}
 	return res, nil
