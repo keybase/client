@@ -66,6 +66,7 @@ var noErrorNames = map[string]bool{
 	"m4root":         true, // OS X, iMovie?
 	"BDMV":           true, // OS X, iMovie?
 	"node_modules":   true, // Some npm shell configuration
+	"folder":         true, // Dolphin?  keybase/client#7304
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
