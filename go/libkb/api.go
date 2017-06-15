@@ -11,7 +11,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"runtime"
 	"strings"
@@ -560,8 +559,6 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 			a.G().Log.Debug("fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
 
-		a.G().Log.Warning("api endpoint %s, token = %q, csrf = %q", arg.Endpoint, tok, csrf)
-
 		if a.G().Env.GetTorMode().UseSession() {
 			if len(tok) > 0 {
 				req.Header.Set("X-Keybase-Session", tok)
@@ -654,7 +651,8 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	} else {
 		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
 	}
-	// return LoginRequiredError{Context: "your session has expired."}
+
+	// use ReloginRequiredError to signal that the session needs to be refreshed
 	return ReloginRequiredError{}
 }
 
@@ -836,13 +834,6 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 }
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
-
-	dump, err := httputil.DumpRequestOut(req, true)
-	if err != nil {
-		return nil, err
-	}
-	a.G().Log.Warning("DoRequest initial request: %q", dump)
-
 	res, reqErr := a.doRequest(arg, req)
 	if reqErr == nil {
 		return res, nil
@@ -856,19 +847,14 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 	if req.GetBody != nil {
 		// post request body consumed, need to get it back
+		var err error
 		req.Body, err = req.GetBody()
 		if err != nil {
 			return res, err
 		}
 	}
 
-	dump, err = httputil.DumpRequestOut(req, true)
-	if err != nil {
-		return nil, err
-	}
-	a.G().Log.Warning("DoRequest refresh request: %q", dump)
-
-	res, err = a.doRequest(arg, req)
+	res, err := a.doRequest(arg, req)
 	if err == nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API call %s success after refresh", arg.Endpoint)
 		return res, nil

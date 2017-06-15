@@ -17,7 +17,6 @@ type SessionReader interface {
 	APIArgs() (token, csrf string)
 	IsLoggedIn() bool
 	Invalidate()
-	LoadAndCheck() (bool, error)
 }
 
 type Session struct {
@@ -309,8 +308,8 @@ func (s *Session) Invalidate() {
 	s.token = ""
 	s.csrf = ""
 	s.checked = false
-	s.loaded = false
-	// XXX this might be a mistake:
+	// XXX this might be a mistake as the session might be refreshed
+	// but it was here before, so...
 	s.G().NotifyRouter.HandleLogout()
 	s.G().Log.Debug("- session invalidated")
 }
@@ -353,7 +352,7 @@ func (s *Session) Logout() error {
 	return err
 }
 
-func (s *Session) LoadAndCheck() (bool, error) {
+func (s *Session) loadAndCheck() (bool, error) {
 	err := s.Load()
 	if err != nil {
 		return false, err
@@ -365,7 +364,7 @@ func (s *Session) LoadAndCheck() (bool, error) {
 }
 
 func (s *Session) loadAndCheckProvisioned() (bool, error) {
-	ok, err := s.LoadAndCheck()
+	ok, err := s.loadAndCheck()
 	if err != nil {
 		return false, err
 	}
