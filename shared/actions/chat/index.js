@@ -1016,24 +1016,6 @@ function* _exitSearch() {
   yield put(Creators.setInboxFilter([]))
 }
 
-function* _selectSearchResultWithMovement({payload: {movement}}: Constants.SelectSearchResultIdWithMovement) {
-  const searchResults = yield select(({chat: {searchResults}}: TypedState) => searchResults)
-  const selectedSearchId = yield select(({chat: {selectedSearchId}}: TypedState) => selectedSearchId)
-  const index = searchResults.indexOf(selectedSearchId)
-
-  const nextIndex = movement === 'down'
-    ? Math.min(index + 1, searchResults.count() - 1)
-    : Math.max(index - 1, 0)
-  const nextSelectedSearchId = searchResults.get(nextIndex)
-  yield put(Creators.selectSearchResultId(nextSelectedSearchId))
-}
-
-function* _addSelectedSearchResult() {
-  const selectedSearchId = yield select(({chat: {selectedSearchId}}: TypedState) => selectedSearchId)
-  yield put(Creators.stageUserForSearch(selectedSearchId))
-  yield put(Creators.clearSearchResults())
-}
-
 function* _selectFirstSearchResult() {
   const searchResults = yield select(({chat: {searchResults}}: TypedState) => searchResults)
   yield put(Creators.selectSearchResultId(searchResults.first()))
@@ -1087,8 +1069,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
   yield Saga.safeTakeLatest('chat:clearSearchResults', _clearSelectedSearchResult)
   yield Saga.safeTakeLatest('chat:updateSearchResults', _selectFirstSearchResult)
-  yield Saga.safeTakeLatest('chat:selectSearchResultIdWithMovement', _selectSearchResultWithMovement)
-  yield Saga.safeTakeLatest('chat:addSelectedSearchResult', _addSelectedSearchResult)
 }
 
 export default chatSaga

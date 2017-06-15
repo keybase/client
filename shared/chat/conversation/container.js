@@ -2,11 +2,9 @@
 import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/searchv3'
 import * as Creators from '../../actions/chat/creators'
-import * as SearchCreators from '../../actions/searchv3/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {debounce} from 'lodash'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
 import {getProfile} from '../../actions/tracker'
@@ -38,7 +36,6 @@ type DispatchProps = {|
   ) => void,
   _hideKeyboard: () => void,
   onBack: () => void,
-  _search: (term: string, service: SearchConstants.Service) => void,
   _clearSearchResults: () => void,
   _onClickSearchResult: (id: string) => void,
   onShowTrackerInSearch: (id: string) => void,
@@ -96,10 +93,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
   },
   _hideKeyboard: () => dispatch(hideKeyboard()),
   onBack: () => dispatch(navigateUp()),
-  _search: debounce(
-    (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
-    1e3
-  ),
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
     dispatch(Creators.stageUserForSearch(id))
@@ -140,13 +133,6 @@ export default compose(
     onToggleSidePanel: props => () => {
       !props.sidePanelOpen && props._hideKeyboard()
       props.setSidePanelOpen(!props.sidePanelOpen)
-    },
-    search: props => (term, service) => {
-      if (term) {
-        props._search(term, service)
-      } else {
-        props._clearSearchResults()
-      }
     },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')

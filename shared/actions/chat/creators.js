@@ -619,16 +619,6 @@ function selectSearchResultId(
   return {payload: {searchResultId}, type: 'chat:selectSearchResultId'}
 }
 
-function selectSearchResultIdWithMovement(
-  movement: 'up' | 'down'
-): Constants.SelectSearchResultIdWithMovement {
-  return {payload: {movement}, type: 'chat:selectSearchResultIdWithMovement'}
-}
-
-function addSelectedSearchResult(): Constants.AddSelectedSearchResult {
-  return {payload: {}, type: 'chat:addSelectedSearchResult'}
-}
-
 function updateThread(
   thread: ChatTypes.ThreadView,
   yourName: string,
@@ -640,7 +630,6 @@ function updateThread(
 
 export {
   addPending,
-  addSelectedSearchResult,
   appendMessages,
   attachmentLoaded,
   attachmentSaved,
@@ -684,7 +673,6 @@ export {
   selectAttachment,
   selectConversation,
   selectSearchResultId,
-  selectSearchResultIdWithMovement,
   setInboxFilter,
   setInboxSearch,
   setInboxUntrustedState,

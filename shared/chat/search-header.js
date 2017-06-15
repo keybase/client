@@ -1,6 +1,8 @@
 // @flow
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
+import * as SearchCreators from '../actions/searchv3/creators'
+import * as Constants from '../constants/chat'
 import * as SearchConstants from '../constants/searchv3'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
@@ -9,16 +11,18 @@ import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
+import {chatSearchResultArray} from '../constants/selectors'
+import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
 
 import type {TypedState} from '../constants/reducer'
 
 type OwnProps = {
-  search: (term: string, service: SearchConstants.Service) => void,
   searchText: string,
   onChangeSearchText: (s: string) => void,
   usernameText: string,
   selectedService: string,
   onSelectService: (s: string) => void,
+  search: (term: string, service: SearchConstants.Service) => void,
 }
 
 const mapStateToProps = (state: TypedState) => {
@@ -37,14 +41,26 @@ const mapStateToProps = (state: TypedState) => {
     }
   })
 
-  return {userItems}
+  return {
+    userItems,
+    searchResultIds: chatSearchResultArray(state),
+    selectedSearchId: Constants.getSelectedSearchId(state),
+  }
 }
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
   exitSearch: () => dispatch(Creators.exitSearch()),
-  onMoveSelectUp: id => dispatch(Creators.selectSearchResultIdWithMovement('up')),
-  onMoveSelectDown: id => dispatch(Creators.selectSearchResultIdWithMovement('down')),
-  _onEnter: id => dispatch(Creators.addSelectedSearchResult()),
+  clearSearchResults: () => dispatch(Creators.clearSearchResults()),
+  search: (term: string, service) => {
+    if (term) {
+      dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
+    } else {
+      dispatch(Creators.clearSearchResults())
+    }
+  },
+  onUpdateSelectedSearchResult: id => dispatch(Creators.selectSearchResultId(id)),
+  onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {
@@ -81,18 +97,11 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
+  onChangeSelectedSearchResultHoc,
   withHandlers({
-    onChangeText: (props: OwnProps & {_onSelectService: Function}) => nextText => {
-      props.onChangeSearchText(nextText)
-      props.search(nextText, props.selectedService)
-    },
     onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
-    },
-    onEnter: (props: OwnProps & {_onEnter: Function}) => () => {
-      props._onEnter()
-      props.onChangeSearchText('')
     },
   }),
   defaultProps({

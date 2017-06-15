@@ -689,13 +689,6 @@ export type SelectSearchResultId = NoErrorTypedAction<
   {searchResultId: ?SearchConstants.SearchResultId}
 >
 
-export type SelectSearchResultIdWithMovement = NoErrorTypedAction<
-  'chat:selectSearchResultIdWithMovement',
-  {movement: 'up' | 'down'}
->
-
-export type AddSelectedSearchResult = NoErrorTypedAction<'chat:addSelectedSearchResult', {}>
-
 export type ShareAttachment = NoErrorTypedAction<
   'chat:shareAttachment',
   {
@@ -1021,6 +1014,9 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+const getSelectedSearchId = (state: TypedState): ?SearchConstants.SearchResultId =>
+  state.chat.selectedSearchId
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1084,6 +1080,7 @@ export {
   getFollowingMap,
   getMetaDataMap,
   getSelectedInbox,
+  getSelectedSearchId,
   getTLF,
   getMuted,
 }
