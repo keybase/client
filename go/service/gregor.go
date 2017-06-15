@@ -1049,19 +1049,14 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
+	// Send the oobm to that chat system so that it can potentially handle it
+	if g.G().PushHandler != nil {
+		g.G().PushHandler.HandleOobm(ctx, obm)
+	}
+
 	switch obm.System().String() {
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
-	case "chat.activity":
-		return g.G().PushHandler.Activity(ctx, obm)
-	case "chat.tlffinalize":
-		return g.G().PushHandler.TlfFinalize(ctx, obm)
-	case "chat.tlfresolve":
-		return g.G().PushHandler.TlfResolve(ctx, obm)
-	case "chat.typing":
-		return g.G().PushHandler.Typing(ctx, obm)
-	case "chat.membershipUpdate":
-		return g.G().PushHandler.MembershipUpdate(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
