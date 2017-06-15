@@ -186,13 +186,25 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		err = nil
 	}
 
-	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()), tty)
-	if err != nil {
-		return fmt.Errorf("ImportKey error: %s", err)
-	}
+	var bundle *libkb.PGPKeyBundle
 
-	if err := bundle.Unlock(e.G(), "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
-		return err
+	if e.arg.SkipImport {
+		// If we don't need secret key to save in Keybase keyring,
+		// just import public key and rely on GPG fallback for reverse
+		// signature.
+		bundle, err = gpg.ImportKey(false, *(selected.GetFingerprint()), tty)
+		if err != nil {
+			return fmt.Errorf("ImportKey (secret: false) error: %s", err)
+		}
+	} else {
+		bundle, err = gpg.ImportKey(true, *(selected.GetFingerprint()), tty)
+		if err != nil {
+			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
+		}
+
+		if err := bundle.Unlock(e.G(), "Import of key into Keybase keyring", ctx.SecretUI); err != nil {
+			return err
+		}
 	}
 
 	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
