@@ -81,45 +81,6 @@ func TestLoginWithPaperKeyFromScratch(t *testing.T) {
 }
 
 // Test logging in with paper key when
-// loggedin: false
-// unlocked: true
-// Does not ask for anything.
-func TestLoginWithPaperKeyLoggedOutAndUnlocked(t *testing.T) {
-	tc := SetupEngineTest(t, "loginwithpaperkey")
-	defer tc.Cleanup()
-	_, paperkey := CreateAndSigunpLPK(tc, "login")
-
-	t.Logf("logging out")
-	err := tc.G.LoginState().LocalSession(func(sess *libkb.Session) {
-		sess.Invalidate()
-	}, "test")
-	require.NoError(t, err)
-
-	t.Logf("checking logged in status [before]")
-	AssertLoggedInLPK(&tc, false)
-	t.Logf("checking unlocked status [before]")
-	AssertDeviceKeysLock(&tc, true)
-
-	t.Logf("running LoginWithPaperKey")
-	ctx := &Context{
-		LogUI: tc.G.UI.GetLogUI(),
-		SecretUI: &TestSecretUIPaperKey{
-			T:                         t,
-			Paperkey:                  paperkey,
-			AllowedGetPassphraseCalls: 1,
-		},
-	}
-	eng := NewLoginWithPaperKey(tc.G)
-	err = RunEngine(eng, ctx)
-	require.NoError(t, err)
-
-	t.Logf("checking logged in status [after]")
-	AssertLoggedInLPK(&tc, true)
-	t.Logf("checking unlocked status [after]")
-	AssertDeviceKeysLock(&tc, true)
-}
-
-// Test logging in with paper key when
 // loggedin: true
 // unlocked: false
 // Asks for a paperkey.

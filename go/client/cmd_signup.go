@@ -254,7 +254,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
-		StoreSecret: s.storeSecret,
+		StoreSecret: true,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
