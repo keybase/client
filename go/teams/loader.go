@@ -19,7 +19,7 @@ const (
 
 // Load a Team from the TeamLoader.
 // Can be called from inside the teams package.
-func Load(ctx context.Context, g *libkb.GlobalContext, lArg libkb.LoadTeamArg) (*Team, error) {
+func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg) (*Team, error) {
 	// teamData, err := g.GetTeamLoader().Load(ctx, lArg)
 	// if err != nil {
 	// 	return nil, err
@@ -54,7 +54,7 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 	return l
 }
 
-func (l *TeamLoader) Load(ctx context.Context, lArg libkb.LoadTeamArg) (res *keybase1.TeamData, err error) {
+func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
 	me, err := l.getMe(ctx)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (l *TeamLoader) getMe(ctx context.Context) (res keybase1.UserVersion, err e
 	return loadUserVersionByUID(ctx, l.G(), l.G().Env.GetUID())
 }
 
-func (l *TeamLoader) load(ctx context.Context, me keybase1.UserVersion, lArg libkb.LoadTeamArg) (res *keybase1.TeamData, err error) {
+func (l *TeamLoader) load(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
 	return nil, fmt.Errorf("TODO: implement team loader")
 }
 

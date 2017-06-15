@@ -493,6 +493,37 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	}
 }
 
+type LoadTeamArg struct {
+	ID                TeamID        `codec:"ID" json:"ID"`
+	Name              string        `codec:"name" json:"name"`
+	NeedAdmin         bool          `codec:"needAdmin" json:"needAdmin"`
+	NeedKeyGeneration int           `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	NeedMembers       []UserVersion `codec:"needMembers" json:"needMembers"`
+	ForceFullReload   bool          `codec:"forceFullReload" json:"forceFullReload"`
+	ForceRepoll       bool          `codec:"forceRepoll" json:"forceRepoll"`
+	StaleOK           bool          `codec:"staleOK" json:"staleOK"`
+}
+
+func (o LoadTeamArg) DeepCopy() LoadTeamArg {
+	return LoadTeamArg{
+		ID:                o.ID.DeepCopy(),
+		Name:              o.Name,
+		NeedAdmin:         o.NeedAdmin,
+		NeedKeyGeneration: o.NeedKeyGeneration,
+		NeedMembers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.NeedMembers),
+		ForceFullReload: o.ForceFullReload,
+		ForceRepoll:     o.ForceRepoll,
+		StaleOK:         o.StaleOK,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`

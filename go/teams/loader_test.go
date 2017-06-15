@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +32,7 @@ func TestLoaderDoesntCrash(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, tc.G.GetTeamLoader(), "team loader on G")
-	_, err = tc.G.GetTeamLoader().Load(context.TODO(), libkb.LoadTeamArg{})
+	_, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{})
 	require.Error(t, err, "load not implemented")
 	require.Equal(t, "TODO: implement team loader", err.Error())
 }

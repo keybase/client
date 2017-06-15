@@ -4775,6 +4775,17 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
+export type LoadTeamArg = {
+  ID: TeamID,
+  name: string,
+  needAdmin: boolean,
+  needKeyGeneration: int,
+  needMembers?: ?Array<UserVersion>,
+  forceFullReload: boolean,
+  forceRepoll: boolean,
+  staleOK: boolean,
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -5838,7 +5849,7 @@ export type TeamSigChainState = {
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
-  stubbedTypes: {[key: string]: bool},
+  stubbedTypes: {[key: string]: boolean},
 }
 
 export type Test = {

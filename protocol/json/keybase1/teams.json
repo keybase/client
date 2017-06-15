@@ -371,7 +371,7 @@
         {
           "type": {
             "type": "map",
-            "values": "bool",
+            "values": "boolean",
             "keys": "int"
           },
           "name": "stubbedTypes"
@@ -424,6 +424,48 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "LoadTeamArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "needAdmin"
+        },
+        {
+          "type": "int",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "needMembers"
+        },
+        {
+          "type": "boolean",
+          "name": "forceFullReload"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRepoll"
+        },
+        {
+          "type": "boolean",
+          "name": "staleOK"
+        }
+      ]
     }
   ],
   "messages": {
