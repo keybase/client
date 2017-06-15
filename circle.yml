@@ -25,6 +25,7 @@ dependencies:
     - sudo apt-get install -y -qq yarn=0.24.5-1
     - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
+    - sudo rm -rf $HOME/client/shared/node_modules/electron # Remove old electron installation
     - wget https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - mkdir $HOME/go-path
     - (cd $HOME; tar -xzvf go.tar.gz)
