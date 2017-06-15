@@ -419,6 +419,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// However we only allow fake files with names that are not potential rename
 	// paths. Filter those out here.
 
+	f.log.CDebugf(ctx, "MoveFile %T %q -> %q", src, sourceFI.Path(), targetPath)
 	// isPotentialRenamePath filters out some special paths
 	// for rename. Especially those provided by fakeroot.go.
 	if !isPotentialRenamePath(sourceFI.Path()) {
@@ -472,7 +473,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
 	dstDir, dstIsDir, err := f.open(ctx, oc, dstDirPath)
-	f.log.CDebugf(ctx, "FS Rename dest open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstIsDir, err, dstDir)
+	f.log.CDebugf(ctx, "FS MoveFile dstDir open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstIsDir, err, dstDir)
 	if err != nil {
 		return err
 	}
@@ -514,7 +515,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 			defer x.Cleanup(ctx, nil)
 		}
 		if !isNoSuchNameError(err) {
-			f.log.CDebugf(ctx, "FS Rename target open error %T %v", err, err)
+			f.log.CDebugf(ctx, "FS MoveFile required non-existent destination, got: %T %v", err, err)
 			return dokan.ErrObjectNameCollision
 		}
 
@@ -528,10 +529,10 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// it is there in the first place, by its Forget
 
 	dstName := dstPath[len(dstPath)-1]
-	f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstName)
+	f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
 		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
-		f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename FAILED %v", err)
+		f.log.CDebugf(ctx, "FS MoveFile KBFSOps().Rename FAILED %v", err)
 		return err
 	}
 
@@ -544,7 +545,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		x.name = dstName
 	}
 
-	f.log.CDebugf(ctx, "FS Rename SUCCESS")
+	f.log.CDebugf(ctx, "FS MoveFile SUCCESS")
 	return nil
 }
 
@@ -560,7 +561,7 @@ func isPotentialRenamePath(s string) bool {
 
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
 	ef, ok := src.(*EmptyFolder)
-	f.log.CDebugf(ctx, "FS Rename folderlist %v", ef)
+	f.log.CDebugf(ctx, "FS MoveFile folderlist %v", ef)
 	if !ok || !isNewFolderName(srcName) {
 		return dokan.ErrAccessDenied
 	}
@@ -574,7 +575,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	fl.mu.Unlock()
 	if !replaceExisting && ok {
-		f.log.CDebugf(ctx, "FS Rename folderlist refusing to replace target")
+		f.log.CDebugf(ctx, "FS MoveFile folderlist refusing to replace target")
 		return dokan.ErrAccessDenied
 	}
 	// Perhaps create destination by opening it.
@@ -587,10 +588,10 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	_, ok = fl.folders[dstName]
 	delete(fl.folders, srcName)
 	if !ok {
-		f.log.CDebugf(ctx, "FS Rename folderlist adding target")
+		f.log.CDebugf(ctx, "FS MoveFile folderlist adding target")
 		fl.folders[dstName] = ef
 	}
-	f.log.CDebugf(ctx, "FS Rename folderlist success")
+	f.log.CDebugf(ctx, "FS MoveFile folderlist success")
 	return nil
 }
 
