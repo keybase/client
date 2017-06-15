@@ -6,7 +6,7 @@ import {RPCTimeoutError} from '../../util/errors'
 import engine, {EngineChannel} from '../../engine'
 
 import * as Saga from '../../util/saga'
-import {channel, delay} from 'redux-saga'
+import {channel, buffers, delay} from 'redux-saga'
 import {call, put, cancelled, fork, join, take, cancel} from 'redux-saga/effects'
 
 import * as SagaTypes from '../../constants/types/saga'
@@ -94,7 +94,7 @@ class EngineRpcCall {
     this._rpc = rpc
     this._cleanedUp = false
     this._request = request
-    this._subSagaChannel = channel()
+    this._subSagaChannel = channel(buffers.expanding(10))
     // $FlowIssue with this
     this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
     const {finished: finishedSaga, ...subSagas} = sagaMap
