@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -21,6 +22,7 @@ type KeybaseServiceBase struct {
 	context         Context
 	identifyClient  keybase1.IdentifyInterface
 	userClient      keybase1.UserInterface
+	teamsClient     keybase1.TeamsInterface
 	sessionClient   keybase1.SessionInterface
 	favoriteClient  keybase1.FavoriteInterface
 	kbfsClient      keybase1.KbfsInterface
@@ -56,12 +58,16 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 }
 
 // FillClients sets the client protocol implementations needed for a KeybaseService.
-func (k *KeybaseServiceBase) FillClients(identifyClient keybase1.IdentifyInterface,
-	userClient keybase1.UserInterface, sessionClient keybase1.SessionInterface,
-	favoriteClient keybase1.FavoriteInterface, kbfsClient keybase1.KbfsInterface,
+func (k *KeybaseServiceBase) FillClients(
+	identifyClient keybase1.IdentifyInterface,
+	userClient keybase1.UserInterface, teamsClient keybase1.TeamsInterface,
+	sessionClient keybase1.SessionInterface,
+	favoriteClient keybase1.FavoriteInterface,
+	kbfsClient keybase1.KbfsInterface,
 	kbfsMountClient keybase1.KbfsMountInterface) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
+	k.teamsClient = teamsClient
 	k.sessionClient = sessionClient
 	k.favoriteClient = favoriteClient
 	k.kbfsClient = kbfsClient
@@ -405,7 +411,41 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID) (TeamInfo, error) {
-	panic("The Keybase service doesn't support LoadTeamPlusKeys yet")
+	// No caching until the invalidations are ready.
+
+	arg := keybase1.LoadTeamPlusApplicationKeysArg{
+		Id:          tid,
+		Application: keybase1.TeamApplication_KBFS,
+	}
+	res, err := k.teamsClient.LoadTeamPlusApplicationKeys(ctx, arg)
+	if err != nil {
+		return TeamInfo{}, err
+	}
+
+	if tid != res.Id {
+		return TeamInfo{}, fmt.Errorf(
+			"TID doesn't match: %s vs %s", tid, res.Id)
+	}
+
+	info := TeamInfo{
+		Name:      libkb.NormalizedUsername(res.Name),
+		TID:       res.Id,
+		CryptKeys: make(map[KeyGen]kbfscrypto.TLFCryptKey),
+		Writers:   make(map[keybase1.UID]bool),
+		Readers:   make(map[keybase1.UID]bool),
+	}
+	for _, key := range res.ApplicationKeys {
+		info.CryptKeys[KeyGen(key.KeyGeneration)] =
+			kbfscrypto.MakeTLFCryptKey(key.Key)
+	}
+
+	for _, user := range res.Writers {
+		info.Writers[user.Uid] = true
+	}
+	for _, user := range res.OnlyReaders {
+		info.Readers[user.Uid] = true
+	}
+	return info, nil
 }
 
 // GetCurrentMerkleSeqNo implements the KeybaseService interface for

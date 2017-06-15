@@ -95,6 +95,7 @@ func newKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger) *Keyba
 func (k *KeybaseDaemonRPC) fillClients(client rpc.GenericClient) {
 	k.FillClients(keybase1.IdentifyClient{Cli: client},
 		keybase1.UserClient{Cli: client},
+		keybase1.TeamsClient{Cli: client},
 		keybase1.SessionClient{Cli: client},
 		keybase1.FavoriteClient{Cli: client},
 		keybase1.KbfsClient{Cli: client},
