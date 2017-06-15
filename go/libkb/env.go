@@ -664,10 +664,6 @@ func (e *Env) GetSupportPerUserKey() bool {
 // Upgrade sigchains to contain per-user-keys.
 // Implies SupportPerUserKey.
 func (e *Env) GetUpgradePerUserKey() bool {
-	if e.GetRunMode() != DevelRunMode {
-		return false
-	}
-
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.UpgradePerUserKey, e.Test.UpgradePerUserKey },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_UPGRADE_PER_USER_KEY") },
