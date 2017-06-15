@@ -39,6 +39,15 @@ protocol teams {
       KID encKID;
   }
 
+  fixed PerTeamKeySeed(32);
+
+  // Secret from which team keys are derived
+  record PerTeamKeySeedItem {
+    PerTeamKeySeed seed;
+    int generation;
+    Seqno seqno;
+  }
+
   record TeamMember {
     UID uid;
     TeamRole role;
@@ -81,6 +90,19 @@ protocol teams {
       array<UserVersion> onlyReaders;
 
       array<TeamApplicationKey> applicationKeys;
+  }
+
+  // This type is not really used yet.
+  // It is under the umbrella of the team loader refactor.
+  record TeamData {
+    TeamSigChainState chain;
+    // Sorted by generation ascending.
+    array<PerTeamKeySeedItem> perTeamKeySeeds;
+    array<ReaderKeyMask> readerKeyMasks;
+
+    // Should only be used by TeamLoader
+    // because it is the only mutated field, and thus is not threadsafe to read.
+    Time cachedAt;
   }
 
   // State of a parsed team sigchain.

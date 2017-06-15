@@ -127,6 +127,28 @@ func (o PerTeamKey) DeepCopy() PerTeamKey {
 	}
 }
 
+type PerTeamKeySeed [32]byte
+
+func (o PerTeamKeySeed) DeepCopy() PerTeamKeySeed {
+	var ret PerTeamKeySeed
+	copy(ret[:], o[:])
+	return ret
+}
+
+type PerTeamKeySeedItem struct {
+	Seed       PerTeamKeySeed `codec:"seed" json:"seed"`
+	Generation int            `codec:"generation" json:"generation"`
+	Seqno      Seqno          `codec:"seqno" json:"seqno"`
+}
+
+func (o PerTeamKeySeedItem) DeepCopy() PerTeamKeySeedItem {
+	return PerTeamKeySeedItem{
+		Seed:       o.Seed.DeepCopy(),
+		Generation: o.Generation,
+		Seqno:      o.Seqno.DeepCopy(),
+	}
+}
+
 type TeamMember struct {
 	Uid         UID      `codec:"uid" json:"uid"`
 	Role        TeamRole `codec:"role" json:"role"`
@@ -332,6 +354,36 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 			}
 			return ret
 		})(o.ApplicationKeys),
+	}
+}
+
+type TeamData struct {
+	Chain           TeamSigChainState    `codec:"chain" json:"chain"`
+	PerTeamKeySeeds []PerTeamKeySeedItem `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
+	ReaderKeyMasks  []ReaderKeyMask      `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	CachedAt        Time                 `codec:"cachedAt" json:"cachedAt"`
+}
+
+func (o TeamData) DeepCopy() TeamData {
+	return TeamData{
+		Chain: o.Chain.DeepCopy(),
+		PerTeamKeySeeds: (func(x []PerTeamKeySeedItem) []PerTeamKeySeedItem {
+			var ret []PerTeamKeySeedItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.PerTeamKeySeeds),
+		ReaderKeyMasks: (func(x []ReaderKeyMask) []ReaderKeyMask {
+			var ret []ReaderKeyMask
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ReaderKeyMasks),
+		CachedAt: o.CachedAt.DeepCopy(),
 	}
 }
 

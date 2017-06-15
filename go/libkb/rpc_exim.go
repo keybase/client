@@ -1148,7 +1148,7 @@ func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
 func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
 	if cki == nil {
-		cki.G().Log.Errorf("Found nil cached computed key infos for uid %s username %s, eldest seqno %s", uid.String(), username, eldestSeqno)
+		cki.G().Log.Errorf("Found nil cached computed key infos for uid %s username %s, eldest seqno %v", uid.String(), username, eldestSeqno)
 		return keybase1.UserPlusKeysV2{}
 	}
 

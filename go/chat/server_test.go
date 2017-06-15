@@ -132,7 +132,7 @@ type chatTestContext struct {
 
 func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestContext {
 	ctc := &chatTestContext{}
-	ctc.world = kbtest.NewChatMockWorld(t, name, numUsers)
+	ctc.world = NewChatMockWorld(t, name, numUsers)
 	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	ctc.teamCache = make(map[string]string)
 	return ctc

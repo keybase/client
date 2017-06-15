@@ -578,3 +578,30 @@ const (
 type ConnectivityMonitor interface {
 	IsConnected(ctx context.Context) ConnectivityMonitorResult
 }
+
+type LoadTeamArg struct {
+	// One of these must be specified.
+	// ID is preferred. Name will always hit the server.
+	// If both are specified ID will be used and Name will be checked.
+	ID   keybase1.TeamID
+	Name string
+
+	// Whether we need to be an admin.
+	// Will fail unless we are an admin in the returned Team.
+	// It is unreasonable to look at invites or list subteams with this set to false.
+	NeedAdmin bool
+	// Load at least up to the keygen. Returns an error if the keygen is not loaded.
+	NeedKeyGeneration int
+	// Refresh if these members are not current members of the team in the cache.
+	// Does not guarantee these members will be present in the returned team.
+	NeedMembers []keybase1.UserVersion
+
+	ForceFullReload bool // Ignore local data and fetch from the server.
+	ForceRepoll     bool // Force a sync with merkle.
+	StaleOK         bool // If a very stale cache hit is OK.
+}
+
+type TeamLoader interface {
+	Load(context.Context, LoadTeamArg) (*keybase1.TeamData, error)
+	OnLogout()
+}

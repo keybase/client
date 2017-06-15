@@ -1,8 +1,9 @@
 package teams
 
 import (
-	"golang.org/x/net/context"
 	"testing"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -39,6 +40,6 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(exported.ApplicationKeys) != len(expectedKeys) {
-		t.Errorf("Got %s applicationKeys, expected %s", len(exported.ApplicationKeys), len(expectedKeys))
+		t.Errorf("Got %v applicationKeys, expected %v", len(exported.ApplicationKeys), len(expectedKeys))
 	}
 }

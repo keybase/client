@@ -88,6 +88,29 @@
       "lint": "ignore"
     },
     {
+      "type": "fixed",
+      "name": "PerTeamKeySeed",
+      "size": "32"
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKeySeedItem",
+      "fields": [
+        {
+          "type": "PerTeamKeySeed",
+          "name": "seed"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamMember",
       "fields": [
@@ -264,6 +287,34 @@
             "items": "TeamApplicationKey"
           },
           "name": "applicationKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamData",
+      "fields": [
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerTeamKeySeedItem"
+          },
+          "name": "perTeamKeySeeds"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ReaderKeyMask"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
         }
       ]
     },

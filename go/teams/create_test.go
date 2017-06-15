@@ -8,12 +8,11 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
@@ -32,7 +31,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamAfterAccountReset(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
@@ -61,7 +60,7 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 }
 
 func TestCreateSubteam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	// Magic to make the test user provision shared DH keys.
