@@ -515,7 +515,7 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 		}
 		if !isNoSuchNameError(err) {
 			f.log.CDebugf(ctx, "FS Rename target open error %T %v", err, err)
-			return errors.New("refusing to replace existing target")
+			return dokan.ErrObjectNameCollision
 		}
 
 	}
