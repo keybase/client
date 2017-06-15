@@ -355,6 +355,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               currentTab={this.props.currentFriendshipsTab}
               onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
               onUserClick={this.props.onUserClick}
+              followersLoaded={this.props.followersLoaded}
               followers={this.props.followers}
               following={this.props.following}
             />}

@@ -4,10 +4,10 @@
 package service
 
 import (
-	context "golang.org/x/net/context"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
+	context "golang.org/x/net/context"
 	"time"
 )
 
@@ -24,7 +24,7 @@ func newMerkleHandler(xp rpc.Transporter, g *libkb.GlobalContext) *MerkleHandler
 }
 
 func (h *MerkleHandler) GetCurrentMerkleRoot(ctx context.Context, freshnessMsec int) (ret keybase1.MerkleRootAndTime, err error) {
-	obj, err := h.G().MerkleClient.FetchRootFromServer(ctx, time.Duration(freshnessMsec) * time.Millisecond)
+	obj, err := h.G().MerkleClient.FetchRootFromServer(ctx, time.Duration(freshnessMsec)*time.Millisecond)
 	if err != nil {
 		return ret, err
 	}

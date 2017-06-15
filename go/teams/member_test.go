@@ -162,13 +162,13 @@ func TestMemberAddHasBoxes(t *testing.T) {
 
 	// this change request should generate boxes since other.Username
 	// is not a member
-	req := keybase1.TeamChangeReq{Readers: []string{other.Username}}
+	req := keybase1.TeamChangeReq{Readers: []keybase1.UID{other.GetUID()}}
 	tm, err := Get(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, boxes, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, err := tm.changeMembershipSection(context.TODO(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -195,13 +195,13 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
 	// this change request shouldn't generate any new boxes
-	req := keybase1.TeamChangeReq{Readers: []string{other.Username}}
+	req := keybase1.TeamChangeReq{Readers: []keybase1.UID{other.GetUID()}}
 	tm, err := Get(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, boxes, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, err := tm.changeMembershipSection(context.TODO(), req)
 	if err != nil {
 		t.Fatal(err)
 	}

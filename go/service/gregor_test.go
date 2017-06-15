@@ -48,7 +48,7 @@ func TestGregorHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 	h.testingEvents = newTestingEvents()
 	require.Equal(t, "keybase service", h.HandlerName(), "wrong name")
@@ -111,7 +111,8 @@ func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationI
 }
 func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
-func (n *nlistener) ChatInboxStale(uid keybase1.UID) {}
+func (n *nlistener) ChatInboxStale(uid keybase1.UID)                        {}
+func (n *nlistener) TeamKeyRotated(teamID keybase1.TeamID, teamName string) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
 	select {
 	case n.threadStale <- cids:
@@ -192,7 +193,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	require.NoError(t, err)
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
@@ -408,7 +409,7 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var h *gregorHandler
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
@@ -551,7 +552,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	}
 
 	// Create a new gregor handler, this will restore our saved state
-	h = newGregorHandler(globals.NewContext(tc.G, nil))
+	h = newGregorHandler(globals.NewContext(tc.G, &globals.ChatContext{}))
 	h.Init()
 
 	// Sync from the server

@@ -1017,6 +1017,10 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
 const getSelectedSearchId = (state: TypedState): ?SearchConstants.SearchResultId =>
   state.chat.selectedSearchId
 
+function isImageFileName(filename: string): boolean {
+  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+}
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1083,4 +1087,5 @@ export {
   getSelectedSearchId,
   getTLF,
   getMuted,
+  isImageFileName,
 }

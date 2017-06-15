@@ -1,0 +1,27 @@
+{
+  "protocol": "NotifyTeam",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "teamKeyRotated": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

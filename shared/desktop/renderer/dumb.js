@@ -5,7 +5,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import {AppContainer} from 'react-hot-loader'
-import {MuiThemeProvider} from 'material-ui/styles'
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import materialTheme from '../../styles/material-theme.desktop'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
 

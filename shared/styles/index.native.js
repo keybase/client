@@ -1,5 +1,5 @@
 // @flow
-import {StatusBar} from 'react-native'
+import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
 
@@ -106,4 +106,6 @@ function backgroundURL(...path: Array<string>): Object {
   return {}
 }
 
-export {globalColors, backgroundURL, statusBarHeight, globalStyles, globalMargins}
+const hairlineWidth = StyleSheet.hairlineWidth
+
+export {backgroundURL, globalColors, globalMargins, globalStyles, hairlineWidth, statusBarHeight}

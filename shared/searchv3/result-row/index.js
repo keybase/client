@@ -1,10 +1,11 @@
 // @flow
 import * as Constants from '../../constants/searchv3'
 import React from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
+import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
+import {isMobile} from '../../constants/platform'
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
@@ -14,6 +15,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
         alignItems: 'center',
         height: '100%',
         paddingLeft: globalMargins.tiny,
+        // TODO we might want to change this for the mobile version. Will play around with it more
         width: 215,
       }}
     >
@@ -56,12 +58,13 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
             width: 12,
           }}
         />
-        <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
-          {rightUsername}
-        </Text>
+        {!!rightUsername &&
+          <Text type="BodySmallSemibold" style={followingStateToStyle(rightFollowingState)}>
+            {rightUsername}
+          </Text>}
       </Box>
       {!!rightFullname &&
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Box
             style={{
               maxWidth: 15,
@@ -91,9 +94,9 @@ const Line = () => (
       ...globalStyles.fillAbsolute,
       backgroundColor: globalColors.black_05,
       left: 54,
-      maxHeight: 1,
-      minHeight: 1,
       top: undefined,
+      maxHeight: hairlineWidth,
+      minHeight: hairlineWidth,
     }}
   />
 )
@@ -147,6 +150,11 @@ const _rowStyle = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   position: 'relative',
+  ...(isMobile
+    ? {
+        minHeight: 56,
+      }
+    : {}),
 }
 
 export default SearchResultRow

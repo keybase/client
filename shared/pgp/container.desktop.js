@@ -14,7 +14,3 @@ export default connect(
     },
   })
 )(PurgeMessage)
-
-export function selector(): (store: Object) => ?Object {
-  return () => ({})
-}

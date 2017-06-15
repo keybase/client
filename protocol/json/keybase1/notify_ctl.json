@@ -66,6 +66,10 @@
         {
           "type": "boolean",
           "name": "reachability"
+        },
+        {
+          "type": "boolean",
+          "name": "team"
         }
       ]
     }

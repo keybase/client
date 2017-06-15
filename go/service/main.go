@@ -356,6 +356,8 @@ func (d *Service) startupGregor() {
 		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
+		d.gregor.PushHandler(newTeamHandler(d.G()))
+
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
 			g.Log.Debug("error connecting to gregord: %s", gcErr)

@@ -46,9 +46,11 @@ const servicesFilterMap: DumbComponentMap<ServicesFilter> = {
 
 const commonServicesResultMapProps = {
   parentProps: {
-    style: {
-      width: 480,
-    },
+    style: isMobile
+      ? {}
+      : {
+          width: 480,
+        },
   },
   showTrackerButton: false,
   id: 0,
@@ -398,8 +400,8 @@ const UserInputEditable = compose(
   withState('usernameText', 'onChangeText', ''),
   withState('userItems', 'setUserItems', ({userItems}) => userItems),
   withHandlers({
-    onRemoveUser: ({setUserItems, userItems}) => (username: string) => {
-      setUserItems(userItems.filter(i => i.username !== username))
+    onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
+      setUserItems(userItems.filter(i => i.id !== id))
     },
   })
 )(UserInput)
@@ -429,7 +431,6 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
 
 const desktopOnly = !isMobile
   ? {
-      'SearchV3 result': servicesResultMap,
       'SearchV3 resultsList': servicesResultsListMap,
     }
   : {}
@@ -438,5 +439,6 @@ export default {
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
   'SearchV3 user input (editable)': userInputEditableMap,
+  'SearchV3 result': servicesResultMap,
   ...desktopOnly,
 }

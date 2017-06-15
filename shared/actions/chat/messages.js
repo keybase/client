@@ -8,6 +8,8 @@ import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
+import {navigateTo} from '../../actions/route-tree'
+import {chatTab} from '../../constants/tabs'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -44,6 +46,8 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
         lastMessageID = message.messageID
       }
     }
+
+    yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
       param: {

@@ -9,6 +9,7 @@ import {hideDockIcon} from './dock-icon'
 import {injectReactQueryParams} from '../../util/dev'
 import {resolveRootAsURL} from '../resolve-root'
 import {windowStyle} from '../../styles'
+import {isWindows} from '../../constants/platform'
 
 export default function() {
   let appState = new AppState({
@@ -40,6 +41,10 @@ export default function() {
                 src: resolveRootAsURL('dist', 'dll/dll.vendor.js'),
                 async: false,
               },
+              {
+                src: hotPath('common-chunks.js'),
+                async: false,
+              },
             ]
           : []),
         {
@@ -61,7 +66,9 @@ export default function() {
   }
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
-  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
+  // app.getLoginItemSettings().restoreState is mac only, so consider it always on in Windows
+  const isRestore =
+    getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState || isWindows
   const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   console.log('Opened at login:', openedAtLogin)

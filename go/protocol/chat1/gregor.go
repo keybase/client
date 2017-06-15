@@ -177,6 +177,34 @@ func (o RemoteUserTypingUpdate) DeepCopy() RemoteUserTypingUpdate {
 	}
 }
 
+type UpdateConversationMembership struct {
+	InboxVers InboxVers        `codec:"inboxVers" json:"inboxVers"`
+	Joined    []ConversationID `codec:"joined" json:"joined"`
+	Removed   []ConversationID `codec:"removed" json:"removed"`
+}
+
+func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
+	return UpdateConversationMembership{
+		InboxVers: o.InboxVers.DeepCopy(),
+		Joined: (func(x []ConversationID) []ConversationID {
+			var ret []ConversationID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Joined),
+		Removed: (func(x []ConversationID) []ConversationID {
+			var ret []ConversationID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Removed),
+	}
+}
+
 type GregorInterface interface {
 }
 

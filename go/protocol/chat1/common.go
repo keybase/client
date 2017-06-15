@@ -216,6 +216,32 @@ func (e ConversationStatus) String() string {
 	return ""
 }
 
+type ConversationMemberStatus int
+
+const (
+	ConversationMemberStatus_ACTIVE  ConversationMemberStatus = 0
+	ConversationMemberStatus_REMOVED ConversationMemberStatus = 1
+)
+
+func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
+
+var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
+	"ACTIVE":  0,
+	"REMOVED": 1,
+}
+
+var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
+	0: "ACTIVE",
+	1: "REMOVED",
+}
+
+func (e ConversationMemberStatus) String() string {
+	if v, ok := ConversationMemberStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type Pagination struct {
 	Next     []byte `codec:"next" json:"next"`
 	Previous []byte `codec:"previous" json:"previous"`

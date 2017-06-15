@@ -19,6 +19,7 @@ protocol notifyCtl {
     boolean kbfsrequest;
     boolean badges;
     boolean reachability;
+    boolean team;
   }
 
   void setNotifications(NotificationChannels channels);

@@ -49,6 +49,7 @@ func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                       
 func (n *chatListener) PGPKeyInSecretStoreFile()                                            {}
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *chatListener) TeamKeyRotated(teamID keybase1.TeamID, teamName string)              {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }

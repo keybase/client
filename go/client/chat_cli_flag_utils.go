@@ -145,10 +145,6 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
 	}
-	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 {
-		return chatConversationResolvingRequest{}, errors.New("multiple topics are not yet supported")
-	}
-
 	if ctx.Bool("private") {
 		req.Visibility = chat1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
@@ -156,9 +152,13 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	} else {
 		req.Visibility = chat1.TLFVisibility_ANY
 	}
-
 	if ctx.Bool("team") {
 		req.MembersType = chat1.ConversationMembersType_TEAM
+	}
+
+	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 &&
+		req.MembersType != chat1.ConversationMembersType_TEAM {
+		return chatConversationResolvingRequest{}, errors.New("multiple topics only supported for teams and dev channels")
 	}
 
 	return req, nil

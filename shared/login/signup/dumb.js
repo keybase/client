@@ -1,9 +1,9 @@
 // @flow
-import DeviceName from '../register/set-public-name/index.render'
-import Error from './error/index.render'
+import DeviceName from '../register/set-public-name'
+import Error from './error'
 import HiddenString from '../../util/hidden-string'
 import InviteCode from './invite-code.render'
-import Passphrase from './passphrase/index.render'
+import Passphrase from './passphrase'
 import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
 import Success from './success/index.render'

@@ -43,6 +43,10 @@ func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 }
 
+func (fu *FakeUser) GetUID() keybase1.UID {
+	return libkb.UsernameToUID(fu.Username)
+}
+
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 	ctx := &engine.Context{
 		ProvisionUI: &testProvisionUI{},

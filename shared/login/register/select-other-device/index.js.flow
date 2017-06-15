@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+import type {Device} from '../../../constants/types/more'
+
+export type Props = {
+  devices: Array<Device>,
+  onSelect: (id: string) => void,
+  onWont: () => void,
+  onBack: () => void,
+}
+
+export default class SelectOtherDevice extends Component<void, Props, void> {}
