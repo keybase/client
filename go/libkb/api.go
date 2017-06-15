@@ -224,6 +224,8 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		ctx = context.Background()
 	}
 	ctx = WithLogTag(ctx, "API")
+	arg.NetContext = ctx
+
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
 
 	if err = api.fixHeaders(arg, req); err != nil {
