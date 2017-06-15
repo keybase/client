@@ -83,7 +83,9 @@ export default compose(
         this.props.measure()
       }
 
-      this.props.onEnsurePreviewLoaded()
+      if (this.props.message.filename !== prevProps.message.filename) {
+        this.props.onEnsurePreviewLoaded()
+      }
     },
   })
 )(Attachment)
