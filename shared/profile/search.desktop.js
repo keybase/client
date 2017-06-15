@@ -10,7 +10,7 @@ import type {Props} from './search'
 
 const Search = (props: Props) => (
   <Box style={styleSearchContainer}>
-    <Box style={{...styleSearchRow}}>
+    <Box style={styleSearchRow}>
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
         <Box style={{flexGrow: 1}}>
           <UserInput
