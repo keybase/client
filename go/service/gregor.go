@@ -221,9 +221,12 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
 		case keybase1.AppState_FOREGROUND:
-			g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-			if err := g.Connect(g.uri); err != nil {
-				g.chatLog.Debug(context.Background(), "error reconnecting")
+			// Make sure the URI is set before attempting this (possible it isnt in a race)
+			if g.uri != nil {
+				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+				if err := g.Connect(g.uri); err != nil {
+					g.chatLog.Debug(context.Background(), "error reconnecting")
+				}
 			}
 		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
