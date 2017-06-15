@@ -19,13 +19,15 @@ const Search = (props: Props) => (
         placeholder={props.placeholder}
         usernameText={props.searchText}
         onChangeText={props.onChangeText}
+        onMoveSelectUp={() => {}} // TODO
+        onMoveSelectDown={() => {}} // TODO
       />
     </Box>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
       <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
       <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
     </Box>
-    <Box style={{...globalStyles.scrollable}}>
+    <Box>
       <ResultsList items={props.ids} onClick={props.onClick} />
     </Box>
   </StandardScreen>

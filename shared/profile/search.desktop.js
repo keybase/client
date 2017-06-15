@@ -15,12 +15,13 @@ const Search = (props: Props) => (
         <Box style={{flexGrow: 1}}>
           <UserInput
             userItems={props.userItems}
-            showAddButton={props.showAddButton}
             onRemoveUser={props.onRemoveUser}
             onClickAddButton={props.onClickAddButton}
             placeholder={props.placeholder}
             usernameText={props.searchText}
             onChangeText={props.onChangeText}
+            onMoveSelectUp={() => {}} // TODO
+            onMoveSelectDown={() => {}} // TODO
           />
         </Box>
         <Icon style={{alignSelf: 'center'}} type="iconfont-close" onClick={props.onClose} />

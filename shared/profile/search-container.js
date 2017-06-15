@@ -24,7 +24,7 @@ const mapStateToProps = (state: TypedState) => ({
   ids: profileSearchResultArray(state),
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
-  _clearSearchResults: id => dispatch(Creators.clearSearchResults()),
+  _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClick: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))

@@ -7,7 +7,7 @@ import type {UserDetails} from '../searchv3/user-input'
 export type Props = {
   ids: Array<SearchResultId>,
   navigateUp: () => void,
-  onClick: () => void,
+  onClick: (id: SearchResultId) => void,
   onClickAddButton: () => void,
   onClose: () => void,
   onChangeText: (s: string) => void,
