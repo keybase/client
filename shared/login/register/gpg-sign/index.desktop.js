@@ -2,10 +2,11 @@
 import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
 import Row, {RowCSS} from './row'
-import type {Props} from './index.render'
 import {Text} from '../../../common-adapters'
 
-class GPGSignRender extends Component<void, Props, void> {
+import type {Props} from '.'
+
+class GPGSign extends Component<void, Props, void> {
   render() {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>
@@ -52,4 +53,4 @@ const styles = {
   },
 }
 
-export default GPGSignRender
+export default GPGSign

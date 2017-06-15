@@ -1,9 +1,10 @@
 // @flow
 import Container from '../../forms/container'
 import React from 'react'
-import type {Props} from './index.render'
 import {Button, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins} from '../../../styles'
+
+import type {Props} from '.'
 
 const SetPublicName = ({
   onBack,

@@ -4,21 +4,22 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 import React, {Component} from 'react'
-import RenderCodePage from './index.render'
-import type {Props} from './index.render'
+import CodePage from '.'
 import * as Creators from '../../../actions/login/creators'
 import {connect} from 'react-redux'
 
+import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
 
-class CodePage extends Component<void, Props, {enterText: string}> {
+// TODO remove this class
+class _CodePage extends Component<void, Props, {enterText: string}> {
   state = {
     enterText: '',
   }
 
   render() {
     return (
-      <RenderCodePage
+      <CodePage
         enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
         onBack={this.props.onBack}
@@ -40,37 +41,38 @@ class CodePage extends Component<void, Props, {enterText: string}> {
   }
 }
 
-// $FlowIssue
-export default connect(
-  ({
-    login: {
-      codePage: {
-        cameraBrokenMode,
-        enterCodeErrorText,
-        mode,
-        myDeviceRole,
-        otherDeviceRole,
-        qrCode,
-        qrCodeScanned,
-        textCode,
-      },
+const mapStateToProps = ({
+  login: {
+    codePage: {
+      cameraBrokenMode,
+      enterCodeErrorText,
+      mode,
+      myDeviceRole,
+      otherDeviceRole,
+      qrCode,
+      qrCodeScanned,
+      textCode,
     },
-  }: TypedState) => ({
-    cameraBrokenMode,
-    enterCodeErrorText,
-    mode,
-    myDeviceRole,
-    otherDeviceRole,
-    qrCode: qrCode ? qrCode.stringValue() : '',
-    qrCodeScanned,
-    textCode: textCode ? textCode.stringValue() : '',
-  }),
-  dispatch => ({
-    onBack: () => dispatch(Creators.onBack()),
-    setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
-    setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
-    qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
-    resetQRCodeScanned: () => dispatch(Creators.resetQRCodeScanned()),
-    textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
-  })
-)(CodePage)
+  },
+}: TypedState) => ({
+  cameraBrokenMode,
+  enterCodeErrorText,
+  mode,
+  myDeviceRole,
+  otherDeviceRole,
+  qrCode: qrCode ? qrCode.stringValue() : '',
+  qrCodeScanned,
+  textCode: textCode ? textCode.stringValue() : '',
+})
+
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(Creators.onBack()),
+  setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
+  setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
+  qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
+  resetQRCodeScanned: () => dispatch(Creators.resetQRCodeScanned()),
+  textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
+})
+
+// $FlowIssue
+export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)

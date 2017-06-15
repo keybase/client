@@ -6,7 +6,6 @@
 
 import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {
   codePageDeviceRoleExistingPhone,
@@ -17,6 +16,8 @@ import {
 } from '../../../constants/login'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {getStyle} from '../../../common-adapters/text'
+
+import type {Props} from '.'
 
 const SubTitle = ({usePhone}) => (
   <p>
@@ -119,7 +120,7 @@ function _otherIsPhone(otherDeviceRole) {
   return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1
 }
 
-class CodePageRender extends Component<void, Props, void> {
+class CodePage extends Component<void, Props, void> {
   render() {
     switch (this.props.mode) {
       case codePageModeShowCode:
@@ -169,4 +170,4 @@ const stylesQr = {
   width: 190,
 }
 
-export default CodePageRender
+export default CodePage

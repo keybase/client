@@ -1,11 +1,12 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import React from 'react'
-import type {DeviceType} from '../../../constants/types/more'
-import type {IconType} from '../../../common-adapters/icon'
-import type {Props} from './index.render'
 import {Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
+
+import type {DeviceType} from '../../../constants/types/more'
+import type {IconType} from '../../../common-adapters/icon'
+import type {Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
@@ -31,7 +32,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const Render = ({onBack, devices, onWont, onSelect}: Props) => (
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
     <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
     <div style={stylesDevicesContainer}>
@@ -82,4 +83,4 @@ const stylesWont = {
   alignSelf: 'center',
 }
 
-export default Render
+export default SelectOtherDevice

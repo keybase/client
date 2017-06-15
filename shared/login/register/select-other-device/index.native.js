@@ -1,11 +1,12 @@
 // @flow
 import Container from '../../forms/container'
 import React from 'react'
-import type {DeviceType} from '../../../constants/types/more'
-import type {IconType} from '../../../common-adapters/icon'
-import type {Props} from './index.render'
 import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
+
+import type {DeviceType} from '../../../constants/types/more'
+import type {IconType} from '../../../common-adapters/icon'
+import type {Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
@@ -25,20 +26,18 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <Box style={stylesButtonContainer}>
-          <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
-        </Box>
+        <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
       </Box>
     </ClickableBox>
   )
 }
 
-const Render = ({onBack, devices, onWont, onSelect}: Props) => (
-  <Container style={stylesContainer} onBack={onBack}>
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
+  <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
       <Text type="Body" style={stylesInstructions}>
@@ -53,6 +52,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
 )
 const stylesContainer = {
   alignItems: 'center',
+  width: '100%',
 }
 const stylesInstructions = {
   marginBottom: globalMargins.small,
@@ -61,8 +61,8 @@ const stylesInstructions = {
 const stylesDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  width: 375,
   alignSelf: 'center',
+  width: '100%',
 }
 const stylesRow = {
   ...globalStyles.flexBoxRow,
@@ -74,6 +74,7 @@ const stylesRow = {
   paddingTop: globalMargins.tiny,
   borderBottomWidth: 1,
   borderBottomColor: globalColors.black_05,
+  width: '100%',
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,
@@ -89,16 +90,10 @@ const stylesIcon = {
   marginLeft: 0,
   marginRight: globalMargins.small,
 }
-const stylesButtonContainer = {
-  ...globalStyles.flexBoxRow,
-  flexGrow: 1,
-  justifyContent: 'flex-end',
-}
-
 const stylesWont = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
   alignSelf: 'center',
 }
 
-export default Render
+export default SelectOtherDevice

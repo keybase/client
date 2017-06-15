@@ -30,9 +30,9 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
-import type {Props} from './index.render'
+import type {Props} from '.'
 
-class CodePageRender extends Component<void, Props, void> {
+class CodePage extends Component<void, Props, void> {
   componentDidMount() {
     this.props.resetQRCodeScanned()
   }
@@ -351,4 +351,4 @@ const stylesScan = NativeStyleSheet.create({
   },
 })
 
-export default CodePageRender
+export default CodePage

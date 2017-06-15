@@ -1,10 +1,11 @@
 // @flow
 import Container from '../../forms/container.desktop'
 import React from 'react'
-import type {Props} from './index.render'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 
-const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingForResponse}: Props) => {
+import type {Props} from '.'
+
+const PaperKey = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingForResponse}: Props) => {
   return (
     <Container style={styles.container} onBack={() => onBack()}>
       <Text type="Header" style={styles.header}>Type in your paper key:</Text>
@@ -50,4 +51,4 @@ const styles = {
   },
 }
 
-export default Render
+export default PaperKey
