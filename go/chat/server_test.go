@@ -938,7 +938,8 @@ func (m messageSabotagerRemote) GetThreadRemote(ctx context.Context, arg chat1.G
 		return res, err
 	}
 	if len(res.Thread.Messages) > 0 {
-		res.Thread.Messages[0].BodyCiphertext.E[0]++
+		fmt.Printf("SABOTAGING\n")
+		res.Thread.Messages[0].BodyCiphertext.E[0] += 50
 	}
 	return res, nil
 }
@@ -949,10 +950,23 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
+
+		// Wait for message notifications so we don't race cache clear with incoming message
+		for i := 0; i < 2; i++ {
+			select {
+			case <-listener.newMessage:
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no msg cb")
+			}
+		}
 
 		// make evil hello evil
 		tc := ctc.world.Tcs[users[0].Username]
