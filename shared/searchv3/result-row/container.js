@@ -9,12 +9,7 @@ import type {SearchResultId} from '../../constants/searchv3'
 
 const mapStateToProps = (
   state: TypedState,
-  {
-    id,
-    selectedId,
-    onClick,
-    onShowTracker,
-  }: {id: SearchResultId, selectedId: SearchResultId, onClick: () => void, onShowTracker: () => void}
+  {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
 ) => {
   // $FlowIssue doesn't understand getIn
   const result = state.entities.getIn(['searchResults', id], Map()).toObject()
@@ -29,7 +24,6 @@ const mapStateToProps = (
     showTrackerButton: !!onShowTracker,
     leftFollowingState,
     rightFollowingState,
-    selected: id === selectedId,
   }
 }
 
