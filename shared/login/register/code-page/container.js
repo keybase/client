@@ -32,6 +32,7 @@ class _CodePage extends Component<void, Props, {enterText: string}> {
         cameraBrokenMode={this.props.cameraBrokenMode}
         setCodePageMode={this.props.setCodePageMode}
         qrScanned={this.props.qrScanned}
+        resetQRCodeScanned={this.props.resetQRCodeScanned}
         setCameraBrokenMode={this.props.setCameraBrokenMode}
         enterCodeErrorText={this.props.enterCodeErrorText}
         textEntered={() => this.props.textEntered(this.state.enterText)}
@@ -69,6 +70,7 @@ const mapDispatchToProps = dispatch => ({
   setCodePageMode: requestedMode => dispatch(Creators.setCodePageMode(requestedMode)),
   setCameraBrokenMode: (broken: boolean) => dispatch(Creators.setCameraBrokenMode(broken)),
   qrScanned: ({data}) => dispatch(Creators.qrScanned(data)),
+  resetQRCodeScanned: () => dispatch(Creators.resetQRCodeScanned()),
   textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
 })
 

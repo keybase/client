@@ -30,7 +30,7 @@
     "hot-server-dumb": "cross-env DUMB=true yarn run _helper hot-server",
     "inject-code-prod": "yarn run _helper inject-code-prod",
     "inject-sourcemaps-prod": "yarn run _helper inject-sourcemaps-prod",
-    "start": "yarn run build-dev && yarn run start-cold",
+    "start": "yarn run _helper start",
     "start-cold": "yarn run _helper start-cold",
     "start-hot": "yarn run _helper start-hot",
     "start-prod": "yarn run _helper start-prod",

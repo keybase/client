@@ -104,6 +104,10 @@ function provisioningError(error: Error) {
   return {type: Constants.provisioningError, payload: {error}}
 }
 
+function resetQRCodeScanned() {
+  return {type: Constants.resetQRCodeScanned}
+}
+
 function loginDone(error?: {message: string}) {
   if (error) {
     return {type: Constants.loginDone, error: true, payload: error}
@@ -171,6 +175,7 @@ export {
   provisionTextCodeEntered,
   qrScanned,
   relogin,
+  resetQRCodeScanned,
   selectDeviceId,
   setCameraBrokenMode,
   setCodePageMode,

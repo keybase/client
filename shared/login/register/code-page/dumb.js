@@ -14,6 +14,7 @@ const baseMock = {
   setCodePageMode: () => {},
   qrScanned: data => console.log('QR Scanned:', data),
   qrCodeScanned: false,
+  resetQRCodeScanned: () => {},
   setCameraBrokenMode: () => {},
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),

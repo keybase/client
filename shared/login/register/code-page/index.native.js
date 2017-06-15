@@ -33,6 +33,10 @@ import type {Mode} from '../../../constants/login'
 import type {Props} from '.'
 
 class CodePage extends Component<void, Props, void> {
+  componentDidMount() {
+    this.props.resetQRCodeScanned()
+  }
+
   renderShowCode() {
     return (
       <Qr
