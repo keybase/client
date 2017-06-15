@@ -6,13 +6,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestTeamPlusApplicationKeysExim(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
-	tc.Tp.UpgradePerUserKey = true
+	tc := SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)

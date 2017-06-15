@@ -14,7 +14,6 @@ import (
 
 func TestTeamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
 
 	kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -29,7 +28,6 @@ func TestTeamGet(t *testing.T) {
 
 func TestTeamApplicationKey(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
 
 	kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -61,7 +59,6 @@ func TestTeamGetRepeat(t *testing.T) {
 	// in order to try to repro in CI, run this 10 times
 	for i := 0; i < 10; i++ {
 		tc := SetupTest(t, "team", 1)
-		tc.Tp.UpgradePerUserKey = true
 		defer tc.Cleanup()
 
 		kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -78,7 +75,6 @@ func TestTeamGetRepeat(t *testing.T) {
 func TestTeamGetWhileCreate(t *testing.T) {
 	t.Skip("this found create team bug")
 	tc := SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
 
 	kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -118,7 +114,6 @@ func TestTeamGetConcurrent(t *testing.T) {
 
 func teamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 	defer tc.Cleanup()
 
 	kbtest.CreateAndSignupFakeUser("team", tc.G)

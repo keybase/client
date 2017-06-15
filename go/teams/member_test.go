@@ -12,7 +12,6 @@ import (
 
 func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 	tc := SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 
 	u, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
@@ -26,7 +25,6 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 
 func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other *kbtest.FakeUser, name string) {
 	tc = SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
 
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
