@@ -98,6 +98,12 @@ export const CommonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const CommonSeqType = {
+  public: 1,
+  private: 2,
+  semiprivate: 3,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -5432,6 +5438,11 @@ export type SelectKeyRes = {
   keyID: string,
   doSecretPush: boolean,
 }
+
+export type SeqType =
+    1 // PUBLIC_1
+  | 2 // PRIVATE_2
+  | 3 // SEMIPRIVATE_3
 
 export type Seqno = int64
 
