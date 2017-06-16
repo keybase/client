@@ -176,6 +176,22 @@ func (brq *blockRetrievalQueue) shutdownRetrieval() {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker(priority int) {
+	// On-demand workers and prefetch workers share the priority queue. This
+	// allows maximum time for requests to jump the queue, at least until the
+	// worker actually begins working on it.
+	//
+	// Note that the worker being notified won't necessarily work on the exact
+	// request that caused the notification. It's just a counter. That means
+	// that sometimes on-demand workers will work on prefetch requests, and
+	// vice versa. But the numbers should match.
+	//
+	// However, there are some pathological scenarios where if all the workers
+	// of one type are making progress but the other type are not (which is
+	// highly improbable), requests of one type could starve the other. By
+	// design, on-demand requests _should_ starve prefetch requests, so this is
+	// a problem only if prefetch requests can starve on-demand workers. But
+	// because there are far more on-demand workers than prefetch workers, this
+	// should never acdtually happen.
 	workerCh := brq.workerCh
 	if priority < defaultOnDemandRequestPriority {
 		workerCh = brq.prefetchWorkerCh
@@ -186,15 +202,8 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	// Notify the next queued worker.
 	case workerCh <- struct{}{}:
 	default:
-		// Only launch a goroutine if we would otherwise block.
-		go func() {
-			select {
-			case <-brq.doneCh:
-				brq.shutdownRetrieval()
-			// Notify the next queued worker.
-			case workerCh <- struct{}{}:
-			}
-		}()
+		panic("notifyWorker() would have blocked, which means we somehow " +
+			"have around MaxInt32 requests already waiting.")
 	}
 }
 
