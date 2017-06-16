@@ -110,14 +110,11 @@ type blockRetrievalQueue struct {
 	insertionCount uint64
 	heap           *blockRetrievalHeap
 
-	// This is a channel of channels to maximize the time that each request is
-	// in the heap, allowing preemption as long as possible. This way, a
+	// These are notification channels to maximize the time that each request
+	// is in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerQueue chan chan<- *blockRetrieval
-	// This is a channel of channels to maximize the time that each request is
-	// in the heap, allowing preemption as long as possible. This way, a
-	// request only exits the heap once a worker is ready.
-	prefetchWorkerQueue chan chan<- *blockRetrieval
+	workerCh         chan struct{}
+	prefetchWorkerCh chan struct{}
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
@@ -137,24 +134,24 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	config blockRetrievalConfig) *blockRetrievalQueue {
 	q := &blockRetrievalQueue{
-		config:      config,
-		log:         config.MakeLogger(""),
-		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
-		heap:        &blockRetrievalHeap{},
-		workerQueue: make(chan chan<- *blockRetrieval, numWorkers),
-		prefetchWorkerQueue: make(chan chan<- *blockRetrieval,
-			numPrefetchWorkers),
-		workers: make([]*blockRetrievalWorker, 0, numWorkers+numPrefetchWorkers),
-		doneCh:  make(chan struct{}),
+		config:           config,
+		log:              config.MakeLogger(""),
+		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
+		heap:             &blockRetrievalHeap{},
+		workerCh:         make(chan struct{}, numWorkers),
+		prefetchWorkerCh: make(chan struct{}, numPrefetchWorkers),
+		doneCh:           make(chan struct{}),
+		workers: make([]*blockRetrievalWorker, 0,
+			numWorkers+numPrefetchWorkers),
 	}
 	q.prefetcher = newBlockPrefetcher(q, config)
 	for i := 0; i < numWorkers; i++ {
-		q.workers = append(q.workers,
-			newBlockRetrievalWorker(config.blockGetter(), q, onDemandWorker))
+		q.workers = append(q.workers, newBlockRetrievalWorker(
+			config.blockGetter(), q, q.workerCh))
 	}
 	for i := 0; i < numPrefetchWorkers; i++ {
-		q.workers = append(q.workers,
-			newBlockRetrievalWorker(config.blockGetter(), q, prefetchWorker))
+		q.workers = append(q.workers, newBlockRetrievalWorker(
+			config.blockGetter(), q, q.prefetchWorkerCh))
 	}
 	return q
 }
@@ -170,12 +167,9 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker(priority int) {
-	workerQueue := brq.workerQueue
+	workerCh := brq.workerCh
 	if priority < defaultOnDemandRequestPriority {
-		brq.log.Debug("notifyWorker prefetch request, priority: %d", priority)
-		workerQueue = brq.prefetchWorkerQueue
-	} else {
-		brq.log.Debug("notifyWorker on-demand request, priority: %d", priority)
+		workerCh = brq.prefetchWorkerCh
 	}
 	select {
 	case <-brq.doneCh:
@@ -183,17 +177,8 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 		if retrieval != nil {
 			brq.FinalizeRequest(retrieval, nil, io.EOF)
 		}
-	// Get the next queued worker
-	case ch := <-workerQueue:
-		brq.log.Debug("notifyWorker(%p) received worker", &ch)
-		retrieval := brq.popIfNotEmpty()
-		if retrieval != nil {
-			brq.log.Debug("notifyWorker(%p) finalizing request %+v",
-				&ch, retrieval.blockPtr)
-			ch <- retrieval
-		} else {
-			brq.log.Debug("notifyWorker(%p) nil request", &ch)
-		}
+	// Notify the next queued worker.
+	case workerCh <- struct{}{}:
 	}
 }
 
@@ -387,18 +372,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	}
 }
 
-// Work accepts a worker's channel to assign work.
-func (brq *blockRetrievalQueue) Work(ch chan<- *blockRetrieval) {
-	brq.log.Debug("brq.Work called with %p", &ch)
-	brq.workerQueue <- ch
-}
-
-// PrefetchWork accepts a worker's channel to assign work.
-func (brq *blockRetrievalQueue) PrefetchWork(ch chan<- *blockRetrieval) {
-	brq.log.Debug("brq.PrefetchWork called with %p", &ch)
-	brq.prefetchWorkerQueue <- ch
-}
-
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -446,13 +419,15 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
+		// We close `doneCh` first so that new requests coming in get finalized
+		// immediately rather than racing with dying workers.
+		close(brq.doneCh)
 		for _, w := range brq.workers {
 			w.Shutdown()
 		}
 		brq.prefetchMtx.Lock()
 		defer brq.prefetchMtx.Unlock()
 		brq.prefetcher.Shutdown()
-		close(brq.doneCh)
 	}
 }
 

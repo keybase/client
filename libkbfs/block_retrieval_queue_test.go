@@ -81,9 +81,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 		NoCacheEntry)
 
 	t.Log("Begin working on the request.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
@@ -112,17 +110,14 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 		block, NoCacheEntry)
 
 	t.Log("Begin working on the preempted ptr2 request.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
 
 	t.Log("Begin working on the ptr1 request.")
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -146,9 +141,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 		NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 request.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -160,16 +153,14 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 		block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr3 request.")
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(2), br.insertionOrder)
 
 	t.Log("Begin working on the ptr2 request.")
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -192,9 +183,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 		NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
@@ -226,9 +215,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 		block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr3 retrieval.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr3, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+2, br.priority)
@@ -239,8 +226,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 		block, NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has increased in priority and has 2 requests.")
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+2, br.priority)
@@ -248,8 +234,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	require.Len(t, br.requests, 2)
 
 	t.Log("Begin working on the ptr2 retrieval.")
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, ptr2, br.blockPtr)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
@@ -270,9 +255,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 		NoCacheEntry)
 
 	t.Log("Begin working on the ptr1 retrieval. Verify that it has 1 request.")
-	ch := make(chan *blockRetrieval, 1)
-	q.Work(ch)
-	br := <-ch
+	br := q.popIfNotEmpty()
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
 	require.Equal(t, defaultOnDemandRequestPriority, br.priority)
@@ -294,8 +277,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Make another request for the same block. Verify that this is a new request.")
 	_ = q.Request(ctx, defaultOnDemandRequestPriority+1, makeKMD(), ptr1,
 		block, NoCacheEntry)
-	q.Work(ch)
-	br = <-ch
+	br = q.popIfNotEmpty()
 	defer q.FinalizeRequest(br, &FileBlock{}, io.EOF)
 	require.Equal(t, defaultOnDemandRequestPriority+1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)

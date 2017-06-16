@@ -255,7 +255,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
-	w := newBlockRetrievalWorker(bg, q, onDemandWorker)
+	w := newBlockRetrievalWorker(bg, q, q.workerCh)
 	require.NotNil(t, w)
 
 	ptr1 := makeRandomBlockPointer(t)
