@@ -372,9 +372,11 @@ def testGo(prefix) {
         shell "go get \"github.com/stretchr/testify/assert\""
         def parallelTests = []
         def tests = [:]
+        def specialTests = [:]
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
         for (def i=0; i<dirs.size(); i++) {
             if (tests.size() == 4) {
-                parallelTests << parallelTests
+                parallelTests << tests
                 tests = [:]
             }
             def d = dirs[i]
@@ -386,17 +388,23 @@ def testGo(prefix) {
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
                     def testName = dirPath.replaceAll('/', '_')
-                    tests[prefix + testName] = {
+                    def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
                             shell ".${slash}test.test -test.timeout 30m"
                         }
+                    }
+                    if (testName in specialTestFilter) {
+                        specialTests[prefix + testName] = test
+                    } else {
+                        tests[prefix + testName] = test
                     }
                 } else {
                     println "Skipping tests for $dirPath because no test binary was produced."
                 }
             }
         }
+        parallelTests << specialTests
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
         for (def i=0; i<parallelTests.size(); i++) {
             parallel(parallelTests[i])
