@@ -71,7 +71,19 @@ function buildParser() {
   `
 
   const parserJS = peg.generate(generatedSource, {output: 'source', format: 'commonjs'})
-  const fullParserJS = prependJS + parserJS + appendJS
+
+  // FIXME: PEG.js splits emoji UTF-16 surrogate pairs up when generating array
+  // of expected characters (which is only used for error message output).
+  // Something in our react-native build chain then picks up these invalid
+  // unicode literals (e.g. \uD83C) and changes them to \u0NaN, resulting in
+  // syntax errors at JS parse time. We strip out this debug information to
+  // avoid provoking this error.
+  const strippedParserJS = parserJS.replace(
+    /peg\$classExpectation\((.+)\),/g,
+    `peg$otherExpectation("stripped character class"),`
+  )
+
+  const fullParserJS = prependJS + strippedParserJS + appendJS
 
   const parserPath = path.format({...path.parse(sourcePath), base: undefined, ext: '.js'})
   fs.writeFileSync(parserPath, fullParserJS, {encoding: 'utf8'})
