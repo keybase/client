@@ -370,8 +370,13 @@ def testGo(prefix) {
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         shell "go get \"github.com/stretchr/testify/require\""
         shell "go get \"github.com/stretchr/testify/assert\""
+        def parallelTests = []
         def tests = [:]
         for (def i=0; i<dirs.size(); i++) {
+            if (tests.size() == 4) {
+                parallelTests << parallelTests
+                tests = [:]
+            }
             def d = dirs[i]
             def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
@@ -393,6 +398,8 @@ def testGo(prefix) {
             }
         }
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        parallel(tests)
+        for (def i=0; i<parallelTests.size(); i++) {
+            parallel(parallelTests[i])
+        }
     }}
 }
