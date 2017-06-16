@@ -447,6 +447,9 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 	switch key {
 	case "keybase":
 		ret = AssertionKeybase{base}
+	case "team":
+		// TODO(CORE-5376): REMOVE THIS HACK.
+		ret = AssertionKeybase{base}
 	case "uid":
 		ret = AssertionUID{AssertionURLBase: base}
 	case "tid":
