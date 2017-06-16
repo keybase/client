@@ -197,6 +197,7 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	if err != nil {
 		u.G().Log.CWarningf(ctx, "Error in writing UPAK for %s: %s", uid, err)
 	}
+	u.deleteV1UPAK(uid)
 	return err
 }
 
@@ -311,6 +312,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			if err != nil {
 				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.UID, err)
 			}
+			u.deleteV1UPAK(arg.UID)
 		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Current.Uvv.SigChain) {
 			g.Log.CDebugf(ctx, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
@@ -459,6 +461,7 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 	if err != nil {
 		u.G().Log.Warning("Failed to remove %s from disk cache: %s", uid, err)
 	}
+	u.deleteV1UPAK(uid)
 }
 
 // Load the PublicKey for a user's device from the local cache, falling back to LoadUser, and cache the user.
@@ -553,4 +556,12 @@ func (u *CachedUPAKLoader) ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, e
 		ret = append(ret, t.Uid)
 	}
 	return ret, nil
+}
+
+// v1 UPAKs are all legacy and need to be gradually cleaned from cache.
+func (u *CachedUPAKLoader) deleteV1UPAK(uid keybase1.UID) {
+	err := u.G().LocalDb.Delete(culDBKeyV1(uid))
+	if err != nil {
+		u.G().Log.Warning("Failed to remove %s v1 object from disk cache: %s", uid, err)
+	}
 }
