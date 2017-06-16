@@ -16,15 +16,15 @@ import (
 )
 
 const (
-	defaultBlockRetrievalWorkerQueueSize int  = 100
-	defaultPrefetchWorkerQueueSize       int  = 2
-	minimalBlockRetrievalWorkerQueueSize int  = 2
-	minimalPrefetchWorkerQueueSize       int  = 1
-	testBlockRetrievalWorkerQueueSize    int  = 5
-	testPrefetchWorkerQueueSize          int  = 1
-	defaultOnDemandRequestPriority       int  = 100
-	prefetchWorker                       bool = true
-	onDemandWorker                       bool = false
+	defaultBlockRetrievalWorkerQueueSize int = 100
+	defaultPrefetchWorkerQueueSize       int = 2
+	minimalBlockRetrievalWorkerQueueSize int = 2
+	minimalPrefetchWorkerQueueSize       int = 1
+	testBlockRetrievalWorkerQueueSize    int = 5
+	testPrefetchWorkerQueueSize          int = 1
+	defaultOnDemandRequestPriority       int = 100
+	// Channel buffer size can be big because we use the empty struct.
+	workerQueueSize int = 1<<31 - 1
 )
 
 type blockRetrievalPartialConfig interface {
@@ -113,8 +113,8 @@ type blockRetrievalQueue struct {
 	// These are notification channels to maximize the time that each request
 	// is in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
-	workerCh         chan struct{}
-	prefetchWorkerCh chan struct{}
+	workerCh         chan<- struct{}
+	prefetchWorkerCh chan<- struct{}
 	// slices to store the workers so we can terminate them when we're done
 	workers []*blockRetrievalWorker
 	// channel to be closed when we're done accepting requests
@@ -133,13 +133,15 @@ var _ BlockRetriever = (*blockRetrievalQueue)(nil)
 // numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	config blockRetrievalConfig) *blockRetrievalQueue {
+	workerCh := make(chan struct{}, workerQueueSize)
+	prefetchWorkerCh := make(chan struct{}, workerQueueSize)
 	q := &blockRetrievalQueue{
 		config:           config,
 		log:              config.MakeLogger(""),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
-		workerCh:         make(chan struct{}, numWorkers),
-		prefetchWorkerCh: make(chan struct{}, numPrefetchWorkers),
+		workerCh:         workerCh,
+		prefetchWorkerCh: prefetchWorkerCh,
 		doneCh:           make(chan struct{}),
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
@@ -147,11 +149,11 @@ func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 	q.prefetcher = newBlockPrefetcher(q, config)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, q.workerCh))
+			config.blockGetter(), q, workerCh))
 	}
 	for i := 0; i < numPrefetchWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
-			config.blockGetter(), q, q.prefetchWorkerCh))
+			config.blockGetter(), q, prefetchWorkerCh))
 	}
 	return q
 }
@@ -165,6 +167,13 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 	return nil
 }
 
+func (brq *blockRetrievalQueue) shutdownRetrieval() {
+	retrieval := brq.popIfNotEmpty()
+	if retrieval != nil {
+		brq.FinalizeRequest(retrieval, nil, io.EOF)
+	}
+}
+
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	workerCh := brq.workerCh
@@ -173,10 +182,7 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 	select {
 	case <-brq.doneCh:
-		retrieval := brq.popIfNotEmpty()
-		if retrieval != nil {
-			brq.FinalizeRequest(retrieval, nil, io.EOF)
-		}
+		brq.shutdownRetrieval()
 	// Notify the next queued worker.
 	case workerCh <- struct{}{}:
 	default:
@@ -184,10 +190,7 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 		go func() {
 			select {
 			case <-brq.doneCh:
-				retrieval := brq.popIfNotEmpty()
-				if retrieval != nil {
-					brq.FinalizeRequest(retrieval, nil, io.EOF)
-				}
+				brq.shutdownRetrieval()
 			// Notify the next queued worker.
 			case workerCh <- struct{}{}:
 			}
@@ -375,9 +378,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 				priority >= defaultOnDemandRequestPriority {
 				// We've crossed the priority threshold for prefetch workers,
 				// so we now need an on-demand worker to pick up the request.
-				// This means that we might have up to two worker goroutines
+				// This means that we might have up to two workers "activated"
 				// per request. However, they won't leak because if a worker
-				// sees an empty queue, it ends its goroutine.
+				// sees an empty queue, it continues merrily along.
 				brq.notifyWorker(priority)
 			}
 		}
