@@ -81,7 +81,6 @@ const _urlChooseOption = (url: ?string) => {
 
 function messageCreateComponent(style, allowFontScaling) {
   return function(type, key, children, options) {
-    console.log('aaa', type, key, children, options, allowFontScaling)
     switch (type) {
       case 'markup':
         return <Box key={key}>{children}</Box>
