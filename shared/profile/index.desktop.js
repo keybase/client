@@ -487,6 +487,7 @@ const styleSearch = {
 }
 
 const styleSearchText = {
+  ...globalStyles.selectable,
   ...styleSearch,
   position: 'relative',
   top: -1,
