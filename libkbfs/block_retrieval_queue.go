@@ -191,7 +191,7 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	// design, on-demand requests _should_ starve prefetch requests, so this is
 	// a problem only if prefetch requests can starve on-demand workers. But
 	// because there are far more on-demand workers than prefetch workers, this
-	// should never acdtually happen.
+	// should never actually happen.
 	workerCh := brq.workerCh
 	if priority < defaultOnDemandRequestPriority {
 		workerCh = brq.prefetchWorkerCh
