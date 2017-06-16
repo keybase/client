@@ -68,6 +68,7 @@ type GlobalContext struct {
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
+	teamLoader     TeamLoader
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -271,6 +272,11 @@ func (g *GlobalContext) Logout() error {
 
 	g.GetFullSelfer().OnLogout()
 
+	tl := g.GetTeamLoader()
+	if tl != nil {
+		tl.OnLogout()
+	}
+
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
@@ -445,6 +451,10 @@ func (g *GlobalContext) GetPvlSource() PvlSource {
 // to implement ProofContext
 func (g *GlobalContext) GetAppType() AppType {
 	return g.Env.GetAppType()
+}
+
+func (g *GlobalContext) GetTeamLoader() TeamLoader {
+	return g.teamLoader
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -871,6 +881,10 @@ func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 
 func (g *GlobalContext) SetPvlSource(s PvlSource) {
 	g.pvlSource = s
+}
+
+func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
+	g.teamLoader = l
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {

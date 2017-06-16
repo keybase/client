@@ -4775,6 +4775,17 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
+export type LoadTeamArg = {
+  ID: TeamID,
+  name: string,
+  needAdmin: boolean,
+  needKeyGeneration: int,
+  needMembers?: ?Array<UserVersion>,
+  forceFullReload: boolean,
+  forceRepoll: boolean,
+  staleOK: boolean,
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -5031,6 +5042,14 @@ export type PerTeamKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+}
+
+export type PerTeamKeySeed = any
+
+export type PerTeamKeySeedItem = {
+  seed: PerTeamKeySeed,
+  generation: int,
+  seqno: Seqno,
 }
 
 export type PerUserKey = {
@@ -5772,6 +5791,13 @@ export type TeamChangeReq = {
   none?: ?Array<UID>,
 }
 
+export type TeamData = {
+  chain: TeamSigChainState,
+  perTeamKeySeeds?: ?Array<PerTeamKeySeedItem>,
+  readerKeyMasks?: ?Array<ReaderKeyMask>,
+  cachedAt: Time,
+}
+
 export type TeamID = string
 
 export type TeamMember = {
@@ -5823,7 +5849,7 @@ export type TeamSigChainState = {
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
-  stubbedTypes: {[key: string]: bool},
+  stubbedTypes: {[key: string]: boolean},
 }
 
 export type Test = {

@@ -84,6 +84,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
 	pvlsource.NewPvlSourceAndInstall(kbCtx)
+	teams.NewTeamLoaderAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,

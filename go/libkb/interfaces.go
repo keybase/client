@@ -578,3 +578,8 @@ const (
 type ConnectivityMonitor interface {
 	IsConnected(ctx context.Context) ConnectivityMonitorResult
 }
+
+type TeamLoader interface {
+	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
+	OnLogout()
+}
