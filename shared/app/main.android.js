@@ -1,8 +1,8 @@
 // @flow
 import {connector, Main} from './main-shared.native'
 import {compose, lifecycle, withProps} from 'recompose'
-import {NativeBackAndroid} from './common-adapters/index.native'
-import {getPath} from './route-tree'
+import {NativeBackAndroid} from '../common-adapters/index.native'
+import {getPath} from '../route-tree'
 
 module.hot &&
   module.hot.accept(() => {

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import type {Tab} from '../constants/tabs'
+import type {Tab} from '../../constants/tabs'
 
 export type Props = {
   onTabClick: (tab: Tab) => void,

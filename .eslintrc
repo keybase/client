@@ -76,6 +76,7 @@
         "react/jsx-pascal-case": "error",
         "react/jsx-uses-react": "error",
         "react/jsx-uses-vars": "error",
+        "react/jsx-space-before-closing": "off",
         "react/no-danger": "error",
         "react/no-did-mount-set-state": "error",
         "react/no-did-update-set-state": "error",
