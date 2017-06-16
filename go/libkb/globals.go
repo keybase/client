@@ -296,6 +296,9 @@ func (g *GlobalContext) Logout() error {
 		g.Log.Debug("Logout ConfigReload error: %s", err)
 	}
 
+	// send logout notification
+	g.NotifyRouter.HandleLogout()
+
 	return nil
 }
 
