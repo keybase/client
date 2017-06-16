@@ -164,15 +164,19 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 	}
 
 	var reason string
+	nameAssertion := name.String()
 	switch t {
 	case tlf.Public:
 		reason = "You accessed a public folder."
 	case tlf.Private:
-		reason = fmt.Sprintf("You accessed a private folder with %s.", name.String())
+		reason = fmt.Sprintf(
+			"You accessed a private folder with %s.", nameAssertion)
 	case tlf.SingleTeam:
-		reason = fmt.Sprintf("You accessed a folder for private team %s.", name.String())
+		reason = fmt.Sprintf(
+			"You accessed a folder for private team %s.", nameAssertion)
+		nameAssertion = "team:" + nameAssertion
 	}
-	resultName, resultID, err := identifier.Identify(ctx, name.String(), reason)
+	resultName, resultID, err := identifier.Identify(ctx, nameAssertion, reason)
 	if err != nil {
 		// Convert libkb.NoSigChainError into one we can report.  (See
 		// KBFS-1252).

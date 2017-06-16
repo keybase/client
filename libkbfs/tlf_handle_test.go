@@ -105,13 +105,20 @@ func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
 		},
 	}
 
+	_, err := ParseTlfHandle(ctx, kbpki, "u1", tlf.SingleTeam)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
+	assert.Equal(t, NoSuchUserError{Input: "u1@team"}, err)
+
 	checkNoSuchName := func(name string, ty tlf.Type) {
 		_, err := ParseTlfHandle(ctx, kbpki, name, ty)
 		assert.Equal(t, 0, kbpki.getIdentifyCalls())
-		assert.Equal(t, NoSuchNameError{Name: name}, err)
+		if ty == tlf.SingleTeam {
+			assert.Equal(t, NoSuchNameError{Name: name}, err)
+		} else {
+			assert.Equal(t, NoSuchUserError{Input: "t1"}, err)
+		}
 	}
 
-	checkNoSuchName("u1", tlf.SingleTeam)
 	checkNoSuchName("t1,u1", tlf.SingleTeam)
 	checkNoSuchName("u1,t1", tlf.SingleTeam)
 	checkNoSuchName("t1,t2", tlf.SingleTeam)

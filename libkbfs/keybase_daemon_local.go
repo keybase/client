@@ -178,7 +178,7 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 		} else {
 			key, val := url.ToKeyValuePair()
 			a := fmt.Sprintf("%s@%s", val, key)
-			if url.IsKeybase() {
+			if url.IsKeybase() && key != "team" {
 				a = val
 			}
 			var ok bool
@@ -535,7 +535,7 @@ func (k *KeybaseDaemonLocal) addTeamKeyForTest(
 func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []TeamInfo) {
 	for _, t := range teams {
 		k.localTeams[t.TID] = t
-		k.asserts[string(t.Name)] = t.TID.AsUserOrTeam()
+		k.asserts[string(t.Name)+"@team"] = t.TID.AsUserOrTeam()
 		f := keybase1.Folder{
 			Name:       string(t.Name),
 			FolderType: keybase1.FolderType_TEAM,

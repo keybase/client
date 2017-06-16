@@ -440,7 +440,7 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 		}
 	}
 	if nuid.name.String() != "" {
-		if nuid.name.String() != ra.assertion {
+		if nuid.name.String() != strings.TrimPrefix(ra.assertion, "team:") {
 			sendIfPossible()
 		}
 	} else if sa != (keybase1.SocialAssertion{}) {
@@ -533,6 +533,9 @@ func parseTlfHandleLoose(
 	changesCh := make(chan struct{}, 1)
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
+		if t == tlf.SingleTeam {
+			w = "team:" + w
+		}
 		writers[i] = resolvableAssertionWithChangeReport{
 			resolvableAssertion{kbpki, kbpki, w, keybase1.UID("")}, changesCh}
 	}
