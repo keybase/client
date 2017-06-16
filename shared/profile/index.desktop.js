@@ -469,10 +469,10 @@ const styleProofMenu = {
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  alignSelf: 'center',
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 224,
   minHeight: 24,
   minWidth: 273,
   position: 'absolute',

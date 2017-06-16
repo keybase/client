@@ -41,11 +41,12 @@ const Search = (props: Props) => (
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
+  alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   flex: 1,
-  left: 300,
+  minWidth: 400,
   padding: globalMargins.small,
   position: 'absolute',
   top: 10,
