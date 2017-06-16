@@ -34,7 +34,9 @@ const (
 type Type int
 
 const (
-	_ Type = iota
+	// Unknown is a placeholder type for when TLF type information is not
+	// available. It is the zero value of the type Type.
+	Unknown Type = iota
 	// Private represents a private TLF between one or more individual users.
 	Private
 	// Public represents a public TLF for one or more individual users.
@@ -143,6 +145,9 @@ func (id *ID) UnmarshalText(buf []byte) error {
 }
 
 // Type returns the type of TLF represented by this ID.
+//
+// Note that this function panics if the ID suffix is unknown, rather than
+// returning tlf.Unkonwn.
 func (id ID) Type() Type {
 	switch id.id[idByteLen-1] {
 	case idSuffix:
