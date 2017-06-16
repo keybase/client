@@ -308,9 +308,16 @@ func (s *Session) Invalidate() {
 	s.token = ""
 	s.csrf = ""
 	s.checked = false
-	// XXX this might be a mistake as the session might be refreshed
-	// but it was here before, so...
-	s.G().NotifyRouter.HandleLogout()
+
+	// Note: this notification has been active for a long time, but
+	// doesn't pertain anymore as losing a session is not the same
+	// as being logged out, and we are refreshing expired session
+	// tokens now. But just in case taking it out causes problems,
+	// will leave mention of it here:
+	//
+	//     s.G().NotifyRouter.HandleLogout()
+	//
+
 	s.G().Log.Debug("- session invalidated")
 }
 
