@@ -815,6 +815,106 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-mutual-follow-32.png'),
   },
+  'icon-nav-chat-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-32.png'),
+  },
+  'icon-nav-chat-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-40.png'),
+  },
+  'icon-nav-chat-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-selected-32.png'),
+  },
+  'icon-nav-chat-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-selected-40.png'),
+  },
+  'icon-nav-crypto-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-crypto-32.png'),
+  },
+  'icon-nav-crypto-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-crypto-selected-32.png'),
+  },
+  'icon-nav-devices-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-devices-32.png'),
+  },
+  'icon-nav-devices-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-devices-selected-32.png'),
+  },
+  'icon-nav-folders-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-32.png'),
+  },
+  'icon-nav-folders-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-40.png'),
+  },
+  'icon-nav-folders-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-selected-32.png'),
+  },
+  'icon-nav-folders-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-selected-40.png'),
+  },
+  'icon-nav-people-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-32.png'),
+  },
+  'icon-nav-people-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-40.png'),
+  },
+  'icon-nav-people-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-selected-32.png'),
+  },
+  'icon-nav-people-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-selected-40.png'),
+  },
+  'icon-nav-settings-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-32.png'),
+  },
+  'icon-nav-settings-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-40.png'),
+  },
+  'icon-nav-settings-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-selected-32.png'),
+  },
+  'icon-nav-settings-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-selected-40.png'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
