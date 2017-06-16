@@ -143,6 +143,7 @@ export default compose(
     componentWillReceiveProps: function(nextProps: Props) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
         this.props.onCloseSidePanel()
+        this.props.onFocusInput()
       }
     },
   })
