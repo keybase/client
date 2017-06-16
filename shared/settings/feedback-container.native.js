@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
+import RNFetchBlob from 'react-native-fetch-blob'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
@@ -15,7 +16,7 @@ import {
   mobileOsVersion,
   version,
 } from '../constants/platform'
-import {dumpLoggers, getLogger} from '../util/periodic-logger'
+import {getLogger} from '../util/periodic-logger'
 import {writeStream, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
@@ -57,57 +58,56 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
         reject(new Error('Not implemented on Desktop!'))
       }
 
-      if (isIOS) {
-        // We don't get the notification from the daemon so we have to do this ourselves
-        const logs = []
-        console.log('Starting log dump')
+      // We don't get the notification from the daemon so we have to do this ourselves
+      const logs = []
+      console.log('Starting log dump')
 
-        const logNames = ['actionLogger', 'storeLogger']
+      const logNames = ['actionLogger', 'storeLogger']
 
-        logNames.forEach(name => {
-          try {
-            const logger = getLogger(name)
-            logger &&
-              logger.dumpAll((...args) => {
-                logs.push(args)
-              })
-          } catch (_) {}
-        })
-
-        logs.push(['=============CONSOLE.LOG START============='])
-        const logger = getLogger('iosConsoleLog')
-        logger &&
-          logger.dumpAll((...args) => {
-            // Skip the extra prefixes that period-logger uses.
-            logs.push([args[1], ...args.slice(2)])
-          })
-        logs.push(['=============CONSOLE.LOG END============='])
-
-        const path = `${cachesDirectoryPath}/Keybase/rn.log`
-        console.log('Starting log write')
-
-        writeStream(path, 'utf8')
-          .then(stream => {
-            const writeLogsPromises = logs.map((log, idx) => {
-              return () => {
-                return stream.write(JSON.stringify(log, null, 2))
-              }
+      logNames.forEach(name => {
+        try {
+          const logger = getLogger(name)
+          logger &&
+            logger.dumpAll((...args) => {
+              logs.push(args)
             })
+        } catch (_) {}
+      })
 
-            return serialPromises(writeLogsPromises).then(() => stream.close())
+      logs.push(['=============CONSOLE.LOG START============='])
+      const logger = getLogger(isIOS ? 'iosConsoleLog' : 'androidConsoleLog')
+      logger &&
+        logger.dumpAll((...args) => {
+          // Skip the extra prefixes that period-logger uses.
+          logs.push([args[1], ...args.slice(2)])
+        })
+      logs.push(['=============CONSOLE.LOG END============='])
+
+      const dir = `${cachesDirectoryPath}/Keybase`
+      const path = `${dir}/rn.log`
+      console.log('Starting log write')
+
+      RNFetchBlob.fs
+        .isDir(dir)
+        .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
+        .then(() => writeStream(path, 'utf8', true))
+        .then(stream => {
+          const writeLogsPromises = logs.map((log, idx) => {
+            return () => {
+              return stream.write(JSON.stringify(log, null, 2))
+            }
           })
-          .then(success => {
-            console.log('Log write done')
-            resolve(true)
-          })
-          .catch(err => {
-            resolve(false)
-            console.warn(`Couldn't log send! ${err}`)
-          })
-      } else {
-        dumpLoggers()
-        resolve(true)
-      }
+
+          return serialPromises(writeLogsPromises).then(() => stream.close())
+        })
+        .then(success => {
+          console.log('Log write done')
+          resolve(path)
+        })
+        .catch(err => {
+          resolve('')
+          console.warn(`Couldn't log send! ${err}`)
+        })
     })
 
   componentWillUnmount() {
@@ -122,12 +122,12 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
     this.setState({sending: true, sentFeedback: false})
 
     this.props.setTimeout(() => {
-      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
 
       maybeDump
-        .then(() => {
+        .then(path => {
           console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-          return logSend(this.props.status, feedback, sendLogs)
+          return logSend(this.props.status, feedback, sendLogs, path)
         })
         .then(logSendId => {
           console.warn('logSendId is', logSendId)

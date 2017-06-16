@@ -10,11 +10,9 @@ import io.keybase.ossifrage.BuildConfig;
 
 public class LogSend extends ReactContextBaseJavaModule {
     private static final String NAME = "KBLogSend";
-    private final String logFilePath;
 
     public LogSend(final ReactApplicationContext reactContext, String logFilePath) {
         super(reactContext);
-        this.logFilePath = logFilePath;
     }
 
     @Override
@@ -23,7 +21,7 @@ public class LogSend extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void logSend(String status, String feedback, boolean sendLogs, Promise promise) {
+    public void logSend(String status, String feedback, boolean sendLogs, String logFilePath, Promise promise) {
         try {
             final String logID = Keybase.logSend(status, feedback, sendLogs, logFilePath);
             promise.resolve(logID);
