@@ -1,9 +1,9 @@
 // @flow
 import React from 'react'
-import {Box} from '../common-adapters'
-import {TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles'
-import {profileTab, folderTab, chatTab, settingsTab, searchTab} from '../constants/tabs'
+import {Box} from '../../common-adapters'
+import {TabBarButton} from '../../common-adapters/tab-bar'
+import {globalStyles, globalColors} from '../../styles'
+import {profileTab, folderTab, chatTab, settingsTab, searchTab} from '../../constants/tabs'
 
 import type {Props} from './index.render'
 

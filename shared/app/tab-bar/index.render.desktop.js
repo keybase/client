@@ -1,10 +1,10 @@
 // @flow
-import * as Tabs from '../constants/tabs'
+import * as Tabs from '../../constants/tabs'
 import React from 'react'
-import flags from '../util/feature-flags'
-import {Box} from '../common-adapters'
-import {TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import flags from '../../util/feature-flags'
+import {Box} from '../../common-adapters'
+import {TabBarButton} from '../../common-adapters/tab-bar'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './index.render'
 

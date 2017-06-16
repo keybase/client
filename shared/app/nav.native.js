@@ -1,24 +1,24 @@
 // @flow
 import GlobalError from './global-errors/container'
-import Offline from './offline'
+import Offline from '../offline'
 import React, {Component} from 'react'
 import {compose, lifecycle} from 'recompose'
 import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
-import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from './common-adapters/index.native'
+import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from '../common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
-import {chatTab, loginTab} from './constants/tabs'
+import {chatTab, loginTab} from '../constants/tabs'
 import {connect} from 'react-redux'
-import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
-import {isAndroid, isIOS} from './constants/platform'
-import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
+import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import {isAndroid, isIOS} from '../constants/platform'
+import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
 
 import type {Props} from './nav'
-import type {TypedState} from './constants/reducer'
-import type {Tab} from './constants/tabs'
+import type {TypedState} from '../constants/reducer'
+import type {Tab} from '../constants/tabs'
 import type {NavigationAction} from 'react-navigation'
-import type {RouteProps} from './route-tree/render-route'
+import type {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 

@@ -1,8 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, Icon, HOCTimers} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition} from '../styles'
-import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
+import {Box, Text, Icon, HOCTimers} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
+import {ignoreDisconnectOverlay} from '../../local-debug.desktop.js'
 
 import type {Props} from './index'
 

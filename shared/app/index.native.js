@@ -2,20 +2,20 @@
 import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-extend in RN iOS and Android
 import './globals.native'
 
-import DumbSheet from './dev/dumb-sheet'
-import DumbChatOnly from './dev/chat-only.native'
+import DumbChatOnly from '../dev/chat-only.native'
+import DumbSheet from '../dev/dumb-sheet'
 import Main from './main'
 import React, {Component} from 'react'
-import {Box} from './common-adapters'
-import configureStore from './store/configure-store'
-import {AppRegistry, AppState, Linking, Text} from 'react-native'
-import {Provider} from 'react-redux'
-import {makeEngine} from './engine'
-import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from './local-debug'
+import configureStore from '../store/configure-store'
 import routeDefs from './routes'
-import {setRouteDef} from './actions/route-tree'
-import {appLink, mobileAppStateChanged} from './actions/app'
-import {setupSource} from './util/forward-logs'
+import {AppRegistry, AppState, Linking, Text} from 'react-native'
+import {Box} from '../common-adapters'
+import {Provider} from 'react-redux'
+import {appLink, mobileAppStateChanged} from '../actions/app'
+import {makeEngine} from '../engine'
+import {setRouteDef} from '../actions/route-tree'
+import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from '../local-debug'
+import {setupSource} from '../util/forward-logs'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
