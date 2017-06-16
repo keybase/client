@@ -7,15 +7,7 @@ import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {
-  isElectron,
-  isIOS,
-  isAndroid,
-  appVersionName,
-  appVersionCode,
-  mobileOsVersion,
-  version,
-} from '../constants/platform'
+import {isAndroid, appVersionName, appVersionCode, mobileOsVersion, version} from '../constants/platform'
 import {getLogger} from '../util/periodic-logger'
 import {writeStream, exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
@@ -53,11 +45,6 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
 
   _dumpLogs = () =>
     new Promise((resolve, reject) => {
-      // This isn't used on desktop yet, but we'll likely have to dump the logs there too
-      if (isElectron) {
-        reject(new Error('Not implemented on Desktop!'))
-      }
-
       // We don't get the notification from the daemon so we have to do this ourselves
       const logs = []
       console.log('Starting log dump')
@@ -75,7 +62,7 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
       })
 
       logs.push(['=============CONSOLE.LOG START============='])
-      const logger = getLogger(isIOS ? 'iosConsoleLog' : 'androidConsoleLog')
+      const logger = getLogger('nativeConsoleLog')
       logger &&
         logger.dumpAll((...args) => {
           // Skip the extra prefixes that period-logger uses.
@@ -175,7 +162,7 @@ export default compose(
           uid: state.config.uid,
           deviceID: state.config.deviceID,
           mobileOsVersion,
-          platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
+          platform: isAndroid ? 'android' : 'ios',
           version,
           appVersionName,
           appVersionCode,
