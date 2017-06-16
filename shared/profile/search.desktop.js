@@ -12,7 +12,7 @@ const Search = (props: Props) => (
   <Box style={styleSearchContainer}>
     <Box style={styleSearchRow}>
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Box style={{flexGrow: 1}}>
+        <Box style={{flexGrow: 1, padding: globalMargins.small}}>
           <UserInput
             autoFocus={true}
             userItems={props.userItems}
@@ -26,7 +26,7 @@ const Search = (props: Props) => (
             onEnter={() => {}} // TODO
           />
         </Box>
-        <Icon style={{alignSelf: 'center'}} type="iconfont-close" onClick={props.onClose} />
+        <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
       </Box>
     </Box>
     <Box style={{...styleSearchRow, justifyContent: 'center'}}>
@@ -47,16 +47,19 @@ const styleSearchContainer = {
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   flex: 1,
   minWidth: 400,
-  padding: globalMargins.small,
   position: 'absolute',
   top: 10,
   zIndex: 20,
 }
 
+const styleSearchIcon = {
+  alignSelf: 'center',
+  padding: globalMargins.small
+}
+
 const styleSearchRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  padding: globalMargins.tiny,
 }
 
 export default Search
