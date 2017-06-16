@@ -28,6 +28,7 @@ export type Props = {
 
 class Folders extends Component<void, Props, void> {
   componentDidMount() {
+    console.warn('folders mount')
     this.props.favoriteList()
   }
 
