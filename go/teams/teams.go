@@ -269,9 +269,12 @@ func (t *Team) Rotate(ctx context.Context) error {
 
 	// create the team section of the signature
 
-	// TODO -- fill in a non-nil if we can't write/admin this chain explicitly and need
-	// admin permissions. See CORE-5501
-	section, err := memSet.Section(t.Chain.GetID(), nil)
+	admin, err := t.getAdminPermission(ctx, false)
+	if err != nil {
+		return err
+	}
+
+	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
 		return err
 	}
@@ -357,7 +360,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err error) {
+func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
 
 	me, err := t.loadMe(ctx)
 	if err != nil {
@@ -368,7 +371,10 @@ func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err 
 	// See CORE-5051
 	logPoint := t.Chain.GetAdminUserLogPoint(me.ToUserVersion())
 	if logPoint == nil {
-		return nil, errors.New("cannot perform this operation without adminship")
+		if required {
+			err = errors.New("cannot perform this operation without adminship")
+		}
+		return nil, err
 	}
 
 	ret := SCTeamAdmin{
@@ -385,7 +391,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, err
 	}
 
-	admin, err := t.getAdminPermission(ctx)
+	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, err
 	}

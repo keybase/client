@@ -155,7 +155,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 
 	// Reuse the `me` getting loaded
 	parentTeam.me = me
-	admin, err := parentTeam.getAdminPermission(ctx)
+	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
 	}
