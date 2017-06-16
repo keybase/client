@@ -29,7 +29,7 @@ function genEmojiData() {
 
   emojiData.forEach(emoji => {
     if (emoji.skin_variations) {
-      Object.keys(emoji.skin_variations).forEach((v, idx) => addEmojiLiteral(v, emoji.short_name, idx + 1))
+      Object.keys(emoji.skin_variations).forEach((k, idx) => addEmojiLiteral(emoji.skin_variations[k].unified, emoji.short_name, idx + 1))
     }
     emoji.variations.forEach(v => addEmojiLiteral(v, emoji.short_name))
     addEmojiLiteral(emoji.unified, emoji.short_name)
