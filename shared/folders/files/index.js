@@ -35,7 +35,10 @@ class Files extends Component<void, Props, State> {
     // TODO (AW): make a more user friendly response for when the folder they were hoping to look at
     // has been removed/defavorited in the time between them clicking it in the Folders view and the
     // loading of this component
-    if (!props.folder) props.navigateUp()
+    if (!props.folder) {
+      console.warn("Folder doesn't exist:", props.folder)
+      props.navigateUp()
+    }
   }
 
   constructor(props) {

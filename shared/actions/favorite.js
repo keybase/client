@@ -1,5 +1,7 @@
 // @flow
 import * as Constants from '../constants/favorite'
+import {folderTab} from '../constants/tabs'
+import {defaultKBFSPath, defaultPublicPrefix} from '../constants/config'
 import _ from 'lodash'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
@@ -11,7 +13,7 @@ import {
   NotifyFSRequestFSSyncStatusRequestRpcPromise,
 } from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {navigateUp} from '../actions/route-tree'
+import {navigateTo} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 import {isMobile} from '../constants/platform'
@@ -202,7 +204,8 @@ function _getFavoritesRPCToFolders(
 }
 
 function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
-  const folder = folderRPCFromPath(action.payload.path)
+  const path = action.payload.path
+  const folder = folderRPCFromPath(path)
   if (!folder) {
     const action: FavoriteAdded = {
       type: Constants.favoriteAdded,
@@ -216,16 +219,17 @@ function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
       yield put(favoriteList())
-      yield put(navigateUp())
+      yield call(_navigateToFolder, path)
     } catch (error) {
       console.warn('Err in favorite.favoriteAdd', error)
-      yield put(navigateUp())
+      yield call(_navigateToFolder, path)
     }
   }
 }
 
 function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
-  const folder = folderRPCFromPath(action.payload.path)
+  const path = action.payload.path
+  const folder = folderRPCFromPath(path)
   if (!folder) {
     const action: FavoriteIgnored = {
       type: Constants.favoriteIgnored,
@@ -239,11 +243,19 @@ function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
       yield put(favoriteList())
-      yield put(navigateUp())
+      yield call(_navigateToFolder, path)
     } catch (error) {
       console.warn('Err in favorite.favoriteIgnore', error)
-      yield put(navigateUp())
+      yield call(_navigateToFolder, path)
     }
+  }
+}
+
+function* _navigateToFolder(path: string) {
+  if (path.startsWith(defaultKBFSPath + defaultPublicPrefix)) {
+    yield put(navigateTo([folderTab, 'public']))
+  } else {
+    yield put(navigateTo([folderTab, 'private']))
   }
 }
 
