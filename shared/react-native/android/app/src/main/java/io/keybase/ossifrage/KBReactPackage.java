@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
-import io.keybase.ossifrage.modules.FileLogger;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
@@ -35,15 +34,13 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         }
 
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
-        final FileLogger kbLogger = new FileLogger(reactApplicationContext, logFilePath);
-        final LogSend logSend = new LogSend(reactApplicationContext, logFilePath);
+        final LogSend logSend = new LogSend(reactApplicationContext);
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
         List<NativeModule> modules = new ArrayList<>();
         modules.add(kbEngine);
-        modules.add(kbLogger);
         modules.add(logSend);
         modules.add(screenProtector);
 

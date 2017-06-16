@@ -11,7 +11,7 @@ import io.keybase.ossifrage.BuildConfig;
 public class LogSend extends ReactContextBaseJavaModule {
     private static final String NAME = "KBLogSend";
 
-    public LogSend(final ReactApplicationContext reactContext, String logFilePath) {
+    public LogSend(final ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
