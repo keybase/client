@@ -29,9 +29,7 @@ function writeFile(filepath: string, contents: string, encoding?: string): Promi
 }
 
 function writeStream(filepath: string, encoding: string, append?: boolean): Promise<*> {
-  return RNFetchBlob.fs
-    .createFile(filepath, '', encoding)
-    .then(() => RNFetchBlob.fs.writeStream(filepath, encoding, append))
+  return RNFetchBlob.fs.writeStream(filepath, encoding, append)
 }
 
 const cachesDirectoryPath = tmpDir()

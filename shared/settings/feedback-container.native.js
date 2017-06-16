@@ -17,7 +17,7 @@ import {
   version,
 } from '../constants/platform'
 import {getLogger} from '../util/periodic-logger'
-import {writeStream, cachesDirectoryPath} from '../util/file'
+import {writeStream, exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -90,6 +90,8 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
       RNFetchBlob.fs
         .isDir(dir)
         .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
+        .then(() => exists(path))
+        .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(path, '', 'utf8')))
         .then(() => writeStream(path, 'utf8', true))
         .then(stream => {
           const writeLogsPromises = logs.map((log, idx) => {
@@ -105,8 +107,8 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
           resolve(path)
         })
         .catch(err => {
-          resolve('')
           console.warn(`Couldn't log send! ${err}`)
+          reject(err)
         })
     })
 
@@ -135,6 +137,15 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
             this.setState({
               sentFeedback: true,
               feedback: null,
+              sending: false,
+            })
+          }
+        })
+        .catch(err => {
+          console.warn('err in sending logs', err)
+          if (this.mounted) {
+            this.setState({
+              sentFeedback: false,
               sending: false,
             })
           }
