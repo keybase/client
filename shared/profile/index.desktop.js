@@ -482,13 +482,14 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.white,
+  fontSize: 12,
   padding: 3,
 }
 
 const styleSearchText = {
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default ProfileRender
