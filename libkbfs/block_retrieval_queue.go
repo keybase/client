@@ -179,6 +179,19 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 		}
 	// Notify the next queued worker.
 	case workerCh <- struct{}{}:
+	default:
+		// Only launch a goroutine if we would otherwise block.
+		go func() {
+			select {
+			case <-brq.doneCh:
+				retrieval := brq.popIfNotEmpty()
+				if retrieval != nil {
+					brq.FinalizeRequest(retrieval, nil, io.EOF)
+				}
+			// Notify the next queued worker.
+			case workerCh <- struct{}{}:
+			}
+		}()
 	}
 }
 
@@ -332,7 +345,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 			brq.insertionCount++
 			brq.ptrs[bpLookup] = br
 			heap.Push(brq.heap, br)
-			go brq.notifyWorker(priority)
+			brq.notifyWorker(priority)
 		} else {
 			err := br.ctx.AddContext(ctx)
 			if err == context.Canceled {
@@ -365,7 +378,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 				// This means that we might have up to two worker goroutines
 				// per request. However, they won't leak because if a worker
 				// sees an empty queue, it ends its goroutine.
-				go brq.notifyWorker(priority)
+				brq.notifyWorker(priority)
 			}
 		}
 		return ch
