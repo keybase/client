@@ -566,7 +566,7 @@ func (e *Identify2WithUID) maybeCacheResult() {
 		return
 	}
 	e.getCache().Insert(v)
-	e.G().Log.Debug("| insert %+v", v)
+	e.G().VDL.Log(libkb.VLog1, "| insert %+v", v)
 
 	// Don't write failures to the disk cache
 	if isOK {
