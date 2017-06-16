@@ -268,7 +268,10 @@ func (t *Team) Rotate(ctx context.Context) error {
 	memSet := newMemberSet()
 
 	// create the team section of the signature
-	section, err := memSet.Section(t.Chain.GetID())
+
+	// TODO -- fill in a non-nil if we can't write/admin this chain explicitly and need
+	// admin permissions. See CORE-5501
+	section, err := memSet.Section(t.Chain.GetID(), nil)
 	if err != nil {
 		return err
 	}
@@ -281,7 +284,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
 		return err
 	}
 
@@ -343,7 +346,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	if err := t.postChangeItem(section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
 		return err
 	}
 
@@ -354,9 +357,36 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
+func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err error) {
+
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO -- recursively try parent teams if this one isn't an admin team.
+	// See CORE-5051
+	logPoint := t.Chain.GetAdminUserLogPoint(me.ToUserVersion())
+	if logPoint == nil {
+		return nil, errors.New("cannot perform this operation without adminship")
+	}
+
+	ret := SCTeamAdmin{
+		TeamID:  (SCTeamID)(t.ID),
+		Seqno:   logPoint.Seqno,
+		SeqType: keybase1.SeqType_SEMIPRIVATE,
+	}
+	return &ret, nil
+}
+
 func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, *memberSet, error) {
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
+		return SCTeamSection{}, nil, nil, err
+	}
+
+	admin, err := t.getAdminPermission(ctx)
+	if err != nil {
 		return SCTeamSection{}, nil, nil, err
 	}
 
@@ -367,7 +397,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 
 	// create the team section of the signature
-	section, err := memSet.Section(t.Chain.GetID())
+	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, err
 	}
@@ -382,9 +412,9 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
 	// create the change item
-	sigMultiItem, err := t.sigChangeItem(section, linkType, merkleRoot)
+	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -396,9 +426,9 @@ func (t *Team) postChangeItem(section SCTeamSection, secretBoxes *PerTeamSharedS
 	return t.postMulti(payload)
 }
 
-func (t *Team) loadMe() (*libkb.User, error) {
+func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	if t.me == nil {
-		me, err := libkb.LoadMe(libkb.NewLoadUserArg(t.G()))
+		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, t.G()))
 		if err != nil {
 			return nil, err
 		}
@@ -408,8 +438,8 @@ func (t *Team) loadMe() (*libkb.User, error) {
 	return t.me, nil
 }
 
-func (t *Team) sigChangeItem(section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
-	me, err := t.loadMe()
+func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}

@@ -57,6 +57,12 @@ protocol Common {
   @typedef("int64") @lint("ignore")
   record Seqno {}
 
+  enum SeqType {
+    PUBLIC_1,
+    PRIVATE_2,
+    SEMIPRIVATE_3
+  }
+
   fixed Bytes32(32);
 
   record Text {
@@ -204,7 +210,7 @@ protocol Common {
       array<PublicKey> pgpKeys;
       array<RemoteTrack> remoteTracks;
   }
-  
+
   @go("nostring")
   enum MerkleTreeID {
        MASTER_0,

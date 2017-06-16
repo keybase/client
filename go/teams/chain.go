@@ -127,6 +127,26 @@ func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.Team
 	return t.getUserRole(user), nil
 }
 
+func (t TeamSigChainState) GetUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
+	points := t.inner.UserLog[user]
+	if len(points) == 0 {
+		return nil
+	}
+	tmp := points[len(points)-1].DeepCopy()
+	return &tmp
+}
+
+func (t TeamSigChainState) GetAdminUserLogPoint(user keybase1.UserVersion) *keybase1.UserLogPoint {
+	ret := t.GetUserLogPoint(user)
+	if ret == nil {
+		return nil
+	}
+	if ret.Role != keybase1.TeamRole_ADMIN && ret.Role != keybase1.TeamRole_OWNER {
+		return nil
+	}
+	return ret
+}
+
 func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamRole {
 	points := t.inner.UserLog[user]
 	if len(points) == 0 {
