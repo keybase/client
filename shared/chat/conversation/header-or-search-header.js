@@ -2,6 +2,7 @@
 import React from 'react'
 import Header from './header/container'
 import SearchHeader from '../search-header'
+import * as ChatConstants from '../../constants/chat'
 import * as SearchConstants from '../../constants/searchv3'
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
   onChangeSearchText: (searchText: string) => void,
   searchText: string,
   selectedSearchId: ?SearchConstants.SearchResultId,
+  selectedConversationIDKey: ?ChatConstants.ConversationIDKey,
   onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
   sidePanelOpen: boolean,
   onToggleSidePanel: () => void,
@@ -20,6 +22,7 @@ export default (props: Props) =>
     ? <SearchHeader
         onChangeSearchText={props.onChangeSearchText}
         usernameText={props.searchText}
+        selectedConversationIDKey={props.selectedConversationIDKey}
         selectedSearchId={props.selectedSearchId}
         onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
       />

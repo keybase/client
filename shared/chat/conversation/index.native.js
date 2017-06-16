@@ -39,6 +39,7 @@ const Conversation = (props: Props) => (
       onChangeSearchText={props.onChangeSearchText}
       searchText={props.searchText}
       selectedSearchId={props.selectedSearchId}
+      selectedConversationIDKey={props.selectedConversationIDKey}
       onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
     />
     {props.showSearchResults
