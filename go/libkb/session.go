@@ -317,6 +317,7 @@ func (s *Session) Invalidate() {
 	//
 	//     s.G().NotifyRouter.HandleLogout()
 	//
+	// It is now in libkb/globals.go at the end of the Logout() function.
 
 	s.G().Log.Debug("- session invalidated")
 }
