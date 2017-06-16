@@ -15,6 +15,7 @@ import (
 type UPAKLoader interface {
 	ClearMemory()
 	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
+	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
@@ -372,6 +373,15 @@ func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *Us
 	}
 	converted := keybase1.UPAKFromUPKV2AI(*ret)
 	return &converted, user, err
+}
+
+// Load a UserPlusKeysV2AllIncarnations from the local cache, falls back to
+// LoadUser, and cache the user. Can only perform lookups by UID. Will return a
+// non-nil UserPlusKeysV2AllIncarnations, or a non-nil error, but never both
+// non-nil, nor never both nil. If we had to do a full LoadUser as part of the
+// request, it's returned too.
+func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllIncarnations, *User, error) {
+	return u.loadWithInfo(arg, nil, nil, true)
 }
 
 func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
