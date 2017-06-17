@@ -213,6 +213,10 @@ function backToProfile(): Constants.BackToProfile {
   return {payload: undefined, type: Constants.backToProfile}
 }
 
+function clearSearchResults(): Constants.ClearSearchResults {
+  return {payload: undefined, type: Constants.clearSearchResults}
+}
+
 function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
   yield put(navigateTo([], [profileTab]))
@@ -242,6 +246,7 @@ export {
   backToProfile,
   cancelAddProof,
   checkProof,
+  clearSearchResults,
   dropPgp,
   editProfile,
   finishRevoking,

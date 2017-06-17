@@ -22,7 +22,7 @@ const chatSearchResultArray = createSelector(
 
 const profileSearchResultArray = createSelector(
   ({profile: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : [])
+  searchResults => (searchResults ? searchResults.toArray() : null)
 )
 
 export {

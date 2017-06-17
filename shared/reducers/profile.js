@@ -27,7 +27,7 @@ const initialState: State = {
   username: '',
   usernameValid: true,
   waiting: false,
-  searchResults: List(),
+  searchResults: null,
 }
 
 // A simple check, the server does a fuller check
@@ -181,6 +181,12 @@ export default function(state: State = initialState, action: Actions) {
       return {
         ...state,
         searchResults: List(searchResults),
+      }
+    }
+    case 'profile:clearSearchResults': {
+      return {
+         ...state,
+         searchResults: null,
       }
     }
   }

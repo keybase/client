@@ -37,7 +37,7 @@ export type State = {
   username: string,
   usernameValid: boolean,
   waiting: boolean,
-  searchResults: List<SearchConstants.SearchResultId>,
+  searchResults: ?List<SearchConstants.SearchResultId>,
 }
 
 export const addProof = 'profile:addProof'
@@ -46,6 +46,7 @@ export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
+export const clearSearchResults = 'profile:clearSearchResults'
 export const dropPgp = 'profile:dropPgp'
 export const editProfile = 'profile:editProfile'
 export const finishRevokeProof = 'profile:revoke:finish'
@@ -78,6 +79,7 @@ export type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
 export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
 export type CheckProof = NoErrorTypedAction<'profile:checkProof', void>
 export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
+export type ClearSearchResults = NoErrorTypedAction<'profile:clearSearchResults', void>
 export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
 export type EditProfile = NoErrorTypedAction<
   'profile:editProfile',

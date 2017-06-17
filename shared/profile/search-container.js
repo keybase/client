@@ -1,6 +1,5 @@
 // @flow
-import {onUserClick} from '../actions/profile'
-import * as Creators from '../actions/chat/creators'
+import {clearSearchResults, onUserClick} from '../actions/profile'
 import * as SearchCreators from '../actions/searchv3/creators'
 import * as SearchConstants from '../constants/searchv3'
 import {debounce} from 'lodash'
@@ -24,7 +23,7 @@ const mapStateToProps = (state: TypedState) => ({
   ids: profileSearchResultArray(state),
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
-  _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
+  _clearSearchResults: () => dispatch(clearSearchResults()),
   _onClick: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
@@ -33,7 +32,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
     (term: string, service) => dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service)),
     1e3
   ),
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => {
+    dispatch(clearSearchResults())
+    dispatch(navigateUp())
+  },
 })
 
 export default compose(

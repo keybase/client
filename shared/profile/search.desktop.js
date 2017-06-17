@@ -33,7 +33,7 @@ const Search = (props: Props) => (
       <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
       <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
     </Box>
-    <Box style={{...styleSearchRow, ...globalStyles.scrollable}}>
+    <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
       <ResultsList items={props.ids} onClick={props.onClick} selectedId={null} />
     </Box>
   </Box>
