@@ -108,7 +108,8 @@ func (p *blockPrefetcher) run() {
 	}
 }
 
-func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, entryName string) error {
+func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
+	ptr BlockPointer, block Block, entryName string) error {
 	if _, err := p.config.BlockCache().Get(ptr); err == nil {
 		return nil
 	}
@@ -119,39 +120,36 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
 	case <-p.shutdownCh:
-		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since the prefetcher is shutdown", ptr.ID)
+		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since "+
+			"the prefetcher is shutdown", ptr.ID)
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata) {
-	// Prefetch the first <n> indirect block pointers.
-	// TODO: do something smart with subsequent blocks.
-	numIPtrs := len(b.IPtrs)
-	if numIPtrs > defaultIndirectPointerPrefetchCount {
-		numIPtrs = defaultIndirectPointerPrefetchCount
-	}
-	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file block. Num pointers to prefetch: %d", numIPtrs)
-	for _, ptr := range b.IPtrs[:numIPtrs] {
-		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), "")
+func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
+	kmd KeyMetadata) {
+	// Prefetch indirect block pointers.
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file "+
+		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	for _, ptr := range b.IPtrs {
+		p.request(fileIndirectBlockPrefetchPriority, kmd, ptr.BlockPointer,
+			b.NewEmpty(), "")
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata) {
-	// Prefetch the first <n> indirect block pointers.
-	numIPtrs := len(b.IPtrs)
-	if numIPtrs > defaultIndirectPointerPrefetchCount {
-		numIPtrs = defaultIndirectPointerPrefetchCount
-	}
-	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir block. Num pointers to prefetch: %d", numIPtrs)
-	for _, ptr := range b.IPtrs[:numIPtrs] {
+func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock,
+	kmd KeyMetadata) {
+	// Prefetch indirect block pointers.
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir "+
+		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	for _, ptr := range b.IPtrs {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
 	}
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock, kmd KeyMetadata) {
-	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block ID %s. Num entries: %d", ptr.ID, len(b.Children))
+	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block "+
+		"ID %s. Num entries: %d", ptr.ID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
