@@ -13,7 +13,7 @@ type blockRetrievalWorker struct {
 	blockGetter
 	stopCh chan struct{}
 	queue  *blockRetrievalQueue
-	workCh chan *blockRetrieval
+	workCh <-chan struct{}
 }
 
 // run runs the worker loop until Shutdown is called
@@ -31,13 +31,13 @@ func (brw *blockRetrievalWorker) run() {
 // newBlockRetrievalWorker returns a blockRetrievalWorker for a given
 // blockRetrievalQueue, using the passed in blockGetter to obtain blocks for
 // requests.
-func newBlockRetrievalWorker(bg blockGetter,
-	q *blockRetrievalQueue) *blockRetrievalWorker {
+func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue,
+	workCh <-chan struct{}) *blockRetrievalWorker {
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
 		queue:       q,
-		workCh:      make(chan *blockRetrieval, 1),
+		workCh:      workCh,
 	}
 	go brw.run()
 	return brw
@@ -48,12 +48,12 @@ func newBlockRetrievalWorker(bg blockGetter,
 // blockGetter.getBlock, and responds to the subscribed requestors with the
 // results.
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
-	brw.queue.Work(brw.workCh)
 	var retrieval *blockRetrieval
 	select {
-	case retrieval = <-brw.workCh:
+	case <-brw.workCh:
+		retrieval = brw.queue.popIfNotEmpty()
 		if retrieval == nil {
-			panic("Received a nil block retrieval. This should never happen.")
+			return nil
 		}
 	case <-brw.stopCh:
 		return io.EOF
