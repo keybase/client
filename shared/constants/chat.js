@@ -24,7 +24,7 @@ import type {
   ConversationID as RPCConversationID,
   TyperInfo,
 } from './types/flow-types-chat'
-import type {DeviceType, LooseRecord} from './types/more'
+import type {DeviceType, KBRecord} from './types/more'
 import type {TypedState} from './reducer'
 
 export type Username = string
@@ -355,7 +355,7 @@ const getLocalMessageStateFromMessageKey = (state: TypedState, messageKey: Messa
   state.chat.localMessageStates.get(messageKey, defaultLocalMessageState)
 
 // $FlowIssue with cast
-export const StateRecord: LooseRecord<T> = Record({
+export const StateRecord: KBRecord<T> = Record({
   messageMap: Map(),
   localMessageStates: Map(),
   inbox: List(),
@@ -383,7 +383,7 @@ export const StateRecord: LooseRecord<T> = Record({
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type State = LooseRecord<{
+export type State = KBRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
   localMessageStates: Map<MessageKey, LocalMessageState>,
