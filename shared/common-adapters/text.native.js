@@ -42,6 +42,7 @@ class Text extends Component<void, Props, void> {
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
         onLongPress={this.props.onLongPress}
+        allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
       </NativeText>
