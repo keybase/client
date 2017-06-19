@@ -394,12 +394,18 @@
     },
     {
       "type": "record",
-      "name": "TeamNameParts",
+      "name": "TeamNamePart",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamName",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamNamePart"
           },
           "name": "parts"
         }

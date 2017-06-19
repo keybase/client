@@ -462,16 +462,22 @@ func (o UserLogPoint) DeepCopy() UserLogPoint {
 	}
 }
 
-type TeamNameParts struct {
-	Parts []string `codec:"parts" json:"parts"`
+type TeamNamePart string
+
+func (o TeamNamePart) DeepCopy() TeamNamePart {
+	return o
 }
 
-func (o TeamNameParts) DeepCopy() TeamNameParts {
-	return TeamNameParts{
-		Parts: (func(x []string) []string {
-			var ret []string
+type TeamName struct {
+	Parts []TeamNamePart `codec:"parts" json:"parts"`
+}
+
+func (o TeamName) DeepCopy() TeamName {
+	return TeamName{
+		Parts: (func(x []TeamNamePart) []TeamNamePart {
+			var ret []TeamNamePart
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret

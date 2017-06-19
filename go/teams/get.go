@@ -129,7 +129,7 @@ func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigCh
 
 type rawTeam struct {
 	ID             keybase1.TeamID          `json:"id"`
-	Name           keybase1.TeamNameParts   `json:"name"`
+	Name           keybase1.TeamName        `json:"name"`
 	Status         libkb.AppStatus          `json:"status"`
 	Chain          []json.RawMessage        `json:"chain"`
 	Box            TeamBox                  `json:"box"`
