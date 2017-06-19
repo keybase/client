@@ -275,6 +275,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
+	go d.identifySelf()
 }
 
 func (d *Service) startChatModules() {
@@ -340,6 +341,49 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	// this unfortunate dependency injection
 	rkm.gregor = d.gregor
 	rkm.Start()
+}
+
+func (d *Service) identifySelf() {
+	uid := d.G().Env.GetUID()
+	if uid.IsNil() {
+		d.G().Log.Debug("identifySelf: no uid, skipping")
+		return
+	}
+	d.G().Log.Debug("identifySelf: running identify on uid %s", uid)
+	arg := keybase1.Identify2Arg{
+		Uid: uid,
+		Reason: keybase1.IdentifyReason{
+			Type: keybase1.IdentifyReasonType_BACKGROUND,
+		},
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NoSkipSelf:       true,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewIdentify2WithUID(d.G(), &arg)
+	if err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()}); err != nil {
+		d.G().Log.Debug("identifySelf: identify error %s", err)
+	}
+	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)
+
+	// identify2 did a load user for self, so find it and cache it in FullSelfer.
+	them := eng.FullThemUser()
+	me := eng.FullMeUser()
+	var u *libkb.User
+	if them != nil && them.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using them for full user")
+		u = them
+	} else if me != nil && me.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using me for full user")
+		u = me
+	}
+	if u != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
+		} else {
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+		}
+	}
 }
 
 func (d *Service) runBackgroundIdentifier() {
@@ -530,6 +574,7 @@ func (d *Service) OnLogin() error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
+		go d.identifySelf()
 	}
 	return nil
 }
