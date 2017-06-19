@@ -4768,7 +4768,7 @@ export type KeyType =
 
 export type KeybaseTime = {
   unix: Time,
-  chain: int,
+  chain: Seqno,
 }
 
 export type LeaseID = string

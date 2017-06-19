@@ -235,7 +235,7 @@
           "name": "unix"
         },
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "chain"
         }
       ]

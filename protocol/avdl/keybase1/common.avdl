@@ -97,7 +97,7 @@ protocol Common {
 
   record KeybaseTime {
     Time unix;
-    int chain;
+    Seqno chain;
   }
 
   record RevokedKey {

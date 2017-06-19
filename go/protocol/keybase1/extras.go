@@ -1272,7 +1272,7 @@ func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
 		Key: PublicKeyV1FromDeviceKeyV2(keyV2),
 		Time: KeybaseTime{
 			Unix:  keyV2.Base.Revocation.Time,
-			Chain: int(keyV2.Base.Revocation.PrevMerkleRootSigned.Seqno),
+			Chain: keyV2.Base.Revocation.PrevMerkleRootSigned.Seqno,
 		},
 		By: keyV2.Base.Revocation.SigningKID,
 	}

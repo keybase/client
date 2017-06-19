@@ -228,14 +228,14 @@ func (o PublicKey) DeepCopy() PublicKey {
 }
 
 type KeybaseTime struct {
-	Unix  Time `codec:"unix" json:"unix"`
-	Chain int  `codec:"chain" json:"chain"`
+	Unix  Time  `codec:"unix" json:"unix"`
+	Chain Seqno `codec:"chain" json:"chain"`
 }
 
 func (o KeybaseTime) DeepCopy() KeybaseTime {
 	return KeybaseTime{
 		Unix:  o.Unix.DeepCopy(),
-		Chain: o.Chain,
+		Chain: o.Chain.DeepCopy(),
 	}
 }
 

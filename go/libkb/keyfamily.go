@@ -22,8 +22,8 @@ import (
 // The issue is that we're not uniformly signing Merkle roots into signatures,
 // especially those generated on the Web site.
 type KeybaseTime struct {
-	Unix  int64 // UTC wallclock time
-	Chain int   // Merkle root chain time
+	Unix  int64          // UTC wallclock time
+	Chain keybase1.Seqno // Merkle root chain time
 }
 
 // Struct for the DelegationsList
@@ -544,7 +544,7 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: int(tcl.GetMerkleSeqno()),
+		Chain: tcl.GetMerkleSeqno(),
 	}
 }
 
@@ -553,7 +553,7 @@ func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: int(seqno),
+		Chain: seqno,
 	}
 }
 

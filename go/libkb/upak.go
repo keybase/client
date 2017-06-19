@@ -38,7 +38,7 @@ func checkKIDKeybase(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID
 			// This is the inverse of the marshalling we do in rpc_exim.go.
 			return &keybase1.KeybaseTime{
 				Unix:  key.Base.Revocation.Time,
-				Chain: int(key.Base.Revocation.PrevMerkleRootSigned.Seqno),
+				Chain: key.Base.Revocation.PrevMerkleRootSigned.Seqno,
 			}
 		}
 		return nil
