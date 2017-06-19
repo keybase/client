@@ -16,6 +16,7 @@ export type Props = {
   fullWidth?: boolean,
   backgroundMode?: 'Normal' | 'Terminal',
   className?: string,
+  accessibilityLabel?: string | true,
 }
 
 declare export default class Button extends Component<void, Props, void> {}

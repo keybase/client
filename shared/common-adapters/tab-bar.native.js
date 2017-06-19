@@ -87,7 +87,11 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     )
     if (this.props.onClick) {
       return (
-        <NativeTouchableWithoutFeedback onPress={this.props.onClick}>
+        <NativeTouchableWithoutFeedback
+          onPress={this.props.onClick}
+          accessible={!!this.props.accessibilityLabel}
+          accessibilityLabel={this.props.accessibilityLabel}
+        >
           {content}
         </NativeTouchableWithoutFeedback>
       )

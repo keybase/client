@@ -13,6 +13,7 @@ class PaperKey extends Component<void, Props, void> {
         <Text type="Header">Type in your paper key:</Text>
         <Icon type="icon-paper-key-48" />
         <Input
+          accessibilityLabel="Paper key"
           multiline={true}
           rowsMin={3}
           autoFocus={true}
@@ -26,6 +27,7 @@ class PaperKey extends Component<void, Props, void> {
           value={this.props.paperKey ? this.props.paperKey : null}
         />
         <Button
+          accessibilityLabel={true}
           type="Primary"
           enabled={this.props.paperKey}
           label="Continue"

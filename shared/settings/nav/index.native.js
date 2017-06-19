@@ -26,7 +26,7 @@ export function SettingsItem({
   badgeNumber: number,
 }) {
   return (
-    <ClickableBox onClick={onClick} style={itemStyle}>
+    <ClickableBox onClick={onClick} style={itemStyle} accessibilityLabel={text}>
       <Box>
         <Text type={'BodySmallSemibold'} style={itemTextStyle}>{text.toUpperCase()}</Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}

@@ -14,6 +14,7 @@ const ClickableBox = ({
   underlayColor,
   onPressIn,
   onPressOut,
+  accessibilityLabel,
   feedback = true,
 }: Props) => {
   if (onClick) {
@@ -28,6 +29,8 @@ const ClickableBox = ({
           style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
           underlayColor={underlayColor || globalColors.white}
           activeOpacity={0.7}
+          accessible={!!accessibilityLabel}
+          accessibilityLabel={accessibilityLabel}
         >
           {children}
         </TouchableOpacity>
@@ -40,6 +43,8 @@ const ClickableBox = ({
           style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
           onPress={onClick}
           onLongPress={onLongPress}
+          accessible={!!accessibilityLabel}
+          accessibilityLabel={accessibilityLabel}
         >
           {children}
         </TouchableWithoutFeedback>

@@ -1,0 +1,14 @@
+{
+  "name": "keybase-app-tests",
+  "version": "0.0.1",
+  "description": "Functional tests for keybase mobile apps",
+  "private": true,
+  "scripts": {
+    "test": "mocha index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^3.4.2",
+    "wd": "^1.2.0"
+  }
+}

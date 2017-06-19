@@ -36,6 +36,7 @@ class UsernameOrEmail extends Component<void, Props, State> {
       >
         <UserCard style={stylesCard}>
           <Input
+            accessibilityLabel={true}
             autoFocus={true}
             style={stylesInput}
             hintText="Username or email"
@@ -45,6 +46,7 @@ class UsernameOrEmail extends Component<void, Props, State> {
             value={this.state.usernameOrEmail}
           />
           <Button
+            accessibilityLabel={true}
             fullWidth={true}
             label="Continue"
             type="Primary"

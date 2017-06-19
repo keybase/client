@@ -205,6 +205,10 @@ class Input extends Component<void, Props, State> {
         : this.props.hintText || ' ')
 
     const commonProps = {
+      accessible: !!this.props.accessibilityLabel,
+      accessibilityLabel: this.props.accessibilityLabel === true
+        ? this.props.hintText
+        : this.props.accessibilityLabel,
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
       keyboardType: this.props.keyboardType,

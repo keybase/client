@@ -4,6 +4,7 @@ import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 
 export type ItemProps = Exact<{
+  accessibilityLabel?: string,
   tabBarButton?: React$Element<*>,
   label?: string,
   selected: boolean,
@@ -37,6 +38,7 @@ export type TabBarButtonSource =
 export type TabBadgePosition = 'top-right'
 
 export type TabBarButtonProps = Exact<{
+  accessibilityLabel?: string,
   selected: boolean,
   onClick?: () => void,
   source: TabBarButtonSource,

@@ -77,6 +77,7 @@ const Render = ({
         type="Danger"
         style={{marginTop: globalMargins.small}}
         label={`Revoke this ${revokeName || ''}`}
+        accessibilityLabel={true}
         onClick={showRevokeDevicePage}
       />}
   </StandardScreen>

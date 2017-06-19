@@ -152,6 +152,7 @@ class BioRender extends Component<void, Props, void> {
             <Text type="BodySmall" style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
           {editFns &&
             <Button
+              accessibilityLabel={true}
               label="Edit profile"
               onClick={editFns.onEditProfile}
               style={{marginTop: globalMargins.small}}

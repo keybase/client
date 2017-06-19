@@ -30,7 +30,13 @@ const Row = ({deviceID, name, type, onSelect}) => {
           <Text type="BodySemiboldItalic" onClick={onPress}>{name}</Text>
           {type === 'backup' && <Text type="BodySmall">Paper key</Text>}
         </Box>
-        <Button label="Use..." type="Secondary" small={true} onClick={onPress} />
+        <Button
+          accessibilityLabel={`Use ${type === 'backup' ? 'paper key' : 'device'} "${name}"`}
+          label="Use..."
+          type="Secondary"
+          small={true}
+          onClick={onPress}
+        />
       </Box>
     </ClickableBox>
   )

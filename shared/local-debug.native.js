@@ -5,6 +5,7 @@
 
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
+import {setSecureFlagSetting} from './native/screenprotector'
 
 const nativeBridge = NativeModules.KeybaseEngine
 
@@ -80,6 +81,10 @@ export const {
 
 export function setup(store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
+
+  if (__DEV__) {
+    setSecureFlagSetting(false)
+  }
 
   if (module.hot) {
     module.hot.accept(() => updateLiveConfig())

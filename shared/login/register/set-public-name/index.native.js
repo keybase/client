@@ -21,6 +21,7 @@ const SetPublicName = ({
       <Text type="Header" style={{textAlign: 'center'}}>Set a public name for this device:</Text>
       <Icon type="icon-phone-32" style={stylesIcon} />
       <Input
+        accessibilityLabel={true}
         autoFocus={true}
         style={stylesInput}
         errorText={deviceNameError}
@@ -31,6 +32,7 @@ const SetPublicName = ({
         value={deviceName}
       />
       <Button
+        accessibilityLabel={true}
         style={stylesButton}
         type="Primary"
         fullWidth={true}

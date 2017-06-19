@@ -118,7 +118,13 @@ const Intro = (props: Props) => (
       <Button style={stylesSignupButton} type="Primary" onClick={props.onSignup} label="Create an account" />
       <Box style={{flex: 1, width: 1}} />
       <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
-      <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
+      <Button
+        style={stylesLoginButton}
+        type="Secondary"
+        onClick={props.onLogin}
+        label="Log in"
+        accessibilityLabel={true}
+      />
       <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
         Problems logging in?
       </Text>

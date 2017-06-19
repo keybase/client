@@ -44,7 +44,11 @@ const textStyle = isRevoked =>
         flex: 0,
       }
 const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
+  <ClickableBox
+    onClick={showExistingDevicePage}
+    style={{...stylesCommonRow, alignItems: 'center'}}
+    accessibilityLabel={`${name}${isCurrentDevice ? ' (current device)' : ''}`}
+  >
     <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>

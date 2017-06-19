@@ -11,6 +11,7 @@ export default function TabBarRender({selectedTab, onTabClick, username, badgeNu
   return (
     <Box style={stylesTabBar}>
       <TabBarButton
+        accessibilityLabel="Profile"
         selected={selectedTab === profileTab}
         onClick={() => onTabClick(profileTab)}
         badgeNumber={badgeNumbers[profileTab]}
@@ -19,6 +20,7 @@ export default function TabBarRender({selectedTab, onTabClick, username, badgeNu
         style={stylesTabButton}
       />
       <TabBarButton
+        accessibilityLabel="Folders"
         selected={selectedTab === folderTab}
         onClick={() => onTabClick(folderTab)}
         badgeNumber={badgeNumbers[folderTab]}
@@ -27,6 +29,7 @@ export default function TabBarRender({selectedTab, onTabClick, username, badgeNu
         style={stylesTabButton}
       />
       <TabBarButton
+        accessibilityLabel="Search"
         selected={selectedTab === searchTab}
         onClick={() => onTabClick(searchTab)}
         badgeNumber={badgeNumbers[searchTab]}
@@ -36,6 +39,7 @@ export default function TabBarRender({selectedTab, onTabClick, username, badgeNu
         style={stylesTabButton}
       />
       <TabBarButton
+        accessibilityLabel="Chat"
         selected={selectedTab === chatTab}
         onClick={() => onTabClick(chatTab)}
         badgeNumber={badgeNumbers[chatTab]}
@@ -45,6 +49,7 @@ export default function TabBarRender({selectedTab, onTabClick, username, badgeNu
         style={stylesTabButton}
       />
       <TabBarButton
+        accessibilityLabel="Settings"
         selected={selectedTab === settingsTab}
         onClick={() => onTabClick(settingsTab)}
         badgeNumber={badgeNumbers[settingsTab]}

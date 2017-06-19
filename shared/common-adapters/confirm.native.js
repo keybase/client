@@ -26,6 +26,7 @@ class Confirm extends Component<void, Props, void> {
             }}
           >
             <Button
+              accessibilityLabel={true}
               fullWidth={true}
               type={this.props.danger ? 'Danger' : 'Primary'}
               onClick={this.props.onSubmit}
@@ -33,6 +34,7 @@ class Confirm extends Component<void, Props, void> {
               style={{...styleButton, marginBottom: globalMargins.small}}
             />
             <Button
+              accessibilityLabel={true}
               fullWidth={true}
               type="Secondary"
               onClick={this.props.onCancel}

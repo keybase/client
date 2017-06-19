@@ -67,7 +67,13 @@ class Button extends Component<void, Props, void> {
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
     return (
-      <ClickableBox style={containerStyle} onClick={onClick}>
+      <ClickableBox
+        style={containerStyle}
+        onClick={onClick}
+        accessibilityLabel={
+          this.props.accessibilityLabel === true ? this.props.label : this.props.accessibilityLabel
+        }
+      >
         <Box
           style={{
             ...globalStyles.flexBoxCenter,
