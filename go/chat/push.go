@@ -622,3 +622,24 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 	return nil
 }
+
+func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) error {
+	if obm.System() == nil {
+		return errors.New("nil system in out of band message")
+	}
+
+	switch obm.System().String() {
+	case "chat.activity":
+		return g.Activity(ctx, obm)
+	case "chat.tlffinalize":
+		return g.TlfFinalize(ctx, obm)
+	case "chat.tlfresolve":
+		return g.TlfResolve(ctx, obm)
+	case "chat.typing":
+		return g.Typing(ctx, obm)
+	case "chat.membershipUpdate":
+		return g.MembershipUpdate(ctx, obm)
+	}
+
+	return nil
+}

@@ -6,15 +6,13 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
 // Test getting the merkle leaf from the server.
 // This is a test of MerkleClient.
 func TestMerkle(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
-	tc.Tp.UpgradePerUserKey = true
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
 	kbtest.CreateAndSignupFakeUser("team", tc.G)

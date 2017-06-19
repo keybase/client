@@ -73,7 +73,7 @@ class Main extends Component<void, any, void> {
     // TODO: move Push prompt into route
     const {showPushPrompt, mountPush} = this.props
     return (
-      <Box style={{flex: 1}}>
+      <Box style={{flex: 1, width: '100%'}}>
         {!showPushPrompt &&
           <RenderRoute
             routeDef={this.props.routeDef}

@@ -5,7 +5,7 @@ import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from '.'
 
-class LoginRender extends Component<void, Props, void> {
+class Login extends Component<void, Props, void> {
   render() {
     const inputProps = {
       hintText: 'Passphrase',
@@ -76,4 +76,4 @@ const stylesContainer = {
   backgroundColor: globalColors.white,
 }
 
-export default LoginRender
+export default Login

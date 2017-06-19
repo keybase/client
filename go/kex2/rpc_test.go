@@ -106,7 +106,7 @@ func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 
 var ErrHandleHello = errors.New("handle hello failure")
 var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
-var testTimeout = time.Duration(50) * time.Millisecond
+var testTimeout = time.Duration(500) * time.Millisecond
 
 func (mp *mockProvisionee) HandleHello2(arg2 keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
 	arg1 := keybase1.HelloArg{
@@ -119,7 +119,7 @@ func (mp *mockProvisionee) HandleHello2(arg2 keybase1.Hello2Arg) (res keybase1.H
 
 func (mp *mockProvisionee) HandleHello(arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	if (mp.behavior & BadProvisioneeSlowHello) != 0 {
-		time.Sleep(testTimeout * 3)
+		time.Sleep(testTimeout * 8)
 	}
 	if (mp.behavior & BadProvisioneeFailHello) != 0 {
 		err = ErrHandleHello
@@ -131,7 +131,7 @@ func (mp *mockProvisionee) HandleHello(arg keybase1.HelloArg) (res keybase1.Hell
 
 func (mp *mockProvisionee) HandleDidCounterSign([]byte) error {
 	if (mp.behavior & BadProvisioneeSlowDidCounterSign) != 0 {
-		time.Sleep(testTimeout * 3)
+		time.Sleep(testTimeout * 8)
 	}
 	if (mp.behavior & BadProvisioneeFailDidCounterSign) != 0 {
 		return ErrHandleDidCounterSign
@@ -190,7 +190,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 
 	if (provisioneeBehavior & BadProvisioneeCancel) != 0 {
 		go func() {
-			time.Sleep(testTimeout / 4)
+			time.Sleep(testTimeout / 20)
 			cancelFn()
 		}()
 	}

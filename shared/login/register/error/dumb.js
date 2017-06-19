@@ -1,8 +1,9 @@
 // @flow
-import Render from './index.render'
-import type {DumbComponentMap} from '../../../constants/types/more'
+import ErrorRender from '.'
 import {convertToRPCError} from '../../../util/errors'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'
+
+import type {DumbComponentMap} from '../../../constants/types/more'
 
 const baseMock = {
   onBack: () => console.log('onBack'),
@@ -12,8 +13,8 @@ const baseMock = {
   }),
 }
 
-const dumbComponentMap: DumbComponentMap<Render> = {
-  component: Render,
+const dumbComponentMap: DumbComponentMap<ErrorRender> = {
+  component: ErrorRender,
   mocks: {
     Normal: baseMock,
     DeviceNoProvision: {

@@ -1,17 +1,16 @@
 package teams
 
 import (
-	"golang.org/x/net/context"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestTeamPlusApplicationKeysExim(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
-	tc.Tp.UpgradePerUserKey = true
+	tc := SetupTest(t, "TestTeamPlusApplicationKeysExim", 1)
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
@@ -39,6 +38,6 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(exported.ApplicationKeys) != len(expectedKeys) {
-		t.Errorf("Got %s applicationKeys, expected %s", len(exported.ApplicationKeys), len(expectedKeys))
+		t.Errorf("Got %v applicationKeys, expected %v", len(exported.ApplicationKeys), len(expectedKeys))
 	}
 }

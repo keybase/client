@@ -517,8 +517,9 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonChatLocalStorage  EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage       EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonTeamsLocalStorage EncryptionReason = "Keybase-Teams-Local-Storage-1"
 )
 
 type DeriveReason string

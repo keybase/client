@@ -50,6 +50,7 @@ const SearchHeader = props => {
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput
+            autoFocus={true}
             userItems={props.userItems}
             showAddButton={props.showAddButton}
             onRemoveUser={props.onRemoveUser}

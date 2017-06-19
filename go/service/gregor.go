@@ -221,9 +221,12 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
 		case keybase1.AppState_FOREGROUND:
-			g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-			if err := g.Connect(g.uri); err != nil {
-				g.chatLog.Debug(context.Background(), "error reconnecting")
+			// Make sure the URI is set before attempting this (possible it isnt in a race)
+			if g.uri != nil {
+				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+				if err := g.Connect(g.uri); err != nil {
+					g.chatLog.Debug(context.Background(), "error reconnecting")
+				}
 			}
 		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
@@ -1046,19 +1049,14 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
+	// Send the oobm to that chat system so that it can potentially handle it
+	if g.G().PushHandler != nil {
+		g.G().PushHandler.HandleOobm(ctx, obm)
+	}
+
 	switch obm.System().String() {
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
-	case "chat.activity":
-		return g.G().PushHandler.Activity(ctx, obm)
-	case "chat.tlffinalize":
-		return g.G().PushHandler.TlfFinalize(ctx, obm)
-	case "chat.tlfresolve":
-		return g.G().PushHandler.TlfResolve(ctx, obm)
-	case "chat.typing":
-		return g.G().PushHandler.Typing(ctx, obm)
-	case "chat.membershipUpdate":
-		return g.G().PushHandler.MembershipUpdate(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil

@@ -20,4 +20,4 @@ export type Props = {
   onLogin: (user: string, passphrase: string) => void,
 }
 
-export default class LoginRender extends Component<void, Props, void> {}
+export default class Login extends Component<void, Props, void> {}

@@ -29,7 +29,7 @@ type DeconstructJig struct {
 }
 
 func TestTeamSigChainParse(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -55,7 +55,7 @@ func TestTeamSigChainParse(t *testing.T) {
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -126,7 +126,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 }
 
 func TestTeamSigChainPlay2(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
