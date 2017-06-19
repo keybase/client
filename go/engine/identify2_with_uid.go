@@ -146,6 +146,10 @@ func (i *identifyUser) isNil() bool {
 	return i.thin == nil && i.full == nil
 }
 
+func (i *identifyUser) Full() *libkb.User {
+	return i.full
+}
+
 func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
 	arg.SetGlobalContext(g)
 	arg.NetContext = ctx.GetNetContext()
@@ -1097,4 +1101,18 @@ func (e *Identify2WithUID) TrackToken() keybase1.TrackToken {
 
 func (e *Identify2WithUID) ConfirmResult() keybase1.ConfirmResult {
 	return e.confirmResult
+}
+
+func (e *Identify2WithUID) FullMeUser() *libkb.User {
+	if e.me == nil {
+		return nil
+	}
+	return e.me.Full()
+}
+
+func (e *Identify2WithUID) FullThemUser() *libkb.User {
+	if e.them == nil {
+		return nil
+	}
+	return e.them.Full()
 }

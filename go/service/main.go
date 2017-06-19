@@ -345,7 +345,26 @@ func (d *Service) identifySelf() {
 	if err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()}); err != nil {
 		d.G().Log.Debug("identifySelf: identify error %s", err)
 	}
-	d.G().Log.Debug("identifySelf: identify succes on uid %s", uid)
+	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)
+
+	// identify2 did a load user for self, so find it and cache it in FullSelfer.
+	them := eng.FullThemUser()
+	me := eng.FullMeUser()
+	var u *libkb.User
+	if them != nil && them.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using them for full user")
+		u = them
+	} else if me != nil && me.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using me for full user")
+		u = me
+	}
+	if u != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
+		} else {
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+		}
+	}
 }
 
 func (d *Service) runBackgroundIdentifier() {
