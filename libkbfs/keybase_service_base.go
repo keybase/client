@@ -337,13 +337,12 @@ func ConvertIdentifyError(assertion string, err error) error {
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	user, err := k.identifyClient.Resolve2(ctx, assertion)
+	res, err := k.identifyClient.Resolve3(ctx, assertion)
 	if err != nil {
 		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
 	}
-	return libkb.NewNormalizedUsername(user.Username),
-		user.Uid.AsUserOrTeam(), nil
+	return libkb.NewNormalizedUsername(res.Name), res.Id, nil
 }
 
 // Identify implements the KeybaseService interface for KeybaseServiceBase.
