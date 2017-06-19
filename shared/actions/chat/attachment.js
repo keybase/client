@@ -80,7 +80,7 @@ function* _saveAttachment(messageKey: Constants.MessageKey) {
 
   const {downloadedPath} = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
   if (!downloadedPath) {
-    console.log('_saveAttachment: message failed to download!')
+    console.warn('_saveAttachment: message failed to download!')
     return
   }
 
