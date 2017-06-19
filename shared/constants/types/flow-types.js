@@ -3819,6 +3819,21 @@ export function trackUntrackRpcPromise (request: $Exact<requestCommon & requestE
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function userInterestingPeopleRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void}>) {
+  engineRpcOutgoing('keybase.1.user.interestingPeople', request)
+}
+
+export function userInterestingPeopleRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
+}
+export function userInterestingPeopleRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.interestingPeople', request, callback, incomingCallMap) })
+}
+
+export function userInterestingPeopleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void}>): Promise<userInterestingPeopleResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.interestingPeople', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function userListTrackers2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
   engineRpcOutgoing('keybase.1.user.listTrackers2', request)
 }
@@ -7246,6 +7261,7 @@ type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type trackTrackResult = ConfirmResult
 type uiPromptYesNoResult = boolean
+type userInterestingPeopleResult = UserSummary2Set
 type userListTrackers2Result = UserSummary2Set
 type userListTrackersByNameResult = ?Array<Tracker>
 type userListTrackersResult = ?Array<Tracker>
@@ -7481,6 +7497,7 @@ export type rpc =
   | trackTrackRpc
   | trackTrackWithTokenRpc
   | trackUntrackRpc
+  | userInterestingPeopleRpc
   | userListTrackers2Rpc
   | userListTrackersByNameRpc
   | userListTrackersRpc

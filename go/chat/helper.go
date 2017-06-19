@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -180,4 +182,17 @@ func CurrentUID(g *globals.Context) (keybase1.UID, error) {
 		return "", libkb.LoginRequiredError{}
 	}
 	return uid, nil
+}
+
+func RecentConversationParticipants(ctx context.Context, g *globals.Context, uid gregor1.UID) (res []gregor1.UID, err error) {
+	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
+	_, convs, err := storage.NewInbox(g, uid).ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, conv := range convs {
+		conv.Metadata.ActiveList
+	}
+	return res, nil
 }

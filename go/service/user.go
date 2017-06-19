@@ -214,3 +214,7 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	ctx := &engine.Context{NetContext: nctx}
 	return engine.RunEngine(eng, ctx)
 }
+
+func (h *UserHandler) InterestingPeople(ctx context.Context) (res keybase1.UserSummary2Set, err error) {
+	return res, err
+}

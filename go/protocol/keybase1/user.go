@@ -430,6 +430,13 @@ func (o ProfileEditArg) DeepCopy() ProfileEditArg {
 	}
 }
 
+type InterestingPeopleArg struct {
+}
+
+func (o InterestingPeopleArg) DeepCopy() InterestingPeopleArg {
+	return InterestingPeopleArg{}
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -462,6 +469,7 @@ type UserInterface interface {
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
+	InterestingPeople(context.Context) (UserSummary2Set, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -724,6 +732,17 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"interestingPeople": {
+				MakeArg: func() interface{} {
+					ret := make([]InterestingPeopleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.InterestingPeople(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -827,5 +846,10 @@ func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (
 
 func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) InterestingPeople(ctx context.Context) (res UserSummary2Set, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{InterestingPeopleArg{}}, &res)
 	return
 }

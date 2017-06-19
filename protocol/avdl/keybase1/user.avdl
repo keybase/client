@@ -134,4 +134,6 @@ protocol user {
   UserSummary2Set listTrackers2(int sessionID, string assertion, boolean reverse);
 
   void profileEdit(int sessionID, string fullName, string location, string bio);
+
+  UserSummary2Set interestingPeople();
 }

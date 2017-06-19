@@ -514,6 +514,10 @@
         }
       ],
       "response": null
+    },
+    "interestingPeople": {
+      "request": [],
+      "response": "UserSummary2Set"
     }
   },
   "namespace": "keybase.1"
