@@ -62,8 +62,15 @@ func culDBKeyV1(uid keybase1.UID) DbKey {
 	return DbKeyUID(DBUserPlusAllKeysV1, uid)
 }
 
+func culDBKeyVersioned(version int, uid keybase1.UID) DbKey {
+	return DbKey{
+		Typ: DBUserPlusKeysVersioned,
+		Key: fmt.Sprintf("%d:%s", version, uid.String()),
+	}
+}
+
 func culDBKeyV2(uid keybase1.UID) DbKey {
-	return DbKeyUID(DBUserPlusKeysAIV2, uid)
+	return culDBKeyVersioned(2, uid)
 }
 
 func (u *CachedUPAKLoader) ClearMemory() {
