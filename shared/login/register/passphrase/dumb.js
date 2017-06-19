@@ -1,5 +1,6 @@
 // @flow
-import Render from './index.render'
+import Passphrase from '.'
+
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 const baseMock = {
@@ -18,8 +19,8 @@ const baseMock = {
   toggleSaveInKeychain: () => console.log('Passphrase:toggleSaveInKeychain'),
 }
 
-const dumbComponentMap: DumbComponentMap<Render> = {
-  component: Render,
+const dumbComponentMap: DumbComponentMap<Passphrase> = {
+  component: Passphrase,
   mocks: {
     'no passphrase': baseMock,
     'error - no passphrase': {...baseMock, error: 'error here!'},

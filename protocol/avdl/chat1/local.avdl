@@ -163,9 +163,11 @@ protocol local {
   }
 
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
-  // The fields here cannot change.  To modify,
-  // create a new record type with a new version.
-  // CORE-4540: Update note about how compatibility works.
+  // Non-nullable fields may not be changed.
+  // Only nullable fields may be added.
+  // This is because unboxing MessageBoxedV1 reserializes
+  // using this struct and checks for equality of the reserialized form
+  // with the signature.
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
     string tlfName;
@@ -174,15 +176,22 @@ protocol local {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+
     // MessageBoxed.V1: Hash of the encrypted body ciphertext.
     // MessageBoxed.V2: Hash of encrypted body (.v || .n || .e)
     //                  Where V is a big-endian int32
     Hash bodyHash;
+
     union { null, OutboxInfo } outboxInfo;
     union { null, OutboxID } outboxID;
+
     // MessageBoxed.V1: Signature over the serialized HeaderPlaintextV1 (with headerSignature set to null).
     // MessageBoxed.V2: Null (because the header is signencrypted outside)
     union {null, SignatureInfo} headerSignature;
+
+    // Latest merkle root when sent.
+    // Nil in MBv1 messages. Non-nil in MBv2 messages.
+    union { null, MerkleRoot } merkleRoot;
   }
 
   // HeaderPlaintext is a variant container for all the

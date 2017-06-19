@@ -121,6 +121,15 @@
       "lint": "ignore"
     },
     {
+      "type": "enum",
+      "name": "SeqType",
+      "symbols": [
+        "PUBLIC_1",
+        "PRIVATE_2",
+        "SEMIPRIVATE_3"
+      ]
+    },
+    {
       "type": "fixed",
       "name": "Bytes32",
       "size": "32"

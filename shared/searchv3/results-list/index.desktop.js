@@ -2,16 +2,10 @@
 import React, {Component} from 'react'
 import ReactList from 'react-list'
 import Row from '../result-row/container'
-import {Box, Text} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {Box} from '../../common-adapters'
+import EmptyResults from './empty'
 
 import type {Props} from '.'
-
-const owl = `
- ,___,
- [O.o]
- /)__)
- -"--"-`
 
 class SearchResultsList extends Component<void, Props, void> {
   _itemRenderer = index => {
@@ -23,21 +17,15 @@ class SearchResultsList extends Component<void, Props, void> {
         key={id}
         onClick={() => onClick(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+        selected={this.props.selectedId === id}
       />
     )
   }
 
   render() {
     const {style, items} = this.props
-
-    // TODO maybe move to container so this is shared
     if (!items.length) {
-      return (
-        <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.flexBoxColumn, height: 256, ...style}}>
-          <Text type="BodySmallSemibold">Sorry, no humans match this.</Text>
-          <Text type="BodySmallSemibold" style={{whiteSpace: 'pre', textAlign: 'center'}}>{owl}</Text>
-        </Box>
-      )
+      return <EmptyResults style={style} />
     }
     return (
       <Box style={{width: '100%', height: 256, ...style}}>

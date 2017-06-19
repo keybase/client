@@ -10,7 +10,7 @@ import {call, take, put, select, cancel, fork, join, spawn, race} from 'redux-sa
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
-import {tmpDir, tmpFile, downloadFilePath, copy, exists} from '../../util/file'
+import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
 
@@ -146,10 +146,20 @@ function* onLoadAttachment({
 
   const {conversationIDKey, messageID} = Constants.splitMessageIDKey(messageKey)
   const destPath = tmpFile(Shared.tmpFileName(loadPreview, conversationIDKey, messageID))
-  const imageCached = yield call(exists, destPath)
-  if (imageCached) {
-    yield put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
-    return
+  const fileExists = yield call(exists, destPath)
+  if (fileExists) {
+    try {
+      const fileStat = yield call(stat, destPath)
+      if (fileStat.size === 0) {
+        console.warn('attachment file had size 0. overwriting:', destPath)
+        // Fall through to download attachment
+      } else {
+        yield put(Creators.attachmentLoaded(messageKey, destPath, loadPreview))
+        return
+      }
+    } catch (err) {
+      console.warn('unexpected error statting file:', destPath, err)
+    }
   }
 
   // Set initial progress value

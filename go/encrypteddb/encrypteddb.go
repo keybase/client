@@ -67,7 +67,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 	}
 	pt, ok := secretbox.Open(nil, boxed.E, &boxed.N, &enckey)
 	if !ok {
-		return true, fmt.Errorf("failed to decrypt inxbox")
+		return true, fmt.Errorf("failed to decrypt item")
 	}
 
 	if err = decode(pt, res); err != nil {

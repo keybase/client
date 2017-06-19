@@ -88,6 +88,29 @@
       "lint": "ignore"
     },
     {
+      "type": "fixed",
+      "name": "PerTeamKeySeed",
+      "size": "32"
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKeySeedItem",
+      "fields": [
+        {
+          "type": "PerTeamKeySeed",
+          "name": "seed"
+        },
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamMember",
       "fields": [
@@ -269,6 +292,34 @@
     },
     {
       "type": "record",
+      "name": "TeamData",
+      "fields": [
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerTeamKeySeedItem"
+          },
+          "name": "perTeamKeySeeds"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ReaderKeyMask"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSigChainState",
       "fields": [
         {
@@ -320,7 +371,7 @@
         {
           "type": {
             "type": "map",
-            "values": "bool",
+            "values": "boolean",
             "keys": "int"
           },
           "name": "stubbedTypes"
@@ -343,12 +394,18 @@
     },
     {
       "type": "record",
-      "name": "TeamNameParts",
+      "name": "TeamNamePart",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamName",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamNamePart"
           },
           "name": "parts"
         }
@@ -373,6 +430,48 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "LoadTeamArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "needAdmin"
+        },
+        {
+          "type": "int",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "wantMembers"
+        },
+        {
+          "type": "boolean",
+          "name": "forceFullReload"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRepoll"
+        },
+        {
+          "type": "boolean",
+          "name": "staleOK"
+        }
+      ]
     }
   ],
   "messages": {

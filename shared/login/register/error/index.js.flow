@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+import type {RPCError} from '../../../util/errors'
+
+export type Props = {
+  error: RPCError,
+  onBack: () => void,
+}
+
+export default class RenderError extends Component<void, Props, void> {}

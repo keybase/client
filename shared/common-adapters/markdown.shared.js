@@ -39,12 +39,19 @@ export function parseMarkdown(markdown: ?string, markdownCreateComponent: Markdo
   }
 }
 
-export class EmojiIfExists extends PureComponent<void, EmojiProps & {style?: Object}, void> {
+export class EmojiIfExists
+  extends PureComponent<void, EmojiProps & {style?: Object, allowFontScaling?: boolean}, void> {
   render() {
     const emojiNameLower = this.props.emojiName.toLowerCase()
     const exists = !!emojiIndexByName[emojiNameLower]
     return exists
-      ? <Emoji emojiName={emojiNameLower} size={this.props.size} />
-      : <Text type="Body" style={this.props.style}>{this.props.emojiName}</Text>
+      ? <Emoji
+          emojiName={emojiNameLower}
+          size={this.props.size}
+          allowFontScaling={this.props.allowFontScaling}
+        />
+      : <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+          {this.props.emojiName}
+        </Text>
   }
 }

@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onSubmit: (usernameOrEmail: string) => void,
+  onBack: () => void,
+  waitingForResponse: boolean,
+}
+
+export default class UsernameOrEmail extends Component<void, Props, void> {}

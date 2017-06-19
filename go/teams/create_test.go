@@ -9,15 +9,13 @@ import (
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateTeam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
-	defer tc.Cleanup()
-
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
+func createUserAndRootTeam(t *testing.T) (fu *kbtest.FakeUser, nm keybase1.TeamName, g *libkb.GlobalContext, cleanup func()) {
+	tc := SetupTest(t, "team", 1)
+	cleanup = func() { tc.Cleanup() }
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
@@ -25,18 +23,26 @@ func TestCreateTeam(t *testing.T) {
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	teamName := u.Username + "T"
+	teamName := u.Username + "t"
 
 	err = CreateRootTeam(context.TODO(), tc.G, teamName)
 	require.NoError(t, err)
+
+	nm, err = keybase1.TeamNameFromString(teamName)
+	require.NoError(t, err)
+	require.Equal(t, nm.String(), teamName)
+
+	return u, nm, tc.G, cleanup
+}
+
+func TestCreateTeam(t *testing.T) {
+	_, _, _, cleanup := createUserAndRootTeam(t)
+	cleanup()
 }
 
 func TestCreateTeamAfterAccountReset(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
-
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
@@ -61,11 +67,9 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 }
 
 func TestCreateSubteam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 

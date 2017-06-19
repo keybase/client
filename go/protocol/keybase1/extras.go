@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -282,6 +283,18 @@ func (d DeviceID) Exists() bool {
 
 func (d DeviceID) Eq(d2 DeviceID) bool {
 	return d == d2
+}
+
+func (t TeamID) Eq(t2 TeamID) bool {
+	return t == t2
+}
+
+func (l LinkID) Eq(l2 LinkID) bool {
+	return l == l2
+}
+
+func (s Seqno) Eq(s2 Seqno) bool {
+	return s == s2
 }
 
 func UIDFromString(s string) (UID, error) {
@@ -1155,7 +1168,11 @@ func (ut UserOrTeamID) IsSubteam() bool {
 }
 
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
-	suffix := ut[len(ut)-2:]
+	suffixLen := 2
+	if ut.IsNil() || len(ut) < suffixLen {
+		return false
+	}
+	suffix := ut[len(ut)-suffixLen:]
 	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
 }
 
@@ -1324,6 +1341,39 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamNameParts) String() string {
-	return strings.Join(t.Parts, ".")
+func (t TeamName) IsNil() bool {
+	return len(t.Parts) == 0
+}
+
+var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+
+func TeamNameFromString(s string) (ret TeamName, err error) {
+	parts := strings.Split(s, ".")
+	if len(parts) == 0 {
+		return ret, errors.New("need >= 1 part, got 0")
+	}
+	tmp := make([]TeamNamePart, len(parts))
+	for i, part := range parts {
+		if !namePartRxx.MatchString(part) {
+			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+		}
+		tmp[i] = TeamNamePart(strings.ToLower(part))
+	}
+	return TeamName{Parts: tmp}, nil
+}
+
+func (t TeamName) String() string {
+	tmp := make([]string, len(t.Parts))
+	for i, p := range t.Parts {
+		tmp[i] = string(p)
+	}
+	return strings.Join(tmp, ".")
+}
+
+func (t TeamName) Eq(t2 TeamName) bool {
+	return t.String() == t2.String()
+}
+
+func (t TeamName) IsRootTeam() bool {
+	return len(t.Parts) == 1
 }

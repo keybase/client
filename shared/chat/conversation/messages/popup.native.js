@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../../actions/route-tree'
 import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import * as ChatConstants from '../../../constants/chat'
@@ -133,7 +132,7 @@ export default connect(
       you,
     }
   },
-  (dispatch: Dispatch, {routeProps}: OwnProps) => ({
+  (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: ServerMessage) => {
       dispatch(deleteMessage(message))
     },

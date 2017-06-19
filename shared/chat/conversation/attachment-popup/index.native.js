@@ -8,10 +8,17 @@ import type {Props} from './'
 
 class AutoMaxSizeImage extends Component<void, any, {width: number, height: number}> {
   state = {height: 0, width: 0}
+  _mounted: boolean = false
 
+  componentWillUnmount() {
+    this._mounted = false
+  }
   componentDidMount() {
+    this._mounted = true
     NativeImage.getSize(this.props.source.uri, (width, height) => {
-      this.setState({height, width})
+      if (this._mounted) {
+        this.setState({height, width})
+      }
     })
   }
 

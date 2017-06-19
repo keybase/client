@@ -4,8 +4,8 @@ import Passphrase from './passphrase/dumb'
 import PaperKey from './paper-key/dumb'
 import CodePage from './code-page/dumb'
 import ErrorView from './error/dumb'
-import SetPublicName from './set-public-name/index.render'
-import SelectOtherDevice from './select-other-device/index.render'
+import SetPublicName from './set-public-name'
+import SelectOtherDevice from './select-other-device'
 
 const log = prefix => (...args) => console.log(prefix, ...args)
 

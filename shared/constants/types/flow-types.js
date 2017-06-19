@@ -98,6 +98,12 @@ export const CommonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const CommonSeqType = {
+  public: 1,
+  private: 2,
+  semiprivate: 3,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -4775,6 +4781,17 @@ export type LoadDeviceErr = {
   desc: string,
 }
 
+export type LoadTeamArg = {
+  ID: TeamID,
+  name: string,
+  needAdmin: boolean,
+  needKeyGeneration: int,
+  wantMembers?: ?Array<UserVersion>,
+  forceFullReload: boolean,
+  forceRepoll: boolean,
+  staleOK: boolean,
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -5031,6 +5048,14 @@ export type PerTeamKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+}
+
+export type PerTeamKeySeed = any
+
+export type PerTeamKeySeedItem = {
+  seed: PerTeamKeySeed,
+  generation: int,
+  seqno: Seqno,
 }
 
 export type PerUserKey = {
@@ -5414,6 +5439,11 @@ export type SelectKeyRes = {
   doSecretPush: boolean,
 }
 
+export type SeqType =
+    1 // PUBLIC_1
+  | 2 // PRIVATE_2
+  | 3 // SEMIPRIVATE_3
+
 export type Seqno = int64
 
 export type ServiceStatus = {
@@ -5772,6 +5802,13 @@ export type TeamChangeReq = {
   none?: ?Array<UID>,
 }
 
+export type TeamData = {
+  chain: TeamSigChainState,
+  perTeamKeySeeds?: ?Array<PerTeamKeySeedItem>,
+  readerKeyMasks?: ?Array<ReaderKeyMask>,
+  cachedAt: Time,
+}
+
 export type TeamID = string
 
 export type TeamMember = {
@@ -5794,9 +5831,11 @@ export type TeamMembersUsernames = {
   readers?: ?Array<string>,
 }
 
-export type TeamNameParts = {
-  parts?: ?Array<string>,
+export type TeamName = {
+  parts?: ?Array<TeamNamePart>,
 }
+
+export type TeamNamePart = string
 
 export type TeamPlusApplicationKeys = {
   id: TeamID,
@@ -5823,7 +5862,7 @@ export type TeamSigChainState = {
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
-  stubbedTypes: {[key: string]: bool},
+  stubbedTypes: {[key: string]: boolean},
 }
 
 export type Test = {

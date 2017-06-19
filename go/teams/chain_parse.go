@@ -24,6 +24,7 @@ type SCTeamSection struct {
 	Parent     *SCTeamParent  `json:"parent,omitempty"`
 	Subteam    *SCSubteam     `json:"subteam,omitempty"`
 	PerTeamKey *SCPerTeamKey  `json:"per_team_key,omitempty"`
+	Admin      *SCTeamAdmin   `json:"admin,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -42,6 +43,12 @@ type SCTeamParent struct {
 type SCSubteam struct {
 	ID   SCTeamID   `json:"id"`
 	Name SCTeamName `json:"name"`
+}
+
+type SCTeamAdmin struct {
+	TeamID  SCTeamID         `json:"team_id"`
+	Seqno   keybase1.Seqno   `json:"seqno"`
+	SeqType keybase1.SeqType `json:"seq_type"`
 }
 
 type SCPerTeamKey struct {
@@ -75,6 +82,10 @@ type SCChainLink struct {
 	// uid of the signer
 	UID     keybase1.UID `json:"uid"`
 	Version int          `json:"version"`
+}
+
+func (l *SCChainLink) isStubbed() bool {
+	return l.Payload == ""
 }
 
 func (link *SCChainLink) PayloadHash() libkb.LinkID {

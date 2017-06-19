@@ -584,6 +584,13 @@
         {
           "type": [
             null,
+            "MerkleRoot"
+          ],
+          "name": "merkleRoot"
+        },
+        {
+          "type": [
+            null,
             "OutboxID"
           ],
           "name": "outboxID"
