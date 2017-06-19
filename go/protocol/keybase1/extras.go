@@ -289,6 +289,14 @@ func (t TeamID) Eq(t2 TeamID) bool {
 	return t == t2
 }
 
+func (l LinkID) Eq(l2 LinkID) bool {
+	return l == l2
+}
+
+func (s Seqno) Eq(s2 Seqno) bool {
+	return s == s2
+}
+
 func UIDFromString(s string) (UID, error) {
 	if len(s) != hex.EncodedLen(UID_LEN) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
