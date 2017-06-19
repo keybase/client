@@ -65,6 +65,7 @@ type GlobalContext struct {
 	Identify2Cache Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
 	LinkCache      *LinkCache      // cache of ChainLinks
 	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader     TeamLoader      // Play back teams for id/name properties
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
@@ -192,6 +193,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
+	g.teamLoader = newNullTeamLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.AppState = NewAppState(g)
@@ -271,6 +273,11 @@ func (g *GlobalContext) Logout() error {
 
 	g.GetFullSelfer().OnLogout()
 
+	tl := g.teamLoader
+	if tl != nil {
+		tl.OnLogout()
+	}
+
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
@@ -289,6 +296,9 @@ func (g *GlobalContext) Logout() error {
 	if err := g.ConfigReload(); err != nil {
 		g.Log.Debug("Logout ConfigReload error: %s", err)
 	}
+
+	// send logout notification
+	g.NotifyRouter.HandleLogout()
 
 	return nil
 }
@@ -431,6 +441,12 @@ func (g *GlobalContext) GetUPAKLoader() UPAKLoader {
 	return g.upakLoader
 }
 
+func (g *GlobalContext) GetTeamLoader() TeamLoader {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamLoader
+}
+
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -466,6 +482,16 @@ func (g *GlobalContext) Shutdown() error {
 
 		epick := FirstErrorPicker{}
 
+		// loginState request loop should be shut down first
+		// so that any active requests can use all of the
+		// services that are about to be shutdown below.
+		// (for example, g.LocalDb)
+		g.loginStateMu.Lock()
+		if g.loginState != nil {
+			epick.Push(g.loginState.Shutdown())
+		}
+		g.loginStateMu.Unlock()
+
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
 		}
@@ -487,11 +513,6 @@ func (g *GlobalContext) Shutdown() error {
 		if g.LocalChatDb != nil {
 			epick.Push(g.LocalChatDb.Close())
 		}
-		g.loginStateMu.Lock()
-		if g.loginState != nil {
-			epick.Push(g.loginState.Shutdown())
-		}
-		g.loginStateMu.Unlock()
 
 		if g.TrackCache != nil {
 			g.TrackCache.Shutdown()
@@ -763,7 +784,8 @@ func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
 	if g.Env.GetSupportPerUserKey() {
-		_ = g.BumpPerUserKeyring()
+		// Trigger the creation of a per-user-keyring
+		_, _ = g.GetPerUserKeyring()
 	}
 
 	// Do so outside the lock below
@@ -867,6 +889,12 @@ func (g *GlobalContext) SetPvlSource(s PvlSource) {
 	g.pvlSource = s
 }
 
+func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamLoader = l
+}
+
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	arg := NewLoadUserByUIDArg(nil, g, uid)
 	arg.PublicKeyOptional = true
@@ -924,7 +952,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	g.BumpPerUserKeyring()
+	_, _ = g.GetPerUserKeyring()
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -943,17 +971,45 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.uchMu.Unlock()
 }
 
+// GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
+// Using this during provisioning is nigh impossible because GetMyUID
+// routes through LoginSession and deadlocks.
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
 	if !g.Env.GetSupportPerUserKey() {
 		return nil, errors.New("per-user-key support disabled")
 	}
+
+	myUID := g.GetMyUID()
+	if myUID.IsNil() {
+		return nil, errors.New("PerUserKeyring unavailable with no UID")
+	}
+
+	// Don't do any operations under these locks that could come back and hit them again.
+	// That's why GetMyUID up above is not under this lock.
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
-	if g.perUserKeyring == nil {
-		return nil, fmt.Errorf("PerUserKeyring not present")
+
+	makeNew := func() (*PerUserKeyring, error) {
+		pukring, err := NewPerUserKeyring(g, myUID)
+		if err != nil {
+			g.Log.Warning("G#GetPerUserKeyring -> failed: %s", err)
+			g.perUserKeyring = nil
+			return nil, err
+		}
+		g.Log.Debug("G#GetPerUserKeyring -> new")
+		g.perUserKeyring = pukring
+		return g.perUserKeyring, nil
 	}
-	return g.perUserKeyring, nil
+
+	if g.perUserKeyring == nil {
+		return makeNew()
+	}
+	pukUID := g.perUserKeyring.GetUID()
+	if pukUID.Equal(myUID) {
+		return g.perUserKeyring, nil
+	}
+	return makeNew()
 }
 
 func (g *GlobalContext) ClearPerUserKeyring() {
@@ -964,43 +1020,4 @@ func (g *GlobalContext) ClearPerUserKeyring() {
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
 	g.perUserKeyring = nil
-}
-
-// BumpPerUserKeyring recreates PerUserKeyring if the uid changes.
-// Using this during provisioning is nigh impossible because GetMyUID
-// routes through LoginSession and deadlocks.
-func (g *GlobalContext) BumpPerUserKeyring() error {
-	g.Log.Debug("G#BumpPerUserKeyring")
-	if !g.Env.GetSupportPerUserKey() {
-		return errors.New("per-user-key support disabled")
-	}
-	myUID := g.GetMyUID()
-
-	// Don't do any operations under these locks that could come back and hit them again.
-	// That's why GetMyUID up above is not under this lock.
-	g.perUserKeyringMu.Lock()
-	defer g.perUserKeyringMu.Unlock()
-
-	makeNew := func() error {
-		pukring, err := NewPerUserKeyring(g, myUID)
-		if err != nil {
-			g.Log.Warning("G#BumpPerUserKeyring -> failed: %s", err)
-			g.perUserKeyring = nil
-			return err
-		}
-		g.Log.Debug("G#BumpPerUserKeyring -> new")
-		g.perUserKeyring = pukring
-		return nil
-	}
-
-	if g.perUserKeyring == nil {
-		return makeNew()
-	}
-	pukUID := g.perUserKeyring.GetUID()
-	if pukUID.Equal(myUID) {
-		// Leave the existing keyring in place for the same user
-		g.Log.Debug("G#BumpPerUserKeyring -> ignore")
-		return nil
-	}
-	return makeNew()
 }

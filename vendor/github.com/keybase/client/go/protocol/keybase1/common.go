@@ -125,6 +125,35 @@ func (o Seqno) DeepCopy() Seqno {
 	return o
 }
 
+type SeqType int
+
+const (
+	SeqType_PUBLIC      SeqType = 1
+	SeqType_PRIVATE     SeqType = 2
+	SeqType_SEMIPRIVATE SeqType = 3
+)
+
+func (o SeqType) DeepCopy() SeqType { return o }
+
+var SeqTypeMap = map[string]SeqType{
+	"PUBLIC":      1,
+	"PRIVATE":     2,
+	"SEMIPRIVATE": 3,
+}
+
+var SeqTypeRevMap = map[SeqType]string{
+	1: "PUBLIC",
+	2: "PRIVATE",
+	3: "SEMIPRIVATE",
+}
+
+func (e SeqType) String() string {
+	if v, ok := SeqTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type Bytes32 [32]byte
 
 func (o Bytes32) DeepCopy() Bytes32 {

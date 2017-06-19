@@ -151,7 +151,6 @@ type TestParameters struct {
 	// suffix.
 	DevelName         string
 	RuntimeDir        string
-	SupportPerUserKey bool
 	UpgradePerUserKey bool
 
 	// set to true to use production run mode in tests
@@ -659,29 +658,12 @@ func (e *Env) GetEmail() string {
 // Does not add per-user-keys to sigchains unless they are already there.
 // It is unwise to have this off and interact with sigchains that have per-user-keys.
 func (e *Env) GetSupportPerUserKey() bool {
-	if e.GetUpgradePerUserKey() {
-		return true
-	}
-
-	if e.GetRunMode() != DevelRunMode {
-		return false
-	}
-
-	return e.GetBool(false,
-		func() (bool, bool) { return e.Test.SupportPerUserKey, e.Test.SupportPerUserKey },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_SUPPORT_PER_USER_KEY") },
-		func() (bool, bool) { return e.config.GetSupportPerUserKey() },
-		func() (bool, bool) { return e.cmd.GetSupportPerUserKey() },
-	)
+	return true
 }
 
 // Upgrade sigchains to contain per-user-keys.
 // Implies SupportPerUserKey.
 func (e *Env) GetUpgradePerUserKey() bool {
-	if e.GetRunMode() != DevelRunMode {
-		return false
-	}
-
 	return e.GetBool(false,
 		func() (bool, bool) { return e.Test.UpgradePerUserKey, e.Test.UpgradePerUserKey },
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_UPGRADE_PER_USER_KEY") },

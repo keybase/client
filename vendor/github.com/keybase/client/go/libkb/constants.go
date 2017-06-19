@@ -113,6 +113,8 @@ const (
 	LocalTrackMaxAge = 48 * time.Hour
 
 	CriticalClockSkewLimit = time.Hour
+
+	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -182,6 +184,7 @@ const (
 	SCBadInvitationCode      = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
+	SCKeyCorrupted           = int(keybase1.StatusCode_SCKeyCorrupted)
 	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
 	SCKeyBadGen              = int(keybase1.StatusCode_SCKeyBadGen)
 	SCKeyNoSecret            = int(keybase1.StatusCode_SCKeyNoSecret)
@@ -257,24 +260,26 @@ type DelegationType LinkType
 
 const (
 	LinkTypeAuthentication    LinkType = "auth"
-	LinkTypeCryptocurrency             = "cryptocurrency"
-	LinkTypeRevoke                     = "revoke"
-	LinkTypeTrack                      = "track"
-	LinkTypeUntrack                    = "untrack"
-	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
-	LinkTypeUpdateSettings             = "update_settings"
-	LinkTypeWebServiceBinding          = "web_service_binding"
-	LinkTypePerUserKey                 = "per_user_key"
+	LinkTypeCryptocurrency    LinkType = "cryptocurrency"
+	LinkTypeRevoke            LinkType = "revoke"
+	LinkTypeTrack             LinkType = "track"
+	LinkTypeUntrack           LinkType = "untrack"
+	LinkTypeUpdatePassphrase  LinkType = "update_passphrase_hash"
+	LinkTypeUpdateSettings    LinkType = "update_settings"
+	LinkTypeWebServiceBinding LinkType = "web_service_binding"
+	LinkTypePerUserKey        LinkType = "per_user_key"
 
 	// team links
-	LinkTypeTeamRoot    LinkType = "team.root"
-	LinkTypeNewSubteam  LinkType = "team.new_subteam"
-	LinkTypeSubteamHead LinkType = "team.subteam_head"
+	LinkTypeTeamRoot         LinkType = "team.root"
+	LinkTypeNewSubteam       LinkType = "team.new_subteam"
+	LinkTypeSubteamHead      LinkType = "team.subteam_head"
+	LinkTypeChangeMembership LinkType = "team.change_membership"
+	LinkTypeRotateKey        LinkType = "team.rotate_key"
 
 	DelegationTypeEldest    DelegationType = "eldest"
-	DelegationTypePGPUpdate                = "pgp_update"
-	DelegationTypeSibkey                   = "sibkey"
-	DelegationTypeSubkey                   = "subkey"
+	DelegationTypePGPUpdate DelegationType = "pgp_update"
+	DelegationTypeSibkey    DelegationType = "sibkey"
+	DelegationTypeSubkey    DelegationType = "subkey"
 )
 
 const (
@@ -514,8 +519,9 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonChatLocalStorage  EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage       EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonTeamsLocalStorage EncryptionReason = "Keybase-Teams-Local-Storage-1"
 )
 
 type DeriveReason string
@@ -569,11 +575,17 @@ type PvlUnparsed struct {
 
 const SharedTeamKeyBoxVersion1 = 1
 
-const TeamDHDerivationString = "Keybase-Derived-Team-NaCl-DH-1"
-const TeamEdDSADerivationString = "Keybase-Derived-Team-NaCl-EdDSA-1"
+const (
+	TeamDHDerivationString               = "Keybase-Derived-Team-NaCl-DH-1"
+	TeamEdDSADerivationString            = "Keybase-Derived-Team-NaCl-EdDSA-1"
+	TeamKBFSDerivationString             = "Keybase-Derived-Team-NaCl-KBFS-1"
+	TeamChatDerivationString             = "Keybase-Derived-Team-NaCl-Chat-1"
+	TeamSaltpackDerivationString         = "Keybase-Derived-Team-NaCl-Saltpack-1"
+	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1"
+)
 
 func CurrentSaltpackVersion() saltpack.Version {
-	return saltpack.Version1()
+	return saltpack.Version2()
 }
 
 const (
@@ -586,3 +598,5 @@ const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
 )
+
+var CITimeMultiplier time.Duration = 1

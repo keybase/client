@@ -34,6 +34,14 @@ func (n NormalizedUsername) String() string { return string(n) }
 // IsNil returns true if the username is the empty string
 func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
 
+func NormalizedUsernamesToStrings(names []NormalizedUsername) []string {
+	y := make([]string, len(names))
+	for i, n := range names {
+		y[i] = n.String()
+	}
+	return y
+}
+
 //==================================================================
 
 type UserConfig struct {

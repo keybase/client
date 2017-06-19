@@ -168,7 +168,8 @@ type perUserKeyFull struct {
 	encKey *NaclDHKeyPair
 }
 
-type PerUserKeyMap map[keybase1.PerUserKeyGeneration]perUserKeyFull
+type perUserKeyMap map[keybase1.PerUserKeyGeneration]perUserKeyFull
+type perUserKeySeqGenMap map[keybase1.Seqno]keybase1.PerUserKeyGeneration
 
 // PerUserKeyring holds on to all versions of the per user key.
 // Generation=0 should be nil, but all others should be present.
@@ -176,7 +177,9 @@ type PerUserKeyring struct {
 	Contextified
 	sync.Mutex
 	uid         keybase1.UID
-	generations PerUserKeyMap
+	generations perUserKeyMap
+	// sigchain seqno when each key was introduced
+	seqgen perUserKeySeqGenMap
 }
 
 // NewPerUserKeyring makes a new per-user-key keyring for a given UID.
@@ -187,7 +190,8 @@ func NewPerUserKeyring(g *GlobalContext, uid keybase1.UID) (*PerUserKeyring, err
 	return &PerUserKeyring{
 		Contextified: NewContextified(g),
 		uid:          uid,
-		generations:  make(PerUserKeyMap),
+		generations:  make(perUserKeyMap),
+		seqgen:       make(perUserKeySeqGenMap),
 	}, nil
 }
 
@@ -272,10 +276,11 @@ func (s *PerUserKeyring) PreparePrev(ctx context.Context, newSeed PerUserKeySeed
 }
 
 // AddKey registers a full key locally.
-func (s *PerUserKeyring) AddKey(ctx context.Context,
-	generation keybase1.PerUserKeyGeneration, seed PerUserKeySeed) error {
+func (s *PerUserKeyring) AddKey(ctx context.Context, generation keybase1.PerUserKeyGeneration,
+	seqno keybase1.Seqno, seed PerUserKeySeed) error {
 	s.Lock()
 	defer s.Unlock()
+	s.G().Log.CDebugf(ctx, "PerUserKeyring#AddKey(generation: %v, seqno:%v)", generation, seqno)
 
 	if seed.IsBlank() {
 		return errors.New("attempt to add blank per-user-key")
@@ -299,6 +304,7 @@ func (s *PerUserKeyring) AddKey(ctx context.Context,
 	}
 
 	s.generations[generation] = expanded.lower()
+	s.seqgen[seqno] = generation
 
 	return nil
 }
@@ -333,9 +339,15 @@ func (s *PerUserKeyring) GetLatestSigningKey(ctx context.Context) (*NaclSigningK
 	return key.sigKey, nil
 }
 
-func (s *PerUserKeyring) GetEncryptionKey(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
+// Get the encryption key of a generation.
+func (s *PerUserKeyring) GetEncryptionKeyByGeneration(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
+
+	return s.getEncryptionKeyByGenerationLocked(ctx, gen)
+}
+
+func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(ctx context.Context, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	if gen < 1 {
 		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation number %v", gen)
 	}
@@ -346,28 +358,29 @@ func (s *PerUserKeyring) GetEncryptionKey(ctx context.Context, gen keybase1.PerU
 	return key.encKey, nil
 }
 
-// Clone makes a deep copy of this keyring.
-// But the keys are still aliased.
-func (s *PerUserKeyring) Clone() (*PerUserKeyring, error) {
+// Get the encryption key at the user sigchain seqno.
+func (s *PerUserKeyring) GetEncryptionKeyBySeqno(ctx context.Context, seqno keybase1.Seqno) (*NaclDHKeyPair, error) {
 	s.Lock()
 	defer s.Unlock()
-	ret, err := NewPerUserKeyring(s.G(), s.uid)
-	if err != nil {
-		return nil, err
+
+	gen, ok := s.seqgen[seqno]
+	if !ok {
+		return nil, fmt.Errorf("no encrypted key for seqno %v", seqno)
 	}
-	ret.mergeLocked(s.generations)
-	return ret, nil
+	return s.getEncryptionKeyByGenerationLocked(ctx, gen)
 }
 
-// Update will take the existing PerUserKeyring, and return an updated
-// copy, that will be synced with the server's version of our PerUserKeyring.
-func (s *PerUserKeyring) Update(ctx context.Context) (ret *PerUserKeyring, err error) {
-	ret, err = s.Clone()
-	if err != nil {
-		return nil, err
+// GetEncryptionKeyByKID finds an encryption key that matches kid.
+func (s *PerUserKeyring) GetEncryptionKeyByKID(ctx context.Context, kid keybase1.KID) (*NaclDHKeyPair, error) {
+	s.Lock()
+	defer s.Unlock()
+
+	for _, key := range s.generations {
+		if key.encKey.GetKID().Equal(kid) {
+			return key.encKey, nil
+		}
 	}
-	err = ret.Sync(ctx)
-	return ret, err
+	return nil, NotFoundError{Msg: fmt.Sprintf("no per-user encryption key found for KID %s", kid)}
 }
 
 // Sync our PerUserKeyring with the server. It will either add all new
@@ -427,12 +440,13 @@ func (s *PerUserKeyring) sync(ctx context.Context, lctx LoginContext, upak *keyb
 		}
 	}
 
-	newKeys, err := s.importLocked(ctx, box, prevs, decryptionKey, newPerUserKeyChecker(upak))
+	checker := newPerUserKeyChecker(upak)
+	newKeys, err := s.importLocked(ctx, box, prevs, decryptionKey, checker)
 	if err != nil {
 		return err
 
 	}
-	s.mergeLocked(newKeys)
+	s.mergeLocked(newKeys, checker.seqgen)
 	return nil
 }
 
@@ -446,10 +460,11 @@ func (s *PerUserKeyring) getUPAK(ctx context.Context, lctx LoginContext, upak *k
 	return upak, err
 }
 
-func (s *PerUserKeyring) mergeLocked(m PerUserKeyMap) (err error) {
+func (s *PerUserKeyring) mergeLocked(m perUserKeyMap, seqgen perUserKeySeqGenMap) (err error) {
 	for k, v := range m {
 		s.generations[k] = v
 	}
+	s.seqgen = seqgen
 	return nil
 }
 
@@ -514,6 +529,7 @@ type perUserKeyChecker struct {
 	expectedPUKSigKIDs    map[keybase1.PerUserKeyGeneration]keybase1.KID
 	expectedPUKEncKIDs    map[keybase1.PerUserKeyGeneration]keybase1.KID
 	latestGeneration      keybase1.PerUserKeyGeneration
+	seqgen                perUserKeySeqGenMap
 }
 
 func newPerUserKeyChecker(upak *keybase1.UserPlusAllKeys) *perUserKeyChecker {
@@ -522,6 +538,7 @@ func newPerUserKeyChecker(upak *keybase1.UserPlusAllKeys) *perUserKeyChecker {
 		expectedPUKSigKIDs:    make(map[keybase1.PerUserKeyGeneration]keybase1.KID),
 		expectedPUKEncKIDs:    make(map[keybase1.PerUserKeyGeneration]keybase1.KID),
 		latestGeneration:      0,
+		seqgen:                make(perUserKeySeqGenMap),
 	}
 	isEncryptionKey := func(k keybase1.PublicKey) bool {
 		return !k.IsSibkey && k.PGPFingerprint == ""
@@ -539,8 +556,10 @@ func newPerUserKeyChecker(upak *keybase1.UserPlusAllKeys) *perUserKeyChecker {
 	for _, k := range upak.Base.PerUserKeys {
 		ret.expectedPUKSigKIDs[keybase1.PerUserKeyGeneration(k.Gen)] = k.SigKID
 		ret.expectedPUKEncKIDs[keybase1.PerUserKeyGeneration(k.Gen)] = k.EncKID
-		if keybase1.PerUserKeyGeneration(k.Gen) > ret.latestGeneration {
-			ret.latestGeneration = keybase1.PerUserKeyGeneration(k.Gen)
+		gen := keybase1.PerUserKeyGeneration(k.Gen)
+		ret.seqgen[k.Seqno] = gen
+		if gen > ret.latestGeneration {
+			ret.latestGeneration = gen
 		}
 	}
 
@@ -551,7 +570,7 @@ func newPerUserKeyChecker(upak *keybase1.UserPlusAllKeys) *perUserKeyChecker {
 func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keybase1.PerUserKeyGeneration) error {
 	// sig key
 	if expectedSigKID, ok := c.expectedPUKSigKIDs[generation]; ok {
-		if !expectedSigKID.Equal(key.sigKey.GetKID()) {
+		if !expectedSigKID.SecureEqual(key.sigKey.GetKID()) {
 			return fmt.Errorf("import per-user-key: wrong sigKID expected %v", expectedSigKID.String())
 		}
 	} else {
@@ -560,7 +579,7 @@ func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keyba
 
 	// enc key
 	if expectedEncKID, ok := c.expectedPUKEncKIDs[generation]; ok {
-		if !expectedEncKID.Equal(key.encKey.GetKID()) {
+		if !expectedEncKID.SecureEqual(key.encKey.GetKID()) {
 			return fmt.Errorf("import per-user-key: wrong sigKID expected %v", expectedEncKID.String())
 		}
 	} else {
@@ -572,13 +591,13 @@ func (c *perUserKeyChecker) checkPublic(key importedPerUserKey, generation keyba
 
 func (s *PerUserKeyring) importLocked(ctx context.Context,
 	box *keybase1.PerUserKeyBox, prevs []perUserKeyPrevResp,
-	decryptionKey GenericKey, checker *perUserKeyChecker) (ret PerUserKeyMap, err error) {
+	decryptionKey GenericKey, checker *perUserKeyChecker) (ret perUserKeyMap, err error) {
 
 	defer s.G().CTrace(ctx, "PerUserKeyring#importLocked", func() error { return err })()
 
 	if box == nil && len(prevs) == 0 {
 		// No new stuff, this keyring is up to date.
-		return make(PerUserKeyMap), nil
+		return make(perUserKeyMap), nil
 	}
 
 	if box == nil {
@@ -599,7 +618,7 @@ func (s *PerUserKeyring) importLocked(ctx context.Context,
 		s.G().Log.CDebugf(ctx, "PerUserKeyring#importLocked prevs:(%s)", strings.Join(debugPrevGenList, ","))
 	}
 
-	ret = make(PerUserKeyMap)
+	ret = make(perUserKeyMap)
 	imp1, err := importPerUserKeyBox(box, decryptionKey, checker.latestGeneration, checker)
 	if err != nil {
 		return nil, err

@@ -7,26 +7,30 @@ import (
 	"fmt"
 	"time"
 
+	"runtime/debug"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
-	"runtime/debug"
 	"stathat.com/c/ramcache"
 )
 
 type ResolveResult struct {
 	uid                keybase1.UID
+	teamID             keybase1.TeamID
 	body               *jsonw.Wrapper
 	err                error
 	queriedKbUsername  string
 	queriedByUID       bool
 	resolvedKbUsername string
+	queriedByTeamID    bool
+	resolvedTeamName   keybase1.TeamName
 	cachedAt           time.Time
 	mutable            bool
 }
 
 func (res ResolveResult) String() string {
-	return fmt.Sprintf("{uid:%s err:%s mutable:%v}", res.uid, ErrToOk(res.err), res.mutable)
+	return fmt.Sprintf("{uid:%s teamID:%s err:%s mutable:%v}", res.uid, res.teamID, ErrToOk(res.err), res.mutable)
 }
 
 const (
@@ -40,6 +44,23 @@ func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
 }
 
+func (res *ResolveResult) User() keybase1.User {
+	return keybase1.User{
+		Uid:      res.GetUID(),
+		Username: res.GetNormalizedUsername().String(),
+	}
+}
+
+func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
+	var u keybase1.UserOrTeamLite
+	if res.GetUID().Exists() {
+		u.Id, u.Name = res.GetUID().AsUserOrTeam(), res.GetNormalizedUsername().String()
+	} else if res.GetTeamID().Exists() {
+		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName().String()
+	}
+	return u
+}
+
 func (res *ResolveResult) GetUsername() string {
 	return res.resolvedKbUsername
 }
@@ -48,6 +69,17 @@ func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
 }
 func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
+}
+
+func (res *ResolveResult) WasTeamIDAssertion() bool {
+	return res.queriedByTeamID
+}
+
+func (res *ResolveResult) GetTeamID() keybase1.TeamID {
+	return res.teamID
+}
+func (res *ResolveResult) GetTeamName() keybase1.TeamName {
+	return res.resolvedTeamName
 }
 
 func (res *ResolveResult) WasKBAssertion() bool {
@@ -148,6 +180,14 @@ func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret
 	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
 }
 
+func (r *Resolver) getFromTeamLoader(ctx context.Context, tid keybase1.TeamID) (ret *ResolveResult) {
+	tn, err := r.G().GetTeamLoader().MapIDToName(ctx, tid)
+	if err != nil || tn.IsNil() {
+		return nil
+	}
+	return &ResolveResult{teamID: tid, resolvedTeamName: tn, mutable: false}
+}
+
 func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
@@ -190,6 +230,16 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 		}
 	}
 
+	// Similarly, we can check the team loader for the team name if we're just mapping a TeamID
+	// to a team name
+	if tmp := au.ToTeamID(); !withBody && tmp.Exists() {
+		if p := r.getFromTeamLoader(ctx, tmp); p != nil {
+			trace += "l"
+			r.putToMemCache(ck, *p)
+			return *p
+		}
+	}
+
 	trace += "s"
 	res = r.resolveURLViaServerLookup(ctx, au, input, withBody)
 
@@ -209,6 +259,10 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
+
+	if au.IsTeamID() || au.IsTeamName() {
+		return r.resolveTeamViaServerLookup(ctx, au)
+	}
 
 	var key, val string
 	var ares *APIRes
@@ -276,6 +330,43 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 
 	return
+}
+
+type teamLookup struct {
+	ID     keybase1.TeamID   `json:"id"`
+	Name   keybase1.TeamName `json:"name"`
+	Status AppStatus         `json:"status"`
+}
+
+func (t *teamLookup) GetAppStatus() *AppStatus {
+	return &t.Status
+}
+
+func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	res.queriedByTeamID = au.IsTeamID()
+	key, val, err := au.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	arg := NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = make(HTTPArgs)
+	arg.Args[key] = S{Val: val}
+	arg.Args["lookup_only"] = B{Val: true}
+
+	var lookup teamLookup
+	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+
+	res.resolvedTeamName = lookup.Name
+	res.teamID = lookup.ID
+
+	return res
 }
 
 type ResolveCacheStats struct {

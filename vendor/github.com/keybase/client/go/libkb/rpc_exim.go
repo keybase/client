@@ -235,6 +235,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return LoginRequiredError{s.Desc}
 	case SCNoSession:
 		return NoSessionError{}
+	case SCKeyCorrupted:
+		return KeyCorruptedError{s.Desc}
 	case SCKeyInUse:
 		var fp *PGPFingerprint
 		if len(s.Desc) > 0 {
@@ -242,7 +244,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		}
 		return KeyExistsError{fp}
 	case SCKeyNotFound:
-		return NoKeyError{}
+		return NoKeyError{s.Desc}
 	case SCKeyNoEldest:
 		return NoSigChainError{}
 	case SCStreamExists:
@@ -741,6 +743,17 @@ func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
 
 //=============================================================================
 
+func (c KeyCorruptedError) ToStatus() (s keybase1.Status) {
+	s.Code = SCKeyCorrupted
+	s.Name = "KEY_CORRUPTED"
+	if c.Msg != "" {
+		s.Desc = c.Msg
+	}
+	return
+}
+
+//=============================================================================
+
 func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyInUse
 	s.Name = "KEY_IN_USE"
@@ -892,6 +905,93 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 	return pk
 }
 
+func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.PublicKeyV2Base) {
+	base = keybase1.PublicKeyV2Base{
+		Kid:      info.KID,
+		IsSibkey: info.Sibkey,
+		IsEldest: info.Eldest,
+		CTime:    keybase1.TimeFromSeconds(info.CTime),
+		ETime:    keybase1.TimeFromSeconds(info.ETime),
+	}
+	if info.DelegatedAt != nil {
+		base.Provisioning = keybase1.SignatureMetadata{
+			Time: keybase1.Time(info.DelegatedAt.Unix),
+			PrevMerkleRootSigned: keybase1.MerkleRootV2{
+				HashMeta: info.DelegatedAtHashMeta,
+				Seqno:    keybase1.Seqno(info.DelegatedAt.Chain),
+			},
+			FirstAppearedUnverified: info.FirstAppearedUnverified,
+		}
+		dLen := len(info.DelegationsList)
+		if dLen > 0 {
+			base.Provisioning.SigningKID = info.DelegationsList[dLen-1].KID
+		}
+	}
+	if info.RevokedAt != nil {
+		base.Revocation = &keybase1.SignatureMetadata{
+			Time: keybase1.Time(info.RevokedAt.Unix),
+			PrevMerkleRootSigned: keybase1.MerkleRootV2{
+				HashMeta: info.RevokedAtHashMeta,
+				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
+			},
+			FirstAppearedUnverified: info.FirstAppearedUnverified,
+			SigningKID:              info.RevokedBy,
+		}
+	}
+	return
+}
+
+func (cki ComputedKeyInfos) exportDeviceKeyV2(kid keybase1.KID) (key keybase1.PublicKeyV2NaCl) {
+	info := cki.Infos[kid]
+	if info == nil {
+		cki.G().Log.Errorf("Tried to export nonexistent KID: %s", kid.String())
+		return
+	}
+	key = keybase1.PublicKeyV2NaCl{
+		Base:     publicKeyV2BaseFromComputedKeyInfo(*info),
+		DeviceID: cki.KIDToDeviceID[kid],
+	}
+	if !info.Parent.IsNil() {
+		key.Parent = &info.Parent
+	}
+	if device := cki.Devices[key.DeviceID]; device != nil {
+		key.DeviceType = device.Type
+		if device.Description != nil {
+			key.DeviceDescription = *device.Description
+		}
+	}
+	return
+}
+
+func (cki ComputedKeyInfos) exportPGPKeyV2(kid keybase1.KID, kf *KeyFamily) (key keybase1.PublicKeyV2PGPSummary) {
+	info := cki.Infos[kid]
+	if info == nil {
+		cki.G().Log.Errorf("Tried to export nonexistent KID: %s", kid.String())
+		return
+	}
+	keySet := kf.PGPKeySets[kid]
+	if keySet == nil {
+		cki.G().Log.Errorf("Tried to export PGP key with no key set, KID: %s", kid.String())
+		return
+	}
+	var bundle *PGPKeyBundle
+	if info.ActivePGPHash != "" {
+		bundle = keySet.KeysByHash[info.ActivePGPHash]
+	} else {
+		bundle = keySet.PermissivelyMergedKey
+	}
+	if bundle == nil {
+		cki.G().Log.Errorf("Tried to export PGP key with no bundle, KID: %s", kid.String())
+		return
+	}
+	key = keybase1.PublicKeyV2PGPSummary{
+		Base:        publicKeyV2BaseFromComputedKeyInfo(*info),
+		Fingerprint: keybase1.PGPFingerprint(bundle.GetFingerprint()),
+		Identities:  bundle.Export().PGPIdentities,
+	}
+	return
+}
+
 // Export is used by IDRes.  It includes PGP keys.
 func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	var exportedKeys []keybase1.PublicKey
@@ -1037,6 +1137,84 @@ func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAl
 		Base:         u.ExportToUserPlusKeys(idTime),
 		PGPKeys:      u.GetComputedKeyFamily().ExportAllPGPKeys(),
 		RemoteTracks: u.ExportRemoteTracks(),
+	}
+}
+
+type PerUserKeysList []keybase1.PerUserKey
+
+func (p PerUserKeysList) Len() int           { return len(p) }
+func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
+
+func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
+	if cki == nil {
+		cki.G().Log.Errorf("Found nil cached computed key infos for uid %s username %s, eldest seqno %v", uid.String(), username, eldestSeqno)
+		return keybase1.UserPlusKeysV2{}
+	}
+
+	var perUserKeysList PerUserKeysList
+	for _, puk := range cki.PerUserKeys {
+		perUserKeysList = append(perUserKeysList, puk)
+	}
+	sort.Sort(perUserKeysList)
+
+	deviceKeysList := []keybase1.PublicKeyV2NaCl{}
+	pgpSummariesList := []keybase1.PublicKeyV2PGPSummary{}
+	for _, info := range cki.Infos {
+		if KIDIsPGP(info.KID) {
+			pgpSummariesList = append(pgpSummariesList, cki.exportPGPKeyV2(info.KID, kf))
+		} else {
+			deviceKeysList = append(deviceKeysList, cki.exportDeviceKeyV2(info.KID))
+		}
+	}
+
+	return keybase1.UserPlusKeysV2{
+		Uid:         uid,
+		Username:    username,
+		EldestSeqno: eldestSeqno,
+		PerUserKeys: perUserKeysList,
+		DeviceKeys:  deviceKeysList,
+		PGPKeys:     pgpSummariesList,
+		// Uvv and RemoteTracks are set later, and only for the current incarnation
+	}
+}
+
+func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserPlusKeysV2AllIncarnations {
+	// The KeyFamily holds all the PGP key bundles, and it applies to all
+	// generations of this user.
+	kf := u.GetKeyFamily()
+
+	uid := u.GetUID()
+	name := u.GetName()
+
+	// First assemble all the past versions of this user.
+	pastIncarnations := []keybase1.UserPlusKeysV2{}
+	for _, subchain := range u.sigChain().prevSubchains {
+		if len(subchain) == 0 {
+			u.G().Log.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
+			continue
+		}
+		cki := subchain[len(subchain)-1].cki
+		pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
+	}
+
+	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
+	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
+	current.Uvv = u.ExportToVersionVector(idTime)
+
+	remoteTracks := []keybase1.RemoteTrack{}
+	for _, track := range u.IDTable().GetTrackList() {
+		remoteTracks = append(remoteTracks, keybase1.RemoteTrack{
+			Username: string(track.whomUsername),
+			Uid:      track.whomUID,
+			LinkID:   keybase1.LinkID(hex.EncodeToString(track.LinkID())),
+		})
+	}
+	current.RemoteTracks = remoteTracks
+
+	return keybase1.UserPlusKeysV2AllIncarnations{
+		Current:          current,
+		PastIncarnations: pastIncarnations,
 	}
 }
 

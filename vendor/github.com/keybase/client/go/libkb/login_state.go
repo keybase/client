@@ -27,6 +27,7 @@ type LoginState struct {
 	account   *Account
 	loginReqs chan loginReq
 	acctReqs  chan acctReq
+	shutdown  chan struct{}
 	activeReq string
 }
 
@@ -111,6 +112,7 @@ func NewLoginState(g *GlobalContext) *LoginState {
 		account:      NewAccount(g),
 		loginReqs:    make(chan loginReq),
 		acctReqs:     make(chan acctReq),
+		shutdown:     make(chan struct{}),
 	}
 	go res.requests()
 	return res
@@ -184,19 +186,7 @@ func (s *LoginState) Shutdown() error {
 	var err error
 	aerr := s.Account(func(a *Account) {
 		err = a.Shutdown()
-
-		if s.loginReqs != nil {
-			close(s.loginReqs)
-
-			// block future sends to this channel; we have observed this in some
-			// tests every now and then do to races in shutdown. It shouldn't be a
-			// problem in production.
-			s.loginReqs = nil
-		}
-		if s.acctReqs != nil {
-			close(s.acctReqs)
-			s.acctReqs = nil // block future sends to this channel
-		}
+		close(s.shutdown)
 	}, "LoginState - Shutdown")
 	if aerr != nil {
 		return aerr
@@ -915,7 +905,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	}
 	select {
 	case s.acctReqs <- req:
-	case <-time.After(5 * time.Second):
+	case <-time.After(5 * time.Second * CITimeMultiplier):
 		// this is just during debugging:
 		s.G().Log.Debug("timed out sending acct request %q", name)
 		s.G().Log.Debug("active request: %s", s.activeReq)
@@ -935,7 +925,7 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 // account requests and handles them appropriately.  It runs until
 // the loginReqs and acctReqs channels are closed.
 func (s *LoginState) requests() {
-	var loginReqsClosed, acctReqsClosed bool
+	defer s.G().Log.Debug("- LoginState: Leaving request loop")
 
 	// Run a cleanup routine on the Account object every minute.
 	// We're supposed to timeout & cleanup Paper Keys after an hour of inactivity.
@@ -943,44 +933,30 @@ func (s *LoginState) requests() {
 	timer := maketimer()
 	s.G().Log.Debug("+ LoginState: Running request loop")
 
-	// Make local copies of these channels so that we won't get nil'ed
-	// out when Shutdown is called
-	loginReqs := s.loginReqs
-	acctReqs := s.acctReqs
-
 	for {
 		select {
-		case req, ok := <-loginReqs:
-			if ok {
-				s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
-				err := req.f(s.account)
-				if err == nil && req.after != nil {
-					// f ran without error, so call after function
-					req.res <- req.after(s.account)
-				} else {
-					// either f returned an error, or there's no after function
-					req.res <- err
-				}
+		case <-s.shutdown:
+			s.G().Log.Debug("- LoginState: shutdown chan closed, exiting requests loop")
+			return
+		case req := <-s.loginReqs:
+			s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
+			err := req.f(s.account)
+			if err == nil && req.after != nil {
+				// f ran without error, so call after function
+				req.res <- req.after(s.account)
 			} else {
-				loginReqsClosed = true
+				// either f returned an error, or there's no after function
+				req.res <- err
 			}
-		case req, ok := <-acctReqs:
-			if ok {
-				s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
-				req.f(s.account)
-				close(req.done)
-			} else {
-				acctReqsClosed = true
-			}
+		case req := <-s.acctReqs:
+			s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
+			req.f(s.account)
+			close(req.done)
 		case <-timer:
 			s.account.clean()
 			timer = maketimer()
 		}
-		if loginReqsClosed && acctReqsClosed {
-			break
-		}
 	}
-	s.G().Log.Debug("- LoginState: Leaving request loop")
 }
 
 func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {
