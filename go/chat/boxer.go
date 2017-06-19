@@ -31,6 +31,8 @@ import (
 	"github.com/keybase/go-crypto/ed25519"
 )
 
+const CurrentMessageBoxedVersion = chat1.MessageBoxedVersion_V2
+
 var publicCryptKey keybase1.CryptKey
 
 func init() {
@@ -63,7 +65,7 @@ type Boxer struct {
 func NewBoxer(g *globals.Context) *Boxer {
 	return &Boxer{
 		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
-		boxWithVersion: chat1.MessageBoxedVersion_V2,
+		boxWithVersion: CurrentMessageBoxedVersion,
 		hashV1:         hashSha256V1,
 		Contextified:   globals.NewContextified(g),
 	}
@@ -872,7 +874,7 @@ func (b *Boxer) latestMerkleRoot(ctx context.Context) (*chat1.MerkleRoot, error)
 	if merkleClient == nil {
 		return nil, fmt.Errorf("no MerkleClient available")
 	}
-	mr, err := merkleClient.FetchRootFromServer(ctx, time.Duration(0))
+	mr, err := merkleClient.FetchRootFromServer(ctx, libkb.ChatBoxerMerkleFreshness)
 	if err != nil {
 		return nil, err
 	}
@@ -939,7 +941,7 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 // Attach a merkle root to the message to send.
 // Modifies msg.
 // For MessageBoxedV1 makes sure there is no MR.
-// For MessageBoxedV2 attaches a (possibly quite stale) MR.
+// For MessageBoxedV2 attaches a MR that is no more out of date than ChatBoxerMerkleFreshness.
 func (b *Boxer) attachMerkleRoot(ctx context.Context, msg *chat1.MessagePlaintext) error {
 	switch b.boxWithVersion {
 	case chat1.MessageBoxedVersion_V1:
