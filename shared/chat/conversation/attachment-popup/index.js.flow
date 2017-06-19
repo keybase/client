@@ -1,11 +1,12 @@
 // @flow
 import {Component} from 'react'
 
-import type {AttachmentMessage} from '../../../constants/chat'
+import type {AttachmentMessage, LocalMessageState} from '../../../constants/chat'
 
 export type Props = {
   you: string,
   message: AttachmentMessage,
+  localMessageState: LocalMessageState,
   detailsPopupShowing: boolean,
   isZoomed: boolean,
   onCloseDetailsPopup: () => void,

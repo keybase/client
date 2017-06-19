@@ -7,18 +7,18 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {fileUIName} from '../../../constants/platform'
 
 import type {Props} from './'
-import type {AttachmentMessage} from '../../../constants/chat'
+import type {LocalMessageState} from '../../../constants/chat'
 
 const AttachmentStatusFooter = ({
-  message,
+  localMessageState,
   onDownloadAttachment,
   onOpenInFileUI,
 }: {
-  message: AttachmentMessage,
+  localMessageState: LocalMessageState,
   onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
 }) => {
-  const {downloadProgress, savedPath} = message
+  const {downloadProgress, savedPath} = localMessageState
 
   let contents
   if (savedPath === false && downloadProgress !== null) {
@@ -79,6 +79,7 @@ const AttachmentView = ({
 
 const AttachmentPopup = ({
   message,
+  localMessageState,
   detailsPopupShowing,
   isZoomed,
   onCloseDetailsPopup,
@@ -90,7 +91,7 @@ const AttachmentPopup = ({
   onOpenInFileUI,
   you,
 }: Props) => {
-  const {savedPath, downloadProgress, downloadedPath} = message
+  const {savedPath, downloadProgress, downloadedPath} = localMessageState
   let statusIcon
   if (savedPath || (savedPath === false && downloadProgress !== null)) {
     statusIcon = (
@@ -107,6 +108,7 @@ const AttachmentPopup = ({
         <AttachmentPopupMenu
           you={you}
           message={message}
+          localMessageState={localMessageState}
           onDeleteMessage={onDeleteMessage}
           onDownloadAttachment={onDownloadAttachment}
           onOpenInFileUI={onOpenInFileUI}
@@ -123,7 +125,7 @@ const AttachmentPopup = ({
       </Box>
       <AttachmentView isZoomed={isZoomed} onToggleZoom={onToggleZoom} path={downloadedPath} />
       <AttachmentStatusFooter
-        message={message}
+        localMessageState={localMessageState}
         onDownloadAttachment={onDownloadAttachment}
         onOpenInFileUI={onOpenInFileUI}
       />
