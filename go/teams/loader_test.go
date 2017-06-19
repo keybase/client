@@ -32,7 +32,9 @@ func TestLoaderDoesntCrash(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, tc.G.GetTeamLoader(), "team loader on G")
-	_, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{})
+	_, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: "abcdef",
+	})
 	require.Error(t, err, "load not implemented")
 	require.Equal(t, "TODO: implement team loader", err.Error())
 }

@@ -185,6 +185,15 @@ func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamK
 	return res, nil
 }
 
+func (t TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range t.inner.StubbedTypes {
+		if v {
+			return true
+		}
+	}
+	return false
+}
+
 // Inform the UserLog of a user's role.
 // Mutates the UserLog.
 // Must be called with seqno's and events in correct order.

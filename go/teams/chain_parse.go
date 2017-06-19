@@ -84,6 +84,10 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
+func (l *SCChainLink) isStubbed() bool {
+	return l.Payload == ""
+}
+
 func (link *SCChainLink) PayloadHash() libkb.LinkID {
 	if link.Payload == "" {
 		return nil

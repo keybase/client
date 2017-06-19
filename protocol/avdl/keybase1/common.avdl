@@ -2,6 +2,7 @@
 @namespace("keybase.1")
 protocol Common {
 
+  // Time in milliseconds
   @typedef("long")
   record Time {}
 

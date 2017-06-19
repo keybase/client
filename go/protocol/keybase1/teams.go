@@ -504,7 +504,7 @@ type LoadTeamArg struct {
 	Name              string        `codec:"name" json:"name"`
 	NeedAdmin         bool          `codec:"needAdmin" json:"needAdmin"`
 	NeedKeyGeneration int           `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	NeedMembers       []UserVersion `codec:"needMembers" json:"needMembers"`
+	WantMembers       []UserVersion `codec:"wantMembers" json:"wantMembers"`
 	ForceFullReload   bool          `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll       bool          `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK           bool          `codec:"staleOK" json:"staleOK"`
@@ -516,14 +516,14 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		Name:              o.Name,
 		NeedAdmin:         o.NeedAdmin,
 		NeedKeyGeneration: o.NeedKeyGeneration,
-		NeedMembers: (func(x []UserVersion) []UserVersion {
+		WantMembers: (func(x []UserVersion) []UserVersion {
 			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.NeedMembers),
+		})(o.WantMembers),
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,

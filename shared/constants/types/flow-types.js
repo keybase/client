@@ -4786,7 +4786,7 @@ export type LoadTeamArg = {
   name: string,
   needAdmin: boolean,
   needKeyGeneration: int,
-  needMembers?: ?Array<UserVersion>,
+  wantMembers?: ?Array<UserVersion>,
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
