@@ -73,3 +73,12 @@ func (l *TeamLoader) load(ctx context.Context, me keybase1.UserVersion, lArg key
 func (l *TeamLoader) OnLogout() {
 	l.storage.onLogout()
 }
+
+func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {
+	l.G().Log.Warning("Using stubbed out VerifyTeamName - INSECURE -- please implement")
+	return nil
+}
+
+func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
+	return keybase1.TeamName{}, nil
+}

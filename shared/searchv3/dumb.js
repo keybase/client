@@ -234,6 +234,7 @@ const servicesResultsListMapCommon = {
       width: 420,
     },
   },
+  selectedId: null,
 }
 
 const servicesResultsListMap: DumbComponentMap<ResultsList> = {
@@ -277,6 +278,7 @@ const commonUserInputMapProps = {
   onClickAddButton: () => console.log('username input add button clicked'),
   onMoveSelectUp: () => console.log('username input moveSelectUp'),
   onMoveSelectDown: () => console.log('username input moveSelectDown'),
+  onEnter: () => console.log('username input on enter'),
 }
 
 const maxUsers = [
