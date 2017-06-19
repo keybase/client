@@ -41,6 +41,7 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
       <TabBarButton
         className="keybase-nav"
         badgeNumber={badgeNumbers[tab]}
+        isNav={true}
         key={tab}
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
@@ -52,6 +53,7 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
     <Box style={{flex: 1}} />
     <TabBarButton
       label={username}
+      isNav={true}
       selected={selectedTab === Tabs.profileTab}
       onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.profileTab]}

@@ -5,6 +5,7 @@ import type {IconType} from './icon'
 
 export type ItemProps = Exact<{
   tabBarButton?: React$Element<*>,
+  isNav?: boolean,
   label?: string,
   selected: boolean,
   selectedColor?: string,
