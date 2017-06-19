@@ -1167,13 +1167,13 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 	}
 	sort.Sort(perUserKeysList)
 
-	deviceKeysList := []keybase1.PublicKeyV2NaCl{}
-	pgpSummariesList := []keybase1.PublicKeyV2PGPSummary{}
+	deviceKeys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
+	pgpSummaries := make(map[keybase1.KID]keybase1.PublicKeyV2PGPSummary)
 	for _, info := range cki.Infos {
 		if KIDIsPGP(info.KID) {
-			pgpSummariesList = append(pgpSummariesList, cki.exportPGPKeyV2(info.KID, kf))
+			pgpSummaries[info.KID] = cki.exportPGPKeyV2(info.KID, kf)
 		} else {
-			deviceKeysList = append(deviceKeysList, cki.exportDeviceKeyV2(info.KID))
+			deviceKeys[info.KID] = cki.exportDeviceKeyV2(info.KID)
 		}
 	}
 
@@ -1182,8 +1182,8 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 		Username:    username,
 		EldestSeqno: eldestSeqno,
 		PerUserKeys: perUserKeysList,
-		DeviceKeys:  deviceKeysList,
-		PGPKeys:     pgpSummariesList,
+		DeviceKeys:  deviceKeys,
+		PGPKeys:     pgpSummaries,
 		// Uvv and RemoteTracks are set later, and only for the current incarnation
 	}
 }
@@ -1210,20 +1210,18 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
 	current.Uvv = u.ExportToVersionVector(idTime)
-	// NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
-	current.RemoteTracks = u.ExportRemoteTracks()
+	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
+	if u.IDTable() != nil {
+		for _, track := range u.IDTable().GetTrackList() {
+			current.RemoteTracks[track.whomUID] = track.Export()
+		}
+	}
 
 	return keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
 		PastIncarnations: pastIncarnations,
 	}
 }
-
-type remoteTrackSorter []keybase1.RemoteTrack
-
-func (s remoteTrackSorter) Len() int           { return len(s) }
-func (s remoteTrackSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s remoteTrackSorter) Less(i, j int) bool { return s[i].Username < s[j].Username }
 
 // NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
 func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
@@ -1235,7 +1233,7 @@ func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
 	for _, track := range trackList {
 		ret = append(ret, track.Export())
 	}
-	sort.Sort(remoteTrackSorter(ret))
+	sort.Slice(ret, func(i, j int) bool { return ret[i].Username < ret[j].Username })
 	return ret
 }
 

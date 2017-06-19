@@ -6036,9 +6036,9 @@ export type UserPlusKeysV2 = {
   eldestSeqno: Seqno,
   uvv: UserVersionVector,
   perUserKeys?: ?Array<PerUserKey>,
-  deviceKeys?: ?Array<PublicKeyV2NaCl>,
-  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
-  remoteTracks?: ?Array<RemoteTrack>,
+  deviceKeys: {[key: string]: PublicKeyV2NaCl},
+  pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
+  remoteTracks: {[key: string]: RemoteTrack},
 }
 
 export type UserPlusKeysV2AllIncarnations = {

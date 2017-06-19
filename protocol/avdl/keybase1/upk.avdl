@@ -62,12 +62,9 @@ protocol UPK {
       UserVersionVector uvv;
       // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2NaCl> deviceKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2PGPSummary> pgpKeys;
-      // Sorted by UID ascending
-      array<RemoteTrack> remoteTracks;
+      map<KID, PublicKeyV2NaCl> deviceKeys;
+      map<KID, PublicKeyV2PGPSummary> pgpKeys;
+      map<UID, RemoteTrack> remoteTracks;
   }
 
   record UserPlusKeysV2AllIncarnations {

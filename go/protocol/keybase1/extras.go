@@ -1297,6 +1297,8 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			deviceKeysV1 = append(deviceKeysV1, PublicKeyV1FromDeviceKeyV2(keyV2))
 		}
 	}
+	sort.Slice(deviceKeysV1, func(i, j int) bool { return deviceKeysV1[i].KID < deviceKeysV1[j].KID })
+	sort.Slice(revokedDeviceKeysV1, func(i, j int) bool { return revokedDeviceKeysV1[i].Key.KID < revokedDeviceKeysV1[j].Key.KID })
 
 	// Assemble the deleted device keys from past incarnations.
 	var deletedDeviceKeysV1 []PublicKey
@@ -1305,6 +1307,14 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			deletedDeviceKeysV1 = append(deletedDeviceKeysV1, PublicKeyV1FromDeviceKeyV2(keyV2))
 		}
 	}
+	sort.Slice(deletedDeviceKeysV1, func(i, j int) bool { return deletedDeviceKeysV1[i].KID < deletedDeviceKeysV1[j].KID })
+
+	// List and sort the remote tracks. Note that they *must* be sorted.
+	var remoteTracks []RemoteTrack
+	for _, track := range uV2.Current.RemoteTracks {
+		remoteTracks = append(remoteTracks, track)
+	}
+	sort.Slice(remoteTracks, func(i, j int) bool { return remoteTracks[i].Username < remoteTracks[j].Username })
 
 	// Apart from all the key mangling above, everything else is just naming
 	// and layout changes. Assemble the final UPAK.
@@ -1321,7 +1331,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			PerUserKeys:       uV2.Current.PerUserKeys,
 		},
 		PGPKeys:      pgpKeysV1,
-		RemoteTracks: uV2.Current.RemoteTracks,
+		RemoteTracks: remoteTracks,
 	}
 }
 
