@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -1328,6 +1329,39 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
-func (t TeamNameParts) String() string {
-	return strings.Join(t.Parts, ".")
+func (t TeamName) IsNil() bool {
+	return len(t.Parts) == 0
+}
+
+var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+
+func TeamNameFromString(s string) (ret TeamName, err error) {
+	parts := strings.Split(s, ".")
+	if len(parts) == 0 {
+		return ret, errors.New("need >= 1 part, got 0")
+	}
+	var tmp []TeamNamePart
+	for i, part := range parts {
+		if !namePartRxx.MatchString(part) {
+			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+		}
+		tmp = append(tmp, TeamNamePart(strings.ToLower(part)))
+	}
+	return TeamName{Parts: tmp}, nil
+}
+
+func (t TeamName) String() string {
+	var x []string
+	for _, p := range t.Parts {
+		x = append(x, string(p))
+	}
+	return strings.Join(x, ".")
+}
+
+func (t TeamName) Eq(t2 TeamName) bool {
+	return t.String() == t2.String()
+}
+
+func (t TeamName) IsRootTeam() bool {
+	return len(t.Parts) == 1
 }

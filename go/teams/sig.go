@@ -42,8 +42,15 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 	return ret, nil
 }
 
+func RootTeamIDFromName(n keybase1.TeamName) keybase1.TeamID {
+	if !n.IsRootTeam() {
+		panic("can't get a team ID from a subteam")
+	}
+	return RootTeamIDFromNameString(n.String())
+}
+
 // the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromName(name string) keybase1.TeamID {
+func RootTeamIDFromNameString(name string) keybase1.TeamID {
 	sum := sha256.Sum256([]byte(strings.ToLower(name)))
 	idBytes := sum[0:16]
 	idBytes[15] = libkb.RootTeamIDTag

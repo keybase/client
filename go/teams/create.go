@@ -106,7 +106,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(libkb.LinkTypeTeamRoot),
 		SigInner:   string(sigJSONAfterReverse),
-		TeamID:     RootTeamIDFromName(name),
+		TeamID:     RootTeamIDFromNameString(name),
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
@@ -195,7 +195,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
 	ownerUserVersion := owner.ToUserVersion()
 
-	teamID := RootTeamIDFromName(teamName)
+	teamID := RootTeamIDFromNameString(teamName)
 
 	teamSection := SCTeamSection{
 		Name: (*SCTeamName)(&teamName),

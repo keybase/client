@@ -25,6 +25,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -232,7 +234,11 @@ func (d *Service) Run() (err error) {
 
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
-		return
+		return err
+	}
+
+	if err = d.setupGlobals(); err != nil {
+		return err
 	}
 
 	d.RunBackgroundOperations(uir)
@@ -240,6 +246,13 @@ func (d *Service) Run() (err error) {
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) setupGlobals() error {
+	g := d.G()
+	teams.NewTeamLoaderAndInstall(g)
+	pvlsource.NewPvlSourceAndInstall(g)
+	return nil
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {

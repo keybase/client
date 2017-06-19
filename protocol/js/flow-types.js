@@ -5831,9 +5831,11 @@ export type TeamMembersUsernames = {
   readers?: ?Array<string>,
 }
 
-export type TeamNameParts = {
-  parts?: ?Array<string>,
+export type TeamName = {
+  parts?: ?Array<TeamNamePart>,
 }
+
+export type TeamNamePart = string
 
 export type TeamPlusApplicationKeys = {
   id: TeamID,

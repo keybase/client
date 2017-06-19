@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -67,52 +68,19 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	netCtx = libkb.WithLogTag(netCtx, "IDL")
 	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
 
-	var forTeam bool
-	forTeam, res, err = h.identifyLiteTeam(netCtx, arg)
-	if forTeam {
-		return res, err
+	var au libkb.AssertionURL
+	if len(arg.Assertion) > 0 {
+		au, err = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	if arg.Id.IsTeamOrSubteam() || libkb.AssertionIsTeam(au) {
+		return teams.IdentifyLite(netCtx, h.G(), arg, au)
 	}
 
 	return h.identifyLiteUser(netCtx, arg)
-}
-
-func (h *IdentifyHandler) identifyLiteTeam(ctx context.Context, arg keybase1.IdentifyLiteArg) (ok bool, res keybase1.IdentifyLiteRes, err error) {
-	if arg.Id.Exists() {
-		// check if the id is for a team
-		if !arg.Id.IsTeamOrSubteam() {
-			return false, res, nil
-		}
-
-		h.G().Log.CDebugf(ctx, "IdentifyLite on team id: %s", arg.Id)
-		// no identify on teams, just resolve team id => team name
-		ul, err := h.resolveUserOrTeam(ctx, fmt.Sprintf("tid:%s", arg.Id))
-		if err != nil {
-			return true, res, err
-		}
-		res.Ul = ul
-		return true, res, nil
-	}
-
-	// check to see if the assertion is for a team
-	assertion, err := libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
-	if err == nil && assertion.IsTeamID() {
-		h.G().Log.CDebugf(ctx, "IdentifyLite on team id assertion: %s", arg.Assertion)
-		// no identify on teams, just resolve team id => team name
-		ul, err := h.resolveUserOrTeam(ctx, arg.Assertion)
-		if err != nil {
-			return true, res, err
-		}
-		res.Ul = ul
-
-		// TODO -- Run a TeamPlayer on the team ID, and make sure that the name properly
-		// maps to the ID, via Merkle lookup and replay of all parent chains.
-		// See CORE-5376.
-
-		return true, res, nil
-	}
-
-	// not a team
-	return false, res, nil
 }
 
 func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.IdentifyLiteArg) (res keybase1.IdentifyLiteRes, err error) {

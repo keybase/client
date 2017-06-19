@@ -144,9 +144,12 @@ protocol teams {
     Seqno seqno;
   }
 
+  @typedef("string")
+  record TeamNamePart {}
+
   // matches the team name struct from api server
-  record TeamNameParts {
-    array<string> parts;
+  record TeamName {
+    array<TeamNamePart> parts;
   }
 
   // team.clkr gregor message body
