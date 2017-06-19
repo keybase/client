@@ -70,10 +70,9 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 
 	var au libkb.AssertionURL
 	if len(arg.Assertion) > 0 {
-		au, err = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
-		if err != nil {
-			return res, err
-		}
+		// It's OK to fail this assertion; it will be off in the case of regular lookups
+		// for users like `t_ellen` without a `type` specification
+		au, _ = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
 	}
 
 	if arg.Id.IsTeamOrSubteam() || libkb.AssertionIsTeam(au) {
