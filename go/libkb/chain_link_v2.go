@@ -97,7 +97,7 @@ type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
 	sigID keybase1.SigID
-	kid   keybase1.KID
+	KID   keybase1.KID
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -139,7 +139,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		OuterLinkV2: ol,
 		sigID:       sigID,
 		raw:         payload,
-		kid:         kid,
+		KID:         kid,
 	}
 	return &ret, nil
 }
