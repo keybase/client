@@ -8,6 +8,7 @@ import (
 	"io"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
@@ -15,11 +16,12 @@ import (
 )
 
 const (
-	defaultIndirectPointerPrefetchCount int = 20
-	fileIndirectBlockPrefetchPriority   int = -100
-	dirEntryPrefetchPriority            int = -200
-	updatePointerPrefetchPriority       int = 0
-	defaultPrefetchPriority             int = -1024
+	defaultIndirectPointerPrefetchCount int           = 20
+	fileIndirectBlockPrefetchPriority   int           = -100
+	dirEntryPrefetchPriority            int           = -200
+	updatePointerPrefetchPriority       int           = 0
+	defaultPrefetchPriority             int           = -1024
+	prefetchTimeout                     time.Duration = time.Minute
 )
 
 type prefetcherConfig interface {
@@ -51,7 +53,8 @@ type blockPrefetcher struct {
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
-func newBlockPrefetcher(retriever BlockRetriever, config prefetcherConfig) *blockPrefetcher {
+func newBlockPrefetcher(retriever BlockRetriever,
+	config prefetcherConfig) *blockPrefetcher {
 	p := &blockPrefetcher{
 		config:     config,
 		retriever:  retriever,
@@ -84,8 +87,10 @@ func (p *blockPrefetcher) run() {
 	for {
 		select {
 		case req := <-p.progressCh:
-			ctx, cancel := context.WithCancel(context.TODO())
-			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr, req.block, TransientEntry)
+			ctx, cancel := context.WithTimeout(context.Background(),
+				prefetchTimeout)
+			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr,
+				req.block, TransientEntry)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -93,7 +98,8 @@ func (p *blockPrefetcher) run() {
 				select {
 				case err := <-errCh:
 					if err != nil {
-						p.log.CDebugf(ctx, "Done prefetch for block %s. Error: %+v", req.ptr.ID, err)
+						p.log.CDebugf(ctx, "Done prefetch for block %s. "+
+							"Error: %+v", req.ptr.ID, err)
 					}
 				case <-p.shutdownCh:
 					// Cancel but still wait so p.doneCh accurately represents
@@ -108,7 +114,8 @@ func (p *blockPrefetcher) run() {
 	}
 }
 
-func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointer, block Block, entryName string) error {
+func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
+	ptr BlockPointer, block Block, entryName string) error {
 	if _, err := p.config.BlockCache().Get(ptr); err == nil {
 		return nil
 	}
@@ -119,39 +126,37 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata, ptr BlockPointe
 	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
 		return nil
 	case <-p.shutdownCh:
-		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since the prefetcher is shutdown", ptr.ID)
+		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since "+
+			"the prefetcher is shutdown", ptr.ID)
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock, kmd KeyMetadata) {
-	// Prefetch the first <n> indirect block pointers.
-	// TODO: do something smart with subsequent blocks.
-	numIPtrs := len(b.IPtrs)
-	if numIPtrs > defaultIndirectPointerPrefetchCount {
-		numIPtrs = defaultIndirectPointerPrefetchCount
-	}
-	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file block. Num pointers to prefetch: %d", numIPtrs)
-	for _, ptr := range b.IPtrs[:numIPtrs] {
-		p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), "")
+func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
+	kmd KeyMetadata) {
+	// Prefetch indirect block pointers.
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file "+
+		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	for _, ptr := range b.IPtrs {
+		p.request(fileIndirectBlockPrefetchPriority, kmd, ptr.BlockPointer,
+			b.NewEmpty(), "")
 	}
 }
 
-func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock, kmd KeyMetadata) {
-	// Prefetch the first <n> indirect block pointers.
-	numIPtrs := len(b.IPtrs)
-	if numIPtrs > defaultIndirectPointerPrefetchCount {
-		numIPtrs = defaultIndirectPointerPrefetchCount
-	}
-	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir block. Num pointers to prefetch: %d", numIPtrs)
-	for _, ptr := range b.IPtrs[:numIPtrs] {
+func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock,
+	kmd KeyMetadata) {
+	// Prefetch indirect block pointers.
+	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir "+
+		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	for _, ptr := range b.IPtrs {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "")
 	}
 }
 
-func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock, kmd KeyMetadata) {
-	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block ID %s. Num entries: %d", ptr.ID, len(b.Children))
+func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
+	kmd KeyMetadata) {
+	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block "+
+		"ID %s. Num entries: %d", ptr.ID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -167,7 +172,8 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock, 
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of unknown type %d", entry.Type)
+			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of "+
+				"unknown type %d", entry.Type)
 			continue
 		}
 		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
@@ -178,7 +184,8 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock, 
 func (p *blockPrefetcher) PrefetchBlock(
 	block Block, ptr BlockPointer, kmd KeyMetadata, priority int) error {
 	// TODO: Remove this log line.
-	p.log.CDebugf(context.TODO(), "Prefetching block by request from upstream component. Priority: %d", priority)
+	p.log.CDebugf(context.TODO(), "Prefetching block by request from "+
+		"upstream component. Priority: %d", priority)
 	return p.request(priority, kmd, ptr, block, "")
 }
 
