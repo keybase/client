@@ -22,6 +22,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -54,6 +55,9 @@ func main() {
 
 	// Set a pvl source
 	pvlsource.NewPvlSourceAndInstall(g)
+
+	// Set a team source
+	teams.NewTeamLoaderAndInstall(g)
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.

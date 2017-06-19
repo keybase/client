@@ -50,6 +50,13 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
 }
 
+func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
+	return LoadUserArg{
+		Contextified: NewContextified(g),
+		NetContext:   ctx,
+	}
+}
+
 func NewLoadUserSelfArg(g *GlobalContext) LoadUserArg {
 	ret := NewLoadUserArg(g)
 	ret.Self = true

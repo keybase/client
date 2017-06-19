@@ -8,16 +8,12 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
-
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
@@ -32,11 +28,8 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamAfterAccountReset(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
-
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
 
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
@@ -61,11 +54,9 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 }
 
 func TestCreateSubteam(t *testing.T) {
-	tc := libkb.SetupTest(t, "team", 1)
+	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	// Magic to make the test user provision shared DH keys.
-	tc.Tp.UpgradePerUserKey = true
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 

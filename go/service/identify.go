@@ -103,6 +103,11 @@ func (h *IdentifyHandler) identifyLiteTeam(ctx context.Context, arg keybase1.Ide
 			return true, res, err
 		}
 		res.Ul = ul
+
+		// TODO -- Run a TeamPlayer on the team ID, and make sure that the name properly
+		// maps to the ID, via Merkle lookup and replay of all parent chains.
+		// See CORE-5376.
+
 		return true, res, nil
 	}
 

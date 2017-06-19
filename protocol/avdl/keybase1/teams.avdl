@@ -39,6 +39,15 @@ protocol teams {
       KID encKID;
   }
 
+  fixed PerTeamKeySeed(32);
+
+  // Secret from which team keys are derived
+  record PerTeamKeySeedItem {
+    PerTeamKeySeed seed;
+    int generation;
+    Seqno seqno;
+  }
+
   record TeamMember {
     UID uid;
     TeamRole role;
@@ -83,6 +92,19 @@ protocol teams {
       array<TeamApplicationKey> applicationKeys;
   }
 
+  // This type is not really used yet.
+  // It is under the umbrella of the team loader refactor.
+  record TeamData {
+    TeamSigChainState chain;
+    // Sorted by generation ascending.
+    array<PerTeamKeySeedItem> perTeamKeySeeds;
+    array<ReaderKeyMask> readerKeyMasks;
+
+    // Should only be used by TeamLoader
+    // because it is the only mutated field, and thus is not threadsafe to read.
+    Time cachedAt;
+  }
+
   // State of a parsed team sigchain.
   // Should be treated as immutable when outside TeamSigChainPlayer.
   // Modified internally to TeamSigChainPlayer.
@@ -111,7 +133,7 @@ protocol teams {
 
     // Set of types that were loaded stubbed-out and whose contents are missing.
     // Keyed by libkb.SigchainV2Type
-    map<int, bool> stubbedTypes;
+    map<int, boolean> stubbedTypes;
   }
 
   // A user became this role at a point in time
@@ -134,6 +156,30 @@ protocol teams {
     TeamID teamID;
     int generation;
     int score;
+  }
+
+
+  record LoadTeamArg {
+    // One of these must be specified.
+    // ID is preferred. Name will always hit the server.
+    // If both are specified ID will be used and Name will be checked.
+    @lint("ignore")
+    TeamID ID;
+    string name;
+
+    // Whether we need to be an admin.
+    // Will fail unless we are an admin in the returned Team.
+    // It is unreasonable to look at invites or list subteams with this set to false.
+    boolean needAdmin;
+    // Load at least up to the keygen. Returns an error if the keygen is not loaded.
+    int needKeyGeneration;
+    // Refresh if these members are not current members of the team in the cache.
+    // Does not guarantee these members will be present in the returned team.
+    array<UserVersion> needMembers;
+
+    boolean forceFullReload; // Ignore local data and fetch from the server.
+    boolean forceRepoll;     // Force a sync with merkle.
+    boolean staleOK;         // If a very stale cache hit is OK.
   }
 
   void teamCreate(int sessionID, string name);

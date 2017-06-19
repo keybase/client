@@ -1,10 +1,9 @@
 package teams
 
 import (
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type member struct {
@@ -156,9 +155,10 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 	return &res, nil
 }
 
-func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
+func (m *memberSet) Section(teamID keybase1.TeamID, admin *SCTeamAdmin) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
-		ID: (SCTeamID)(teamID),
+		ID:    (SCTeamID)(teamID),
+		Admin: admin,
 	}
 	if m.empty() {
 		return teamSection, nil
@@ -186,7 +186,6 @@ func (m *memberSet) Section(teamID keybase1.TeamID) (SCTeamSection, error) {
 	if err != nil {
 		return SCTeamSection{}, err
 	}
-
 	return teamSection, nil
 }
 
