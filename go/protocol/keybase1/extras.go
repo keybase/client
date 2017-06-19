@@ -1160,7 +1160,11 @@ func (ut UserOrTeamID) IsSubteam() bool {
 }
 
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
-	suffix := ut[len(ut)-2:]
+	suffixLen := 2
+	if ut.IsNil() || len(ut) < suffixLen {
+		return false
+	}
+	suffix := ut[len(ut)-suffixLen:]
 	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
 }
 
