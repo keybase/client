@@ -1340,22 +1340,22 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
 	}
-	var tmp []TeamNamePart
+	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
 		}
-		tmp = append(tmp, TeamNamePart(strings.ToLower(part)))
+		tmp[i] = TeamNamePart(strings.ToLower(part))
 	}
 	return TeamName{Parts: tmp}, nil
 }
 
 func (t TeamName) String() string {
-	var x []string
-	for _, p := range t.Parts {
-		x = append(x, string(p))
+	tmp := make([]string, len(t.Parts))
+	for i, p := range t.Parts {
+		tmp[i] = string(p)
 	}
-	return strings.Join(x, ".")
+	return strings.Join(tmp, ".")
 }
 
 func (t TeamName) Eq(t2 TeamName) bool {

@@ -53,9 +53,9 @@ func (res *ResolveResult) User() keybase1.User {
 
 func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
 	var u keybase1.UserOrTeamLite
-	if !res.GetUID().IsNil() {
+	if res.GetUID().Exists() {
 		u.Id, u.Name = res.GetUID().AsUserOrTeam(), res.GetNormalizedUsername().String()
-	} else if !res.GetTeamID().IsNil() {
+	} else if res.GetTeamID().Exists() {
 		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName().String()
 	}
 	return u

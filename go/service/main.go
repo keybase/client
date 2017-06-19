@@ -237,7 +237,10 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
-	if err = d.setupGlobals(); err != nil {
+	if err = d.setupTeams(); err != nil {
+		return err
+	}
+	if err = d.setupPVL(); err != nil {
 		return err
 	}
 
@@ -248,10 +251,13 @@ func (d *Service) Run() (err error) {
 	return err
 }
 
-func (d *Service) setupGlobals() error {
-	g := d.G()
-	teams.NewTeamLoaderAndInstall(g)
-	pvlsource.NewPvlSourceAndInstall(g)
+func (d *Service) setupTeams() error {
+	teams.NewTeamLoaderAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupPVL() error {
+	pvlsource.NewPvlSourceAndInstall(d.G())
 	return nil
 }
 
