@@ -67,6 +67,9 @@ var noErrorNames = map[string]bool{
 	"BDMV":           true, // OS X, iMovie?
 	"node_modules":   true, // Some npm shell configuration
 	"folder":         true, // Dolphin?  keybase/client#7304
+	"avchd":          true, // Sony PlayMemories Home, keybase/client#6801
+	"avchd_bk":       true, // Sony PlayMemories Home, keybase/client#6801
+	"sony":           true, // Sony PlayMemories Home, keybase/client#6801
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
