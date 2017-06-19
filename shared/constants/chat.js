@@ -340,7 +340,7 @@ export type LocalMessageStateProps = {
 
 const LocalMessageState: (
   props: $Shape<LocalMessageStateProps>
-) => LocalMessageStateProps & Record<LocalMessageStateProps> = Record({
+) => KBRecord<LocalMessageStateProps> = Record({
   previewProgress: null,
   downloadProgress: null,
   uploadProgress: null,
