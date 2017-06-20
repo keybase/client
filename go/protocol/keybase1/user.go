@@ -223,6 +223,18 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 	}
 }
 
+type InterestingPerson struct {
+	Uid      UID    `codec:"uid" json:"uid"`
+	Username string `codec:"username" json:"username"`
+}
+
+func (o InterestingPerson) DeepCopy() InterestingPerson {
+	return InterestingPerson{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+	}
+}
+
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -430,6 +442,16 @@ func (o ProfileEditArg) DeepCopy() ProfileEditArg {
 	}
 }
 
+type InterestingPeopleArg struct {
+	MaxUsers int `codec:"maxUsers" json:"maxUsers"`
+}
+
+func (o InterestingPeopleArg) DeepCopy() InterestingPeopleArg {
+	return InterestingPeopleArg{
+		MaxUsers: o.MaxUsers,
+	}
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -462,6 +484,7 @@ type UserInterface interface {
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
+	InterestingPeople(context.Context, int) ([]InterestingPerson, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -724,6 +747,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"interestingPeople": {
+				MakeArg: func() interface{} {
+					ret := make([]InterestingPeopleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]InterestingPeopleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]InterestingPeopleArg)(nil), args)
+						return
+					}
+					ret, err = i.InterestingPeople(ctx, (*typedArgs)[0].MaxUsers)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -827,5 +866,11 @@ func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (
 
 func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil)
+	return
+}
+
+func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
+	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res)
 	return
 }
