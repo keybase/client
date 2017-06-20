@@ -110,6 +110,10 @@ func KIDFromStringChecked(s string) (KID, error) {
 }
 
 func HashMetaFromString(s string) (ret HashMeta, err error) {
+	// TODO: Should we add similar handling to other types?
+	if s == "null" {
+		return nil, nil
+	}
 	b, err := hex.DecodeString(s)
 	if err != nil {
 		return ret, err
