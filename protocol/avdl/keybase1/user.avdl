@@ -135,5 +135,5 @@ protocol user {
 
   void profileEdit(int sessionID, string fullName, string location, string bio);
 
-  UserSummary2Set interestingPeople();
+  array<UID> interestingPeople();
 }

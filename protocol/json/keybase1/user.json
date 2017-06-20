@@ -517,7 +517,10 @@
     },
     "interestingPeople": {
       "request": [],
-      "response": "UserSummary2Set"
+      "response": {
+        "type": "array",
+        "items": "UID"
+      }
     }
   },
   "namespace": "keybase.1"

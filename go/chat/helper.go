@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"encoding/hex"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -191,8 +193,15 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, uid
 		return nil, err
 	}
 
+	m := make(map[string]bool)
 	for _, conv := range convs {
-		conv.Metadata.ActiveList
+		for _, uid := range conv.Metadata.ActiveList {
+			m[uid.String()] = true
+		}
+	}
+	for suid := range m {
+		uid, _ := hex.DecodeString(suid)
+		res = append(res, gregor1.UID(uid))
 	}
 	return res, nil
 }

@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -17,13 +18,15 @@ import (
 type UserHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	globals.ChatContextified
 }
 
 // NewUserHandler creates a UserHandler for the xp transport.
-func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserHandler {
+func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.ChatContext) *UserHandler {
 	return &UserHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
+		BaseHandler:      NewBaseHandler(xp),
+		Contextified:     libkb.NewContextified(g),
+		ChatContextified: globals.NewChatContextified(chatG),
 	}
 }
 
@@ -215,6 +218,6 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *UserHandler) InterestingPeople(ctx context.Context) (res keybase1.UserSummary2Set, err error) {
-	return res, err
+func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.UID, err error) {
+	return newInterestingPeople(globals.NewContext(h.G(), h.ChatG())).Get(ctx)
 }

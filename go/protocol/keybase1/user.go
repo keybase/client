@@ -469,7 +469,7 @@ type UserInterface interface {
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
-	InterestingPeople(context.Context) (UserSummary2Set, error)
+	InterestingPeople(context.Context) ([]UID, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -849,7 +849,7 @@ func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err 
 	return
 }
 
-func (c UserClient) InterestingPeople(ctx context.Context) (res UserSummary2Set, err error) {
+func (c UserClient) InterestingPeople(ctx context.Context) (res []UID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{InterestingPeopleArg{}}, &res)
 	return
 }
