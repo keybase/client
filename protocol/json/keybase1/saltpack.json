@@ -37,6 +37,10 @@
         {
           "type": "boolean",
           "name": "binary"
+        },
+        {
+          "type": "int",
+          "name": "saltpackVersion"
         }
       ]
     },
@@ -69,6 +73,10 @@
         {
           "type": "boolean",
           "name": "binary"
+        },
+        {
+          "type": "int",
+          "name": "saltpackVersion"
         }
       ]
     },

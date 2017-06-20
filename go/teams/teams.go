@@ -31,7 +31,7 @@ func NewTeam(g *libkb.GlobalContext, name string) *Team {
 	return &Team{Name: name, Contextified: libkb.NewContextified(g)}
 }
 
-func (t *Team) Generation() PerTeamSecretGeneration {
+func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.Box.Generation
 }
 
@@ -61,7 +61,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(int(t.Box.Generation))
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(t.Box.Generation))
 		if err != nil {
 			return nil, err
 		}
@@ -212,7 +212,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.applicationKeyForMask(max, secret)
 }
 
-func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secret []byte) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
 		if rkm.Application != application {
 			continue
@@ -605,9 +605,9 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 	return nil
 }
 
-func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication) (keybase1.TeamPlusApplicationKeys, error) {
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {
 	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
-	teamByID, err := GetByID(ctx, g, id)
+	teamByID, err := GetForApplication(ctx, g, id, application, refreshers)
 	if err != nil {
 		return teamPlusApplicationKeys, err
 	}

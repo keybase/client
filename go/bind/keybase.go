@@ -16,9 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
@@ -84,8 +82,6 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
-	pvlsource.NewPvlSourceAndInstall(kbCtx)
-	teams.NewTeamLoaderAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -117,6 +113,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
+	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
 
 	serviceLog := config.GetLogFile()

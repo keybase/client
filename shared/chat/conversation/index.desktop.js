@@ -100,9 +100,10 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         {this.props.inSearch
           ? <SearchHeader
-              search={this.props.search}
               onChangeSearchText={this.props.onChangeSearchText}
               usernameText={this.props.searchText}
+              selectedSearchId={this.props.selectedSearchId}
+              onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
             />
           : <Header
               sidePanelOpen={this.props.sidePanelOpen}
@@ -114,6 +115,7 @@ class Conversation extends Component<void, Props, State> {
               items={this.props.searchResultIds}
               onClick={this.props.onClickSearchResult}
               onShowTracker={this.props.onShowTrackerInSearch}
+              selectedId={this.props.selectedSearchId}
             />
           : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
               <List
