@@ -375,8 +375,10 @@ const conversationRowStyle = {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
+  borderRight: `1px solid ${globalColors.black_05}`,
   flex: 1,
-  maxWidth: 240,
+  maxWidth: 241,
+  minWidth: 241,
 }
 
 const scrollableStyle = {
