@@ -438,8 +438,12 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		Readers:   make(map[keybase1.UID]bool),
 	}
 	for _, key := range res.ApplicationKeys {
-		info.CryptKeys[KeyGen(key.KeyGeneration)] =
+		keyGen := KeyGen(key.KeyGeneration)
+		info.CryptKeys[keyGen] =
 			kbfscrypto.MakeTLFCryptKey(key.Key)
+		if keyGen > info.LatestKeyGen {
+			info.LatestKeyGen = keyGen
+		}
 	}
 
 	for _, user := range res.Writers {
