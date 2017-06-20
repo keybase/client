@@ -3,6 +3,7 @@ import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conv
 import ConversationHeader from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
+import NoConversation from './conversation/no-conversation'
 import ConversationSidePanel from './conversation/side-panel'
 import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
@@ -511,16 +512,24 @@ const infoBanner = {
   },
 }
 
+const noConversationMap = {
+  component: NoConversation,
+  mocks: {
+    normal: {},
+  },
+}
+
 export default {
   ChatBannerBroken: brokenTrackerBanner,
   ChatBannerError: errorBanner,
   ChatBannerInfo: infoBanner,
   ChatBannerInvite: inviteBanner,
-  ChatConversationsList: conversationsList,
+  ChatInbox: conversationsList,
   ChatHeader: header,
   ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
   ChatSidePanel: sidePanel,
+  ChatNoConversation: noConversationMap,
   YouRekey: youRekey,
 }

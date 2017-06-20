@@ -102,7 +102,7 @@ const Avatars = ({
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
+        type={isSelected ? 'icon-addon-lock-active-8' : 'icon-addon-lock-8'}
         style={avatarLockIconStyle}
       />
     )
@@ -265,7 +265,6 @@ const _Row = (props: RowProps) => {
         style={{
           ...globalStyles.flexBoxColumn,
           ...conversationRowStyle,
-          borderBottom: !props.isSelected ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent',
         }}
       >
         <TopLine
@@ -375,9 +374,11 @@ const conversationRowStyle = {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue4,
+  backgroundColor: globalColors.white,
+  borderRight: `1px solid ${globalColors.black_05}`,
   flex: 1,
-  maxWidth: 240,
+  maxWidth: 241,
+  minWidth: 241,
 }
 
 const scrollableStyle = {
