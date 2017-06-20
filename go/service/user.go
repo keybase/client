@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -219,5 +220,24 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 }
 
 func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.UID, err error) {
-	return newInterestingPeople(globals.NewContext(h.G(), h.ChatG())).Get(ctx)
+
+	// Chat source
+	chatFn := func(uid keybase1.UID) (kuids []keybase1.UID, err error) {
+		g := globals.NewContext(h.G(), h.ChatG())
+		list, err := chat.RecentConversationParticipants(ctx, g, uid.ToBytes())
+		if err != nil {
+			return nil, err
+		}
+		for _, guid := range list {
+			kuids = append(kuids, keybase1.UID(guid.String()))
+		}
+		return kuids, nil
+	}
+
+	ip := newInterestingPeople(h.G())
+
+	// Add sources of interesting people
+	ip.AddSource(chatFn, 80)
+
+	return ip.Get(ctx)
 }

@@ -6,6 +6,8 @@ import (
 
 	"encoding/hex"
 
+	"sort"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -186,22 +188,47 @@ func CurrentUID(g *globals.Context) (keybase1.UID, error) {
 	return uid, nil
 }
 
-func RecentConversationParticipants(ctx context.Context, g *globals.Context, uid gregor1.UID) (res []gregor1.UID, err error) {
-	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
-	_, convs, err := storage.NewInbox(g, uid).ReadAll(ctx)
+type recentConversationParticipants struct {
+	globals.Contextified
+	utils.DebugLabeler
+}
+
+func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
+	return &recentConversationParticipants{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "recentConversationParticipants", false),
+	}
+}
+
+func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
+	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	m := make(map[string]bool)
+	r.Debug(ctx, "get: convs: %d", len(convs))
+	m := make(map[string]int)
 	for _, conv := range convs {
 		for _, uid := range conv.Metadata.ActiveList {
-			m[uid.String()] = true
+			if uid.Eq(myUID) {
+				continue
+			}
+			m[uid.String()]++
 		}
 	}
 	for suid := range m {
 		uid, _ := hex.DecodeString(suid)
 		res = append(res, gregor1.UID(uid))
 	}
+
+	// Sort by the most appearances in the active lists
+	sort.Slice(res, func(i, j int) bool {
+		return m[res[i].String()] > m[res[j].String()]
+	})
 	return res, nil
+}
+
+func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
+	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
+	return newRecentConversationParticipants(g).get(ctx, myUID)
 }

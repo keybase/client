@@ -4,8 +4,6 @@ import (
 	"context"
 	"sort"
 
-	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -107,26 +105,29 @@ func (w *linearWeightedSelector) Select() (res []keybase1.UID) {
 	return res
 }
 
+type interestingPeopleFn func(uid keybase1.UID) ([]keybase1.UID, error)
+
+type interestingPeopleSource struct {
+	fn     interestingPeopleFn
+	weight int
+}
+
 type interestingPeople struct {
-	globals.Contextified
+	libkb.Contextified
+	sources []interestingPeopleSource
 }
 
-func newInterestingPeople(g *globals.Context) interestingPeople {
-	return interestingPeople{
-		Contextified: globals.NewContextified(g),
+func newInterestingPeople(g *libkb.GlobalContext) *interestingPeople {
+	return &interestingPeople{
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (i interestingPeople) getChatList(ctx context.Context, uid keybase1.UID) (*rankedList, error) {
-	list, err := chat.RecentConversationParticipants(ctx, i.G(), uid.ToBytes())
-	if err != nil {
-		return nil, err
-	}
-	var kuids []keybase1.UID
-	for _, guid := range list {
-		kuids = append(kuids, keybase1.UID(guid.String()))
-	}
-	return newRankedList(kuids), nil
+func (i *interestingPeople) AddSource(fn interestingPeopleFn, weight int) {
+	i.sources = append(i.sources, interestingPeopleSource{
+		fn:     fn,
+		weight: weight,
+	})
 }
 
 func (i interestingPeople) Get(ctx context.Context) ([]keybase1.UID, error) {
@@ -135,14 +136,14 @@ func (i interestingPeople) Get(ctx context.Context) ([]keybase1.UID, error) {
 		return nil, libkb.LoginRequiredError{}
 	}
 
-	chatList, err := i.getChatList(ctx, uid)
-	if err != nil {
-		i.G().Log.Debug("interestingPeople: failed to get chat list: %s", err.Error())
-		return nil, err
-	}
-
-	weightedLists := []*weightedRankedList{
-		newWeightedRankedList(chatList, 80),
+	var weightedLists []*weightedRankedList
+	for _, source := range i.sources {
+		ppl, err := source.fn(uid)
+		if err != nil {
+			i.G().Log.Debug("interestingPeople: failed to get list from source: %s", err.Error())
+			return nil, err
+		}
+		weightedLists = append(weightedLists, newWeightedRankedList(newRankedList(ppl), source.weight))
 	}
 
 	return newLinearWeightedSelector(weightedLists).Select(), nil
