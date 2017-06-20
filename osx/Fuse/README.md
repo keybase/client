@@ -8,15 +8,14 @@ of relying on 3rd party binaries shipped from other developers.
 
 #### Build from Xcode 7
 
-- Move any existing /Applications/Xcode.app somewhere else (out of /Applications), otherwise the build scripts will use it instead
-- Download Xcode 7 from the private Keybase group folder on KBFS (macos/Xcode7.app.zip)
-- Place in /Applications and rename to Xcode.app
+- Download Xcode 7 from /keybase/public/gabrielh/Xcode7.app.zip
+- Place in /Applications (as Xcode7.app)
 
 You'll also need the Keybase signing certificate from someone at Keybase.
 
 ### Building KBFuse
 
-    VERSION=3.5.8 ./build.sh
+    VERSION=3.6.0 ./build.sh
 
 This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
 which you can submit for PR.
