@@ -5372,6 +5372,7 @@ export type SaltpackEncryptOptions = {
   encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
+  saltpackVersion: int,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -5400,6 +5401,7 @@ export type SaltpackSenderType =
 export type SaltpackSignOptions = {
   detached: boolean,
   binary: boolean,
+  saltpackVersion: int,
 }
 
 export type SaltpackVerifyOptions = {

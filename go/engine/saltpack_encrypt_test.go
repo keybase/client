@@ -518,3 +518,61 @@ func TestSaltpackEncryptBinary(t *testing.T) {
 		t.Errorf("decoded: %s, expected: %s", decmsg, msg)
 	}
 }
+
+func TestSaltpackEncryptForceVersion(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+
+	run := func(versionFlag int, majorVersionExpected int) {
+		sink := libkb.NewBufferCloser()
+		arg := &SaltpackEncryptArg{
+			Opts: keybase1.SaltpackEncryptOptions{
+				// Encryption only mode is require to set version 1.
+				EncryptionOnlyMode: true,
+				Recipients:         []string{u1.Username},
+				Binary:             true,
+				SaltpackVersion:    versionFlag, // This is what we're testing!
+			},
+			Source: strings.NewReader("testing version flag"),
+			Sink:   sink,
+		}
+
+		eng := NewSaltpackEncrypt(arg, tc.G)
+		eng.skipTLFKeysForTesting = true
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		out := sink.Bytes()
+		if len(out) == 0 {
+			t.Fatal("no output")
+		}
+
+		var header saltpack.EncryptionHeader
+		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
+		var b []byte
+		if err := dec.Decode(&b); err != nil {
+			t.Fatal(err)
+		}
+		dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
+		if err := dec.Decode(&header); err != nil {
+			t.Fatal(err)
+		}
+
+		if header.Version.Major != majorVersionExpected {
+			t.Fatalf("passed saltpack version %d and expected major version %d, found %d", versionFlag, majorVersionExpected, header.Version.Major)
+		}
+	}
+
+	// 0 means the default, which is major version 2.
+	run(0, 2)
+	run(1, 1)
+	run(2, 2)
+}
