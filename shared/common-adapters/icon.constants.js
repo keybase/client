@@ -15,6 +15,21 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-GPG-export.png'),
   },
+  'icon-addon-lock-12': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-12.png'),
+  },
+  'icon-addon-lock-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-8.png'),
+  },
+  'icon-addon-lock-active-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-8.png'),
+  },
   'icon-bitcoin-logo-16': {
     isFont: false,
     extension: 'png',
