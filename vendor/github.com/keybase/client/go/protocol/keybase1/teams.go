@@ -12,28 +12,28 @@ type TeamRole int
 
 const (
 	TeamRole_NONE   TeamRole = 0
-	TeamRole_OWNER  TeamRole = 1
-	TeamRole_ADMIN  TeamRole = 2
-	TeamRole_WRITER TeamRole = 3
-	TeamRole_READER TeamRole = 4
+	TeamRole_READER TeamRole = 1
+	TeamRole_WRITER TeamRole = 2
+	TeamRole_ADMIN  TeamRole = 3
+	TeamRole_OWNER  TeamRole = 4
 )
 
 func (o TeamRole) DeepCopy() TeamRole { return o }
 
 var TeamRoleMap = map[string]TeamRole{
 	"NONE":   0,
-	"OWNER":  1,
-	"ADMIN":  2,
-	"WRITER": 3,
-	"READER": 4,
+	"READER": 1,
+	"WRITER": 2,
+	"ADMIN":  3,
+	"OWNER":  4,
 }
 
 var TeamRoleRevMap = map[TeamRole]string{
 	0: "NONE",
-	1: "OWNER",
-	2: "ADMIN",
-	3: "WRITER",
-	4: "READER",
+	1: "READER",
+	2: "WRITER",
+	3: "ADMIN",
+	4: "OWNER",
 }
 
 func (e TeamRole) String() string {
@@ -504,7 +504,7 @@ type LoadTeamArg struct {
 	Name              string        `codec:"name" json:"name"`
 	NeedAdmin         bool          `codec:"needAdmin" json:"needAdmin"`
 	NeedKeyGeneration int           `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	NeedMembers       []UserVersion `codec:"needMembers" json:"needMembers"`
+	WantMembers       []UserVersion `codec:"wantMembers" json:"wantMembers"`
 	ForceFullReload   bool          `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll       bool          `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK           bool          `codec:"staleOK" json:"staleOK"`
@@ -516,14 +516,14 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		Name:              o.Name,
 		NeedAdmin:         o.NeedAdmin,
 		NeedKeyGeneration: o.NeedKeyGeneration,
-		NeedMembers: (func(x []UserVersion) []UserVersion {
+		WantMembers: (func(x []UserVersion) []UserVersion {
 			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.NeedMembers),
+		})(o.WantMembers),
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,
