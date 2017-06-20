@@ -12,28 +12,28 @@ type TeamRole int
 
 const (
 	TeamRole_NONE   TeamRole = 0
-	TeamRole_OWNER  TeamRole = 1
-	TeamRole_ADMIN  TeamRole = 2
-	TeamRole_WRITER TeamRole = 3
-	TeamRole_READER TeamRole = 4
+	TeamRole_READER TeamRole = 1
+	TeamRole_WRITER TeamRole = 2
+	TeamRole_ADMIN  TeamRole = 3
+	TeamRole_OWNER  TeamRole = 4
 )
 
 func (o TeamRole) DeepCopy() TeamRole { return o }
 
 var TeamRoleMap = map[string]TeamRole{
 	"NONE":   0,
-	"OWNER":  1,
-	"ADMIN":  2,
-	"WRITER": 3,
-	"READER": 4,
+	"READER": 1,
+	"WRITER": 2,
+	"ADMIN":  3,
+	"OWNER":  4,
 }
 
 var TeamRoleRevMap = map[TeamRole]string{
 	0: "NONE",
-	1: "OWNER",
-	2: "ADMIN",
-	3: "WRITER",
-	4: "READER",
+	1: "READER",
+	2: "WRITER",
+	3: "ADMIN",
+	4: "OWNER",
 }
 
 func (e TeamRole) String() string {

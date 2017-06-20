@@ -7,10 +7,10 @@
       "name": "TeamRole",
       "symbols": [
         "NONE_0",
-        "OWNER_1",
-        "ADMIN_2",
-        "WRITER_3",
-        "READER_4"
+        "READER_1",
+        "WRITER_2",
+        "ADMIN_3",
+        "OWNER_4"
       ]
     },
     {

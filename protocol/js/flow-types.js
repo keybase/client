@@ -516,10 +516,10 @@ export const TeamsTeamApplication = {
 
 export const TeamsTeamRole = {
   none: 0,
-  owner: 1,
-  admin: 2,
-  writer: 3,
-  reader: 4,
+  reader: 1,
+  writer: 2,
+  admin: 3,
+  owner: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -5848,10 +5848,10 @@ export type TeamPlusApplicationKeys = {
 
 export type TeamRole =
     0 // NONE_0
-  | 1 // OWNER_1
-  | 2 // ADMIN_2
-  | 3 // WRITER_3
-  | 4 // READER_4
+  | 1 // READER_1
+  | 2 // WRITER_2
+  | 3 // ADMIN_3
+  | 4 // OWNER_4
 
 export type TeamSigChainState = {
   reader: UserVersion,
