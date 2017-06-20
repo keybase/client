@@ -12,7 +12,7 @@ if [ -z "$KEYBASE_TEST_ROOT_CERT_PEM" ]; then
     export KEYBASE_TEST_ROOT_CERT_PEM="$(echo $KEYBASE_TEST_ROOT_CERT_PEM_B64 | base64 -d)";
 fi
 if [ -z "$KBFS_METADATA_VERSION" ]; then
-    export KBFS_METADATA_VERSION=2
+    export KBFS_METADATA_VERSION=3
 fi
 echo "Using KBFS metadata version $KBFS_METADATA_VERSION"
 
