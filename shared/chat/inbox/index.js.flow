@@ -33,4 +33,4 @@ export type Props = {
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey) => void,
 }
 
-export default class ConversationList extends Component<void, Props, void> {}
+export default class Inbox extends Component<void, Props, void> {}

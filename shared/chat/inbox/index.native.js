@@ -273,13 +273,13 @@ const NoChats = () => (
     }}
   >
     <Icon type="icon-fancy-chat-72-x-52" style={{marginBottom: globalMargins.small}} />
-    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.blue3_40}}>
+    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.black_40}}>
       All conversations are end-to-end encrypted.
     </Text>
   </Box>
 )
 
-class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {
@@ -347,7 +347,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
 
 const boxStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue4,
+  backgroundColor: globalColors.white,
   flex: 1,
   paddingTop: statusBarHeight,
   position: 'relative',
@@ -393,4 +393,4 @@ const rowContainerStyle = {
   minHeight: 64,
 }
 
-export default ConversationList
+export default Inbox
