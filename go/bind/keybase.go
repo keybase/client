@@ -113,6 +113,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
+	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
 
 	serviceLog := config.GetLogFile()

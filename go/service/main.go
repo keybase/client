@@ -237,10 +237,7 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
-	if err = d.setupTeams(); err != nil {
-		return err
-	}
-	if err = d.setupPVL(); err != nil {
+	if err = d.SetupCriticalSubServices(); err != nil {
 		return err
 	}
 
@@ -249,6 +246,17 @@ func (d *Service) Run() (err error) {
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) SetupCriticalSubServices() error {
+	var err error
+	if err = d.setupTeams(); err != nil {
+		return err
+	}
+	if err = d.setupPVL(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *Service) setupTeams() error {
