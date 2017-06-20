@@ -607,7 +607,7 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication) (keybase1.TeamPlusApplicationKeys, error) {
 	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
-	teamByID, err := GetByID(ctx, g, id)
+	teamByID, err := GetForKBFS(ctx, g, id)
 	if err != nil {
 		return teamPlusApplicationKeys, err
 	}

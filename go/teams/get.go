@@ -9,12 +9,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func Get(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+func getInternal(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
 	f := newFinder(g)
 	return f.findByName(ctx, name)
 }
 
-func GetByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+func getInternalByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
 	f := newFinder(g)
 	return f.findByID(ctx, id)
 }
@@ -138,4 +138,24 @@ type rawTeam struct {
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
+}
+
+func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return getInternal(ctx, g, name)
+}
+
+func GetForTeamManagementByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return getInternalByID(ctx, g, id)
+}
+
+func GetForKBFS(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return getInternalByID(ctx, g, id)
+}
+
+func GetForChat(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return getInternal(ctx, g, name)
+}
+
+func GetForApplicationKeys(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return getInternal(ctx, g, name)
 }

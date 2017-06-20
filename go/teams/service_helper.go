@@ -33,7 +33,7 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1.TeamMembersUsernames, error) {
-	t, err := Get(ctx, g, name)
+	t, err := GetForTeamManagement(ctx, g, name)
 	if err != nil {
 		return keybase1.TeamMembersUsernames{}, err
 	}
@@ -100,7 +100,7 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagement(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagement(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagement(ctx, g, teamname)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
@@ -160,7 +160,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagement(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagement(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
