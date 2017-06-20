@@ -29,7 +29,7 @@ digraph rekeyFSM {
 
   start -> Idle
   Idle -> Scheduled [label=Request]
-  Scheduled -> Scheduled [label=Request]
+  Scheduled -> Scheduled [label="Request,RekeyNotNeeded"]
   Scheduled -> Started [label=Timeup]
   Started -> Scheduled [label="Finished(TTL valid && (rekey done || needs paper))"]
   Started -> Idle [label="Finished (*)"]
@@ -58,6 +58,7 @@ const (
 	rekeyRequestEvent
 	rekeyFinishedEvent
 	rekeyTimeupEvent
+	rekeyNotNeededEvent
 
 	rekeyShutdownEvent
 
@@ -73,6 +74,8 @@ func (e rekeyEventType) String() string {
 		return "rekeyFinishedEvent"
 	case rekeyTimeupEvent:
 		return "rekeyTimeupEvent"
+	case rekeyNotNeededEvent:
+		return "rekeyNotNeededEvent"
 	case rekeyShutdownEvent:
 		return "rekeyShutdownEvent"
 	case rekeyKickoffEventForTest:
@@ -162,6 +165,18 @@ func NewRekeyRequestWithPaperPromptEvent() RekeyEvent {
 func NewRekeyRequestEvent() RekeyEvent {
 	return newRekeyRequestEventWithContext(ctxWithRandomIDReplayable(
 		context.Background(), CtxRekeyIDKey, CtxRekeyOpID, nil))
+}
+
+// NewRekeyNotNeededEvent creates a rekeyNotNeededEvent typed event. If the FSM
+// is in rekeyStateScheduled, this causes FSM to unset paperkey prompt. In
+// other states nothing happens. This event is sent to the FSM when we see a MD
+// update with rekey flag unset. It can be an indication that an old
+// outstanding rekey request has been served by another device, or just a
+// regular rekey updates.
+func NewRekeyNotNeededEvent() RekeyEvent {
+	return RekeyEvent{
+		eventType: rekeyNotNeededEvent,
+	}
 }
 
 func newRekeyFinishedEvent(res RekeyResult, err error) RekeyEvent {
@@ -290,6 +305,17 @@ func (r *rekeyStateScheduled) reactToEvent(event RekeyEvent) rekeyState {
 		}
 		r.timer.Stop()
 		return newRekeyStateScheduled(r.fsm, event.request.delay, task)
+	case rekeyNotNeededEvent:
+		// KBFS-2254: if another device finished rekey, we should unset the
+		// paperkey prompt so that if this other device goes offline before a
+		// third device triggers a rekey request, the timer can be preempted.
+		// What if the FoldersNeedRekey call comes in before this and we still
+		// miss the rekey request? Well now we also send a rekey request into
+		// the FSM on MD updates with rekey flag set. Since the MD updates are
+		// applied in order, and that FSM's state transition is
+		// single-goroutined, we are safe here.
+		r.task.promptPaper = false
+		return r
 	case rekeyKickoffEventForTest:
 		r.timer.Reset(time.Millisecond)
 		return r

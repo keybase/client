@@ -4704,6 +4704,18 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 				return err
 			}
 		}
+		if rmd.IsRekeySet() {
+			// One might have concern that a MD update written by the device
+			// itself can slip in here, for example during the rekey after
+			// setting paper prompt, and the event may cause the paper prompt
+			// to be unset. This is not a problem because 1) the revision check
+			// above shouldn't allow MD update written by this device to reach
+			// here; 2) the rekey FSM doesn't touch anything if it has the
+			// paper prompt set and is in scheduled state.
+			fbo.rekeyFSM.Event(NewRekeyRequestEvent())
+		} else {
+			fbo.rekeyFSM.Event(NewRekeyNotNeededEvent())
+		}
 		appliedRevs = append(appliedRevs, rmd)
 	}
 	if len(appliedRevs) > 0 {

@@ -1670,14 +1670,6 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 		t.Fatalf("Device 2 couldn't read a: %+v", err)
 	}
 
-	// Cancel the original promptPaper timer for user2 now that the
-	// TLF is readable; otherwise the rekey later on will hang because
-	// it looks like prompt for paper was already set.  TODO: should
-	// KBFS cancel a promptPaper request when it sees a rekey was
-	// already done by another node?
-	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	ops.rekeyFSM.Event(newRekeyCancelEventForTest())
-
 	config3Dev2 := ConfigAsUser(config1, u3)
 	// we don't check the config because this device can't read all of the md blocks.
 	defer config3Dev2.Shutdown(ctx)
