@@ -231,7 +231,7 @@ func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (strin
 	return upak.GetName(), nil
 }
 
-func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.InterestingPerson, err error) {
+func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
 
 	// Chat source
 	chatFn := func(uid keybase1.UID) (kuids []keybase1.UID, err error) {
@@ -269,7 +269,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.Int
 	ip.AddSource(chatFn, 0.9)
 	ip.AddSource(followerFn, 0.1)
 
-	uids, err := ip.Get(ctx)
+	uids, err := ip.Get(ctx, maxUsers)
 	if err != nil {
 		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
 		return nil, err

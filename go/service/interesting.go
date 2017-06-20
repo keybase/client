@@ -81,7 +81,7 @@ func (w *linearWeightedSelector) getAllUIDs() (res []keybase1.UID) {
 	return res
 }
 
-func (w *linearWeightedSelector) Select() (res []keybase1.UID) {
+func (w *linearWeightedSelector) Select(maxUsers int) (res []keybase1.UID) {
 	type userScore struct {
 		uid   keybase1.UID
 		score float64
@@ -102,6 +102,9 @@ func (w *linearWeightedSelector) Select() (res []keybase1.UID) {
 	sort.Slice(scores, func(i, j int) bool { return scores[i].score > scores[j].score })
 	for _, score := range scores {
 		res = append(res, score.uid)
+		if len(res) > maxUsers {
+			break
+		}
 	}
 	return res
 }
@@ -131,7 +134,7 @@ func (i *interestingPeople) AddSource(fn interestingPeopleFn, weight float64) {
 	})
 }
 
-func (i interestingPeople) Get(ctx context.Context) ([]keybase1.UID, error) {
+func (i interestingPeople) Get(ctx context.Context, maxUsers int) ([]keybase1.UID, error) {
 	uid := i.G().Env.GetUID()
 	if uid.IsNil() {
 		return nil, libkb.LoginRequiredError{}
@@ -147,5 +150,5 @@ func (i interestingPeople) Get(ctx context.Context) ([]keybase1.UID, error) {
 		weightedLists = append(weightedLists, newWeightedRankedList(newRankedList(ppl), source.weight))
 	}
 
-	return newLinearWeightedSelector(i.G(), weightedLists).Select(), nil
+	return newLinearWeightedSelector(i.G(), weightedLists).Select(maxUsers), nil
 }

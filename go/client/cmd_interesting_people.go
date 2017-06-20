@@ -13,9 +13,11 @@ import (
 
 type CmdInterestingPeople struct {
 	libkb.Contextified
+	maxUsers int
 }
 
 func (c *CmdInterestingPeople) ParseArgv(ctx *cli.Context) error {
+	c.maxUsers = ctx.Int("maxusers")
 	return nil
 }
 
@@ -26,7 +28,7 @@ func (c *CmdInterestingPeople) Run() error {
 		return err
 	}
 
-	users, err := cli.InterestingPeople(context.Background())
+	users, err := cli.InterestingPeople(context.Background(), c.maxUsers)
 	if err != nil {
 		return err
 	}
@@ -44,7 +46,13 @@ func NewCmdInterestingPeople(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	ret := cli.Command{
 		Name:        "interesting-people",
 		Description: "List interesting people that you might want to interact with",
-		Flags:       []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "maxusers",
+				Usage: "Max users to return",
+				Value: 20,
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdInterestingPeopleRunner(g), "interesting-people", c)
 		},

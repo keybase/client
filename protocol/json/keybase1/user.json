@@ -530,7 +530,12 @@
       "response": null
     },
     "interestingPeople": {
-      "request": [],
+      "request": [
+        {
+          "name": "maxUsers",
+          "type": "int"
+        }
+      ],
       "response": {
         "type": "array",
         "items": "InterestingPerson"

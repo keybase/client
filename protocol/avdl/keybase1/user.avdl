@@ -139,5 +139,5 @@ protocol user {
     UID uid;
     string username;
   }
-  array<InterestingPerson> interestingPeople();
+  array<InterestingPerson> interestingPeople(int maxUsers);
 }

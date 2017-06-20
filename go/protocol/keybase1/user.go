@@ -443,10 +443,13 @@ func (o ProfileEditArg) DeepCopy() ProfileEditArg {
 }
 
 type InterestingPeopleArg struct {
+	MaxUsers int `codec:"maxUsers" json:"maxUsers"`
 }
 
 func (o InterestingPeopleArg) DeepCopy() InterestingPeopleArg {
-	return InterestingPeopleArg{}
+	return InterestingPeopleArg{
+		MaxUsers: o.MaxUsers,
+	}
 }
 
 type UserInterface interface {
@@ -481,7 +484,7 @@ type UserInterface interface {
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
-	InterestingPeople(context.Context) ([]InterestingPerson, error)
+	InterestingPeople(context.Context, int) ([]InterestingPerson, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -750,7 +753,12 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.InterestingPeople(ctx)
+					typedArgs, ok := args.(*[]InterestingPeopleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]InterestingPeopleArg)(nil), args)
+						return
+					}
+					ret, err = i.InterestingPeople(ctx, (*typedArgs)[0].MaxUsers)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -861,7 +869,8 @@ func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err 
 	return
 }
 
-func (c UserClient) InterestingPeople(ctx context.Context) (res []InterestingPerson, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{InterestingPeopleArg{}}, &res)
+func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
+	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res)
 	return
 }
