@@ -86,8 +86,8 @@ export type DumbComponentMap<C: Component<*, *, *>> = {
   },
 }
 
-export type LooseRecord<T> = T & {
+export type KBRecord<T> = T & {
   get<A>(key: $Keys<T>): A,
-  set<A>(key: $Keys<T>, value: A): LooseRecord<T>,
-  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): LooseRecord<T>,
+  set<A>(key: $Keys<T>, value: A): KBRecord<T>,
+  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): KBRecord<T>,
 }

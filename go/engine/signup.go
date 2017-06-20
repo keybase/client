@@ -238,14 +238,16 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	// change during the signup process.
 	if s.arg.StoreSecret {
 		secretStore := libkb.NewSecretStore(s.G(), s.me.GetNormalizedName())
-		secret, err := s.lks.GetSecret(a)
-		if err != nil {
-			return err
-		}
-		// Ignore any errors storing the secret.
-		storeSecretErr := secretStore.StoreSecret(secret)
-		if storeSecretErr != nil {
-			s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+		if secretStore != nil {
+			secret, err := s.lks.GetSecret(a)
+			if err != nil {
+				return err
+			}
+			// Ignore any errors storing the secret.
+			storeSecretErr := secretStore.StoreSecret(secret)
+			if storeSecretErr != nil {
+				s.G().Log.Warning("StoreSecret error: %s", storeSecretErr)
+			}
 		}
 	}
 

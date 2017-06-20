@@ -4,10 +4,10 @@ protocol teams {
 
   enum TeamRole {
     NONE_0,
-    OWNER_1,
-    ADMIN_2,
-    WRITER_3,
-    READER_4
+    READER_1,
+    WRITER_2,
+    ADMIN_3,
+    OWNER_4
   }
 
   enum TeamApplication {
@@ -16,9 +16,12 @@ protocol teams {
     SALTPACK_3
   }
 
+  @typedef("int")
+  record PerTeamKeyGeneration {}
+
   record TeamApplicationKey {
     TeamApplication application;
-    int keyGeneration;
+    PerTeamKeyGeneration keyGeneration;
     Bytes32 key;
   }
 
@@ -27,13 +30,13 @@ protocol teams {
 
   record ReaderKeyMask {
     TeamApplication application;
-    int generation;
+    PerTeamKeyGeneration generation;
     MaskB64 mask;
   }
 
   @lint("ignore")
   record PerTeamKey {
-      int gen;
+      PerTeamKeyGeneration gen;
       Seqno seqno;
       KID sigKID;
       KID encKID;
@@ -44,7 +47,7 @@ protocol teams {
   // Secret from which team keys are derived
   record PerTeamKeySeedItem {
     PerTeamKeySeed seed;
-    int generation;
+    PerTeamKeyGeneration generation;
     Seqno seqno;
   }
 
@@ -129,7 +132,7 @@ protocol teams {
     map<UserVersion,array<UserLogPoint>> userLog;
 
     // Keyed by per-team-key generation
-    map<int, PerTeamKey> perTeamKeys;
+    map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
     // Set of types that were loaded stubbed-out and whose contents are missing.
     // Keyed by libkb.SigchainV2Type
@@ -144,9 +147,12 @@ protocol teams {
     Seqno seqno;
   }
 
+  @typedef("string")
+  record TeamNamePart {}
+
   // matches the team name struct from api server
-  record TeamNameParts {
-    array<string> parts;
+  record TeamName {
+    array<TeamNamePart> parts;
   }
 
   // team.clkr gregor message body
@@ -154,10 +160,24 @@ protocol teams {
   record TeamCLKRMsg {
     @jsonkey("team_id")
     TeamID teamID;
-    int generation;
+    PerTeamKeyGeneration generation;
     int score;
   }
 
+
+  /**
+   * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
+   * a refresh of the cached.
+   */
+  record TeamRefreshers {
+    // Load at least up to the keygen. Returns an error if the keygen is not loaded.
+    PerTeamKeyGeneration needKeyGeneration;
+    // Refresh if these members are not current members of the team in the cache.
+    // Does not guarantee these members will be present in the returned team. This is especially
+    // relevant in the case of deleted users, who won't be there after the refresh.
+    //
+    array<UserVersion> wantMembers;
+  }
 
   record LoadTeamArg {
     // One of these must be specified.
@@ -171,11 +191,8 @@ protocol teams {
     // Will fail unless we are an admin in the returned Team.
     // It is unreasonable to look at invites or list subteams with this set to false.
     boolean needAdmin;
-    // Load at least up to the keygen. Returns an error if the keygen is not loaded.
-    int needKeyGeneration;
-    // Refresh if these members are not current members of the team in the cache.
-    // Does not guarantee these members will be present in the returned team.
-    array<UserVersion> needMembers;
+
+    TeamRefreshers refreshers;
 
     boolean forceFullReload; // Ignore local data and fetch from the server.
     boolean forceRepoll;     // Force a sync with merkle.
@@ -188,5 +205,11 @@ protocol teams {
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
-  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application);
+
+  /**
+   * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
+   * If refreshers are non-empty, then force a refresh of the cache if the requirements
+   * of the refreshers aren't met.
+   */
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
 }

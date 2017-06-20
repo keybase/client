@@ -88,11 +88,10 @@ const retryMessageActionTransformer = action => ({
 
 const attachmentLoadedTransformer = ({
   type,
-  payload: {conversationIDKey, messageID, isPreview},
+  payload: {messageKey, isPreview},
 }: Constants.AttachmentLoaded) => ({
   payload: {
-    conversationIDKey,
-    messageID,
+    messageKey,
     isPreview,
   },
   type,
@@ -100,24 +99,22 @@ const attachmentLoadedTransformer = ({
 
 const downloadProgressTransformer = ({
   type,
-  payload: {conversationIDKey, messageID, isPreview, bytesComplete},
+  payload: {messageKey, isPreview, progress},
 }: Constants.DownloadProgress) => ({
   payload: {
-    conversationIDKey,
-    messageID,
+    messageKey,
     isPreview,
-    progress: bytesComplete === 0 ? 'zero' : bytesComplete === 1 ? 'one' : 'partial',
+    progress: progress === 0 ? 'zero' : progress === 1 ? 'one' : 'partial',
   },
   type,
 })
 
 const loadAttachmentPreviewTransformer = ({
   type,
-  payload: {message: {conversationIDKey, messageID}},
+  payload: {messageKey},
 }: Constants.LoadAttachmentPreview) => ({
   payload: {
-    conversationIDKey,
-    messageID,
+    messageKey,
   },
   type,
 })
@@ -414,71 +411,60 @@ function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAtt
   return {payload: {input}, type: 'chat:selectAttachment'}
 }
 
-function loadAttachment(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
-  loadPreview: boolean
-): Constants.LoadAttachment {
-  return {payload: {conversationIDKey, loadPreview, messageID}, type: 'chat:loadAttachment'}
+function loadAttachment(messageKey: Constants.MessageKey, loadPreview: boolean): Constants.LoadAttachment {
+  return {payload: {loadPreview, messageKey}, type: 'chat:loadAttachment'}
 }
 
-function loadAttachmentPreview(message: Constants.AttachmentMessage): Constants.LoadAttachmentPreview {
+function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.LoadAttachmentPreview {
   return {
     logTransformer: loadAttachmentPreviewTransformer,
-    payload: {message},
+    payload: {messageKey},
     type: 'chat:loadAttachmentPreview',
   }
 }
 
-function saveAttachment(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID
-): Constants.SaveAttachment {
-  return {payload: {conversationIDKey, messageID}, type: 'chat:saveAttachment'}
+function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
+  return {payload: {messageKey}, type: 'chat:saveAttachment'}
+}
+
+function attachmentSaveStart(messageKey: Constants.MessageKey): Constants.AttachmentSaveStart {
+  return {payload: {messageKey}, type: 'chat:attachmentSaveStart'}
+}
+
+function attachmentSaveFailed(messageKey: Constants.MessageKey): Constants.AttachmentSaveFailed {
+  return {payload: {messageKey}, type: 'chat:attachmentSaveFailed'}
 }
 
 function attachmentLoaded(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
+  messageKey: Constants.MessageKey,
   path: ?string,
   isPreview: boolean
 ): Constants.AttachmentLoaded {
   return {
     logTransformer: attachmentLoadedTransformer,
-    payload: {conversationIDKey, isPreview, messageID, path},
+    payload: {isPreview, messageKey, path},
     type: 'chat:attachmentLoaded',
   }
 }
 
-function attachmentSaved(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
-  path: ?string
-): Constants.AttachmentSaved {
-  return {payload: {conversationIDKey, messageID, path}, type: 'chat:attachmentSaved'}
+function attachmentSaved(messageKey: Constants.MessageKey, path: ?string): Constants.AttachmentSaved {
+  return {payload: {messageKey, path}, type: 'chat:attachmentSaved'}
 }
 
 function downloadProgress(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
+  messageKey: Constants.MessageKey,
   isPreview: boolean,
-  bytesComplete?: number,
-  bytesTotal?: number
+  progress: ?number
 ): Constants.DownloadProgress {
   return {
     logTransformer: downloadProgressTransformer,
-    payload: {bytesComplete, bytesTotal, conversationIDKey, isPreview, messageID},
+    payload: {isPreview, messageKey, progress},
     type: 'chat:downloadProgress',
   }
 }
 
-function uploadProgress(
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
-  bytesComplete: number,
-  bytesTotal: number
-): Constants.UploadProgress {
-  return {payload: {bytesComplete, bytesTotal, conversationIDKey, messageID}, type: 'chat:uploadProgress'}
+function uploadProgress(messageKey: Constants.MessageKey, progress: ?number): Constants.UploadProgress {
+  return {payload: {progress, messageKey}, type: 'chat:uploadProgress'}
 }
 
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
@@ -498,6 +484,16 @@ function updateTempMessage(
     logTransformer: updateTempMessageTransformer,
     payload: {conversationIDKey, message, outboxID},
     type: 'chat:updateTempMessage',
+  }
+}
+
+function outboxMessageBecameReal(
+  oldMessageKey: Constants.MessageKey,
+  newMessageKey: Constants.MessageKey
+): Constants.OutboxMessageBecameReal {
+  return {
+    payload: {oldMessageKey, newMessageKey},
+    type: 'chat:outboxMessageBecameReal',
   }
 }
 
@@ -627,6 +623,8 @@ export {
   appendMessages,
   attachmentLoaded,
   attachmentSaved,
+  attachmentSaveStart,
+  attachmentSaveFailed,
   badgeAppForChat,
   blockConversation,
   clearMessages,
@@ -655,6 +653,7 @@ export {
   openConversation,
   openFolder,
   openTlfInChat,
+  outboxMessageBecameReal,
   pendingToRealConversation,
   postMessage,
   prependMessages,

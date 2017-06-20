@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -25,13 +24,17 @@ type ResolveResult struct {
 	queriedByUID       bool
 	resolvedKbUsername string
 	queriedByTeamID    bool
-	resolvedTeamName   string
+	resolvedTeamName   keybase1.TeamName
 	cachedAt           time.Time
 	mutable            bool
 }
 
+func (res ResolveResult) HasPrimaryKey() bool {
+	return res.uid.Exists() || res.teamID.Exists()
+}
+
 func (res ResolveResult) String() string {
-	return fmt.Sprintf("{uid:%s err:%s mutable:%v}", res.uid, ErrToOk(res.err), res.mutable)
+	return fmt.Sprintf("{uid:%s teamID:%s err:%s mutable:%v}", res.uid, res.teamID, ErrToOk(res.err), res.mutable)
 }
 
 const (
@@ -54,10 +57,10 @@ func (res *ResolveResult) User() keybase1.User {
 
 func (res *ResolveResult) UserOrTeam() keybase1.UserOrTeamLite {
 	var u keybase1.UserOrTeamLite
-	if res.WasTeamIDAssertion() {
-		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName()
-	} else {
+	if res.GetUID().Exists() {
 		u.Id, u.Name = res.GetUID().AsUserOrTeam(), res.GetNormalizedUsername().String()
+	} else if res.GetTeamID().Exists() {
+		u.Id, u.Name = res.GetTeamID().AsUserOrTeam(), res.GetTeamName().String()
 	}
 	return u
 }
@@ -79,7 +82,7 @@ func (res *ResolveResult) WasTeamIDAssertion() bool {
 func (res *ResolveResult) GetTeamID() keybase1.TeamID {
 	return res.teamID
 }
-func (res *ResolveResult) GetTeamName() string {
+func (res *ResolveResult) GetTeamName() keybase1.TeamName {
 	return res.resolvedTeamName
 }
 
@@ -181,6 +184,14 @@ func (r *Resolver) getFromUPAKLoader(ctx context.Context, uid keybase1.UID) (ret
 	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
 }
 
+func (r *Resolver) getFromTeamLoader(ctx context.Context, tid keybase1.TeamID) (ret *ResolveResult) {
+	tn, err := r.G().GetTeamLoader().MapIDToName(ctx, tid)
+	if err != nil || tn.IsNil() {
+		return nil
+	}
+	return &ResolveResult{teamID: tid, resolvedTeamName: tn, mutable: false}
+}
+
 func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
@@ -223,6 +234,16 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 		}
 	}
 
+	// Similarly, we can check the team loader for the team name if we're just mapping a TeamID
+	// to a team name
+	if tmp := au.ToTeamID(); !withBody && tmp.Exists() {
+		if p := r.getFromTeamLoader(ctx, tmp); p != nil {
+			trace += "l"
+			r.putToMemCache(ck, *p)
+			return *p
+		}
+	}
+
 	trace += "s"
 	res = r.resolveURLViaServerLookup(ctx, au, input, withBody)
 
@@ -243,13 +264,8 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
-	if au.IsTeamID() {
-		ateam, ok := au.(AssertionTeamID)
-		if !ok {
-			res.err = errors.New("au.IsTeamID() == true, but failed type cast")
-			return res
-		}
-		return r.resolveTeamIDViaServerLookup(ctx, ateam)
+	if au.IsTeamID() || au.IsTeamName() {
+		return r.resolveTeamViaServerLookup(ctx, au)
 	}
 
 	var key, val string
@@ -321,18 +337,18 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 }
 
 type teamLookup struct {
-	ID     keybase1.TeamID        `json:"id"`
-	Name   keybase1.TeamNameParts `json:"name"`
-	Status AppStatus              `json:"status"`
+	ID     keybase1.TeamID   `json:"id"`
+	Name   keybase1.TeamName `json:"name"`
+	Status AppStatus         `json:"status"`
 }
 
 func (t *teamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
-func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam AssertionTeamID) (res ResolveResult) {
-	res.queriedByTeamID = true
-	key, val, err := ateam.ToLookup()
+func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	res.queriedByTeamID = au.IsTeamID()
+	key, val, err := au.ToLookup()
 	if err != nil {
 		res.err = err
 		return res
@@ -350,7 +366,9 @@ func (r *Resolver) resolveTeamIDViaServerLookup(ctx context.Context, ateam Asser
 		res.err = err
 		return res
 	}
-	res.resolvedTeamName = lookup.Name.String()
+
+	res.resolvedTeamName = lookup.Name
+	res.teamID = lookup.ID
 
 	return res
 }
@@ -421,8 +439,8 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string, au Assertion
 		return nil
 	}
 	// Should never happen, but don't corrupt application state if it does
-	if rres.uid.IsNil() {
-		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID in cache")
+	if !rres.HasPrimaryKey() {
+		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID/teamID in cache")
 		return nil
 	}
 	now := r.NowFunc()
@@ -486,7 +504,7 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if res.err != nil {
 		return
 	}
-	if res.uid.IsNil() {
+	if !res.HasPrimaryKey() {
 		r.G().Log.Warning("Mistaken UID put to mem cache")
 		if r.G().Env.GetDebug() {
 			debug.PrintStack()

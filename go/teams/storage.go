@@ -58,6 +58,7 @@ func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID) *keybase1.Tea
 	res, found, err := s.disk.Get(ctx, teamID)
 	if found && err == nil {
 		// Disk hit
+		s.mem.Put(ctx, res)
 		return res
 	}
 	if err != nil {

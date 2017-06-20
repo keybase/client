@@ -179,6 +179,19 @@ function updateStateWithMessageOutboxIDChanged(
   return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
 }
 
+function updateLocalMessageState(
+  state: Constants.State,
+  messageKey: Constants.MessageKey,
+  toMerge: $Shape<Constants.LocalMessageStateProps>
+) {
+  // $FlowIssue updateIn
+  return state.updateIn(
+    ['localMessageStates', messageKey],
+    Constants.defaultLocalMessageState,
+    localMessageState => localMessageState.merge(toMerge)
+  )
+}
+
 function sortInbox(inbox: List<Constants.InboxState>): List<Constants.InboxState> {
   return inbox.sort((a, b) => {
     return b.get('time') - a.get('time')
@@ -372,40 +385,47 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
-      const {conversationIDKey, messageID, path, isPreview} = action.payload
+      const {messageKey, path, isPreview} = action.payload
       let toMerge
       if (isPreview) {
         toMerge = {previewPath: path, previewProgress: null}
       } else {
         toMerge = {downloadedPath: path, downloadProgress: null}
       }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      return updateLocalMessageState(state, messageKey, toMerge)
+    }
+    case 'chat:attachmentSaveStart': {
+      const {messageKey} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: false})
     }
     case 'chat:attachmentSaved': {
-      const {conversationIDKey, messageID, path} = action.payload
-      const toMerge = {savedPath: path}
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      const {messageKey, path} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: path})
+    }
+    case 'chat:attachmentSaveFailed': {
+      const {messageKey} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: null})
     }
     case 'chat:downloadProgress': {
-      const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
-      let progress = 0
-      if (bytesTotal) {
-        progress = bytesComplete / bytesTotal
-      }
+      const {messageKey, isPreview, progress} = action.payload
       const progressField = isPreview ? 'previewProgress' : 'downloadProgress'
       const toMerge = {
         [progressField]: progress,
       }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      return updateLocalMessageState(state, messageKey, toMerge)
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
-      const uploadProgress = bytesComplete / bytesTotal
-      const toMerge = {
-        messageState: 'uploading',
-        uploadProgress,
-      }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      const {messageKey, progress} = action.payload
+      return updateLocalMessageState(state, messageKey, {uploadProgress: progress})
+    }
+    case 'chat:outboxMessageBecameReal': {
+      const {oldMessageKey, newMessageKey} = action.payload
+      // $FlowIssue getIn
+      const localMessageState = state.getIn(['localMessageStates', oldMessageKey])
+      // $FlowIssue deleteIn
+      return state
+        .deleteIn(['localMessageStates', oldMessageKey])
+        .setIn(['localMessageStates', newMessageKey], localMessageState)
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
+import * as SearchCreators from '../actions/searchv3/creators'
 import * as SearchConstants from '../constants/searchv3'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
@@ -9,16 +10,20 @@ import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
+import {chatSearchResultArray} from '../constants/selectors'
+import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
 
 import type {TypedState} from '../constants/reducer'
 
 type OwnProps = {
-  search: (term: string, service: SearchConstants.Service) => void,
   searchText: string,
   onChangeSearchText: (s: string) => void,
   usernameText: string,
   selectedService: string,
   onSelectService: (s: string) => void,
+  search: (term: string, service: SearchConstants.Service) => void,
+  selectedSearchId: ?SearchConstants.SearchResultId,
+  onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
 }
 
 const mapStateToProps = (state: TypedState) => {
@@ -37,11 +42,24 @@ const mapStateToProps = (state: TypedState) => {
     }
   })
 
-  return {userItems}
+  return {
+    userItems,
+    searchResultIds: chatSearchResultArray(state),
+  }
 }
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
   exitSearch: () => dispatch(Creators.exitSearch()),
+  clearSearchResults: () => dispatch(Creators.clearSearchResults()),
+  search: (term: string, service) => {
+    if (term) {
+      dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
+    } else {
+      dispatch(Creators.clearSearchResults())
+    }
+  },
+  onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {
@@ -58,8 +76,9 @@ const SearchHeader = props => {
             placeholder={props.placeholder}
             usernameText={props.usernameText}
             onChangeText={props.onChangeText}
-            onMoveSelectUp={() => {}} // TODO
-            onMoveSelectDown={() => {}} // TODO
+            onMoveSelectUp={props.onMoveSelectUp}
+            onMoveSelectDown={props.onMoveSelectDown}
+            onEnter={props.onEnter}
           />
         </Box>
         <Icon
@@ -78,11 +97,8 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
+  onChangeSelectedSearchResultHoc,
   withHandlers({
-    onChangeText: (props: OwnProps & {_onSelectService: Function}) => nextText => {
-      props.onChangeSearchText(nextText)
-      props.search(nextText, props.selectedService)
-    },
     onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
