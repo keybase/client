@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"fmt"
+	"math"
+	"time"
 
 	"encoding/hex"
 
@@ -200,6 +202,17 @@ func newRecentConversationParticipants(g *globals.Context) *recentConversationPa
 	}
 }
 
+func (r *recentConversationParticipants) getActiveScore(ctx context.Context, conv chat1.Conversation) float64 {
+	mtime := conv.GetMtime()
+	diff := time.Now().Sub(mtime.Time())
+	weeksAgo := diff.Seconds() / (time.Hour.Seconds() * 24 * 7)
+	val := 10.0 - math.Pow(1.6, weeksAgo)
+	if val < 1.0 {
+		val = 1.0
+	}
+	return val
+}
+
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
 	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
 	if err != nil {
@@ -207,13 +220,13 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 	}
 
 	r.Debug(ctx, "get: convs: %d", len(convs))
-	m := make(map[string]int)
+	m := make(map[string]float64)
 	for _, conv := range convs {
 		for _, uid := range conv.Metadata.ActiveList {
 			if uid.Eq(myUID) {
 				continue
 			}
-			m[uid.String()]++
+			m[uid.String()] += r.getActiveScore(ctx, conv)
 		}
 	}
 	for suid := range m {
