@@ -618,7 +618,7 @@
         }
       ],
       "response": "TeamPlusApplicationKeys",
-      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache."
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
     }
   },
   "namespace": "keybase.1"

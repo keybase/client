@@ -208,7 +208,8 @@ protocol teams {
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
-   * If refreshers are non-empty, then force a refresh of the cache.
+   * If refreshers are non-empty, then force a refresh of the cache if the requirements
+   * of the refreshers aren't met.
    */
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
 }

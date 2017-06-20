@@ -658,7 +658,8 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
-	// * If refreshers are non-empty, then force a refresh of the cache.
+	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
+	// * of the refreshers aren't met.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 }
 
@@ -817,7 +818,8 @@ func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg
 }
 
 // * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
-// * If refreshers are non-empty, then force a refresh of the cache.
+// * If refreshers are non-empty, then force a refresh of the cache if the requirements
+// * of the refreshers aren't met.
 func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res)
 	return
