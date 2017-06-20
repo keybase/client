@@ -16,7 +16,7 @@ You'll also need the Keybase signing certificate from someone at Keybase.
 
 ### Building KBFuse
 
-    VERSION=3.5.5 ./build.sh
+    VERSION=3.5.8 ./build.sh
 
 This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
 which you can submit for PR.

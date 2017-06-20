@@ -11,7 +11,7 @@ import (
 type TeamBox struct {
 	Nonce           string
 	SenderKID       keybase1.KID `json:"sender_kid"`
-	Generation      PerTeamSecretGeneration
+	Generation      keybase1.PerTeamKeyGeneration
 	Ctext           string
 	PerUserKeySeqno keybase1.Seqno `json:"per_user_key_seqno"`
 }

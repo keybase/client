@@ -11,6 +11,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/saltpack"
 )
 
 func TestSaltpackSignDeviceRequired(t *testing.T) {
@@ -401,4 +403,56 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	}
 
 	//
+}
+
+func TestSaltpackSignForceVersion(t *testing.T) {
+	tc := SetupEngineTest(t, "sign")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "sign")
+
+	run := func(versionFlag int, majorVersionExpected int) {
+		// For each run, test both the attached and detached sig modes.
+		for _, isAttached := range []bool{true, false} {
+			var sink bytes.Buffer
+			sarg := &SaltpackSignArg{
+				Sink:   libkb.NopWriteCloser{W: &sink},
+				Source: ioutil.NopCloser(bytes.NewBufferString("some test input")),
+				Opts: keybase1.SaltpackSignOptions{
+					Binary:          true,
+					SaltpackVersion: versionFlag,
+					Detached:        !isAttached,
+				},
+			}
+			eng := NewSaltpackSign(sarg, tc.G)
+			ctx := &Context{
+				IdentifyUI: &FakeIdentifyUI{},
+				SecretUI:   fu.NewSecretUI(),
+			}
+			if err := RunEngine(eng, ctx); err != nil {
+				t.Fatal(err)
+			}
+
+			// Double decode the header and inspect it.
+			var header saltpack.EncryptionHeader
+			dec := codec.NewDecoderBytes(sink.Bytes(), &codec.MsgpackHandle{WriteExt: true})
+			var b []byte
+			if err := dec.Decode(&b); err != nil {
+				t.Fatal(err)
+			}
+			dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
+			if err := dec.Decode(&header); err != nil {
+				t.Fatal(err)
+			}
+
+			if header.Version.Major != majorVersionExpected {
+				t.Fatalf("passed saltpack version %d (attached: %t) and expected major version %d, found %d", versionFlag, isAttached, majorVersionExpected, header.Version.Major)
+			}
+		}
+	}
+
+	// 0 means the default, which is major version 2.
+	run(0, 2)
+	run(1, 1)
+	run(2, 2)
 }

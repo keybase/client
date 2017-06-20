@@ -38,6 +38,7 @@ export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden,
 
 export const AttachmentPopupMenu = ({
   message,
+  localMessageState,
   onDeleteMessage,
   onOpenInFileUI,
   onDownloadAttachment,
@@ -45,16 +46,16 @@ export const AttachmentPopupMenu = ({
   style,
   you,
 }: AttachmentProps) => {
-  let downloadItem
+  let downloadItem = null
   if (message.messageState === 'placeholder') {
     downloadItem = {disabled: true, title: `${message.author} is uploading…`}
-  } else {
+  } else if (!localMessageState.savedPath && message.messageID) {
     downloadItem = {onClick: onDownloadAttachment, title: 'Download'}
   }
 
   const items = [
     'Divider',
-    message.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
+    localMessageState.savedPath ? {onClick: onOpenInFileUI, title: `Show in ${fileUIName}`} : null,
     downloadItem,
   ]
   if (message.author === you) {

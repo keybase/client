@@ -11,14 +11,12 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-type PerTeamSecretGeneration int
-
 type PerTeamSharedSecretBoxes struct {
-	Generation    PerTeamSecretGeneration `json:"generation"`
-	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
-	Nonce         string                  `json:"nonce"`
-	PrevKey       *string                 `json:"prev"`
-	Boxes         map[keybase1.UID]string `json:"boxes"`
+	Generation    keybase1.PerTeamKeyGeneration `json:"generation"`
+	EncryptingKid keybase1.KID                  `json:"encrypting_kid"`
+	Nonce         string                        `json:"nonce"`
+	PrevKey       *string                       `json:"prev"`
+	Boxes         map[keybase1.UID]string       `json:"boxes"`
 }
 
 type PerTeamSharedSecretBox struct {
@@ -33,7 +31,7 @@ type TeamKeyManager struct {
 	libkb.Contextified
 
 	sharedSecret []byte
-	generation   PerTeamSecretGeneration
+	generation   keybase1.PerTeamKeyGeneration
 
 	encryptionKey *libkb.NaclDHKeyPair
 	signingKey    *libkb.NaclSigningKeyPair
@@ -47,7 +45,7 @@ func NewTeamKeyManager(g *libkb.GlobalContext) (*TeamKeyManager, error) {
 	return NewTeamKeyManagerWithSecret(g, sharedSecret, 1)
 }
 
-func NewTeamKeyManagerWithSecret(g *libkb.GlobalContext, secret []byte, generation PerTeamSecretGeneration) (*TeamKeyManager, error) {
+func NewTeamKeyManagerWithSecret(g *libkb.GlobalContext, secret []byte, generation keybase1.PerTeamKeyGeneration) (*TeamKeyManager, error) {
 	if len(secret) != sharedSecretLen {
 		return nil, errors.New("invalid shared secret length")
 	}
@@ -156,7 +154,7 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	return boxes, keySection, nil
 }
 
-func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func (t *TeamKeyManager) sharedBoxes(secret []byte, generation keybase1.PerTeamKeyGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
 	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
@@ -227,7 +225,7 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 		return nil, err
 	}
 	return &SCPerTeamKey{
-		Generation: int(t.generation),
+		Generation: keybase1.PerTeamKeyGeneration(t.generation),
 		SigKID:     sigKey.GetKID(),
 		EncKID:     encKey.GetKID(),
 	}, nil

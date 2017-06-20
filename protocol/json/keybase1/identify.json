@@ -100,7 +100,7 @@
         }
       ],
       "response": "User",
-      "doc": "Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.",
+      "doc": "Resolve an assertion to a (UID,username). On failure, returns an error. Doesn't work for teams.",
       "lint": "ignore"
     },
     "Resolve3": {

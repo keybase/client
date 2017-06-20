@@ -4,16 +4,16 @@ import RenderAttachmentPopup from './'
 import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
 import * as Constants from '../../../constants/chat'
+import {lookupMessageProps} from '../../shared'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey, SaveAttachment, AttachmentMessage, MessageID} from '../../../constants/chat'
+import type {SaveAttachment, AttachmentMessage, MessageKey} from '../../../constants/chat'
 import type {OpenInFileUI} from '../../../constants/kbfs'
 
 type AttachmentPopupRouteProps = RouteProps<
   {
-    conversationIDKey: ConversationIDKey,
-    messageID: MessageID,
+    messageKey: MessageKey,
   },
   {}
 >
@@ -35,22 +35,12 @@ export default compose(
   })),
   connect(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
-      const {conversationIDKey, messageID} = routeProps
-
-      const conversationState = state.chat.get('conversationStates').get(conversationIDKey)
-      if (!conversationState) {
-        throw new Error('Attachment popup unable to get conversation state')
-      }
-
-      const message = conversationState.get('messages').find(m => m.messageID === messageID)
-      if (!message) {
-        throw new Error('Attachment popup unable to get message data')
-      }
+      const {messageKey} = routeProps
 
       return {
+        ...lookupMessageProps(state, messageKey),
         ...ownProps,
         you: state.config.username,
-        message,
       }
     },
     (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
@@ -59,16 +49,14 @@ export default compose(
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
       onDownloadAttachment: (message: AttachmentMessage) => {
-        const messageID = message.messageID
-        if (!messageID || !message.filename) {
+        if (!message.messageID || !message.filename) {
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
         dispatch(
           ({
             type: 'chat:saveAttachment',
             payload: {
-              conversationIDKey: message.conversationIDKey,
-              messageID,
+              messageKey: message.key,
             },
           }: SaveAttachment)
         )
@@ -82,7 +70,7 @@ export default compose(
         ),
     }),
     (stateProps, dispatchProps) => {
-      const {message} = stateProps
+      const {message, localMessageState} = stateProps
       return {
         ...stateProps,
         ...dispatchProps,
@@ -92,7 +80,7 @@ export default compose(
         },
         onMessageAction: () => dispatchProps._onMessageAction(message),
         onDownloadAttachment: () => dispatchProps.onDownloadAttachment(message),
-        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(message.savedPath),
+        onOpenInFileUI: () => dispatchProps.onOpenInFileUI(localMessageState.savedPath),
       }
     }
   )

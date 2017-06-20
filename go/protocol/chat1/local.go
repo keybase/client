@@ -878,6 +878,7 @@ type HeaderPlaintextV1 struct {
 	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -918,6 +919,13 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.HeaderSignature),
+		MerkleRoot: (func(x *MerkleRoot) *MerkleRoot {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MerkleRoot),
 	}
 }
 

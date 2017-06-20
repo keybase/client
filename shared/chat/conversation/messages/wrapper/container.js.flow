@@ -15,6 +15,7 @@ export type OwnProps = {|
 export type StateProps = {|
   _editedCount: boolean,
   _message: Constants.AttachmentMessage | Constants.TextMessage,
+  _localMessageState: Constants.LocalMessageState,
   _selectedConversationIDKey: ?Constants.ConversationIDKey,
   author: string,
   failureDescription: ?string,

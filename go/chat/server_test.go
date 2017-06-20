@@ -384,6 +384,16 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
 	}
+
+	// Set initial active list
+	conv := ctc.world.GetConversationByID(ncres.Conv.GetConvID())
+	if conv != nil {
+		conv.Metadata.ActiveList = append(conv.Metadata.ActiveList, creator.GetUID().ToBytes())
+		for _, o := range others {
+			conv.Metadata.ActiveList = append(conv.Metadata.ActiveList, o.GetUID().ToBytes())
+		}
+	}
+
 	return ncres.Conv.Info
 }
 
@@ -413,9 +423,7 @@ func postLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUse
 
 func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	_, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
-	if err != nil {
-		t.Fatalf("PostLocal error: %v", err)
-	}
+	require.NoError(t, err)
 }
 
 func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {

@@ -85,6 +85,9 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
+    } else if (ev.key === 'Enter') {
+      this.props.onEnter()
+      ev.preventDefault()
     }
   }
 

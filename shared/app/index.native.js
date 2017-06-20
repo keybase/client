@@ -8,7 +8,7 @@ import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import routeDefs from './routes'
-import {AppRegistry, AppState, Linking} from 'react-native'
+import {AppRegistry, AppState, Linking, Text} from 'react-native'
 import {Box} from '../common-adapters'
 import {Provider} from 'react-redux'
 import {appLink, mobileAppStateChanged} from '../actions/app'
@@ -16,6 +16,13 @@ import {makeEngine} from '../engine'
 import {setRouteDef} from '../actions/route-tree'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from '../local-debug'
 import {setupSource} from '../util/forward-logs'
+
+// We don't want global font scaling as this messes up a TON of stuff. let's opt in
+function disallowFontScalingByDefault() {
+  Text.defaultProps.allowFontScaling = false
+}
+
+disallowFontScalingByDefault()
 
 module.hot &&
   module.hot.accept(() => {

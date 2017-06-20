@@ -9,12 +9,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func Get(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+func getInternalByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
 	f := newFinder(g)
-	return f.findByName(ctx, name)
+	return f.findByStringName(ctx, name)
 }
 
-func GetByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+func getInternal(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
 	f := newFinder(g)
 	return f.findByID(ctx, id)
 }
@@ -37,7 +37,7 @@ func (f *finder) findByID(ctx context.Context, id keybase1.TeamID) (*Team, error
 	return f.playRaw(ctx, raw)
 }
 
-func (f *finder) findByName(ctx context.Context, name string) (*Team, error) {
+func (f *finder) findByStringName(ctx context.Context, name string) (*Team, error) {
 	raw, err := f.rawTeam(ctx, name)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigCh
 
 type rawTeam struct {
 	ID             keybase1.TeamID          `json:"id"`
-	Name           keybase1.TeamNameParts   `json:"name"`
+	Name           keybase1.TeamName        `json:"name"`
 	Status         libkb.AppStatus          `json:"status"`
 	Chain          []json.RawMessage        `json:"chain"`
 	Box            TeamBox                  `json:"box"`
@@ -138,4 +138,37 @@ type rawTeam struct {
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
+}
+
+func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return getInternalByStringName(ctx, g, name)
+}
+
+func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return getInternal(ctx, g, id)
+}
+
+func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
+	// TODO -- use the `application` and `refreshers` arguments
+	return getInternal(ctx, g, id)
+}
+
+func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
+	teamName, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return nil, err
+	}
+	return GetForApplicationByName(ctx, g, teamName, app, refreshers)
+}
+
+func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
+	id, err := ResolveNameToID(ctx, g, name)
+	if err != nil {
+		return nil, err
+	}
+	return GetForApplication(ctx, g, id, app, refreshers)
+}
+
+func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
+	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
 }

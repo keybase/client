@@ -4,9 +4,10 @@
 package engine
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"testing"
 )
 
 func getCurrentCryptocurrencyAddr(tc libkb.TestContext, username string, family libkb.CryptocurrencyFamily) string {

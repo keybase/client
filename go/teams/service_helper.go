@@ -33,7 +33,7 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1.TeamMembersUsernames, error) {
-	t, err := Get(ctx, g, name)
+	t, err := GetForTeamManagementByStringName(ctx, g, name)
 	if err != nil {
 		return keybase1.TeamMembersUsernames{}, err
 	}
@@ -100,7 +100,7 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
@@ -160,7 +160,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
@@ -219,4 +219,60 @@ func reqFromRole(uid keybase1.UID, role keybase1.TeamRole) (keybase1.TeamChangeR
 	}
 
 	return req, nil
+}
+
+func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.IdentifyLiteRes {
+	return keybase1.IdentifyLiteRes{
+		Ul: keybase1.UserOrTeamLite{
+			Id:   id.AsUserOrTeam(),
+			Name: name.String(),
+		},
+	}
+}
+
+func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1.UserOrTeamID, id2 keybase1.TeamID) (res keybase1.IdentifyLiteRes, err error) {
+
+	var id1 keybase1.TeamID
+	id1, err = utid.AsTeam()
+	if err != nil {
+		return res, err
+	}
+
+	if id1.Exists() && id2.Exists() && !id1.Eq(id2) {
+		return res, errors.New("two team IDs given that don't match")
+	}
+	if !id1.Exists() {
+		id1 = id2
+	}
+	if !id1.Exists() {
+		return res, errors.New("empty IDs given")
+	}
+	var name keybase1.TeamName
+	name, err = ResolveIDToName(ctx, g, id1)
+	if err != nil {
+		return res, err
+	}
+
+	return makeIdentifyLiteRes(id1, name), nil
+}
+
+func identifyLiteByName(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (res keybase1.IdentifyLiteRes, err error) {
+	var id keybase1.TeamID
+	id, err = ResolveNameToID(ctx, g, name)
+	if err != nil {
+		return res, err
+	}
+	return makeIdentifyLiteRes(id, name), nil
+}
+
+func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.IdentifyLiteArg, au libkb.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
+
+	if arg.Id.Exists() || au.IsTeamID() {
+		return identifyLiteByID(ctx, g, arg.Id, au.ToTeamID())
+	}
+	if au.IsTeamName() {
+		return identifyLiteByName(ctx, g, au.ToTeamName())
+	}
+	err = errors.New("could not identify team by ID or name")
+	return res, err
 }
