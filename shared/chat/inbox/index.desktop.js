@@ -375,7 +375,7 @@ const conversationRowStyle = {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue4,
+  backgroundColor: globalColors.white,
   flex: 1,
   maxWidth: 240,
 }
