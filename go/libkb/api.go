@@ -876,13 +876,14 @@ func (a *InternalAPIEngine) refreshSession(arg APIArg, reqErr error) error {
 		return reqErr
 	}
 
-	a.G().Log.CDebugf(arg.NetContext, "| API call %s session expired, trying to refresh", arg.Endpoint)
-
 	if arg.SessionR != nil {
 		// can't re-login with a SessionR
+		a.G().Log.CDebugf(arg.NetContext, "| API call %s session expired, can't refresh with SessionR reader", arg.Endpoint)
 		return LoginRequiredError{Context: "your session has expired"}
 
 	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API call %s session expired, trying to refresh", arg.Endpoint)
 
 	username := a.G().Env.GetUsername()
 	if err := a.G().LoginState().LoginWithStoredSecret(username.String(), nil); err != nil {

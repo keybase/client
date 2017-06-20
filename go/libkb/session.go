@@ -260,14 +260,12 @@ func (s *Session) check() error {
 	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
 	arg.SessionType = APISessionTypeOPTIONAL
-	arg.AppStatusCodes = []int{SCOk, SCBadSession}
+	arg.AppStatusCodes = []int{SCOk}
 
 	res, err := s.G().API.Get(arg)
-
 	if err != nil {
 		return err
 	}
-
 	s.checked = true
 
 	if res.AppStatus.Code == SCOk {
@@ -308,6 +306,7 @@ func (s *Session) Invalidate() {
 	s.token = ""
 	s.csrf = ""
 	s.checked = false
+	s.loaded = false
 
 	// Note: this notification has been active for a long time, but
 	// doesn't pertain anymore as losing a session is not the same
