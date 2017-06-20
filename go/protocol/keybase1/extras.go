@@ -1317,7 +1317,7 @@ func (k TeamApplicationKey) Material() Bytes32 {
 }
 
 func (k TeamApplicationKey) Generation() int {
-	return k.KeyGeneration
+	return int(k.KeyGeneration)
 }
 
 func (t TeamMembers) AllUIDs() []UID {

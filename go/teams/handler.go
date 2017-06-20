@@ -7,7 +7,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation PerTeamSecretGeneration) error {
+func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) error {
 	team, err := GetForTeamManagementByID(ctx, g, teamID)
 	if err != nil {
 		return err

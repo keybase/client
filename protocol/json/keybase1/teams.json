@@ -24,6 +24,12 @@
     },
     {
       "type": "record",
+      "name": "PerTeamKeyGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
         {
@@ -31,7 +37,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "keyGeneration"
         },
         {
@@ -55,7 +61,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -69,7 +75,7 @@
       "name": "PerTeamKey",
       "fields": [
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "gen"
         },
         {
@@ -101,7 +107,7 @@
           "name": "seed"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -364,7 +370,7 @@
           "type": {
             "type": "map",
             "values": "PerTeamKey",
-            "keys": "int"
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeys"
         },
@@ -421,7 +427,7 @@
           "jsonkey": "team_id"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -430,6 +436,24 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamRefreshers",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "wantMembers"
+        }
+      ],
+      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
     },
     {
       "type": "record",
@@ -449,15 +473,8 @@
           "name": "needAdmin"
         },
         {
-          "type": "int",
-          "name": "needKeyGeneration"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UserVersion"
-          },
-          "name": "wantMembers"
+          "type": "TeamRefreshers",
+          "name": "refreshers"
         },
         {
           "type": "boolean",
@@ -594,9 +611,14 @@
         {
           "name": "application",
           "type": "TeamApplication"
+        },
+        {
+          "name": "refreshers",
+          "type": "TeamRefreshers"
         }
       ],
-      "response": "TeamPlusApplicationKeys"
+      "response": "TeamPlusApplicationKeys",
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache."
     }
   },
   "namespace": "keybase.1"

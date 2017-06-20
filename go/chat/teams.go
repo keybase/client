@@ -26,7 +26,8 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 
 func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
-	team, err := teams.GetForChat(ctx, t.G().ExternalG(), name)
+
+	team, err := teams.GetForChatByStringName(ctx, t.G().ExternalG(), name, keybase1.TeamRefreshers{})
 	if err != nil {
 		return res, err
 	}

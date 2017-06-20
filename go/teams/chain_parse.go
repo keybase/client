@@ -52,10 +52,10 @@ type SCTeamAdmin struct {
 }
 
 type SCPerTeamKey struct {
-	Generation int          `json:"generation"`
-	EncKID     keybase1.KID `json:"encryption_kid"`
-	SigKID     keybase1.KID `json:"signing_kid"`
-	ReverseSig string       `json:"reverse_sig"`
+	Generation keybase1.PerTeamKeyGeneration `json:"generation"`
+	EncKID     keybase1.KID                  `json:"encryption_kid"`
+	SigKID     keybase1.KID                  `json:"signing_kid"`
+	ReverseSig string                        `json:"reverse_sig"`
 }
 
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {

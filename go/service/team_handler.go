@@ -48,7 +48,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, item gregor.Item) error {
 	}
 	r.G().Log.Debug("team.clkr unmarshaled: %+v", msg)
 
-	return teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, teams.PerTeamSecretGeneration(msg.Generation))
+	return teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation))
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
