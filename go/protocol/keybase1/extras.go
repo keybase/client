@@ -230,6 +230,32 @@ func (k KID) IsIn(list []KID) bool {
 	return false
 }
 
+func PGPFingerprintFromString(s string) (ret PGPFingerprint, err error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return
+	}
+	copy(ret[:], b[:])
+	return
+}
+
+func (p *PGPFingerprint) String() string {
+	return hex.EncodeToString(p[:])
+}
+
+func (p PGPFingerprint) MarshalJSON() ([]byte, error) {
+	return Quote(p.String()), nil
+}
+
+func (p *PGPFingerprint) UnmarshalJSON(b []byte) error {
+	tmp, err := PGPFingerprintFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*p = tmp
+	return nil
+}
+
 func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
 	return DeviceID(hex.EncodeToString(b[:]))
 }
