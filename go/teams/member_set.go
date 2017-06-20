@@ -26,7 +26,7 @@ func newMemberSet() *memberSet {
 
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
 	set := newMemberSet()
-	if err := set.loadMembers(ctx, g, req /*forcePoll*/, true); err != nil {
+	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
 	}
 	return set, nil
