@@ -4,6 +4,7 @@ import {Component} from 'react'
 export type Props = {
   size?: number,
   emojiName: string,
+  allowFontScaling?: boolean,
 }
 
 declare function backgroundImageFn(set: string, sheetSize: string): string

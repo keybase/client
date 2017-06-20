@@ -11,36 +11,34 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time, application keybase1.TeamApplication) (teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys, err error) {
+func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time, application keybase1.TeamApplication) (ret keybase1.TeamPlusApplicationKeys, err error) {
 	applicationKeys, err := t.AllApplicationKeys(ctx, application)
 	if err != nil {
-		return
+		return ret, err
 	}
 
 	members, err := t.Members()
 	if err != nil {
-		return
+		return ret, err
 	}
 
-	writers := make([]keybase1.UserVersion, 0)
+	var writers []keybase1.UserVersion
+	var onlyReaders []keybase1.UserVersion
+
 	for _, writer := range members.Writers {
 		writers = append(writers, writer)
 	}
-
-	writersSet := make(map[keybase1.UserVersion]bool, 0)
-	for _, writer := range writers {
-		writersSet[writer] = true
+	for _, writer := range members.Admins {
+		writers = append(writers, writer)
 	}
-
-	onlyReaders := make([]keybase1.UserVersion, 0)
+	for _, writer := range members.Owners {
+		writers = append(writers, writer)
+	}
 	for _, reader := range members.Readers {
-		_, ok := writersSet[reader]
-		if !ok {
-			onlyReaders = append(onlyReaders, reader)
-		}
+		onlyReaders = append(onlyReaders, reader)
 	}
 
-	teamPlusApplicationKeys = keybase1.TeamPlusApplicationKeys{
+	ret = keybase1.TeamPlusApplicationKeys{
 		Id:              t.Chain.GetID(),
 		Name:            t.Chain.GetName(),
 		Application:     application,
@@ -49,5 +47,5 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		ApplicationKeys: applicationKeys,
 	}
 
-	return
+	return ret, nil
 }

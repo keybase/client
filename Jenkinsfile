@@ -370,8 +370,15 @@ def testGo(prefix) {
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
         shell "go get \"github.com/stretchr/testify/require\""
         shell "go get \"github.com/stretchr/testify/assert\""
+        def parallelTests = []
         def tests = [:]
+        def specialTests = [:]
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
         for (def i=0; i<dirs.size(); i++) {
+            if (tests.size() == 4) {
+                parallelTests << tests
+                tests = [:]
+            }
             def d = dirs[i]
             def dirPath = d.replaceAll('github.com/keybase/client/go/', '')
             println "Building tests for $dirPath"
@@ -381,18 +388,26 @@ def testGo(prefix) {
                 // Only run the test if a test binary should have been produced.
                 if (fileExists("test.test")) {
                     def testName = dirPath.replaceAll('/', '_')
-                    tests[prefix + testName] = {
+                    def test = {
                         dir(dirPath) {
                             println "Running tests for $dirPath"
                             shell ".${slash}test.test -test.timeout 30m"
                         }
+                    }
+                    if (testName in specialTestFilter) {
+                        specialTests[prefix + testName] = test
+                    } else {
+                        tests[prefix + testName] = test
                     }
                 } else {
                     println "Skipping tests for $dirPath because no test binary was produced."
                 }
             }
         }
+        parallelTests << specialTests
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
-        parallel(tests)
+        for (def i=0; i<parallelTests.size(); i++) {
+            parallel(parallelTests[i])
+        }
     }}
 }

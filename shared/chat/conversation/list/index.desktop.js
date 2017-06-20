@@ -283,7 +283,12 @@ class PopupEnabledList extends BaseList {
     }
   }
 
-  _renderPopup(message: Constants.Message, style: Object, messageRect: any): ?React$Element<any> {
+  _renderPopup(
+    message: Constants.Message,
+    localMessageState: Constants.LocalMessageState,
+    style: Object,
+    messageRect: any
+  ): ?React$Element<any> {
     switch (message.type) {
       case 'Text':
         return (
@@ -299,14 +304,15 @@ class PopupEnabledList extends BaseList {
           />
         )
       case 'Attachment':
-        const {savedPath, messageID} = message
+        const {savedPath, key: messageKey} = message
         return (
           <AttachmentPopupMenu
             you={this.props.you}
             message={message}
+            localMessageState={localMessageState}
             onDeleteMessage={this.props.onDeleteMessage}
             onDownloadAttachment={() => {
-              messageID && this.props.onDownloadAttachment(messageID)
+              this.props.onDownloadAttachment(messageKey)
             }}
             onOpenInFileUI={() => {
               savedPath && this.props.onOpenInFileUI(savedPath)
@@ -351,7 +357,11 @@ class PopupEnabledList extends BaseList {
     return null
   }
 
-  _showPopup(message: Constants.TextMessage | Constants.AttachmentMessage, event: any) {
+  _showPopup(
+    message: Constants.TextMessage | Constants.AttachmentMessage,
+    localMessageState: Constants.LocalMessageState,
+    event: any
+  ) {
     const clientRect = event.target.getBoundingClientRect()
 
     const messageNode = this._findMessageFromDOMNode(event.target)
@@ -362,7 +372,12 @@ class PopupEnabledList extends BaseList {
     let y = clientRect.top - (message.author === this.props.you ? 200 : 116)
     if (y < 10) y = 10
 
-    const popupComponent = this._renderPopup(message, {left: x, position: 'absolute', top: y}, messageRect)
+    const popupComponent = this._renderPopup(
+      message,
+      localMessageState,
+      {left: x, position: 'absolute', top: y},
+      messageRect
+    )
     if (!popupComponent) return
 
     this.setState({selectedMessageKey: message.key})
@@ -372,9 +387,13 @@ class PopupEnabledList extends BaseList {
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = (
+    message: Constants.ServerMessage,
+    localMessageState: Constants.LocalMessageState,
+    event: any
+  ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
-      this._showPopup(message, event)
+      this._showPopup(message, localMessageState, event)
     }
   }
 

@@ -65,10 +65,10 @@ type GlobalContext struct {
 	Identify2Cache Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
 	LinkCache      *LinkCache      // cache of ChainLinks
 	upakLoader     UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader     TeamLoader      // Play back teams for id/name properties
 	CardCache      *UserCardCache  // cache of keybase1.UserCard objects
 	fullSelfer     FullSelfer      // a loader that gets the full self object
 	pvlSource      PvlSource       // a cache and fetcher for pvl
-	teamLoader     TeamLoader
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
 	ShutdownHooks    []ShutdownHook // on shutdown, fire these...
@@ -193,6 +193,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
+	g.teamLoader = newNullTeamLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.AppState = NewAppState(g)
@@ -272,7 +273,7 @@ func (g *GlobalContext) Logout() error {
 
 	g.GetFullSelfer().OnLogout()
 
-	tl := g.GetTeamLoader()
+	tl := g.teamLoader
 	if tl != nil {
 		tl.OnLogout()
 	}
@@ -295,6 +296,9 @@ func (g *GlobalContext) Logout() error {
 	if err := g.ConfigReload(); err != nil {
 		g.Log.Debug("Logout ConfigReload error: %s", err)
 	}
+
+	// send logout notification
+	g.NotifyRouter.HandleLogout()
 
 	return nil
 }
@@ -437,6 +441,12 @@ func (g *GlobalContext) GetUPAKLoader() UPAKLoader {
 	return g.upakLoader
 }
 
+func (g *GlobalContext) GetTeamLoader() TeamLoader {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamLoader
+}
+
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -451,10 +461,6 @@ func (g *GlobalContext) GetPvlSource() PvlSource {
 // to implement ProofContext
 func (g *GlobalContext) GetAppType() AppType {
 	return g.Env.GetAppType()
-}
-
-func (g *GlobalContext) GetTeamLoader() TeamLoader {
-	return g.teamLoader
 }
 
 func (g *GlobalContext) ConfigureExportedStreams() error {
@@ -884,6 +890,8 @@ func (g *GlobalContext) SetPvlSource(s PvlSource) {
 }
 
 func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.teamLoader = l
 }
 

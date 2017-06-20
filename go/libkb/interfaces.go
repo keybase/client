@@ -580,6 +580,8 @@ type ConnectivityMonitor interface {
 }
 
 type TeamLoader interface {
+	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
+	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	OnLogout()
 }

@@ -169,7 +169,7 @@ func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyba
 }
 
 func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
-	res, ok := t.inner.PerTeamKeys[len(t.inner.PerTeamKeys)]
+	res, ok := t.inner.PerTeamKeys[keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))]
 	if !ok {
 		// if this happens it's a programming error
 		return res, errors.New("per-team-key not found")
@@ -177,12 +177,21 @@ func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	return res, nil
 }
 
-func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen int) (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[gen]
 	if !ok {
 		return keybase1.PerTeamKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("per-team-key not found for generation %d", gen)}
 	}
 	return res, nil
+}
+
+func (t TeamSigChainState) HasAnyStubbedLinks() bool {
+	for _, v := range t.inner.StubbedTypes {
+		if v {
+			return true
+		}
+	}
+	return false
 }
 
 // Inform the UserLog of a user's role.
@@ -517,8 +526,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, err
 		}
 
-		perTeamKeys := make(map[int]keybase1.PerTeamKey)
-		perTeamKeys[1] = perTeamKey
+		perTeamKeys := make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKey)
+		perTeamKeys[keybase1.PerTeamKeyGeneration(1)] = perTeamKey
 
 		res.newState = TeamSigChainState{
 			inner: keybase1.TeamSigChainState{
@@ -580,7 +589,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			if err != nil {
 				return res, fmt.Errorf("getting previous per-team-key: %s", err)
 			}
-			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
 			if err != nil {
 				return res, err
 			}
@@ -616,7 +625,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		if err != nil {
 			return res, fmt.Errorf("getting previous per-team-key: %s", err)
 		}
-		newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+		newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
 		if err != nil {
 			return res, err
 		}
@@ -660,7 +669,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			if err != nil {
 				return res, fmt.Errorf("getting previous per-team-key: %s", err)
 			}
-			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+1)
+			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
 			if err != nil {
 				return res, err
 			}
@@ -809,7 +818,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink
 	return res, nil
 }
 
-func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration int) (res keybase1.PerTeamKey, err error) {
+func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
 	// check the per-team-key
 	if perTeamKey.Generation != expectedGeneration {
 		return res, fmt.Errorf("per-team-key generation must start at 1 but got:%d", perTeamKey.Generation)

@@ -35,18 +35,25 @@ func cryptKey(t *testing.T) *keybase1.CryptKey {
 	}
 }
 
-func textMsg(t *testing.T, text string) chat1.MessagePlaintext {
+func textMsg(t *testing.T, text string, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
 	uid, err := libkb.RandBytes(16)
 	if err != nil {
 		t.Fatal(err)
 	}
 	uid[15] = keybase1.UID_SUFFIX_2
-	return textMsgWithSender(t, text, gregor1.UID(uid))
+	return textMsgWithSender(t, text, gregor1.UID(uid), mbVersion)
 }
 
-func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) chat1.MessagePlaintext {
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
 	header := chat1.MessageClientHeader{
 		Sender: uid,
+	}
+	switch mbVersion {
+	case chat1.MessageBoxedVersion_V2:
+		header.MerkleRoot = &chat1.MerkleRoot{
+			Seqno: 12,
+			Hash:  []byte{123, 117, 0, 99, 99, 79, 223, 37, 180, 168, 111, 107, 210, 227, 128, 35, 47, 158, 221, 210, 151, 242, 182, 199, 50, 29, 236, 93, 106, 149, 133, 221, 156, 216, 167, 79, 91, 28, 9, 196, 107, 173, 61, 248, 123, 97, 101, 34, 7, 15, 30, 80, 246, 162, 198, 12, 20, 19, 130, 151, 45, 2, 130, 170},
+		}
 	}
 	return textMsgWithHeader(t, text, header)
 }
@@ -123,10 +130,10 @@ func doWithMBVersions(f func(chat1.MessageBoxedVersion)) {
 func TestChatMessageBox(t *testing.T) {
 	doWithMBVersions(func(mbVersion chat1.MessageBoxedVersion) {
 		key := cryptKey(t)
-		msg := textMsg(t, "hello")
+		msg := textMsg(t, "hello", mbVersion)
 		tc, boxer := setupChatTest(t, "box")
 		defer tc.Cleanup()
-		boxed, err := boxer.box(msg, key, getSigningKeyPairForTest(t, tc, nil), mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, getSigningKeyPairForTest(t, tc, nil), mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -149,13 +156,13 @@ func TestChatMessageUnbox(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 		outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 		msg.ClientHeader.OutboxID = &outboxID
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		require.NoError(t, err)
 		boxed = remarshalBoxed(t, *boxed)
 
@@ -197,13 +204,13 @@ func TestChatMessageMissingOutboxID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 	outboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	msg.ClientHeader.OutboxID = &outboxID
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	boxed, err := boxer.box(msg, key, signKP, mbVersion)
+	boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 	require.NoError(t, err)
 	boxed = remarshalBoxed(t, *boxed)
 
@@ -238,7 +245,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
@@ -249,7 +256,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 			return sum[:]
 		}
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -371,7 +378,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
@@ -383,7 +390,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			return sig
 		}
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -424,7 +431,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		// use a random signing key, not one of u's keys
 		signKP, err := libkb.GenerateNaclSigningKeyPair()
@@ -432,7 +439,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -494,8 +501,8 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 
 		// Sign a message using a key of u's that has been revoked
 		t.Logf("signing message")
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		require.NoError(t, err)
 
 		boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -549,8 +556,8 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 
 		// Sign a message using a key of u's that has not yet been revoked
 		t.Logf("signing message")
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		require.NoError(t, err)
 
 		boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -654,11 +661,11 @@ func TestChatMessageSenderMismatch(t *testing.T) {
 		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
 		require.NoError(t, err)
 
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -689,7 +696,7 @@ func TestChatMessageDeletes(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 		deleteIDs := []chat1.MessageID{5, 6, 7}
 		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deleteIDs})
 		msg.ClientHeader.Supersedes = deleteIDs[0]
@@ -697,7 +704,7 @@ func TestChatMessageDeletes(t *testing.T) {
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -731,11 +738,11 @@ func TestChatMessageDeleted(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -772,11 +779,11 @@ func TestChatMessageDeletedNotSuperseded(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 
 		signKP := getSigningKeyPairForTest(t, tc, u)
 
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -829,7 +836,7 @@ func TestV1Message1(t *testing.T) {
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
 	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
-	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
 
@@ -886,7 +893,7 @@ func TestV1Message2(t *testing.T) {
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
 	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
-	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
 
@@ -943,7 +950,7 @@ func TestV1Message3(t *testing.T) {
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
 	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
-	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	require.Nil(t, unboxed.ClientHeader.OutboxID)
 	require.Nil(t, unboxed.ClientHeader.OutboxInfo)
 
@@ -1001,7 +1008,7 @@ func TestV1Message4(t *testing.T) {
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
 	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
-	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0x8e, 0xcc, 0x94, 0xb7, 0xff, 0x50, 0x5c, 0x4}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
 	expectedOutboxInfo := &chat1.OutboxInfo{Prev: 0x3, ComposeTime: 1487708373568}
@@ -1063,7 +1070,7 @@ func TestV1Message5(t *testing.T) {
 	require.Equal(t, canned.SenderUID(t), unboxed.ClientHeader.Sender)
 	require.Equal(t, canned.SenderDeviceID(t), unboxed.ClientHeader.SenderDevice)
 	// CORE-4540: Uncomment this assertion when MerkleRoot is added to MessageClientHeaderVerified
-	// require.Nil(t, unboxed.ClientHeader.MerkleRoot)
+	require.Nil(t, unboxed.ClientHeader.MerkleRoot)
 	expectedOutboxID := chat1.OutboxID{0xdc, 0x74, 0x6, 0x5d, 0xf9, 0x5f, 0x1c, 0x48}
 	require.Equal(t, &expectedOutboxID, unboxed.ClientHeader.OutboxID)
 	expectedOutboxInfo := &chat1.OutboxInfo{Prev: 0x3, ComposeTime: 1487708384552}
@@ -1134,14 +1141,14 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 		convID := msg.ClientHeader.Conv.ToConversationID([2]byte{0, 0})
 		conv := chat1.Conversation{
 			Metadata: chat1.ConversationMetadata{
 				ConversationID: convID,
 			},
 		}
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1195,9 +1202,9 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		}
 
 		makeMsg := func(id chat1.MessageID, prevs []chat1.MessagePreviousPointer) *chat1.MessageBoxed {
-			msg := textMsgWithSender(t, "foo text", gregor1.UID(u.User.GetUID().ToBytes()))
+			msg := textMsgWithSender(t, "foo text", gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
 			msg.ClientHeader.Prev = prevs
-			boxed, err := boxer.box(msg, key, signKP, mbVersion)
+			boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 			require.NoError(t, err)
 			boxed.ServerHeader = &chat1.MessageServerHeader{
 				Ctime:     gregor1.ToTime(time.Now()),
@@ -1277,8 +1284,8 @@ func TestChatMessageBadConvID(t *testing.T) {
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.
-		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
-		boxed, err := boxer.box(msg, key, signKP, mbVersion)
+		msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), mbVersion)
+		boxed, err := boxer.box(context.TODO(), msg, key, signKP, mbVersion)
 		require.NoError(t, err)
 		boxed.ServerHeader = &chat1.MessageServerHeader{
 			Ctime:     gregor1.ToTime(time.Now()),

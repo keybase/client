@@ -293,7 +293,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
                />
         </p>
         <p>
-          Chat sent! You can continue the coversation in your Keybase app.
+          Chat sent! You can continue the conversation in your Keybase app.
         </p>
         ${extraHTML}
         <p>

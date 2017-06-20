@@ -25,6 +25,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -104,7 +106,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g)),
+		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
@@ -232,7 +234,11 @@ func (d *Service) Run() (err error) {
 
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
-		return
+		return err
+	}
+
+	if err = d.SetupCriticalSubServices(); err != nil {
+		return err
 	}
 
 	d.RunBackgroundOperations(uir)
@@ -240,6 +246,27 @@ func (d *Service) Run() (err error) {
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) SetupCriticalSubServices() error {
+	var err error
+	if err = d.setupTeams(); err != nil {
+		return err
+	}
+	if err = d.setupPVL(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Service) setupTeams() error {
+	teams.NewTeamLoaderAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupPVL() error {
+	pvlsource.NewPvlSourceAndInstall(d.G())
+	return nil
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {
@@ -256,6 +283,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
+	go d.identifySelf()
 }
 
 func (d *Service) startChatModules() {
@@ -321,6 +349,49 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	// this unfortunate dependency injection
 	rkm.gregor = d.gregor
 	rkm.Start()
+}
+
+func (d *Service) identifySelf() {
+	uid := d.G().Env.GetUID()
+	if uid.IsNil() {
+		d.G().Log.Debug("identifySelf: no uid, skipping")
+		return
+	}
+	d.G().Log.Debug("identifySelf: running identify on uid %s", uid)
+	arg := keybase1.Identify2Arg{
+		Uid: uid,
+		Reason: keybase1.IdentifyReason{
+			Type: keybase1.IdentifyReasonType_BACKGROUND,
+		},
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NoSkipSelf:       true,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewIdentify2WithUID(d.G(), &arg)
+	if err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()}); err != nil {
+		d.G().Log.Debug("identifySelf: identify error %s", err)
+	}
+	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)
+
+	// identify2 did a load user for self, so find it and cache it in FullSelfer.
+	them := eng.FullThemUser()
+	me := eng.FullMeUser()
+	var u *libkb.User
+	if them != nil && them.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using them for full user")
+		u = them
+	} else if me != nil && me.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using me for full user")
+		u = me
+	}
+	if u != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
+		} else {
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+		}
+	}
 }
 
 func (d *Service) runBackgroundIdentifier() {
@@ -511,6 +582,7 @@ func (d *Service) OnLogin() error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
+		go d.identifySelf()
 	}
 	return nil
 }
