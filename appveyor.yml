@@ -6,7 +6,7 @@ environment:
     GOARCH: 386
     CC: c:\MinGW\bin\gcc
     CPATH: C:\MinGW\include;C:\MinGW\include\ddk
-    GOVERSION: 1.7
+    GOVERSION: 1.8
 
 install:
   - systeminfo | findstr /C:"OS"
