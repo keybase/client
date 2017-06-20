@@ -8,7 +8,7 @@ import (
 )
 
 func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) error {
-	team, err := GetForTeamManagementByID(ctx, g, teamID)
+	team, err := GetForTeamManagement(ctx, g, teamID)
 	if err != nil {
 		return err
 	}

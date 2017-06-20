@@ -20,7 +20,7 @@ func TestTeamGet(t *testing.T) {
 
 	name := createTeam(tc)
 
-	_, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestTeamGetRepeat(t *testing.T) {
 
 		name := createTeam(tc)
 
-		_, err := GetForTeamManagement(context.TODO(), tc.G, name)
+		_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +87,7 @@ func TestTeamGetWhileCreate(t *testing.T) {
 	}
 
 	for i := 0; i < 100; i++ {
-		_, err := GetForTeamManagement(context.TODO(), tc.G, name)
+		_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func teamGet(t *testing.T) {
 
 	name := createTeam(tc)
 
-	_, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}

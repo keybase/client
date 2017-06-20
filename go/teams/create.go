@@ -148,7 +148,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return err
 	}
 
-	parentTeam, err := GetForTeamManagement(ctx, g, string(parentName))
+	parentTeam, err := GetForTeamManagementByStringName(ctx, g, string(parentName))
 	if err != nil {
 		return err
 	}

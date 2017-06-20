@@ -9,12 +9,12 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func getInternal(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+func getInternalByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
 	f := newFinder(g)
-	return f.findByName(ctx, name)
+	return f.findByStringName(ctx, name)
 }
 
-func getInternalByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+func getInternal(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
 	f := newFinder(g)
 	return f.findByID(ctx, id)
 }
@@ -37,7 +37,7 @@ func (f *finder) findByID(ctx context.Context, id keybase1.TeamID) (*Team, error
 	return f.playRaw(ctx, raw)
 }
 
-func (f *finder) findByName(ctx context.Context, name string) (*Team, error) {
+func (f *finder) findByStringName(ctx context.Context, name string) (*Team, error) {
 	raw, err := f.rawTeam(ctx, name)
 	if err != nil {
 		return nil, err
@@ -140,17 +140,17 @@ func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return getInternal(ctx, g, name)
+func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return getInternalByStringName(ctx, g, name)
 }
 
-func GetForTeamManagementByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return getInternalByID(ctx, g, id)
+func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return getInternal(ctx, g, id)
 }
 
 func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	// TODO -- use the `application` and `refreshers` arguments
-	return getInternalByID(ctx, g, id)
+	return getInternal(ctx, g, id)
 }
 
 func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {

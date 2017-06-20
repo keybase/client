@@ -19,7 +19,7 @@ func TestMerkle(t *testing.T) {
 
 	name := createTeam(tc)
 
-	team, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
 	leaf, err := tc.G.MerkleClient.LookupTeam(context.TODO(), team.Chain.GetID())

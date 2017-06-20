@@ -15,7 +15,7 @@ func TestRotate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func TestRotate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	after, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team, err = GetForTeamManagement(context.TODO(), tc.G, name)
+	team, err = GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	after, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestHandleRotateRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	team, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +111,7 @@ func TestHandleRotateRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	after, err := GetForTeamManagement(context.TODO(), tc.G, name)
+	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
