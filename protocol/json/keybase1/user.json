@@ -249,6 +249,20 @@
           "name": "version"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "InterestingPerson",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -519,7 +533,7 @@
       "request": [],
       "response": {
         "type": "array",
-        "items": "UID"
+        "items": "InterestingPerson"
       }
     }
   },

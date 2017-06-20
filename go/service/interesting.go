@@ -28,39 +28,42 @@ func (r *rankedList) UIDs() []keybase1.UID {
 	return r.uids
 }
 
-func (r *rankedList) Rank(uid keybase1.UID) int {
+func (r *rankedList) Rank(uid keybase1.UID) float64 {
 	var index int
 	var ok bool
 	if index, ok = r.ranks[uid.String()]; !ok {
 		return 0
 	}
 
-	return (len(r.uids) - index) / len(r.uids) * 100
+	total := float64(len(r.uids))
+	return ((total - float64(index)) / total)
 }
 
 type weightedRankedList struct {
 	*rankedList
-	weight int
+	weight float64
 }
 
-func newWeightedRankedList(rl *rankedList, weight int) *weightedRankedList {
+func newWeightedRankedList(rl *rankedList, weight float64) *weightedRankedList {
 	return &weightedRankedList{
 		rankedList: rl,
 		weight:     weight,
 	}
 }
 
-func (w *weightedRankedList) Weight() int {
+func (w *weightedRankedList) Weight() float64 {
 	return w.weight
 }
 
 type linearWeightedSelector struct {
+	libkb.Contextified
 	lists []*weightedRankedList
 }
 
-func newLinearWeightedSelector(lists []*weightedRankedList) *linearWeightedSelector {
+func newLinearWeightedSelector(g *libkb.GlobalContext, lists []*weightedRankedList) *linearWeightedSelector {
 	return &linearWeightedSelector{
-		lists: lists,
+		Contextified: libkb.NewContextified(g),
+		lists:        lists,
 	}
 }
 
@@ -69,9 +72,7 @@ func (w *linearWeightedSelector) getAllUIDs() (res []keybase1.UID) {
 	for _, list := range w.lists {
 		uids := list.UIDs()
 		for _, uid := range uids {
-			if !m[uid.String()] {
-				m[uid.String()] = true
-			}
+			m[uid.String()] = true
 		}
 	}
 	for uid := range m {
@@ -83,11 +84,11 @@ func (w *linearWeightedSelector) getAllUIDs() (res []keybase1.UID) {
 func (w *linearWeightedSelector) Select() (res []keybase1.UID) {
 	type userScore struct {
 		uid   keybase1.UID
-		score int
+		score float64
 	}
 	var scores []userScore
 	for _, uid := range w.getAllUIDs() {
-		total := 0
+		total := 0.0
 		// Get score in each list to get a total score
 		for _, list := range w.lists {
 			total += list.Rank(uid) * list.Weight()
@@ -98,7 +99,7 @@ func (w *linearWeightedSelector) Select() (res []keybase1.UID) {
 		})
 	}
 
-	sort.Slice(scores, func(i, j int) bool { return scores[i].score > scores[i].score })
+	sort.Slice(scores, func(i, j int) bool { return scores[i].score > scores[j].score })
 	for _, score := range scores {
 		res = append(res, score.uid)
 	}
@@ -109,7 +110,7 @@ type interestingPeopleFn func(uid keybase1.UID) ([]keybase1.UID, error)
 
 type interestingPeopleSource struct {
 	fn     interestingPeopleFn
-	weight int
+	weight float64
 }
 
 type interestingPeople struct {
@@ -123,7 +124,7 @@ func newInterestingPeople(g *libkb.GlobalContext) *interestingPeople {
 	}
 }
 
-func (i *interestingPeople) AddSource(fn interestingPeopleFn, weight int) {
+func (i *interestingPeople) AddSource(fn interestingPeopleFn, weight float64) {
 	i.sources = append(i.sources, interestingPeopleSource{
 		fn:     fn,
 		weight: weight,
@@ -146,5 +147,5 @@ func (i interestingPeople) Get(ctx context.Context) ([]keybase1.UID, error) {
 		weightedLists = append(weightedLists, newWeightedRankedList(newRankedList(ppl), source.weight))
 	}
 
-	return newLinearWeightedSelector(weightedLists).Select(), nil
+	return newLinearWeightedSelector(i.G(), weightedLists).Select(), nil
 }

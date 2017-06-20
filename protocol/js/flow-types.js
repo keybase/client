@@ -4706,6 +4706,11 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
+export type InterestingPerson = {
+  uid: UID,
+  username: string,
+}
+
 export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
@@ -7261,7 +7266,7 @@ type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type trackTrackResult = ConfirmResult
 type uiPromptYesNoResult = boolean
-type userInterestingPeopleResult = ?Array<UID>
+type userInterestingPeopleResult = ?Array<InterestingPerson>
 type userListTrackers2Result = UserSummary2Set
 type userListTrackersByNameResult = ?Array<Tracker>
 type userListTrackersResult = ?Array<Tracker>

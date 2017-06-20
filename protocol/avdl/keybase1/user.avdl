@@ -135,5 +135,9 @@ protocol user {
 
   void profileEdit(int sessionID, string fullName, string location, string bio);
 
-  array<UID> interestingPeople();
+  record InterestingPerson {
+    UID uid;
+    string username;
+  }
+  array<InterestingPerson> interestingPeople();
 }

@@ -219,7 +219,19 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine(eng, ctx)
 }
 
-func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.UID, err error) {
+func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {
+	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid)
+	arg.PublicKeyOptional = true
+	arg.StaleOK = true
+	arg.CachedOnly = true
+	upak, _, err := h.G().GetUPAKLoader().Load(arg)
+	if err != nil {
+		return "", err
+	}
+	return upak.GetName(), nil
+}
+
+func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.InterestingPerson, err error) {
 
 	// Chat source
 	chatFn := func(uid keybase1.UID) (kuids []keybase1.UID, err error) {
@@ -234,10 +246,44 @@ func (h *UserHandler) InterestingPeople(ctx context.Context) (res []keybase1.UID
 		return kuids, nil
 	}
 
+	// Follower source
+	followerFn := func(uid keybase1.UID) (res []keybase1.UID, err error) {
+		var found bool
+		var tmp keybase1.UserSummary2Set
+		found, err = h.G().LocalDb.GetInto(&tmp, libkb.DbKeyUID(libkb.DBTrackers2Reverse, uid))
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			return nil, nil
+		}
+		for _, u := range tmp.Users {
+			res = append(res, u.Uid)
+		}
+		return res, nil
+	}
+
 	ip := newInterestingPeople(h.G())
 
 	// Add sources of interesting people
-	ip.AddSource(chatFn, 80)
+	ip.AddSource(chatFn, 0.9)
+	ip.AddSource(followerFn, 0.1)
 
-	return ip.Get(ctx)
+	uids, err := ip.Get(ctx)
+	if err != nil {
+		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
+		return nil, err
+	}
+	for _, u := range uids {
+		name, err := h.loadUsername(ctx, u)
+		if err != nil {
+			h.G().Log.Debug("InterestingPeople: failed to get username for: %s msg: %s", u, err.Error())
+			continue
+		}
+		res = append(res, keybase1.InterestingPerson{
+			Uid:      u,
+			Username: name,
+		})
+	}
+	return res, nil
 }
