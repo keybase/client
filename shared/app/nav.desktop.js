@@ -1,18 +1,18 @@
 // @flow
 import React from 'react'
-import {Box} from './common-adapters'
+import {Box} from '../common-adapters'
 import GlobalError from './global-errors/container'
-import Offline from './offline'
+import Offline from '../offline'
 import TabBar from './tab-bar/index.render'
-import {chatTab, loginTab} from './constants/tabs'
+import {chatTab, loginTab} from '../constants/tabs'
 import {connect} from 'react-redux'
-import {globalStyles} from './styles'
-import {navigateTo, switchTo} from './actions/route-tree'
+import {globalStyles} from '../styles'
+import {navigateTo, switchTo} from '../actions/route-tree'
 
-import type {Tab} from './constants/tabs'
+import type {Tab} from '../constants/tabs'
 import type {Props} from './nav'
-import type {TypedState} from './constants/reducer'
-import type {RouteProps} from './route-tree/render-route'
+import type {TypedState} from '../constants/reducer'
+import type {RouteProps} from '../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 

@@ -7,8 +7,8 @@ import {
   HOCTimers,
   NativeScrollView,
   NativeTouchableWithoutFeedback,
-} from '../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+} from '../../common-adapters/index.native'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 

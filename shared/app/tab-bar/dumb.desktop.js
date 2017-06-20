@@ -2,10 +2,10 @@
 
 import React from 'react'
 
-import {Text} from '../common-adapters'
+import {Text} from '../../common-adapters'
 import TabBar from './index.render'
 
-import type {DumbComponentMap} from '../constants/types/more'
+import type {DumbComponentMap} from '../../constants/types/more'
 import {
   profileTab,
   peopleTab,
@@ -14,7 +14,7 @@ import {
   devicesTab,
   searchTab,
   settingsTab,
-} from '../constants/tabs'
+} from '../../constants/tabs'
 
 const badgeNumbers = {
   [profileTab]: 9,
