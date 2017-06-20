@@ -459,8 +459,8 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetCurrentMerkleSeqNo(ctx context.Context) (
 	MerkleSeqNo, error) {
-	const merkleFreshness = int(time.Second * 60 / time.Millisecond)
-	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshness)
+	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)
+	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshnessMs)
 	if err != nil {
 		return 0, err
 	}
