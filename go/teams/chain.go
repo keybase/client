@@ -90,6 +90,10 @@ func (n TeamName) IsSubTeam() bool {
 	return strings.Contains(string(n), ".")
 }
 
+func (n TeamName) String() string {
+	return string(n)
+}
+
 const TeamSigChainPlayerSupportedLinkVersion = 2
 
 // Accessor wrapper for keybase1.TeamSigChainState
@@ -218,23 +222,20 @@ type TeamSigChainPlayer struct {
 	// information about the reading user
 	reader keybase1.UserVersion
 
-	isSubTeam bool
-
 	storedState *TeamSigChainState
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
-		isSubTeam:    isSubTeam,
 		storedState:  nil,
 	}
 }
 
 func NewTeamSigChainPlayerWithState(g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState) *TeamSigChainPlayer {
-	res := NewTeamSigChainPlayer(g, reader, state.IsSubteam())
+	res := NewTeamSigChainPlayer(g, reader)
 	res.storedState = &state
 	return res
 }

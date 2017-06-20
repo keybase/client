@@ -56,10 +56,10 @@ func TestLoaderBasic(t *testing.T) {
 
 	teamName, teamID := createTeam2(tc)
 
-	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	team, err := tc.G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.Equal(t, teamName, team.Chain.Name)
+	require.Equal(t, teamName.String(), team.Chain.Name)
 }

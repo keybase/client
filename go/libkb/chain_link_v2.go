@@ -37,6 +37,8 @@ const (
 	SigchainV2TypeTeamLeave            SigchainV2Type = 37
 	SigchainV2TypeTeamSubteamHead      SigchainV2Type = 38
 	SigchainV2TypeTeamRenameSubteam    SigchainV2Type = 39
+	SigchainV2TypeTeamInvite           SigchainV2Type = 40
+	SigchainV2TypeTeamRenameUpPointer  SigchainV2Type = 41
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -56,7 +58,9 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamLeave,
 		SigchainV2TypeTeamSubteamHead,
-		SigchainV2TypeTeamRenameSubteam:
+		SigchainV2TypeTeamRenameSubteam,
+		SigchainV2TypeTeamInvite,
+		SigchainV2TypeTeamRenameUpPointer:
 		return true
 	default:
 		return false
@@ -72,7 +76,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 		return false
 	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam:
+		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamInvite:
 			return true
 		default:
 			// disallow stubbing of other including unknown links
@@ -97,7 +101,7 @@ type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
 	sigID keybase1.SigID
-	kid   keybase1.KID
+	KID   keybase1.KID
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -139,7 +143,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		OuterLinkV2: ol,
 		sigID:       sigID,
 		raw:         payload,
-		kid:         kid,
+		KID:         kid,
 	}
 	return &ret, nil
 }
