@@ -36,7 +36,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
 
 	// get the before state of the team
-	before, err := teams.GetForTeamManagement(context.TODO(), tt.users[0].tc.G, team)
+	before, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].waitForRotate(team)
 
 	// check that key was rotated for team
-	after, err := teams.GetForTeamManagement(context.TODO(), tt.users[0].tc.G, team)
+	after, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
