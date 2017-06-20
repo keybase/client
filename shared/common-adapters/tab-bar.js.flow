@@ -5,7 +5,6 @@ import type {IconType} from './icon'
 
 export type ItemProps = Exact<{
   tabBarButton?: React$Element<*>,
-  isNav?: boolean,
   label?: string,
   selected: boolean,
   selectedColor?: string,
@@ -39,6 +38,7 @@ export type TabBadgePosition = 'top-right'
 
 export type TabBarButtonProps = Exact<{
   className?: string,
+  isNav?: boolean,
   selected: boolean,
   onClick?: () => void,
   source: TabBarButtonSource,
