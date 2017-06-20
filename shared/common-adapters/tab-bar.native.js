@@ -4,7 +4,6 @@ import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'
-import Avatar from './avatar'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
@@ -33,67 +32,62 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-class TabBarButton extends Component<void, TabBarButtonProps, void> {
-  render() {
-    const iconColor = this.props.selected ? globalColors.white : globalColors.blue3_40
-    const badgeNumber = this.props.badgeNumber || 0
+const TabBarButton = (props: TabBarButtonProps) => {
+  const iconColor = props.selected ? globalColors.white : globalColors.blue3_40
+  const badgeNumber = props.badgeNumber || 0
 
-    let badgeComponent
-    if (this.props.badgePosition === 'top-right') {
+  let badgeComponent = null
+  if (badgeNumber > 0) {
+    if (props.badgePosition === 'top-right') {
       badgeComponent = (
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
-            justifyContent: 'center',
+            ...globalStyles.fillAbsolute,
             alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
+            justifyContent: 'center',
           }}
         >
           <Badge
             badgeNumber={badgeNumber}
             badgeStyle={{marginRight: -30, marginTop: -20}}
-            outlineColor={globalColors.midnightBlue}
+            outlineColor={globalColors.darkBlue2}
           />
         </Box>
       )
     } else {
       badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
     }
-
-    const content = (
-      <Box style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
-        {this.props.source.type === 'icon'
-          ? <Icon
-              type={this.props.source.icon}
-              style={{
-                color: iconColor,
-                fontSize: 32,
-                width: 32,
-                textAlign: 'center',
-                ...this.props.styleIcon,
-              }}
-            />
-          : <Avatar size={24} username={this.props.source.username} borderColor={iconColor} />}
-        {!!this.props.label &&
-          <Text type="BodySemibold" style={{textAlign: 'center', ...this.props.styleLabel}}>
-            {this.props.label}
-          </Text>}
-        {badgeNumber > 0 && badgeComponent}
-      </Box>
-    )
-    if (this.props.onClick) {
-      return (
-        <NativeTouchableWithoutFeedback onPress={this.props.onClick}>
-          {content}
-        </NativeTouchableWithoutFeedback>
-      )
-    }
-    return content
   }
+
+  const content = (
+    <Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
+      <Icon
+        type={props.source.icon}
+        style={{
+          color: iconColor,
+          fontSize: 32,
+          textAlign: 'center',
+          width: 32,
+          ...props.styleIcon,
+        }}
+      />
+      {!!props.label &&
+        <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
+          {props.label}
+        </Text>}
+      {badgeComponent}
+      {props.isNav && props.selected && <Box style={underlineStyle} />}
+    </Box>
+  )
+  if (props.onClick) {
+    return (
+      <NativeTouchableWithoutFeedback onPress={props.onClick} style={{flex: 1}}>
+        {content}
+      </NativeTouchableWithoutFeedback>
+    )
+  }
+  return content
 }
 
 class TabBar extends Component<void, Props, void> {
@@ -136,6 +130,13 @@ class TabBar extends Component<void, Props, void> {
   }
 }
 
+const underlineStyle = {
+  ...globalStyles.fillAbsolute,
+  backgroundColor: globalColors.white,
+  height: 2,
+  top: undefined,
+}
+
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
@@ -150,9 +151,9 @@ const stylesTab = {
 
 const stylesTabBarButtonIcon = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
-  alignItems: 'center',
   position: 'relative',
 }
 

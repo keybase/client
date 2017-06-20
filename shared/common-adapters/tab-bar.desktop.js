@@ -113,7 +113,11 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         {badgeNumber > 0 &&
           <Box style={{width: 0, display: 'flex'}}>
             <Box style={{...styleBadgeAvatar}}>
-              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+              <Badge
+                badgeNumber={badgeNumber}
+                badgeStyle={{marginLeft: 0, marginRight: 0}}
+                outlineColor={globalColors.darkBlue2}
+              />
             </Box>
           </Box>}
         {!!this.props.label &&
@@ -157,6 +161,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
+                outlineColor={globalColors.darkBlue2}
               />
             </Box>}
           {!!this.props.label &&
