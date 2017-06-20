@@ -289,7 +289,7 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-class ConversationList extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<void, Props, void> {
   _list: any
 
   componentWillMount() {
@@ -402,4 +402,4 @@ const rowContainerStyle = {
   minHeight: 48,
 }
 
-export default ConversationList
+export default Inbox
