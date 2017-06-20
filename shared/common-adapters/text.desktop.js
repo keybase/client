@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+// TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'

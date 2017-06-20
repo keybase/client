@@ -100,6 +100,7 @@ const makeCommonConfig = () => {
       __DEV__: flags.isDev,
       __HOT__: flags.isHot,
       __SCREENSHOT__: flags.isVisDiff,
+      __STORYBOOK__: false,
       __VERSION__: flags.isDev ? JSON.stringify('Development') : JSON.stringify(process.env.APP_VERSION),
       'process.env.NODE_ENV': flags.isDev ? JSON.stringify('development') : JSON.stringify('production'),
     }

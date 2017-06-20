@@ -39,7 +39,10 @@
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
-    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
+    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
+
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "jest": {
     "modulePaths": [
@@ -165,6 +168,7 @@
     "webpack-dashboard": "0.4.0",
     "webpack-dev-middleware": "1.10.2",
     "webpack-dev-server": "2.4.5",
-    "webpack-merge": "4.1.0"
+    "webpack-merge": "4.1.0",
+    "@storybook/react": "3.1.3"
   }
 }
