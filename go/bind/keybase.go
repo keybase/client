@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
+	"runtime/trace"
 	"sync"
 
 	"strings"
@@ -16,7 +19,9 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
@@ -73,6 +78,20 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
+	tname := filepath.Join(filepath.Base(logFile), "svctrace.out")
+	f, err := os.Create(tname)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Go: starting trace %s\n", tname)
+	trace.Start(f)
+	sd := func() error {
+		fmt.Printf("Go: stopping trace %s\n", tname)
+		trace.Stop()
+		return nil
+	}
+	libkb.G.PushShutdownHook(sd)
+
 	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
 	dnsServers := dnsNSFetcher.GetServers()
 	for _, srv := range dnsServers {
@@ -82,6 +101,8 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
+	pvlsource.NewPvlSourceAndInstall(kbCtx)
+	teams.NewTeamLoaderAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
