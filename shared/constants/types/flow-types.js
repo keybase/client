@@ -4785,8 +4785,7 @@ export type LoadTeamArg = {
   ID: TeamID,
   name: string,
   needAdmin: boolean,
-  needKeyGeneration: int,
-  wantMembers?: ?Array<UserVersion>,
+  refreshers: TeamRefreshers,
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
@@ -5044,17 +5043,19 @@ export type PathType =
   | 1 // KBFS_1
 
 export type PerTeamKey = {
-  gen: int,
+  gen: PerTeamKeyGeneration,
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
 }
 
+export type PerTeamKeyGeneration = int
+
 export type PerTeamKeySeed = any
 
 export type PerTeamKeySeedItem = {
   seed: PerTeamKeySeed,
-  generation: int,
+  generation: PerTeamKeyGeneration,
   seqno: Seqno,
 }
 
@@ -5274,7 +5275,7 @@ export type ReadArgs = {
 
 export type ReaderKeyMask = {
   application: TeamApplication,
-  generation: int,
+  generation: PerTeamKeyGeneration,
   mask: MaskB64,
 }
 
@@ -5784,13 +5785,13 @@ export type TeamApplication =
 
 export type TeamApplicationKey = {
   application: TeamApplication,
-  keyGeneration: int,
+  keyGeneration: PerTeamKeyGeneration,
   key: Bytes32,
 }
 
 export type TeamCLKRMsg = {
   teamID: TeamID,
-  generation: int,
+  generation: PerTeamKeyGeneration,
   score: int,
 }
 
@@ -5844,6 +5845,11 @@ export type TeamPlusApplicationKeys = {
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
   applicationKeys?: ?Array<TeamApplicationKey>,
+}
+
+export type TeamRefreshers = {
+  needKeyGeneration: PerTeamKeyGeneration,
+  wantMembers?: ?Array<UserVersion>,
 }
 
 export type TeamRole =
@@ -6964,7 +6970,8 @@ export type streamUiWriteRpcParam = Exact<{
 
 export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   id: TeamID,
-  application: TeamApplication
+  application: TeamApplication,
+  refreshers: TeamRefreshers
 }>
 
 export type teamsTeamAddMemberRpcParam = Exact<{

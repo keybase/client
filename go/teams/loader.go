@@ -90,8 +90,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		teamID: teamID,
 
 		needAdmin:         lArg.NeedAdmin,
-		needKeyGeneration: lArg.NeedKeyGeneration,
-		wantMembers:       lArg.WantMembers,
+		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
+		wantMembers:       lArg.Refreshers.WantMembers,
 		forceFullReload:   lArg.ForceFullReload,
 		forceRepoll:       lArg.ForceRepoll,
 		staleOK:           lArg.StaleOK,
@@ -146,7 +146,7 @@ type load2ArgT struct {
 	teamID keybase1.TeamID
 
 	needAdmin         bool
-	needKeyGeneration int
+	needKeyGeneration keybase1.PerTeamKeyGeneration
 	wantMembers       []keybase1.UserVersion
 	forceFullReload   bool
 	forceRepoll       bool
@@ -394,7 +394,7 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 }
 
 // Whether teh snapshot has loaded at least up to the key generation.
-func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration int, fromCache *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, fromCache *keybase1.TeamData) error {
 	if needKeyGeneration == 0 {
 		return nil
 	}
