@@ -84,24 +84,17 @@ func start() *libfs.Error {
 			fuseLog, false /* superVerbose */)
 	}
 
-	mountpoint := flag.Arg(0)
-	var mounter libfuse.Mounter
-	if *mountType == "force" {
-		mounter = libfuse.NewForceMounter(mountpoint, *platformParams)
-	} else if *mountType == "none" {
-		mounter = libfuse.NewNoopMounter()
-	} else {
-		mounter = libfuse.NewDefaultMounter(mountpoint, *platformParams)
-	}
-
 	options := libfuse.StartOptions{
 		KbfsParams:     *kbfsParams,
 		PlatformParams: *platformParams,
 		RuntimeDir:     *runtimeDir,
 		Label:          *label,
+		ForceMount:     *mountType == "force",
+		SkipMount:      *mountType == "none",
+		MountPoint:     flag.Arg(0),
 	}
 
-	return libfuse.Start(mounter, options, ctx)
+	return libfuse.Start(options, ctx)
 }
 
 func main() {

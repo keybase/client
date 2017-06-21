@@ -87,15 +87,6 @@ func start() *libfs.Error {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
-	var mounter libdokan.Mounter
-	if *mountType == "force" {
-		mounter = libdokan.NewForceMounter(mountpoint)
-	} else if *mountType == "none" {
-		mounter = libdokan.NewNoopMounter()
-	} else {
-		mounter = libdokan.NewDefaultMounter(mountpoint)
-	}
-
 	options := libdokan.StartOptions{
 		KbfsParams: *kbfsParams,
 		RuntimeDir: *runtimeDir,
@@ -104,9 +95,12 @@ func start() *libfs.Error {
 			MountFlags: dokan.MountFlag(*mountFlags),
 			DllPath:    *dokandll,
 		},
+		ForceMount: *mountType == "force",
+		SkipMount:  *mountType == "none",
+		MountPoint: mountpoint,
 	}
 
-	return libdokan.Start(mounter, options, ctx)
+	return libdokan.Start(options, ctx)
 }
 
 func main() {

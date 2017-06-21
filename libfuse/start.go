@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
@@ -21,10 +22,13 @@ type StartOptions struct {
 	PlatformParams PlatformParams
 	RuntimeDir     string
 	Label          string
+	ForceMount     bool
+	SkipMount      bool
+	MountPoint     string
 }
 
 // Start the filesystem
-func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
+func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
 
@@ -42,52 +46,54 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	}
 
 	log.Debug("Initializing")
-	interruptFn := func() {}
-	config, err := libkbfs.Init(
-		kbCtx, options.KbfsParams, nil, func() { interruptFn() }, log)
+	mi := libfs.NewMountInterrupter()
+	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
 	defer libkbfs.Shutdown()
 
-	log.Debug("Mounting: %s", mounter.Dir())
-	c, err := mounter.Mount()
-	if err != nil {
-		return libfs.MountError(err.Error())
-	}
-	defer mounter.Unmount()
-
-	done := make(chan struct{})
-	if c != nil { // c can be nil for NoopMounter
-		interruptFn = func() {
-			if unmountErr := mounter.Unmount(); unmountErr != nil {
-				log.Debug("Unmounting error: %v", unmountErr)
+	if options.SkipMount {
+		log.Debug("Skipping mounting filesystem")
+	} else {
+		err = startMounting(config, options, log, mi)
+		if err != nil {
+			log.Errorf("Mounting filesystem failed: %v", err)
+			// Abort on error if we were force mounting, otherwise continue.
+			if options.ForceMount {
+				// If we exit we might want to clean a mount behind us.
+				mi.Done()
+				return libfs.MountError(err.Error())
 			}
 		}
-	} else {
-		interruptFn = func() {
-			close(done)
-		}
+	}
+	mi.Wait()
+	return nil
+}
+
+func startMounting(config libkbfs.Config, options StartOptions,
+	log logger.Logger, mi *libfs.MountInterrupter) error {
+	log.Debug("Mounting: %q", options.MountPoint)
+	c, err := fuseMount(options)
+	if err != nil {
+		return err
+	}
+	mi.SetOnceFun(func() { fuseUnmount(options) })
+
+	<-c.Ready
+	err = c.MountError
+	if err != nil {
+		return err
 	}
 
-	if c != nil {
-		<-c.Ready
-		err = c.MountError
-		if err != nil {
-			return libfs.MountError(err.Error())
-		}
-
-		log.Debug("Creating filesystem")
-		fs := NewFS(config, c, options.KbfsParams.Debug, options.PlatformParams)
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
-		log.Debug("Serving filesystem")
-		if err = fs.Serve(ctx); err != nil {
-			return libfs.MountError(err.Error())
-		}
-	} else {
-		<-done
+	log.Debug("Creating filesystem")
+	fs := NewFS(config, c, options.KbfsParams.Debug, options.PlatformParams)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
+	log.Debug("Serving filesystem")
+	if err = fs.Serve(ctx); err != nil {
+		return err
 	}
 
 	log.Debug("Ending")

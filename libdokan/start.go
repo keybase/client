@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -23,10 +24,13 @@ type StartOptions struct {
 	RuntimeDir  string
 	Label       string
 	DokanConfig dokan.Config
+	ForceMount  bool
+	SkipMount   bool
+	MountPoint  string
 }
 
 // Start the filesystem
-func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
+func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
 
@@ -35,11 +39,8 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		return libfs.InitError(err.Error())
 	}
 
-	onInterruptFn := func() {
-		mounter.Unmount()
-	}
-
-	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, onInterruptFn, log)
+	mi := libfs.NewMountInterrupter()
+	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
@@ -62,32 +63,53 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	fs, err := NewFS(ctx, config, log)
-	if err != nil {
-		return libfs.InitError(err.Error())
-	}
-	options.DokanConfig.FileSystem = fs
-	options.DokanConfig.Path = mounter.Dir()
-	if options.DokanConfig.Path == "" {
+
+	if options.MountPoint == "" {
 		// The mounter will detect this case and pick up the path from DokanConfig
-		options.DokanConfig.Path, err = config.KeybaseService().EstablishMountDir(ctx)
+		options.MountPoint, err = config.KeybaseService().EstablishMountDir(ctx)
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
 		log.CInfof(ctx, "Got mount dir from service: %s", options.DokanConfig.Path)
 	}
+	options.DokanConfig.Path = options.MountPoint
 
-	if newFolderNameErr != nil {
-		log.CWarningf(ctx, "Error guessing new folder name: %v", newFolderNameErr)
-	}
-	log.CDebugf(ctx, "New folder name guess: %q %q", newFolderName, newFolderAltName)
+	if !options.SkipMount && !strings.EqualFold(options.MountPoint, "none") {
 
-	if !strings.EqualFold(options.DokanConfig.Path, "none") {
-		err = mounter.Mount(&options.DokanConfig, log)
+		fs, err := NewFS(ctx, config, log)
 		if err != nil {
-			return libfs.MountError(err.Error())
+			return libfs.InitError(err.Error())
+		}
+		options.DokanConfig.FileSystem = fs
+
+		if newFolderNameErr != nil {
+			log.CWarningf(ctx, "Error guessing new folder name: %v", newFolderNameErr)
+		}
+		log.CDebugf(ctx, "New folder name guess: %q %q", newFolderName, newFolderAltName)
+
+		err = startMounting(options, log, mi)
+		if err != nil {
+			log.Errorf("Mounting filesystem failed: %v", err)
+			// Abort on error if we were force mounting, otherwise continue.
+			if options.ForceMount {
+				// Cleanup when exiting in case the mount got dirty.
+				mi.Done()
+				return libfs.MountError(err.Error())
+			}
 		}
 	}
 
+	mi.Wait()
 	return nil
+}
+
+func startMounting(options StartOptions,
+	log logger.Logger, mi *libfs.MountInterrupter) error {
+	h, err := dokanMount(&options.DokanConfig, options.ForceMount, log)
+	if err != nil {
+		return err
+	}
+	mi.SetOnceFun(func() { h.Close() })
+	log.Info("Mounting the filesystem was a success!")
+	return h.BlockTillDone()
 }
