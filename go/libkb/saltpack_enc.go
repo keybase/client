@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"io"
 
 	"github.com/keybase/saltpack"
@@ -18,6 +19,7 @@ type SaltpackEncryptArg struct {
 	Binary             bool
 	EncryptionOnlyMode bool
 	SymmetricReceivers []saltpack.ReceiverSymmetricKey
+	SaltpackVersion    saltpack.Version
 
 	VisibleRecipientsForTesting bool
 }
@@ -42,9 +44,18 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 		bsk = naclBoxSecretKey(arg.Sender)
 	}
 
+	// If the version is unspecified, default to the current version.
+	saltpackVersion := arg.SaltpackVersion
+	if saltpackVersion == (saltpack.Version{}) {
+		saltpackVersion = saltpack.CurrentVersion()
+	}
+
 	var plainsink io.WriteCloser
 	var err error
 	if !arg.EncryptionOnlyMode {
+		if arg.SaltpackVersion.Major == 1 {
+			return errors.New("specifying the saltpack version 1 requires --current-devices-only")
+		}
 		var signer saltpack.SigningSecretKey
 		if !arg.SenderSigning.IsNil() {
 			signer = saltSigner{arg.SenderSigning}
@@ -56,9 +67,9 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 		}
 	} else {
 		if arg.Binary {
-			plainsink, err = saltpack.NewEncryptStream(CurrentSaltpackVersion(), arg.Sink, bsk, receiverBoxKeys)
+			plainsink, err = saltpack.NewEncryptStream(saltpackVersion, arg.Sink, bsk, receiverBoxKeys)
 		} else {
-			plainsink, err = saltpack.NewEncryptArmor62Stream(CurrentSaltpackVersion(), arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
+			plainsink, err = saltpack.NewEncryptArmor62Stream(saltpackVersion, arg.Sink, bsk, receiverBoxKeys, KeybaseSaltpackBrand)
 		}
 	}
 	if err != nil {

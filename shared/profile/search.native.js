@@ -22,6 +22,7 @@ const Search = (props: Props) => (
         onChangeText={props.onChangeText}
         onMoveSelectUp={() => {}} // TODO
         onMoveSelectDown={() => {}} // TODO
+        onEnter={() => {}} // TODO
       />
     </Box>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
@@ -29,7 +30,7 @@ const Search = (props: Props) => (
       <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
     </Box>
     <Box>
-      <ResultsList items={props.ids} onClick={props.onClick} />
+      <ResultsList items={props.ids} onClick={props.onClick} selectedId={null} />
     </Box>
   </StandardScreen>
 )

@@ -113,6 +113,8 @@ const (
 	LocalTrackMaxAge = 48 * time.Hour
 
 	CriticalClockSkewLimit = time.Hour
+
+	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second

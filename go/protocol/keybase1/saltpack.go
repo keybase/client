@@ -14,6 +14,7 @@ type SaltpackEncryptOptions struct {
 	EncryptionOnlyMode bool     `codec:"encryptionOnlyMode" json:"encryptionOnlyMode"`
 	NoSelfEncrypt      bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
 	Binary             bool     `codec:"binary" json:"binary"`
+	SaltpackVersion    int      `codec:"saltpackVersion" json:"saltpackVersion"`
 }
 
 func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
@@ -30,6 +31,7 @@ func (o SaltpackEncryptOptions) DeepCopy() SaltpackEncryptOptions {
 		EncryptionOnlyMode: o.EncryptionOnlyMode,
 		NoSelfEncrypt:      o.NoSelfEncrypt,
 		Binary:             o.Binary,
+		SaltpackVersion:    o.SaltpackVersion,
 	}
 }
 
@@ -48,14 +50,16 @@ func (o SaltpackDecryptOptions) DeepCopy() SaltpackDecryptOptions {
 }
 
 type SaltpackSignOptions struct {
-	Detached bool `codec:"detached" json:"detached"`
-	Binary   bool `codec:"binary" json:"binary"`
+	Detached        bool `codec:"detached" json:"detached"`
+	Binary          bool `codec:"binary" json:"binary"`
+	SaltpackVersion int  `codec:"saltpackVersion" json:"saltpackVersion"`
 }
 
 func (o SaltpackSignOptions) DeepCopy() SaltpackSignOptions {
 	return SaltpackSignOptions{
-		Detached: o.Detached,
-		Binary:   o.Binary,
+		Detached:        o.Detached,
+		Binary:          o.Binary,
+		SaltpackVersion: o.SaltpackVersion,
 	}
 }
 

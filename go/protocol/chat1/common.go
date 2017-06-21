@@ -674,6 +674,7 @@ type MessageClientHeaderVerified struct {
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	MerkleRoot   *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
@@ -694,6 +695,13 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
+		MerkleRoot: (func(x *MerkleRoot) *MerkleRoot {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MerkleRoot),
 		OutboxID: (func(x *OutboxID) *OutboxID {
 			if x == nil {
 				return nil

@@ -188,6 +188,11 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		}
 	}
 
+	saltpackVersion, err := libkb.SaltpackVersionFromArg(e.arg.Opts.SaltpackVersion)
+	if err != nil {
+		return err
+	}
+
 	encarg := libkb.SaltpackEncryptArg{
 		Source:             e.arg.Source,
 		Sink:               e.arg.Sink,
@@ -197,6 +202,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		Binary:             e.arg.Opts.Binary,
 		EncryptionOnlyMode: e.arg.Opts.EncryptionOnlyMode,
 		SymmetricReceivers: symmetricReceivers,
+		SaltpackVersion:    saltpackVersion,
 
 		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}

@@ -23,6 +23,7 @@ type CmdEncrypt struct {
 	anonymousSender    bool
 	currentDevicesOnly bool // the public-facing term for "encryption-only mode"
 	noSelfEncrypt      bool
+	saltpackVersion    int
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -54,6 +55,10 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		cli.BoolFlag{
 			Name:  "no-self",
 			Usage: "Don't encrypt for yourself. Requires --current-devices-only.",
+		},
+		cli.IntFlag{
+			Name:  "saltpack-version",
+			Usage: "Force a specific saltpack version",
 		},
 	}
 
@@ -106,6 +111,7 @@ func (c *CmdEncrypt) Run() error {
 		EncryptionOnlyMode: c.currentDevicesOnly,
 		NoSelfEncrypt:      c.noSelfEncrypt,
 		Binary:             c.binary,
+		SaltpackVersion:    c.saltpackVersion,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -140,6 +146,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 		// return errors.New("--no-self requires --current-devices-only")
 	}
 	c.binary = ctx.Bool("binary")
+	c.saltpackVersion = ctx.Int("saltpack-version")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}

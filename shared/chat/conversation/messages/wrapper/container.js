@@ -2,28 +2,21 @@
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import Wrapper from '.'
-import createCachedSelector from 're-reselect'
 import {compose, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
+import {lookupMessageProps} from '../../../shared'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 
-const getMessage = createCachedSelector(
-  [Constants.getMessageFromMessageKey],
-  (message: Constants.TextMessage) => message
-)((state, messageKey) => messageKey)
-
-// TODO more reselect?
-
 const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnProps): StateProps => {
   const conversationState = Constants.getSelectedConversationStates(state)
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
 
-  const message = getMessage(state, messageKey)
+  const {message, localMessageState} = lookupMessageProps(state, messageKey)
   if (!message) {
     throw new Error(`Can't find message for wrapper ${messageKey}`)
   }
@@ -40,7 +33,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     message &&
     message.messageID &&
     conversationState.get('firstNewMessageID') === message.messageID)
-  const prevMessage = getMessage(state, prevMessageKey)
+  const {message: prevMessage} = lookupMessageProps(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
 
   const firstMessageEver = !prevMessage
@@ -60,6 +53,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     // Not for outside consumption
     _editedCount,
     _message: message,
+    _localMessageState: localMessageState,
     _selectedConversationIDKey: selectedConversationIDKey,
     author,
     failureDescription,
@@ -84,6 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
   _editedCount: stateProps._editedCount,
   _message: stateProps._message,
+  _localMessageState: stateProps._localMessageState,
   _onAction: ownProps.onAction,
   _onShowEditor: ownProps.onShowEditor,
   author: stateProps.author,
@@ -113,7 +108,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withHandlers({
-    onAction: props => event => props._onAction(props._message, event),
+    onAction: props => event => props._onAction(props._message, props._localMessageState, event),
     onShowEditor: props => event => props._onShowEditor(props._message, event),
   }),
   lifecycle({

@@ -26,7 +26,7 @@ func newMemberSet() *memberSet {
 
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
 	set := newMemberSet()
-	if err := set.loadMembers(ctx, g, req); err != nil {
+	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
 	}
 	return set, nil
@@ -39,21 +39,21 @@ func (m *memberSet) nonAdmins() []member {
 	return ret
 }
 
-func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) error {
+func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq, forcePoll bool) error {
 	var err error
-	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, false)
+	m.Owners, err = m.loadGroup(ctx, g, req.Owners, true, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true, false)
+	m.Admins, err = m.loadGroup(ctx, g, req.Admins, true, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true, false)
+	m.Writers, err = m.loadGroup(ctx, g, req.Writers, true, forcePoll)
 	if err != nil {
 		return err
 	}
-	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, false)
+	m.Readers, err = m.loadGroup(ctx, g, req.Readers, true, forcePoll)
 	if err != nil {
 		return err
 	}

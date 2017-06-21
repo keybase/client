@@ -7,6 +7,8 @@ import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
 
+import type {StatResult} from './file'
+
 function tmpDir(): string {
   return cacheRoot
 }
@@ -42,6 +44,17 @@ function exists(filepath: string): Promise<boolean> {
   })
 }
 
+function stat(filepath: string): Promise<StatResult> {
+  return new Promise((resolve, reject) => {
+    fs.stat(filepath, (err, stats) => {
+      if (err) {
+        return reject(err)
+      }
+      resolve({size: stats.size})
+    })
+  })
+}
+
 function copy(from: string, to: string) {
   fsExtra.copySync(from, to)
 }
@@ -63,6 +76,7 @@ export {
   copy,
   downloadFilePath,
   exists,
+  stat,
   tmpDir,
   tmpFile,
   tmpRandFile,

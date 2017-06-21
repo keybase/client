@@ -41,6 +41,10 @@ func NewCmdSign(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 				Name:  "o, outfile",
 				Usage: "Specify an outfile (default is STDOUT).",
 			},
+			cli.IntFlag{
+				Name:  "saltpack-version",
+				Usage: "Force a specific saltpack version",
+			},
 		},
 	}
 }
@@ -48,8 +52,9 @@ func NewCmdSign(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 type CmdSign struct {
 	libkb.Contextified
 	UnixFilter
-	detached bool
-	binary   bool
+	detached        bool
+	binary          bool
+	saltpackVersion int
 }
 
 func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
@@ -59,6 +64,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 
 	s.detached = ctx.Bool("detached")
 	s.binary = ctx.Bool("binary")
+	s.saltpackVersion = ctx.Int("saltpack-version")
 
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
@@ -86,8 +92,9 @@ func (s *CmdSign) Run() (err error) {
 			Source: src,
 			Sink:   snk,
 			Opts: keybase1.SaltpackSignOptions{
-				Detached: s.detached,
-				Binary:   s.binary,
+				Detached:        s.detached,
+				Binary:          s.binary,
+				SaltpackVersion: s.saltpackVersion,
 			},
 		}
 		err = cli.SaltpackSign(context.TODO(), arg)

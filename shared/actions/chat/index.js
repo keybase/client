@@ -156,10 +156,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         }
 
         if (pendingMessage) {
-          if (message.type === 'Attachment') {
-            // Copy locally-generated preview
-            message.previewPath = pendingMessage.previewPath
-          }
+          yield put(Creators.outboxMessageBecameReal(pendingMessage.key, message.key))
 
           // If the message has an outboxID and came from our device, then we
           // sent it and have already rendered it in the message list; we just
@@ -545,12 +542,6 @@ function _unboxedToMessage(
             ...common,
             ...attachmentInfo,
             messageState,
-            previewPath: null,
-            downloadedPath: null,
-            savedPath: null,
-            previewProgress: null,
-            downloadProgress: null,
-            uploadProgress: null,
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
@@ -580,7 +571,6 @@ function _unboxedToMessage(
             type: 'UpdateAttachment',
             updates: {
               ...attachmentInfo,
-              uploadProgress: null,
               messageState: 'sent',
             },
           }

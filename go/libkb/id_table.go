@@ -618,9 +618,13 @@ func (s *EldestChainLink) Type() string                  { return string(Delegat
 func (s *EldestChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *EldestChainLink) GetDevice() *Device            { return s.device }
 func (s *EldestChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("key") }
+func (s *EldestChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
 
 //
 //=========================================================================
+
 //=========================================================================
 // SibkeyChainLink
 //
@@ -664,6 +668,9 @@ func (s *SibkeyChainLink) Type() string                  { return string(Delegat
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
+func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
+	tab.insertLink(s)
+}
 
 //-------------------------------------
 

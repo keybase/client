@@ -53,6 +53,7 @@ const AttachmentView = ({
 
 const AttachmentPopup = ({
   message,
+  localMessageState,
   isZoomed,
   onClose,
   onDownloadAttachment,
@@ -62,7 +63,8 @@ const AttachmentPopup = ({
   onOpenInFileUI,
   you,
 }: Props) => {
-  const {previewType, title, author, timestamp, downloadedPath} = message
+  const {previewType, title, author, timestamp} = message
+  const {downloadedPath} = localMessageState
 
   if (!previewType || previewType === 'Other') {
     return (

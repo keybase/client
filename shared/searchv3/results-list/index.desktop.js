@@ -17,6 +17,7 @@ class SearchResultsList extends Component<void, Props, void> {
         key={id}
         onClick={() => onClick(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
+        selected={this.props.selectedId === id}
       />
     )
   }

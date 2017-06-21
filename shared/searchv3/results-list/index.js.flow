@@ -8,6 +8,7 @@ export type Props = {
   items: Array<SearchResultId>,
   onClick: (id: SearchResultId) => void,
   onShowTracker?: (id: SearchResultId) => void,
+  selectedId: ?SearchResultId,
 }
 
 export default class ResultsList extends Component<void, Props, void> {}

@@ -249,6 +249,20 @@
           "name": "version"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "InterestingPerson",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -514,6 +528,18 @@
         }
       ],
       "response": null
+    },
+    "interestingPeople": {
+      "request": [
+        {
+          "name": "maxUsers",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InterestingPerson"
+      }
     }
   },
   "namespace": "keybase.1"

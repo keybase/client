@@ -7,10 +7,10 @@
       "name": "TeamRole",
       "symbols": [
         "NONE_0",
-        "OWNER_1",
-        "ADMIN_2",
-        "WRITER_3",
-        "READER_4"
+        "READER_1",
+        "WRITER_2",
+        "ADMIN_3",
+        "OWNER_4"
       ]
     },
     {
@@ -24,6 +24,12 @@
     },
     {
       "type": "record",
+      "name": "PerTeamKeyGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
         {
@@ -31,7 +37,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "keyGeneration"
         },
         {
@@ -55,7 +61,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -69,7 +75,7 @@
       "name": "PerTeamKey",
       "fields": [
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "gen"
         },
         {
@@ -101,7 +107,7 @@
           "name": "seed"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -364,7 +370,7 @@
           "type": {
             "type": "map",
             "values": "PerTeamKey",
-            "keys": "int"
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeys"
         },
@@ -394,12 +400,18 @@
     },
     {
       "type": "record",
-      "name": "TeamNameParts",
+      "name": "TeamNamePart",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamName",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamNamePart"
           },
           "name": "parts"
         }
@@ -415,7 +427,7 @@
           "jsonkey": "team_id"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -424,6 +436,24 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamRefreshers",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "wantMembers"
+        }
+      ],
+      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
     },
     {
       "type": "record",
@@ -443,15 +473,8 @@
           "name": "needAdmin"
         },
         {
-          "type": "int",
-          "name": "needKeyGeneration"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UserVersion"
-          },
-          "name": "needMembers"
+          "type": "TeamRefreshers",
+          "name": "refreshers"
         },
         {
           "type": "boolean",
@@ -588,9 +611,14 @@
         {
           "name": "application",
           "type": "TeamApplication"
+        },
+        {
+          "name": "refreshers",
+          "type": "TeamRefreshers"
         }
       ],
-      "response": "TeamPlusApplicationKeys"
+      "response": "TeamPlusApplicationKeys",
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
     }
   },
   "namespace": "keybase.1"
