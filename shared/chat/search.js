@@ -2,8 +2,10 @@
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/searchv3/creators'
+import {getProfile} from '../actions/tracker'
 import * as SearchConstants from '../constants/searchv3'
 import UserInput from '../searchv3/user-input'
+import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
 import {Box, Icon} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers} from 'recompose'
@@ -14,17 +16,6 @@ import {chatSearchResultArray} from '../constants/selectors'
 import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
 
 import type {TypedState} from '../constants/reducer'
-
-type OwnProps = {
-  searchText: string,
-  onChangeSearchText: (s: string) => void,
-  usernameText: string,
-  selectedService: string,
-  onSelectService: (s: string) => void,
-  search: (term: string, service: SearchConstants.Service) => void,
-  selectedSearchId: ?SearchConstants.SearchResultId,
-  onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
-}
 
 const mapStateToProps = (state: TypedState) => {
   const {chat: {inboxSearch}} = state
@@ -41,6 +32,8 @@ const mapStateToProps = (state: TypedState) => {
       service,
     }
   })
+
+  console.log('items', userItems)
 
   return {
     userItems,
@@ -60,11 +53,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     }
   },
   onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
+  _onClickSearchResult: id => {
+    dispatch(Creators.stageUserForSearch(id))
+  },
+  onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
 })
 
 const SearchHeader = props => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput
@@ -90,6 +87,13 @@ const SearchHeader = props => {
       <Box style={{alignSelf: 'center'}}>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>
+      <SearchResultsList
+        style={{flex: 1}}
+        items={props.searchResultIds}
+        onClick={props.onClickSearchResult}
+        onShowTracker={props.onShowTrackerInSearch}
+        selectedId={props.selectedSearchId}
+      />
     </Box>
   )
 }
@@ -97,11 +101,17 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
+  withState('usernameText', 'onChangeSearchText', ''),
   onChangeSelectedSearchResultHoc,
   withHandlers({
-    onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
+    onSelectService: props => nextService => {
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
+    },
+    onClickSearchResult: props => id => {
+      props.onChangeSearchText('')
+      props._onClickSearchResult(id)
+      props.clearSearchResults()
     },
   }),
   defaultProps({

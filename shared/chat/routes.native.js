@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConversationList from './inbox/container'
+import ConvListOrSearch from './conversation-list-or-search'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
@@ -42,7 +42,7 @@ const conversationRoute = new RouteDefNode({
 })
 
 const routeTree = new RouteDefNode({
-  component: ConversationList,
+  component: ConvListOrSearch,
   children: () => conversationRoute,
   tags: {persistChildren: true, underStatusBar: true},
 })

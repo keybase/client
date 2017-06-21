@@ -219,6 +219,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
   }
 })
 
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+})
+
 const servicesResultsListMapCommon = {
   mockStore: {
     config: {
@@ -226,7 +230,7 @@ const servicesResultsListMapCommon = {
       following: {},
     },
     entities: new EntitiesStateRecord({
-      searchv3Chat: Map(servicesResultsListMapCommonRows),
+      searchResults: Map(servicesResultsListMapCommonRows),
     }),
   },
   parentProps: {
@@ -429,16 +433,10 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
   },
 }
 
-const desktopOnly = !isMobile
-  ? {
-      'SearchV3 resultsList': servicesResultsListMap,
-    }
-  : {}
-
 export default {
+  'SearchV3 resultsList': servicesResultsListMap,
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
   'SearchV3 user input (editable)': userInputEditableMap,
   'SearchV3 result': servicesResultMap,
-  ...desktopOnly,
 }
