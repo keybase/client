@@ -678,6 +678,9 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		err := fillInJournalStatusUnflushedPaths(
 			ctx, fs.config, jServerStatus, tlfIDs)
 		if err != nil {
+			// The caller might depend on the channel (e.g., in
+			// libfs/remote_status.go), even in the case where err !=
+			// nil.
 			return KBFSStatus{}, ch, err
 		}
 		if usageBytes >= 0 {
