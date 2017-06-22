@@ -678,7 +678,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		err := fillInJournalStatusUnflushedPaths(
 			ctx, fs.config, jServerStatus, tlfIDs)
 		if err != nil {
-			return KBFSStatus{}, nil, err
+			return KBFSStatus{}, ch, err
 		}
 		if usageBytes >= 0 {
 			usageBytes += status.UnflushedBytes
