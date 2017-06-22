@@ -185,8 +185,8 @@ export default function(state: State = initialState, action: Actions) {
     }
     case 'profile:clearSearchResults': {
       return {
-         ...state,
-         searchResults: null,
+        ...state,
+        searchResults: null,
       }
     }
   }

@@ -10,6 +10,9 @@ const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
   searchQueryToResult.get(searchQuery)
 
+const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) =>
+  searchResults.get(username).toObject()
+
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
@@ -33,5 +36,6 @@ export {
   inboxSearchSelector,
   loggedInSelector,
   profileSearchResultArray,
+  searchResultSelector,
   usernameSelector,
 }

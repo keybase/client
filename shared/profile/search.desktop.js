@@ -54,7 +54,7 @@ const styleSearchContainer = {
 
 const styleSearchIcon = {
   alignSelf: 'center',
-  padding: globalMargins.small
+  padding: globalMargins.small,
 }
 
 const styleSearchRow = {
