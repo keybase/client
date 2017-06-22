@@ -1815,6 +1815,16 @@ func (e ChatTLFFinalizedError) Error() string {
 
 //=============================================================================
 
+type ChatDuplicateMessageError struct {
+	OutboxID chat1.OutboxID
+}
+
+func (e ChatDuplicateMessageError) Error() string {
+	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
+}
+
+//=============================================================================
+
 type InvalidAddressError struct {
 	Msg string
 }
