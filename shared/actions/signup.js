@@ -263,8 +263,8 @@ function checkPassphrase(
         passphraseError = new HiddenString('Fields cannot be blank')
       } else if (passphrase1 !== passphrase2) {
         passphraseError = new HiddenString('Passphrases must match')
-      } else if (passphrase1.length < 12) {
-        passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
+      } else if (passphrase1.length < 6) {
+        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
       }
 
       if (passphraseError) {
