@@ -33,12 +33,13 @@ class _SetPublicName extends Component<void, Props, State> {
   }
 
   render() {
+    const deviceName = this.state.deviceName || ''
     const deviceNameTrimmed: string = trimDeviceName(this.state.deviceName)
     const nameTaken = !!(this.props.existingDevicesTrimmed &&
       this.props.existingDevicesTrimmed.indexOf(deviceNameTrimmed) !== -1)
-    const submitEnabled = !!(deviceNameTrimmed.length >= 3 && deviceNameTrimmed.length <= 64 && !nameTaken)
+    const submitEnabled = !!(deviceNameTrimmed.length >= 3 && deviceName.length <= 64 && !nameTaken)
     const nameTakenError = nameTaken
-      ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
+      ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
       : null
 
     return (
