@@ -22,9 +22,8 @@ class FoldersRender extends Component<void, Props, void> {
         styleBadge={styleBadge}
         styleIcon={styleIcon}
         styleLabel={{
-          color: isPublic
-            ? isSelected ? globalColors.black_75 : globalColors.white_75
-            : isSelected ? globalColors.white : globalColors.black_60,
+          color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
+          opacity: isSelected ? 1 : 0.6,
         }}
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
@@ -39,19 +38,19 @@ class FoldersRender extends Component<void, Props, void> {
       <Box
         style={{
           ...stylesContainer,
-          backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey,
+          backgroundColor: globalColors.white,
         }}
       >
         <Box
           style={{
-            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
+            backgroundColor: globalColors.white,
             height: statusBarHeight,
           }}
         />
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
+            backgroundColor: globalColors.white,
           }}
         >
           {[false, true].map(isPublic => (

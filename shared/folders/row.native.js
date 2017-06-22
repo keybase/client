@@ -2,10 +2,9 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, NativeImage, ClickableBox} from '../common-adapters/index.native'
+import {Box, Text, Icon, Avatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors} from '../styles'
-import {iconMeta} from '../common-adapters/icon.constants'
 
 const Avatars = ({styles, users, isPublic, ignored}) => {
   // TODO (MM) fix type
@@ -15,23 +14,22 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
         size={32}
         username={users[users.length - 1].username}
         opacity={ignored ? 0.5 : 1.0}
-        backgroundColor={styles.rowContainer.backgroundColor}
+        backgroundColor={globalColors.white}
       />
     : <Icon type={groupIcon} />
 
-  if (isPublic) {
-    return <Box style={styles.avatarContainer}>{contents}</Box>
-  }
-
-  const source =
-    iconMeta[ignored ? 'icon-damier-pattern-ignored-locked-48-1000' : 'icon-damier-pattern-good-open-48-1000']
-      .require
-
   return (
-    <Box style={{width: 48, height: 1}}>
-      <NativeImage style={stylesAvatarContainerPrivate} source={source} resizeMode="contain">
-        {contents}
-      </NativeImage>
+    <Box
+      style={{
+        overflow: 'hidden',
+        paddingBottom: 16,
+        paddingLeft: 8,
+        paddingRight: 8,
+        paddingTop: 16,
+        width: 48,
+      }}
+    >
+      {contents}
     </Box>
   )
 }
@@ -43,11 +41,11 @@ const Names = ({styles, users, nameColor, redColor}) => {
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{color: u.broken ? redColor : nameColor}}
+          style={u.broken ? {color: redColor} : {}}
         >
           {u.username}
-          {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type="BodySemibold" style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
+          {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
+          {i !== users.length - 1 && <Text type="BodySemibold" style={{marginRight: 2}}>,</Text>}
         </Text>
       ))}
     </Box>
@@ -63,8 +61,8 @@ const Modified = ({styles, modified}) => {
         style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, fontSize: 10, ...iconColor}}
         hint="Modified"
       />
-      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type="BodySmall">Modified {modified.when} by&nbsp;</Text>
+      <Text type="BodySmall">{modified.username}</Text>
     </Box>
   )
 }
@@ -102,19 +100,15 @@ const Row = ({
 }: Folder & {onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
-  let backgroundColor = styles.rowContainer.backgroundColor
-  let nameColor = styles.nameColor
   let redColor = globalColors.red
 
   if (ignored) {
-    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
-    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
     redColor = globalColors.red_75
   }
 
   const containerStyle = {
     ...styles.rowContainer,
-    backgroundColor,
+    backgroundColor: globalColors.white,
   }
 
   const icon: IconType = styles.hasStuffIcon
@@ -126,14 +120,7 @@ const Row = ({
         <Box style={{...globalStyles.flexBoxRow}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
-            <Names
-              users={users}
-              styles={styles}
-              meta={meta}
-              modified={modified}
-              nameColor={nameColor}
-              redColor={redColor}
-            />
+            <Names users={users} styles={styles} meta={meta} modified={modified} redColor={redColor} />
             {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
@@ -165,15 +152,6 @@ const rowContainer = {
 const stylesAvatarContainer = {
   width: 48,
   padding: 8,
-  paddingLeft: 8,
-  paddingRight: 8,
-  paddingTop: 16,
-  paddingBottom: 16,
-}
-
-const stylesAvatarContainerPrivate = {
-  width: 48,
-  overflow: 'hidden',
   paddingLeft: 8,
   paddingRight: 8,
   paddingTop: 16,

@@ -68,19 +68,19 @@ class ListRender extends Component<void, Props, State> {
       <Box style={stylesIgnoreContainer}>
         <ClickableBox onClick={this._onIgnoredToggle}>
           <Box style={styles.topBox}>
-            <Text type="BodySmallSemibold" style={styles.dividerText}>Ignored folders</Text>
+            <Text type="BodySmallSemibold">Ignored folders</Text>
             <Icon
               type={caretIcon}
               style={{
                 ...stylesIgnoreCaret,
-                color: this.props.isPublic ? globalColors.black_40 : globalColors.white_40,
+                color: globalColors.black_40,
               }}
             />
           </Box>
         </ClickableBox>
         {row.enabled &&
           <Box style={styles.bottomBox}>
-            <Text type="BodySmallSemibold" style={styles.dividerBodyText}>
+            <Text type="BodySmallSemibold">
               Ignored folders won't show up on your computer and you won't receive alerts about them.
             </Text>
           </Box>}
@@ -148,42 +148,38 @@ const stylesIgnoreCaret = {
 const stylesPrivate = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.white,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.white_75,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.white_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.white,
   },
 }
 
 const stylesPublic = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.black_40,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.black_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
   },
 }
 export default ListRender
