@@ -1,11 +1,10 @@
 // @flow
 import React from 'react'
-import openURL from '../util/open-url'
-import {Avatar, BackButton, Box, Icon, Text, HeaderHoc} from '../common-adapters'
+import {Avatar, BackButton, Box, Icon, Text} from '../common-adapters'
 import {capitalize} from 'lodash'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 import {platformToLogo24} from '../constants/search'
-import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../profile/index.desktop'
+import {AVATAR_SIZE, HEADER_SIZE} from '../profile/index.desktop'
 
 import type Props from './non-user-profile.render'
 
