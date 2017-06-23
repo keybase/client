@@ -33,6 +33,7 @@ const (
 	StatusCode_SCDecryptionError        StatusCode = 280
 	StatusCode_SCInvalidAddress         StatusCode = 281
 	StatusCode_SCNoSession              StatusCode = 283
+	StatusCode_SCAccountReset           StatusCode = 290
 	StatusCode_SCBadEmail               StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
@@ -126,6 +127,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCDecryptionError":        280,
 	"SCInvalidAddress":         281,
 	"SCNoSession":              283,
+	"SCAccountReset":           290,
 	"SCBadEmail":               472,
 	"SCBadSignupUsernameTaken": 701,
 	"SCBadInvitationCode":      707,
@@ -217,6 +219,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
 	283:  "SCNoSession",
+	290:  "SCAccountReset",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",

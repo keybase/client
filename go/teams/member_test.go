@@ -160,7 +160,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 
 	// this change request should generate boxes since other.Username
 	// is not a member
-	req := keybase1.TeamChangeReq{Readers: []keybase1.UID{other.GetUID()}}
+	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
 	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
@@ -193,7 +193,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
 	// this change request shouldn't generate any new boxes
-	req := keybase1.TeamChangeReq{Readers: []keybase1.UID{other.GetUID()}}
+	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
 	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)

@@ -74,11 +74,11 @@ protocol teams {
   }
 
   record TeamChangeReq {
-    array<UID> owners;
-    array<UID> admins;
-    array<UID> writers;
-    array<UID> readers;
-    array<UID> none;
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+    array<UserVersion> none;
   }
 
   record UserVersion {

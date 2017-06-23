@@ -258,49 +258,49 @@ func (o TeamMembersUsernames) DeepCopy() TeamMembersUsernames {
 }
 
 type TeamChangeReq struct {
-	Owners  []UID `codec:"owners" json:"owners"`
-	Admins  []UID `codec:"admins" json:"admins"`
-	Writers []UID `codec:"writers" json:"writers"`
-	Readers []UID `codec:"readers" json:"readers"`
-	None    []UID `codec:"none" json:"none"`
+	Owners  []UserVersion `codec:"owners" json:"owners"`
+	Admins  []UserVersion `codec:"admins" json:"admins"`
+	Writers []UserVersion `codec:"writers" json:"writers"`
+	Readers []UserVersion `codec:"readers" json:"readers"`
+	None    []UserVersion `codec:"none" json:"none"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 	return TeamChangeReq{
-		Owners: (func(x []UID) []UID {
-			var ret []UID
+		Owners: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Owners),
-		Admins: (func(x []UID) []UID {
-			var ret []UID
+		Admins: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Admins),
-		Writers: (func(x []UID) []UID {
-			var ret []UID
+		Writers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Writers),
-		Readers: (func(x []UID) []UID {
-			var ret []UID
+		Readers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Readers),
-		None: (func(x []UID) []UID {
-			var ret []UID
+		None: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)

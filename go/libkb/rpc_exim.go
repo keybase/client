@@ -308,6 +308,24 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			input = s.Fields[0].Value
 		}
 		return ResolutionError{Msg: s.Desc, Input: input}
+	case SCAccountReset:
+		var e keybase1.UserVersion
+		var r keybase1.Seqno
+		seqnoFromString := func(s string) keybase1.Seqno {
+			i, _ := strconv.Atoi(s)
+			return keybase1.Seqno(i)
+		}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "e_uid":
+				e.Uid, _ = keybase1.UIDFromString(field.Value)
+			case "e_version":
+				e.EldestSeqno = seqnoFromString(field.Value)
+			case "r_version":
+				r = seqnoFromString(field.Value)
+			}
+		}
+		return NewAccountResetError(e, r)
 	case SCKeyNoPGPEncryption:
 		ret := NoPGPEncryptionKeyError{User: s.Desc}
 		for _, field := range s.Fields {
@@ -760,15 +778,6 @@ func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	if c.Key != nil {
 		s.Desc = c.Key.String()
 	}
-	return
-}
-
-//=============================================================================
-
-func (c NoActiveKeyError) ToStatus() (s keybase1.Status) {
-	s.Code = SCKeyNoActive
-	s.Name = "KEY_NO_ACTIVE"
-	s.Desc = c.Error()
 	return
 }
 
@@ -1841,5 +1850,18 @@ func ImportDbKey(k keybase1.DbKey) DbKey {
 	return DbKey{
 		Typ: ObjType(k.ObjType),
 		Key: k.Key,
+	}
+}
+
+func (e AccountResetError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCAccountReset,
+		Name: "ACCOUNT_RESET",
+		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "e_uid", Value: string(e.expected.Uid)},
+			{Key: "e_version", Value: fmt.Sprintf("%d", e.expected.EldestSeqno)},
+			{Key: "r_version", Value: fmt.Sprintf("%d", e.received)},
+		},
 	}
 }

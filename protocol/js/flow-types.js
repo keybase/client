@@ -135,6 +135,7 @@ export const ConstantsStatusCode = {
   scdecryptionerror: 280,
   scinvalidaddress: 281,
   scnosession: 283,
+  scaccountreset: 290,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -5692,6 +5693,7 @@ export type StatusCode =
   | 280 // SCDecryptionError_280
   | 281 // SCInvalidAddress_281
   | 283 // SCNoSession_283
+  | 290 // SCAccountReset_290
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -5818,11 +5820,11 @@ export type TeamCLKRMsg = {
 }
 
 export type TeamChangeReq = {
-  owners?: ?Array<UID>,
-  admins?: ?Array<UID>,
-  writers?: ?Array<UID>,
-  readers?: ?Array<UID>,
-  none?: ?Array<UID>,
+  owners?: ?Array<UserVersion>,
+  admins?: ?Array<UserVersion>,
+  writers?: ?Array<UserVersion>,
+  readers?: ?Array<UserVersion>,
+  none?: ?Array<UserVersion>,
 }
 
 export type TeamData = {

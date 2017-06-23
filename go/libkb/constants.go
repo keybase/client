@@ -244,6 +244,7 @@ const (
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
 	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
+	SCAccountReset           = int(keybase1.StatusCode_SCAccountReset)
 )
 
 const (
