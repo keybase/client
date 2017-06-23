@@ -16,6 +16,8 @@ protocol teams {
     SALTPACK_3
   }
 
+  // PerTeamKeyGeneration describes the generation of the secret.
+  // The sequence starts at 1.
   @typedef("int")
   record PerTeamKeyGeneration {}
 
@@ -99,10 +101,10 @@ protocol teams {
   // It is under the umbrella of the team loader refactor.
   record TeamData {
     TeamSigChainState chain;
-    // Sorted by generation ascending.
-    array<PerTeamKeySeedItem> perTeamKeySeeds;
-    array<ReaderKeyMask> readerKeyMasks;
-
+    // generation -> seed
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    // application -> generation -> mask
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
     // Should only be used by TeamLoader
     // because it is the only mutated field, and thus is not threadsafe to read.
     Time cachedAt;

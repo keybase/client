@@ -47,7 +47,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
+		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(t.Box.Generation))
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}

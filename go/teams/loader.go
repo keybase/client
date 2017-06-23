@@ -202,7 +202,7 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 	}
 
 	// Pull new links from the server
-	var teamUpdate *teamUpdateT
+	var teamUpdate *rawTeam
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
 		low := keybase1.Seqno(0)
 		if ret != nil {
@@ -214,27 +214,27 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 		}
 	}
 
-	links, err := teamUpdate.links()
+	links, err := l.unpackLinks(ctx, teamUpdate)
 	if err != nil {
 		return nil, err
 	}
 	for _, link := range links {
-		if l.seqnosContains(arg.needSeqnos, link.Seqno) || arg.needAdmin {
+		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
 			if link.isStubbed() {
-				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno)
+				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
 			}
 		}
 
-		proofSet, err = l.verifyLink(ctx, ret, &link, proofSet)
+		proofSet, err = l.verifyLink(ctx, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
 
-		if l.isParentChildOperation(ctx, &link) {
-			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, &link))
+		if l.isParentChildOperation(ctx, link) {
+			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, link))
 		}
 
-		ret, err = l.applyNewLink(ctx, ret, &link)
+		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
 		if err != nil {
 			return nil, err
 		}
@@ -264,6 +264,8 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 	if !ret.Chain.Id.Eq(arg.teamID) {
 		return nil, fmt.Errorf("team id mismatch: %v != %v", ret.Chain.Id.String(), arg.teamID.String())
 	}
+
+	// TODO check that the name matches the subteam-ness
 
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader

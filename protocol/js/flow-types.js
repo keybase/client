@@ -5827,8 +5827,8 @@ export type TeamChangeReq = {
 
 export type TeamData = {
   chain: TeamSigChainState,
-  perTeamKeySeeds?: ?Array<PerTeamKeySeedItem>,
-  readerKeyMasks?: ?Array<ReaderKeyMask>,
+  perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
+  readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
   cachedAt: Time,
 }
 
