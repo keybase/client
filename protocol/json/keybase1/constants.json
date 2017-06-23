@@ -29,6 +29,7 @@
         "SCDecryptionError_280",
         "SCInvalidAddress_281",
         "SCNoSession_283",
+        "SCAccountReset_290",
         "SCBadEmail_472",
         "SCBadSignupUsernameTaken_701",
         "SCBadInvitationCode_707",

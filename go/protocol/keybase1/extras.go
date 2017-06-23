@@ -1301,6 +1301,10 @@ func (u UserVersion) PercentForm() string {
 	if u.EldestSeqno == 1 {
 		return string(u.Uid)
 	}
+	return u.String()
+}
+
+func (u UserVersion) String() string {
 	return fmt.Sprintf("%s%%%d", u.Uid, u.EldestSeqno)
 }
 
@@ -1341,6 +1345,27 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
+func (t TeamMembers) AllUserVersions() []UserVersion {
+	m := make(map[UID]UserVersion)
+	for _, u := range t.Owners {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Admins {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Writers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	var all []UserVersion
+	for _, uv := range m {
+		all = append(all, uv)
+	}
+	return all
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
@@ -1376,4 +1401,11 @@ func (t TeamName) Eq(t2 TeamName) bool {
 
 func (t TeamName) IsRootTeam() bool {
 	return len(t.Parts) == 1
+}
+
+func (u UserPlusKeys) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
 }

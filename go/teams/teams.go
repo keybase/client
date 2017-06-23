@@ -93,8 +93,8 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
-func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
-	role, err := t.MemberRole(ctx, uid)
+func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
+	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		t.G().Log.Debug("error getting user role: %s", err)
 		return false
@@ -105,11 +105,7 @@ func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
 	return true
 }
 
-func (t *Team) MemberRole(ctx context.Context, uid keybase1.UID) (keybase1.TeamRole, error) {
-	uv, err := loadUserVersionByUID(ctx, t.G(), uid)
-	if err != nil {
-		return keybase1.TeamRole_NONE, err
-	}
+func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.Chain.GetUserRole(uv)
 }
 
@@ -267,13 +263,12 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
 
-	// create the team section of the signature
-
 	admin, err := t.getAdminPermission(ctx, false)
 	if err != nil {
 		return err
 	}
 
+	// create the team section of the signature
 	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
 		return err
@@ -561,12 +556,14 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 
 	// rotate the team key for all current members
 	existing, err := t.Members()
+	t.G().Log.Debug("existing: %+v", existing)
 	if err != nil {
 		return nil, nil, err
 	}
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
+	t.G().Log.Debug("AddRemainingRecipients: %+v", memSet)
 
 	t.rotated = true
 

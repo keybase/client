@@ -17,11 +17,11 @@ type memberSet struct {
 	Writers    []member
 	Readers    []member
 	None       []member
-	recipients map[keybase1.UID]keybase1.PerUserKey
+	recipients map[keybase1.UserVersion]keybase1.PerUserKey
 }
 
 func newMemberSet() *memberSet {
-	return &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+	return &memberSet{recipients: make(map[keybase1.UserVersion]keybase1.PerUserKey)}
 }
 
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
@@ -64,11 +64,11 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 	return nil
 }
 
-func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UID, storeRecipient, force bool) ([]member, error) {
+func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {
 	members := make([]member, len(group))
 	var err error
-	for i, uid := range group {
-		members[i], err = m.loadMember(ctx, g, uid, storeRecipient, force)
+	for i, uv := range group {
+		members[i], err = m.loadMember(ctx, g, uv, storeRecipient, force)
 		if err != nil {
 			return nil, err
 		}
@@ -76,15 +76,22 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	return members, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, storeRecipient, force bool) (member, error) {
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, force bool) (member, error) {
 	// load upak for uid
-	arg := libkb.NewLoadUserByUIDArg(ctx, g, uid)
+	arg := libkb.NewLoadUserByUIDArg(ctx, g, uv.Uid)
 	if force {
 		arg.ForcePoll = true
 	}
 	upak, _, err := g.GetUPAKLoader().Load(arg)
 	if err != nil {
 		return member{}, err
+	}
+	if _, ok := err.(libkb.NoKeyError); ok {
+		return member{}, libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+	}
+
+	if upak.Base.EldestSeqno != uv.EldestSeqno {
+		return member{}, libkb.NewAccountResetError(uv, upak.Base.EldestSeqno)
 	}
 
 	// find the most recent per-user key
@@ -97,7 +104,7 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid 
 
 	// store the key in a recipients table
 	if storeRecipient {
-		m.recipients[upak.Base.Uid] = key
+		m.recipients[upak.Base.ToUserVersion()] = key
 	}
 
 	// return a member with UserVersion and a PerUserKey
@@ -109,7 +116,7 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid 
 }
 
 type MemberChecker interface {
-	IsMember(context.Context, keybase1.UID) bool
+	IsMember(context.Context, keybase1.UserVersion) bool
 }
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
@@ -124,19 +131,19 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 // AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) error {
 	// make a map of the None members
-	noneMap := make(map[keybase1.UID]bool)
+	noneMap := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
-		noneMap[n.version.Uid] = true
+		noneMap[n.version] = true
 	}
 
-	for _, u := range existing.AllUIDs() {
-		if noneMap[u] {
+	for _, uv := range existing.AllUserVersions() {
+		if noneMap[uv] {
 			continue
 		}
-		if _, ok := m.recipients[u]; ok {
+		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, u, true, true); err != nil {
+		if _, err := m.loadMember(ctx, g, uv, true, true); err != nil {
 			return err
 		}
 	}
