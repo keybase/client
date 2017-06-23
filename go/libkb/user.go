@@ -93,12 +93,6 @@ func NewUserFromLocalStorage(g *GlobalContext, o *jsonw.Wrapper) (*User, error) 
 func (u *User) GetNormalizedName() NormalizedUsername { return NewNormalizedUsername(u.name) }
 func (u *User) GetName() string                       { return u.name }
 func (u *User) GetUID() keybase1.UID                  { return u.id }
-func (u *User) GetUserVersion() keybase1.UserVersion {
-	return keybase1.UserVersion{
-		Uid:         u.GetUID(),
-		EldestSeqno: u.GetCurrentEldestSeqno(),
-	}
-}
 
 func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()

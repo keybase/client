@@ -144,6 +144,10 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 			continue
 		}
 		if _, err := m.loadMember(ctx, g, uv, true, true); err != nil {
+			if _, reset := err.(libkb.AccountResetError); reset {
+				g.Log.CInfof(ctx, "Skipping user was who reset: %s", uv.String())
+				continue
+			}
 			return err
 		}
 	}
