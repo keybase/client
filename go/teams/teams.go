@@ -556,15 +556,12 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 
 	// rotate the team key for all current members
 	existing, err := t.Members()
-	t.G().Log.Debug("existing: %+v", existing)
 	if err != nil {
 		return nil, nil, err
 	}
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
-	t.G().Log.Debug("AddRemainingRecipients: %+v", memSet)
-
 	t.rotated = true
 
 	return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
