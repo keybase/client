@@ -32,7 +32,7 @@ func readChats(team smuTeam, u *smuUser, nMessages int) {
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}
-	tctx.G.Log.Debugf("--------- readChat success for %s ------------", u.username)
+	tctx.G.Log.Debug("--------- readChat success for %s ------------", u.username)
 }
 
 func TestTeamReset(t *testing.T) {
@@ -41,16 +41,16 @@ func TestTeamReset(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
-	ctx.log.Debugf("-------- Signed up ann (%s) ------------", ann.username)
+	ctx.log.Debug("-------- Signed up ann (%s) ------------", ann.username)
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
-	ctx.log.Debugf("-------- Signed up bob (%s) ------------", bob.username)
+	ctx.log.Debug("-------- Signed up bob (%s) ------------", bob.username)
 
 	team := ann.createTeam([]*smuUser{bob})
-	ctx.log.Debugf("-------- team created (%s) ------------", team.name)
+	ctx.log.Debug("-------- team created (%s) ------------", team.name)
 
 	sendChat(team, ann, "0")
-	ctx.log.Debugf("-------- sent chat (%s via %s) ------------", team.name, ann.username)
+	ctx.log.Debug("-------- sent chat (%s via %s) ------------", team.name, ann.username)
 
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)

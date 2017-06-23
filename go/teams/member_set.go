@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -69,6 +70,10 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	var err error
 	for i, uv := range group {
 		members[i], err = m.loadMember(ctx, g, uv, storeRecipient, force)
+		if _, reset := err.(libkb.AccountResetError); reset {
+			g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -76,18 +81,21 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	return members, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, force bool) (member, error) {
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, force bool) (res member, err error) {
 	// load upak for uid
+	defer g.CTrace(ctx, fmt.Sprintf("memberSet#loadMember(%s)", uv.String()), func() error { return err })()
+
 	arg := libkb.NewLoadUserByUIDArg(ctx, g, uv.Uid)
 	if force {
 		arg.ForcePoll = true
 	}
 	upak, _, err := g.GetUPAKLoader().Load(arg)
+
 	if err != nil {
+		if _, reset := err.(libkb.NoKeyError); reset {
+			return member{}, libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+		}
 		return member{}, err
-	}
-	if _, ok := err.(libkb.NoKeyError); ok {
-		return member{}, libkb.NewAccountResetError(uv, keybase1.Seqno(0))
 	}
 
 	if upak.Base.EldestSeqno != uv.EldestSeqno {
