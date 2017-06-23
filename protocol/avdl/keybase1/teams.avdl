@@ -191,7 +191,8 @@ protocol teams {
 
     // Whether we need to be an admin.
     // Will fail unless we are an admin in the returned Team.
-    // It is unreasonable to look at invites or list subteams with this set to false.
+    // If this is false, looking at invites or listing subteams in the response
+    // may not work even if the loading user is an admin.
     boolean needAdmin;
 
     TeamRefreshers refreshers;
