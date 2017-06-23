@@ -1,7 +1,6 @@
 // @flow
 import Banner from './banner/container'
-import Header from './header/container'
-import SearchHeader from '../search-header'
+import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../searchv3/results-list'
 import Input from './input/container'
 import List from './list/container'
@@ -98,18 +97,16 @@ class Conversation extends Component<void, Props, State> {
         onPaste={this._onPaste}
       >
         {offline}
-        {this.props.inSearch
-          ? <SearchHeader
-              onChangeSearchText={this.props.onChangeSearchText}
-              usernameText={this.props.searchText}
-              selectedSearchId={this.props.selectedSearchId}
-              onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
-            />
-          : <Header
-              sidePanelOpen={this.props.sidePanelOpen}
-              onToggleSidePanel={this.props.onToggleSidePanel}
-              onBack={this.props.onBack}
-            />}
+        <HeaderOrSearchHeader
+          inSearch={this.props.inSearch}
+          sidePanelOpen={this.props.sidePanelOpen}
+          onToggleSidePanel={this.props.onToggleSidePanel}
+          onBack={this.props.onBack}
+          onChangeSearchText={this.props.onChangeSearchText}
+          searchText={this.props.searchText}
+          selectedSearchId={this.props.selectedSearchId}
+          onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
+        />
         {this.props.showSearchResults
           ? <SearchResultsList
               items={this.props.searchResultIds}

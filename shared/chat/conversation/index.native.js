@@ -1,8 +1,7 @@
 // @flow
-import Header from './header/container'
 import Input from './input/container'
 import List from './list/container'
-import SearchHeader from '../search-header'
+import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../searchv3/results-list'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React from 'react'
@@ -32,18 +31,16 @@ const Conversation = (props: Props) => (
           Couldn't load all chat messages due to network connectivity. Retrying...
         </Text>
       </Box>}
-    {props.inSearch
-      ? <SearchHeader
-          onChangeSearchText={props.onChangeSearchText}
-          usernameText={props.searchText}
-          selectedSearchId={props.selectedSearchId}
-          onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
-        />
-      : <Header
-          sidePanelOpen={props.sidePanelOpen}
-          onToggleSidePanel={props.onToggleSidePanel}
-          onBack={props.onBack}
-        />}
+    <HeaderOrSearchHeader
+      inSearch={props.inSearch}
+      sidePanelOpen={props.sidePanelOpen}
+      onToggleSidePanel={props.onToggleSidePanel}
+      onBack={props.onBack}
+      onChangeSearchText={props.onChangeSearchText}
+      searchText={props.searchText}
+      selectedSearchId={props.selectedSearchId}
+      onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
+    />
     {props.showSearchResults
       ? <SearchResultsList
           items={props.searchResultIds}
