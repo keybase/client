@@ -3,17 +3,16 @@ import React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/searchv3/creators'
 import * as SearchConstants from '../constants/searchv3'
+import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
 import {Box, Icon} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
-import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import {chatSearchResultArray} from '../constants/selectors'
 import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
-
-import type {TypedState} from '../constants/reducer'
+import {createSelector} from 'reselect'
 
 type OwnProps = {
   searchText: string,
@@ -26,27 +25,13 @@ type OwnProps = {
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const {chat: {inboxSearch}} = state
-
-  const userItems = inboxSearch.map(id => {
-    const {username, serviceId} = parseUserId(id)
-    const service = SearchConstants.serviceIdToService(serviceId)
-    return {
-      id: id,
-      followingState: SearchConstants.followStateHelper(state, username, service),
-      // $FlowIssue ??
-      icon: serviceIdToIcon(serviceId),
-      username,
-      service,
-    }
-  })
-
-  return {
+const mapStateToProps = createSelector(
+  [Constants.getUserItems, chatSearchResultArray],
+  (userItems, searchResultIds) => ({
     userItems,
-    searchResultIds: chatSearchResultArray(state),
-  }
-}
+    searchResultIds,
+  })
+)
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
