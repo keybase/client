@@ -18,6 +18,7 @@ export type PushNotification = {
       // iOS variant
       convID?: string,
       type?: string,
+      username?: string,
     },
     username?: string,
   },
