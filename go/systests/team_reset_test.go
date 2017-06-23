@@ -3,9 +3,9 @@ package systests
 import (
 	"fmt"
 	client "github.com/keybase/client/go/client"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"time"
 )
 
 func sendChat(t smuTeam, u *smuUser, msg string) {
@@ -32,7 +32,29 @@ func readChats(team smuTeam, u *smuUser, nMessages int) {
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}
-	tctx.G.Log.Debug("--------- readChat success for %s ------------", u.username)
+	u.ctx.log.Debug("--------- readChat success for %s ------------", u.username)
+}
+
+func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser) {
+
+	details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	for _, member := range details.Members.Admins {
+		switch member.Username {
+		case ann.username:
+			require.True(ann.ctx.t, member.Active)
+		default:
+			ann.ctx.t.Fatalf("unknown admin: %s", member.Username)
+		}
+	}
+	for _, member := range details.Members.Writers {
+		switch member.Username {
+		case bob.username:
+			require.False(ann.ctx.t, member.Active)
+		default:
+			ann.ctx.t.Fatalf("unknown writer: %s", member.Username)
+		}
+	}
+	ann.ctx.log.Debug("team details checked out: %+v", details)
 }
 
 func TestTeamReset(t *testing.T) {
@@ -57,5 +79,8 @@ func TestTeamReset(t *testing.T) {
 
 	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 	bob.reset()
-	time.Sleep(1 * time.Second)
+	ctx.log.Debug("-------- Reset bob (%s) -------------", bob.username)
+
+	pollForMembershipUpdate(team, ann, bob)
+	ctx.log.Debug("-------- Polled for rekey -------------")
 }

@@ -1460,7 +1460,6 @@ func (mr *MerkleRoot) ToSigJSON() (ret *jsonw.Wrapper) {
 	ret.SetKey("ctime", jsonw.NewInt64(int64(mr.Ctime())))
 	ret.SetKey("hash", jsonw.NewString(mr.RootHash().String()))
 	ret.SetKey("hash_meta", jsonw.NewString(mr.ShortHash().String()))
-	mr.G().Log.Errorf("sigjson: %s\n", ret.MarshalToDebug())
 
 	return
 }

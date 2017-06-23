@@ -5849,12 +5849,23 @@ export type TeamData = {
   cachedAt: Time,
 }
 
+export type TeamDetails = {
+  members: TeamMembersDetails,
+  keyGeneration: PerTeamKeyGeneration,
+}
+
 export type TeamID = string
 
 export type TeamMember = {
   uid: UID,
   role: TeamRole,
   eldestSeqno: Seqno,
+}
+
+export type TeamMemberDetails = {
+  uv: UserVersion,
+  username: string,
+  active: boolean,
 }
 
 export type TeamMembers = {
@@ -5864,11 +5875,11 @@ export type TeamMembers = {
   readers?: ?Array<UserVersion>,
 }
 
-export type TeamMembersUsernames = {
-  owners?: ?Array<string>,
-  admins?: ?Array<string>,
-  writers?: ?Array<string>,
-  readers?: ?Array<string>,
+export type TeamMembersDetails = {
+  owners?: ?Array<TeamMemberDetails>,
+  admins?: ?Array<TeamMemberDetails>,
+  writers?: ?Array<TeamMemberDetails>,
+  readers?: ?Array<TeamMemberDetails>,
 }
 
 export type TeamName = {
@@ -7036,7 +7047,8 @@ export type teamsTeamEditMemberRpcParam = Exact<{
 }>
 
 export type teamsTeamGetRpcParam = Exact<{
-  name: string
+  name: string,
+  forceRepoll: boolean
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -7286,7 +7298,7 @@ type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
-type teamsTeamGetResult = TeamMembersUsernames
+type teamsTeamGetResult = TeamDetails
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks

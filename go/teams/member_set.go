@@ -81,25 +81,26 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	return members, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, force bool) (res member, err error) {
-	// load upak for uid
-	defer g.CTrace(ctx, fmt.Sprintf("memberSet#loadMember(%s)", uv.String()), func() error { return err })()
+func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
+
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv.String()), func() error { return err })()
 
 	arg := libkb.NewLoadUserByUIDArg(ctx, g, uv.Uid)
-	if force {
-		arg.ForcePoll = true
-	}
+	arg.ForcePoll = forcePoll
 	upak, _, err := g.GetUPAKLoader().Load(arg)
+	if upak != nil {
+		nun = libkb.NewNormalizedUsername(upak.Base.Username)
+	}
 
 	if err != nil {
 		if _, reset := err.(libkb.NoKeyError); reset {
-			return member{}, libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+			err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
 		}
-		return member{}, err
+		return member{}, nun, err
 	}
 
 	if upak.Base.EldestSeqno != uv.EldestSeqno {
-		return member{}, libkb.NewAccountResetError(uv, upak.Base.EldestSeqno)
+		return member{}, nun, libkb.NewAccountResetError(uv, upak.Base.EldestSeqno)
 	}
 
 	// find the most recent per-user key
@@ -110,17 +111,23 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv k
 		}
 	}
 
-	// store the key in a recipients table
-	if storeRecipient {
-		m.recipients[upak.Base.ToUserVersion()] = key
-	}
-
 	// return a member with UserVersion and a PerUserKey
 	return member{
 		version:    NewUserVersion(upak.Base.Uid, upak.Base.EldestSeqno),
 		perUserKey: key,
-	}, nil
+	}, nun, nil
+}
 
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, forcePoll bool) (res member, err error) {
+	res, _, err = loadMember(ctx, g, uv, forcePoll)
+	if err != nil {
+		return res, err
+	}
+	// store the key in a recipients table
+	if storeRecipient {
+		m.recipients[res.version] = res.perUserKey
+	}
+	return res, nil
 }
 
 type MemberChecker interface {

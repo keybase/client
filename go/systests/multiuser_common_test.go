@@ -229,6 +229,33 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 	return keybase1.TeamsClient{Cli: u.primaryDevice().rpcClient()}
 }
 
+func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration) keybase1.TeamDetails {
+	wait := 10 * time.Millisecond
+	var totalWait time.Duration
+	i := 0
+	for {
+		cli := u.getTeamsClient()
+		details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
+		if err != nil {
+			u.ctx.t.Fatal(err)
+		}
+		if details.KeyGeneration == kg {
+			u.ctx.log.Debug("found key generation 2")
+			return details
+		}
+		if i == 9 {
+			break
+		}
+		i++
+		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s", i, wait)
+		time.Sleep(wait)
+		totalWait += wait
+		wait = wait * 2
+	}
+	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", kg, totalWait, i)
+	return keybase1.TeamDetails{}
+}
+
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	name := u.username + "t"
 	cli := u.getTeamsClient()

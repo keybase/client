@@ -170,35 +170,67 @@
     },
     {
       "type": "record",
-      "name": "TeamMembersUsernames",
+      "name": "TeamMemberDetails",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersDetails",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDetails",
+      "fields": [
+        {
+          "type": "TeamMembersDetails",
+          "name": "members"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
         }
       ]
     },
@@ -520,9 +552,13 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
         }
       ],
-      "response": "TeamMembersUsernames"
+      "response": "TeamDetails"
     },
     "teamChangeMembership": {
       "request": [

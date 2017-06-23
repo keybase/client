@@ -36,8 +36,8 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembersUsernames, error) {
-	return teams.Members(ctx, h.G().ExternalG(), arg.Name)
+func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {
+	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
 }
 
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {

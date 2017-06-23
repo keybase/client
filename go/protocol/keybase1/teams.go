@@ -213,47 +213,73 @@ func (o TeamMembers) DeepCopy() TeamMembers {
 	}
 }
 
-type TeamMembersUsernames struct {
-	Owners  []string `codec:"owners" json:"owners"`
-	Admins  []string `codec:"admins" json:"admins"`
-	Writers []string `codec:"writers" json:"writers"`
-	Readers []string `codec:"readers" json:"readers"`
+type TeamMemberDetails struct {
+	Uv       UserVersion `codec:"uv" json:"uv"`
+	Username string      `codec:"username" json:"username"`
+	Active   bool        `codec:"active" json:"active"`
 }
 
-func (o TeamMembersUsernames) DeepCopy() TeamMembersUsernames {
-	return TeamMembersUsernames{
-		Owners: (func(x []string) []string {
-			var ret []string
+func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
+	return TeamMemberDetails{
+		Uv:       o.Uv.DeepCopy(),
+		Username: o.Username,
+		Active:   o.Active,
+	}
+}
+
+type TeamMembersDetails struct {
+	Owners  []TeamMemberDetails `codec:"owners" json:"owners"`
+	Admins  []TeamMemberDetails `codec:"admins" json:"admins"`
+	Writers []TeamMemberDetails `codec:"writers" json:"writers"`
+	Readers []TeamMemberDetails `codec:"readers" json:"readers"`
+}
+
+func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
+	return TeamMembersDetails{
+		Owners: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			var ret []TeamMemberDetails
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Owners),
-		Admins: (func(x []string) []string {
-			var ret []string
+		Admins: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			var ret []TeamMemberDetails
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Admins),
-		Writers: (func(x []string) []string {
-			var ret []string
+		Writers: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			var ret []TeamMemberDetails
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Writers),
-		Readers: (func(x []string) []string {
-			var ret []string
+		Readers: (func(x []TeamMemberDetails) []TeamMemberDetails {
+			var ret []TeamMemberDetails
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Readers),
+	}
+}
+
+type TeamDetails struct {
+	Members       TeamMembersDetails   `codec:"members" json:"members"`
+	KeyGeneration PerTeamKeyGeneration `codec:"keyGeneration" json:"keyGeneration"`
+}
+
+func (o TeamDetails) DeepCopy() TeamDetails {
+	return TeamDetails{
+		Members:       o.Members.DeepCopy(),
+		KeyGeneration: o.KeyGeneration.DeepCopy(),
 	}
 }
 
@@ -571,14 +597,16 @@ func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 }
 
 type TeamGetArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Name        string `codec:"name" json:"name"`
+	ForceRepoll bool   `codec:"forceRepoll" json:"forceRepoll"`
 }
 
 func (o TeamGetArg) DeepCopy() TeamGetArg {
 	return TeamGetArg{
-		SessionID: o.SessionID,
-		Name:      o.Name,
+		SessionID:   o.SessionID,
+		Name:        o.Name,
+		ForceRepoll: o.ForceRepoll,
 	}
 }
 
@@ -662,7 +690,7 @@ func (o LoadTeamPlusApplicationKeysArg) DeepCopy() LoadTeamPlusApplicationKeysAr
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
-	TeamGet(context.Context, TeamGetArg) (TeamMembersUsernames, error)
+	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
@@ -802,7 +830,7 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err e
 	return
 }
 
-func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamMembersUsernames, err error) {
+func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
 	return
 }
