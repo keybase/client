@@ -606,6 +606,7 @@ func (e *loginProvision) route(ctx *Context) error {
 
 	// User has no existing devices or pgp keys, so create
 	// the eldest device.
+	e.G().Log.Debug("making an eldest--------------")
 	return e.makeEldestDevice(ctx)
 }
 

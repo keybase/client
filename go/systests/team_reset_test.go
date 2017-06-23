@@ -88,4 +88,7 @@ func TestTeamReset(t *testing.T) {
 
 	pollForMembershipUpdate(team, ann, bob)
 	divDebug(ctx, "Polled for rekey")
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
 }

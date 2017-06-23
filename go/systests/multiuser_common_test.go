@@ -9,6 +9,7 @@ import (
 	service "github.com/keybase/client/go/service"
 	clockwork "github.com/keybase/clockwork"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
+	contextOld "golang.org/x/net/context"
 	"io"
 	"testing"
 	"time"
@@ -20,6 +21,7 @@ type smuUser struct {
 	backupKeys     []backupKey
 	usernamePrefix string
 	username       string
+	userInfo       *signupInfo
 }
 
 type smuContext struct {
@@ -105,6 +107,37 @@ func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptD
 func (t smuTerminalUI) Tablify(headings []string, rowfunc func() []string) { return }
 func (t smuTerminalUI) TerminalSize() (width int, height int)              { return }
 
+type smuSecretUI struct {
+	u *smuUser
+}
+
+func (s smuSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	if p.Type == keybase1.PassphraseType_PAPER_KEY {
+		res.Passphrase = s.u.userInfo.displayedPaperKey
+	} else {
+		res.Passphrase = s.u.userInfo.passphrase
+	}
+	s.u.ctx.log.Debug("| GetPassphrase: %v -> %v", p, res)
+	return res, err
+}
+
+func (s smuLoginUI) GetEmailOrUsername(contextOld.Context, int) (string, error) {
+	return s.u.username, nil
+}
+func (s smuLoginUI) PromptRevokePaperKeys(contextOld.Context, keybase1.PromptRevokePaperKeysArg) (ret bool, err error) {
+	return false, nil
+}
+func (s smuLoginUI) DisplayPaperKeyPhrase(contextOld.Context, keybase1.DisplayPaperKeyPhraseArg) error {
+	return nil
+}
+func (s smuLoginUI) DisplayPrimaryPaperKey(contextOld.Context, keybase1.DisplayPrimaryPaperKeyArg) error {
+	return nil
+}
+
+type smuLoginUI struct {
+	u *smuUser
+}
+
 func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	if len(d.clones) == 0 {
 		panic("ran out of cloned environments")
@@ -132,10 +165,15 @@ func (ctx *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
 func (ctx *smuContext) installKeybaseForUser(usernamePrefix string, numClones int) *smuUser {
 	user := &smuUser{ctx: ctx, usernamePrefix: usernamePrefix}
 	ctx.users[usernamePrefix] = user
-	dev := ctx.setupDevice(user)
-	dev.startService(numClones)
-	dev.startClient()
+	ctx.newDevice(user, numClones)
 	return user
+}
+
+func (ctx *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
+	ret := ctx.setupDevice(u)
+	ret.startService(numClones)
+	ret.startClient()
+	return ret
 }
 
 func (u *smuUser) primaryDevice() *smuDeviceWrapper {
@@ -192,6 +230,7 @@ func (d *smuDeviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups
 func (u *smuUser) signup() {
 	ctx := u.ctx
 	userInfo := randomUser(u.usernamePrefix)
+	u.userInfo = userInfo
 	dw := u.primaryDevice()
 	tctx := dw.popClone()
 	g := tctx.G
@@ -285,4 +324,22 @@ func (u *smuUser) reset() {
 
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
+}
+
+func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
+	dev := u.ctx.newDevice(u, numClones)
+	g := dev.tctx.G
+	ui := genericUI{
+		g:           g,
+		SecretUI:    smuSecretUI{u},
+		LoginUI:     smuLoginUI{u},
+		ProvisionUI: nullProvisionUI{randomDevice()},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdLoginRunner(g)
+	err := cmd.Run()
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+	return dev
 }
