@@ -1,5 +1,6 @@
 // @flow
 import * as SearchConstants from './searchv3'
+import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -1065,19 +1066,21 @@ const getFollowingStates = (state: TypedState) => {
   return followingStateMap
 }
 
-const getUserItems = createSelector([getInboxSearch, getFollowingStates], (inboxSearch, followingStates) =>
-  inboxSearch.map(id => {
-    const {username, serviceId} = parseUserId(id)
-    const service = SearchConstants.serviceIdToService(serviceId)
-    return {
-      id: id,
-      followingState: followingStates[id],
-      // $FlowIssue ??
-      icon: serviceIdToIcon(serviceId),
-      username,
-      service,
-    }
-  })
+const getUserItems = createShallowEqualSelector(
+  [getInboxSearch, getFollowingStates],
+  (inboxSearch, followingStates) =>
+    inboxSearch.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
 )
 
 const stateLoggerTransform = (state: State) => ({

@@ -1,5 +1,6 @@
 // @flow
-import {createSelector} from 'reselect'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import {isEqualWith} from 'lodash'
 
 import type {TypedState} from './reducer'
 import type {SearchQuery} from './searchv3'
@@ -25,11 +26,16 @@ const profileSearchResultArray = createSelector(
   searchResults => (searchResults ? searchResults.toArray() : [])
 )
 
+const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
+  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
+)
+
 export {
   amIFollowing,
   amIBeingFollowed,
   cachedSearchResults,
   chatSearchResultArray,
+  createShallowEqualSelector,
   inboxSearchSelector,
   loggedInSelector,
   profileSearchResultArray,
