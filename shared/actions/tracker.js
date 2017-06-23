@@ -5,6 +5,7 @@ import Session from '../engine/session'
 import _ from 'lodash'
 import engine from '../engine'
 import openUrl from '../util/open-url'
+import {usernameSelector} from '../constants/selectors'
 import {requestIdleCallback} from '../util/idle-callback'
 import {showAllTrackers} from '../local-debug'
 
@@ -43,6 +44,10 @@ function stopTimer(): Action {
     type: Constants.stopTimer,
     payload: {},
   }
+}
+
+function showTracker(username: string): Action {
+  return {type: Constants.showTracker, payload: {username}}
 }
 
 function _clearIdentifyCache(uid: string): Action {
@@ -441,6 +446,8 @@ function _serverCallMap(
   let username
   let clearPendingTimeout
   let alreadyPending = false
+  let isMe = false
+  const me = usernameSelector(getState())
 
   const requestIdle = f => {
     if (!alreadyPending) {
@@ -482,6 +489,7 @@ function _serverCallMap(
     ) => {
       response.result()
       username = currentUsername
+      isMe = me === currentUsername
       sessionIDToUsername[sessionID] = username
       onStart && onStart(username)
 
@@ -491,7 +499,7 @@ function _serverCallMap(
 
         // Display anyways
         if (forceDisplay) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(showTracker(username))
         }
         return
       }
@@ -529,8 +537,8 @@ function _serverCallMap(
           payload: {username},
         })
 
-        if (forceDisplay) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+        if (forceDisplay && !isMe) {
+          dispatch(showTracker(username))
         }
       })
     },
@@ -561,8 +569,8 @@ function _serverCallMap(
             payload: {username, reason: `${username} has reset their account!`},
           })
           dispatch({type: Constants.updateProofState, payload: {username}})
-          if (!isGetProfile) {
-            dispatch({type: Constants.showTracker, payload: {username}})
+          if (!isGetProfile && !isMe) {
+            dispatch(showTracker(username))
           }
         } else if (key.pgpFingerprint) {
           dispatch(_updatePGPKey(username, key.pgpFingerprint, key.KID))
@@ -578,8 +586,8 @@ function _serverCallMap(
           payload: {username, track},
         })
 
-        if (!track && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+        if (!track && !isGetProfile && !isMe) {
+          dispatch(showTracker(username))
         }
       })
     },
@@ -594,8 +602,8 @@ function _serverCallMap(
           payload: {username, identity},
         })
         dispatch({type: Constants.updateProofState, payload: {username}})
-        if (identity.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+        if (identity.breaksTracking && !isGetProfile && !isMe) {
+          dispatch(showTracker(username))
         }
       })
     },
@@ -619,8 +627,8 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+        if (lcr.breaksTracking && !isGetProfile && !isMe) {
+          dispatch(showTracker(username))
         }
       })
     },
@@ -630,8 +638,8 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+        if (lcr.breaksTracking && !isGetProfile && !isMe) {
+          dispatch(showTracker(username))
         }
       })
     },
@@ -695,9 +703,9 @@ function _serverCallMap(
 
           dispatch({type: Constants.identifyFinished, payload: {username}})
 
-          if (showAllTrackers && !isGetProfile) {
+          if (showAllTrackers && !isGetProfile && !isMe) {
             console.log('showAllTrackers is on, so showing tracker')
-            dispatch({type: Constants.showTracker, payload: {username}})
+            dispatch(showTracker(username))
           }
 
           dispatch({
