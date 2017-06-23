@@ -7,7 +7,7 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
 import {Box, Icon} from '../common-adapters'
-import {compose, withState, defaultProps, withHandlers} from 'recompose'
+import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
@@ -15,6 +15,7 @@ import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 type OwnProps = {
+  selectedConversationIDKey: Constants.ConversationIDKey,
   searchText: string,
   onChangeSearchText: (s: string) => void,
   usernameText: string,
@@ -53,6 +54,7 @@ const SearchHeader = props => {
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput
+            ref={props.setInputRef}
             autoFocus={true}
             userItems={props.userItems}
             showAddButton={props.showAddButton}
@@ -83,16 +85,32 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
   onChangeSelectedSearchResultHoc,
-  withHandlers({
-    onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
-      props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
-    },
+  withHandlers(() => {
+    let input
+    return {
+      setInputRef: () => el => {
+        input = el
+      },
+      onFocusInput: () => () => {
+        input.focus()
+      },
+      onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
+        props._onSelectService(nextService)
+        props.search(props.usernameText, nextService)
+      },
+    }
   }),
   defaultProps({
     placeholder: 'Search for someone',
     showAddButton: false,
     onClickAddButton: () => console.log('todo'),
     userItems: [],
+  }),
+  lifecycle({
+    componentWillReceiveProps(nextProps: OwnProps) {
+      if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
+        this.props.onFocusInput()
+      }
+    },
   })
 )(SearchHeader)

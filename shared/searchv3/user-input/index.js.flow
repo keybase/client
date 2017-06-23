@@ -24,4 +24,6 @@ export type Props = {
   onEnter: () => void,
 }
 
-export default class UserInput extends Component<void, Props, void> {}
+export default class UserInput extends Component<void, Props, void> {
+  focus: () => void
+}
