@@ -129,9 +129,9 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	return nil
 }
 
-func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName TeamName) (err error) {
+func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
-	subteamName, err := TeamNameFromString(string(parentName) + "." + subteamBasename)
+	subteamName, err := keybase1.TeamNameFromString(parentName.String() + "." + subteamBasename)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return err
 	}
 
-	parentTeam, err := GetForTeamManagementByStringName(ctx, g, string(parentName))
+	parentTeam, err := GetForTeamManagementByStringName(ctx, g, parentName.String())
 	if err != nil {
 		return err
 	}
@@ -266,7 +266,7 @@ func makeSigchainV2OuterSig(
 	return sig, nil
 }
 
-func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 	newSubteamSigBody, err := NewSubteamSig(me, signingKey, parentTeam, subteamName, subteamID, admin)
 	newSubteamSigJSON, err := newSubteamSigBody.Marshal()
 	if err != nil {
@@ -299,7 +299,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return
 }
 
-func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
@@ -388,11 +388,12 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 	return
 }
 
-func makeSubteamTeamSection(subteamName TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
+func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
 	ownerUserVersion := owner.ToUserVersion()
 
+	subteamName2 := subteamName.String()
 	teamSection := SCTeamSection{
-		Name: (*SCTeamName)(&subteamName),
+		Name: (*SCTeamName)(&subteamName2),
 		ID:   (SCTeamID)(subteamID),
 		Parent: &SCTeamParent{
 			ID:    SCTeamID(parentTeam.GetID()),

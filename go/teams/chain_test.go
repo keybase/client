@@ -87,7 +87,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 			t.Logf("testing serde")
 		}
 
-		require.Equal(t, "t_9d6d1e37", string(state.GetName()))
+		require.Equal(t, "t_9d6d1e37", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
@@ -152,7 +152,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	state, err := player.GetState()
 	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
-		require.Equal(t, "t_bfaadb41", string(state.GetName()))
+		require.Equal(t, "t_bfaadb41", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
