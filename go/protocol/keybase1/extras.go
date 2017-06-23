@@ -143,7 +143,7 @@ func (l *LeaseID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (h *HashMeta) MarshalJSON() ([]byte, error) {
+func (h HashMeta) MarshalJSON() ([]byte, error) {
 	return Quote(h.String()), nil
 }
 
