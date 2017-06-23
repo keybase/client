@@ -186,7 +186,20 @@ def doBuild() {
     }
 }
 
-
+def slackMessage(channel, color, message) {
+    withCredentials([[$class: 'StringBinding',
+        credentialsId: 'SLACK_INTEGRATION_TOKEN',
+        variable: 'SLACK_INTEGRATION_TOKEN',
+    ]]) {
+        slackSend([
+            channel: channel,
+            color: color,
+            message: message,
+            teamDomain: "keybase",
+            token: "${env.SLACK_INTEGRATION_TOKEN}"
+        ])
+    }
+}
 def notifySlack(String buildStatus = 'STARTED') {
     // Build status of null means success.
     buildStatus = buildStatus ?: 'SUCCESS'
@@ -205,7 +218,18 @@ def notifySlack(String buildStatus = 'STARTED') {
 
     def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
 
-    slackSend(color: color, message: msg)
+    withCredentials([[$class: 'StringBinding',
+        credentialsId: 'SLACK_INTEGRATION_TOKEN',
+        variable: 'SLACK_INTEGRATION_TOKEN',
+    ]]) {
+        slackSend([
+            channel: "bot-test2",
+            color: color,
+            message: msg,
+            teamDomain: "keybase",
+            token: "${env.SLACK_INTEGRATION_TOKEN}"
+        ])
+    }
 }
 
 // Invoke the build with a separate workspace for each executor,
@@ -214,6 +238,7 @@ node ('windows-release') {
     ws("${WORKSPACE}_${EXECUTOR_NUMBER}") {
         withEnv(["GOPATH=${pwd()}"]) {
             try {
+                notifySlack()
                 doBuild()
             } catch (e) {
                 currentBuild.result = 'FAILURE'
