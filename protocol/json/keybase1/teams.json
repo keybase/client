@@ -343,7 +343,7 @@
           "name": "id"
         },
         {
-          "type": "string",
+          "type": "TeamName",
           "name": "name"
         },
         {

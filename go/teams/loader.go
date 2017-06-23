@@ -74,6 +74,15 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		return nil, err
 	}
 
+	var teamName *keybase1.TeamName
+	if len(lArg.Name) > 0 {
+		teamNameParsed, err := keybase1.TeamNameFromString(lArg.Name)
+		if err != nil {
+			return nil, fmt.Errorf("invalid team name: %v", err)
+		}
+		teamName = &teamNameParsed
+	}
+
 	teamID := lArg.ID
 	// Resolve the name to team ID. Will always hit the server for subteams.
 	// It is safe for the answer to be wrong because the name is checked on the way out,
@@ -110,11 +119,9 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// Check team name on the way out
 	// The snapshot may have already been written to cache, but that should be ok,
 	// because the cache is keyed by ID.
-	if len(lArg.Name) > 0 {
-		if ret != nil {
-			if lArg.Name != ret.Chain.Name {
-				return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name, lArg.Name)
-			}
+	if teamName != nil {
+		if !teamName.Eq(ret.Chain.Name) {
+			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name.String(), teamName.String())
 		}
 	}
 
@@ -122,7 +129,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
-	// TODO: stricter check on team ID format and name charset, normalization.
+	// TODO: stricter check on team ID format.
 	hasID := len(lArg.ID) > 0
 	hasName := len(lArg.Name) > 0
 	if !hasID && !hasName {

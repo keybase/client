@@ -119,7 +119,7 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
-    string name;
+    TeamName name;
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;

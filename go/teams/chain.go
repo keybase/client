@@ -1,11 +1,8 @@
 package teams
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,8 +18,6 @@ import (
 
 // TODO CORE-5311 merkle existence
 // TODO CORE-5313 CORE-5314 CORE-5315 accept links from now-revoked keys and now-reset users if the sigs were made before their revocation.
-
-type TeamName string
 
 // Create a new user/version pair.
 func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
@@ -55,45 +50,6 @@ func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
 	}, nil
 }
 
-// Does not canonicalize the name
-func TeamNameFromString(s string) (res TeamName, err error) {
-	if len(s) == 0 {
-		return res, errors.New("zero length team name")
-	}
-	for _, part := range strings.Split(s, ".") {
-		if !(len(part) >= 2 && len(part) <= 16) {
-			return res, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
-		}
-		// underscores allowed, just not first or doubled
-		re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
-		if !re.MatchString(strings.ToLower(part)) {
-			return res, fmt.Errorf("invalid team name:'%s'", s)
-		}
-	}
-	return TeamName(s), nil
-}
-
-// Get the top level team id for this team name.
-// Only makes sense for non-sub teams.
-func (n TeamName) ToTeamID() keybase1.TeamID {
-	low := strings.ToLower(string(n))
-	sum := sha256.Sum256([]byte(low))
-	bs := append(sum[:15], keybase1.TEAMID_SUFFIX)
-	res, err := keybase1.TeamIDFromString(hex.EncodeToString(bs))
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func (n TeamName) IsSubTeam() bool {
-	return strings.Contains(string(n), ".")
-}
-
-func (n TeamName) String() string {
-	return string(n)
-}
-
 const TeamSigChainPlayerSupportedLinkVersion = 2
 
 // Accessor wrapper for keybase1.TeamSigChainState
@@ -111,7 +67,7 @@ func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
 
-func (t TeamSigChainState) GetName() string {
+func (t TeamSigChainState) GetName() keybase1.TeamName {
 	return t.inner.Name
 }
 
@@ -507,7 +463,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 
 		// TODO check that team name has no dots
-		teamName, err := TeamNameFromString(string(*team.Name))
+		teamName, err := keybase1.TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
 		}
@@ -534,7 +490,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
-				Name:         string(teamName),
+				Name:         teamName,
 				LastSeqno:    1,
 				LastLinkID:   oRes.outerLink.LinkID().Export(),
 				ParentID:     nil,

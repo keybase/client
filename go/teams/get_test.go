@@ -140,9 +140,9 @@ func createTeam(tc libkb.TestContext) string {
 	return name
 }
 
-func createTeam2(tc libkb.TestContext) (TeamName, keybase1.TeamID) {
+func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 	teamNameS := createTeam(tc)
-	teamName, err := TeamNameFromString(teamNameS)
+	teamName, err := keybase1.TeamNameFromString(teamNameS)
 	require.NoError(tc.T, err)
 	return teamName, teamName.ToTeamID()
 }

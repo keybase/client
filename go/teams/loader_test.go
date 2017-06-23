@@ -63,7 +63,7 @@ func TestLoaderBasic(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.Equal(t, teamName.String(), team.Chain.Name)
+	require.True(t, teamName.Eq(team.Chain.Name))
 
 	t.Logf("load the team again")
 	team, err = tc.G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
@@ -71,7 +71,7 @@ func TestLoaderBasic(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.Equal(t, teamName.String(), team.Chain.Name)
+	require.True(t, teamName.Eq(team.Chain.Name))
 }
 
 // Test that the loader works after the cache turns stale
@@ -93,7 +93,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.Equal(t, teamName.String(), team.Chain.Name)
+	require.True(t, teamName.Eq(team.Chain.Name))
 
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
@@ -110,5 +110,5 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.Equal(t, teamName.String(), team.Chain.Name)
+	require.True(t, teamName.Eq(team.Chain.Name))
 }

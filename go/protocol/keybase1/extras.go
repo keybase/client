@@ -6,6 +6,7 @@ package keybase1
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -1439,6 +1440,7 @@ func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
 
+// underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
 
 func TeamNameFromString(s string) (ret TeamName, err error) {
@@ -1448,6 +1450,9 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	}
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
+		if !(len(part) >= 2 && len(part) <= 16) {
+			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
 		}
@@ -1470,6 +1475,19 @@ func (t TeamName) Eq(t2 TeamName) bool {
 
 func (t TeamName) IsRootTeam() bool {
 	return len(t.Parts) == 1
+}
+
+// Get the top level team id for this team name.
+// Only makes sense for non-sub teams.
+func (t TeamName) ToTeamID() TeamID {
+	low := strings.ToLower(t.String())
+	sum := sha256.Sum256([]byte(low))
+	bs := append(sum[:15], TEAMID_SUFFIX)
+	res, err := TeamIDFromString(hex.EncodeToString(bs))
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 func (u UserPlusKeys) ToUserVersion() UserVersion {
