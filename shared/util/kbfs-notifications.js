@@ -136,10 +136,10 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
   const action = {
     // For now, disable file notifications because they're really annoying and
     // we now have the syncing indicator.
-    //[KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
-    //[KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
-    //[KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
-    //[KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
+    // [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
+    // [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
+    // [KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
+    // [KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
     [KbfsCommonFSNotificationType.rekeying]: 'Rekeying',
     // The following notifications just need to be enabled, they get handled
     // independently.
