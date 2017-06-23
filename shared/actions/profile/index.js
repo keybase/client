@@ -77,7 +77,7 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
     const serviceName = searchResult.leftService
     yield put(
       navigateAppend(
-        [{props: {fullname, navigateUp, serviceName, username: searchResult.leftUsername}, selected: 'nonUser'}],
+        [{props: {fullname, serviceName, username: searchResult.leftUsername}, selected: 'nonUserProfile'}],
         [profileTab]
       )
     )

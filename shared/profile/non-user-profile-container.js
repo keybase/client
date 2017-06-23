@@ -1,5 +1,5 @@
 // @flow
-import NonUser from './non-user-profile.render'
+import NonUserProfile from './non-user-profile.render'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../constants/reducer'
@@ -17,4 +17,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(NonUser)
+export default connect(mapStateToProps, mapDispatchToProps)(NonUserProfile)

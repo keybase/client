@@ -43,7 +43,7 @@ export const profileRoute = new RouteDefNode({
     editAvatar: {
       component: EditAvatar,
     },
-    nonUser: {
+    nonUserProfile: {
       component: NonUserProfile,
     },
     proveEnterUsername,
