@@ -40,13 +40,18 @@ func (l *TeamLoader) getNewLinksFromServer(ctx context.Context,
 	return &rt, nil
 }
 
-// Verify that a link:
-// - Was signed by a valid key for the user
-// - Was signed by a user with permissions to make this link
-// - Was signed
-// But do not apply the link.
-func (l *TeamLoader) verifyLink(ctx context.Context,
-	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
+// Verify aspects of a link:
+// - If it is stubbed, that must be allowed for its type and the needAdmin value.
+//   - Stubbed links
+// - Signature must match the inner link
+// - Was signed by a key valid for the user at the time of signing
+// - Was signed by a user with permissions to make the link at the time of signing
+// Some checks are deferred as entries in the returned proofSet
+// Does not:
+// - Apply the link nor modify state
+// - Check the rest of the format of the inner link
+func (l *TeamLoader) verifyLinkSig(ctx context.Context,
+	state *keybase1.TeamData, needAdmin bool, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
 
 	return nil, l.unimplementedVerificationTODO(ctx, nil)
 }
@@ -339,4 +344,10 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 		links = append(links, link)
 	}
 	return links, nil
+}
+
+func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
+	state *keybase1.TeamData, needSeqnos []keybase1.Seqno) error {
+
+	panic("TODO: implement")
 }
