@@ -488,11 +488,11 @@ function _serverCallMap(
       {username: currentUsername, sessionID, reason, forceDisplay},
       response
     ) => {
+      isGetProfile = reason.reason === profileFromUI
       response.result()
       username = currentUsername
       isMe = me === currentUsername
       sessionIDToUsername[sessionID] = username
-      isGetProfile = reason === profileFromUI
       onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
@@ -604,7 +604,7 @@ function _serverCallMap(
           payload: {username, identity},
         })
         dispatch({type: Constants.updateProofState, payload: {username}})
-        if (identity.breaksTracking && !isGetProfile) {
+        if (identity.breaksTracking && !isGetProfile && !isMe) {
           dispatch(showTracker(username))
         }
       })
@@ -629,7 +629,7 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile) {
+        if (lcr.breaksTracking && !isGetProfile && !isMe) {
           dispatch(showTracker(username))
         }
       })
@@ -640,7 +640,7 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile) {
+        if (lcr.breaksTracking && !isGetProfile && !isMe) {
           dispatch(showTracker(username))
         }
       })
