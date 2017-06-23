@@ -310,8 +310,9 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.qrUnrefAge = qrUnrefAgeDefault
 	config.qrMinHeadAge = qrMinHeadAgeDefault
 
-	// Don't bother creating the registry if UseNilMetrics is set.
-	if !metrics.UseNilMetrics {
+	// Don't bother creating the registry if UseNilMetrics is set, or
+	// if we're in minimal mode.
+	if !metrics.UseNilMetrics && mode != InitMinimal {
 		registry := metrics.NewRegistry()
 		config.SetMetricsRegistry(registry)
 	}
