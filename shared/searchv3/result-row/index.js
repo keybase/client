@@ -132,9 +132,16 @@ const SearchResultRow = (props: Constants.RowProps) => {
 const _clickableBoxStyleCommon = {
   ...globalStyles.flexBoxRow,
   flex: 1,
-  maxHeight: globalMargins.large,
-  minHeight: globalMargins.large,
   width: '100%',
+  ...(isMobile
+    ? {
+        minHeight: 56,
+        maxHeight: 56,
+      }
+    : {
+        maxHeight: globalMargins.large,
+        minHeight: globalMargins.large,
+      }),
 }
 
 const _clickableBoxStyle = {
@@ -150,11 +157,6 @@ const _rowStyle = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   position: 'relative',
-  ...(isMobile
-    ? {
-        minHeight: 56,
-      }
-    : {}),
 }
 
 export default SearchResultRow
