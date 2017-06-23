@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, BackButton, Box, Icon, Text} from '../common-adapters'
+import {Avatar, BackButton, Box, Button, Icon, Text} from '../common-adapters'
 import {capitalize} from 'lodash'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 import {platformToLogo24} from '../constants/search'
@@ -19,27 +19,46 @@ const NonUserRender = (props: Props) => (
         iconStyle={{color: globalColors.white}}
       />
     </Box>
-    <Box style={styleBioBlurb}>
-      <Avatar url={props.avatar} size={AVATAR_SIZE} />
-      <Box style={styleUsernameRow}>
-        <Icon type={platformToLogo24(props.serviceName)} />
-        <Text type="HeaderBig" style={styleUsername}>
-          {props.username}
-        </Text>
+    <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={styleLeftColumn}>
+        <Box style={styleBioBlurb}>
+          <Avatar url={props.avatar} size={AVATAR_SIZE} />
+          <Box style={styleUsernameRow}>
+            <Icon type={platformToLogo24(props.serviceName)} />
+            <Text type="HeaderBig" style={styleUsername}>
+              {props.username}
+            </Text>
+          </Box>
+          {props.fullname && <Text type="BodySemibold" style={styleFullname}>{props.fullname}</Text>}
+          <Text type="BodySmall" style={styleServiceLabel}>{props.serviceName} user</Text>
+          <Button
+            style={{marginTop: globalMargins.medium}}
+            onClick={props.onStartChat}
+            label="Start a chat"
+            type="Primary"
+          />
+          <Button
+            style={{marginTop: globalMargins.tiny}}
+            onClick={props.onOpenPrivateFolder}
+            label="Open private folder"
+            type="Secondary"
+          />
+        </Box>
       </Box>
-      {props.fullname && <Text type="BodySemibold" style={styleFullname}>{props.fullname}</Text>}
-      <Text type="BodySmall" style={styleServiceLabel}>{props.serviceName} user</Text>
+      <Box style={styleRightColumn}>
+        <Text
+          type="BodySmall"
+          style={styleDetails}
+        >{`When ${props.username} connects Keybase and their ${capitalize(props.serviceName)} account, your computer will verify them and rekey the folder or conversation.`}</Text>
+      </Box>
     </Box>
-    <Text
-      type="BodySmall"
-      style={styleDetails}
-    >{`When ${props.username} connects Keybase and their ${capitalize(props.serviceName)} account, your computer will verify them and rekey the folder or conversation.`}</Text>
   </Box>
 )
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
+  height: '100%',
 }
 
 const styleHeader = {
@@ -52,7 +71,22 @@ const styleBioBlurb = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  paddingTop: globalMargins.medium,
+  paddingTop: 48,
+}
+
+const styleLeftColumn = {
+  ...globalStyles.flexBoxColumn,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  width: '50%',
+}
+
+const styleRightColumn = {
+  ...globalStyles.flexBoxColumn,
+  marginTop: 130,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  width: 320,
 }
 
 const styleUsernameRow = {
@@ -74,15 +108,16 @@ const styleFullname = {
 }
 
 const styleServiceLabel = {
-  fontSize: 13,
-  lineHeight: 17,
+  fontSize: 11,
+  lineHeight: '14px',
   marginTop: globalMargins.xtiny,
+  textTransform: 'uppercase',
 }
 
 const styleDetails = {
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.large,
   textAlign: 'center',
 }
 
