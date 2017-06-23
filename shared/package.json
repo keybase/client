@@ -41,7 +41,7 @@
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
 
-    "storybook": "start-storybook -p 6006",
+    "storybook": "start-storybook -s . -p 6006",
     "build-storybook": "build-storybook"
   },
   "jest": {

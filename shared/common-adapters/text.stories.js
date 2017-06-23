@@ -108,7 +108,7 @@ const mapText = (secondary: boolean) => {
   return items
 }
 
-storiesOf('Text Sheet', module).add('Text', () => (
+storiesOf('Text', module).add('Text', () => (
   <div style={{display: 'grid', flex: 1, gridTemplateColumns: 'repeat(2, 1fr)', overflow: 'auto'}}>
     <Container backgroundColor={globalColors.white}>
       {mapText(false)}

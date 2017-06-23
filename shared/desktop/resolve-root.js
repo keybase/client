@@ -2,9 +2,11 @@
 import path from 'path'
 
 let root
+let prefix = 'file://'
 
 if (__STORYBOOK__) {
-  root = path.join(__dirname)
+  root = path.resolve(path.join(__dirname, '..'))
+  prefix = ''
 } else {
   // must due a require for storybook to work
   const electron = require('electron')
@@ -19,8 +21,8 @@ function fix(str) {
 }
 
 export const resolveRoot = (...to: any) => path.resolve(root, ...to)
-export const resolveRootAsURL = (...to: any) => `file://${fix(resolveRoot(resolveRoot(...to)))}`
+export const resolveRootAsURL = (...to: any) => `${prefix}${fix(resolveRoot(resolveRoot(...to)))}`
 export const resolveImage = (...to: any) => path.resolve(root, '..', 'images', ...to)
-export const resolveImageAsURL = (...to: any) => `file://${fix(resolveImage(...to))}`
+export const resolveImageAsURL = (...to: any) => `${prefix}${fix(resolveImage(...to))}`
 
 export default resolveRoot
