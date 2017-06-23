@@ -20,6 +20,7 @@ func newProofSet() *proofSetT {
 // An operation that occurs simultaneously on the child and parent team chains
 // TODO implement
 type parentChildOperation struct {
+	TODOImplement bool
 }
 
 // --------------------------------------------------

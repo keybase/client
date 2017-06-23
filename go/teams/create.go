@@ -128,7 +128,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
-	subteamName, err := keybase1.TeamNameFromString(parentName.String() + "." + subteamBasename)
+	subteamName, err := parentName.Append(subteamBasename)
 	if err != nil {
 		return err
 	}

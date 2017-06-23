@@ -87,8 +87,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// Resolve the name to team ID. Will always hit the server for subteams.
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
-	if len(lArg.ID) == 0 {
-		teamID, err = l.resolveNameToIDUntrusted(ctx, lArg.Name)
+	if teamName != nil {
+		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			return nil, err
 		}
@@ -140,11 +140,28 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName string) (keybase1.TeamID, error) {
-	// TODO: Resolve the name to team ID.
+func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
-	// For subteams, ask the server.
-	panic("TODO: resolve team name to id")
+	if teamName.IsRootTeam() {
+		return teamName.ToTeamID(), nil
+	}
+
+	arg := libkb.NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args = libkb.HTTPArgs{
+		"name":        libkb.S{Val: teamName.String()},
+		"lookup_only": libkb.B{Val: true},
+	}
+
+	var rt rawTeam
+	if err := l.G().API.GetDecode(arg, &rt); err != nil {
+		return id, err
+	}
+	if !rt.ID.Exists() {
+		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
+	}
+	return id, nil
 }
 
 // Mostly the same as the public keybase.LoadTeamArg
