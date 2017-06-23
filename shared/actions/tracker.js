@@ -19,6 +19,8 @@ import type {TypedState} from '../constants/reducer'
 const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
+const profileFromUI = '@@UI-PROFILE'
+
 function startTimer(): TrackerActionCreator {
   return (dispatch, getState) => {
     // Increments timerActive as a count of open tracker popups.
@@ -94,7 +96,7 @@ function getProfile(
     }
 
     dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true), forceDisplay))
+    dispatch(triggerIdentify('', username, forceDisplay))
     dispatch(_fillFolders(username))
   }
 }
@@ -111,7 +113,6 @@ function getMyProfile(ignoreCache?: boolean): TrackerActionCreator {
 function triggerIdentify(
   uid: string = '',
   userAssertion: string = '',
-  incomingCallMap: Object = {},
   forceDisplay: boolean = false
 ): TrackerActionCreator {
   return (dispatch, getState) =>
@@ -129,13 +130,13 @@ function triggerIdentify(
           needProofSet: true,
           reason: {
             type: RPCTypes.IdentifyCommonIdentifyReasonType.id,
-            reason: 'Profile',
+            reason: profileFromUI,
             resource: '',
           },
           allowEmptySelfID: true,
           noSkipSelf: true,
         },
-        incomingCallMap,
+        incomingCallMap: {},
         callback: (error, response) => {
           if (error) {
             dispatch({
@@ -203,7 +204,7 @@ function registerIdentifyUi(): TrackerActionCreator {
         }
 
         const session: Session = engine().createSession(
-          _serverCallMap(dispatch, getState, false, onStart, onFinish),
+          _serverCallMap(dispatch, getState, onStart, onFinish),
           null,
           cancelHandler
         )
@@ -438,7 +439,6 @@ const sessionIDToUsername: {[key: number]: string} = {}
 function _serverCallMap(
   dispatch: Dispatch,
   getState: Function,
-  isGetProfile: boolean = false,
   onStart: ?(username: string) => void,
   onFinish: ?() => void
 ): RPCTypes.incomingCallMapType {
@@ -448,6 +448,7 @@ function _serverCallMap(
   let alreadyPending = false
   let isMe = false
   const me = usernameSelector(getState())
+  let isGetProfile = false
 
   const requestIdle = f => {
     if (!alreadyPending) {
@@ -491,6 +492,7 @@ function _serverCallMap(
       username = currentUsername
       isMe = me === currentUsername
       sessionIDToUsername[sessionID] = username
+      isGetProfile = reason === profileFromUI
       onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
