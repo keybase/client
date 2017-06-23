@@ -74,7 +74,6 @@ const BOOL isDebug = NO;
   NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-  NSString * rnLogFile = [logPath stringByAppendingString:@"/rn.log"];
   NSFileManager* fm = [NSFileManager defaultManager];
   
   // Make keybasePath if it doesn't exist
@@ -97,8 +96,6 @@ const BOOL isDebug = NO;
                                                    @"serverURI": @"",
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
                                                    } error:&err];
-
-  [LogSend setPath:rnLogFile];
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
