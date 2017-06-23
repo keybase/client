@@ -5,7 +5,6 @@
   "scripts": {
     "_helper": "yarn run _node -- desktop/yarn-helper",
     "_node": "cross-env BABEL_ENV=yarn babel-node",
-    "flow": "./node_modules/.bin/flow .",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific -- .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet ",
