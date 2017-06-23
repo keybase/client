@@ -255,3 +255,7 @@ func (u *smuUser) reset() {
 		u.ctx.t.Fatal(err)
 	}
 }
+
+func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
+	return u.primaryDevice().tctx.G
+}

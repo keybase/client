@@ -55,6 +55,7 @@ func TestTeamReset(t *testing.T) {
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)
 
+	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 	bob.reset()
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 }
