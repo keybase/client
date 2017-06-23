@@ -617,7 +617,7 @@ type VerifyingKeyNotFoundError struct {
 }
 
 func (e VerifyingKeyNotFoundError) Error() string {
-	return fmt.Sprintf("Could not find verifyin key %s", e.key)
+	return fmt.Sprintf("Could not find verifying key %s", e.key)
 }
 
 // UnverifiableTlfUpdateError indicates that a MD update could not be
