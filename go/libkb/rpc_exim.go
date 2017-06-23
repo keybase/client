@@ -1209,7 +1209,6 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
-	current.Uvv = u.ExportToVersionVector(idTime)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
 	if u.IDTable() != nil {
 		for _, track := range u.IDTable().GetTrackList() {
@@ -1220,6 +1219,7 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 	return keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
 		PastIncarnations: pastIncarnations,
+		Uvv:              u.ExportToVersionVector(idTime),
 	}
 }
 

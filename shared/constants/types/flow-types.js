@@ -6034,7 +6034,6 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
-  uvv: UserVersionVector,
   perUserKeys?: ?Array<PerUserKey>,
   deviceKeys: {[key: string]: PublicKeyV2NaCl},
   pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
@@ -6044,6 +6043,7 @@ export type UserPlusKeysV2 = {
 export type UserPlusKeysV2AllIncarnations = {
   current: UserPlusKeysV2,
   pastIncarnations?: ?Array<UserPlusKeysV2>,
+  uvv: UserVersionVector,
 }
 
 export type UserResolution = {

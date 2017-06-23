@@ -243,7 +243,6 @@ type UserPlusKeysV2 struct {
 	Uid          UID                           `codec:"uid" json:"uid"`
 	Username     string                        `codec:"username" json:"username"`
 	EldestSeqno  Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
-	Uvv          UserVersionVector             `codec:"uvv" json:"uvv"`
 	PerUserKeys  []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
 	DeviceKeys   map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
 	PGPKeys      map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
@@ -255,7 +254,6 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Uvv:         o.Uvv.DeepCopy(),
 		PerUserKeys: (func(x []PerUserKey) []PerUserKey {
 			var ret []PerUserKey
 			for _, v := range x {
@@ -295,8 +293,9 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 }
 
 type UserPlusKeysV2AllIncarnations struct {
-	Current          UserPlusKeysV2   `codec:"current" json:"current"`
-	PastIncarnations []UserPlusKeysV2 `codec:"pastIncarnations" json:"pastIncarnations"`
+	Current          UserPlusKeysV2    `codec:"current" json:"current"`
+	PastIncarnations []UserPlusKeysV2  `codec:"pastIncarnations" json:"pastIncarnations"`
+	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -310,6 +309,7 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			}
 			return ret
 		})(o.PastIncarnations),
+		Uvv: o.Uvv.DeepCopy(),
 	}
 }
 

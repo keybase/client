@@ -197,10 +197,6 @@
           "name": "eldestSeqno"
         },
         {
-          "type": "UserVersionVector",
-          "name": "uvv"
-        },
-        {
           "type": {
             "type": "array",
             "items": "PerUserKey"
@@ -247,6 +243,10 @@
             "items": "UserPlusKeysV2"
           },
           "name": "pastIncarnations"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
         }
       ]
     },

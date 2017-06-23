@@ -123,7 +123,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		u.G().Log.CDebugf(ctx, "| missed cache")
 		return nil, true
 	}
-	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upak.Current.Uvv.CachedAt))
+	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upak.Uvv.CachedAt))
 	fresh := (diff <= u.Freshness)
 	if fresh {
 		u.G().Log.CDebugf(ctx, "| cache hit was fresh (cached %s ago)", diff)
@@ -213,7 +213,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
 	upak := user.ExportToUPKV2AllIncarnations(keybase1.Time(0))
-	upak.Current.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err := u.putUPAKToCache(ctx, &upak)
 	return err
 }
@@ -320,10 +320,10 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.UID, err)
 			}
 			u.deleteV1UPAK(arg.UID)
-		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Current.Uvv.SigChain) {
+		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Uvv.SigChain) {
 			g.Log.CDebugf(ctx, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
-			upak.Current.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
+			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
 			// since the previous line updates the in-memory cache satisfactorially.
 			u.putUPAKToCache(ctx, upak)
@@ -359,7 +359,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	tmp := user.ExportToUPKV2AllIncarnations(keybase1.Time(0))
 	ret = &tmp
-	ret.Current.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
+	ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	err = u.putUPAKToCache(ctx, ret)
 
 	if u.TestDeadlocker != nil {

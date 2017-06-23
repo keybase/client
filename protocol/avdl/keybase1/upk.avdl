@@ -59,7 +59,6 @@ protocol UPK {
       UID uid;
       string username;
       Seqno eldestSeqno;
-      UserVersionVector uvv;
       // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
       map<KID, PublicKeyV2NaCl> deviceKeys;
@@ -71,6 +70,7 @@ protocol UPK {
       UserPlusKeysV2 current;
       // Sorted by account version ascending, could be empty.
       array<UserPlusKeysV2> pastIncarnations;
+      UserVersionVector uvv;
   }
 
   enum UPAKVersion {

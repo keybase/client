@@ -1140,10 +1140,10 @@ func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 
 // IsOlderThan returns true if any of the versions of u are older than v
 func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnations) bool {
-	if u.Current.Uvv.SigChain < v.Current.Uvv.SigChain {
+	if u.Uvv.SigChain < v.Uvv.SigChain {
 		return true
 	}
-	if u.Current.Uvv.Id < v.Current.Uvv.Id {
+	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
 	return false
@@ -1357,7 +1357,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			RevokedDeviceKeys: revokedDeviceKeysV1,
 			DeletedDeviceKeys: deletedDeviceKeysV1,
 			PGPKeyCount:       len(pgpKeysV1),
-			Uvv:               uV2.Current.Uvv,
+			Uvv:               uV2.Uvv,
 			PerUserKeys:       uV2.Current.PerUserKeys,
 		},
 		PGPKeys:      pgpKeysV1,
