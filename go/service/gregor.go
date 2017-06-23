@@ -1138,32 +1138,22 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	res = loggedInMaybe
-	aerr := g.G().LoginState().Account(func(a *libkb.Account) {
-		in, err := a.LoggedInLoad()
-		if err != nil {
-			g.G().Log.Debug("gregorHandler loggedIn check: LoggedInLoad error: %s", err)
-			res = loggedInMaybe
-			return
+	status, err := g.G().LoginState().APIServerSession()
+	if err != nil {
+		switch err.(type) {
+		case libkb.LoginRequiredError:
+			return uid, token, loggedInNo
+		case libkb.NoSessionError:
+			return uid, token, loggedInNo
+		default:
+			g.G().Log.Debug("gregorHandler APIServerSessionStatus error (%T): %s", err, err)
+
 		}
-		if !in {
-			g.G().Log.Debug("gregorHandler loggedIn check: not logged in")
-			res = loggedInNo
-			return
-		}
-		g.G().Log.Debug("gregorHandler: logged in, getting token and uid")
-		token = a.LocalSession().GetToken()
-		uid = a.LocalSession().GetUID()
-		res = loggedInYes
-	}, "gregor handler - login session")
-	if token == "" || uid == "" {
-		return uid, token, res
-	}
-	if aerr != nil {
-		return uid, token, res
+		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
+		return uid, token, loggedInMaybe
 	}
 
-	return uid, token, res
+	return status.UID, status.SessionToken, loggedInYes
 }
 
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {

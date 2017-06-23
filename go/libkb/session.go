@@ -256,7 +256,10 @@ func (s *Session) check() error {
 		s.valid = true
 		return nil
 	}
+	return s.checkWithServer()
+}
 
+func (s *Session) checkWithServer() error {
 	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
 	arg.SessionType = APISessionTypeOPTIONAL
@@ -380,4 +383,15 @@ func (s *Session) loadAndCheckProvisioned() (bool, error) {
 		return false, nil
 	}
 	return s.IsLoggedInAndProvisioned(), nil
+}
+
+func (s *Session) LoadAndForceCheck() (bool, error) {
+	err := s.Load()
+	if err != nil {
+		return false, err
+	}
+	if s.HasSessionToken() {
+		err = s.checkWithServer()
+	}
+	return s.IsValid(), err
 }
