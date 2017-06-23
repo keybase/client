@@ -535,3 +535,41 @@ func TestRenameFromRemovedDirWithinBatch(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for KBFS-2286.
+func TestSetattrThenRenameWithinBatch(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+		),
+		as(alice,
+			setmtime("a/b", targetMtime),
+			rename("a/b", "a/c"),
+			// Initial check before SyncAll is called.
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"c$": "FILE"}),
+			read("a/c", "hello"),
+			mtime("a/c", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"c$": "FILE"}),
+			read("a/c", "hello"),
+			mtime("a/c", targetMtime),
+		),
+		as(bob,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"c$": "FILE"}),
+			read("a/c", "hello"),
+			mtime("a/c", targetMtime),
+		),
+	)
+}

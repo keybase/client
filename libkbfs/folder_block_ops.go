@@ -3263,21 +3263,14 @@ func (fbo *folderBlockOps) setCachedAttr(
 func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
 	dir path, op *setAttrOp) (Node, error) {
-	childPath := dir.ChildPathNoPtr(op.Name)
-
-	// find the node for the actual change; requires looking up
-	// the child entry to get the BlockPointer, unfortunately.
-	de, err := fbo.GetDirtyEntryEvenIfDeleted(ctx, lState, kmd, childPath)
-	if err != nil {
-		return nil, err
-	}
-
-	childNode := fbo.nodeCache.Get(de.Ref())
+	childNode := fbo.nodeCache.Get(op.File.Ref())
 	if childNode == nil {
 		// Nothing to do, since the cache entry won't be
 		// accessible from any node.
 		return nil, nil
 	}
+
+	childPath := fbo.nodeCache.PathFromNode(childNode)
 
 	// If the name of this child is being added to the parent, then
 	// either the attribute was already updated or this is locally a
@@ -3302,7 +3295,7 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 	}
 
 	if cleanEntry != nil {
-		fbo.setCachedAttr(lState, de.Ref(), op.Attr, cleanEntry, false)
+		fbo.setCachedAttr(lState, op.File.Ref(), op.Attr, cleanEntry, false)
 	}
 
 	return childNode, nil
