@@ -19,6 +19,11 @@ func sendChat(t smuTeam, u *smuUser, msg string) {
 	}
 }
 
+func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
+	div := "------------"
+	ctx.log.Debug(div+" "+fmt+" "+div, arg...)
+}
+
 func readChats(team smuTeam, u *smuUser, nMessages int) {
 	tctx := u.primaryDevice().popClone()
 	runner := client.NewCmdChatReadRunner(tctx.G)
@@ -32,7 +37,7 @@ func readChats(team smuTeam, u *smuUser, nMessages int) {
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}
-	u.ctx.log.Debug("--------- readChat success for %s ------------", u.username)
+	divDebug(u.ctx, "readChat success for %s", u.username)
 }
 
 func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser) {
@@ -63,24 +68,24 @@ func TestTeamReset(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
-	ctx.log.Debug("-------- Signed up ann (%s) ------------", ann.username)
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
-	ctx.log.Debug("-------- Signed up bob (%s) ------------", bob.username)
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
 	team := ann.createTeam([]*smuUser{bob})
-	ctx.log.Debug("-------- team created (%s) ------------", team.name)
+	divDebug(ctx, "team created (%s)", team.name)
 
 	sendChat(team, ann, "0")
-	ctx.log.Debug("-------- sent chat (%s via %s) ------------", team.name, ann.username)
+	divDebug(ctx, "sent chat (%s via %s)", team.name, ann.username)
 
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)
 
 	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
 	bob.reset()
-	ctx.log.Debug("-------- Reset bob (%s) -------------", bob.username)
+	divDebug(ctx, "Reset bob (%s)", bob.username)
 
 	pollForMembershipUpdate(team, ann, bob)
-	ctx.log.Debug("-------- Polled for rekey -------------")
+	divDebug(ctx, "Polled for rekey")
 }
