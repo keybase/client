@@ -3403,8 +3403,8 @@ func (fbo *folderBranchOps) Read(
 	fbo.log.CDebugf(ctx, "Read %s %d %d", getNodeIDStr(file),
 		len(dest), off)
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "Read %s %d %d done: %+v",
-			getNodeIDStr(file), len(dest), off, err)
+		fbo.deferLog.CDebugf(ctx, "Read %s %d %d (n=%d) done: %+v",
+			getNodeIDStr(file), len(dest), off, n, err)
 	}()
 
 	err = fbo.checkNode(file)
