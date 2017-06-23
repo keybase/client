@@ -602,7 +602,7 @@ function _serverCallMap(
           payload: {username, identity},
         })
         dispatch({type: Constants.updateProofState, payload: {username}})
-        if (identity.breaksTracking && !isGetProfile && !isMe) {
+        if (identity.breaksTracking && !isGetProfile) {
           dispatch(showTracker(username))
         }
       })
@@ -627,7 +627,7 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile && !isMe) {
+        if (lcr.breaksTracking && !isGetProfile) {
           dispatch(showTracker(username))
         }
       })
@@ -638,7 +638,7 @@ function _serverCallMap(
         dispatch(_updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !isGetProfile && !isMe) {
+        if (lcr.breaksTracking && !isGetProfile) {
           dispatch(showTracker(username))
         }
       })
