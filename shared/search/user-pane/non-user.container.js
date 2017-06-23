@@ -1,5 +1,5 @@
 // @flow
-import NonUser from './non-user.render.native'
+import NonUser from './non-user.render'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../constants/reducer'
