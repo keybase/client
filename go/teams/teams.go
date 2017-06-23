@@ -47,7 +47,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
+		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 			return nil, err
 		}
 
-		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(keybase1.PerTeamKeyGeneration(t.Box.Generation))
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
 		if err != nil {
 			return nil, err
 		}
@@ -93,8 +93,8 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
-func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
-	role, err := t.MemberRole(ctx, uid)
+func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
+	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		t.G().Log.Debug("error getting user role: %s", err)
 		return false
@@ -105,11 +105,7 @@ func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
 	return true
 }
 
-func (t *Team) MemberRole(ctx context.Context, uid keybase1.UID) (keybase1.TeamRole, error) {
-	uv, err := loadUserVersionByUID(ctx, t.G(), uid)
-	if err != nil {
-		return keybase1.TeamRole_NONE, err
-	}
+func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.Chain.GetUserRole(uv)
 }
 
@@ -267,13 +263,12 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
 
-	// create the team section of the signature
-
 	admin, err := t.getAdminPermission(ctx, false)
 	if err != nil {
 		return err
 	}
 
+	// create the team section of the signature
 	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
 		return err
@@ -567,7 +562,6 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
-
 	t.rotated = true
 
 	return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)

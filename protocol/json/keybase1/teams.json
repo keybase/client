@@ -209,35 +209,35 @@
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "readers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "none"
         }
@@ -306,15 +306,21 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "PerTeamKeySeedItem"
+            "type": "map",
+            "values": "PerTeamKeySeedItem",
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeySeeds"
         },
         {
           "type": {
-            "type": "array",
-            "items": "ReaderKeyMask"
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
           },
           "name": "readerKeyMasks"
         },

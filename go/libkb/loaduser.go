@@ -306,6 +306,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 	} else if !arg.PublicKeyOptional {
+		arg.G().Log.CDebugf(ctx, "No active key for user: %s", ret.GetUID())
 
 		var emsg string
 		if arg.Self {

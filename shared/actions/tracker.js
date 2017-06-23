@@ -120,7 +120,7 @@ function triggerIdentify(
           noErrorOnTrackFailure: true,
           forceRemoteCheck: false,
           forceDisplay,
-          useDelegateUI: false,
+          useDelegateUI: true,
           needProofSet: true,
           reason: {
             type: RPCTypes.IdentifyCommonIdentifyReasonType.id,

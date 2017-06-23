@@ -33,8 +33,8 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	if ownerLatest == nil {
 		return errors.New("can't create a new team without having provisioned a per-user key")
 	}
-	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
-		me.GetUID(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+		me.ToUserVersion(): *ownerLatest,
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -310,8 +310,8 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		err = errors.New("can't create a new team without having provisioned a per-user key")
 		return
 	}
-	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
-		me.GetUID(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+		me.ToUserVersion(): *ownerLatest,
 	}
 	// These boxes will get posted along with the sig below.
 	m, err := NewTeamKeyManager(g)

@@ -95,3 +95,41 @@ func TestStorageLogout(t *testing.T) {
 	res = st.Get(context.TODO(), teamID)
 	require.Nil(t, res, "got from cache, but should be gone")
 }
+
+func TestStorageUpdate(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamID := NewSubteamID()
+	st := getStorageFromG(tc.G)
+
+	t.Logf("store 1")
+	team := &keybase1.TeamData{
+		Chain: keybase1.TeamSigChainState{
+			Id: teamID,
+		},
+		CachedAt: keybase1.ToTime(tc.G.Clock().Now()),
+	}
+	st.Put(context.TODO(), team)
+
+	t.Logf("get 1")
+	team = st.Get(context.TODO(), teamID)
+	require.NotNil(t, team)
+
+	t.Logf("store updated")
+	t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
+	newTime := keybase1.ToTime(tc.G.Clock().Now().Add(freshnessLimit * -2)).Time()
+	require.False(t, newTime.Equal(team.CachedAt.Time()))
+	team.CachedAt = keybase1.ToTime(newTime)
+	t.Logf("cache post-set cachedAt:%v", team.CachedAt.Time())
+	require.True(t, newTime.Equal(team.CachedAt.Time()), "%v != %v", newTime, team.CachedAt.Time())
+
+	t.Logf("get updated")
+	team = st.Get(context.TODO(), teamID)
+	require.NotNil(t, team)
+
+	require.True(t, newTime.Equal(team.CachedAt.Time()))
+}

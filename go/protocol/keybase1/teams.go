@@ -258,49 +258,49 @@ func (o TeamMembersUsernames) DeepCopy() TeamMembersUsernames {
 }
 
 type TeamChangeReq struct {
-	Owners  []UID `codec:"owners" json:"owners"`
-	Admins  []UID `codec:"admins" json:"admins"`
-	Writers []UID `codec:"writers" json:"writers"`
-	Readers []UID `codec:"readers" json:"readers"`
-	None    []UID `codec:"none" json:"none"`
+	Owners  []UserVersion `codec:"owners" json:"owners"`
+	Admins  []UserVersion `codec:"admins" json:"admins"`
+	Writers []UserVersion `codec:"writers" json:"writers"`
+	Readers []UserVersion `codec:"readers" json:"readers"`
+	None    []UserVersion `codec:"none" json:"none"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 	return TeamChangeReq{
-		Owners: (func(x []UID) []UID {
-			var ret []UID
+		Owners: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Owners),
-		Admins: (func(x []UID) []UID {
-			var ret []UID
+		Admins: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Admins),
-		Writers: (func(x []UID) []UID {
-			var ret []UID
+		Writers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Writers),
-		Readers: (func(x []UID) []UID {
-			var ret []UID
+		Readers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
 		})(o.Readers),
-		None: (func(x []UID) []UID {
-			var ret []UID
+		None: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -364,28 +364,38 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
-	Chain           TeamSigChainState    `codec:"chain" json:"chain"`
-	PerTeamKeySeeds []PerTeamKeySeedItem `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
-	ReaderKeyMasks  []ReaderKeyMask      `codec:"readerKeyMasks" json:"readerKeyMasks"`
-	CachedAt        Time                 `codec:"cachedAt" json:"cachedAt"`
+	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
+	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
+	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
+	CachedAt        Time                                                 `codec:"cachedAt" json:"cachedAt"`
 }
 
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
 		Chain: o.Chain.DeepCopy(),
-		PerTeamKeySeeds: (func(x []PerTeamKeySeedItem) []PerTeamKeySeedItem {
-			var ret []PerTeamKeySeedItem
-			for _, v := range x {
+		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
+			ret := make(map[PerTeamKeyGeneration]PerTeamKeySeedItem)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.PerTeamKeySeeds),
-		ReaderKeyMasks: (func(x []ReaderKeyMask) []ReaderKeyMask {
-			var ret []ReaderKeyMask
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+		ReaderKeyMasks: (func(x map[TeamApplication]map[PerTeamKeyGeneration]MaskB64) map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 {
+			ret := make(map[TeamApplication]map[PerTeamKeyGeneration]MaskB64)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x map[PerTeamKeyGeneration]MaskB64) map[PerTeamKeyGeneration]MaskB64 {
+					ret := make(map[PerTeamKeyGeneration]MaskB64)
+					for k, v := range x {
+						kCopy := k.DeepCopy()
+						vCopy := v.DeepCopy()
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.ReaderKeyMasks),

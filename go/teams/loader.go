@@ -159,7 +159,13 @@ type load2ArgT struct {
 
 // Load2 does the rest of the work loading a team.
 // It is `playchain` described in the pseudocode in teamplayer.txt
-func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamData, error) {
+func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *keybase1.TeamData, err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID), func() error { return err })()
+	ret, err = l.load2Inner(ctx, arg)
+	return ret, err
+}
+
+func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.TeamData, error) {
 	var err error
 
 	// Single-flight lock by team ID.
@@ -180,9 +186,14 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 		repoll = true
 	}
 
+	if ret != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader found cached snapshot")
+	}
+
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	if (ret == nil) || repoll {
+		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf")
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
 		lastSeqno, lastLinkID, err = l.lookupMerkle(ctx, arg.teamID)
 	} else {
@@ -202,39 +213,41 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 	}
 
 	// Pull new links from the server
-	var teamUpdate *teamUpdateT
+	var teamUpdate *rawTeam
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
 		low := keybase1.Seqno(0)
 		if ret != nil {
 			low = ret.Chain.LastSeqno
 		}
+		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (low:%v)", low)
 		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, low)
 		if err != nil {
 			return nil, err
 		}
+		l.G().Log.CDebugf(ctx, "TeamLoader got %v links", len(teamUpdate.Chain))
 	}
 
-	links, err := teamUpdate.links()
+	links, err := l.unpackLinks(ctx, teamUpdate)
 	if err != nil {
 		return nil, err
 	}
 	for _, link := range links {
-		if l.seqnosContains(arg.needSeqnos, link.Seqno) || arg.needAdmin {
+		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
 			if link.isStubbed() {
-				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno)
+				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
 			}
 		}
 
-		proofSet, err = l.verifyLink(ctx, ret, &link, proofSet)
+		proofSet, err = l.verifyLinkSig(ctx, ret, arg.needAdmin, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
 
-		if l.isParentChildOperation(ctx, &link) {
-			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, &link))
+		if l.isParentChildOperation(ctx, link) {
+			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, link))
 		}
 
-		ret, err = l.applyNewLink(ctx, ret, &link)
+		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
 		if err != nil {
 			return nil, err
 		}
@@ -255,15 +268,19 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (*keybase1.TeamDa
 		return nil, err
 	}
 
-	ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
-	if err != nil {
-		return nil, err
+	if teamUpdate != nil {
+		ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Sanity check the id
 	if !ret.Chain.Id.Eq(arg.teamID) {
 		return nil, fmt.Errorf("team id mismatch: %v != %v", ret.Chain.Id.String(), arg.teamID.String())
 	}
+
+	// TODO check that the name matches the subteam-ness
 
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
@@ -339,7 +356,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 		repoll = true
 	}
 
-	cacheIsOld := (fromCache != nil) && l.isFresh(ctx, fromCache.CachedAt)
+	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
 		repoll = true
@@ -354,6 +371,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 // Considers:
 // - NeedAdmin
 // - NeedKeyGeneration
+// - NeedSeqnos
 func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *keybase1.TeamData) error {
 	if arg.needAdmin {
 		if !l.satisfiesNeedAdmin(ctx, arg.me, res) {
@@ -366,6 +384,13 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 	// Repoll to get a new key generation
 	if arg.needKeyGeneration > 0 {
 		err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, res)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(arg.needSeqnos) > 0 {
+		err := l.checkNeededSeqnos(ctx, res, arg.needSeqnos)
 		if err != nil {
 			return err
 		}
@@ -466,11 +491,15 @@ func (l *TeamLoader) seqnosMax(seqnos []keybase1.Seqno) (ret keybase1.Seqno) {
 // Whether a TeamData from the cache is fresh.
 func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 	if cachedAt.IsZero() {
+		// This should never happen.
 		l.G().Log.CWarningf(ctx, "TeamLoader encountered zero cached time")
 		return false
 	}
 	diff := l.G().Clock().Now().Sub(cachedAt.Time())
 	fresh := (diff <= freshnessLimit)
+	if !fresh {
+		l.G().Log.CDebugf(ctx, "TeamLoader cached snapshot is old: %v", diff)
+	}
 	return fresh
 }
 

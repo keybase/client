@@ -241,6 +241,10 @@ func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
 }
 
+func (o OutboxID) Bytes() []byte {
+	return []byte(o)
+}
+
 func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 	if o != nil && r != nil {
 		return *o == *r

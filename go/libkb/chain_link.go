@@ -542,7 +542,7 @@ func (c *ChainLink) Unpack(trusted bool, selfUID keybase1.UID) (err error) {
 			return err
 		}
 		tmp.outerLinkV2 = ol2
-		sigKID = ol2.kid
+		sigKID = ol2.KID
 	}
 
 	payloadKID = tmp.kid

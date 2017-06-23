@@ -20,7 +20,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 
 	g.Log.Debug("rotating team %s (%s)", team.Name, teamID)
 	if err := team.Rotate(ctx); err != nil {
-		g.Log.Debug("rotating team %s (%s) error: %s", err)
+		g.Log.Debug("rotating team %s (%s) error: %s", team.Name, teamID, err)
 		return err
 	}
 

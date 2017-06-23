@@ -359,7 +359,8 @@
         "MISC_0",
         "OFFLINE_1",
         "IDENTIFY_2",
-        "TOOLONG_3"
+        "TOOLONG_3",
+        "DUPLICATE_4"
       ]
     },
     {

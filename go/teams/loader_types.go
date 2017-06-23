@@ -1,6 +1,11 @@
 package teams
 
-import "github.com/keybase/client/go/protocol/keybase1"
+import (
+	"fmt"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+)
 
 // Collection of ordering constraints waiting to be verified.
 // TODO implement
@@ -19,15 +24,47 @@ type parentChildOperation struct {
 
 // --------------------------------------------------
 
-// A server response containing new links
-// as well as readerKeyMasks and per-team-keys.
-// TODO implement (may be exactly rawTeam)
-type teamUpdateT struct {
-	Box            *TeamBox
-	Prevs          []interface{} // TODO figure out this type
-	ReaderKeyMasks []keybase1.ReaderKeyMask
+type chainLinkUnpacked struct {
+	source    *SCChainLink
+	outerLink *libkb.OuterLinkV2WithMetadata
+	// inner is nil if the link is stubbed
+	inner *SCChainLinkPayload
 }
 
-func (t *teamUpdateT) links() ([]SCChainLink, error) {
-	panic("TODO: implement")
+func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
+	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
+	if err != nil {
+		return nil, err
+	}
+	err = outerLink.AssertSomeFields(link.Version, link.Seqno)
+	if err != nil {
+		return nil, err
+	}
+	var inner *SCChainLinkPayload
+	if link.Payload == "" {
+		// stubbed inner link
+	} else {
+		payload, err := link.UnmarshalPayload()
+		if err != nil {
+			return nil, fmt.Errorf("error unmarshaling link payload: %s", err)
+		}
+		inner = &payload
+	}
+	return &chainLinkUnpacked{
+		source:    link,
+		outerLink: outerLink,
+		inner:     inner,
+	}, nil
+}
+
+func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {
+	return l.outerLink.Seqno
+}
+
+func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
+	return l.outerLink.LinkType
+}
+
+func (l *chainLinkUnpacked) isStubbed() bool {
+	return l.inner == nil
 }
