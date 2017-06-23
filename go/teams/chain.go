@@ -641,7 +641,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			hasName(false),
 			hasMembers(false),
 			hasParent(false),
-			hasSubteam(false))
+			hasSubteam(false),
+			hasPerTeamKey(false))
 		if err != nil {
 			return res, err
 		}
@@ -664,18 +665,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		res.newState = prevState.DeepCopy()
 		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
-
-		if team.PerTeamKey != nil {
-			lastKey, err := prevState.GetLatestPerTeamKey()
-			if err != nil {
-				return res, fmt.Errorf("getting previous per-team-key: %s", err)
-			}
-			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
-			if err != nil {
-				return res, err
-			}
-			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
-		}
 
 		return res, nil
 	case "team.subteam_head":
