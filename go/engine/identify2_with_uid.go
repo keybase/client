@@ -103,14 +103,13 @@ func (i *identifyUser) Export() *keybase1.User {
 	panic("null user")
 }
 
-func (i *identifyUser) ExportToUserPlusKeys(now keybase1.Time) keybase1.UserPlusKeys {
+func (i *identifyUser) ExportToUserPlusKeys() keybase1.UserPlusKeys {
 	if i.thin != nil {
 		ret := i.thin.Base
-		ret.Uvv.LastIdentifiedAt = now
 		return ret
 	}
 	if i.full != nil {
-		return i.full.ExportToUserPlusKeys(now)
+		return i.full.ExportToUserPlusKeys()
 	}
 	panic("null user")
 }
@@ -533,8 +532,9 @@ func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
 		return nil
 	}
 	return &keybase1.Identify2Res{
-		Upk:         e.toUserPlusKeys(),
-		TrackBreaks: e.trackBreaks,
+		Upk:          e.toUserPlusKeys(),
+		TrackBreaks:  e.trackBreaks,
+		IdentifiedAt: keybase1.ToTime(e.getNow()),
 	}
 }
 
@@ -975,7 +975,8 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 		return nil
 	}
 	var tmp keybase1.Identify2Res
-	tmp.Upk = e.them.ExportToUserPlusKeys(ktm)
+	tmp.Upk = e.them.ExportToUserPlusKeys()
+	tmp.IdentifiedAt = ktm
 	ret = &tmp
 	return ret
 }
@@ -991,7 +992,7 @@ func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	}
 
 	key := e.dbKey(e.them.GetUID())
-	now := keybase1.ToTime(time.Now())
+	now := keybase1.ToTime(e.getNow())
 	err = e.G().LocalDb.PutObj(key, nil, now)
 	return err
 }
@@ -1017,7 +1018,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		return false
 	}
 
-	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.LastIdentifiedAt }
+	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.IdentifiedAt }
 	dfn := func(u keybase1.Identify2Res) time.Duration {
 		if u.TrackBreaks != nil {
 			return libkb.Identify2CacheBrokenTimeout
@@ -1051,7 +1052,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	e.cachedRes = u
 
 	// Update so that it hits the fast cache the next time
-	u.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow())
 	return true
 }
 
@@ -1067,7 +1068,7 @@ func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 }
 
 func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
-	return e.them.ExportToUserPlusKeys(keybase1.ToTime(e.getNow()))
+	return e.them.ExportToUserPlusKeys()
 }
 
 func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {

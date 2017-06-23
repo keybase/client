@@ -1113,17 +1113,17 @@ func (u *User) Export() *keybase1.User {
 	}
 }
 
-func (u *User) ExportToVersionVector(idTime keybase1.Time) keybase1.UserVersionVector {
+func (u *User) ExportToVersionVector() keybase1.UserVersionVector {
 	idv, _ := u.GetIDVersion()
 	return keybase1.UserVersionVector{
-		Id:               idv,
-		SigHints:         u.GetSigHintsVersion(),
-		SigChain:         int64(u.GetSigChainLastKnownSeqno()),
-		LastIdentifiedAt: idTime,
+		Id:       idv,
+		SigHints: u.GetSigHintsVersion(),
+		SigChain: int64(u.GetSigChainLastKnownSeqno()),
+		// CachedAt is set by the upak loader right before we write to disk.
 	}
 }
 
-func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys {
+func (u *User) ExportToUserPlusKeys() keybase1.UserPlusKeys {
 	ret := keybase1.UserPlusKeys{
 		Uid:         u.GetUID(),
 		Username:    u.GetName(),
@@ -1137,13 +1137,13 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 		ret.PerUserKeys = ckf.ExportPerUserKeys()
 	}
 
-	ret.Uvv = u.ExportToVersionVector(idTime)
+	ret.Uvv = u.ExportToVersionVector()
 	return ret
 }
 
-func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
+func (u *User) ExportToUserPlusAllKeys() keybase1.UserPlusAllKeys {
 	return keybase1.UserPlusAllKeys{
-		Base:         u.ExportToUserPlusKeys(idTime),
+		Base:         u.ExportToUserPlusKeys(),
 		PGPKeys:      u.GetComputedKeyFamily().ExportAllPGPKeys(),
 		RemoteTracks: u.ExportRemoteTracks(),
 	}
@@ -1188,7 +1188,7 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 	}
 }
 
-func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserPlusKeysV2AllIncarnations {
+func (u *User) ExportToUPKV2AllIncarnations() keybase1.UserPlusKeysV2AllIncarnations {
 	// The KeyFamily holds all the PGP key bundles, and it applies to all
 	// generations of this user.
 	kf := u.GetKeyFamily()
@@ -1219,7 +1219,7 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 	return keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
 		PastIncarnations: pastIncarnations,
-		Uvv:              u.ExportToVersionVector(idTime),
+		Uvv:              u.ExportToVersionVector(),
 	}
 }
 

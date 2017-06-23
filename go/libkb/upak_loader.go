@@ -212,7 +212,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
-	upak := user.ExportToUPKV2AllIncarnations(keybase1.Time(0))
+	upak := user.ExportToUPKV2AllIncarnations()
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 	err := u.putUPAKToCache(ctx, &upak)
 	return err
@@ -357,7 +357,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
 	}
 
-	tmp := user.ExportToUPKV2AllIncarnations(keybase1.Time(0))
+	tmp := user.ExportToUPKV2AllIncarnations()
 	ret = &tmp
 	ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	err = u.putUPAKToCache(ctx, ret)

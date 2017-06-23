@@ -5,7 +5,6 @@ package engine
 
 import (
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -95,7 +94,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys(keybase1.ToTime(time.Now()))
+	upk := res.ExportToUserPlusKeys()
 	checkAliceProofs(tc.T, idUI, &upk)
 	assertTracking(tc, "t_alice")
 	return
@@ -115,7 +114,7 @@ func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.Tr
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	upk := res.ExportToUserPlusKeys(keybase1.ToTime(time.Now()))
+	upk := res.ExportToUserPlusKeys()
 	checkBobProofs(tc.T, idUI, &upk)
 	assertTracking(tc, "t_bob")
 	return

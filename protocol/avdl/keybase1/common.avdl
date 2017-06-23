@@ -157,7 +157,6 @@ protocol Common {
       int sigHints;
       long sigChain;
       Time cachedAt;
-      Time lastIdentifiedAt;
   }
 
   @lint("ignore")

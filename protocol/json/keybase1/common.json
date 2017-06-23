@@ -377,10 +377,6 @@
         {
           "type": "Time",
           "name": "cachedAt"
-        },
-        {
-          "type": "Time",
-          "name": "lastIdentifiedAt"
         }
       ]
     },

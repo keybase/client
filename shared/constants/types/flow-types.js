@@ -4607,6 +4607,7 @@ export type HelloRes = string
 
 export type Identify2Res = {
   upk: UserPlusKeys,
+  identifiedAt: Time,
   trackBreaks?: ?IdentifyTrackBreaks,
 }
 
@@ -6092,7 +6093,6 @@ export type UserVersionVector = {
   sigHints: int,
   sigChain: long,
   cachedAt: Time,
-  lastIdentifiedAt: Time,
 }
 
 export type VerifySessionRes = {
