@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(Creators.clearSearchResults())
     }
   },
-  onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
+  onEnter: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {

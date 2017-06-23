@@ -15,15 +15,16 @@ const Search = (props: Props) => (
         <Box style={{flexGrow: 1, padding: globalMargins.small}}>
           <UserInput
             autoFocus={true}
-            userItems={props.userItems}
-            onRemoveUser={props.onRemoveUser}
-            onClickAddButton={props.onClickAddButton}
-            placeholder={props.placeholder}
-            usernameText={props.searchText}
             onChangeText={props.onChangeText}
-            onMoveSelectUp={() => {}} // TODO
-            onMoveSelectDown={() => {}} // TODO
-            onEnter={() => {}} // TODO
+            onClickAddButton={props.onClickAddButton}
+            onEnter={props.onEnter}
+            onMoveSelectUp={props.onMoveSelectUp}
+            onMoveSelectDown={props.onMoveSelectDown}
+            onRemoveUser={props.onRemoveUser}
+            onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
+            placeholder={props.placeholder}
+            userItems={props.userItems}
+            usernameText={props.searchText}
           />
         </Box>
         <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
@@ -34,7 +35,11 @@ const Search = (props: Props) => (
       <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
     </Box>
     <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
-      <ResultsList items={props.ids} onClick={props.onClick} selectedId={null} />
+      <ResultsList
+        items={props.searchResultIds}
+        onClick={props.onClick}
+        selectedId={props.selectedSearchId}
+      />
     </Box>
   </Box>
 )

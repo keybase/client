@@ -2,11 +2,11 @@
 import {clearSearchResults, onUserClick} from '../actions/profile'
 import * as SearchCreators from '../actions/searchv3/creators'
 import * as SearchConstants from '../constants/searchv3'
-import {debounce} from 'lodash'
 import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
+import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -16,22 +16,31 @@ type HocIntermediateProps = {
   _onClick: (id: string) => void,
   _onChangeText: (nextText: string) => void,
   _onSelectService: () => void,
-  _search: (term: string, service: SearchConstants.Service) => void,
+  search: (term: string, service: SearchConstants.Service) => void,
+  selectedSearchId: ?SearchConstants.SearchResultId,
+  onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  ids: profileSearchResultArray(state),
+  searchResultIds: profileSearchResultArray(state),
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
   _clearSearchResults: () => dispatch(clearSearchResults()),
+  search: (term: string, service) => {
+    if (term) {
+      dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service))
+    } else {
+      dispatch(clearSearchResults())
+    }
+  },
+  onEnter: username => {
+    dispatch(navigateUp())
+    dispatch(onUserClick(username))
+  },
   _onClick: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },
-  _search: debounce(
-    (term: string, service) => dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service)),
-    1e3
-  ),
   onClose: () => {
     dispatch(clearSearchResults())
     dispatch(navigateUp())
@@ -43,10 +52,12 @@ export default compose(
   withState('usernameText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   withState('searchText', 'onChangeSearchText', ''),
+  selectedSearchIdHoc,
+  onChangeSelectedSearchResultHoc,
   withHandlers({
     onChangeText: (props: Props & HocIntermediateProps) => nextText => {
       props.onChangeSearchText(nextText)
-      props._search(nextText, props.selectedService)
+      props.search(nextText, props.selectedService)
     },
     onClick: (props: Props & HocIntermediateProps) => id => {
       props._onClick(id)
@@ -55,7 +66,7 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props._search(props.searchText, nextService)
+      props.search(props.searchText, nextService)
     },
   }),
   defaultProps({
