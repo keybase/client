@@ -208,7 +208,7 @@ def notifySlack(String buildStatus = 'STARTED') {
 
         def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
 
-        helpers.slackMessage("bot-test2", color, msg)
+        helpers.slackMessage("bot", color, msg)
     }
 }
 
