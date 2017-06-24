@@ -190,7 +190,7 @@ def doBuild() {
 }
 
 def notifySlack(String buildStatus = 'STARTED') {
-    if(SlackBuild) {
+    if(SlackBot) {
         // Build status of null means success.
         buildStatus = buildStatus ?: 'SUCCESS'
 
