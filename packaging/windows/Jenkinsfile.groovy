@@ -1,3 +1,5 @@
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+
 def getCommit(path) {
     dir(path) {
         return bat(returnStdout: true, script: '@echo off && git rev-parse HEAD').trim()
@@ -151,8 +153,9 @@ def doBuild() {
                     string(name: 'ReleaseRevision', value: "${releaseCommit}"),
                     string(name: 'DOKAN_PATH', value: "${DOKAN_PATH}"),
                     string(name: 'UpdateChannel', value: 'Smoke2'),
-                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"
-                )],
+                    string(name: 'SmokeASemVer', value: "${smokeASemVer}")
+                    boolean(name: 'SlackBuild', value: "${SlackBuild}")
+                ],
                 wait: false
             ])
         } else {
@@ -186,49 +189,26 @@ def doBuild() {
     }
 }
 
-def slackMessage(channel, color, message) {
-    withCredentials([[$class: 'StringBinding',
-        credentialsId: 'SLACK_INTEGRATION_TOKEN',
-        variable: 'SLACK_INTEGRATION_TOKEN',
-    ]]) {
-        slackSend([
-            channel: channel,
-            color: color,
-            message: message,
-            teamDomain: "keybase",
-            token: "${env.SLACK_INTEGRATION_TOKEN}"
-        ])
-    }
-}
 def notifySlack(String buildStatus = 'STARTED') {
-    // Build status of null means success.
-    buildStatus = buildStatus ?: 'SUCCESS'
+    if(SlackBuild) {
+        // Build status of null means success.
+        buildStatus = buildStatus ?: 'SUCCESS'
 
-    def color
+        def color
 
-    if (buildStatus == 'STARTED') {
-        color = '#D4DADF'
-    } else if (buildStatus == 'SUCCESS') {
-        color = '#BDFFC3'
-    } else if (buildStatus == 'UNSTABLE') {
-        color = '#FFFE89'
-    } else {
-        color = '#FF9FA1'
-    }
+        if (buildStatus == 'STARTED') {
+            color = '#D4DADF'
+        } else if (buildStatus == 'SUCCESS') {
+            color = '#BDFFC3'
+        } else if (buildStatus == 'UNSTABLE') {
+            color = '#FFFE89'
+        } else {
+            color = '#FF9FA1'
+        }
 
-    def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+        def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
 
-    withCredentials([[$class: 'StringBinding',
-        credentialsId: 'SLACK_INTEGRATION_TOKEN',
-        variable: 'SLACK_INTEGRATION_TOKEN',
-    ]]) {
-        slackSend([
-            channel: "bot-test2",
-            color: color,
-            message: msg,
-            teamDomain: "keybase",
-            token: "${env.SLACK_INTEGRATION_TOKEN}"
-        ])
+        helpers.slackMessage("bot-test2", color, msg)
     }
 }
 
