@@ -914,9 +914,9 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 	return pk
 }
 
-func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.PublicKeyV2Base) {
+func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) (base keybase1.PublicKeyV2Base) {
 	base = keybase1.PublicKeyV2Base{
-		Kid:      info.KID,
+		Kid:      kid,
 		IsSibkey: info.Sibkey,
 		IsEldest: info.Eldest,
 		CTime:    keybase1.TimeFromSeconds(info.CTime),
@@ -957,7 +957,7 @@ func (cki ComputedKeyInfos) exportDeviceKeyV2(kid keybase1.KID) (key keybase1.Pu
 		return
 	}
 	key = keybase1.PublicKeyV2NaCl{
-		Base:     publicKeyV2BaseFromComputedKeyInfo(*info),
+		Base:     publicKeyV2BaseFromComputedKeyInfo(kid, *info),
 		DeviceID: cki.KIDToDeviceID[kid],
 	}
 	if !info.Parent.IsNil() {
@@ -994,7 +994,7 @@ func (cki ComputedKeyInfos) exportPGPKeyV2(kid keybase1.KID, kf *KeyFamily) (key
 		return
 	}
 	key = keybase1.PublicKeyV2PGPSummary{
-		Base:        publicKeyV2BaseFromComputedKeyInfo(*info),
+		Base:        publicKeyV2BaseFromComputedKeyInfo(kid, *info),
 		Fingerprint: keybase1.PGPFingerprint(bundle.GetFingerprint()),
 		Identities:  bundle.Export().PGPIdentities,
 	}
@@ -1169,11 +1169,11 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 
 	deviceKeys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
 	pgpSummaries := make(map[keybase1.KID]keybase1.PublicKeyV2PGPSummary)
-	for _, info := range cki.Infos {
-		if KIDIsPGP(info.KID) {
-			pgpSummaries[info.KID] = cki.exportPGPKeyV2(info.KID, kf)
+	for kid := range cki.Infos {
+		if KIDIsPGP(kid) {
+			pgpSummaries[kid] = cki.exportPGPKeyV2(kid, kf)
 		} else {
-			deviceKeys[info.KID] = cki.exportDeviceKeyV2(info.KID)
+			deviceKeys[kid] = cki.exportDeviceKeyV2(kid)
 		}
 	}
 
