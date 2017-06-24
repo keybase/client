@@ -153,8 +153,8 @@ def doBuild() {
                     string(name: 'ReleaseRevision', value: "${releaseCommit}"),
                     string(name: 'DOKAN_PATH', value: "${DOKAN_PATH}"),
                     string(name: 'UpdateChannel', value: 'Smoke2'),
-                    string(name: 'SmokeASemVer', value: "${smokeASemVer}")
-                    boolean(name: 'SlackBuild', value: "${SlackBuild}")
+                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"),
+                    string(name: 'SlackBot', value: "${SlackBot}")
                 ],
                 wait: false
             ])
