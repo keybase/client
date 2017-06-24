@@ -3,6 +3,7 @@ package systests
 import (
 	"fmt"
 	client "github.com/keybase/client/go/client"
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -91,4 +92,10 @@ func TestTeamReset(t *testing.T) {
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	_, err := bob.teamGet(team)
+	require.Error(t, err)
+	ae, ok := err.(libkb.AppStatusError)
+	require.True(t, ok)
+	require.Equal(t, ae.Code, int(keybase1.StatusCode_SCTeamReadError))
 }

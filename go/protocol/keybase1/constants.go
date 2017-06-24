@@ -99,6 +99,7 @@ const (
 	StatusCode_SCNeedSelfRekey          StatusCode = 2512
 	StatusCode_SCNeedOtherRekey         StatusCode = 2513
 	StatusCode_SCChatMessageCollision   StatusCode = 2514
+	StatusCode_SCTeamReadError          StatusCode = 2623
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -193,6 +194,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNeedSelfRekey":          2512,
 	"SCNeedOtherRekey":         2513,
 	"SCChatMessageCollision":   2514,
+	"SCTeamReadError":          2623,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -285,6 +287,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2512: "SCNeedSelfRekey",
 	2513: "SCNeedOtherRekey",
 	2514: "SCChatMessageCollision",
+	2623: "SCTeamReadError",
 }
 
 func (e StatusCode) String() string {

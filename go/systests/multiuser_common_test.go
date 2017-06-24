@@ -22,6 +22,7 @@ type smuUser struct {
 	usernamePrefix string
 	username       string
 	userInfo       *signupInfo
+	primary        *smuDeviceWrapper
 }
 
 type smuContext struct {
@@ -156,6 +157,9 @@ func (ctx *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
 	tctx.G.SetClock(ctx.fakeClock)
 	ret := &smuDeviceWrapper{ctx: ctx, tctx: tctx}
 	u.devices = append(u.devices, ret)
+	if u.primary == nil {
+		u.primary = ret
+	}
 	if ctx.log == nil {
 		ctx.log = tctx.G.Log
 	}
@@ -177,7 +181,7 @@ func (ctx *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
 }
 
 func (u *smuUser) primaryDevice() *smuDeviceWrapper {
-	return u.devices[0]
+	return u.primary
 }
 
 func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
@@ -328,6 +332,7 @@ func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
 	dev := u.ctx.newDevice(u, numClones)
+	u.primary = dev
 	g := dev.tctx.G
 	ui := genericUI{
 		g:           g,
@@ -342,4 +347,10 @@ func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
 		u.ctx.t.Fatal(err)
 	}
 	return dev
+}
+
+func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
+	cli := u.getTeamsClient()
+	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
+	return details, err
 }
