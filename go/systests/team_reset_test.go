@@ -78,7 +78,7 @@ func TestTeamReset(t *testing.T) {
 	divDebug(ctx, "team created (%s)", team.name)
 
 	sendChat(team, ann, "0")
-	divDebug(ctx, "sent chat (%s via %s)", team.name, ann.username)
+	divDebug(ctx, "Sent chat (%s via %s)", team.name, ann.username)
 
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)
@@ -98,4 +98,5 @@ func TestTeamReset(t *testing.T) {
 	ae, ok := err.(libkb.AppStatusError)
 	require.True(t, ok)
 	require.Equal(t, ae.Code, int(keybase1.StatusCode_SCTeamReadError))
+	divDebug(ctx, "Bob failed to read the team")
 }
