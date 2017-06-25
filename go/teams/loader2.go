@@ -145,7 +145,7 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 // Checks that the team keys match the published values on the chain.
 // Checks that the off-chain data ends up exactly in sync with the chain, generation-wise.
 func (l *TeamLoader) addSecrets(ctx context.Context,
-	state *keybase1.TeamData, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]string,
+	state *keybase1.TeamData, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
 	readerKeyMasks []keybase1.ReaderKeyMask) (*keybase1.TeamData, error) {
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(ctx, box, prevs)
@@ -266,7 +266,7 @@ func (l *TeamLoader) checkPerTeamKeyAgainstChain(ctx context.Context,
 // Returns the generation of the box (the greatest generation),
 // and a list of the seeds in ascending generation order.
 func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
-	box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]string) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
+	box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (keybase1.PerTeamKeyGeneration, []keybase1.PerTeamKeySeed, error) {
 
 	if box == nil {
 		return 0, nil, fmt.Errorf("no key box from server")
