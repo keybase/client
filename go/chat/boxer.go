@@ -207,7 +207,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	if ierr == nil {
 		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
 	}
-	b.G().Log.CDebugf(ctx, "DO NOT COMMIT 2 %+v -> %s", encryptionKey, ierr)
+	b.G().Log.CDebugf(ctx, "DO NOT COMMIT 2 %+v / %+v -> %+v / %s", encryptionKey, boxed, unboxed, ierr)
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
