@@ -35,7 +35,8 @@ func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.Box.Generation
 }
 
-func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
+func (t *Team) SharedSecret(ctx context.Context) (ret []byte, err error) {
+	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
@@ -46,6 +47,7 @@ func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		t.G().Log.CDebugf(ctx, "| Box#Open succeeded")
 
 		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
 		if err != nil {
@@ -180,6 +182,7 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 		}
 		res = append(res, key)
 	}
+	t.G().Log.CDebugf(ctx, "DO NOT COMMIT %+v", res)
 	return res, nil
 }
 

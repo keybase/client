@@ -319,6 +319,18 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	return smuTeam{name: name}
 }
 
+func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: w.username,
+		Role:     keybase1.TeamRole_WRITER,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) reset() {
 	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
 	if err != nil {
