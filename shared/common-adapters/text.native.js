@@ -5,7 +5,6 @@ import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.met
 import {clickableVisible} from '../local-debug'
 import glamorous from 'glamorous-native'
 import shallowEqual from 'shallowequal'
-import {StyleSheet} from 'react-native'
 
 import type {Props, TextType, Background} from './text'
 
@@ -40,9 +39,6 @@ class Text extends Component<void, Props, void> {
       ...(clickableVisible && this.props.onClick ? visibleStyle : {}),
       ...this.props.style,
     }
-
-    console.log('aaa1', StyleSheet.create({a: style}))
-    console.log('aaa2', StyleSheet.create({a: style}))
 
     if (style['color'] === undefined) {
       console.warn(

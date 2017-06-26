@@ -13,6 +13,7 @@ import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
 import {isAndroid, isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
+import glamorous from 'glamorous-native'
 
 import type {Props} from './nav'
 import type {TypedState} from './constants/reducer'
@@ -92,8 +93,9 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
 
 function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
+  const View = glamorous.view(route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver)
   return (
-    <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
+    <View>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
@@ -101,56 +103,41 @@ function renderStackRoute(route) {
         barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
-    </Box>
+    </View>
   )
 }
 
-const forIOS = ({hideNav, shim, tabBar}) => (
-  <Box style={flexOne}>
-    <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
-      {shim}
-    </NativeKeyboardAvoidingView>
-    {!hideNav && tabBar}
-  </Box>
-)
+const Container = isIOS
+  ? ({shim, tabBar}) => (
+      <Box style={flexOne}>
+        <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
+          {shim}
+        </NativeKeyboardAvoidingView>
+      </Box>
+    )
+  : ({hideNav, shim, tabBar}) => (
+      <Box style={flexOne}>
+        <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
+          {shim}
+        </Box>
+      </Box>
+    )
 
-const forAndroid = ({hideNav, shim, tabBar}) => (
-  <Box style={flexOne}>
-    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
-      {shim}
-    </Box>
-    {!hideNav &&
-      <Box style={styleCollapsibleNavAndroid}>
-        {tabBar}
-      </Box>}
-  </Box>
-)
-
-function MainNavStack(props: Props) {
-  const screens = props.routeStack
+function MainNavStack({routeStack, routeSelected, navigateUp, reachability, hideNav}) {
+  const screens = routeStack
   const shim = (
     <Box style={flexOne}>
       <CardStackShim
-        key={props.routeSelected}
+        key={routeSelected}
         stack={screens}
         renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
+        onNavigateBack={navigateUp}
       />
-      {![chatTab].includes(props.routeSelected) &&
-        <Offline reachability={props.reachability} appFocused={true} />}
+      {![chatTab].includes(routeSelected) && <Offline reachability={reachability} appFocused={true} />}
       <GlobalError />
     </Box>
   )
-  const tabBar = (
-    <TabBar
-      onTabClick={props.switchTab}
-      selectedTab={props.routeSelected}
-      username={props.username}
-      badgeNumbers={props.navBadges.toJS()}
-    />
-  )
-  const Container = isAndroid ? forAndroid : forIOS
-  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
+  return <Container hideNav={hideNav} shim={shim} />
 }
 
 function Nav(props: Props) {
@@ -162,8 +149,15 @@ function Nav(props: Props) {
   const fullscreenPred = r => r.tags.fullscreen
   const mainScreens = baseScreens.takeUntil(fullscreenPred)
   const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
+    component: (
+      <MainNavStack
+        routeStack={mainScreens}
+        routeSelected={props.routeSelected}
+        navigateUp={props.navigateUp}
+        reachability={props.reachability}
+      />
+    ),
     path: ['main'],
-    component: <MainNavStack {...props} routeStack={mainScreens} />,
     tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
   })
 
@@ -178,6 +172,15 @@ function Nav(props: Props) {
         mode="modal"
       />
       {layerScreens.map(r => r.leafComponent)}
+      {!props.hideNav &&
+        <Box style={isIOS ? null : styleCollapsibleNavAndroid}>
+          <TabBar
+            onTabClick={props.switchTab}
+            selectedTab={props.routeSelected}
+            username={props.username}
+            badgeNumbers={props.navBadges.toJS()}
+          />
+        </Box>}
     </Box>
   )
 }

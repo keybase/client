@@ -6,6 +6,7 @@ import {NativeText, NativeImage} from './native-wrappers.native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {omit} from 'lodash'
+import glamorous from 'glamorous-native'
 
 import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
@@ -41,19 +42,24 @@ const Icon = (props: Exact<Props>) => {
     const textAlign = props.style && props.style.textAlign
     const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
 
+    const Text = glamorous.text({
+      color,
+      fontFamily: 'kb',
+      textAlign,
+      ...fontSize,
+      ...width,
+      ...backgroundColor,
+    })
+
     icon = (
-      <NativeText style={{color, textAlign, fontFamily: 'kb', ...fontSize, ...width, ...backgroundColor}}>
+      <Text>
         {code}
-      </NativeText>
+      </Text>
     )
   } else {
     const height = props.style && props.style.height && {height: props.style.height}
-    icon = (
-      <NativeImage
-        source={iconMeta[iconType].require}
-        style={{resizeMode: 'contain', ...width, ...height, ...backgroundColor}}
-      />
-    )
+    const Image = glamorous.image({resizeMode: 'contain', ...width, ...height, ...backgroundColor})
+    icon = <Image source={iconMeta[iconType].require} />
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])

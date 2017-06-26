@@ -4,6 +4,7 @@ import React, {PureComponent} from 'react'
 import {globalColors} from '../styles'
 import {ClickableBox, NativeImage, Box} from './index.native'
 import {memoize} from 'lodash'
+import glamorous from 'glamorous-native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -35,62 +36,68 @@ type State = {
 
 // Android doesn't handle background colors border radius setting
 const backgroundOffset = 1
-const Background = ({loaded, loadingColor, size}) => (
-  <Box
-    style={{
-      backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
-      borderRadius: size / 2,
+const Background = ({loaded, loadingColor, size}) => {
+  const View = glamorous.view(
+    {
       bottom: backgroundOffset,
       left: backgroundOffset,
       position: 'absolute',
       right: backgroundOffset,
       top: backgroundOffset,
-    }}
-  />
-)
+    },
+    props => ({
+      backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
+      borderRadius: props.size / 2,
+    })
+  )
+  return <View loaded={loaded} loadingColor={loadingColor} size={size} />
+}
 
 class UserImage extends PureComponent<void, ImageProps, void> {
   render() {
     const {url, size, onLoadEnd, opacity = 1} = this.props
 
-    return (
-      <NativeImage
-        source={url}
-        onLoadEnd={onLoadEnd}
-        style={{
-          borderRadius: size / 2,
-          bottom: 0,
-          height: size,
-          left: 0,
-          opacity,
-          position: 'absolute',
-          right: 0,
-          top: 0,
-          width: size,
-        }}
-      />
+    const Image = glamorous.image(
+      {
+        bottom: 0,
+        left: 0,
+        opacity,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      props => ({
+        borderRadius: props.size / 2,
+        height: props.size,
+        width: props.size,
+      })
     )
+
+    return <Image source={url} onLoadEnd={onLoadEnd} size={size} />
   }
 }
 
 const borderOffset = -1
 const borderSize = 2
 // Layer on top to extend outside of the image
-const Border = ({borderColor, size}) => (
-  <Box
-    style={{
-      borderColor,
-      borderRadius: size / 2,
+const Border = ({borderColor, size}) => {
+  const View = glamorous.view(
+    {
       borderWidth: borderSize,
       bottom: borderOffset,
       left: borderOffset,
+      margin: borderSize / 2,
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
-      margin: borderSize / 2,
-    }}
-  />
-)
+    },
+    props => ({
+      borderColor: props.borderColor,
+      borderRadius: props.size / 2,
+    })
+  )
+  return <View size={size} borderColor={borderColor} />
+}
 
 class AvatarRender extends PureComponent<void, Props, State> {
   state: State = {
