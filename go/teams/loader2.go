@@ -23,13 +23,15 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 }
 
 func (l *TeamLoader) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, low keybase1.Seqno) (*rawTeam, error) {
+	teamID keybase1.TeamID, lowSeqno keybase1.Seqno, lowGen keybase1.PerTeamKeyGeneration) (*rawTeam, error) {
 
 	arg := libkb.NewRetryAPIArg("team/get")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"id": libkb.S{Val: teamID.String()},
+		"id":               libkb.S{Val: teamID.String()},
+		"low":              libkb.I{Val: int(lowSeqno)},
+		"per_team_key_low": libkb.I{Val: int(lowGen)},
 	}
 
 	var rt rawTeam
@@ -81,10 +83,11 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
 	me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
 	// TODO: This uses chain.go now. But chain.go is not in line
 	// with the new approach. It has TODOs to check things that
-	// are check by proofSet etc now.
+	// are checked by proofSet etc now.
 	// And it does not use pre-unpacked types.
 
 	var player *TeamSigChainPlayer
@@ -112,8 +115,9 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
 		}
 	} else {
-		newState := state.DeepCopy()
-		newState.Chain = newChainState.inner
+		newState2 := state.DeepCopy()
+		newState2.Chain = newChainState.inner
+		newState = &newState2
 	}
 
 	return newState, nil
@@ -152,6 +156,15 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
+	// Earliest generation received. If there were gaps, the earliest in the consecutive run from the box.
+	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
+	// Latest generation from the sigchain
+	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+
+	if latestReceivedGen != latestChainGen {
+		return nil, fmt.Errorf("wrong latest key generation: %v != %v",
+			latestReceivedGen, latestChainGen)
+	}
 
 	ret := state.DeepCopy()
 
@@ -162,13 +175,8 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 			return nil, fmt.Errorf("gen < 1")
 		}
 
-		latestChainGen := len(state.PerTeamKeySeeds)
-		if gen <= latestChainGen {
-			l.G().Log.CDebugf(ctx, "TeamLoader got old key, dropping without checking")
-			continue
-		}
-		if gen != latestChainGen+1 {
-			return nil, fmt.Errorf("wrong key generation: %v != %v", gen, latestChainGen+1)
+		if gen <= int(latestChainGen) {
+			l.G().Log.CDebugf(ctx, "TeamLoader got old key, re-checking as if new")
 		}
 
 		item, err := l.checkPerTeamKeyAgainstChain(ctx, state, keybase1.PerTeamKeyGeneration(gen), seed)
@@ -176,7 +184,16 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 			return nil, err
 		}
 
+		// Add it to the snapshot
 		ret.PerTeamKeySeeds[item.Generation] = *item
+	}
+
+	// Make sure there is not a gap between the latest local key and the earliest received key.
+	if earliestReceivedGen != keybase1.PerTeamKeyGeneration(1) {
+		if _, ok := ret.PerTeamKeySeeds[earliestReceivedGen]; !ok {
+			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v",
+				latestReceivedGen, earliestReceivedGen)
+		}
 	}
 
 	// Insert all reader key masks
@@ -194,9 +211,12 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 
 		checkMaskGens[rkm.Generation] = true
 		if rkm.Generation > 1 {
+			// Check for the previous rkm to make sure there are no gaps
 			checkMaskGens[rkm.Generation-1] = true
 		}
 	}
+	// Check that we are all the way up to date
+	checkMaskGens[latestChainGen] = true
 	for gen := range checkMaskGens {
 		err = l.checkReaderKeyMaskCoverage(ctx, &ret, gen)
 		if err != nil {
@@ -262,7 +282,7 @@ func (l *TeamLoader) checkPerTeamKeyAgainstChain(ctx context.Context,
 
 // Unbox per team keys
 // Does not check that the keys match the chain
-// TODO: return the signer and have the caller check it. Not critical because the public half is check anyway.
+// TODO: return the signer and have the caller check it. Not critical because the public half is checked anyway.
 // Returns the generation of the box (the greatest generation),
 // and a list of the seeds in ascending generation order.
 func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
@@ -277,17 +297,36 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 		return 0, nil, err
 	}
 
-	secret, err := box.Open(userKey)
+	secret1, err := box.Open(userKey)
 	if err != nil {
 		return 0, nil, err
 	}
 
 	// Secrets starts as descending
-	secrets := []keybase1.PerTeamKeySeed{secret}
+	secrets := []keybase1.PerTeamKeySeed{secret1}
 
-	for _, prev := range prevs {
-		_ = prev
-		panic("TODO: implement unboxing prevs")
+	// The generation to work on opening
+	openGeneration := box.Generation - keybase1.PerTeamKeyGeneration(1)
+
+	// Walk down generations until
+	// - the map is exhausted
+	// - if malformed, the map has a gap
+	// - reach generation 0
+	for {
+		if int(openGeneration) == 0 || int(openGeneration) < 0 {
+			break
+		}
+		// Prevs is keyed by the generation that can decrypt, not the generation contained.
+		prev, ok := prevs[openGeneration+1]
+		if !ok {
+			break
+		}
+		secret, err := decryptPrevSingle(ctx, prev, secrets[len(secrets)-1])
+		if err != nil {
+			return box.Generation, nil, fmt.Errorf("gen %v: %v", openGeneration, err)
+		}
+		secrets = append(secrets, *secret)
+		openGeneration--
 	}
 
 	// Reverse the list
@@ -337,7 +376,8 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	}
 	var links []*chainLinkUnpacked
 	for _, pLink := range parsedLinks {
-		link, err := unpackChainLink(&pLink)
+		pLink2 := pLink
+		link, err := unpackChainLink(&pLink2)
 		if err != nil {
 			return nil, err
 		}

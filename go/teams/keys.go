@@ -363,3 +363,33 @@ func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
 	digest.Write([]byte(context))
 	return digest.Sum(nil)[:32]
 }
+
+// Decrypt a single prev secretbox.
+// Takes a prev to decrypt and the seed of the successor generation.
+// For example (prev[3], seed[4]) -> seed[4]
+func decryptPrevSingle(ctx context.Context,
+	prevToDecrypt prevKeySealedEncoded, successor keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeed, error) {
+	if successor.IsZero() {
+		return nil, fmt.Errorf("Got 0 key, which can't be right")
+	}
+	if len(prevToDecrypt) == 0 {
+		return nil, fmt.Errorf("zero-length encoded prev")
+	}
+	nonce, ctext, err := decodeSealedPrevKey(prevToDecrypt)
+	if err != nil {
+		return nil, err
+	}
+	var keyFixed [32]byte
+	// prev key to decrypt with
+	key := derivedSecret(successor, libkb.TeamPrevKeySecretBoxDerivationString)
+	copy(keyFixed[:], key)
+	opened, ok := secretbox.Open(nil, ctext, &nonce, &keyFixed)
+	if !ok {
+		return nil, fmt.Errorf("prev decryption failed")
+	}
+	resFixed, err := libkb.MakeByte32Soft(opened)
+	if err != nil {
+		return nil, fmt.Errorf("decrypted prev of wrong length")
+	}
+	return (*keybase1.PerTeamKeySeed)(&resFixed), nil
+}

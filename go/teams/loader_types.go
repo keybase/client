@@ -50,11 +50,13 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		}
 		inner = &payload
 	}
-	return &chainLinkUnpacked{
+	ret := &chainLinkUnpacked{
 		source:    link,
 		outerLink: outerLink,
 		inner:     inner,
-	}, nil
+	}
+
+	return ret, nil
 }
 
 func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {
