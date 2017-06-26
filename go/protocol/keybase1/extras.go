@@ -1498,13 +1498,10 @@ func (u UserPlusKeys) ToUserVersion() UserVersion {
 }
 
 func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
+
 func (s PerTeamKeySeed) IsZero() bool {
-	for _, b := range s {
-		if b != 0 {
-			return false
-		}
-	}
-	return true
+	var tmp PerTeamKeySeed
+	return hmac.Equal(s[:], tmp[:])
 }
 
 func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
