@@ -457,13 +457,13 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 
 func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, permanence bool) error {
 	// create the change item
-	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot, permanence)
+	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
 		return err
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes, lease)
+	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, permanence)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -481,7 +481,7 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	return t.me, nil
 }
 
-func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, permanence bool) (libkb.SigMultiItem, error) {
+func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -494,7 +494,7 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot, permanence)
+	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -610,7 +610,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, permanence bool) libkb.JSONPayload {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	if secretBoxes != nil {
@@ -618,6 +618,9 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamS
 	}
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
+	}
+	if sigMultiItem.Type == string(libkb.LinkTypeLeave) {
+		payload["permanence"] = permanence
 	}
 
 	if t.G().VDL.DumpPayload() {
