@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -17,11 +18,11 @@ type memberSet struct {
 	Writers    []member
 	Readers    []member
 	None       []member
-	recipients map[keybase1.UID]keybase1.PerUserKey
+	recipients map[keybase1.UserVersion]keybase1.PerUserKey
 }
 
 func newMemberSet() *memberSet {
-	return &memberSet{recipients: make(map[keybase1.UID]keybase1.PerUserKey)}
+	return &memberSet{recipients: make(map[keybase1.UserVersion]keybase1.PerUserKey)}
 }
 
 func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase1.TeamChangeReq) (*memberSet, error) {
@@ -64,11 +65,15 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 	return nil
 }
 
-func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UID, storeRecipient, force bool) ([]member, error) {
+func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {
 	members := make([]member, len(group))
 	var err error
-	for i, uid := range group {
-		members[i], err = m.loadMember(ctx, g, uid, storeRecipient, force)
+	for i, uv := range group {
+		members[i], err = m.loadMember(ctx, g, uv, storeRecipient, force)
+		if _, reset := err.(libkb.AccountResetError); reset {
+			g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -76,40 +81,68 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	return members, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, storeRecipient, force bool) (member, error) {
-	// load upak for uid
-	arg := libkb.NewLoadUserByUIDArg(ctx, g, uid)
-	if force {
-		arg.ForcePoll = true
+func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, forcePoll bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid.String()), func() error { return err })()
+
+	arg := libkb.NewLoadUserArgBase(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
+	if forcePoll {
+		arg = arg.WithForcePoll()
 	}
-	upak, _, err := g.GetUPAKLoader().Load(arg)
+	upak, _, err := g.GetUPAKLoader().LoadV2(*arg)
+	return upak, err
+}
+
+func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
+
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv.String()), func() error { return err })()
+
+	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
+
+	if upak != nil {
+		nun = libkb.NewNormalizedUsername(upak.Current.Username)
+		g.Log.CDebugf(ctx, "upak: %+v\n", *upak)
+	}
+
 	if err != nil {
-		return member{}, err
+		if _, reset := err.(libkb.NoKeyError); reset {
+			err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+		}
+		return member{}, nun, err
+	}
+
+	if upak.Current.EldestSeqno != uv.EldestSeqno {
+		return member{}, nun, libkb.NewAccountResetError(uv, upak.Current.EldestSeqno)
 	}
 
 	// find the most recent per-user key
 	var key keybase1.PerUserKey
-	for _, puk := range upak.Base.PerUserKeys {
+	for _, puk := range upak.Current.PerUserKeys {
 		if puk.Seqno > key.Seqno {
 			key = puk
 		}
 	}
 
-	// store the key in a recipients table
-	if storeRecipient {
-		m.recipients[upak.Base.Uid] = key
-	}
-
 	// return a member with UserVersion and a PerUserKey
 	return member{
-		version:    NewUserVersion(upak.Base.Uid, upak.Base.EldestSeqno),
+		version:    NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno),
 		perUserKey: key,
-	}, nil
+	}, nun, nil
+}
 
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeRecipient, forcePoll bool) (res member, err error) {
+	res, _, err = loadMember(ctx, g, uv, forcePoll)
+	if err != nil {
+		return res, err
+	}
+	// store the key in a recipients table
+	if storeRecipient {
+		m.recipients[res.version] = res.perUserKey
+	}
+	return res, nil
 }
 
 type MemberChecker interface {
-	IsMember(context.Context, keybase1.UID) bool
+	IsMember(context.Context, keybase1.UserVersion) bool
 }
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
@@ -124,19 +157,23 @@ func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChe
 // AddRemainingRecipients adds everyone in existing to m.recipients that isn't in m.None.
 func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalContext, existing keybase1.TeamMembers) error {
 	// make a map of the None members
-	noneMap := make(map[keybase1.UID]bool)
+	noneMap := make(map[keybase1.UserVersion]bool)
 	for _, n := range m.None {
-		noneMap[n.version.Uid] = true
+		noneMap[n.version] = true
 	}
 
-	for _, u := range existing.AllUIDs() {
-		if noneMap[u] {
+	for _, uv := range existing.AllUserVersions() {
+		if noneMap[uv] {
 			continue
 		}
-		if _, ok := m.recipients[u]; ok {
+		if _, ok := m.recipients[uv]; ok {
 			continue
 		}
-		if _, err := m.loadMember(ctx, g, u, true, true); err != nil {
+		if _, err := m.loadMember(ctx, g, uv, true, true); err != nil {
+			if _, reset := err.(libkb.AccountResetError); reset {
+				g.Log.CInfof(ctx, "Skipping user was who reset: %s", uv.String())
+				continue
+			}
 			return err
 		}
 	}

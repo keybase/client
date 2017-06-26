@@ -654,6 +654,11 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		}
 	}
 
+	// Check for duplicate message
+	if _, ok := err.(libkb.ChatDuplicateMessageError); ok {
+		return chat1.OutboxErrorType_DUPLICATE, true
+	}
+
 	// Check attempts otherwise
 	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_MISC, true
@@ -671,12 +676,17 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		return err
 	}
 
-	obr.State = chat1.NewOutboxStateWithError(oserr)
-	act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
-		OutboxRecords: []chat1.OutboxRecord{obr},
-	})
-	s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-		keybase1.UID(s.outbox.GetUID().String()), &act)
+	switch oserr.Typ {
+	case chat1.OutboxErrorType_DUPLICATE:
+		// Only send notification to frontend if it is not a duplicate, we just want these to go away
+	default:
+		obr.State = chat1.NewOutboxStateWithError(oserr)
+		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+			OutboxRecords: []chat1.OutboxRecord{obr},
+		})
+		s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
+			keybase1.UID(s.outbox.GetUID().String()), &act)
+	}
 
 	return nil
 }

@@ -197,10 +197,6 @@
           "name": "eldestSeqno"
         },
         {
-          "type": "UserVersionVector",
-          "name": "uvv"
-        },
-        {
           "type": {
             "type": "array",
             "items": "PerUserKey"
@@ -209,22 +205,25 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "PublicKeyV2NaCl"
+            "type": "map",
+            "values": "PublicKeyV2NaCl",
+            "keys": "KID"
           },
           "name": "deviceKeys"
         },
         {
           "type": {
-            "type": "array",
-            "items": "PublicKeyV2PGPSummary"
+            "type": "map",
+            "values": "PublicKeyV2PGPSummary",
+            "keys": "KID"
           },
           "name": "pgpKeys"
         },
         {
           "type": {
-            "type": "array",
-            "items": "RemoteTrack"
+            "type": "map",
+            "values": "RemoteTrack",
+            "keys": "UID"
           },
           "name": "remoteTracks"
         }
@@ -244,6 +243,10 @@
             "items": "UserPlusKeysV2"
           },
           "name": "pastIncarnations"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
         }
       ]
     },

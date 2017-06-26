@@ -204,6 +204,10 @@ func (u *userPlusDevice) waitForRotate(team string) {
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {
+	kickTeamRekeyd(u.tc.G, u.tc.T)
+}
+
+func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
 		Endpoint: "test/accelerate_team_rekeyd",
 		Args: libkb.HTTPArgs{
@@ -212,9 +216,9 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := u.tc.G.API.Post(apiArg)
+	_, err := g.API.Post(apiArg)
 	if err != nil {
-		u.tc.T.Fatalf("Failed to accelerate team rekeyd: %s", err)
+		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
 	}
 }
 

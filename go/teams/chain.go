@@ -1,11 +1,8 @@
 package teams
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,8 +18,6 @@ import (
 
 // TODO CORE-5311 merkle existence
 // TODO CORE-5313 CORE-5314 CORE-5315 accept links from now-revoked keys and now-reset users if the sigs were made before their revocation.
-
-type TeamName string
 
 // Create a new user/version pair.
 func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
@@ -55,41 +50,6 @@ func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
 	}, nil
 }
 
-// Does not canonicalize the name
-func TeamNameFromString(s string) (res TeamName, err error) {
-	if len(s) == 0 {
-		return res, errors.New("zero length team name")
-	}
-	for _, part := range strings.Split(s, ".") {
-		if !(len(part) >= 2 && len(part) <= 16) {
-			return res, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
-		}
-		// underscores allowed, just not first or doubled
-		re := regexp.MustCompile(`^([a-z0-9][a-z0-9_]?)+$`)
-		if !re.MatchString(strings.ToLower(part)) {
-			return res, fmt.Errorf("invalid team name:'%s'", s)
-		}
-	}
-	return TeamName(s), nil
-}
-
-// Get the top level team id for this team name.
-// Only makes sense for non-sub teams.
-func (n TeamName) ToTeamID() keybase1.TeamID {
-	low := strings.ToLower(string(n))
-	sum := sha256.Sum256([]byte(low))
-	bs := append(sum[:15], keybase1.TEAMID_SUFFIX)
-	res, err := keybase1.TeamIDFromString(hex.EncodeToString(bs))
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func (n TeamName) IsSubTeam() bool {
-	return strings.Contains(string(n), ".")
-}
-
 const TeamSigChainPlayerSupportedLinkVersion = 2
 
 // Accessor wrapper for keybase1.TeamSigChainState
@@ -107,7 +67,7 @@ func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
 
-func (t TeamSigChainState) GetName() string {
+func (t TeamSigChainState) GetName() keybase1.TeamName {
 	return t.inner.Name
 }
 
@@ -218,23 +178,20 @@ type TeamSigChainPlayer struct {
 	// information about the reading user
 	reader keybase1.UserVersion
 
-	isSubTeam bool
-
 	storedState *TeamSigChainState
 }
 
 // Load a team chain from the perspective of uid.
-func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion, isSubTeam bool) *TeamSigChainPlayer {
+func NewTeamSigChainPlayer(g *libkb.GlobalContext, reader keybase1.UserVersion) *TeamSigChainPlayer {
 	return &TeamSigChainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
-		isSubTeam:    isSubTeam,
 		storedState:  nil,
 	}
 }
 
 func NewTeamSigChainPlayerWithState(g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState) *TeamSigChainPlayer {
-	res := NewTeamSigChainPlayer(g, reader, state.IsSubteam())
+	res := NewTeamSigChainPlayer(g, reader)
 	res.storedState = &state
 	return res
 }
@@ -506,7 +463,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 
 		// TODO check that team name has no dots
-		teamName, err := TeamNameFromString(string(*team.Name))
+		teamName, err := keybase1.TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
 		}
@@ -533,7 +490,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
-				Name:         string(teamName),
+				Name:         teamName,
 				LastSeqno:    1,
 				LastLinkID:   oRes.outerLink.LinkID().Export(),
 				ParentID:     nil,
@@ -640,7 +597,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			hasName(false),
 			hasMembers(false),
 			hasParent(false),
-			hasSubteam(false))
+			hasSubteam(false),
+			hasPerTeamKey(false))
 		if err != nil {
 			return res, err
 		}
@@ -663,18 +621,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		res.newState = prevState.DeepCopy()
 		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
-
-		if team.PerTeamKey != nil {
-			lastKey, err := prevState.GetLatestPerTeamKey()
-			if err != nil {
-				return res, fmt.Errorf("getting previous per-team-key: %s", err)
-			}
-			newKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
-			if err != nil {
-				return res, err
-			}
-			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
-		}
 
 		return res, nil
 	case "team.subteam_head":

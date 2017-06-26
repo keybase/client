@@ -16,6 +16,8 @@ protocol teams {
     SALTPACK_3
   }
 
+  // PerTeamKeyGeneration describes the generation of the secret.
+  // The sequence starts at 1.
   @typedef("int")
   record PerTeamKeyGeneration {}
 
@@ -64,19 +66,30 @@ protocol teams {
     array<UserVersion> readers;
   }
 
-  record TeamMembersUsernames {
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
+  record TeamMemberDetails {
+    UserVersion uv;
+    string username;
+    boolean active;
+  }
+
+  record TeamMembersDetails {
+    array<TeamMemberDetails> owners;
+    array<TeamMemberDetails> admins;
+    array<TeamMemberDetails> writers;
+    array<TeamMemberDetails> readers;
+  }
+
+  record TeamDetails {
+    TeamMembersDetails members;
+    PerTeamKeyGeneration keyGeneration;
   }
 
   record TeamChangeReq {
-    array<UID> owners;
-    array<UID> admins;
-    array<UID> writers;
-    array<UID> readers;
-    array<UID> none;
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+    array<UserVersion> none;
   }
 
   record UserVersion {
@@ -99,10 +112,10 @@ protocol teams {
   // It is under the umbrella of the team loader refactor.
   record TeamData {
     TeamSigChainState chain;
-    // Sorted by generation ascending.
-    array<PerTeamKeySeedItem> perTeamKeySeeds;
-    array<ReaderKeyMask> readerKeyMasks;
-
+    // generation -> seed
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    // application -> generation -> mask
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
     // Should only be used by TeamLoader
     // because it is the only mutated field, and thus is not threadsafe to read.
     Time cachedAt;
@@ -117,7 +130,7 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
-    string name;
+    TeamName name;
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;
@@ -189,7 +202,8 @@ protocol teams {
 
     // Whether we need to be an admin.
     // Will fail unless we are an admin in the returned Team.
-    // It is unreasonable to look at invites or list subteams with this set to false.
+    // If this is false, looking at invites or listing subteams in the response
+    // may not work even if the loading user is an admin.
     boolean needAdmin;
 
     TeamRefreshers refreshers;
@@ -200,7 +214,7 @@ protocol teams {
   }
 
   void teamCreate(int sessionID, string name);
-  TeamMembersUsernames teamGet(int sessionID, string name);
+  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

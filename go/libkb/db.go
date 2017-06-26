@@ -163,10 +163,14 @@ func (j JSONLocalDbTransaction) Discard() {
 }
 
 const (
-	DBUser                    = 0x00
-	DBSig                     = 0x0f
-	DBTeamChain               = 0x10
-	DBUserPlusAllKeys         = 0x19
+	DBUser              = 0x00
+	DBSig               = 0x0f
+	DBTeamChain         = 0x10
+	DBUserPlusAllKeysV1 = 0x19
+	// NOTE: This file needs to stay consistent with config/id.iced on the
+	// website, and that one has IDs on the lower end of the range that aren't
+	// represented here.
+	DBUserPlusKeysVersioned   = 0xdf
 	DBLink                    = 0xe0
 	DBLocalTrack              = 0xe1
 	DBPGPKey                  = 0xe3

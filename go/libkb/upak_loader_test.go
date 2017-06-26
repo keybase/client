@@ -26,15 +26,15 @@ func TestCachedUserLoad(t *testing.T) {
 	var info CachedUserLoadInfo
 	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 
-	checkLoad := func(upk *keybase1.UserPlusAllKeys, err error) {
+	checkLoad := func(upk *keybase1.UserPlusKeysV2AllIncarnations, err error) {
 		if err != nil {
 			t.Fatal(err)
 		}
 		if upk == nil {
 			t.Fatal("expected a UPK back")
 		}
-		if upk.GetName() != "t_alice" {
-			t.Fatalf("expected %s but got %s", "t_alice", upk.GetName())
+		if upk.Current.Username != "t_alice" {
+			t.Fatalf("expected %s but got %s", "t_alice", upk.Current.Username)
 		}
 	}
 	if info.InCache || info.TimedOut || info.StaleVersion || info.LoadedLeaf || !info.LoadedUser {
@@ -112,7 +112,7 @@ func TestCacheFallbacks(t *testing.T) {
 		arg.UID = uid
 		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil, false)
 		require.NoError(t, err)
-		require.Equal(t, upk.Base.Username, "t_tracy", "tracy was right")
+		require.Equal(t, upk.Current.Username, "t_tracy", "tracy was right")
 		return &ret
 	}
 	i := test()

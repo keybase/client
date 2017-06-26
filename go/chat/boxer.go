@@ -215,7 +215,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		}
 		return chat1.MessageUnboxed{}, ierr
 	}
-
 	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
 }
 

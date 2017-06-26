@@ -73,7 +73,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1), true)
+	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1))
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
@@ -87,7 +87,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 			t.Logf("testing serde")
 		}
 
-		require.Equal(t, "t_9d6d1e37", string(state.GetName()))
+		require.Equal(t, "t_9d6d1e37", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
@@ -144,7 +144,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1), true)
+	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1))
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
@@ -152,7 +152,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	state, err := player.GetState()
 	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
-		require.Equal(t, "t_bfaadb41", string(state.GetName()))
+		require.Equal(t, "t_bfaadb41", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)

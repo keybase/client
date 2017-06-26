@@ -1,10 +1,7 @@
 package teams
 
 import (
-	"crypto/hmac"
-	"crypto/sha512"
 	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -33,8 +30,8 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	if ownerLatest == nil {
 		return errors.New("can't create a new team without having provisioned a per-user key")
 	}
-	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
-		me.GetUID(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+		me.ToUserVersion(): *ownerLatest,
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -42,7 +39,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	if err != nil {
 		return err
 	}
-	secretboxes, err := m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	secretboxes, err := m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return err
 	}
@@ -129,9 +126,9 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	return nil
 }
 
-func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName TeamName) (err error) {
+func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
-	subteamName, err := TeamNameFromString(string(parentName) + "." + subteamBasename)
+	subteamName, err := keybase1.TeamNameFromString(parentName.String() + "." + subteamBasename)
 	if err != nil {
 		return err
 	}
@@ -148,7 +145,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return err
 	}
 
-	parentTeam, err := GetForTeamManagementByStringName(ctx, g, string(parentName))
+	parentTeam, err := GetForTeamManagementByStringName(ctx, g, parentName.String())
 	if err != nil {
 		return err
 	}
@@ -171,7 +168,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return err
 	}
 
-	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
+	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
 	if err != nil {
 		return err
 	}
@@ -222,11 +219,6 @@ func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID k
 	return teamSection, nil
 }
 
-func derivedSecret(secret []byte, context string) []byte {
-	digest := hmac.New(sha512.New, secret)
-	digest.Write([]byte(context))
-	return digest.Sum(nil)[:32]
-}
 
 func makeSigchainV2OuterSig(
 	signingKey libkb.GenericKey,
@@ -266,7 +258,7 @@ func makeSigchainV2OuterSig(
 	return sig, nil
 }
 
-func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 	newSubteamSigBody, err := NewSubteamSig(me, signingKey, parentTeam, subteamName, subteamID, admin)
 	newSubteamSigJSON, err := newSubteamSigBody.Marshal()
 	if err != nil {
@@ -299,7 +291,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return
 }
 
-func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
@@ -310,15 +302,15 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 		err = errors.New("can't create a new team without having provisioned a per-user key")
 		return
 	}
-	secretboxRecipients := map[keybase1.UID]keybase1.PerUserKey{
-		me.GetUID(): *ownerLatest,
+	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+		me.ToUserVersion(): *ownerLatest,
 	}
 	// These boxes will get posted along with the sig below.
 	m, err := NewTeamKeyManager(g)
 	if err != nil {
 		return nil, nil, err
 	}
-	boxes, err = m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return
 	}
@@ -388,11 +380,12 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 	return
 }
 
-func makeSubteamTeamSection(subteamName TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
+func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
 	ownerUserVersion := owner.ToUserVersion()
 
+	subteamName2 := subteamName.String()
 	teamSection := SCTeamSection{
-		Name: (*SCTeamName)(&subteamName),
+		Name: (*SCTeamName)(&subteamName2),
 		ID:   (SCTeamID)(subteamID),
 		Parent: &SCTeamParent{
 			ID:    SCTeamID(parentTeam.GetID()),

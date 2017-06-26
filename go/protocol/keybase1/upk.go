@@ -240,14 +240,13 @@ func (o PublicKeyV2) DeepCopy() PublicKeyV2 {
 }
 
 type UserPlusKeysV2 struct {
-	Uid          UID                     `codec:"uid" json:"uid"`
-	Username     string                  `codec:"username" json:"username"`
-	EldestSeqno  Seqno                   `codec:"eldestSeqno" json:"eldestSeqno"`
-	Uvv          UserVersionVector       `codec:"uvv" json:"uvv"`
-	PerUserKeys  []PerUserKey            `codec:"perUserKeys" json:"perUserKeys"`
-	DeviceKeys   []PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
-	PGPKeys      []PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
-	RemoteTracks []RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
+	Uid          UID                           `codec:"uid" json:"uid"`
+	Username     string                        `codec:"username" json:"username"`
+	EldestSeqno  Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
+	PerUserKeys  []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
+	DeviceKeys   map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
+	PGPKeys      map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
+	RemoteTracks map[UID]RemoteTrack           `codec:"remoteTracks" json:"remoteTracks"`
 }
 
 func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
@@ -255,7 +254,6 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Uvv:         o.Uvv.DeepCopy(),
 		PerUserKeys: (func(x []PerUserKey) []PerUserKey {
 			var ret []PerUserKey
 			for _, v := range x {
@@ -264,27 +262,30 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 			}
 			return ret
 		})(o.PerUserKeys),
-		DeviceKeys: (func(x []PublicKeyV2NaCl) []PublicKeyV2NaCl {
-			var ret []PublicKeyV2NaCl
-			for _, v := range x {
+		DeviceKeys: (func(x map[KID]PublicKeyV2NaCl) map[KID]PublicKeyV2NaCl {
+			ret := make(map[KID]PublicKeyV2NaCl)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.DeviceKeys),
-		PGPKeys: (func(x []PublicKeyV2PGPSummary) []PublicKeyV2PGPSummary {
-			var ret []PublicKeyV2PGPSummary
-			for _, v := range x {
+		PGPKeys: (func(x map[KID]PublicKeyV2PGPSummary) map[KID]PublicKeyV2PGPSummary {
+			ret := make(map[KID]PublicKeyV2PGPSummary)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.PGPKeys),
-		RemoteTracks: (func(x []RemoteTrack) []RemoteTrack {
-			var ret []RemoteTrack
-			for _, v := range x {
+		RemoteTracks: (func(x map[UID]RemoteTrack) map[UID]RemoteTrack {
+			ret := make(map[UID]RemoteTrack)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+				ret[kCopy] = vCopy
 			}
 			return ret
 		})(o.RemoteTracks),
@@ -292,8 +293,9 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 }
 
 type UserPlusKeysV2AllIncarnations struct {
-	Current          UserPlusKeysV2   `codec:"current" json:"current"`
-	PastIncarnations []UserPlusKeysV2 `codec:"pastIncarnations" json:"pastIncarnations"`
+	Current          UserPlusKeysV2    `codec:"current" json:"current"`
+	PastIncarnations []UserPlusKeysV2  `codec:"pastIncarnations" json:"pastIncarnations"`
+	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -307,6 +309,7 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			}
 			return ret
 		})(o.PastIncarnations),
+		Uvv: o.Uvv.DeepCopy(),
 	}
 }
 

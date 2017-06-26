@@ -1,5 +1,6 @@
 // @flow
 import * as SearchConstants from './searchv3'
+import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -8,6 +9,7 @@ import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
+import {parseUserId, serviceIdToIcon} from '../util/platforms'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
@@ -1052,6 +1054,35 @@ function isImageFileName(filename: string): boolean {
   return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
 }
 
+const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
+const getFollowingStates = (state: TypedState) => {
+  const ids = getInboxSearch(state)
+  let followingStateMap = {}
+  ids.forEach(id => {
+    const {username, serviceId} = parseUserId(id)
+    const service = SearchConstants.serviceIdToService(serviceId)
+    followingStateMap[id] = SearchConstants.followStateHelper(state, username, service)
+  })
+  return followingStateMap
+}
+
+const getUserItems = createShallowEqualSelector(
+  [getInboxSearch, getFollowingStates],
+  (inboxSearch, followingStates) =>
+    inboxSearch.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
+)
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1118,6 +1149,7 @@ export {
   getSelectedInbox,
   getTLF,
   getMuted,
+  getUserItems,
   LocalMessageState,
   defaultLocalMessageState,
   getLocalMessageStateFromMessageKey,

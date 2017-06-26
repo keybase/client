@@ -171,6 +171,13 @@ func randomUser(prefix string) *signupInfo {
 	}
 }
 
+func randomDevice() string {
+	b := make([]byte, 5)
+	rand.Read(b)
+	sffx := hex.EncodeToString(b)
+	return fmt.Sprintf("d_%s", sffx)
+}
+
 type notifyHandler struct {
 	logoutCh    chan struct{}
 	loginCh     chan string

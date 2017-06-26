@@ -54,6 +54,10 @@
           "name": "upk"
         },
         {
+          "type": "Time",
+          "name": "identifiedAt"
+        },
+        {
           "type": [
             null,
             "IdentifyTrackBreaks"

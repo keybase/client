@@ -33,11 +33,10 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	}
 
 	arg := libkb.NewLoadUserByNameArg(tc.G, fu.Username)
-	arg.AllSubchains = true
 	u, err := libkb.LoadUser(arg)
 	require.NoError(t, err)
 
-	exported := u.ExportToUPKV2AllIncarnations(keybase1.ToTime(time.Now()))
+	exported := u.ExportToUPKV2AllIncarnations()
 
 	if len(exported.PastIncarnations) != 1 {
 		t.Fatalf("Expected exactly 1 past incarnation, found %d", len(exported.PastIncarnations))

@@ -73,9 +73,9 @@ func TestCreateSubteam(t *testing.T) {
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	parentTeamName, err := TeamNameFromString(u.Username + "T")
+	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
 	require.NoError(t, err)
-	err = CreateRootTeam(context.TODO(), tc.G, string(parentTeamName))
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
 	require.NoError(t, err)
 
 	subteamBasename := "mysubteam"

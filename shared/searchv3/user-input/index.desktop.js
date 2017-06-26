@@ -59,7 +59,7 @@ class UserInput extends Component<void, Props, State> {
     isFocused: false,
   }
 
-  _focusInput = () => {
+  focus = () => {
     this._textInput.focus()
   }
 
@@ -116,7 +116,7 @@ class UserInput extends Component<void, Props, State> {
     return (
       <Box
         style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}
-        onClick={this._focusInput}
+        onClick={this.focus}
         onMouseDown={this._preventInputDefocus}
       >
         {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}

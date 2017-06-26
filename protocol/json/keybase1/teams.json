@@ -170,35 +170,67 @@
     },
     {
       "type": "record",
-      "name": "TeamMembersUsernames",
+      "name": "TeamMemberDetails",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersDetails",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDetails",
+      "fields": [
+        {
+          "type": "TeamMembersDetails",
+          "name": "members"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
         }
       ]
     },
@@ -209,35 +241,35 @@
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "readers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "none"
         }
@@ -306,15 +338,21 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "PerTeamKeySeedItem"
+            "type": "map",
+            "values": "PerTeamKeySeedItem",
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeySeeds"
         },
         {
           "type": {
-            "type": "array",
-            "items": "ReaderKeyMask"
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
           },
           "name": "readerKeyMasks"
         },
@@ -337,7 +375,7 @@
           "name": "id"
         },
         {
-          "type": "string",
+          "type": "TeamName",
           "name": "name"
         },
         {
@@ -514,9 +552,13 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
         }
       ],
-      "response": "TeamMembersUsernames"
+      "response": "TeamDetails"
     },
     "teamChangeMembership": {
       "request": [

@@ -59,21 +59,18 @@ protocol UPK {
       UID uid;
       string username;
       Seqno eldestSeqno;
-      UserVersionVector uvv;
       // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2NaCl> deviceKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2PGPSummary> pgpKeys;
-      // Sorted by UID ascending
-      array<RemoteTrack> remoteTracks;
+      map<KID, PublicKeyV2NaCl> deviceKeys;
+      map<KID, PublicKeyV2PGPSummary> pgpKeys;
+      map<UID, RemoteTrack> remoteTracks;
   }
 
   record UserPlusKeysV2AllIncarnations {
       UserPlusKeysV2 current;
       // Sorted by account version ascending, could be empty.
       array<UserPlusKeysV2> pastIncarnations;
+      UserVersionVector uvv;
   }
 
   enum UPAKVersion {

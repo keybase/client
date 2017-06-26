@@ -33,6 +33,7 @@ const (
 	StatusCode_SCDecryptionError        StatusCode = 280
 	StatusCode_SCInvalidAddress         StatusCode = 281
 	StatusCode_SCNoSession              StatusCode = 283
+	StatusCode_SCAccountReset           StatusCode = 290
 	StatusCode_SCBadEmail               StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
@@ -98,6 +99,8 @@ const (
 	StatusCode_SCNeedSelfRekey          StatusCode = 2512
 	StatusCode_SCNeedOtherRekey         StatusCode = 2513
 	StatusCode_SCChatMessageCollision   StatusCode = 2514
+	StatusCode_SCChatDuplicateMessage   StatusCode = 2515
+	StatusCode_SCTeamReadError          StatusCode = 2623
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -126,6 +129,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCDecryptionError":        280,
 	"SCInvalidAddress":         281,
 	"SCNoSession":              283,
+	"SCAccountReset":           290,
 	"SCBadEmail":               472,
 	"SCBadSignupUsernameTaken": 701,
 	"SCBadInvitationCode":      707,
@@ -191,6 +195,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNeedSelfRekey":          2512,
 	"SCNeedOtherRekey":         2513,
 	"SCChatMessageCollision":   2514,
+	"SCChatDuplicateMessage":   2515,
+	"SCTeamReadError":          2623,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -217,6 +223,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	280:  "SCDecryptionError",
 	281:  "SCInvalidAddress",
 	283:  "SCNoSession",
+	290:  "SCAccountReset",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
@@ -282,6 +289,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2512: "SCNeedSelfRekey",
 	2513: "SCNeedOtherRekey",
 	2514: "SCChatMessageCollision",
+	2515: "SCChatDuplicateMessage",
+	2623: "SCTeamReadError",
 }
 
 func (e StatusCode) String() string {

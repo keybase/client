@@ -290,6 +290,10 @@ func (f failingUpak) Load(arg libkb.LoadUserArg) (ret *keybase1.UserPlusAllKeys,
 	require.Fail(f.t, "Load call")
 	return nil, nil, nil
 }
+func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *libkb.User, err error) {
+	require.Fail(f.t, "LoadV2 call")
+	return nil, nil, nil
+}
 func (f failingUpak) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
 	require.Fail(f.t, "ChceckKIDForUID call")
 	return false, nil, false, nil

@@ -4,7 +4,6 @@
  */
 
 import * as Tabs from './constants/tabs'
-import fs from 'fs'
 import {jsonDebugFileName} from './constants/platform.desktop'
 import {updateConfig} from './command-line.desktop.js'
 
@@ -58,13 +57,16 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config = {...config, ...envJson}
 }
 
-if (fs.existsSync(jsonDebugFileName)) {
-  try {
-    const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
-    console.log('Loaded', jsonDebugFileName, pathJson)
-    config = {...config, ...pathJson}
-  } catch (e) {
-    console.warn('Invalid local debug file')
+if (!__STORYBOOK__) {
+  const fs = require('fs')
+  if (fs.existsSync(jsonDebugFileName)) {
+    try {
+      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
+      console.log('Loaded', jsonDebugFileName, pathJson)
+      config = {...config, ...pathJson}
+    } catch (e) {
+      console.warn('Invalid local debug file')
+    }
   }
 }
 
