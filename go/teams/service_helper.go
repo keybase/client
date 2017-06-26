@@ -189,6 +189,14 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	return t.ChangeMembership(ctx, req)
 }
 
+func LeaveTeam(ctx context.Context, g *libkb.GlobalContext, teamname string, permanence bool) error {
+	t, err := Get(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+	return t.LeaveTeam(ctx, permanence)
+}
+
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {

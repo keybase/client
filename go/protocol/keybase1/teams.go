@@ -685,6 +685,20 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 	}
 }
 
+type TeamLeaveArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Name       string `codec:"name" json:"name"`
+	Permanence bool   `codec:"permanence" json:"permanence"`
+}
+
+func (o TeamLeaveArg) DeepCopy() TeamLeaveArg {
+	return TeamLeaveArg{
+		SessionID:  o.SessionID,
+		Name:       o.Name,
+		Permanence: o.Permanence,
+	}
+}
+
 type TeamEditMemberArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -723,6 +737,7 @@ type TeamsInterface interface {
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
+	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -814,6 +829,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamLeave": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamLeaveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamLeaveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamLeaveArg)(nil), args)
+						return
+					}
+					err = i.TeamLeave(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamEditMember": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamEditMemberArg, 1)
@@ -876,6 +907,11 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil)
 	return
 }
 

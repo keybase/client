@@ -230,6 +230,7 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
+  void teamLeave(int sessionID, string name, boolean permanence);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
 
   /**

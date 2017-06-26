@@ -297,7 +297,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, false); err != nil {
 		return err
 	}
 
@@ -359,7 +359,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, false); err != nil {
 		return err
 	}
 
@@ -370,8 +370,35 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+func (t *Team) LeaveTeam(ctx context.Context, permanence bool) error {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return err
+	}
+	admin, err := t.getAdminPermission(ctx, false)
+	if err != nil {
+		return err
+	}
 
+	req := keybase1.TeamChangeReq{None: []keybase1.UID{me.GetUID()}}
+	if admin != nil {
+		// Proceed with downgrade leases
+		return t.ChangeMembership(ctx, req)
+	} else {
+		// Leave
+		memSet, err := newMemberSetChange(ctx, t.G(), req)
+		if err != nil {
+			return err
+		}
+		section, err := memSet.Section(t.Chain.GetID(), nil)
+		if err != nil {
+			return err
+		}
+		return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, permanence)
+	}
+}
+
+func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return nil, err
@@ -428,9 +455,9 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, permanence bool) error {
 	// create the change item
-	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
+	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot, permanence)
 	if err != nil {
 		return err
 	}
@@ -454,7 +481,7 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	return t.me, nil
 }
 
-func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, permanence bool) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -467,7 +494,8 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot, permanence)
+
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -585,7 +613,9 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
-	payload["per_team_key"] = secretBoxes
+	if secretBoxes != nil {
+		payload["per_team_key"] = secretBoxes
+	}
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
 	}
