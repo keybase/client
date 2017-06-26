@@ -20,6 +20,7 @@ type Team struct {
 	Chain          *TeamSigChainState
 	Box            TeamBox
 	ReaderKeyMasks []keybase1.ReaderKeyMask
+	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded
 
 	keyManager *TeamKeyManager
 
@@ -35,7 +36,15 @@ func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.Box.Generation
 }
 
-func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
+func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecretAllGenerations, err error) {
+	curr, err := t.SharedSecret(ctx)
+	if err != nil {
+		return ret, err
+	}
+	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
+}
+
+func (t *Team) SharedSecret(ctx context.Context) (SharedSecret, error) {
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
@@ -166,7 +175,7 @@ func (t *Team) NextSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	secret, err := t.SharedSecret(ctx)
+	secrets, err := t.SharedSecretAllGenerations(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -174,7 +183,7 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 		if rkm.Application != application {
 			continue
 		}
-		key, err := t.applicationKeyForMask(rkm, secret)
+		key, err := t.applicationKeyForMask(rkm, secrets.At(rkm.Generation))
 		if err != nil {
 			return res, err
 		}
@@ -208,7 +217,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.applicationKeyForMask(max, secret)
 }
 
-func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secrets SharedSecretAllGenerations) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
 		if rkm.Application != application {
 			continue
@@ -216,13 +225,16 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 		if rkm.Generation != generation {
 			continue
 		}
-		return t.applicationKeyForMask(rkm, secret)
+		return t.applicationKeyForMask(rkm, secrets.At(generation))
 	}
 
 	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret SharedSecret) (keybase1.TeamApplicationKey, error) {
+	if secret == nil {
+		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
+	}
 	var derivationString string
 	switch mask.Application {
 	case keybase1.TeamApplication_KBFS:

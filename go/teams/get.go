@@ -55,6 +55,7 @@ func (f *finder) playRaw(ctx context.Context, raw *rawTeam) (*Team, error) {
 	}
 	team.Box = *raw.Box
 	team.ReaderKeyMasks = raw.ReaderKeyMasks
+	team.Prevs = raw.Prevs
 
 	links, err := raw.parseLinks(ctx)
 	if err != nil {
@@ -120,13 +121,13 @@ func (f *finder) newPlayer(ctx context.Context, links []SCChainLink) (*TeamSigCh
 }
 
 type rawTeam struct {
-	ID             keybase1.TeamID                          `json:"id"`
-	Name           keybase1.TeamName                        `json:"name"`
-	Status         libkb.AppStatus                          `json:"status"`
-	Chain          []json.RawMessage                        `json:"chain"`
-	Box            *TeamBox                                 `json:"box"`
-	Prevs          map[keybase1.PerTeamKeyGeneration]string `json:"prevs"`
-	ReaderKeyMasks []keybase1.ReaderKeyMask                 `json:"reader_key_masks"`
+	ID             keybase1.TeamID                                        `json:"id"`
+	Name           keybase1.TeamName                                      `json:"name"`
+	Status         libkb.AppStatus                                        `json:"status"`
+	Chain          []json.RawMessage                                      `json:"chain"`
+	Box            *TeamBox                                               `json:"box"`
+	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded `json:"prevs"`
+	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
