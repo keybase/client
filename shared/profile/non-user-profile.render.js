@@ -11,7 +11,7 @@ import type Props from './non-user-profile.render'
 const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <BackButton
         onClick={props.onBack}
         style={{left: 14, position: 'absolute', top: 16, zIndex: 12}}
@@ -19,7 +19,7 @@ const NonUserRender = (props: Props) => (
         iconStyle={{color: globalColors.white}}
       />
     </Box>
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       <Box style={styleLeftColumn}>
         <Box style={styleBioBlurb}>
           <Avatar url={props.avatar} size={AVATAR_SIZE} />
