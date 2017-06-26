@@ -1,3 +1,5 @@
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+
 def getCommit(path) {
     dir(path) {
         return bat(returnStdout: true, script: '@echo off && git rev-parse HEAD').trim()
@@ -151,8 +153,9 @@ def doBuild() {
                     string(name: 'ReleaseRevision', value: "${releaseCommit}"),
                     string(name: 'DOKAN_PATH', value: "${DOKAN_PATH}"),
                     string(name: 'UpdateChannel', value: 'Smoke2'),
-                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"
-                )],
+                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"),
+                    string(name: 'SlackBot', value: "${SlackBot}")
+                ],
                 wait: false
             ])
         } else {
@@ -186,12 +189,54 @@ def doBuild() {
     }
 }
 
+def notifySlack(String buildStatus = 'STARTED') {
+    if(SlackBot.toBoolean()) {
+        // Build status of null means success.
+        buildStatus = buildStatus ?: 'SUCCESS'
+        def color
+        def label
+        if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI") {
+            label = " SmokeA"
+        } else if (UpdateChannel == "Smoke2") {
+            label = " (SmokeA = ${params.SmokeASemVer}) SmokeB"
+        }
+
+        if (buildStatus == 'STARTED') {
+            color = '#D4DADF'
+        } else if (buildStatus == 'SUCCESS') {
+            def version
+            dir('src\\github.com\\keybase\\client\\go\\keybase') {
+                // Capture keybase's semantic version
+                version = bat(returnStdout: true, script: '@echo off && for /f "tokens=3" %%i in (\'keybase -version\') do echo %%i').trim()
+            }
+            label = "${label} ${version}: "
+            color = '#BDFFC3'
+        } else if (buildStatus == 'UNSTABLE') {
+            color = '#FFFE89'
+        } else {
+            color = '#FF9FA1'
+        }
+
+        def msg = "${buildStatus}: ${label}\n${env.BUILD_URL}"
+
+        helpers.slackMessage("bot", color, msg)
+    }
+}
+
 // Invoke the build with a separate workspace for each executor,
 // and with GOPATH set to that workspace
 node ('windows-release') {
     ws("${WORKSPACE}_${EXECUTOR_NUMBER}") {
         withEnv(["GOPATH=${pwd()}"]) {
-            doBuild()
+            try {
+                notifySlack()
+                doBuild()
+            } catch (e) {
+                currentBuild.result = 'FAILURE'
+                throw e
+            } finally {
+                notifySlack(currentBuild.result)
+            }
         }
     }
 }
