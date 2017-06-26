@@ -1510,7 +1510,7 @@ func (s PerTeamKeySeed) IsZero() bool {
 func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
 	var ret PerTeamKeySeed
 	if len(b) != len(ret) {
-		return PerTeamKeySeed{}, fmt.Errorf("decrypted yielded a bad-sized team secret: %d != %d", len(b), len(ret))
+		return PerTeamKeySeed{}, fmt.Errorf("decrypt yielded a bad-sized team secret: %d != %d", len(b), len(ret))
 	}
 	copy(ret[:], b)
 	return ret, nil
