@@ -196,9 +196,9 @@ def notifySlack(String buildStatus = 'STARTED') {
         def color
         def label
         if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI") {
-            label = " (SmokeA)"
+            label = " SmokeA"
         } else if (UpdateChannel == "Smoke2") {
-            label = " (SmokeB - SmokeA = ${params.SmokeASemVer})"
+            label = " (SmokeA = ${params.SmokeASemVer}) SmokeB"
         }
 
         if (buildStatus == 'STARTED') {
@@ -219,7 +219,7 @@ def notifySlack(String buildStatus = 'STARTED') {
 
         def msg = "${buildStatus}: ${label}\n${env.BUILD_URL}"
 
-        helpers.slackMessage("bot-test2", color, msg)
+        helpers.slackMessage("bot", color, msg)
     }
 }
 
