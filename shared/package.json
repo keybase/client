@@ -16,16 +16,13 @@
     "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier -- ",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "jest --coverage",
-
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
     "generate-font-project": "yarn run _helper generate-font-project",
     "updated-fonts": "yarn run _helper updated-fonts",
-
     "build-dev": "yarn run _helper build-dev",
     "build-pegjs": "yarn run _node -- markdown/generate-emoji-parser.js markdown/parser.pegjs",
     "build-prod": "yarn run _helper build-prod",
     "package": "yarn run _helper package --",
-
     "hot-server": "yarn run _helper hot-server",
     "hot-server-dumb": "cross-env DUMB=true yarn run _helper hot-server",
     "inject-code-prod": "yarn run _helper inject-code-prod",
@@ -34,13 +31,11 @@
     "start-cold": "yarn run _helper start-cold",
     "start-hot": "yarn run _helper start-hot",
     "start-prod": "yarn run _helper start-prod",
-
     "rn-start": "./node_modules/react-native/packager/packager.sh --resetCache",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
-
     "storybook": "start-storybook -s . -p 6006",
     "build-storybook": "build-storybook"
   },
@@ -73,6 +68,9 @@
     "eslint-plugin-node": "4.2.2",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
+    "glamor": "2.20.25",
+    "glamorous": "3.23.4",
+    "glamorous-native": "1.1.0",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
     "jsonfile": "3.0.0",
@@ -113,6 +111,7 @@
     "util": "0.10.3"
   },
   "devDependencies": {
+    "@storybook/react": "3.1.3",
     "babel-cli": "6.24.1",
     "babel-core": "6.24.1",
     "babel-eslint": "7.2.3",
@@ -168,7 +167,6 @@
     "webpack-dashboard": "0.4.0",
     "webpack-dev-middleware": "1.10.2",
     "webpack-dev-server": "2.4.5",
-    "webpack-merge": "4.1.0",
-    "@storybook/react": "3.1.3"
+    "webpack-merge": "4.1.0"
   }
 }

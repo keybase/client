@@ -6,6 +6,7 @@ import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.met
 import {findDOMNode} from 'react-dom'
 import {globalStyles} from '../styles'
 import shallowEqual from 'shallowequal'
+import glamorous from 'glamorous'
 
 import type {Props, TextType, Background} from './text'
 
@@ -38,13 +39,6 @@ class Text extends Component<void, Props, void> {
     })
   }
 
-  _style(props) {
-    return {
-      ...getStyle(props.type, props.backgroundMode, props.lineClamp, !!props.onClick),
-      ...props.style,
-    }
-  }
-
   _className(props) {
     const meta = metaData[props.type]
     const className = [props.className, meta.isLink ? 'hover-underline' : null].filter(Boolean).join(' ')
@@ -57,19 +51,20 @@ class Text extends Component<void, Props, void> {
   }
 
   render() {
-    const style = this._style(this.props)
-    const className = this._className(this.props)
+    const Span = glamorous.span(
+      getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
+      this.props.style
+    )
 
     return (
-      <span
+      <Span
         title={this.props.title}
         ref={this.props.allowHighlightText ? this._setRef : undefined}
-        className={className}
-        style={style}
+        className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
       >
         {this.props.children}
-      </span>
+      </Span>
     )
   }
 }

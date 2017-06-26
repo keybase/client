@@ -1,10 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
+import glamorous from 'glamorous-native'
 import shallowEqual from 'shallowequal'
+import {StyleSheet} from 'react-native'
 
 import type {Props, TextType, Background} from './text'
 
@@ -40,25 +41,29 @@ class Text extends Component<void, Props, void> {
       ...this.props.style,
     }
 
+    console.log('aaa1', StyleSheet.create({a: style}))
+    console.log('aaa2', StyleSheet.create({a: style}))
+
     if (style['color'] === undefined) {
       console.warn(
         'Text color is not being set properly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
       )
     }
 
+    const StyledText = glamorous.text(style)
+
     return (
-      <NativeText
+      <StyledText
         ref={ref => {
           this._nativeText = ref
         }}
-        style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
         onLongPress={this.props.onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
-      </NativeText>
+      </StyledText>
     )
   }
 }
