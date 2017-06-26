@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"runtime/trace"
 	"sync"
 	"time"
@@ -184,17 +185,7 @@ func (d *Service) Handle(c net.Conn) {
 func (d *Service) Run() (err error) {
 	defer func() {
 
-		/*
-			f, err := os.Create("/tmp/svcmem.out")
-			if err != nil {
-				log.Fatal("could not create memory profile: ", err)
-			}
-			runtime.GC() // get up-to-date statistics
-			if err := pprof.WriteHeapProfile(f); err != nil {
-				log.Fatal("could not write memory profile: ", err)
-			}
-			f.Close()
-		*/
+		d.stopProfile()
 
 		if d.startCh != nil {
 			close(d.startCh)
@@ -205,36 +196,7 @@ func (d *Service) Run() (err error) {
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
 
-	/*
-		cpu := os.Getenv("KEYBASE_CPUPROFILE")
-		if cpu != "" {
-			f, err := os.Create(cpu)
-			if err != nil {
-				return err
-			}
-			d.G().Log.Debug("+ started service cpu profile in %s", cpu)
-			pprof.StartCPUProfile(f)
-			defer pprof.StopCPUProfile()
-		}
-	*/
-
-	/*
-		cpu := "/tmp/svccpu.out"
-		f, err := os.Create(cpu)
-		if err != nil {
-			return err
-		}
-		d.G().Log.Debug("+ started service cpu profile in %s", cpu)
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	*/
-
-	f, err := os.Create("/tmp/svctrace.out")
-	if err != nil {
-		return err
-	}
-	trace.Start(f)
-	defer trace.Stop()
+	d.startProfile()
 
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
@@ -950,4 +912,57 @@ func (d *Service) tryLogin() {
 	} else {
 		d.G().Log.Debug("success running LoginOffline on service startup")
 	}
+}
+
+func (d *Service) startProfile() {
+	cpu := os.Getenv("KEYBASE_CPUPROFILE")
+	if cpu != "" {
+		f, err := os.Create(cpu)
+		if err != nil {
+			d.G().Log.Warning("error creating cpu profile: %s", err)
+		} else {
+			d.G().Log.Debug("+ starting service cpu profile in %s", cpu)
+			pprof.StartCPUProfile(f)
+		}
+	}
+
+	tr := os.Getenv("KEYBASE_SVCTRACE")
+	if tr != "" {
+		f, err := os.Create(tr)
+		if err != nil {
+			d.G().Log.Warning("error creating service trace: %s", err)
+		} else {
+			d.G().Log.Debug("+ starting service trace: %s", tr)
+			trace.Start(f)
+		}
+	}
+}
+
+func (d *Service) stopProfile() {
+	if os.Getenv("KEYBASE_CPUPROFILE") != "" {
+		d.G().Log.Debug("stopping cpu profile")
+		pprof.StopCPUProfile()
+	}
+
+	if os.Getenv("KEYBASE_SVCTRACE") != "" {
+		d.G().Log.Debug("stopping service execution trace")
+		trace.Stop()
+	}
+
+	mem := os.Getenv("KEYBASE_MEMPROFILE")
+	if mem == "" {
+		return
+	}
+	f, err := os.Create(mem)
+	if err != nil {
+		d.G().Log.Warning("could not create memory profile: %s", err)
+		return
+	}
+	defer f.Close()
+
+	runtime.GC() // get up-to-date statistics
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		d.G().Log.Warning("could not write memory profile: %s", err)
+	}
+	d.G().Log.Debug("wrote memory profile %s", mem)
 }
