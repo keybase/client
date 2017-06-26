@@ -44,7 +44,7 @@ func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecre
 	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
 }
 
-func (t *Team) SharedSecret(ctx context.Context) (keybase1.PerTeamKeySeed, error) {
+func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
