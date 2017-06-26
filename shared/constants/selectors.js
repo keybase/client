@@ -11,6 +11,9 @@ const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
   searchQueryToResult.get(searchQuery)
 
+const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) =>
+  searchResults.get(username).toObject()
+
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
@@ -23,7 +26,7 @@ const chatSearchResultArray = createSelector(
 
 const profileSearchResultArray = createSelector(
   ({profile: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : [])
+  searchResults => (searchResults ? searchResults.toArray() : null)
 )
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
@@ -39,5 +42,6 @@ export {
   inboxSearchSelector,
   loggedInSelector,
   profileSearchResultArray,
+  searchResultSelector,
   usernameSelector,
 }

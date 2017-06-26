@@ -24,7 +24,9 @@ class SearchResultsList extends Component<void, Props, void> {
 
   render() {
     const {style, items} = this.props
-    if (!items.length) {
+    if (items == null) {
+      return <Box style={{height: 256}} />
+    } else if (!items.length) {
       return <EmptyResults style={style} />
     }
     return (

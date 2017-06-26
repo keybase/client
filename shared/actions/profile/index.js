@@ -18,6 +18,7 @@ import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
+import * as Selectors from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -67,8 +68,26 @@ function onUserClick(username: string): Constants.OnUserClick {
 
 function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   const {username} = action.payload
-  yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
+  if (!username.includes('@')) {
+    yield put(switchTo([profileTab]))
+    yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
+  } else {
+    const searchResult = yield select(Selectors.searchResultSelector, username)
+    const fullname = searchResult.rightFullname
+    const fullUsername = username
+    const serviceName = searchResult.leftService
+    yield put(
+      navigateAppend(
+        [
+          {
+            props: {fullname, fullUsername, serviceName, username: searchResult.leftUsername},
+            selected: 'nonUserProfile',
+          },
+        ],
+        [profileTab]
+      )
+    )
+  }
 }
 
 function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {
@@ -213,6 +232,10 @@ function backToProfile(): Constants.BackToProfile {
   return {payload: undefined, type: Constants.backToProfile}
 }
 
+function clearSearchResults(): Constants.ClearSearchResults {
+  return {payload: undefined, type: Constants.clearSearchResults}
+}
+
 function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
   yield put(navigateTo([], [profileTab]))
@@ -242,6 +265,7 @@ export {
   backToProfile,
   cancelAddProof,
   checkProof,
+  clearSearchResults,
   dropPgp,
   editProfile,
   finishRevoking,
