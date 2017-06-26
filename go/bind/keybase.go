@@ -77,7 +77,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
-	startTrace()
+	startTrace(logFile)
 
 	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
 	dnsServers := dnsNSFetcher.GetServers()
@@ -235,7 +235,7 @@ func Version() string {
 	return libkb.VersionString()
 }
 
-func startTrace() {
+func startTrace(logFile string) {
 	if os.Getenv("KEYBASE_TRACE_MOBILE") != "1" {
 		return
 	}
