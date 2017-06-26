@@ -15,6 +15,10 @@ import (
 	"time"
 )
 
+// Tests for systests with multiuser, multidevice situations.
+// The abbreviation "smu" means "Systests Multi User".  So
+// smuUser is a 'Systests Multi User User"'
+
 type smuUser struct {
 	ctx            *smuContext
 	devices        []*smuDeviceWrapper

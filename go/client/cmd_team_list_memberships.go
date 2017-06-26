@@ -76,7 +76,7 @@ func (c *CmdTeamListMemberships) Run() error {
 		return err
 	}
 
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team, ForceRepoll: true})
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team, ForceRepoll: c.forcePoll})
 	if err != nil {
 		return err
 	}
