@@ -27,7 +27,7 @@ const _Contents = (props: Props) => (
       />
     </Box>
 
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
 
@@ -40,7 +40,7 @@ const _Contents = (props: Props) => (
       <Icon type="icon-shh-active-16" style={{marginLeft: globalMargins.tiny}} />
     </Box>
 
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
 
@@ -48,7 +48,7 @@ const _Contents = (props: Props) => (
       <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
     </Box>
 
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
   </NativeScrollView>

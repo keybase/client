@@ -60,7 +60,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
           }
         }}
       />
-      <Icon type={icon} onClick={onSubmit} style={{...globalStyles.clickable}} />
+      <Icon type={icon} onClick={onSubmit} style={globalStyles.clickable} />
     </Box>
   )
 }

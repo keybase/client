@@ -23,7 +23,7 @@ storiesOf('Avatar', module).add('Avatar', () => (
       return (
         <div key={size}>
           <Text type="Body">{size}</Text>
-          <div style={{...globalStyles.flexBoxRow}}>
+          <div style={globalStyles.flexBoxRow}>
             <Avatar {...commonProps} />
             <Avatar {...commonProps} borderColor="blue" />
             <Avatar {...commonProps} following={true} />

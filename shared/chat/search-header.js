@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const SearchHeader = props => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput

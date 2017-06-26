@@ -44,7 +44,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
     const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
 
     return (
-      <Box style={{...styles.container}}>
+      <Box style={styles.container}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
