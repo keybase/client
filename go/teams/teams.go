@@ -380,7 +380,7 @@ func (t *Team) LeaveTeam(ctx context.Context, permanence bool) error {
 		return err
 	}
 
-	req := keybase1.TeamChangeReq{None: []keybase1.UID{me.GetUID()}}
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{me.ToUserVersion()}}
 	if admin != nil {
 		// Proceed with downgrade leases
 		return t.ChangeMembership(ctx, req)

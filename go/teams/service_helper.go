@@ -190,7 +190,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func LeaveTeam(ctx context.Context, g *libkb.GlobalContext, teamname string, permanence bool) error {
-	t, err := Get(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
