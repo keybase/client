@@ -386,6 +386,9 @@ func (t *Team) LeaveTeam(ctx context.Context, permanence bool) error {
 		return t.ChangeMembership(ctx, req)
 	} else {
 		// Leave
+		if _, err := t.SharedSecret(ctx); err != nil {
+			return err
+		}
 		memSet, err := newMemberSetChange(ctx, t.G(), req)
 		if err != nil {
 			return err

@@ -243,6 +243,47 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	}
 }
 
+func TestLeave(t *testing.T) {
+	tc, owner, other, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	jf err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	before, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !before.IsMember(context.TODO(), other.GetUserVersion()) {
+		t.Fatal("Other user not in initial team.")
+	}
+
+	tc.G.Logout()
+	if err := other.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := LeaveTeam(context.TODO(), tc.G, name, false); err != nil {
+		t.Fatal(err)
+	}
+
+	tc.G.Logout()
+	if err := owner.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Generation not bumped; CLKR is lazy
+	if after.IsMember(context.TODO(), other.GetUserVersion()) {
+		t.Fatal("Other user is still member after leave.")
+	}
+}
+
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {

@@ -666,7 +666,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		err = libkb.PickFirstError(
 			hasPrevState(true),
 			hasName(false),
-			hasMembers(false),
+			hasMembers(true), //CH
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(false),
