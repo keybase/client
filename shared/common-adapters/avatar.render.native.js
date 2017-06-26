@@ -3,6 +3,7 @@ import Icon from './icon'
 import React, {PureComponent} from 'react'
 import {globalColors} from '../styles'
 import {ClickableBox, NativeImage, Box} from './index.native'
+import {memoize} from 'lodash'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -135,27 +136,36 @@ class AvatarRender extends PureComponent<void, Props, State> {
 
     return (
       <ClickableBox onClick={onClick} feedback={false}>
-        <Box
-          style={{
-            height: size,
-            position: 'relative',
-            width: size,
-            ...style,
-          }}
-        >
+        <Box style={boxStyle(size, style)}>
           <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
           {!!url && <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
           {followIconType &&
-            <Icon
-              type={followIconType}
-              style={{...followIconStyle, width: followIconSize, height: followIconSize}}
-            />}
+            <Icon type={followIconType} style={iconStyle(followIconSize, followIconStyle)} />}
           {children}
         </Box>
       </ClickableBox>
     )
   }
+}
+
+const _iconStyle = memoize(size => ({
+  height: size,
+  width: size,
+}))
+
+const iconStyle = (size, style) => {
+  return style ? {..._iconStyle(size), ...style} : _iconStyle(size)
+}
+
+const _boxStyle = memoize(size => ({
+  height: size,
+  position: 'relative',
+  width: size,
+}))
+
+const boxStyle = (size, style) => {
+  return style ? {..._boxStyle(size), ...style} : _boxStyle(size)
 }
 
 export default AvatarRender
