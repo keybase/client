@@ -193,12 +193,22 @@ def notifySlack(String buildStatus = 'STARTED') {
     if(SlackBot.toBoolean()) {
         // Build status of null means success.
         buildStatus = buildStatus ?: 'SUCCESS'
-
         def color
+        def version
 
         if (buildStatus == 'STARTED') {
             color = '#D4DADF'
         } else if (buildStatus == 'SUCCESS') {
+            dir('src\\github.com\\keybase\\client\\go\\keybase') {
+                // Capture keybase's semantic version
+                version = bat(returnStdout: true, script: '@echo off && for /f "tokens=3" %%i in (\'keybase -version\') do echo %%i').trim()
+            }
+            if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI") {
+                version += " (SmokeA)"
+            } else if (UpdateChannel == "Smoke2") {
+                version += " (SmokeB - SmokeA = ${params.SmokeASemVer})"
+            }
+            version += ":"
             color = '#BDFFC3'
         } else if (buildStatus == 'UNSTABLE') {
             color = '#FFFE89'
@@ -206,9 +216,9 @@ def notifySlack(String buildStatus = 'STARTED') {
             color = '#FF9FA1'
         }
 
-        def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+        def msg = "${buildStatus}: ${version}\n${env.BUILD_URL}"
 
-        helpers.slackMessage("bot", color, msg)
+        helpers.slackMessage("bot-test2", color, msg)
     }
 }
 
