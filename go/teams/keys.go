@@ -94,8 +94,8 @@ func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 
 // SharedSecretBoxes creates the PerTeamSharedSecretBoxes for recipients with the
 // existing team shared secret.
-func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
-	defer t.G().Trace("SharedSecretBoxes", func() error { return err })()
+func (t *TeamKeyManager) SharedSecretBoxes(ctx context.Context, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
+	defer t.G().CTrace(ctx, "SharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix, skipping the zero counter
 	// (0 used for previous key encryption nonce)
@@ -110,8 +110,8 @@ func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipient
 
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
-func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
-	defer t.G().Trace("RotateSharedSecretBoxes", func() error { return err })()
+func (t *TeamKeyManager) RotateSharedSecretBoxes(ctx context.Context, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
+	defer t.G().CTrace(ctx, "RotateSharedSecretBoxes", func() error { return err })()
 
 	// make a new secret
 	nextSecret, err := newSharedSecret()
@@ -143,7 +143,7 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	}
 
 	// make the recipient boxes with the new secret and the incrementing nonce24
-	t.setNextSharedSecret(nextSecret)
+	t.setNextSharedSecret(ctx, nextSecret)
 	boxes, err = t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
 	if err != nil {
 		return nil, nil, err
@@ -238,7 +238,7 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 	}, nil
 }
 
-func (t *TeamKeyManager) setNextSharedSecret(secret []byte) {
+func (t *TeamKeyManager) setNextSharedSecret(ctx context.Context, secret []byte) {
 	t.sharedSecret = secret
 
 	// bump generation number
@@ -248,7 +248,7 @@ func (t *TeamKeyManager) setNextSharedSecret(secret []byte) {
 	t.signingKey = nil
 	t.encryptionKey = nil
 
-	t.G().Log.Debug("TeamKeyManager: set next shared secret, generation %d", t.generation)
+	t.G().Log.CDebugf(ctx, "TeamKeyManager: set next shared secret, generation %d", t.generation)
 }
 
 type prevKeySealedDecoded struct {

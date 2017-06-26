@@ -10,51 +10,73 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersUsernames, error) {
-	var ret keybase1.TeamMembersUsernames
+func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
+	var ret keybase1.TeamMembersDetails
 	var err error
-	ret.Owners, err = userVersionsToUsernames(ctx, g, m.Owners)
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners, forceRepoll)
 	if err != nil {
 		return ret, err
 	}
-	ret.Admins, err = userVersionsToUsernames(ctx, g, m.Admins)
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins, forceRepoll)
 	if err != nil {
 		return ret, err
 	}
-	ret.Writers, err = userVersionsToUsernames(ctx, g, m.Writers)
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers, forceRepoll)
 	if err != nil {
 		return ret, err
 	}
-	ret.Readers, err = userVersionsToUsernames(ctx, g, m.Readers)
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers, forceRepoll)
 	if err != nil {
 		return ret, err
 	}
 	return ret, nil
 }
 
-func Members(ctx context.Context, g *libkb.GlobalContext, name string) (keybase1.TeamMembersUsernames, error) {
+func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, name)
 	if err != nil {
-		return keybase1.TeamMembersUsernames{}, err
+		return res, err
 	}
+	res.KeyGeneration = t.Box.Generation
+	res.Members, err = members(ctx, g, t, forceRepoll)
+	if err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func members(ctx context.Context, g *libkb.GlobalContext, t *Team, forceRepoll bool) (keybase1.TeamMembersDetails, error) {
 	members, err := t.Members()
 	if err != nil {
-		return keybase1.TeamMembersUsernames{}, err
+		return keybase1.TeamMembersDetails{}, err
 	}
-	return membersUIDsToUsernames(ctx, g, members)
+	return membersUIDsToUsernames(ctx, g, members, forceRepoll)
 }
 
-func uidToUsername(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	return g.GetUPAKLoader().LookupUsername(ctx, uid)
+func userVersionToDetails(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forceRepoll bool) (res keybase1.TeamMemberDetails, err error) {
+	_, nun, err := loadMember(ctx, g, uv, forceRepoll)
+	active := true
+	if err != nil {
+		if _, reset := err.(libkb.AccountResetError); reset {
+			active = false
+		} else {
+			return res, err
+		}
+	}
+	return keybase1.TeamMemberDetails{
+		Uv:       uv,
+		Username: nun.String(),
+		Active:   active,
+	}, nil
 }
 
-func userVersionsToUsernames(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []string, err error) {
+func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
 	for _, uv := range uvs {
-		un, err := uidToUsername(ctx, g, uv.Uid)
+		det, err := userVersionToDetails(ctx, g, uv, forceRepoll)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, string(un))
+		ret = append(ret, det)
 	}
 	return ret, nil
 }
@@ -188,16 +210,15 @@ func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keyba
 }
 
 func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, un string) (keybase1.UserVersion, error) {
-	arg := libkb.NewLoadUserByUIDArg(ctx, g, uid)
-	upak, _, err := g.GetUPAKLoader().Load(arg)
+	upak, err := loadUPAK2(ctx, g, uid, true /*forcePoll */)
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
-	if un != "" && !libkb.NormalizedUsername(un).Eq(libkb.NormalizedUsername(upak.Base.Username)) {
+	if un != "" && !libkb.NormalizedUsername(un).Eq(libkb.NormalizedUsername(upak.Current.Username)) {
 		return keybase1.UserVersion{}, libkb.BadUsernameError{N: un}
 	}
 
-	return NewUserVersion(upak.Base.Uid, upak.Base.EldestSeqno), nil
+	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
 }
 
 func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.TeamChangeReq, error) {

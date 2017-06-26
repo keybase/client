@@ -346,20 +346,23 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		info.LoadedUser = true
 	}
 
+	if user != nil {
+		tmp := user.ExportToUPKV2AllIncarnations()
+		ret = &tmp
+		ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
+	}
+
 	// In some cases, it's OK to have a user object and an error. This comes up in
 	// Identify2 when identifying users who don't have a sigchain. Note that we'll never
 	// hit the cache in this case (for now...)
 	if err != nil {
-		return nil, user, err
+		return ret, user, err
 	}
 
 	if user == nil {
 		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
 	}
 
-	tmp := user.ExportToUPKV2AllIncarnations()
-	ret = &tmp
-	ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	err = u.putUPAKToCache(ctx, ret)
 
 	if u.TestDeadlocker != nil {
@@ -377,11 +380,16 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 // backwards compatibility.
 func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *User, error) {
 	ret, user, err := u.loadWithInfo(arg, nil, nil, true)
-	if err != nil {
-		return nil, nil, err
+
+	// NOTE -- it's OK to return an error and a user, since certain code paths
+	// want both (see note in loadWithInfo).
+	var converted *keybase1.UserPlusAllKeys
+	if ret != nil {
+		tmp := keybase1.UPAKFromUPKV2AI(*ret)
+		converted = &tmp
 	}
-	converted := keybase1.UPAKFromUPKV2AI(*ret)
-	return &converted, user, err
+
+	return converted, user, err
 }
 
 // Load a UserPlusKeysV2AllIncarnations from the local cache, falls back to

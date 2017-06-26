@@ -125,6 +125,11 @@ func (arg *LoadUserArg) WithPublicKeyOptional() *LoadUserArg {
 	return arg
 }
 
+func (arg *LoadUserArg) WithForcePoll() *LoadUserArg {
+	arg.ForcePoll = true
+	return arg
+}
+
 func (arg *LoadUserArg) GetNetContext() context.Context {
 	if arg.NetContext != nil {
 		return arg.NetContext

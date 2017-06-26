@@ -140,4 +140,7 @@ protocol user {
     string username;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
+
+  // resetUser resets the user. Only works in Dev mode since it's so dangerous
+  void resetUser(int sessionID);
 }

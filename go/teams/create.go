@@ -42,7 +42,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	if err != nil {
 		return err
 	}
-	secretboxes, err := m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	secretboxes, err := m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return err
 	}
 
-	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
+	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
 	if err != nil {
 		return err
 	}
@@ -299,7 +299,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return
 }
 
-func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
@@ -318,7 +318,7 @@ func generateHeadSigForSubteamChain(g *libkb.GlobalContext, me *libkb.User, sign
 	if err != nil {
 		return nil, nil, err
 	}
-	boxes, err = m.SharedSecretBoxes(deviceEncryptionKey, secretboxRecipients)
+	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return
 	}

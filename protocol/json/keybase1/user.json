@@ -540,6 +540,15 @@
         "type": "array",
         "items": "InterestingPerson"
       }
+    },
+    "resetUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
