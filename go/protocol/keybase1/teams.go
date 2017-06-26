@@ -686,16 +686,16 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 }
 
 type TeamLeaveArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Name       string `codec:"name" json:"name"`
-	Permanence bool   `codec:"permanence" json:"permanence"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Permanent bool   `codec:"permanent" json:"permanent"`
 }
 
 func (o TeamLeaveArg) DeepCopy() TeamLeaveArg {
 	return TeamLeaveArg{
-		SessionID:  o.SessionID,
-		Name:       o.Name,
-		Permanence: o.Permanence,
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Permanent: o.Permanent,
 	}
 }
 

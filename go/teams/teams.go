@@ -297,7 +297,8 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, false); err != nil {
+	aux := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, aux); err != nil {
 		return err
 	}
 
@@ -359,7 +360,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, false); err != nil {
+	aux := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, aux); err != nil {
 		return err
 	}
 
@@ -370,7 +372,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) LeaveTeam(ctx context.Context, permanence bool) error {
+func (t *Team) LeaveTeam(ctx context.Context, permanent bool) error {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return err
@@ -397,7 +399,9 @@ func (t *Team) LeaveTeam(ctx context.Context, permanence bool) error {
 		if err != nil {
 			return err
 		}
-		return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, permanence)
+		aux := make(libkb.JSONPayload)
+		aux["permanent"] = permanent
+		return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, aux)
 	}
 }
 
@@ -458,7 +462,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, permanence bool) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, aux libkb.JSONPayload) error {
 	// create the change item
 	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -466,7 +470,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secret
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, permanence)
+	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, aux)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -613,7 +617,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, permanence bool) libkb.JSONPayload {
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, aux libkb.JSONPayload) libkb.JSONPayload {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	if secretBoxes != nil {
@@ -622,9 +626,7 @@ func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamS
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
 	}
-	if sigMultiItem.Type == string(libkb.LinkTypeLeave) {
-		payload["permanence"] = permanence
-	}
+	payload["aux"] = aux
 
 	if t.G().VDL.DumpPayload() {
 		pretty, err := json.MarshalIndent(payload, "", "\t")

@@ -52,10 +52,6 @@ func ParseUserAndRole(ctx *cli.Context) (string, keybase1.TeamRole, error) {
 	return username, role, nil
 }
 
-func ParsePermanence(ctx *cli.Context) (bool, error) {
-	permanence := ctx.String("permanence")
-	if permanence != "true" && permanence != "false" {
-		return false, errors.New("permanence required via --permanence flag, must be 'true' or 'false'")
-	}
-	return permanence == "true", nil
+func ParsePermanent(ctx *cli.Context) (bool, error) {
+	return ctx.Bool("permanent"), nil
 }
