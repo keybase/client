@@ -6,7 +6,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   plansEnabled: false,
   recentFilesEnabled: false,
-  searchv3Enabled: __DEV__,
+  searchv3Enabled: true,
   tabPeopleEnabled: false,
 }
 
