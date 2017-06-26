@@ -1496,3 +1496,22 @@ func (u UserPlusKeys) ToUserVersion() UserVersion {
 		EldestSeqno: u.EldestSeqno,
 	}
 }
+
+func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
+func (s PerTeamKeySeed) IsZero() bool {
+	for _, b := range s {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
+	var ret PerTeamKeySeed
+	if len(b) != len(ret) {
+		return PerTeamKeySeed{}, fmt.Errorf("decrypted yielded a bad-sized team secret: %d != %d", len(b), len(ret))
+	}
+	copy(ret[:], b)
+	return ret, nil
+}

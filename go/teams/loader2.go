@@ -225,7 +225,7 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 func (l *TeamLoader) checkPerTeamKeyAgainstChain(ctx context.Context,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration, seed keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeedItem, error) {
 
-	km, err := NewTeamKeyManagerWithSecret(l.G(), seed[:], gen)
+	km, err := NewTeamKeyManagerWithSecret(l.G(), seed, gen)
 	if err != nil {
 		return nil, err
 	}

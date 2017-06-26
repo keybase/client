@@ -44,45 +44,45 @@ func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecre
 	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
 }
 
-func (t *Team) SharedSecret(ctx context.Context) (ret SharedSecret, err error) {
+func (t *Team) SharedSecret(ctx context.Context) (keybase1.PerTeamKeySeed, error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		secret, err := t.Box.Open(userEncKey)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 		t.G().Log.CDebugf(ctx, "| Box#Open succeeded")
 
-		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
+		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		signingKey, err := keyManager.SigningKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 		encryptionKey, err := keyManager.EncryptionKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		if !teamKey.SigKID.SecureEqual(signingKey.GetKID()) {
-			return nil, errors.New("derived signing key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived signing key did not match key in team chain")
 		}
 
 		if !teamKey.EncKID.SecureEqual(encryptionKey.GetKID()) {
-			return nil, errors.New("derived encryption key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived encryption key did not match key in team chain")
 		}
 
 		// TODO: check that t.Box.SenderKID is a known device DH key for the
@@ -233,8 +233,8 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret SharedSecret) (keybase1.TeamApplicationKey, error) {
-	if secret == nil {
+func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
+	if secret.IsZero() {
 		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
 	}
 	var derivationString string

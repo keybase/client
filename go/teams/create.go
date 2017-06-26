@@ -1,10 +1,7 @@
 package teams
 
 import (
-	"crypto/hmac"
-	"crypto/sha512"
 	"errors"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -222,11 +219,6 @@ func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID k
 	return teamSection, nil
 }
 
-func derivedSecret(secret []byte, context string) []byte {
-	digest := hmac.New(sha512.New, secret)
-	digest.Write([]byte(context))
-	return digest.Sum(nil)[:32]
-}
 
 func makeSigchainV2OuterSig(
 	signingKey libkb.GenericKey,
