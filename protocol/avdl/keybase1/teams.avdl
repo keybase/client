@@ -66,11 +66,22 @@ protocol teams {
     array<UserVersion> readers;
   }
 
-  record TeamMembersUsernames {
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
+  record TeamMemberDetails {
+    UserVersion uv;
+    string username;
+    boolean active;
+  }
+
+  record TeamMembersDetails {
+    array<TeamMemberDetails> owners;
+    array<TeamMemberDetails> admins;
+    array<TeamMemberDetails> writers;
+    array<TeamMemberDetails> readers;
+  }
+
+  record TeamDetails {
+    TeamMembersDetails members;
+    PerTeamKeyGeneration keyGeneration;
   }
 
   record TeamChangeReq {
@@ -203,7 +214,7 @@ protocol teams {
   }
 
   void teamCreate(int sessionID, string name);
-  TeamMembersUsernames teamGet(int sessionID, string name);
+  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

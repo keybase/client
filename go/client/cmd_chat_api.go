@@ -28,7 +28,7 @@ func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:  "api",
 		Usage: "JSON api",
 		Action: func(c *cli.Context) {
-			cmd := &CmdChatAPI{Contextified: libkb.NewContextified(g)}
+			cmd := NewCmdChatAPIRunner(g)
 			cl.ChooseCommand(cmd, "api", c)
 		},
 		Flags: []cli.Flag{
@@ -102,6 +102,16 @@ func (c *CmdChatAPI) Run() error {
 	}
 
 	return nil
+}
+
+func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {
+	return &CmdChatAPI{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (c *CmdChatAPI) SetMessage(m string) {
+	c.message = m
 }
 
 func (c *CmdChatAPI) GetUsage() libkb.Usage {

@@ -1168,24 +1168,24 @@ func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
 func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
-	if cki == nil {
-		cki.G().Log.Errorf("Found nil cached computed key infos for uid %s username %s, eldest seqno %v", uid.String(), username, eldestSeqno)
-		return keybase1.UserPlusKeysV2{}
-	}
 
 	var perUserKeysList PerUserKeysList
-	for _, puk := range cki.PerUserKeys {
-		perUserKeysList = append(perUserKeysList, puk)
+	if cki != nil {
+		for _, puk := range cki.PerUserKeys {
+			perUserKeysList = append(perUserKeysList, puk)
+		}
+		sort.Sort(perUserKeysList)
 	}
-	sort.Sort(perUserKeysList)
 
 	deviceKeys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
 	pgpSummaries := make(map[keybase1.KID]keybase1.PublicKeyV2PGPSummary)
-	for kid := range cki.Infos {
-		if KIDIsPGP(kid) {
-			pgpSummaries[kid] = cki.exportPGPKeyV2(kid, kf)
-		} else {
-			deviceKeys[kid] = cki.exportDeviceKeyV2(kid)
+	if cki != nil {
+		for kid := range cki.Infos {
+			if KIDIsPGP(kid) {
+				pgpSummaries[kid] = cki.exportPGPKeyV2(kid, kf)
+			} else {
+				deviceKeys[kid] = cki.exportDeviceKeyV2(kid)
+			}
 		}
 	}
 
@@ -1210,13 +1210,15 @@ func (u *User) ExportToUPKV2AllIncarnations() keybase1.UserPlusKeysV2AllIncarnat
 
 	// First assemble all the past versions of this user.
 	pastIncarnations := []keybase1.UserPlusKeysV2{}
-	for _, subchain := range u.sigChain().prevSubchains {
-		if len(subchain) == 0 {
-			u.G().Log.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
-			continue
+	if u.sigChain() != nil {
+		for _, subchain := range u.sigChain().prevSubchains {
+			if len(subchain) == 0 {
+				u.G().Log.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
+				continue
+			}
+			cki := subchain[len(subchain)-1].cki
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
 		}
-		cki := subchain[len(subchain)-1].cki
-		pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
 	}
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.

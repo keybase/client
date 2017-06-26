@@ -44,7 +44,8 @@ func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecre
 	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
 }
 
-func (t *Team) SharedSecret(ctx context.Context) (SharedSecret, error) {
+func (t *Team) SharedSecret(ctx context.Context) (ret SharedSecret, err error) {
+	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
@@ -55,6 +56,7 @@ func (t *Team) SharedSecret(ctx context.Context) (SharedSecret, error) {
 		if err != nil {
 			return nil, err
 		}
+		t.G().Log.CDebugf(ctx, "| Box#Open succeeded")
 
 		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
 		if err != nil {
@@ -267,6 +269,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret SharedS
 }
 
 func (t *Team) Rotate(ctx context.Context) error {
+
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
@@ -551,7 +554,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		return nil, nil, err
 	}
 
-	boxes, err := t.keyManager.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -576,7 +579,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	}
 	t.rotated = true
 
-	return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
 func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
