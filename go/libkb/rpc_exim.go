@@ -510,6 +510,18 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatMessageCollisionError{
 			HeaderHash: headerHash,
 		}
+	case SCChatDuplicateMessage:
+		var soutboxID string
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "OutboxID":
+				soutboxID = field.Value
+			}
+		}
+		boutboxID, _ := hex.DecodeString(soutboxID)
+		return ChatDuplicateMessageError{
+			OutboxID: chat1.OutboxID(boutboxID),
+		}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -1792,6 +1804,19 @@ func (e ChatMessageCollisionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code:   SCChatMessageCollision,
 		Name:   "SC_CHAT_MESSAGE_COLLISION",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatDuplicateMessageError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "OutboxID",
+		Value: e.OutboxID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatDuplicateMessage,
+		Name:   "SC_CHAT_DUPLICATE_MESSAGE",
 		Desc:   e.Error(),
 		Fields: []keybase1.StringKVPair{kv},
 	}

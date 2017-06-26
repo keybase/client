@@ -90,7 +90,8 @@ protocol constants {
     SCIdentifySummaryError_2511,
     SCNeedSelfRekey_2512,
     SCNeedOtherRekey_2513,
-    SCChatMessageCollision_2514
+    SCChatMessageCollision_2514,
+    SCChatDuplicateMessage_2515
   }
 
 }
