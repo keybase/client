@@ -243,7 +243,8 @@ func startTrace() {
 	tname := filepath.Join(filepath.Dir(logFile), "svctrace.out")
 	f, err := os.Create(tname)
 	if err != nil {
-		return err
+		fmt.Printf("error creating %s\n", tname)
+		return
 	}
 	fmt.Printf("Go: starting trace %s\n", tname)
 	trace.Start(f)
