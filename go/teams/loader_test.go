@@ -183,3 +183,79 @@ func TestLoaderKeyGen(t *testing.T) {
 	requireGen(team, 4)
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 }
+
+// Test loading a team with WantMembers set.
+func TestLoaderWantMembers(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	// Require that a team is at this seqno
+	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...interface{}) {
+		require.NotNil(t, team, dots...)
+		require.Equal(t, keybase1.Seqno(seqno), TeamSigChainState{inner: team.Chain}.GetLatestSeqno(), dots...)
+	}
+
+	t.Logf("U0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads and caches")
+	team, err := tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	requireSeqno(team, 2)
+
+	t.Logf("U0 bumps the sigchain (add U3) (3)")
+	err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads and hits the cache")
+	team, err = tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	requireSeqno(team, 2)
+
+	t.Logf("U1 loads with WantMembers=U2 and that causes a repoll but no error")
+	loadAsU1WantU2 := func() *keybase1.TeamData {
+		team, err := tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+			ID: teamID,
+			Refreshers: keybase1.TeamRefreshers{
+				WantMembers: []keybase1.UserVersion{{
+					Uid:         fus[2].GetUID(),
+					EldestSeqno: keybase1.Seqno(1),
+				}},
+			},
+		})
+		require.NoError(t, err)
+		return team
+	}
+	team = loadAsU1WantU2()
+	requireSeqno(team, 3, "seqno should advance because wantmembers pre-check fails")
+
+	t.Logf("U0 adds U2 (4)")
+	err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads with WantMembers=U2 and it works")
+	team = loadAsU1WantU2()
+	requireSeqno(team, 4, "seqno should advance to pick up the new link")
+	role, err := TeamSigChainState{inner: team.Chain}.GetUserRole(keybase1.UserVersion{
+		Uid:         fus[2].GetUID(),
+		EldestSeqno: keybase1.Seqno(1),
+	})
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_WRITER, role)
+
+	t.Logf("U0 bumps the sigchain (setrole) (5)")
+	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads with WantMembers=U2 and it hits the cache")
+	team = loadAsU1WantU2()
+	requireSeqno(team, 4, "seqno should not advance because this should be a cache hit")
+}
