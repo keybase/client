@@ -4,7 +4,7 @@ import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
   let boxStyle: Object = {
@@ -13,11 +13,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
     padding: globalMargins.tiny,
   }
 
-  if (isPublic) {
-    boxStyle.backgroundColor = globalColors.yellowGreen
-  } else {
-    boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
-  }
+  boxStyle.backgroundColor = globalColors.white
 
   const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
@@ -28,7 +24,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
             size={smallMode ? 24 : 32}
             username={userAvatar}
             opacity={ignored ? 0.5 : 1.0}
-            backgroundColor={styles.rowContainer.backgroundColor}
+            backgroundColor={globalColors.white}
           />}
     </Box>
   )
@@ -87,7 +83,6 @@ const Row = ({
   ignored,
   meta,
   modified,
-  hasData,
   smallMode,
   onChat,
   onOpen,
@@ -114,23 +109,17 @@ const Row = ({
   }
   const styles = isPublic ? stylesPublic : stylesPrivate
 
-  let backgroundColor = styles.rowContainer.backgroundColor
-  let nameColor = styles.nameColor
   let redColor = globalColors.red
 
   if (ignored) {
-    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
-    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
     redColor = globalColors.red_75
   }
 
   const containerStyle = {
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
-    backgroundColor,
+    backgroundColor: globalColors.white,
   }
-
-  const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
     <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
@@ -148,7 +137,7 @@ const Row = ({
           <Usernames
             users={users}
             type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'}
-            style={{color: nameColor}}
+            style={{color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue2}}
             redColor={redColor}
           />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
@@ -195,13 +184,6 @@ const Row = ({
               label="Rekey"
               style={styles.action}
             />}
-          <Icon
-            type={icon}
-            style={{
-              visibility: hasData ? 'visible' : 'hidden',
-              ...(smallMode && !hasData ? {display: 'none'} : {}),
-            }}
-          />
         </Box>
       </Box>
       <Box
@@ -227,7 +209,7 @@ const rowContainer = {
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.darkBlue,
+    backgroundColor: globalColors.white,
     color: globalColors.white,
   },
   hasStuffIcon: {
@@ -236,7 +218,7 @@ const stylesPrivate = {
   },
   ignored: {
     color: globalColors.white_40,
-    backgroundColor: 'rgba(0, 26, 51, 0.4)',
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-private-group-24',
@@ -264,7 +246,7 @@ const stylesPublic = {
   },
   ignored: {
     color: globalColors.white_75,
-    backgroundColor: globalColors.yellowGreen,
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-public-group-24',
