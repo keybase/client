@@ -264,7 +264,8 @@ create_zip() {(
 kbsign() {(
   cd "$out_dir"
   echo "Signing (via keybase)"
-  keybase sign -d -i "$zip_name" -o "$sig_name"
+  # Use saltpack v1 because keybase/go-updater supports that version
+  keybase sign -d --saltpack-version=1 -i "$zip_name" -o "$sig_name"
 )}
 
 update_json() {(
