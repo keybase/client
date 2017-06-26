@@ -11,6 +11,7 @@ export type Props = Exact<{
   submitEnabled: boolean,
   waiting?: ?boolean,
   existingDevices?: ?Array<string>,
+  existingDevicesTrimmed?: ?Array<string>,
 }>
 
 export type State = {

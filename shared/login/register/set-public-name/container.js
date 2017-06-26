@@ -7,6 +7,18 @@ import * as Creators from '../../../actions/login/creators'
 import type {TypedState} from '../../../constants/reducer'
 import type {Props, State} from '.'
 
+const trimDeviceName = (s: ?string): string => {
+  if (!s) return ''
+  return s.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+}
+
+const trimDeviceNames = (names: ?Array<string>): Array<string> => {
+  if (!names) return []
+  return names.map(n => {
+    return trimDeviceName(n)
+  })
+}
+
 // TODO remove this class
 class _SetPublicName extends Component<void, Props, State> {
   props: Props
@@ -21,12 +33,13 @@ class _SetPublicName extends Component<void, Props, State> {
   }
 
   render() {
-    const nameTaken = !!(this.props.existingDevices &&
-      this.state.deviceName &&
-      this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
-    const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
+    const deviceName = this.state.deviceName || ''
+    const deviceNameTrimmed: string = trimDeviceName(this.state.deviceName)
+    const nameTaken = !!(this.props.existingDevicesTrimmed &&
+      this.props.existingDevicesTrimmed.indexOf(deviceNameTrimmed) !== -1)
+    const submitEnabled = !!(deviceNameTrimmed.length >= 3 && deviceName.length <= 64 && !nameTaken)
     const nameTakenError = nameTaken
-      ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
+      ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
       : null
 
     return (
@@ -52,8 +65,9 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
-  existingDevices,
   deviceNameError,
+  existingDevices,
+  existingDevicesTrimmed: trimDeviceNames(existingDevices),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
