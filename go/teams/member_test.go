@@ -247,7 +247,7 @@ func TestLeave(t *testing.T) {
 	tc, owner, other, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	jf err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
