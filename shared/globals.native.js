@@ -7,6 +7,12 @@
 // __PROD__
 //  set opposite of __DEV__
 
+// __STORYBOOK__
+// if we're in storybook mode
+if (typeof __STORYBOOK__ === 'undefined') {
+  __STORYBOOK__ = false
+}
+
 // __SCREENSHOT__
 //  indicates if the execution environment is visdiff
 //  set to false if it isn't already set

@@ -56,7 +56,8 @@
       "desktop.js"
     ],
     "globals": {
-      "__DEV__": true
+      "__DEV__": true,
+      "__STORYBOOK__": true
     }
   },
   "keywords": [],
