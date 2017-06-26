@@ -61,7 +61,7 @@ class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
         navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
         routePath={path}
         routeLeafTags={leafTags || LeafTags()}
-        routeStack={stack || I.Stack()}
+        routeStack={routeDef.tags.includeStack ? stack || I.Stack() : null}
         setRouteState={partialState => setRouteState(path, partialState)}
       >
         {children}
