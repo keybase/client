@@ -12,7 +12,7 @@ type OwnProps = {
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onEnter: (id: Constants.SearchResultId) => void,
+  onAddSelectedUser: (id: Constants.SearchResultId) => void,
 }
 
 // Which search result is highlighted
@@ -31,8 +31,14 @@ const selectedSearchIdHoc = compose(
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onEnter: ({onChangeSearchText, onEnter, search, selectedSearchId, selectedService}: OwnProps) => () => {
-      selectedSearchId && onEnter(selectedSearchId)
+    onAddSelectedUser: ({
+      onChangeSearchText,
+      onAddSelectedUser,
+      search,
+      selectedSearchId,
+      selectedService,
+    }: OwnProps) => () => {
+      selectedSearchId && onAddSelectedUser(selectedSearchId)
       onChangeSearchText('')
       search('', selectedService)
     },

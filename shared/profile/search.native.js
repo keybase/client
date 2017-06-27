@@ -22,7 +22,7 @@ const Search = (props: Props) => (
         onChangeText={props.onChangeText}
         onMoveSelectUp={() => {}} // TODO
         onMoveSelectDown={() => {}} // TODO
-        onEnter={() => {}} // TODO
+        onAddSelectedUser={() => {}} // TODO
       />
     </Box>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>

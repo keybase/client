@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
       dispatch(clearSearchResults())
     }
   },
-  onEnter: username => {
+  onAddSelectedUser: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },
