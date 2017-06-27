@@ -57,7 +57,7 @@ export default connect(
     waiting: state.signup.waiting,
   }),
   (dispatch: Dispatch<*>) => ({
-    // $FlowIssue with thunks
+    // $FlowIssue with thunks - `Dispatch` expects an object, not a fn like in the thunk case
     requestInvite: (email, name) => dispatch(requestInvite(email, name)),
     // $FlowIssue with thunks
     restartSignup: () => dispatch(restartSignup()),
