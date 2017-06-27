@@ -35,9 +35,9 @@
 		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
 		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
-		DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6151D9C4BA700312652 /* KeyListener.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
+		DBDC32F71F0297FD00B1C35F /* libReactNativeNavigation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBDC32F41F0297E900B1C35F /* libReactNativeNavigation.a */; };
 		DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80031DE7CC8E005387B3 /* kb.ttf */; };
 		DBDC800C1DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */; };
 		DBDC800D1DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */; };
@@ -282,6 +282,13 @@
 			remoteGlobalIDString = 3D3CD9181DE5FBD800167DC4;
 			remoteInfo = "jschelpers-tvOS";
 		};
+		DBDC32F31F0297E900B1C35F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DBDC32D01F0297E800B1C35F /* ReactNativeNavigation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D8AFADBD1BEE6F3F00A4592D;
+			remoteInfo = ReactNativeNavigation;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -322,11 +329,10 @@
 		DB7539361D777E8400AFA61B /* LogSend-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LogSend-Test.m"; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		DBBCC6141D9C4BA700312652 /* KeyListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyListener.h; sourceTree = "<group>"; };
-		DBBCC6151D9C4BA700312652 /* KeyListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyListener.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
+		DBDC32D01F0297E800B1C35F /* ReactNativeNavigation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ReactNativeNavigation.xcodeproj; path = "../../node_modules/react-native-navigation/ios/ReactNativeNavigation.xcodeproj"; sourceTree = "<group>"; };
 		DBDC80031DE7CC8E005387B3 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
 		DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semi_bold.ttf"; sourceTree = "<group>"; };
 		DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semi_bold_italic.ttf"; sourceTree = "<group>"; };
@@ -346,6 +352,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBDC32F71F0297FD00B1C35F /* libReactNativeNavigation.a in Frameworks */,
 				2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */,
 				DB610D7B1EAF9C480094BC70 /* libRCTLinking.a in Frameworks */,
 				DB6D0B961E5B9ED200410F3C /* libRCTAnimation.a in Frameworks */,
@@ -406,6 +413,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				DBDC32D01F0297E800B1C35F /* ReactNativeNavigation.xcodeproj */,
 				DB610D521EAF99AD0094BC70 /* RCTLinking.xcodeproj */,
 				A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */,
 				DB6D0B731E5B9EB400410F3C /* RCTAnimation.xcodeproj */,
@@ -610,6 +618,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		DBDC32D11F0297E800B1C35F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DBDC32F41F0297E900B1C35F /* libReactNativeNavigation.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		DBDC80021DE7CC8E005387B3 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -633,8 +649,6 @@
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
-				DBBCC6141D9C4BA700312652 /* KeyListener.h */,
-				DBBCC6151D9C4BA700312652 /* KeyListener.m */,
 				DBDC80021DE7CC8E005387B3 /* fonts */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
@@ -804,6 +818,10 @@
 				{
 					ProductGroup = DB2BD17F1DE7D81C00BB7989 /* Products */;
 					ProjectRef = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
+				},
+				{
+					ProductGroup = DBDC32D11F0297E800B1C35F /* Products */;
+					ProjectRef = DBDC32D01F0297E800B1C35F /* ReactNativeNavigation.xcodeproj */;
 				},
 				{
 					ProductGroup = DB311B521EA90680005513D2 /* Products */;
@@ -1054,6 +1072,13 @@
 			remoteRef = DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		DBDC32F41F0297E900B1C35F /* libReactNativeNavigation.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libReactNativeNavigation.a;
+			remoteRef = DBDC32F31F0297E900B1C35F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -1172,7 +1197,6 @@
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
-				DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1214,6 +1238,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
+					"$(SRCROOT)/../../node_modules/react-native-navigation/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -1265,6 +1290,7 @@
 					"$(SRCROOT)/../../node_modules/react-native-image-picker/ios",
 					"$(SRCROOT)/../../node_modules/react-native-fetch-blob/ios/**",
 					"$(SRCROOT)/../../node_modules/react-native/Libraries/LinkingIOS",
+					"$(SRCROOT)/../../node_modules/react-native-navigation/ios",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;

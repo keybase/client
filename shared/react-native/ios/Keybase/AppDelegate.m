@@ -10,10 +10,10 @@
 #import "RCTPushNotificationManager.h"
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
-#import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
+#import "RCCManager.h"
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
@@ -106,19 +106,21 @@ const BOOL isDebug = NO;
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
-                                                      moduleName:@"Keybase"
-                                               initialProperties:nil
-                                                   launchOptions:launchOptions];
-  rootView.backgroundColor = [UIColor whiteColor];
+//  RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
+//                                                      moduleName:@"Keybase"
+//                                               initialProperties:nil
+//                                                   launchOptions:launchOptions];
+//  rootView.backgroundColor = [UIColor whiteColor];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  KeyListener *rootViewController = [KeyListener new];
-  rootViewController.bridge = rootView.bridge;
-  rootViewController.view = rootView;
-  self.window.rootViewController = rootViewController;
+  self.window.backgroundColor = [UIColor whiteColor];
+  [[RCCManager sharedInstance] initBridgeWithBundleURL:jsCodeLocation launchOptions:launchOptions];
+//  KeyListener *rootViewController = [KeyListener new];
+//  rootViewController.bridge = rootView.bridge;
+//  rootViewController.view = rootView;
+//  self.window.rootViewController = rootViewController;
 
-  [self.window makeKeyAndVisible];
+//  [self.window makeKeyAndVisible];
 
   // To simplify the cover animation raciness
   self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
