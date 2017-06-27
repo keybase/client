@@ -1004,6 +1004,7 @@ function* _exitSearch() {
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
+  yield put(Creators.removeTempPendingConversations())
 }
 
 function* chatSaga(): SagaGenerator<any, any> {

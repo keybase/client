@@ -506,6 +506,7 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
+export type RemoveTempPendingConversations = NoErrorTypedAction<'chat:removeTempPendingConversations', void>
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
@@ -750,6 +751,7 @@ export type Actions =
   | OpenFolder
   | PendingToRealConversation
   | PrependMessages
+  | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBadging
