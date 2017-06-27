@@ -83,6 +83,10 @@ func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
 
+func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
+	return keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
+}
+
 func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.getUserRole(user), nil
 }
@@ -224,11 +228,10 @@ func (t *TeamSigChainPlayer) AddChainLinksVerified(ctx context.Context, links []
 }
 
 // Add links.
-// Links must be added in batches because the check for what links are allowed to be stubbed
-// depends on the user's _eventual_ role in the team.
+// Used to check stubbed links, but that is now the responsibility of loader.
+// This interface will change to do single links soon.
 // If this returns an error, the TeamSigChainPlayer was not modified.
 func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SCChainLink, alreadyVerified bool) error {
-	var err error
 	if len(links) == 0 {
 		return errors.New("no chainlinks to add")
 	}
@@ -247,11 +250,6 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 			return fmt.Errorf("at seqno %v: %v", state.GetLatestSeqno(), err)
 		}
 		state = &newState
-	}
-
-	err = t.checkStubbed(*state)
-	if err != nil {
-		return fmt.Errorf("checking elided links: %s", err)
 	}
 
 	// Accept the new state
@@ -662,32 +660,6 @@ func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink libkb.OuterLinkV2Wit
 	}
 
 	// TODO CORE-5300 check that the key section refers to the same kid that really signed.
-
-	return nil
-}
-
-func (t *TeamSigChainPlayer) checkStubbed(state TeamSigChainState) error {
-	// TODO CORE-5301 if you get kicked out of a team, that's special. The chain can't load.
-	// But you should get to know why without erroring out.
-
-	// Check that the server didn't stub out links it's not allowed to.
-	// In some circumstances, this error can be special.
-	// If the user's role was boosted then someone should trigger a reload of the chain with less links stubbed.
-	role, err := state.GetUserRole(t.reader)
-	if err != nil {
-		return err
-	}
-	if role == keybase1.TeamRole_NONE {
-		return errors.New("not a member of team")
-	}
-	for k, v := range state.inner.StubbedTypes {
-		if v {
-			k2 := libkb.SigchainV2Type(k)
-			if !k2.TeamAllowStub(role) {
-				return fmt.Errorf("link stubbed when not allowed allowed; linktype:%v role:%v", k2, role)
-			}
-		}
-	}
 
 	return nil
 }

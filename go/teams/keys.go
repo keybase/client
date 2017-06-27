@@ -325,29 +325,15 @@ func (s *SharedSecretAllGenerations) decryptPrev(ctx context.Context, g keybase1
 	if !ok {
 		return fmt.Errorf("in decyrpting prevs, couldn't find decrypted key @ %d", g+1)
 	}
-	if key.IsZero() {
-		return fmt.Errorf("Got 0 key, which can't be right")
-	}
 	encoded := prevs[g+1]
 	if len(encoded) == 0 {
 		return fmt.Errorf("can't find encrypted prev key at generation %d", g)
 	}
-	nonce, ctext, err := decodeSealedPrevKey(encoded)
+	ret, err := decryptPrevSingle(ctx, encoded, key)
 	if err != nil {
-		return err
+		return fmt.Errorf("at generation %d: %v", g, err)
 	}
-	var keyFixed [32]byte
-	tmp := derivedSecret(key, libkb.TeamPrevKeySecretBoxDerivationString)
-	copy(keyFixed[:], tmp)
-	opened, ok := secretbox.Open(nil, ctext, &nonce, &keyFixed)
-	if !ok {
-		return fmt.Errorf("decryption failed at generation %d", g)
-	}
-	ret, err := keybase1.PerTeamKeySeedFromBytes(opened)
-	if err != nil {
-		return err
-	}
-	s.secrets[g] = ret
+	s.secrets[g] = *ret
 	return nil
 }
 
@@ -362,4 +348,31 @@ func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
 	digest := hmac.New(sha512.New, secret[:])
 	digest.Write([]byte(context))
 	return digest.Sum(nil)[:32]
+}
+
+// Decrypt a single prev secretbox.
+// Takes a prev to decrypt and the seed of the successor generation.
+// For example (prev[3], seed[4]) -> seed[3]
+func decryptPrevSingle(ctx context.Context,
+	prevToDecrypt prevKeySealedEncoded, successor keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeed, error) {
+	if successor.IsZero() {
+		return nil, fmt.Errorf("Got 0 key, which can't be right")
+	}
+	if len(prevToDecrypt) == 0 {
+		return nil, fmt.Errorf("zero-length encoded prev")
+	}
+	nonce, ctext, err := decodeSealedPrevKey(prevToDecrypt)
+	if err != nil {
+		return nil, err
+	}
+	var keyFixed [32]byte
+	// prev key to decrypt with
+	key := derivedSecret(successor, libkb.TeamPrevKeySecretBoxDerivationString)
+	copy(keyFixed[:], key)
+	opened, ok := secretbox.Open(nil, ctext, &nonce, &keyFixed)
+	if !ok {
+		return nil, fmt.Errorf("prev decryption failed")
+	}
+	ret, err := keybase1.PerTeamKeySeedFromBytes(opened)
+	return &ret, err
 }

@@ -222,12 +222,15 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	// Pull new links from the server
 	var teamUpdate *rawTeam
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
-		low := keybase1.Seqno(0)
+		lowSeqno := keybase1.Seqno(0)
+		lowGen := keybase1.PerTeamKeyGeneration(0)
 		if ret != nil {
-			low = ret.Chain.LastSeqno
+			lowSeqno = ret.Chain.LastSeqno
+			lowGen = TeamSigChainState{inner: ret.Chain}.GetLatestGeneration()
 		}
-		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (low:%v)", low)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, low)
+		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (lowSeqno:%v, lowGen:%v)",
+			lowSeqno, lowGen)
+		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen)
 		if err != nil {
 			return nil, err
 		}
@@ -239,6 +242,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		return nil, err
 	}
 	for _, link := range links {
+		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+
 		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
 			if link.isStubbed() {
 				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
@@ -260,6 +265,10 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 	}
 
+	if ret == nil {
+		return nil, fmt.Errorf("team loader fault: got nil from load2")
+	}
+
 	if !ret.Chain.LastLinkID.Eq(lastLinkID) {
 		return nil, fmt.Errorf("wrong sigchain link ID: %v != %v",
 			ret.Chain.LastLinkID, lastLinkID)
@@ -278,7 +287,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if teamUpdate != nil {
 		ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("loading team secrets: %v", err)
 		}
 	}
 
@@ -425,36 +434,54 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 	return true
 }
 
-// Whether teh snapshot has loaded at least up to the key generation.
-func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, fromCache *keybase1.TeamData) error {
+// Whether the snapshot has loaded at least up to the key generation.
+func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, state *keybase1.TeamData) error {
 	if needKeyGeneration == 0 {
 		return nil
 	}
-	if fromCache == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not contain key generation: %v", needKeyGeneration)
 	}
-	panic("TODO: implement")
-	// return nil, fmt.Errorf("team key generation too low: %v < %v", foundGen, lArg.NeedKeyGeneration)
+	key, err := TeamSigChainState{inner: state.Chain}.GetLatestPerTeamKey()
+	if err != nil {
+		return err
+	}
+	if needKeyGeneration > key.Gen {
+		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
+	}
+	return nil
 }
 
 // Whether the snapshot has all of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, teamData *keybase1.TeamData) error {
+	wantMembers []keybase1.UserVersion, state *keybase1.TeamData) error {
 	if len(wantMembers) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not have wanted members")
 	}
-	panic("TODO: implement")
+	for _, uv := range wantMembers {
+		role, err := TeamSigChainState{inner: state.Chain}.GetUserRole(uv)
+		if err != nil {
+			return fmt.Errorf("could not get wanted user role: %v", err)
+		}
+		switch role {
+		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// pass
+		default:
+			return fmt.Errorf("wanted user %v is not a priveleged member", uv)
+		}
+	}
+	return nil
 }
 
 // Whether the snapshot has fully loaded, non-stubbed, all of the links.
-func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, teamData *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, state *keybase1.TeamData) error {
 	if len(needSeqnos) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not contain needed seqnos")
 	}
 	panic("TODO: implement")
