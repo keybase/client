@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -126,35 +127,35 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	return nil
 }
 
-func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (err error) {
+func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
 	subteamName, err := parentName.Append(subteamBasename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	subteamID := NewSubteamID()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	parentTeam, err := GetForTeamManagementByStringName(ctx, g, parentName.String())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Reuse the `me` getting loaded
 	parentTeam.me = me
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Subteam creation involves two links, one in the parent team's chain, and
@@ -165,12 +166,12 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 
 	newSubteamSig, err := generateNewSubteamSigForParentChain(g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.Chain, subteamName, subteamID, admin)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	payload := make(libkb.JSONPayload)
@@ -183,10 +184,10 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		JSONPayload: payload,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &subteamID, nil
 }
 
 func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
@@ -218,7 +219,6 @@ func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID k
 
 	return teamSection, nil
 }
-
 
 func makeSigchainV2OuterSig(
 	signingKey libkb.GenericKey,

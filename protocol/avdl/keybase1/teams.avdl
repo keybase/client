@@ -108,8 +108,7 @@ protocol teams {
       array<TeamApplicationKey> applicationKeys;
   }
 
-  // This type is not really used yet.
-  // It is under the umbrella of the team loader refactor.
+  // Snapshot of a loaded team.
   record TeamData {
     TeamSigChainState chain;
     // generation -> seed
@@ -144,6 +143,11 @@ protocol teams {
     // When a user leaves the team a NONE checkpoint appears in their list.
     map<UserVersion,array<UserLogPoint>> userLog;
 
+    // For each subteam; the timeline of its name.
+    // The checkpoints are always ordered by seqno.
+    // The latest name of the subteam is the role of its last checkpoint.
+    map<TeamID,array<SubteamLogPoint>> subteamLog;
+
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
@@ -157,6 +161,14 @@ protocol teams {
     // The new role. Including NONE if the user left the team.
     TeamRole role;
     // The seqno at which the user became this role.
+    Seqno seqno;
+  }
+
+  // A subteam got this name at this point in time.
+  record SubteamLogPoint {
+  // The new subteam name.
+    TeamName name;
+    // The seqno at which the subteam got this name.
     Seqno seqno;
   }
 

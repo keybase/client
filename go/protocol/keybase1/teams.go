@@ -437,6 +437,7 @@ type TeamSigChainState struct {
 	LastLinkID   LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
 	ParentID     *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
 	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
+	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
 	StubbedTypes map[int]bool                        `codec:"stubbedTypes" json:"stubbedTypes"`
 }
@@ -471,6 +472,22 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.UserLog),
+		SubteamLog: (func(x map[TeamID][]SubteamLogPoint) map[TeamID][]SubteamLogPoint {
+			ret := make(map[TeamID][]SubteamLogPoint)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []SubteamLogPoint) []SubteamLogPoint {
+					var ret []SubteamLogPoint
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SubteamLog),
 		PerTeamKeys: (func(x map[PerTeamKeyGeneration]PerTeamKey) map[PerTeamKeyGeneration]PerTeamKey {
 			ret := make(map[PerTeamKeyGeneration]PerTeamKey)
 			for k, v := range x {
@@ -500,6 +517,18 @@ type UserLogPoint struct {
 func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
 		Role:  o.Role.DeepCopy(),
+		Seqno: o.Seqno.DeepCopy(),
+	}
+}
+
+type SubteamLogPoint struct {
+	Name  TeamName `codec:"name" json:"name"`
+	Seqno Seqno    `codec:"seqno" json:"seqno"`
+}
+
+func (o SubteamLogPoint) DeepCopy() SubteamLogPoint {
+	return SubteamLogPoint{
+		Name:  o.Name.DeepCopy(),
 		Seqno: o.Seqno.DeepCopy(),
 	}
 }

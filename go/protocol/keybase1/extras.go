@@ -1499,6 +1499,10 @@ func (t TeamName) Append(part string) (t3 TeamName, err error) {
 	return t3, err
 }
 
+func (t TeamName) LastPart() TeamNamePart {
+	return t.Parts[len(t.Parts)-1]
+}
+
 func (u UserPlusKeys) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,

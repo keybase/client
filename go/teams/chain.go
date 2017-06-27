@@ -158,6 +158,14 @@ func (t TeamSigChainState) HasAnyStubbedLinks() bool {
 	return false
 }
 
+func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamName, error) {
+	lastPoint := t.getLastSubteamPoint(id)
+	if lastPoint != nil {
+		return &lastPoint.Name, nil
+	}
+	return nil, fmt.Errorf("subteam not found: %v", id.String())
+}
+
 // Inform the UserLog of a user's role.
 // Mutates the UserLog.
 // Must be called with seqno's and events in correct order.
@@ -172,6 +180,57 @@ func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRol
 		Role:  role,
 		Seqno: seqno,
 	})
+}
+
+func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
+	if len(t.inner.SubteamLog[id]) > 0 {
+		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
+	}
+	return nil
+}
+
+// Inform the SubteamLog of a subteam name change.
+// Links must be added in order by seqno for each subteam.
+// Links for different subteams can interleave.
+// Mutates the SubteamLog.
+func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
+	lastPoint := t.getLastSubteamPoint(id)
+	if lastPoint != nil && lastPoint.Seqno.Eq(seqno) {
+		return fmt.Errorf("re-entry into subteam log for seqno: %v", seqno)
+	}
+	if lastPoint != nil && seqno < lastPoint.Seqno {
+		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
+	}
+	err := t.checkSubteamCollision(id, name, seqno)
+	if err != nil {
+		return err
+	}
+	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
+		Name:  name,
+		Seqno: seqno,
+	})
+	return nil
+}
+
+// Check that there is no other subteam with this name at this seqno.
+func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
+	for otherID, points := range t.inner.SubteamLog {
+		if otherID.Eq(id) {
+			continue
+		}
+		// Get the other team's name at the time of the caller's update.
+		var otherName keybase1.TeamName
+		for _, point := range points {
+			if point.Seqno < seqno {
+				otherName = point.Name
+			}
+		}
+		if otherName.Eq(name) {
+			return fmt.Errorf("multiple subteams named %v at seqno %v: %v, %v",
+				name.String(), seqno, id.String(), otherID.String())
+		}
+	}
+	return nil
 }
 
 // Threadsafe handle to a local model of a team sigchain.
@@ -464,12 +523,17 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, err
 		}
 
-		// TODO check that team name has no dots
+		// Check the team name
 		teamName, err := keybase1.TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
 		}
-		// check that team_name = hash(team_id)
+		if !teamName.IsRootTeam() {
+			return res, fmt.Errorf("root team has subteam name: %s", teamName)
+		}
+
+		// Check the teamd ID
+		// assert that team_name = hash(team_id)
 		// this is only true for root teams
 		if !teamID.Equal(teamName.ToTeamID()) {
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
@@ -497,6 +561,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				LastLinkID:   oRes.outerLink.LinkID().Export(),
 				ParentID:     nil,
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
 				StubbedTypes: make(map[int]bool),
 			}}
@@ -629,7 +694,49 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	case "team.subteam_head":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
-		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
+		err = libkb.PickFirstError(
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(true),
+			hasPerTeamKey(false))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam ID
+		subteamID, err := keybase1.TeamIDFromString(string(team.Subteam.ID))
+		if err != nil {
+			return res, fmt.Errorf("invalid subteam id: %v", err)
+		}
+		if !subteamID.IsSubTeam() {
+			return res, fmt.Errorf("malformed subteam id")
+		}
+
+		// Check the subteam name ID
+		subteamName, err := keybase1.TeamNameFromString(string(team.Subteam.Name))
+		if err != nil {
+			return res, fmt.Errorf("invalid subteam team name '%s': %v", team.Subteam.Name, err)
+		}
+		// Assert the team name is direct child of this team's name.
+		expectedSubteamName, err := prevState.GetName().Append(string(subteamName.LastPart()))
+		if err != nil {
+			return res, fmt.Errorf("malformed subteam name: %v", err)
+		}
+		if !expectedSubteamName.Eq(subteamName) {
+			return res, fmt.Errorf("subteam name '%s' does not extend parent name '%s'",
+				subteamName, prevState.GetName())
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		err = res.newState.informSubteam(subteamID, subteamName, oRes.outerLink.Seqno)
+		if err != nil {
+			return res, fmt.Errorf("adding new subteam: %v", err)
+		}
+
+		return res, nil
 	case "team.subteam_rename":
 		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "":
