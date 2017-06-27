@@ -66,9 +66,6 @@ func (w *whitelistRegistry) Install(u *user.User, app AppManifest) error {
 	}
 
 	scope := registry.CURRENT_USER
-	if u.Uid == "0" {
-		scope = registry.LOCAL_MACHINE
-	}
 	k, _, err := registry.CreateKey(scope, keyPath, registry.SET_VALUE|registry.CREATE_SUB_KEY|registry.WRITE)
 	if err != nil {
 		return err
@@ -80,9 +77,6 @@ func (w *whitelistRegistry) Install(u *user.User, app AppManifest) error {
 
 func (w *whitelistRegistry) Uninstall(u *user.User, app AppManifest) error {
 	scope := registry.CURRENT_USER
-	if u.Uid == "0" {
-		scope = registry.LOCAL_MACHINE
-	}
 	jsonPath, keyPath := w.paths(app)
 	if err := registry.DeleteKey(scope, keyPath); err != nil {
 		return err
