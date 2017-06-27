@@ -63,6 +63,14 @@ func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {
 	return l.outerLink.Seqno
 }
 
+func (l *chainLinkUnpacked) Prev() libkb.LinkID {
+	return l.outerLink.Prev
+}
+
+func (l *chainLinkUnpacked) LinkID() libkb.LinkID {
+	return l.outerLink.LinkID()
+}
+
 func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
 	return l.outerLink.LinkType
 }
