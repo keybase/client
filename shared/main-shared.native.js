@@ -72,16 +72,17 @@ class Main extends Component<void, any, void> {
 
     // TODO: move Push prompt into route
     const {showPushPrompt, mountPush} = this.props
+
+    if (showPushPrompt && mountPush) {
+      return <Push prompt={showPushPrompt} />
+    }
+
     return (
-      <Box style={{flex: 1, width: '100%'}}>
-        {!showPushPrompt &&
-          <RenderRoute
-            routeDef={this.props.routeDef}
-            routeState={this.props.routeState}
-            setRouteState={this.props.setRouteState}
-          />}
-        {mountPush && <Push prompt={showPushPrompt} />}
-      </Box>
+      <RenderRoute
+        routeDef={this.props.routeDef}
+        routeState={this.props.routeState}
+        setRouteState={this.props.setRouteState}
+      />
     )
   }
 }
