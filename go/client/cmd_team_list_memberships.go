@@ -6,6 +6,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -15,9 +16,12 @@ import (
 
 type CmdTeamListMemberships struct {
 	libkb.Contextified
-	team      string
-	json      bool
-	forcePoll bool
+	team            string
+	json            bool
+	forcePoll       bool
+	userAssertion   string
+	includeSubteams bool
+	showAll         bool
 }
 
 func (c *CmdTeamListMemberships) SetTeam(s string) {
@@ -39,7 +43,7 @@ func NewCmdTeamListMembershipsRunner(g *libkb.GlobalContext) *CmdTeamListMembers
 func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list-memberships",
-		ArgumentHelp: "<team name>",
+		ArgumentHelp: "[team name] [--user=username]",
 		Usage:        "list team memberships",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamListMembershipsRunner(g)
@@ -54,15 +58,37 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 				Name:  "force-poll",
 				Usage: "Force a poll of the server for all identities",
 			},
+			cli.StringFlag{
+				Name:  "u, user",
+				Usage: "List memberships for a user assertion",
+			},
+			cli.BoolFlag{
+				Name:  "include-subteams",
+				Usage: "Include any subteam memberships as well",
+			},
+			cli.BoolFlag{
+				Name:  "all",
+				Usage: "Show all members of all teams you belong to",
+			},
 		},
 	}
 }
 
 func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
-	var err error
-	c.team, err = ParseOneTeamName(ctx)
-	if err != nil {
-		return err
+	if len(ctx.Args()) > 1 {
+		return errors.New("at most one team name argument allowed, multiple found")
+	}
+	if len(ctx.Args()) > 0 {
+		c.team = ctx.Args()[0]
+	}
+	c.userAssertion = ctx.String("user")
+	c.includeSubteams = ctx.Bool("include-subteams")
+	c.showAll = ctx.Bool("all")
+
+	if c.team != "" {
+		if c.showAll {
+			return errors.New("cannot specify a team and --all, please choose one")
+		}
 	}
 
 	c.json = ctx.Bool("json")
