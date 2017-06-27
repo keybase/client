@@ -602,3 +602,9 @@ const (
 )
 
 var CITimeMultiplier time.Duration = 1
+
+func init() {
+	if RunningInCI() {
+		CITimeMultiplier = 3
+	}
+}
