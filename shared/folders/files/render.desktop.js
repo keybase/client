@@ -119,7 +119,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
         }}
       >
         {intersperseFn(
-          i => <Divider key={i} theme={theme} />,
+          i => <Divider key={i} theme={theme} backgroundColor={null} color={null} />,
           youCanUnlock.map(device => (
             <ListItem
               key={device.name}

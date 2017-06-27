@@ -106,7 +106,7 @@ export default connect(
       dispatch(addProof(missingProof.type))
     },
     onRecheckProof: (proof: Proof) => {
-      dispatch(checkProof(proof && proof.id))
+      dispatch(checkProof())
     },
     onRevokeProof: (proof: Proof) => {
       dispatch(

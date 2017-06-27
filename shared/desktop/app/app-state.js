@@ -7,7 +7,39 @@ import {appBundlePath} from './paths'
 import jsonfile from 'jsonfile'
 import {isEqual} from 'lodash'
 
-import type {State, Options, Config, Managed} from './app-state'
+export type State = {
+  x: ?number,
+  y: ?number,
+  width: number,
+  height: number,
+  windowHidden: boolean,
+  isMaximized: ?boolean,
+  isFullScreen: ?boolean,
+  displayBounds: ?any,
+  tab: ?string,
+  dockHidden: boolean,
+  openAtLoginSet: boolean,
+}
+
+export type Config = {
+  path: string,
+  eventHandlingDelay: number,
+}
+
+export type Options = {
+  defaultWidth: number,
+  defaultHeight: number,
+}
+
+export type Managed = {
+  winRef: ?any,
+  debounceChangeTimer: ?number,
+  showHandlers: Array<function>,
+  resizeHandlers: Array<function>,
+  moveHandlers: Array<function>,
+  closeHandlers: Array<function>,
+  closedHandlers: Array<function>,
+}
 
 export default class AppState {
   state: State

@@ -240,6 +240,7 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
       }
       yield put(navigateTo(['proveEnterUsername'], [profileTab]))
     } else if (incoming['keybase.1.proveUi.outputInstructions']) {
+      // $FlowIssue
       if (service === 'dnsOrGenericWebSite') {
         // We don't get this directly (yet) so we parse this out
         try {

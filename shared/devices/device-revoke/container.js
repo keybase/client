@@ -9,7 +9,6 @@ import {revoke} from '../../actions/devices'
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  // $FlowIssue getIn
   device: state.entities.getIn(['devices', routeProps.deviceID]),
   endangeredTLFs: routeProps.endangeredTLFs,
 })

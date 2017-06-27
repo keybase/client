@@ -57,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.editMessage(message, new HiddenString(body)))
   },
   onPostMessage: (selectedConversation, text) =>
-    dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
+    selectedConversation && dispatch(Creators.postMessage(selectedConversation, new HiddenString(text))),
   onShowEditor: (message: Constants.Message) => {
     dispatch(Creators.showEditor(message))
   },
@@ -68,7 +68,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+// TODO type-recompose: fix when recompose types properly
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const updateTyping = (typing: boolean) => {
     if (stateProps.selectedConversationIDKey) {
       dispatchProps.onUpdateTyping(stateProps.selectedConversationIDKey, typing)

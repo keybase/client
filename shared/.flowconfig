@@ -24,6 +24,7 @@
 ../protocol/.*
 ./desktop/build/.*
 ./desktop/release/.*
+.*/node_modules/react-native-tab-view/.*
 
 [include]
 

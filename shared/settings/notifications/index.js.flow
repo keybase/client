@@ -22,8 +22,8 @@ export type Props = {
   },
   onRefresh: () => void,
   onSave: () => void,
-  onToggle: (name: string) => void,
-  onToggleUnsubscribeAll: () => void,
+  onToggle: (gorupName: string, name: string) => void,
+  onToggleUnsubscribeAll: (group: string) => void,
   waitingForResponse: boolean,
 }
 

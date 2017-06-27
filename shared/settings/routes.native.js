@@ -7,7 +7,6 @@ import InvitationsContainer from './invites/container'
 import InviteGenerated from './invite-generated'
 import Feedback from './feedback-container'
 import DumbSheet from '../dev/dumb-sheet'
-import LogSend from '../dev/log-send'
 import Push from '../push/push.native'
 import DevicesRoute from '../devices/routes'
 import WebLinks from './web-links'
@@ -56,7 +55,6 @@ const routeTree = new RouteDefNode({
       component: DevMenu,
       children: {
         dumbSheet: {component: DumbSheet},
-        logSend: {component: LogSend},
         push: {
           component: () => <Push prompt={true} />,
         },

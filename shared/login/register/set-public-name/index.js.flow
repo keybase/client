@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import type {Exact} from '../../../constants/types/more'
 
-export type Props = Exact<{
+export type Props = {|
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
@@ -12,7 +12,7 @@ export type Props = Exact<{
   waiting?: ?boolean,
   existingDevices?: ?Array<string>,
   existingDevicesTrimmed?: ?Array<string>,
-}>
+|}
 
 export type State = {
   deviceName: ?string,

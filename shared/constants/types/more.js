@@ -86,8 +86,10 @@ export type DumbComponentMap<C: Component<*, *, *>> = {
   },
 }
 
+// TODO when ElementType<T, string> is added to flow type get/getin
 export type KBRecord<T> = T & {
-  get<A>(key: $Keys<T>): A,
+  get<A>(key: $Keys<T>, fallbackVal?: A): A,
   set<A>(key: $Keys<T>, value: A): KBRecord<T>,
   update<A>(key: $Keys<T>, updaterFn: (a: A) => A): KBRecord<T>,
+  getIn<A>(keys: Array<any>, fallbackVal?: A): A,
 }

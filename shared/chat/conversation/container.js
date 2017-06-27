@@ -95,6 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
     dispatch(Creators.stageUserForSearch(id))
+    dispatch(Creators.clearSearchResults())
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
 })

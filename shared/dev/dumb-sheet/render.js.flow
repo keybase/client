@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   onBack: () => void,
-  onDebugConfigChange: () => void,
+  onDebugConfigChange: (nextState: $Shape<Props>) => void,
   dumbIndex: number,
   dumbFilter: string,
   dumbFullscreen: boolean,

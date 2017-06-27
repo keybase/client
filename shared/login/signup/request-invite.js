@@ -1,18 +1,31 @@
 // @flow
-import * as signupActions from '../../actions/signup'
+import {requestInvite, restartSignup} from '../../actions/signup'
 import React, {Component} from 'react'
 import Render from './request-invite.render'
-import type {Props} from './request-invite.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
-class RequestInvite extends Component {
-  state: {
-    email: string,
-    name: string,
-  }
+import type {Dispatch} from 'redux'
 
-  constructor(props: Props) {
+type ContainerProps = {
+  restartSignup: () => void,
+  requestInvite: (email: string, name: string) => void,
+  nameErrorText: ?string,
+  emailErrorText: ?string,
+  waiting: boolean,
+  email?: ?string,
+  name?: ?string,
+}
+
+type State = {
+  email: string,
+  name: string,
+}
+
+class RequestInvite extends Component<void, ContainerProps, State> {
+  state: State
+
+  constructor(props: ContainerProps) {
     super(props)
 
     this.state = {
@@ -38,12 +51,16 @@ class RequestInvite extends Component {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   state => ({
     emailErrorText: state.signup.emailError,
     nameErrorText: state.signup.nameError,
     waiting: state.signup.waiting,
   }),
-  dispatch => bindActionCreators(signupActions, dispatch)
+  (dispatch: Dispatch<*>) => ({
+    // $FlowIssue with thunks
+    requestInvite: (email, name) => dispatch(requestInvite(email, name)),
+    // $FlowIssue with thunks
+    restartSignup: () => dispatch(restartSignup()),
+  })
 )(RequestInvite)

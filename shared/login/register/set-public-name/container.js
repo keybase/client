@@ -4,6 +4,7 @@ import SetPublicName from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 
+import type {Dispatch} from 'redux'
 import type {TypedState} from '../../../constants/reducer'
 import type {Props, State} from '.'
 
@@ -19,12 +20,19 @@ const trimDeviceNames = (names: ?Array<string>): Array<string> => {
   })
 }
 
+type ContainerProps = {
+  onSubmit: (deviceName: ?string) => void,
+  onBack: () => void,
+  waiting: boolean,
+  deviceNameError: ?string,
+  existingDevices: ?Array<string>,
+}
+
 // TODO remove this class
-class _SetPublicName extends Component<void, Props, State> {
-  props: Props
+class _SetPublicName extends Component<void, ContainerProps, State> {
   state: State
 
-  constructor(props: Props) {
+  constructor(props: ContainerProps) {
     super(props)
 
     this.state = {
@@ -71,9 +79,9 @@ const mapStateToProps = (state: TypedState, {routeProps: {existingDevices, devic
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
   onBack: () => dispatch(Creators.onBack()),
   onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
 })
-// $FlowIssue
+
 export default connect(mapStateToProps, mapDispatchToProps)(_SetPublicName)

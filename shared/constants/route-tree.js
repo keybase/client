@@ -66,7 +66,7 @@ const stateLoggerTransform = (state: State) => {
     return out
   }
 
-  const out = dump(root, {})
+  const out = dump(root)
   return out
 }
 

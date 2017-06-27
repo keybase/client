@@ -190,7 +190,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
       >
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
         {url && <UserImage opacity={opacity} size={size} url={url} />}
-        {!!borderColor && <Border borderColor={borderColor} />}
+        {!!borderColor && <Border borderColor={borderColor} size={size} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
         {children}
       </div>
