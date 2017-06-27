@@ -89,7 +89,7 @@ func SerializeToFile(c Codec, obj interface{}, path string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(path, buf, 0600)
+	return ioutil.WriteSerializedFile(path, buf, 0600)
 }
 
 // SerializeToFileIfNotExist is like SerializeToFile, but does nothing
