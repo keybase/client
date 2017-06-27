@@ -279,3 +279,28 @@ func TestLoaderWantMembers(t *testing.T) {
 	team = loadAsU1WantU2()
 	requireSeqno(team, 4, "seqno should not advance because this should be a cache hit")
 }
+
+// Test loading a team that has a subteam in it
+func TestLoaderParentEasy(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("create a team")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", teamName)
+	require.NoError(t, err)
+
+	t.Logf("load the parent")
+	team, err := tcs[0].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.Chain.Id, teamID)
+	subteamName, err := TeamSigChainState{inner: team.Chain}.GetSubteamName(*subteamID)
+	require.NoError(t, err)
+	expectedSubteamName, err := teamName.Append("mysubteam")
+	require.NoError(t, err)
+	require.Equal(t, expectedSubteamName, *subteamName)
+}

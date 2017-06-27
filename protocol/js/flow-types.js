@@ -5789,6 +5789,11 @@ export type StringKVPair = {
   value: string,
 }
 
+export type SubteamLogPoint = {
+  name: TeamName,
+  seqno: Seqno,
+}
+
 export type TLF = {
   id: TLFID,
   name: string,
@@ -5922,6 +5927,7 @@ export type TeamSigChainState = {
   lastLinkID: LinkID,
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
+  subteamLog: {[key: string]: ?Array<SubteamLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
   stubbedTypes: {[key: string]: boolean},
 }

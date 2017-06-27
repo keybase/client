@@ -79,7 +79,7 @@ func TestCreateSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	subteamBasename := "mysubteam"
-	err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
 	require.NoError(t, err)
 
 	// TODO: Uncomment the rest here when Get() supports subteams.
