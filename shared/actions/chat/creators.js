@@ -255,6 +255,10 @@ function addPending(
   return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
 }
 
+function removeTempPendingConversations(): Constants.RemoveTempPendingConversations {
+  return {payload: undefined, type: 'chat:removeTempPendingConversations'}
+}
+
 function updateFinalizedState(finalizedState: Constants.FinalizedState): Constants.UpdateFinalizedState {
   return {payload: {finalizedState}, type: 'chat:updateFinalizedState'}
 }
@@ -659,6 +663,7 @@ export {
   prependMessages,
   removeOutboxMessage,
   removePendingFailure,
+  removeTempPendingConversations,
   replaceConversation,
   retryAttachment,
   retryMessage,

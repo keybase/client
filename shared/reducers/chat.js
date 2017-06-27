@@ -566,6 +566,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
         )
     }
+    case 'chat:removeTempPendingConversations': {
+      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      return state
+        .update('tempPendingConversations', tempPendingConversations => tempPendingConversations.clear())
+        .update('pendingConversations', pendingConversations =>
+          pendingConversations.filterNot((v, k) => tempPendingConvIDs.includes(k))
+        )
+    }
     case 'chat:pendingToRealConversation': {
       const {oldKey} = action.payload
       const oldPending = state.get('pendingConversations')
