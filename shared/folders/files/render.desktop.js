@@ -77,17 +77,10 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
 
 const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) =>
   ({
-    private: {
-      backup: 'icon-paper-key-dark-blue-32',
-      desktop: 'icon-computer-dark-blue-32',
-      mobile: 'icon-phone-dark-blue-32',
-    },
-    public: {
-      backup: 'icon-paper-key-32',
-      desktop: 'icon-computer-32',
-      mobile: 'icon-phone-32',
-    },
-  }[isPrivate ? 'private' : 'public'][type])
+    backup: 'icon-paper-key-32',
+    desktop: 'icon-computer-32',
+    mobile: 'icon-phone-32',
+  }[type])
 
 const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
@@ -272,7 +265,7 @@ class FilesRender extends Component<void, Props, void> {
           >
             {this.props.users.map(u => (
               <Box key={u.username} style={{height: 32, width: 28}}>
-                <Avatar username={u.username} size={32} />
+                <Avatar username={u.username} size={32} borderColor={globalColors.white} />
               </Box>
             ))}
           </Box>
@@ -335,11 +328,11 @@ const styleTLFHeaderThemed = {
 
 const styleTLFTextThemed = {
   private: {
-    color: globalColors.darkBlue2,
+    color: globalColors.darkBlue,
   },
 
   public: {
-    color: globalColors.yellowGreen,
+    color: globalColors.yellowGreen2,
   },
 }
 

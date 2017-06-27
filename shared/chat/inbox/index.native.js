@@ -10,7 +10,7 @@ import {
   ClickableBox,
   LoadingLine,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
 // $FlowIssue
@@ -58,25 +58,23 @@ const Avatars = ({
 
   let icon
   if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
+    icon = <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarMutedIconStyle} />
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
+        type={isSelected ? 'icon-addon-lock-active-12' : 'icon-addon-lock-12'}
         style={avatarLockIconStyle}
       />
     )
   }
 
+  const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
   const avatarProps = participants
     .slice(0, 2)
     .map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       loadingColor: globalColors.blue3_40,
       size: 32,
-      style: {
-        opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
-      },
       username,
     }))
     .toArray()
@@ -98,7 +96,7 @@ const Avatars = ({
           singleSize={40}
           multiSize={32}
           avatarProps={avatarProps}
-          style={{alignSelf: 'center', backgroundColor}}
+          style={{alignSelf: 'center', backgroundColor, opacity}}
         />
         {icon}
       </Box>
@@ -126,8 +124,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             inline={true}
             plainText={true}
             type="BodySemibold"
-            style={{...boldOverride, color: usernameColor}}
-            containerStyle={{color: usernameColor, paddingRight: 7}}
+            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')}
           />
@@ -154,21 +151,27 @@ const BottomLine = ({
 
   if (youNeedToRekey) {
     content = (
-      <Text
-        type="BodySmallSemibold"
-        backgroundMode="Terminal"
+      <Box
         style={{
-          alignSelf: 'flex-start',
+          alignSelf: 'center',
           backgroundColor: globalColors.red,
           borderRadius: 2,
-          color: globalColors.white,
-          fontSize: 11,
-          paddingLeft: 2,
-          paddingRight: 2,
+          paddingLeft: 4,
+          paddingRight: 4,
         }}
       >
-        REKEY NEEDED
-      </Text>
+        <Text
+          type="BodySmallSemibold"
+          backgroundMode="Terminal"
+          style={{
+            color: globalColors.white,
+            fontSize: 11,
+            lineHeight: 14,
+          }}
+        >
+          REKEY NEEDED
+        </Text>
+      </Box>
     )
   } else if (participantNeedToRekey) {
     content = (
@@ -272,7 +275,7 @@ const NoChats = () => (
       top: 48,
     }}
   >
-    <Icon type="icon-fancy-chat-72-x-52" style={{marginBottom: globalMargins.small}} />
+    <Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: globalMargins.medium}} />
     <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.black_40}}>
       All conversations are end-to-end encrypted.
     </Text>
@@ -349,7 +352,6 @@ const boxStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   flex: 1,
-  paddingTop: statusBarHeight,
   position: 'relative',
 }
 

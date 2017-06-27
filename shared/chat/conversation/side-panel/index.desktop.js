@@ -34,7 +34,7 @@ const SidePanel = (props: Props) => (
           onCheck={checked => props.onMuteConversation(checked)}
           label="Mute notifications"
         />
-        <Icon type="icon-shh-active-16" style={{marginLeft: globalMargins.tiny}} />
+        <Icon type="iconfont-shh" style={{marginLeft: globalMargins.tiny}} />
       </Box>
     </Box>
 

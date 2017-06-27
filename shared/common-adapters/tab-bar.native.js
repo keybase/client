@@ -68,7 +68,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           color: iconColor,
           fontSize: 32,
           textAlign: 'center',
-          width: 32,
+          width: props.isNav ? 40 : 32,
           ...props.styleIcon,
         }}
       />
@@ -133,7 +133,7 @@ class TabBar extends Component<void, Props, void> {
 const underlineStyle = {
   ...globalStyles.fillAbsolute,
   backgroundColor: globalColors.white,
-  height: 4,
+  height: 2,
   top: undefined,
 }
 

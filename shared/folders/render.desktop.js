@@ -9,9 +9,9 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class FoldersRender extends Component<void, Props, void> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
-    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
+    const selectedColor = isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue
     const iconStyle = isPublic
-      ? {color: globalColors.yellowGreen, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
+      ? {color: globalColors.yellowGreen2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
       : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
     return (
       <TabBarButton
@@ -23,7 +23,7 @@ class FoldersRender extends Component<void, Props, void> {
         styleBadge={styleBadge}
         styleIcon={{...styleIcon, ...iconStyle}}
         styleLabel={{
-          color: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
+          color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
           opacity: isSelected ? 1 : 0.6,
           fontSize: 12,
         }}

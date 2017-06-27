@@ -133,8 +133,6 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
   const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
   const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
-  const groupAvatar = f.private ? users.length > 2 : users.length > 1
-  const userAvatar = groupAvatar ? null : users[users.length - 1].username
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
 
@@ -144,8 +142,6 @@ function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Fo
     sortName,
     hasData: false, // TODO don't have this info
     isPublic: !f.private,
-    groupAvatar,
-    userAvatar,
     ignored,
     meta,
     recentFiles: [],

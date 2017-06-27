@@ -2,46 +2,59 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, ClickableBox} from '../common-adapters/index.native'
+import {Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const Avatars = ({styles, users, isPublic, ignored}) => {
-  // TODO (MM) fix type
-  const groupIcon: any = styles.groupIcon
-  const contents = users.length === 1 || users.length === 2
-    ? <Avatar
-        size={32}
-        username={users[users.length - 1].username}
-        opacity={ignored ? 0.5 : 1.0}
-        backgroundColor={globalColors.white}
-      />
-    : <Icon type={groupIcon} />
+const Avatars = ({styles, users, ignored, isPublic}) => {
+  if (!isPublic && users.length > 1) {
+    users = users.filter(({you}) => !you)
+  }
+  const avatarCount = Math.min(2, users.length)
+  const opacity = ignored ? 0.5 : 1
+  const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+    borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
+    loadingColor: globalColors.blue3_40,
+    size: 32,
+    username,
+  }))
 
   return (
     <Box
       style={{
-        overflow: 'hidden',
-        paddingBottom: 16,
-        paddingLeft: 8,
-        paddingRight: 8,
-        paddingTop: 16,
-        width: 48,
+        ...globalStyles.flexBoxRow,
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
+        maxWidth: 56,
+        minWidth: 56,
+        paddingLeft: globalMargins.xtiny,
       }}
     >
-      {contents}
+      <Box style={{position: 'relative'}}>
+        <MultiAvatar
+          singleSize={40}
+          multiSize={32}
+          avatarProps={avatarProps}
+          style={{alignSelf: 'center', opacity}}
+        />
+      </Box>
     </Box>
   )
 }
 
-const Names = ({styles, users, nameColor, redColor}) => {
+const Names = ({styles, users, nameColor, redColor, ignored, isPublic}) => {
   return (
     <Box style={stylesBodyNameContainer}>
       {users.map((u, i) => (
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={u.broken ? {color: redColor} : {}}
+          style={{
+            ...(u.broken
+              ? {color: redColor}
+              : {color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue}),
+            opacity: ignored ? 0.6 : 1,
+          }}
         >
           {u.username}
           {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
@@ -67,7 +80,11 @@ const Modified = ({styles, modified}) => {
   )
 }
 
-const RowMeta = ({ignored, meta, styles}) => {
+const RowMeta = ({meta, styles}) => {
+  if (meta === 'ignored') {
+    return
+  }
+
   const metaColors = {
     new: globalColors.white,
     rekey: globalColors.white,
@@ -78,12 +95,10 @@ const RowMeta = ({ignored, meta, styles}) => {
     rekey: globalColors.red,
   }
 
-  const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: {...styles.ignored, marginTop: 3}}
-    : {
-        title: meta || '',
-        style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {},
-      }
+  const metaProps = {
+    title: meta || '',
+    style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {},
+  }
 
   return <Meta {...metaProps} />
 }
@@ -117,30 +132,28 @@ const Row = ({
   return (
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Avatars users={users} styles={styles} ignored={ignored} isPublic={isPublic} />
           <Box style={stylesBodyContainer}>
-            <Names users={users} styles={styles} meta={meta} modified={modified} redColor={redColor} />
-            {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            <Names
+              users={users}
+              styles={styles}
+              meta={meta}
+              modified={modified}
+              redColor={redColor}
+              ignored={ignored}
+              isPublic={isPublic}
+            />
+            {meta && !ignored && <RowMeta meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
           <Box style={stylesActionContainer}>
             {hasData && <Icon type={icon} style={{width: 32}} />}
           </Box>
         </Box>
-        <Box style={stylesLine} />
       </Box>
     </ClickableBox>
   )
-}
-
-const stylesLine = {
-  backgroundColor: globalColors.black_05,
-  height: 1,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
 }
 
 const rowContainer = {
@@ -151,10 +164,9 @@ const rowContainer = {
 
 const stylesAvatarContainer = {
   width: 48,
-  padding: 8,
   paddingLeft: 8,
   paddingRight: 8,
-  paddingTop: 16,
+  paddingTop: 16 + 8,
   paddingBottom: 16,
 }
 
@@ -168,7 +180,6 @@ const stylesPrivate = {
     color: globalColors.white_40,
     backgroundColor: 'rgba(0, 26, 51, 0.4)',
   },
-  groupIcon: 'icon-folder-private-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.darkBlue3,
@@ -187,7 +198,6 @@ const stylesPublic = {
     color: globalColors.white_75,
     backgroundColor: globalColors.yellowGreen,
   },
-  groupIcon: 'icon-folder-public-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.yellowGreen,
@@ -200,8 +210,7 @@ const stylesBodyContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
-  padding: 8,
-  marginRight: 16,
+  paddingRight: globalMargins.tiny,
 }
 
 const stylesBodyNameContainer = {

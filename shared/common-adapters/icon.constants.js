@@ -55,16 +55,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
-  'icon-chat-addon-lock-8': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-chat-addon-lock-8.png'),
-  },
-  'icon-chat-addon-lock-active-8': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-chat-addon-lock-active-8.png'),
-  },
   'icon-coinbase-logo-16': {
     isFont: false,
     extension: 'png',

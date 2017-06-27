@@ -13,7 +13,7 @@ import {
   ListItem,
   NativeStyleSheet,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -248,7 +248,6 @@ class FilesRender extends Component<void, Props, void> {
           ...globalStyles.flexBoxColumn,
           flexGrow: 1,
           position: 'relative',
-          paddingTop: statusBarHeight,
         }}
       >
         {this._renderHeader()}
@@ -258,6 +257,7 @@ class FilesRender extends Component<void, Props, void> {
             users={this.props.users}
             type="BodySemibold"
             containerStyle={{textAlign: 'center'}}
+            style={{color: isPrivate ? globalColors.darkBlue : globalColors.yellowGreen2}}
           />
         </Box>
         {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}

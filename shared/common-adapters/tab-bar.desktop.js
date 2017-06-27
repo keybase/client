@@ -106,7 +106,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           size={32}
           onClick={this.props.onClick}
           username={this.props.source.username}
-          borderColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
           loadingColor={globalColors.blue3_40}
           backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
         />
@@ -166,7 +165,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
             </Box>}
           {!!this.props.label &&
             <Text
-              type="BodySmall"
+              type="BodySmallSemibold"
               style={{color: undefined, ...stylesNavText, ...this.props.styleLabel}}
               className="title"
             >
@@ -206,7 +205,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 
   render() {
-    const color = this.props.selected ? globalColors.white : globalColors.blue3_40
+    const color = this.props.selected ? globalColors.white : globalColors.blue3_60
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
@@ -309,7 +308,7 @@ const navRealCSS = `
 
   .nav-item .title { color: transparent; }
   .nav-item.selected .title { color: ${globalColors.white}; }
-  .nav-item:hover .title { color: ${globalColors.white}; opacity: 0.6; }
+  .nav-item:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
   .nav-item:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
 `
 
