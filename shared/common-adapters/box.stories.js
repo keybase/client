@@ -1,5 +1,4 @@
 // @flow
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 import React from 'react'
 import Box from './box'
 import Text from './text'

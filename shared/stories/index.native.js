@@ -2,11 +2,13 @@
 // @flow
 import {configure} from '@storybook/react-native'
 import loadBox from '../common-adapters/box.stories'
+import loadAvatar from '../common-adapters/avatar.stories'
 
 // Load common-adapter stories
 const load = () => {
   configure(() => {
     loadBox()
+    loadAvatar()
   }, module)
 }
 

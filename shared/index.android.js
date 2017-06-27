@@ -8,7 +8,8 @@ import 'core-js/es6/map' // required for FlatList in RN Android
 import './globals.native'
 
 if (__STORYBOOK__) {
-  require('./stories/load.native.js')
+  const load = require('./stories/setup-app.native.js').default
+  load()
 } else {
   const {load} = require('./index.native')
   load()

@@ -3,7 +3,12 @@
 function storiesOf(): any {
   return 0
 }
+function action(): any {
+  return 0
+}
 
 export {
+  action,
   storiesOf,
+
 }

@@ -3,7 +3,7 @@
 import './globals.native'
 
 if (__STORYBOOK__) {
-  const load = require('./stories/load.native.js').default
+  const load = require('./stories/setup-app.native.js').default
   load()
 } else {
   const {load} = require('./index.native')
