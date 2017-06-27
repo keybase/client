@@ -75,7 +75,9 @@ func (l *TeamLoader) isParentChildOperation(ctx context.Context,
 func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 	link *chainLinkUnpacked) *parentChildOperation {
 
-	panic("TODO: implement")
+	return &parentChildOperation{
+		TODOImplement: true,
+	}
 }
 
 // Apply a new link to the sigchain state.

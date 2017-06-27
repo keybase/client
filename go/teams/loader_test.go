@@ -113,6 +113,26 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	require.True(t, teamName.Eq(team.Chain.Name))
 }
 
+// Test loading a root team by name.
+func TestLoaderByName(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("create a team")
+	teamName, teamID := createTeam2(tc)
+
+	t.Logf("load the team")
+	team, err := tc.G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		Name: teamName.String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Chain.Name))
+}
+
 // Test loading a team with NeedKeyGeneration set.
 // User A creates a team and rotate the key several times.
 // User B caches the team at generation 1, and then loads with NeedKeyGeneration later.

@@ -1490,6 +1490,15 @@ func (t TeamName) ToTeamID() TeamID {
 	return res
 }
 
+// Return a new team name with the part added to the end.
+// For example {foo.bar}.Append(baz) -> {foo.bar.baz}
+func (t TeamName) Append(part string) (t3 TeamName, err error) {
+	t2 := t.DeepCopy()
+	t2.Parts = append(t2.Parts, TeamNamePart(part))
+	t3, err = TeamNameFromString(t2.String())
+	return t3, err
+}
+
 func (u UserPlusKeys) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,
