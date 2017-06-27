@@ -125,8 +125,8 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	if resp != nil {
 		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
 		res.Ul.Name = resp.Upk.Username
+		res.TrackBreaks = resp.TrackBreaks
 	}
-	res.TrackBreaks = resp.TrackBreaks
 	return res, err
 }
 
