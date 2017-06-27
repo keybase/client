@@ -57,7 +57,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   _onMouseEnter: () => void
   _onMouseLeave: () => void
 
-  constructor(props: Props) {
+  constructor(props: ProofRowProps) {
     super(props)
 
     this.state = {

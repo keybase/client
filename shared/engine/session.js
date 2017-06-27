@@ -108,6 +108,7 @@ class Session {
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
+      // $FlowIssue
       this._startCallback && this._startCallback(...args)
       this._startCallback = null
       this.end()

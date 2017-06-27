@@ -88,7 +88,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
     }
   }
 
-  throw new SearchError('Invalid raw result for keybase. Missing result.keybase', result)
+  throw new SearchError(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
 }
 
 function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
@@ -122,14 +122,16 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     }
   }
 
-  throw new SearchError('Invalid raw result for service search. Missing result.service', result)
+  throw new SearchError(
+    `Invalid raw result for service search. Missing result.service ${JSON.stringify(result)}`
+  )
 }
 
 function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
   if (service === '' || service === 'Keybase') {
-    return _parseKeybaseRawResult(result, true)
+    return _parseKeybaseRawResult(result)
   } else {
-    return _parseThirdPartyRawResult(result, !!result.keybase)
+    return _parseThirdPartyRawResult(result)
   }
 }
 

@@ -1,7 +1,7 @@
 // @flow
 import {List, Record} from 'immutable'
 
-import type {Device} from './types/more'
+import type {Device, KBRecord} from './types/more'
 import type {DeviceRole} from './login.js'
 import type {NoErrorTypedAction} from './types/flux'
 
@@ -30,7 +30,7 @@ const DeviceDetailRecord = Record({
   type: '',
 })
 
-export type DeviceDetail = Record<{
+export type DeviceDetail = KBRecord<{
   created: number,
   currentDevice: boolean,
   deviceID: string,
@@ -48,7 +48,7 @@ const StateRecord = Record({
   waitingForServer: false,
 })
 
-export type State = Record<{
+export type State = KBRecord<{
   deviceIDs: List<string>,
   waitingForServer: boolean,
 }>

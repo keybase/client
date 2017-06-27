@@ -57,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) =
       ])
     )
   },
-  onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+  onShowProfile: (username: string) => dispatch(onUserClick(username)),
   onToggleSidePanel,
 })
 
@@ -67,6 +67,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onAddParticipant: () =>
     dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
   onMuteConversation: (muted: boolean) =>
+    stateProps.selectedConversationIDKey &&
     dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
   onShowBlockConversationDialog: () =>
     dispatchProps.onShowBlockConversationDialog(

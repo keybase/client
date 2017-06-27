@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: (username: string) => {
-    isMobile ? dispatch(onUserClick(username, '')) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(onUserClick(username)) : dispatch(getProfile(username, true, true))
   },
 })
 
