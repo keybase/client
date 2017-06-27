@@ -18,6 +18,7 @@ type CmdTeamRemoveMember struct {
 	team     string
 	username string
 	role     keybase1.TeamRole
+	force    bool
 }
 
 func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -33,6 +34,10 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 			cli.StringFlag{
 				Name:  "u, user",
 				Usage: "username",
+			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "bypass warnings",
 			},
 		},
 	}
@@ -50,18 +55,37 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
+	c.force = ctx.Bool("force")
+
 	return nil
 }
 
 func (c *CmdTeamRemoveMember) Run() error {
 	ui := c.G().UI.GetTerminalUI()
-	prompt := fmt.Sprintf("Are you sure you want to remove %s from team %s?", c.username, c.team)
-	proceed, err := ui.PromptYesNo(PromptDescriptorRemoveMember, prompt, libkb.PromptDefaultNo)
-	if err != nil {
-		return err
-	}
-	if !proceed {
-		return nil
+
+	if !c.force {
+		config_cli, err := GetConfigClient(c.G())
+		if err != nil {
+			return err
+		}
+		curStatus, err := config_cli.GetCurrentStatus(context.TODO(), 0)
+		if err != nil {
+			return err
+		}
+
+		var prompt string
+		if curStatus.User != nil && libkb.NewNormalizedUsername(c.username).Eq(libkb.NewNormalizedUsername(curStatus.User.Username)) {
+			prompt = fmt.Sprintf("Are you sure you want to remove yourself from team %s?", c.team)
+		} else {
+			prompt = fmt.Sprintf("Are you sure you want to remove %s from team %s?", c.username, c.team)
+		}
+		proceed, err := ui.PromptYesNo(PromptDescriptorRemoveMember, prompt, libkb.PromptDefaultNo)
+		if err != nil {
+			return err
+		}
+		if !proceed {
+			return nil
+		}
 	}
 
 	cli, err := GetTeamsClient(c.G())

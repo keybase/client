@@ -264,7 +264,7 @@ func TestLeave(t *testing.T) {
 	if err := other_a.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	if err := LeaveTeam(context.TODO(), tc.G, name, false); err != nil {
+	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
@@ -272,7 +272,7 @@ func TestLeave(t *testing.T) {
 	if err := other_b.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	if err := LeaveTeam(context.TODO(), tc.G, name, false); err != nil {
+	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()

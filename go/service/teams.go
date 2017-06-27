@@ -67,7 +67,7 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 }
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) error {
-	return teams.LeaveTeam(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
+	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

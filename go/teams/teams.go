@@ -372,7 +372,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) LeaveTeam(ctx context.Context, permanent bool) error {
+func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	section, err := newMemberSet().Section(t.Chain.GetID(), nil)
 	if err != nil {
 		return err
