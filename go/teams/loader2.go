@@ -127,15 +127,39 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 
 // Check that the parent-child operations appear in the parent sigchains.
 func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
-	parent *keybase1.TeamID, parentChildOperations []*parentChildOperation) error {
+	me keybase1.UserVersion, parentID *keybase1.TeamID,
+	parentChildOperations []*parentChildOperation) error {
+
 	if len(parentChildOperations) == 0 {
 		return nil
 	}
-	if parent == nil {
+	if parentID == nil {
 		return fmt.Errorf("cannot check parent-child operations with no parent")
 	}
 
-	panic("TODO: implement")
+	var needParentSeqnos []keybase1.Seqno
+	// TODO fill neededSeqnos
+
+	parent, err := l.load2(ctx, load2ArgT{
+		teamID: *parentID,
+
+		needAdmin:         false,
+		needKeyGeneration: 0,
+		wantMembers:       nil,
+		forceFullReload:   false,
+		forceRepoll:       false,
+		staleOK:           true, // stale is fine, as long as get those seqnos.
+
+		needSeqnos: needParentSeqnos,
+
+		me: me,
+	})
+	if err != nil {
+		return fmt.Errorf("error loading parent: %v", err)
+	}
+
+	_ = parent
+	return l.unimplementedVerificationTODO(ctx, nil)
 }
 
 // Check all the proofs and ordering constraints in proofSet
