@@ -301,7 +301,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, ret.Chain.ParentID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,6 @@ func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keyba
 }
 
 func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	// TODO: make sure this punches through any caches and does an rpc.
 	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
 	if err != nil {
 		return r1, r2, err

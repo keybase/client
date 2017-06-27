@@ -16,9 +16,6 @@ import (
 
 // There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
 
-// TODO CORE-5311 merkle existence
-// TODO CORE-5313 CORE-5314 CORE-5315 accept links from now-revoked keys and now-reset users if the sigs were made before their revocation.
-
 // Create a new user/version pair.
 func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
 	return keybase1.UserVersion{
@@ -536,14 +533,17 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, fmt.Errorf("root team has subteam name: %s", teamName)
 		}
 
-		// Check the teamd ID
+		// Check the team ID
 		// assert that team_name = hash(team_id)
 		// this is only true for root teams
 		if !teamID.Equal(teamName.ToTeamID()) {
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
 		}
+		if teamID.IsSubTeam() {
+			return res, fmt.Errorf("malformed root team id")
+		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, true)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, true, false)
 		if err != nil {
 			return res, err
 		}
@@ -601,7 +601,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v", oRes.signingUser, signerRole)
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, false)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, false, true)
 		if err != nil {
 			return res, err
 		}
@@ -695,8 +695,6 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
 
 		return res, nil
-	case "team.subteam_head":
-		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
 	case "team.new_subteam":
 		err = libkb.PickFirstError(
 			hasPrevState(true),
@@ -718,7 +716,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			return res, fmt.Errorf("malformed subteam id")
 		}
 
-		// Check the subteam name ID
+		// Check the subteam name
 		subteamName, err := keybase1.TeamNameFromString(string(team.Subteam.Name))
 		if err != nil {
 			return res, fmt.Errorf("invalid subteam team name '%s': %v", team.Subteam.Name, err)
@@ -741,8 +739,70 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		}
 
 		return res, nil
+	case "team.subteam_head":
+		err = libkb.PickFirstError(
+			hasPrevState(false),
+			hasName(true),
+			hasMembers(true),
+			hasParent(true),
+			hasSubteam(false),
+			hasPerTeamKey(true))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam ID
+		if !teamID.IsSubTeam() {
+			return res, fmt.Errorf("malformed subteam id")
+		}
+
+		// Check parent ID
+		parentID, err := keybase1.TeamIDFromString(string(team.Parent.ID))
+		if err != nil {
+			return res, fmt.Errorf("invalid parent id: %v", err)
+		}
+
+		// Check the subteam name
+		teamName, err := keybase1.TeamNameFromString(string(*team.Name))
+		if err != nil {
+			return res, err
+		}
+		if teamName.IsRootTeam() {
+			return res, fmt.Errorf("subteam has root team name: %s", teamName)
+		}
+
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, false, false)
+		if err != nil {
+			return res, err
+		}
+
+		perTeamKey, err := t.checkPerTeamKey(link, *team.PerTeamKey, 1)
+		if err != nil {
+			return res, err
+		}
+
+		perTeamKeys := make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKey)
+		perTeamKeys[keybase1.PerTeamKeyGeneration(1)] = perTeamKey
+
+		res.newState = TeamSigChainState{
+			inner: keybase1.TeamSigChainState{
+				Reader:       t.reader,
+				Id:           teamID,
+				Name:         teamName,
+				LastSeqno:    1,
+				LastLinkID:   oRes.outerLink.LinkID().Export(),
+				ParentID:     &parentID,
+				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:  perTeamKeys,
+				StubbedTypes: make(map[int]bool),
+			}}
+
+		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
+
+		return res, nil
 	case "team.subteam_rename":
-		return res, fmt.Errorf("subteams not supported: %s", payload.Body.Type)
+		return res, fmt.Errorf("subteam renaming not yet supported: %s", payload.Body.Type)
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -778,25 +838,29 @@ func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink libkb.OuterLinkV2Wit
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
-// `firstLink` is whether this is seqno=1. In which case owners must exist. And removals must not exist.
+// `requireOwners` is whether owners must exist.
+// `allowRemovals` is whether removals are allowed.
+// `firstLink` is whether this is seqno=1. In which case owners must exist (for root team). And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
 // In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, firstLink bool) (map[keybase1.TeamRole][]keybase1.UserVersion, error) {
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOwners bool, allowRemovals bool) (map[keybase1.TeamRole][]keybase1.UserVersion, error) {
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
 	}
 	var all []assignment
 
-	if firstLink {
+	if requireOwners {
 		if members.Owners == nil {
 			return nil, fmt.Errorf("team has no owner list: %+v", members)
 		}
 		if len(*members.Owners) < 1 {
 			return nil, fmt.Errorf("team has no owners: %+v", members)
 		}
+	}
+	if !allowRemovals {
 		if members.None != nil && len(*members.None) != 0 {
-			return nil, fmt.Errorf("team has removals in root link: %+v", members)
+			return nil, fmt.Errorf("team has removals in link: %+v", members)
 		}
 	}
 

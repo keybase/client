@@ -304,3 +304,27 @@ func TestLoaderParentEasy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedSubteamName, *subteamName)
 }
+
+// Test loading a subteam
+func TestLoaderSubteamEasy(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("create a team")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	require.NoError(t, err)
+
+	t.Logf("load the subteam")
+	team, err := tcs[0].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: *subteamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.Chain.Id, *subteamID)
+	expectedSubteamName, err := parentName.Append("mysubteam")
+	require.NoError(t, err)
+	require.Equal(t, expectedSubteamName, TeamSigChainState{inner: team.Chain}.GetName())
+	require.Equal(t, parentID, *team.Chain.ParentID)
+}
