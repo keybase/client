@@ -1,5 +1,11 @@
 // @flow
 // React-native tooling assumes this file is here, so we just require our real entry point
-import {load} from './index.native'
+import './globals.native'
 
-load()
+if (__STORYBOOK__) {
+  const load = require('./stories/load.native.js').default
+  load()
+} else {
+  const {load} = require('./index.native')
+  load()
+}
