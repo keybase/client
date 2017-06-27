@@ -125,19 +125,18 @@ const forAndroid = ({hideNav, shim, tabBar}) => (
 
 function MainNavStack(props: Props) {
   const screens = props.routeStack
-  const shim = (
-    <Box style={flexOne}>
-      <CardStackShim
-        key={props.routeSelected}
-        stack={screens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
-      />
-      {![chatTab].includes(props.routeSelected) &&
-        <Offline reachability={props.reachability} appFocused={true} />}
-      <GlobalError />
-    </Box>
-  )
+  const shim = [
+    <CardStackShim
+      key={props.routeSelected}
+      stack={screens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+    />,
+    ![chatTab].includes(props.routeSelected) &&
+      <Offline reachability={props.reachability} appFocused={true} />,
+    <GlobalError key="globalError" />,
+  ].filter(Boolean)
+
   const tabBar = (
     <TabBar
       onTabClick={props.switchTab}
