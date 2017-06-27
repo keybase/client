@@ -10,12 +10,12 @@ import (
 // whitelistPath is used for installing the whitelist as a JSON into a given
 // path on disk.
 type whitelistPath struct {
-	// Root is the path of the NativeMessage whitelists for root user.
+	// Root is the path of the machine-global NativeMessage whitelists.
 	Root string
 	// Home is the path of the NativeMessage whitelists for regular users.
 	Home string
 	// Overlay is an optional path to prefix all paths with. Useful for
-	// generating whitelists for Linux distributio packaging.
+	// generating whitelists for Linux distribution packaging.
 	Overlay string
 }
 
