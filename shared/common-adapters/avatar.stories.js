@@ -4,11 +4,10 @@ import React from 'react'
 import Text from './text'
 import Box from './box'
 import {globalStyles} from '../styles'
-import {storiesOf, action} from '../stories/storybook'
 
 const sizes = [176, 112, 80, 64, 48, 40, 32, 24, 16, 12]
 
-const load = () => {
+const load = ({storiesOf, action}) => {
   storiesOf('Avatar', module).add('Avatar', () =>
     sizes.map(size => {
       const commonProps = {

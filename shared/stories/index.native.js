@@ -4,19 +4,26 @@ import React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import loadAvatar from '../common-adapters/avatar.stories'
 import loadBox from '../common-adapters/box.stories'
-import {configure, addDecorator} from '@storybook/react-native'
+import {StatusBar} from 'react-native'
+import {action} from '@storybook/addon-actions'
+import {configure, addDecorator, storiesOf} from '@storybook/react-native'
 
 // Load common-adapter stories
 const load = () => {
-  addDecorator(story => (
-    <ScrollView style={{flex: 1}}>
+  addDecorator(story => [
+    <StatusBar key="statusbar" hidden={true} />,
+    <ScrollView key="scrollview" style={{flex: 1}}>
       {story()}
-    </ScrollView>
-  ))
+    </ScrollView>,
+  ])
 
   configure(() => {
-    loadBox()
-    loadAvatar()
+    const payload = {
+      action,
+      storiesOf,
+    }
+    loadBox(payload)
+    loadAvatar(payload)
   }, module)
 }
 
