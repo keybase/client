@@ -133,7 +133,7 @@ function MainNavStack(props: Props) {
       onNavigateBack={props.navigateUp}
     />,
     ![chatTab].includes(props.routeSelected) &&
-      <Offline reachability={props.reachability} appFocused={true} />,
+      <Offline key="offline" reachability={props.reachability} appFocused={true} />,
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
