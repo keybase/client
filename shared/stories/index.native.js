@@ -5,8 +5,7 @@ import ScrollView from '../common-adapters/scroll-view'
 import loadAvatar from '../common-adapters/avatar.stories'
 import loadBox from '../common-adapters/box.stories'
 import {StatusBar} from 'react-native'
-import {action} from '@storybook/addon-actions'
-import {configure, addDecorator, storiesOf} from '@storybook/react-native'
+import {configure, addDecorator} from '@storybook/react-native'
 
 // Load common-adapter stories
 const load = () => {
@@ -18,12 +17,8 @@ const load = () => {
   ])
 
   configure(() => {
-    const payload = {
-      action,
-      storiesOf,
-    }
-    loadBox(payload)
-    loadAvatar(payload)
+    loadBox()
+    loadAvatar()
   }, module)
 }
 
