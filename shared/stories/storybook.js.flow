@@ -1,0 +1,5 @@
+// @flow
+
+declare module 'Storybook' {
+  declare var exports: any
+}

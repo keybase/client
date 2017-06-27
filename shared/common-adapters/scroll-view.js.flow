@@ -1,0 +1,4 @@
+// @flow
+import {Component} from 'react'
+
+export default class ScrollView extends Component<void, any, void> {}
