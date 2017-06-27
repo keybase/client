@@ -644,6 +644,10 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 	return
 }
 
+func (cki *ComputedKeyInfos) IsStaleVersion() bool {
+	return cki.Version < ComputedKeyInfosVersionCurrent
+}
+
 // DelegatePerUserKey inserts the new per-user key into the list of known per-user keys.
 func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) (err error) {
 	if perUserKey.Gen <= 0 {

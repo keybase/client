@@ -155,6 +155,18 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 	return
 }
 
+func (sc SigChain) GetComputedKeyInfosWithVersionBust() (cki *ComputedKeyInfos) {
+	ret := sc.GetComputedKeyInfos()
+	if ret == nil {
+		return ret
+	}
+	if ret.IsStaleVersion() {
+		sc.G().Log.Debug("Threw out CKI due to stale version (%d)", ret.Version)
+		ret = nil
+	}
+	return ret
+}
+
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
 	now := sc.G().Clock().Now()
 	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < ServerUpdateLag {
@@ -527,7 +539,7 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
-		if cki.Version < ComputedKeyInfosVersionCurrent {
+		if cki.IsStaleVersion() {
 			sc.G().Log.CDebugf(ctx, "Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
 		} else {
 			cached = true
@@ -1174,7 +1186,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		if err = l.LoadFromServer(); err != nil {
 			return
 		}
-	} else if l.chain.GetComputedKeyInfos() == nil {
+	} else if l.chain.GetComputedKeyInfosWithVersionBust() == nil {
 		// The chain tip doesn't have a cached cki, probably because new
 		// signatures have shown up since the last time we loaded it.
 		l.G().Log.CDebugf(l.ctx, "| Need to reverify chain since we don't have ComputedKeyInfos")

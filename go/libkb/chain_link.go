@@ -778,14 +778,15 @@ func (c *ChainLink) GetSigCheckCache() (cki *ComputedKeyInfos) {
 	if c.sigVerified && c.cki != nil {
 		cki = c.cki
 	}
-	return
+	return cki
 }
 
 func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
-	c.G().Log.Debug("Caching SigCheck for link %s:", c.id)
+	c.G().Log.Debug("Caching SigCheck for link %s (version: %d)", c.id, cki.Version)
 	c.sigVerified = true
 	c.dirty = true
 	c.cki = cki
+	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.cki = cki })
 	return
 }
 
@@ -984,7 +985,9 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret key
 
 func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 
+	g.VDL.Log(VLog1, "| Storing Link %s...", c.id)
 	if c.storedLocally && !c.dirty {
+		g.VDL.Log(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
 		return didStore, nil
 	}
 
