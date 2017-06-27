@@ -26,6 +26,7 @@ type ContainerProps = {
   waiting: boolean,
   deviceNameError: ?string,
   existingDevices: ?Array<string>,
+  existingDevicesTrimmed: ?Array<string>,
 }
 
 // TODO remove this class

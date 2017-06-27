@@ -92,4 +92,5 @@ export type KBRecord<T> = T & {
   set<A>(key: $Keys<T>, value: A): KBRecord<T>,
   update<A>(key: $Keys<T>, updaterFn: (a: A) => A): KBRecord<T>,
   getIn<A>(keys: Array<any>, fallbackVal?: A): A,
+  toObject(): T,
 }
