@@ -36,7 +36,6 @@ type Request struct {
 
 var plainFlag = flag.Bool("plain", false, "newline-delimited JSON IO, no length prefix")
 var versionFlag = flag.Bool("version", false, "print the version and exit")
-var overlayFlag = flag.String("overlay", "", "install/uninstall within an overlay path")
 
 // process consumes a single message
 func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSONEncoder) error {
@@ -88,6 +87,7 @@ func main() {
 		os.Exit(0)
 	}
 
+	overlay := os.Getenv("OVERLAY")
 	switch flag.Arg(0) {
 	case "install":
 		kbnmPath, err := findKeybaseBinary(kbnmBinary)
@@ -95,12 +95,12 @@ func main() {
 			exit(2, "error finding kbnm binary: %s", err)
 		}
 		log.Print("installing: ", kbnmPath)
-		if err := installer.InstallKBNM(*overlayFlag, kbnmPath); err != nil {
+		if err := installer.InstallKBNM(overlay, kbnmPath); err != nil {
 			exit(2, "error installing kbnm whitelist: %s", err)
 		}
 		exit(0, "Installed NativeMessaging whitelists.")
 	case "uninstall":
-		if err := installer.UninstallKBNM(*overlayFlag); err != nil {
+		if err := installer.UninstallKBNM(overlay); err != nil {
 			exit(2, "error uninstalling kbnm whitelist: %s", err)
 		}
 		exit(0, "Uninstalled NativeMessaging whitelists.")
