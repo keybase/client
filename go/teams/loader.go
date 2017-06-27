@@ -454,22 +454,34 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 
 // Whether the snapshot has all of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, teamData *keybase1.TeamData) error {
+	wantMembers []keybase1.UserVersion, state *keybase1.TeamData) error {
 	if len(wantMembers) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not have wanted members")
 	}
-	panic("TODO: implement")
+	for _, uv := range wantMembers {
+		role, err := TeamSigChainState{inner: state.Chain}.GetUserRole(uv)
+		if err != nil {
+			return fmt.Errorf("could not get wanted user role: %v", err)
+		}
+		switch role {
+		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// pass
+		default:
+			return fmt.Errorf("wanted user %v is not a priveleged member", uv)
+		}
+	}
+	return nil
 }
 
 // Whether the snapshot has fully loaded, non-stubbed, all of the links.
-func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, teamData *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, state *keybase1.TeamData) error {
 	if len(needSeqnos) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not contain needed seqnos")
 	}
 	panic("TODO: implement")
