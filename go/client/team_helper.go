@@ -51,7 +51,3 @@ func ParseUserAndRole(ctx *cli.Context) (string, keybase1.TeamRole, error) {
 	}
 	return username, role, nil
 }
-
-func ParsePermanent(ctx *cli.Context) (bool, error) {
-	return ctx.Bool("permanent"), nil
-}

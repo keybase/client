@@ -23,10 +23,16 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 	return tc, u, name
 }
 
-func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other *kbtest.FakeUser, name string) {
+func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other_a, other_b *kbtest.FakeUser, name string) {
 	tc = SetupTest(t, "team", 1)
 
-	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	other_a, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	other_b, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +45,7 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other *kbte
 
 	name = createTeam(tc)
 
-	return tc, owner, other, name
+	return tc, owner, other_a, other_b, name
 }
 
 func TestMemberOwner(t *testing.T) {
@@ -70,7 +76,7 @@ func TestMemberSetRole(t *testing.T) {
 }
 
 func testMemberSetRole(t *testing.T, test setRoleTest) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := test.setRoleFunc(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -82,7 +88,7 @@ func testMemberSetRole(t *testing.T, test setRoleTest) {
 }
 
 func TestMemberAdd(t *testing.T) {
-	tc, _, other, name := memberSetupMultiple(t)
+	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
@@ -102,7 +108,7 @@ func TestMemberAdd(t *testing.T) {
 }
 
 func TestMemberAddInvalidRole(t *testing.T) {
-	tc, _, other, name := memberSetupMultiple(t)
+	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888)); err == nil {
@@ -113,7 +119,7 @@ func TestMemberAddInvalidRole(t *testing.T) {
 }
 
 func TestMemberRemove(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -132,7 +138,7 @@ func TestMemberRemove(t *testing.T) {
 }
 
 func TestMemberChangeRole(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -152,7 +158,7 @@ func TestMemberChangeRole(t *testing.T) {
 
 // make sure that adding a member creates new recipient boxes
 func TestMemberAddHasBoxes(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
@@ -178,7 +184,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 // make sure that changing a role does not send new boxes for the
 // member to the server
 func TestMemberChangeRoleNoBoxes(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
@@ -209,7 +215,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 }
 
 func TestMemberRemoveRotatesKeys(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	before, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
@@ -244,43 +250,45 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 }
 
 func TestLeave(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other_a, other_b, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, other_a.Username); err != nil {
 		t.Fatal(err)
 	}
-
-	before, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
-	if err != nil {
+	if err := SetRoleWriter(context.TODO(), tc.G, name, other_b.Username); err != nil {
 		t.Fatal(err)
 	}
-	if !before.IsMember(context.TODO(), other.GetUserVersion()) {
-		t.Fatal("Other user not in initial team.")
-	}
-
 	tc.G.Logout()
-	if err := other.Login(tc.G); err != nil {
+
+	if err := other_a.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-
 	if err := LeaveTeam(context.TODO(), tc.G, name, false); err != nil {
 		t.Fatal(err)
 	}
-
 	tc.G.Logout()
+
+	if err := other_b.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	if err := LeaveTeam(context.TODO(), tc.G, name, false); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-
-	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	// Generation not bumped; CLKR is lazy
-	if after.IsMember(context.TODO(), other.GetUserVersion()) {
-		t.Fatal("Other user is still member after leave.")
+	if team.IsMember(context.TODO(), other_a.GetUserVersion()) {
+		t.Fatal("Admin user is still member after leave.")
+	}
+	if team.IsMember(context.TODO(), other_b.GetUserVersion()) {
+		t.Fatal("Writer user is still member after leave.")
 	}
 }
 

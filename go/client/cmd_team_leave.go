@@ -43,11 +43,7 @@ func (c *CmdTeamLeave) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	c.permanent, err = ParsePermanent(ctx)
-	if err != nil {
-		return err
-	}
-
+	c.permanent = ctx.Bool("permanent")
 	return nil
 }
 
