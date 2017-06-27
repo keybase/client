@@ -4870,6 +4870,11 @@ export type MerkleTreeID =
   | 2 // KBFS_PRIVATE_2
   | 3 // KBFS_PRIVATETEAM_3
 
+export type MerkleTreeLocation = {
+  leaf: UserOrTeamID,
+  loc: SigChainLocation,
+}
+
 export type MetadataResponse = {
   folderID: string,
   mdBlocks?: ?Array<MDBlock>,
@@ -5535,6 +5540,11 @@ export type Sig = {
   body: string,
 }
 
+export type SigChainLocation = {
+  seqno: Seqno,
+  seqType: SeqType,
+}
+
 export type SigHint = {
   remoteId: string,
   humanUrl: string,
@@ -5571,6 +5581,7 @@ export type SignatureMetadata = {
   prevMerkleRootSigned: MerkleRootV2,
   firstAppearedUnverified: Seqno,
   time: Time,
+  sigChainLocation: SigChainLocation,
 }
 
 export type SignupRes = {

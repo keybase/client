@@ -42,20 +42,103 @@ func (l *TeamLoader) getNewLinksFromServer(ctx context.Context,
 	return &rt, nil
 }
 
+// checkStubbed checks if it's OK that a link is stubbed.
+func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chainLinkUnpacked) error {
+	if !link.isStubbed() {
+		return nil
+	}
+	if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin ||
+		!link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
+		return NewErrStubbed(link)
+	}
+	return nil
+}
+
+func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context, inner SCChainLinkPayload) (user *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, err error) {
+	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
+	keySection := inner.Body.Key
+	if keySection == nil {
+		return nil, nil, libkb.NoUIDError{}
+	}
+	uid := keySection.UID
+	kid := keySection.KID
+	user, key, err = l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
+	if err != nil {
+		return nil, nil, err
+	}
+	return user, key, nil
+}
+
+func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer libkb.OuterLinkV2WithMetadata) (keybase1.KID, error) {
+	return outer.Verify(l.G().Log)
+}
+
+func (l *TeamLoader) verifyKeyInUserSigchain(ctx context.Context, link *chainLinkUnpacked, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) (*proofSetT, error) {
+	a := key.Base.Provisioning
+	b := link.SignatureMetadata()
+	proofSet = proofSet.HappensBefore(a, b)
+	if c := key.Base.Revocation; c != nil {
+		proofSet = proofSet.HappensBefore(b, *c)
+	}
+	return proofSet, nil
+}
+
 // Verify aspects of a link:
-// - If it is stubbed, that must be allowed for its type and the needAdmin value.
-//   - Stubbed links
-// - Signature must match the inner link
+// - Signature must match the outer link
+// - Signature must match the inner link if not stubbed
 // - Was signed by a key valid for the user at the time of signing
 // - Was signed by a user with permissions to make the link at the time of signing
+// - Checks outer-inner match
 // Some checks are deferred as entries in the returned proofSet
 // Does not:
 // - Apply the link nor modify state
 // - Check the rest of the format of the inner link
-func (l *TeamLoader) verifyLinkSig(ctx context.Context,
-	state *keybase1.TeamData, needAdmin bool, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
+func (l *TeamLoader) verifyLink(ctx context.Context,
+	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
 
-	return nil, l.unimplementedVerificationTODO(ctx, nil)
+	if link.isStubbed() {
+		return proofSet, nil
+	}
+
+	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
+	if err != nil {
+		return proofSet, err
+	}
+
+	user, key, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
+	if err != nil {
+		return proofSet, err
+	}
+
+	if !kid.Equal(key.Base.Kid) {
+		return proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
+	}
+
+	proofSet, err = l.verifyKeyInUserSigchain(ctx, link, key, proofSet)
+	if err != nil {
+		return proofSet, err
+	}
+
+	if link.outerLink.LinkType.RequiresAdminPermission() {
+		proofSet, err = l.verifyAdminPermissions(ctx, state, link, user.ToUserVersion(), proofSet)
+	} else {
+		err = l.verifyWriterOrReaderPermissions(ctx, state, link, user.ToUserVersion())
+	}
+	return proofSet, err
+
+}
+
+func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
+	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion) error {
+	return l.unimplementedVerificationTODO(ctx, nil)
+}
+
+func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
+	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, error) {
+
+	if explicitAdmin := link.inner.TeamAdmin(); explicitAdmin != nil {
+	}
+	return proofSet, l.unimplementedVerificationTODO(ctx, nil)
 }
 
 // Whether the chain link is of a (child-half) type

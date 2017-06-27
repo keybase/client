@@ -267,16 +267,16 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
-		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
-			if link.isStubbed() {
-				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
-			}
+
+		if err := l.checkStubbed(ctx, arg, link); err != nil {
+			return nil, err
 		}
+
 		if !link.Prev().Eq(prev) {
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		proofSet, err = l.verifyLinkSig(ctx, ret, arg.needAdmin, link, proofSet)
+		proofSet, err = l.verifyLink(ctx, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}

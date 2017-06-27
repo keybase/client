@@ -1115,6 +1115,20 @@ func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*PublicKeyV2NaCl, *UserPlusKeysV2) {
+	ret, ok := u.Current.DeviceKeys[kid]
+	if ok {
+		return &ret, &u.Current
+	}
+	for _, prev := range u.PastIncarnations {
+		ret, ok = prev.DeviceKeys[kid]
+		if ok {
+			return &ret, &prev
+		}
+	}
+	return nil, nil
+}
+
 func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.Base.Kid.Equal(needle) {
@@ -1504,6 +1518,13 @@ func (t TeamName) LastPart() TeamNamePart {
 }
 
 func (u UserPlusKeys) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
+}
+
+func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,
 		EldestSeqno: u.EldestSeqno,

@@ -948,6 +948,7 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			base.Provisioning.SigningKID = info.DelegationsList[dLen-1].KID
 		}
 	}
+	base.Provisioning.SigChainLocation = info.DelegatedAtSigChainLocation
 	if info.RevokedAt != nil {
 		base.Revocation = &keybase1.SignatureMetadata{
 			Time: keybase1.TimeFromSeconds(info.RevokedAt.Unix),
@@ -957,6 +958,9 @@ func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) 
 			},
 			FirstAppearedUnverified: info.FirstAppearedUnverified,
 			SigningKID:              info.RevokedBy,
+		}
+		if info.RevokedAtSigChainLocation != nil {
+			base.Revocation.SigChainLocation = *info.RevokedAtSigChainLocation
 		}
 	}
 	return

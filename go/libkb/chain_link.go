@@ -279,6 +279,13 @@ func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
 	return c.payloadJSON
 }
 
+func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   c.GetSeqno(),
+		SeqType: keybase1.SeqType_PUBLIC,
+	}
+}
+
 func (c *ChainLink) Pack() error {
 	p := jsonw.NewDictionary()
 

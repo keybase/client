@@ -104,7 +104,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau, keybase1.SigChainLocation{})
 	}
 
 	return
@@ -527,9 +527,13 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
-		cached = true
-		sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
-		return cached, cki, err
+		if cki.Version < ComputedKeyInfosVersionCurrent {
+			sc.G().Log.CDebugf(ctx, "Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+		} else {
+			cached = true
+			sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
+			return cached, cki, err
+		}
 	}
 
 	cki = NewComputedKeyInfos(sc.G())

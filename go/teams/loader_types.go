@@ -7,14 +7,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// Collection of ordering constraints waiting to be verified.
-// TODO implement
-type proofSetT struct{}
-
-func newProofSet() *proofSetT {
-	return &proofSetT{}
-}
-
 // --------------------------------------------------
 
 // An operation that occurs simultaneously on the child and parent team chains
@@ -78,4 +70,11 @@ func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
 
 func (l *chainLinkUnpacked) isStubbed() bool {
 	return l.inner == nil
+}
+
+func (l chainLinkUnpacked) SignatureMetadata() keybase1.SignatureMetadata {
+	return keybase1.SignatureMetadata{
+		PrevMerkleRootSigned: l.inner.Body.MerkleRoot.ToMerkleRootV2(),
+		SigChainLocation:     l.inner.ToSigChainLocation(),
+	}
 }
