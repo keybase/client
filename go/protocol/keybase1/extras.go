@@ -1115,15 +1115,15 @@ func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	return nil
 }
 
-func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*PublicKeyV2NaCl, *UserPlusKeysV2) {
+func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *PublicKeyV2NaCl) {
 	ret, ok := u.Current.DeviceKeys[kid]
 	if ok {
-		return &ret, &u.Current
+		return &u.Current, &ret
 	}
 	for _, prev := range u.PastIncarnations {
 		ret, ok = prev.DeviceKeys[kid]
 		if ok {
-			return &ret, &prev
+			return &prev, &ret
 		}
 	}
 	return nil, nil

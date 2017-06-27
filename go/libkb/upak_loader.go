@@ -472,7 +472,6 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 	arg.NetContext = ctx
 
 	forcePollValues := []bool{false, true}
-	var uv *keybase1.UserPlusKeysV2
 
 	for _, fp := range forcePollValues {
 
@@ -486,12 +485,13 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 			return nil, nil, fmt.Errorf("Nil user, nil error from LoadUser")
 		}
 
-		key, uv = upak.FindKID(kid)
+		ret, key = upak.FindKID(kid)
 		if key != nil {
 			break
 		}
+		ret = nil
 	}
-	return uv, key, nil
+	return ret, key, nil
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
