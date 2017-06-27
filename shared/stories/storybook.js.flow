@@ -1,5 +1,9 @@
 // @flow
 
-declare module 'Storybook' {
-  declare var exports: any
+function storiesOf(): any {
+  return 0
+}
+
+export {
+  storiesOf,
 }
