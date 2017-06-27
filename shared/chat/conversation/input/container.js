@@ -9,7 +9,6 @@ import {navigateAppend} from '../../../actions/route-tree'
 import {throttle} from 'lodash'
 
 import type {TypedState} from '../../../constants/reducer'
-import type {Props} from '.'
 import type {OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {

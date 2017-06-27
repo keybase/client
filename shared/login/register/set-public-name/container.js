@@ -6,7 +6,7 @@ import * as Creators from '../../../actions/login/creators'
 
 import type {Dispatch} from 'redux'
 import type {TypedState} from '../../../constants/reducer'
-import type {Props, State} from '.'
+import type {State} from '.'
 
 const trimDeviceName = (s: ?string): string => {
   if (!s) return ''

@@ -34,11 +34,11 @@ export type Options = {
 export type Managed = {
   winRef: ?any,
   debounceChangeTimer: ?number,
-  showHandlers: Array<function>,
-  resizeHandlers: Array<function>,
-  moveHandlers: Array<function>,
-  closeHandlers: Array<function>,
-  closedHandlers: Array<function>,
+  showHandlers: Array<Function>,
+  resizeHandlers: Array<Function>,
+  moveHandlers: Array<Function>,
+  closeHandlers: Array<Function>,
+  closedHandlers: Array<Function>,
 }
 
 export default class AppState {
