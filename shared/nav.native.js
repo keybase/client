@@ -164,19 +164,28 @@ function Nav(props: Props) {
     tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
   })
 
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-
-  return (
-    <Box style={globalStyles.fillAbsolute}>
-      <CardStackShim
-        stack={fullScreens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
-        mode="modal"
-      />
-      {layerScreens.map(r => r.leafComponent)}
-    </Box>
+  const shim = (
+    <CardStackShim
+      stack={fullScreens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+      mode="modal"
+    />
   )
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+  const layers = layerScreens.map(r => r.leafComponent)
+
+  // If we have layers, lets add an extra box, else lets just pass through
+  if (layers.length) {
+    return (
+      <Box style={globalStyles.fillAbsolute}>
+        {shim}
+        {layers}
+      </Box>
+    )
+  } else {
+    return shim
+  }
 }
 
 const sceneWrapStyleUnder = {
