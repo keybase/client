@@ -427,7 +427,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	hasGeneric := func(hasExpected bool, hasReal bool, attr string) error {
 		if hasExpected != hasReal {
 			if hasReal {
-				return fmt.Errorf("unexpected %s", attr)
+				return fmt.Errorf("team section contains unexpected %s", attr)
 			}
 			return fmt.Errorf("missing %s", attr)
 		}
@@ -448,6 +448,9 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	hasPerTeamKey := func(has bool) error {
 		return hasGeneric(has, team.PerTeamKey != nil, "per-team-key")
 	}
+	hasAdmin := func(has bool) error {
+		return hasGeneric(has, team.Admin != nil, "admin")
+	}
 
 	switch payload.Body.Type {
 	case "team.root":
@@ -457,7 +460,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			hasMembers(true),
 			hasParent(false),
 			hasSubteam(false),
-			hasPerTeamKey(true))
+			hasPerTeamKey(true),
+			hasAdmin(false))
 		if err != nil {
 			return res, err
 		}
@@ -598,7 +602,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 			hasMembers(false),
 			hasParent(false),
 			hasSubteam(false),
-			hasPerTeamKey(false))
+			hasPerTeamKey(false),
+			hasAdmin(false))
 		if err != nil {
 			return res, err
 		}
