@@ -258,13 +258,22 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if err != nil {
 		return nil, err
 	}
-	for _, link := range links {
+	var prev libkb.LinkID
+	if ret != nil {
+		prev, err = TeamSigChainState{ret.Chain}.GetLatestLibkbLinkID()
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
-
 		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
 			if link.isStubbed() {
 				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
 			}
+		}
+		if !link.Prev().Eq(prev) {
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
 		proofSet, err = l.verifyLinkSig(ctx, ret, arg.needAdmin, link, proofSet)
@@ -280,6 +289,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		if err != nil {
 			return nil, err
 		}
+		prev = link.LinkID()
 	}
 
 	if ret == nil {

@@ -83,6 +83,10 @@ func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
 
+func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {
+	return libkb.ImportLinkID(t.GetLatestLinkID())
+}
+
 func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
 	return keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
 }
