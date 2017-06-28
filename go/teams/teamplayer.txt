@@ -31,14 +31,13 @@ LoadArg
 	- forceRepoll: bool, force a sync with merkle, if the caller knows they want this for some reason.
 
 func load(loadArg arg, storage storage)
-
 	ret := playchain(arg.teamID, arg.needAdmin, arg.forceRepoll, nil, storage)
 	if !arg.forceRepoll && (!hasAllMembers(ret, arg.neededMembers) || !hasKeyGeneration(ret, arg.neededKeyGen))
 		ret = playchain(arg.teamID, arg.needAdmin, true, nil, s)
 	return ret
 
-func checkStubbed(link link, seqno[] neededSeqnos, bool needAdmin)
-	if isStubbed(link)
+func assertProperlyStubbed(link link, seqno[] neededSeqnos, bool needAdmin)
+	if !isStubbed(link)
 		return
 	if (link.seqno in neededSeqnos) || needAdmin
 		throw "needed an unstubbed link"
@@ -75,7 +74,7 @@ func playchain(teamID t, bool needAdmin, bool forceRepoll, seqno[] neededSeqnos,
 	prev := ret.links[-1].link
 	for link in teamUpdate.Links
 
-		checkStubbed(link, neededSeqnos, needAdmin)
+		assertProperlyStubbed(link, neededSeqnos, needAdmin)
 
 		assertHashEquality(link.prev, hash(prev))
 

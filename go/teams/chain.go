@@ -849,7 +849,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				StubbedTypes: make(map[int]bool),
 			}}
 
-		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
+		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		return res, nil
 	case "team.subteam_rename":
