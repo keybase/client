@@ -9,8 +9,6 @@ var againstMaster
 
 var defaultExecSyncOptions = {encoding: 'utf8'}
 
-console.log('aaaa', process.argv)
-
 if (!process.argv[4]) {
   againstMaster = true
 } else {
@@ -53,7 +51,7 @@ function has_js_files(extra_commands) {
     changeBase +
     '...' +
     commitHash +
-    " | grep '^shared/' | grep -v '^shared/jenkins-test\\.sh'" +
+    " | grep '^shared/' | grep -v '^shared/jenkins.test\\.(sh|js)'" +
     extra_commands
   console.log('filtered diff')
   var diff_files = execAndLog(cmd)
