@@ -28,7 +28,7 @@ function execAndLog(cmd, options) {
     var temp = childProcess.execSync(cmd, Object.assign({}, defaultExecSyncOptions, options))
     console.log(temp)
   } catch (err) {
-    console.log('Error running: ' + cmd + err.output)
+    console.log('Error running: ' + cmd + err.output, err)
     throw err
   }
   return temp
@@ -51,7 +51,7 @@ function has_js_files(extra_commands) {
     changeBase +
     '...' +
     commitHash +
-    " | grep '^shared/' | grep -v '^shared/jenkins_test\\.sh' | grep -v '^shared/jenkins-test\\.js'" +
+    " | grep '^shared/' | grep -v '^shared/jenkins_test\\.sh' | grep -v '^shared/jenkins-test\\.js' " +
     extra_commands
   console.log('filtered diff')
   var diff_files = execAndLog(cmd)
