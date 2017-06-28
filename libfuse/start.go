@@ -27,6 +27,36 @@ type StartOptions struct {
 	MountPoint     string
 }
 
+func startMounting(config libkbfs.Config, options StartOptions,
+	log logger.Logger, mi *libfs.MountInterrupter) error {
+	log.Debug("Mounting: %q", options.MountPoint)
+
+	var mounter = &mounter{options: options}
+	err := mi.MountAndSetUnmount(mounter)
+	if err != nil {
+		return err
+	}
+
+	<-mounter.c.Ready
+	err = mounter.c.MountError
+	if err != nil {
+		return err
+	}
+
+	log.Debug("Creating filesystem")
+	fs := NewFS(config, mounter.c, options.KbfsParams.Debug, options.PlatformParams)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
+	log.Debug("Serving filesystem")
+	if err = fs.Serve(ctx); err != nil {
+		return err
+	}
+
+	log.Debug("Ending")
+	return nil
+}
+
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
@@ -46,7 +76,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	}
 
 	log.Debug("Initializing")
-	mi := libfs.NewMountInterrupter()
+	mi := libfs.NewMountInterrupter(log)
 	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
@@ -58,7 +88,6 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	} else {
 		err = startMounting(config, options, log, mi)
 		if err != nil {
-			log.Errorf("Mounting filesystem failed: %v", err)
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {
 				// If we exit we might want to clean a mount behind us.
@@ -68,34 +97,5 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		}
 	}
 	mi.Wait()
-	return nil
-}
-
-func startMounting(config libkbfs.Config, options StartOptions,
-	log logger.Logger, mi *libfs.MountInterrupter) error {
-	log.Debug("Mounting: %q", options.MountPoint)
-	c, err := fuseMount(options)
-	if err != nil {
-		return err
-	}
-	mi.SetOnceFun(func() { fuseUnmount(options) })
-
-	<-c.Ready
-	err = c.MountError
-	if err != nil {
-		return err
-	}
-
-	log.Debug("Creating filesystem")
-	fs := NewFS(config, c, options.KbfsParams.Debug, options.PlatformParams)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
-	log.Debug("Serving filesystem")
-	if err = fs.Serve(ctx); err != nil {
-		return err
-	}
-
-	log.Debug("Ending")
 	return nil
 }

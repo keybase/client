@@ -15,21 +15,26 @@ import (
 	"bazil.org/fuse"
 )
 
+type mounter struct {
+	options StartOptions
+	c       *fuse.Conn
+}
+
 // fuseMount tries to mount the mountpoint.
 // On a force mount then unmount, re-mount if unsuccessful
-func fuseMount(options StartOptions) (*fuse.Conn, error) {
-	c, err := fuseMountDir(options.MountPoint, options.PlatformParams)
+func (m *mounter) Mount() (err error) {
+	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
 	// Exit if we were succesful or we are not a force mounting on error.
-	if err == nil || !options.ForceMount {
-		return c, err
+	if err == nil || !m.options.ForceMount {
+		return err
 	}
 
 	// Mount failed, let's try to unmount and then try mounting again, even
 	// if unmounting errors here.
-	fuseUnmount(options)
+	m.Unmount()
 
-	c, err = fuseMountDir(options.MountPoint, options.PlatformParams)
-	return c, err
+	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
+	return err
 }
 
 func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
@@ -52,8 +57,8 @@ func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error)
 	return c, nil
 }
 
-func fuseUnmount(options StartOptions) (err error) {
-	dir := options.MountPoint
+func (m *mounter) Unmount() (err error) {
+	dir := m.options.MountPoint
 	// Try normal unmount
 	switch runtime.GOOS {
 	case "darwin":
@@ -63,7 +68,7 @@ func fuseUnmount(options StartOptions) (err error) {
 	default:
 		err = fuse.Unmount(dir)
 	}
-	if err != nil && options.ForceMount {
+	if err != nil && m.options.ForceMount {
 		// Unmount failed, so let's try and force it.
 		switch runtime.GOOS {
 		case "darwin":

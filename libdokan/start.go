@@ -29,6 +29,14 @@ type StartOptions struct {
 	MountPoint  string
 }
 
+func startMounting(options StartOptions,
+	log logger.Logger, mi *libfs.MountInterrupter) error {
+	var mounter = &mounter{options: options, log: log}
+	mi.MountAndSetUnmount(mounter)
+	log.Info("Mounting the filesystem was a success!")
+	return mounter.c.BlockTillDone()
+}
+
 // Start the filesystem
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
@@ -39,7 +47,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		return libfs.InitError(err.Error())
 	}
 
-	mi := libfs.NewMountInterrupter()
+	mi := libfs.NewMountInterrupter(log)
 	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
@@ -89,7 +97,6 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 
 		err = startMounting(options, log, mi)
 		if err != nil {
-			log.Errorf("Mounting filesystem failed: %v", err)
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {
 				// Cleanup when exiting in case the mount got dirty.
@@ -101,15 +108,4 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 
 	mi.Wait()
 	return nil
-}
-
-func startMounting(options StartOptions,
-	log logger.Logger, mi *libfs.MountInterrupter) error {
-	h, err := dokanMount(&options.DokanConfig, options.ForceMount, log)
-	if err != nil {
-		return err
-	}
-	mi.SetOnceFun(func() { h.Close() })
-	log.Info("Mounting the filesystem was a success!")
-	return h.BlockTillDone()
 }
