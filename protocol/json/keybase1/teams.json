@@ -48,6 +48,23 @@
     },
     {
       "type": "record",
+      "name": "SignatureMetadataBookends",
+      "fields": [
+        {
+          "type": "SignatureMetadata",
+          "name": "left"
+        },
+        {
+          "type": [
+            null,
+            "SignatureMetadata"
+          ],
+          "name": "right"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MaskB64",
       "fields": [],
       "typedef": "bytes"
@@ -442,8 +459,8 @@
           "name": "role"
         },
         {
-          "type": "Seqno",
-          "name": "seqno"
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
         }
       ]
     },

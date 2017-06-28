@@ -389,8 +389,8 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 
 	ret := SCTeamAdmin{
 		TeamID:  (SCTeamID)(t.ID),
-		Seqno:   logPoint.Seqno,
-		SeqType: keybase1.SeqType_SEMIPRIVATE,
+		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
+		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
 	return &ret, nil
 }

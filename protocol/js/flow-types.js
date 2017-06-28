@@ -5584,6 +5584,11 @@ export type SignatureMetadata = {
   sigChainLocation: SigChainLocation,
 }
 
+export type SignatureMetadataBookends = {
+  left: SignatureMetadata,
+  right?: ?SignatureMetadata,
+}
+
 export type SignupRes = {
   passphraseOk: boolean,
   postOk: boolean,
@@ -6050,7 +6055,7 @@ export type UserCard = {
 
 export type UserLogPoint = {
   role: TeamRole,
-  seqno: Seqno,
+  sigMeta: SignatureMetadata,
 }
 
 export type UserOrTeamID = string

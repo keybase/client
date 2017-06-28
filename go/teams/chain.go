@@ -121,6 +121,49 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 	return role
 }
 
+func (t TeamSigChainState) AssertAdminRoleAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret keybase1.SignatureMetadataBookends, err error) {
+	points := t.inner.UserLog[uv]
+	for i := len(points) - 1; i >= 0; i-- {
+		point := points[i]
+		if point.SigMeta.SigChainLocation.Eq(scl) {
+			if !point.Role.IsAdminOrAbove() {
+				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
+			}
+			ret.Left = point.SigMeta
+			ret.Right = findAdminDowngrade(points[(i + 1):])
+			return ret, nil
+		}
+	}
+	return ret, NewAdminPermissionError(t.GetID(), uv, "not found")
+}
+
+func findAdminDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetadata {
+	for _, p := range points {
+		if !p.Role.IsAdminOrAbove() {
+			return &p.SigMeta
+		}
+	}
+	return nil
+}
+
+func (t TeamSigChainState) AssertAdminRoleAtOrBefore(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+	points := t.inner.UserLog[uv]
+	for i := len(points) - 1; i >= 0; i-- {
+		point := points[i]
+		// OK great, we found an admin point in the log that's less than or equal to the
+		// given one
+		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsAdminOrAbove() {
+			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
+			// If so, that's a problem!
+			if right := findAdminDowngrade(points[(i + 1):]); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
+				return NewAdminPermissionError(t.GetID(), uv, "admin permission was downgraded too soon!")
+			}
+			return nil
+		}
+	}
+	return NewAdminPermissionError(t.GetID(), uv, "not found")
+}
+
 func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
 	if role == keybase1.TeamRole_NONE {
 		return nil, errors.New("cannot get users with NONE role")
@@ -171,15 +214,15 @@ func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamNam
 // Mutates the UserLog.
 // Must be called with seqno's and events in correct order.
 // Idempotent if called correctly.
-func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, seqno keybase1.Seqno) {
+func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, sigMeta keybase1.SignatureMetadata) {
 	currentRole := t.getUserRole(u)
 	if currentRole == role {
 		// no change in role, now new checkpoint needed
 		return
 	}
 	t.inner.UserLog[u] = append(t.inner.UserLog[u], keybase1.UserLogPoint{
-		Role:  role,
-		Seqno: seqno,
+		Role:    role,
+		SigMeta: sigMeta,
 	})
 }
 
@@ -439,7 +482,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 	res.oRes = oRes
 	payload := *oRes.innerLink
 
-	err = t.checkInnerOuterMatch(oRes.outerLink, payload, link.PayloadHash())
+	err = checkInnerOuterMatch(oRes.outerLink, payload, link.PayloadHash())
 	if err != nil {
 		return res, err
 	}
@@ -570,7 +613,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				StubbedTypes: make(map[int]bool),
 			}}
 
-		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
+		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// check that the signer is an owner
 		if res.newState.getUserRole(oRes.signingUser) != keybase1.TeamRole_OWNER {
@@ -608,7 +651,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 
 		res.newState = prevState.DeepCopy()
 
-		t.updateMembership(&res.newState, roleUpdates, oRes.outerLink.Seqno)
+		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -692,7 +735,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 		// But that's really up to them and the server. We're just reading what has happened.
 
 		res.newState = prevState.DeepCopy()
-		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, oRes.outerLink.Seqno)
+		res.newState.inform(oRes.signingUser, keybase1.TeamRole_NONE, payload.SignatureMetadata())
 
 		return res, nil
 	case "team.new_subteam":
@@ -811,7 +854,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 }
 
 // check that the inner link matches the outer link
-func (t *TeamSigChainPlayer) checkInnerOuterMatch(outerLink libkb.OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash libkb.LinkID) (err error) {
+func checkInnerOuterMatch(outerLink libkb.OuterLinkV2WithMetadata, innerLink SCChainLinkPayload, innerLinkHash libkb.LinkID) (err error) {
 	var innerPrev libkb.LinkID
 	if innerLink.Prev != nil {
 		innerPrev, err = libkb.LinkIDFromHex(*innerLink.Prev)
@@ -956,10 +999,10 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 // Update `userLog` with the membership in roleUpdates.
 // The `NONE` list removes users.
 // The other lists add users.
-func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion, seqno keybase1.Seqno) {
+func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion, sigMeta keybase1.SignatureMetadata) {
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
-			stateToUpdate.inform(uv, role, seqno)
+			stateToUpdate.inform(uv, role, sigMeta)
 		}
 	}
 }

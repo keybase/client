@@ -155,8 +155,11 @@ func verifyLink(teamSnapshot ts, link link, proofSet proofSet, storage storage) 
 	// which public key was used in the verification
 	kid := verifySignatureAndExtractKID(link)
 
-	//
-	user := loadUserGivenLinkAndSignatureKID(link, kid)
+	// Load the user given the inner info in the sig's Body.Key
+	// section. Also load the key object specified there
+	user, key := loadUserAndKeyFromLinkInner(link, kid)
+
+	assert(key.KID == kid)
 
 	proofSet = verifyUserSignature(user, link, proofSet)
 

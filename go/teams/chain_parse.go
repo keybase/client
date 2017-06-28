@@ -12,6 +12,10 @@ import (
 type SCTeamName string
 type SCTeamID string
 
+func (s SCTeamID) ToTeamID() keybase1.TeamID {
+	return keybase1.TeamID(s)
+}
+
 // A (username, seqno) pair.
 // The username is adorned with "%n" at the end
 // where n is the seqno IF the seqno is not 1.
@@ -56,6 +60,13 @@ type SCPerTeamKey struct {
 	EncKID     keybase1.KID                  `json:"encryption_kid"`
 	SigKID     keybase1.KID                  `json:"signing_kid"`
 	ReverseSig string                        `json:"reverse_sig"`
+}
+
+func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   a.Seqno,
+		SeqType: a.SeqType,
+	}
 }
 
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
@@ -114,7 +125,7 @@ type SCChainLinkPayload struct {
 	Tag      string           `json:"tag,omitempty"`
 }
 
-func (s SCChainLinkPayload) ToSigChainLocation() keybase1.SigChainLocation {
+func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {
 	return keybase1.SigChainLocation{
 		Seqno:   s.Seqno,
 		SeqType: s.SeqType,
