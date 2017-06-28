@@ -2,13 +2,13 @@ package storage
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 // MemEngine is an implementation of a gregor StateMachine that just keeps

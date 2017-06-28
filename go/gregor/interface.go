@@ -1,11 +1,11 @@
 package gregor
 
 import (
-	"context"
 	"net"
 	"time"
 
 	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 type InBandMsgType int
