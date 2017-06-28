@@ -90,7 +90,6 @@ class Keybase extends Component {
 }
 
 function load() {
-  debugger
   AppRegistry.registerComponent('Keybase', () => Keybase)
 }
 
