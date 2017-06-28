@@ -726,6 +726,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			TopicName:        &arg.channel.TopicName,
 			TopicType:        tt,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			MembersType:      arg.channel.GetMembersType(),
 		})
 		if err != nil {
 			return nil, err
