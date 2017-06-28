@@ -42,12 +42,12 @@ func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
 	return c
 }
 
-func (c *Client) Save() error {
+func (c *Client) Save(ctx context.Context) error {
 	if !c.Sm.IsEphemeral() {
 		return errors.New("state machine is non-ephemeral")
 	}
 
-	state, err := c.Sm.State(c.User, c.Device, nil)
+	state, err := c.Sm.State(ctx, c.User, c.Device, nil)
 	if err != nil {
 		return err
 	}
@@ -88,9 +88,10 @@ func (e ErrHashMismatch) Error() string {
 	return "local state hash != server state hash"
 }
 
-func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time, syncResult *gregor1.SyncResult) (msgs []gregor.InBandMessage, err error) {
+func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface, t *time.Time,
+	syncResult *gregor1.SyncResult) (msgs []gregor.InBandMessage, err error) {
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Second)
+	ctx, _ = context.WithTimeout(ctx, time.Second)
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.User.Bytes()),
 		Deviceid: gregor1.DeviceID(c.Device.Bytes()),
@@ -115,11 +116,11 @@ func (c *Client) SyncFromTime(cli gregor1.IncomingInterface, t *time.Time, syncR
 	for _, ibm := range syncResult.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
-		c.Sm.ConsumeMessage(m)
+		c.Sm.ConsumeMessage(ctx, m)
 	}
 
 	// Check to make sure the server state is legit
-	state, err := c.Sm.State(c.User, c.Device, nil)
+	state, err := c.Sm.State(ctx, c.User, c.Device, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,10 +161,11 @@ func (c *Client) freshSync(cli gregor1.IncomingInterface, state *gregor.State) (
 	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface, syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+func (c *Client) Sync(ctx context.Context, cli gregor1.IncomingInterface,
+	syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
 	defer func() {
 		if err == nil {
-			if err = c.Save(); err != nil {
+			if err = c.Save(ctx); err != nil {
 				c.Log.Debug("Sync(): error save state: %s", err.Error())
 			}
 		}
@@ -189,7 +191,7 @@ func (c *Client) Sync(cli gregor1.IncomingInterface, syncRes *chat1.SyncAllNotif
 	}
 
 	c.Log.Debug("Sync(): incremental server sync: using Sync()")
-	msgs, err := c.SyncFromTime(cli, c.Sm.LatestCTime(c.User, c.Device), syncResult)
+	msgs, err := c.SyncFromTime(ctx, cli, c.Sm.LatestCTime(ctx, c.User, c.Device), syncResult)
 	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
 			c.Log.Debug("Sync(): hash check failure: %v", err)
@@ -230,8 +232,8 @@ func (c *Client) State(cli gregor1.IncomingInterface) (res gregor.State, err err
 	return res, nil
 }
 
-func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
-	if _, err := c.Sm.ConsumeMessage(m); err != nil {
+func (c *Client) StateMachineConsumeMessage(ctx context.Context, m gregor1.Message) error {
+	if _, err := c.Sm.ConsumeMessage(ctx, m); err != nil {
 		return err
 	}
 
@@ -239,7 +241,7 @@ func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
 	select {
 	case <-c.SaveTimer:
 		c.Log.Debug("StateMachineConsumeMessage(): saving local state")
-		return c.Save()
+		return c.Save(ctx)
 	default:
 		c.Log.Debug("StateMachineConsumeMessage(): not saving local state")
 		// Plow through if the timer isn't up
@@ -248,14 +250,14 @@ func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
 	return nil
 }
 
-func (c *Client) StateMachineLatestCTime() *time.Time {
-	return c.Sm.LatestCTime(c.User, c.Device)
+func (c *Client) StateMachineLatestCTime(ctx context.Context) *time.Time {
+	return c.Sm.LatestCTime(ctx, c.User, c.Device)
 }
 
-func (c *Client) StateMachineInBandMessagesSince(t time.Time) ([]gregor.InBandMessage, error) {
-	return c.Sm.InBandMessagesSince(c.User, c.Device, t)
+func (c *Client) StateMachineInBandMessagesSince(ctx context.Context, t time.Time) ([]gregor.InBandMessage, error) {
+	return c.Sm.InBandMessagesSince(ctx, c.User, c.Device, t)
 }
 
-func (c *Client) StateMachineState(t gregor.TimeOrOffset) (gregor.State, error) {
-	return c.Sm.State(c.User, c.Device, t)
+func (c *Client) StateMachineState(ctx context.Context, t gregor.TimeOrOffset) (gregor.State, error) {
+	return c.Sm.State(ctx, c.User, c.Device, t)
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/clockwork"
+	"golang.org/x/net/context"
 )
 
 // MemEngine is an implementation of a gregor StateMachine that just keeps
@@ -284,7 +285,7 @@ func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessag
 	return retTime, err
 }
 
-func (m *MemEngine) ConsumeMessage(msg gregor.Message) (time.Time, error) {
+func (m *MemEngine) ConsumeMessage(ctx context.Context, msg gregor.Message) (time.Time, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -344,15 +345,15 @@ func (m *MemEngine) consumeStateUpdateMessage(u *user, now time.Time, msg gregor
 	return i, nil
 }
 
-func (m *MemEngine) State(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
+func (m *MemEngine) State(ctx context.Context, u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	m.Lock()
 	defer m.Unlock()
 	user := m.getUser(u)
 	return user.state(m.clock.Now(), m.objFactory, d, t)
 }
 
-func (m *MemEngine) StateByCategoryPrefix(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset, cp gregor.Category) (gregor.State, error) {
-	state, err := m.State(u, d, t)
+func (m *MemEngine) StateByCategoryPrefix(ctx context.Context, u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset, cp gregor.Category) (gregor.State, error) {
+	state, err := m.State(ctx, u, d, t)
 	if err != nil {
 		return nil, err
 	}
@@ -368,7 +369,7 @@ func (m *MemEngine) Clear() error {
 	return nil
 }
 
-func (m *MemEngine) LatestCTime(u gregor.UID, d gregor.DeviceID) *time.Time {
+func (m *MemEngine) LatestCTime(ctx context.Context, u gregor.UID, d gregor.DeviceID) *time.Time {
 	m.Lock()
 	defer m.Unlock()
 	log := m.getUser(u).log
@@ -384,7 +385,7 @@ func (m *MemEngine) LatestCTime(u gregor.UID, d gregor.DeviceID) *time.Time {
 	return nil
 }
 
-func (m *MemEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.Time) ([]gregor.InBandMessage, error) {
+func (m *MemEngine) InBandMessagesSince(ctx context.Context, u gregor.UID, d gregor.DeviceID, t time.Time) ([]gregor.InBandMessage, error) {
 	m.Lock()
 	defer m.Unlock()
 	msgs, _ := m.getUser(u).replayLog(m.clock.Now(), d, t)
@@ -392,12 +393,12 @@ func (m *MemEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.
 	return msgs, nil
 }
 
-func (m *MemEngine) Reminders(maxReminders int) (gregor.ReminderSet, error) {
+func (m *MemEngine) Reminders(ctx context.Context, maxReminders int) (gregor.ReminderSet, error) {
 	// Unimplemented for MemEngine
 	return nil, nil
 }
 
-func (m *MemEngine) DeleteReminder(r gregor.ReminderID) error {
+func (m *MemEngine) DeleteReminder(ctx context.Context, r gregor.ReminderID) error {
 	// Unimplemented for MemEngine
 	return nil
 }

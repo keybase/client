@@ -23,6 +23,13 @@
     },
     {
       "type": "record",
+      "name": "TLFConvOrdinal",
+      "fields": [],
+      "typedef": "uint",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TopicID",
       "fields": [],
       "typedef": "bytes"
@@ -110,7 +117,8 @@
       "name": "ConversationMemberStatus",
       "symbols": [
         "ACTIVE_0",
-        "REMOVED_1"
+        "REMOVED_1",
+        "LEFT_2"
       ]
     },
     {

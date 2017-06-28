@@ -94,7 +94,7 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 		b.G().Log.Debug("Badger: Resync(): skipping remote call, data previously obtained")
 	}
 
-	state, err := gcli.StateMachineState(nil)
+	state, err := gcli.StateMachineState(ctx, nil)
 	if err != nil {
 		b.G().Log.Debug("Badger: Resync(): unable to get state: %s", err.Error())
 		state = gregor1.State{}
