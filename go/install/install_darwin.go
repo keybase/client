@@ -663,7 +663,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		err = UninstallKBNM(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
 		if err != nil {
-			log.Errorf("Error uninstalling kbmn: %s", err)
+			log.Errorf("Error uninstalling kbnm: %s", err)
 		}
 	}
 
