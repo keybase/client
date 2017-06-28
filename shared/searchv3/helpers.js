@@ -35,9 +35,6 @@ const onChangeSelectedSearchResultHoc = compose(
       selectedSearchId && onEnter(selectedSearchId)
       onChangeSearchText('')
     },
-    onFocus: ({search, selectedService}: OwnProps) => text => {
-      search(text, selectedService)
-    },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
     ) => {

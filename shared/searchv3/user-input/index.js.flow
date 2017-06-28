@@ -22,7 +22,6 @@ export type Props = {
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
   onEnter: () => void,
-  onFocus?: (text: string) => void,
 }
 
 export default class UserInput extends Component<void, Props, void> {
