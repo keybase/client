@@ -13,7 +13,6 @@ import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-exte
 if (typeof __STORYBOOK__ === 'undefined') {
   __STORYBOOK__ = false
 }
-__STORYBOOK__ = true
 
 // __SCREENSHOT__
 //  indicates if the execution environment is visdiff
