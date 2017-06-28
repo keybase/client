@@ -2,9 +2,19 @@ package hostmanifest
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 )
+
+func wrapWriteErr(err error, hostsPath string) error {
+	if !os.IsPermission(err) {
+		return err
+	}
+	return fmt.Errorf("%s: Make sure you are the owner of the directory. "+
+		"You can run:\n "+
+		"  sudo chown -R $(whoami):staff %q", err, hostsPath)
+}
 
 // whitelistPath is used for installing the whitelist as a JSON into a given
 // path on disk.
@@ -28,13 +38,13 @@ func (w *whitelistPath) Install(u User, app AppManifest) error {
 
 	// Make the path if it doesn't exist
 	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
-		return err
+		return wrapWriteErr(err, parentDir)
 	}
 
 	// Write the file
 	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return wrapWriteErr(err, jsonPath)
 	}
 	defer fp.Close()
 
