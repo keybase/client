@@ -1208,7 +1208,7 @@ func (e *Env) GetUpdateDefaultInstructions() (string, error) {
 
 func (e *Env) RunningInCI() bool {
 	return e.GetBool(false,
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUNNING_IN_CI") },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUN_CI") },
 	)
 }
 

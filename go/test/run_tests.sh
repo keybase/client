@@ -10,7 +10,7 @@ echo "Running tests on commit $(git rev-parse --short HEAD) with $(go version)."
 DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client\/go\///')
 
 export KEYBASE_LOG_SETUPTEST_FUNCS=1
-export KEYBASE_RUNNING_IN_CI=1
+export KEYBASE_RUN_CI=1
 
 # Add libraries used in testing
 go get "github.com/stretchr/testify/require"
