@@ -11,7 +11,7 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitio
 import {chatTab, loginTab} from './constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from './styles/index.native'
-import {isAndroid, isIOS} from './constants/platform'
+import {isIOS} from './constants/platform'
 import {navigateTo, navigateUp, switchTo} from './actions/route-tree'
 import glamorous from 'glamorous-native'
 
