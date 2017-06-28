@@ -5,6 +5,7 @@
 package libfs
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -35,10 +36,17 @@ func NewMountInterrupter(log logger.Logger) *MountInterrupter {
 
 // MountAndSetUnmount calls Mount and sets the unmount function
 // to be called once if mount succeeds.
+// If Done has already been called MountAndSetUnmount returns
+// an error.
 func (mi *MountInterrupter) MountAndSetUnmount(mounter Mounter) error {
 	mi.log.Debug("Starting to mount the filesystem")
 	mi.Lock()
 	defer mi.Unlock()
+	select {
+	case <-mi.done:
+		return errors.New("MountInterrupter already done")
+	default:
+	}
 	err := mounter.Mount()
 	if err != nil {
 		mi.log.Error("Mounting the filesystem failed: ", err)
@@ -49,15 +57,14 @@ func (mi *MountInterrupter) MountAndSetUnmount(mounter Mounter) error {
 	return nil
 }
 
-// Done signals Wait and runs a function if set by SetOnceFun.
+// Done signals Wait and runs the unmounter if set by MountAndSetUnmount.
 // It can be called multiple times with no harm.
 func (mi *MountInterrupter) Done() {
 	mi.once.Do(func() {
 		mi.Lock()
-		f := mi.fun
-		mi.Unlock()
-		if f != nil {
-			err := f()
+		defer mi.Unlock()
+		if mi.fun != nil {
+			err := mi.fun()
 			if err != nil {
 				mi.log.Error("Mount interrupter callback failed: ", err)
 			}
