@@ -147,7 +147,7 @@ func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData,
 		if parent == nil {
 			return nil, NewAdminNotFoundError(admin)
 		}
-		arg := load2ArgT{teamID: *parent, me: uv}
+		arg := load2ArgT{teamID: *parent, me: uv, staleOK: true}
 		if target.Eq(*parent) {
 			arg.needSeqnos = []keybase1.Seqno{admin.Seqno}
 		}
