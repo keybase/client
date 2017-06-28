@@ -27,6 +27,11 @@ protocol teams {
     Bytes32 key;
   }
 
+  record SignatureMetadataBookends {
+    SignatureMetadata left;
+    union { null, SignatureMetadata } right;
+  }
+
   @typedef("bytes")
   record MaskB64 {}
 
@@ -160,8 +165,9 @@ protocol teams {
   record UserLogPoint {
     // The new role. Including NONE if the user left the team.
     TeamRole role;
-    // The seqno at which the user became this role.
-    Seqno seqno;
+    // The seqno at which the user became this role, and other imporant
+    // details, like the last known MerkleRoot at that time.
+    SignatureMetadata sigMeta;
   }
 
   // A subteam got this name at this point in time.

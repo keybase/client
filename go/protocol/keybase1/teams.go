@@ -92,6 +92,24 @@ func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	}
 }
 
+type SignatureMetadataBookends struct {
+	Left  SignatureMetadata  `codec:"left" json:"left"`
+	Right *SignatureMetadata `codec:"right,omitempty" json:"right,omitempty"`
+}
+
+func (o SignatureMetadataBookends) DeepCopy() SignatureMetadataBookends {
+	return SignatureMetadataBookends{
+		Left: o.Left.DeepCopy(),
+		Right: (func(x *SignatureMetadata) *SignatureMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Right),
+	}
+}
+
 type MaskB64 []byte
 
 func (o MaskB64) DeepCopy() MaskB64 {
@@ -510,14 +528,14 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 }
 
 type UserLogPoint struct {
-	Role  TeamRole `codec:"role" json:"role"`
-	Seqno Seqno    `codec:"seqno" json:"seqno"`
+	Role    TeamRole          `codec:"role" json:"role"`
+	SigMeta SignatureMetadata `codec:"sigMeta" json:"sigMeta"`
 }
 
 func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
-		Role:  o.Role.DeepCopy(),
-		Seqno: o.Seqno.DeepCopy(),
+		Role:    o.Role.DeepCopy(),
+		SigMeta: o.SigMeta.DeepCopy(),
 	}
 }
 

@@ -12,6 +12,8 @@ import (
 type SCTeamName string
 type SCTeamID string
 
+func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
+
 // A (username, seqno) pair.
 // The username is adorned with "%n" at the end
 // where n is the seqno IF the seqno is not 1.
@@ -58,6 +60,13 @@ type SCPerTeamKey struct {
 	ReverseSig string                        `json:"reverse_sig"`
 }
 
+func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   a.Seqno,
+		SeqType: a.SeqType,
+	}
+}
+
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 	uv, err := ParseUserVersion(keybase1.Unquote(b))
 	if err != nil {
@@ -67,8 +76,8 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-func (sc *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(keybase1.UserVersion(*sc).PercentForm()), nil
+func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
+	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm()), nil
 }
 
 // Non-team-specific stuff below the line
@@ -84,8 +93,8 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
-func (l *SCChainLink) isStubbed() bool {
-	return l.Payload == ""
+func (link *SCChainLink) isStubbed() bool {
+	return link.Payload == ""
 }
 
 func (link *SCChainLink) PayloadHash() libkb.LinkID {
@@ -114,7 +123,7 @@ type SCChainLinkPayload struct {
 	Tag      string           `json:"tag,omitempty"`
 }
 
-func (s SCChainLinkPayload) ToSigChainLocation() keybase1.SigChainLocation {
+func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {
 	return keybase1.SigChainLocation{
 		Seqno:   s.Seqno,
 		SeqType: s.SeqType,
@@ -157,8 +166,8 @@ func ParseTeamChainLink(link string) (res SCChainLink, err error) {
 	return res, err
 }
 
-func (p SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
-	t := p.Body.Team
+func (s SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
+	t := s.Body.Team
 	if t == nil {
 		return nil
 	}

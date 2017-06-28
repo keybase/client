@@ -49,7 +49,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 	}
 	if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin ||
 		!link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
-		return NewErrStubbed(link)
+		return NewStubbedError(link)
 	}
 	return nil
 }
@@ -73,14 +73,15 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func (l *TeamLoader) verifyKeyInUserSigchain(ctx context.Context, link *chainLinkUnpacked, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) (*proofSetT, error) {
+func addProofsForKeyInUserSigchain(link *chainLinkUnpacked, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) *proofSetT {
 	a := key.Base.Provisioning
 	b := link.SignatureMetadata()
+	c := key.Base.Revocation
 	proofSet = proofSet.HappensBefore(a, b)
-	if c := key.Base.Revocation; c != nil {
+	if c != nil {
 		proofSet = proofSet.HappensBefore(b, *c)
 	}
-	return proofSet, nil
+	return proofSet
 }
 
 // Verify aspects of a link:
@@ -100,6 +101,11 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return proofSet, nil
 	}
 
+	err := link.AssertInnerOuterMatch()
+	if err != nil {
+		return proofSet, err
+	}
+
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
 	if err != nil {
 		return proofSet, err
@@ -114,9 +120,12 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	proofSet, err = l.verifyKeyInUserSigchain(ctx, link, key, proofSet)
-	if err != nil {
-		return proofSet, err
+	proofSet = addProofsForKeyInUserSigchain(link, key, proofSet)
+
+	// For a root team link, or a subteam_head, there is no reason to check adminship
+	// or writership (or readership) for the team.
+	if state == nil {
+		return proofSet, nil
 	}
 
 	if link.outerLink.LinkType.RequiresAdminPermission() {
@@ -133,12 +142,65 @@ func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
 	return l.unimplementedVerificationTODO(ctx, nil)
 }
 
+func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData, uv keybase1.UserVersion, admin SCTeamAdmin) (ret *keybase1.TeamData, err error) {
+	target, err := admin.TeamID.ToTeamID()
+	if err != nil {
+		return nil, err
+	}
+
+	for team != nil && !team.Chain.Id.Eq(target) {
+		parent := team.Chain.ParentID
+		if parent == nil {
+			return nil, NewAdminNotFoundError(admin)
+		}
+		arg := load2ArgT{teamID: *parent, me: uv, staleOK: true}
+		if target.Eq(*parent) {
+			arg.needSeqnos = []keybase1.Seqno{admin.Seqno}
+		}
+		team, err = l.load2(ctx, arg)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return team, nil
+}
+
+func addProofsForAdminPermission(link *chainLinkUnpacked, bookends keybase1.SignatureMetadataBookends, proofSet *proofSetT) *proofSetT {
+	a := bookends.Left
+	b := link.SignatureMetadata()
+	c := bookends.Right
+	proofSet = proofSet.HappensBefore(a, b)
+	if c != nil {
+		proofSet = proofSet.HappensBefore(b, *c)
+	}
+	return proofSet
+}
+
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, error) {
 
-	if explicitAdmin := link.inner.TeamAdmin(); explicitAdmin != nil {
+	explicitAdmin := link.inner.TeamAdmin()
+
+	// In the simple case, we don't ask for explicit adminship, so we have to be admins of
+	// the current chain at or before the signature in question.
+	if explicitAdmin == nil {
+		err := (TeamSigChainState{inner: state.Chain}).AssertWasAdminAt(uv, link.SigChainLocation())
+		return proofSet, err
 	}
-	return proofSet, l.unimplementedVerificationTODO(ctx, nil)
+
+	// The more complicated case is that there's an explicit admin permssion given, perhaps
+	// of a parent team.
+	adminTeam, err := l.walkUpToAdmin(ctx, state, uv, *explicitAdmin)
+	if err != nil {
+		return proofSet, err
+	}
+	adminBookends, err := (TeamSigChainState{inner: adminTeam.Chain}).AssertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
+	if err != nil {
+		return proofSet, err
+	}
+
+	proofSet = addProofsForAdminPermission(link, adminBookends, proofSet)
+	return proofSet, nil
 }
 
 // Whether the chain link is of a (child-half) type

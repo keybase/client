@@ -1550,3 +1550,15 @@ func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
 	copy(ret[:], b)
 	return ret, nil
 }
+
+func (s SigChainLocation) Eq(s2 SigChainLocation) bool {
+	return s.Seqno == s2.Seqno && s.SeqType == s2.SeqType
+}
+
+func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
+	return s.SeqType == s2.SeqType && s.Seqno <= s2.Seqno
+}
+
+func (r TeamRole) IsAdminOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER
+}
