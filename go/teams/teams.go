@@ -283,6 +283,11 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
+	// Force an update of our known merkle root to include admin permission.
+	if _, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID); err != nil {
+		return err
+	}
+
 	// create the team section of the signature
 	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
@@ -342,6 +347,11 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	// create the change membership section + secretBoxes
 	section, secretBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
+		return err
+	}
+
+	// Force an update of our known merkle root to include admin permission.
+	if _, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID); err != nil {
 		return err
 	}
 

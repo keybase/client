@@ -158,6 +158,11 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
+	// Force an update of our known merkle root to include admin permission.
+	if _, err := g.GetMerkleClient().LookupTeam(ctx, parentTeam.ID); err != nil {
+		return nil, err
+	}
+
 	// Subteam creation involves two links, one in the parent team's chain, and
 	// one to start the new subteam chain. The start of the new subteam chain
 	// (type "team.subteam_head") is very similar to the "team.root" sig that
