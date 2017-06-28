@@ -21,7 +21,7 @@ type CmdTeamLeave struct {
 func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "leave",
-		ArgumentHelp: "<team name> [--permanent=<true, false>]",
+		ArgumentHelp: "<team name> [--permanent]",
 		Usage:        "leave a team",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamLeave{Contextified: libkb.NewContextified(g)}
@@ -30,7 +30,7 @@ func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "p, permanent",
-				Usage: "Prevent being readded to team (true, false)",
+				Usage: "Prevent being readded to team",
 			},
 		},
 	}
