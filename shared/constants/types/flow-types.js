@@ -5957,6 +5957,7 @@ export type TeamSigChainState = {
   userLog: {[key: string]: ?Array<UserLogPoint>},
   subteamLog: {[key: string]: ?Array<SubteamLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
+  linkIDs: {[key: string]: LinkID},
   stubbedLinks: {[key: string]: boolean},
 }
 

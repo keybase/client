@@ -151,6 +151,9 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
     // Set of links that are stubbed-out and whose contents are missing.
     // Keyed by seqno
     map<Seqno, boolean> stubbedLinks;

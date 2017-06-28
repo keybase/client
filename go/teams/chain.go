@@ -84,6 +84,22 @@ func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {
 	return libkb.ImportLinkID(t.GetLatestLinkID())
 }
 
+func (t TeamSigChainState) GetLinkIDBySeqno(seqno keybase1.Seqno) (keybase1.LinkID, error) {
+	l1, ok := t.inner.LinkIDs[seqno]
+	if !ok {
+		return l1, fmt.Errorf("seqno %v not in chain", seqno)
+	}
+	return l1, nil
+}
+
+func (t TeamSigChainState) GetLibkbLinkIDBySeqno(seqno keybase1.Seqno) (l2 libkb.LinkID, err error) {
+	l1, err := t.GetLinkIDBySeqno(seqno)
+	if err != nil {
+		return l2, err
+	}
+	return libkb.ImportLinkID(l1)
+}
+
 func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
 	return keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
 }
@@ -404,6 +420,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 
 	newState.inner.LastSeqno = oRes.outerLink.Seqno
 	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
+	newState.inner.LinkIDs[oRes.outerLink.Seqno] = oRes.outerLink.LinkID().Export()
 
 	if stubbed {
 		newState.inner.StubbedLinks[oRes.outerLink.Seqno] = true
@@ -626,6 +643,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
+				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
@@ -854,6 +872,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
+				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
 				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 

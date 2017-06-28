@@ -426,6 +426,14 @@
         {
           "type": {
             "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "boolean",
             "keys": "Seqno"
           },
