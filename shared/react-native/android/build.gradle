@@ -6,8 +6,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'com.github.triplet.gradle:play-publisher:1.1.5' // To publish from gradle
+        classpath 'com.android.tools.build:gradle:2.3.1'
+        classpath 'com.github.triplet.gradle:play-publisher:1.2.0' // To publish from gradle
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
