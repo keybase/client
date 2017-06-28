@@ -51,7 +51,7 @@
     fuse.js "^3.0.1"
     prop-types "^15.5.9"
 
-"@storybook/react-native@^3.1.6":
+"@storybook/react-native@3.1.6":
   version "3.1.6"
   resolved "https://registry.yarnpkg.com/@storybook/react-native/-/react-native-3.1.6.tgz#bac7deb6d8598476e1888c778ce2a2f2c7b99485"
   dependencies:
@@ -97,7 +97,7 @@
     webpack-hot-middleware "^2.18.0"
     ws "^3.0.0"
 
-"@storybook/react@^3.1.6":
+"@storybook/react@3.1.6":
   version "3.1.6"
   resolved "https://registry.yarnpkg.com/@storybook/react/-/react-3.1.6.tgz#9393bb987ff08ee5f49c4557d12eb84377dee5d2"
   dependencies:
