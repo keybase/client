@@ -175,12 +175,18 @@ func TestLookupUsername(t *testing.T) {
 func TestLoadUPAK2(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
-	uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
-	upak, _, err := tc.G.GetUPAKLoader().LoadV2(NewLoadUserByUIDArg(context.TODO(), tc.G, uid))
-	require.NoError(t, err)
-	key, ok := upak.Current.DeviceKeys[keybase1.KID("01204fbb0a8ee105c2732155bffd927a6f612b6a36c63c484e6290f6a7ac560a1a780a")]
-	require.True(t, ok)
-	require.Equal(t, key.Base.Provisioning.SigChainLocation.Seqno, keybase1.Seqno(3))
-	require.Equal(t, key.Base.Provisioning.SigChainLocation.SeqType, keybase1.SeqType_PUBLIC)
-	require.Nil(t, key.Base.Revocation)
+
+	load := func() {
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		upak, _, err := tc.G.GetUPAKLoader().LoadV2(NewLoadUserByUIDArg(context.TODO(), tc.G, uid))
+		require.NoError(t, err)
+		key, ok := upak.Current.DeviceKeys[keybase1.KID("01204fbb0a8ee105c2732155bffd927a6f612b6a36c63c484e6290f6a7ac560a1a780a")]
+		require.True(t, ok)
+		require.Equal(t, key.Base.Provisioning.SigChainLocation.Seqno, keybase1.Seqno(3))
+		require.Equal(t, key.Base.Provisioning.SigChainLocation.SeqType, keybase1.SeqType_PUBLIC)
+		require.Nil(t, key.Base.Revocation)
+	}
+
+	load()
+	load()
 }
