@@ -132,7 +132,6 @@ const serviceTooltipStyle = {
   borderRadius: 65,
   color: globalColors.white,
   cursor: 'default',
-  left: -16,
   lineHeight: '22px',
   minHeight: 22,
   minWidth: 86,
