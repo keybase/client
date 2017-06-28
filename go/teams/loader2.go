@@ -122,6 +122,12 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 
 	proofSet = addProofsForKeyInUserSigchain(link, key, proofSet)
 
+	// For a root team link, or a subteam_head, there is no reason to check adminship
+	// or writership (or readership) for the team.
+	if state == nil {
+		return proofSet, nil
+	}
+
 	if link.outerLink.LinkType.RequiresAdminPermission() {
 		proofSet, err = l.verifyAdminPermissions(ctx, state, link, user.ToUserVersion(), proofSet)
 	} else {
