@@ -89,7 +89,7 @@ function visdiff() {
   if (againstMaster) {
     console.log('No $changeTarget, skipping visdiff')
   } else {
-    execAndLog('node ../visdiff/dist/index.js "' + changeBase + '...' + commitHash)
+    execAndLog('node ../visdiff/dist/index.js ' + changeBase + '...' + commitHash)
   }
 }
 
