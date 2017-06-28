@@ -13,13 +13,16 @@ import (
 func KnownInstallers() map[string]Installer {
 	return map[string]Installer{
 		"chrome": &whitelistRegistry{
-			Key: `SOFTWARE\Google\Chrome\NativeMessagingHosts`,
+			RegKey:     `SOFTWARE\Google\Chrome\NativeMessagingHosts`,
+			FileSuffix: `_chrome`,
 		},
 		"chromium": &whitelistRegistry{
-			Key: `SOFTWARE\Chromium\NativeMessagingHosts`,
+			RegKey:     `SOFTWARE\Chromium\NativeMessagingHosts`,
+			FileSuffix: `_chromium`,
 		},
 		"firefox": &whitelistRegistry{
-			Key: `SOFTWARE\Mozilla\NativeMessagingHosts`,
+			RegKey:     `SOFTWARE\Mozilla\NativeMessagingHosts`,
+			FileSuffix: `_firefox`,
 		},
 	}
 }
@@ -27,8 +30,12 @@ func KnownInstallers() map[string]Installer {
 // whitelistRegistry is used for installing the whitelist as a JSON into a given
 // registry entry. When Install is called, it will also write a JSON manifest to be adjacent to the app Path.
 type whitelistRegistry struct {
-	// Key is the path of the NativeMessage whitelist registry key
-	Key string
+	// RegKey is the path of the NativeMessage whitelist registry key
+	RegKey string
+	// FileSuffix is a suffix for the JSON filename before the extension to
+	// avoid collisions across browsers because they're written in the same
+	// directory.
+	FileSuffix string
 }
 
 // writeJSON writes the whitelist manifest JSON file adjacent to the app's
@@ -52,8 +59,14 @@ func (w *whitelistRegistry) writeJSON(path string, app AppManifest) error {
 
 func (w *whitelistRegistry) paths(app AppManifest) (jsonPath string, keyPath string) {
 	parentDir := filepath.Dir(app.BinPath())
-	jsonPath = filepath.Join(parentDir, app.ID()+".json")
-	keyPath = filepath.Join(w.Key, app.ID())
+	suffix := filepath.Base(w.FileSuffix) // To make sure it's safe to use
+	basename := app.ID()
+	if suffix != "." {
+		basename += suffix
+	}
+
+	jsonPath = filepath.Join(parentDir, basename+".json")
+	keyPath = filepath.Join(w.RegKey, app.ID())
 	return
 }
 
