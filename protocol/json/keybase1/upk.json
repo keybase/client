@@ -279,6 +279,14 @@
         {
           "type": "UserVersionVector",
           "name": "uvv"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "seqnoLinkIDs"
         }
       ]
     },

@@ -213,9 +213,12 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
-	upak := user.ExportToUPKV2AllIncarnations()
+	upak, err := user.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		return err
+	}
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err := u.putUPAKToCache(ctx, &upak)
+	err = u.putUPAKToCache(ctx, upak)
 	return err
 }
 
@@ -348,8 +351,12 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	if user != nil {
-		tmp := user.ExportToUPKV2AllIncarnations()
-		ret = &tmp
+		// The `err` value might be non-nil above! Don't overwrite it.
+		var exportErr error
+		ret, exportErr = user.ExportToUPKV2AllIncarnations()
+		if exportErr != nil {
+			return nil, nil, exportErr
+		}
 		ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	}
 

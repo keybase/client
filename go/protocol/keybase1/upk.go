@@ -322,6 +322,7 @@ type UserPlusKeysV2AllIncarnations struct {
 	Current          UserPlusKeysV2    `codec:"current" json:"current"`
 	PastIncarnations []UserPlusKeysV2  `codec:"pastIncarnations" json:"pastIncarnations"`
 	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
+	SeqnoLinkIDs     map[Seqno]LinkID  `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -336,6 +337,15 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			return ret
 		})(o.PastIncarnations),
 		Uvv: o.Uvv.DeepCopy(),
+		SeqnoLinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			ret := make(map[Seqno]LinkID)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SeqnoLinkIDs),
 	}
 }
 

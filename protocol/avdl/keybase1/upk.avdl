@@ -82,6 +82,7 @@ protocol UPK {
       // Sorted by account version ascending, could be empty.
       array<UserPlusKeysV2> pastIncarnations;
       UserVersionVector uvv;
+      map<Seqno, LinkID> seqnoLinkIDs;
   }
 
   enum UPAKVersion {

@@ -43,7 +43,7 @@ type SigChain struct {
 
 	uid               keybase1.UID
 	username          NormalizedUsername
-	chainLinks        ChainLinks // the current subchain
+	chainLinks        ChainLinks // all the links we know about, starting with seqno 1
 	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool

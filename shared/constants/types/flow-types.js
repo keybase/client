@@ -6114,6 +6114,7 @@ export type UserPlusKeysV2AllIncarnations = {
   current: UserPlusKeysV2,
   pastIncarnations?: ?Array<UserPlusKeysV2>,
   uvv: UserVersionVector,
+  seqnoLinkIDs: {[key: string]: LinkID},
 }
 
 export type UserResolution = {

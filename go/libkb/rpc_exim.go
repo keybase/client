@@ -1206,7 +1206,7 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 	}
 }
 
-func (u *User) ExportToUPKV2AllIncarnations() keybase1.UserPlusKeysV2AllIncarnations {
+func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	// The KeyFamily holds all the PGP key bundles, and it applies to all
 	// generations of this user.
 	kf := u.GetKeyFamily()
@@ -1219,8 +1219,7 @@ func (u *User) ExportToUPKV2AllIncarnations() keybase1.UserPlusKeysV2AllIncarnat
 	if u.sigChain() != nil {
 		for _, subchain := range u.sigChain().prevSubchains {
 			if len(subchain) == 0 {
-				u.G().Log.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
-				continue
+				return nil, fmt.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
 			}
 			cki := subchain[len(subchain)-1].cki
 			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
@@ -1236,11 +1235,26 @@ func (u *User) ExportToUPKV2AllIncarnations() keybase1.UserPlusKeysV2AllIncarnat
 		}
 	}
 
-	return keybase1.UserPlusKeysV2AllIncarnations{
+	// Collect the link IDs (that is, the hashes of the signature inputs) from all subchains.
+	linkIDs := map[keybase1.Seqno]keybase1.LinkID{}
+	if u.sigChain() != nil {
+		for _, link := range u.sigChain().chainLinks {
+			// Assert that all the links are in order as they go in. We should
+			// never fail this check, but we *really* want to know about it if
+			// we do.
+			if int(link.GetSeqno()) != len(linkIDs)+1 {
+				return nil, fmt.Errorf("Encountered out-of-sequence chain link %d while exporting uid %s username %s", link.GetSeqno(), u.GetUID(), u.GetName())
+			}
+			linkIDs[link.GetSeqno()] = link.LinkID().Export()
+		}
+	}
+
+	return &keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
 		PastIncarnations: pastIncarnations,
 		Uvv:              u.ExportToVersionVector(),
-	}
+		SeqnoLinkIDs:     linkIDs,
+	}, nil
 }
 
 // NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
