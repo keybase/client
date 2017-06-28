@@ -21,8 +21,9 @@ type chainLinkUnpacked struct {
 	source    *SCChainLink
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
-	inner  *SCChainLinkPayload
-	linkID libkb.LinkID
+	inner *SCChainLinkPayload
+	// innerLinkID is nil if inner is nil (if the link is stubbed)
+	innerLinkID libkb.LinkID
 }
 
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
@@ -35,7 +36,7 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		return nil, err
 	}
 	var inner *SCChainLinkPayload
-	var linkID libkb.LinkID
+	var innerLinkID libkb.LinkID
 	if link.Payload == "" {
 		// stubbed inner link
 	} else {
@@ -45,13 +46,13 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		}
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))
-		linkID = libkb.LinkID(tmp[:])
+		innerLinkID = libkb.LinkID(tmp[:])
 	}
 	ret := &chainLinkUnpacked{
-		source:    link,
-		outerLink: outerLink,
-		inner:     inner,
-		linkID:    linkID,
+		source:      link,
+		outerLink:   outerLink,
+		inner:       inner,
+		innerLinkID: innerLinkID,
 	}
 
 	return ret, nil
@@ -105,5 +106,5 @@ func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		return err
 	}
 
-	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.linkID, linkType)
+	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType)
 }
