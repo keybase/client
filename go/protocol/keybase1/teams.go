@@ -450,7 +450,7 @@ func (o TeamData) DeepCopy() TeamData {
 type TeamSigChainState struct {
 	Reader       UserVersion                         `codec:"reader" json:"reader"`
 	Id           TeamID                              `codec:"id" json:"id"`
-	Name         TeamName                            `codec:"name" json:"name"`
+	NameBizarre  TeamName                            `codec:"nameBizarre" json:"nameBizarre"`
 	LastSeqno    Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
 	LastLinkID   LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
 	ParentID     *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
@@ -462,11 +462,11 @@ type TeamSigChainState struct {
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 	return TeamSigChainState{
-		Reader:     o.Reader.DeepCopy(),
-		Id:         o.Id.DeepCopy(),
-		Name:       o.Name.DeepCopy(),
-		LastSeqno:  o.LastSeqno.DeepCopy(),
-		LastLinkID: o.LastLinkID.DeepCopy(),
+		Reader:      o.Reader.DeepCopy(),
+		Id:          o.Id.DeepCopy(),
+		NameBizarre: o.NameBizarre.DeepCopy(),
+		LastSeqno:   o.LastSeqno.DeepCopy(),
+		LastLinkID:  o.LastLinkID.DeepCopy(),
 		ParentID: (func(x *TeamID) *TeamID {
 			if x == nil {
 				return nil

@@ -133,8 +133,19 @@ protocol teams {
     UserVersion reader;
 
     TeamID id;
-    // Latest name of the team
-    TeamName name;
+
+    // For root teams this is the immutable name of the team.
+    // But for subteams:
+    // - The first part is the immutable name of the root team.
+    // - The last part is the latest name of the team
+    // - The middle parts are the middling subteam names
+    //   at the time of creation. These are never updated.
+    //   So if this is team a.b.c and a.b was renamed to a.b2
+    //   this will still be a.b.c even though the team is now a.b2.c.
+    //   The reason is that there is nothing on c's sigchain to indicate
+    //   that a.b changed.
+    TeamName nameBizarre;
+
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;

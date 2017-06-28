@@ -5955,7 +5955,7 @@ export type TeamRole =
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
-  name: TeamName,
+  nameBizarre: TeamName,
   lastSeqno: Seqno,
   lastLinkID: LinkID,
   parentID?: ?TeamID,
