@@ -58,6 +58,7 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
 export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
+  left: 2,
 }
 
 export const CommonConversationMembersType = {
@@ -1070,6 +1071,7 @@ export type ConversationLocal = {
 export type ConversationMemberStatus =
     0 // ACTIVE_0
   | 1 // REMOVED_1
+  | 2 // LEFT_2
 
 export type ConversationMembersType =
     0 // KBFS_0
@@ -1799,6 +1801,8 @@ export type SyncIncrementalRes = {
   vers: InboxVers,
   convs?: ?Array<Conversation>,
 }
+
+export type TLFConvOrdinal = uint
 
 export type TLFFinalizeUpdate = {
   finalizeInfo: ConversationFinalizeInfo,

@@ -1,6 +1,7 @@
 package gregor
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -146,7 +147,7 @@ type MessageConsumer interface {
 	// perform state mutations, or might be "out-of-band" that just use the
 	// Gregor broadcast mechanism to make sure that all clients get the
 	// notification.
-	ConsumeMessage(m Message) (time.Time, error)
+	ConsumeMessage(ctx context.Context, m Message) (time.Time, error)
 }
 
 // StateMachine is the central interface of the Gregor system. Various parts of the
@@ -159,12 +160,12 @@ type StateMachine interface {
 	// d can be nil, in which case the global state (across all devices)
 	// is returned. If t is nil, then use Now, otherwise, return the state
 	// at the given time.
-	State(u UID, d DeviceID, t TimeOrOffset) (State, error)
+	State(ctx context.Context, u UID, d DeviceID, t TimeOrOffset) (State, error)
 
 	// StateByCategoryPrefix returns the IBMs in the given state that match
 	// the given category prefix. It's similar to calling State().ItemsInCategory()
 	// but results in less data transfer.
-	StateByCategoryPrefix(u UID, d DeviceID, t TimeOrOffset, cp Category) (State, error)
+	StateByCategoryPrefix(ctx context.Context, u UID, d DeviceID, t TimeOrOffset, cp Category) (State, error)
 
 	// IsEphemeral returns whether the backend storage needs to be saved/restored.
 	IsEphemeral() bool
@@ -175,7 +176,7 @@ type StateMachine interface {
 	InitState(s State) error
 
 	// LatestCTime returns the CTime of the newest item for the given user & device.
-	LatestCTime(u UID, d DeviceID) *time.Time
+	LatestCTime(ctx context.Context, u UID, d DeviceID) *time.Time
 
 	// Clear removes all existing state from the StateMachine.
 	Clear() error
@@ -184,13 +185,13 @@ type StateMachine interface {
 	// for the user u on device d.  If d is nil, then we'll return
 	// all messages across all devices.  If d is a device, then we'll
 	// return global messages and per-device messages for that device.
-	InBandMessagesSince(u UID, d DeviceID, t time.Time) ([]InBandMessage, error)
+	InBandMessagesSince(ctx context.Context, u UID, d DeviceID, t time.Time) ([]InBandMessage, error)
 
 	// Reminders returns a slice of non-dismissed items past their RemindTimes.
-	Reminders(maxReminders int) (ReminderSet, error)
+	Reminders(ctx context.Context, maxReminders int) (ReminderSet, error)
 
 	// DeleteReminder deletes a reminder so it won't be in the queue any longer.
-	DeleteReminder(r ReminderID) error
+	DeleteReminder(ctx context.Context, r ReminderID) error
 
 	// ObjFactory returns the ObjFactory used by this StateMachine.
 	ObjFactory() ObjFactory
