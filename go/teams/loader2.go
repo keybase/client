@@ -49,7 +49,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 	}
 	if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin ||
 		!link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
-		return NewErrStubbed(link)
+		return NewStubbedError(link)
 	}
 	return nil
 }
@@ -141,7 +141,7 @@ func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData,
 	for team != nil && !team.Chain.Id.Eq(target) {
 		parent := team.Chain.ParentID
 		if parent == nil {
-			return nil, nil
+			return nil, NewAdminNotFoundError(admin)
 		}
 		arg := load2ArgT{teamID: *parent}
 		if target.Eq(*parent) {

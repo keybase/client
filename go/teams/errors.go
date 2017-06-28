@@ -5,15 +5,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func NewErrStubbed(l *chainLinkUnpacked) ErrStubbed {
-	return ErrStubbed{l}
+func NewStubbedError(l *chainLinkUnpacked) StubbedError {
+	return StubbedError{l}
 }
 
-type ErrStubbed struct {
+type StubbedError struct {
 	l *chainLinkUnpacked
 }
 
-func (e ErrStubbed) Error() string {
+func (e StubbedError) Error() string {
 	return fmt.Sprintf("stubbed link when not expected (seqno %d)", int(e.l.outerLink.Seqno))
 }
 
@@ -29,4 +29,16 @@ func (e AdminPermissionError) Error() string {
 
 func NewAdminPermissionError(t keybase1.TeamID, uv keybase1.UserVersion, d string) AdminPermissionError {
 	return AdminPermissionError{t, uv, d}
+}
+
+type AdminNotFoundError struct {
+	Admin SCTeamAdmin
+}
+
+func (e AdminNotFoundError) Error() string {
+	return fmt.Sprintf("Admin permission specified in %+v wasn't found", e.Admin)
+}
+
+func NewAdminNotFoundError(a SCTeamAdmin) AdminNotFoundError {
+	return AdminNotFoundError{a}
 }
