@@ -465,6 +465,10 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	return t.me, nil
 }
 
+func usesPerTeamKeys(linkType libkb.LinkType) bool {
+	return linkType != libkb.LinkTypeLeave
+}
+
 func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
@@ -486,7 +490,7 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 
 	var signingKey libkb.NaclSigningKeyPair
 	var encryptionKey libkb.NaclDHKeyPair
-	if linkType != libkb.LinkTypeLeave {
+	if usesPerTeamKeys(linkType) {
 		signingKey, err = t.keyManager.SigningKey()
 		if err != nil {
 			return libkb.SigMultiItem{}, err
@@ -536,7 +540,7 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		SigInner:   string(sigJSON),
 		TeamID:     t.Chain.GetID(),
 	}
-	if linkType != libkb.LinkTypeLeave {
+	if usesPerTeamKeys(linkType) {
 		sigMultiItem.PublicKeys = &libkb.SigMultiItemPublicKeys{
 			Encryption: encryptionKey.GetKID(),
 			Signing:    signingKey.GetKID(),
