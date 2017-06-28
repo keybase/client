@@ -3,7 +3,6 @@ package hostmanifest
 import (
 	"encoding/json"
 	"os"
-	"os/user"
 	"path/filepath"
 )
 
@@ -14,19 +13,16 @@ type whitelistPath struct {
 	Root string
 	// Home is the path of the NativeMessage whitelists for regular users.
 	Home string
-	// Overlay is an optional path to prefix all paths with. Useful for
-	// generating whitelists for Linux distribution packaging.
-	Overlay string
 }
 
-func (w *whitelistPath) path(u *user.User, appID string) string {
-	if u.Uid == "0" {
-		return filepath.Join(w.Overlay, w.Root, appID+".json")
+func (w *whitelistPath) path(u User, appID string) string {
+	if u.IsAdmin() {
+		return filepath.Join(u.PrefixPath(), w.Root, appID+".json")
 	}
-	return filepath.Join(w.Overlay, u.HomeDir, w.Home, appID+".json")
+	return filepath.Join(u.PrefixPath(), w.Home, appID+".json")
 }
 
-func (w *whitelistPath) Install(u *user.User, app AppManifest) error {
+func (w *whitelistPath) Install(u User, app AppManifest) error {
 	jsonPath := w.path(u, app.ID())
 	parentDir := filepath.Dir(jsonPath)
 
@@ -51,7 +47,7 @@ func (w *whitelistPath) Install(u *user.User, app AppManifest) error {
 	return fp.Sync()
 }
 
-func (w *whitelistPath) Uninstall(u *user.User, app AppManifest) error {
+func (w *whitelistPath) Uninstall(u User, app AppManifest) error {
 	jsonPath := w.path(u, app.ID())
 	if err := os.Remove(jsonPath); err != nil && !os.IsNotExist(err) {
 		// We don't care if it doesn't exist, but other errors should escalate

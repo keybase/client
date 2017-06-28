@@ -1,7 +1,5 @@
 package hostmanifest
 
-import "os/user"
-
 // AppManifest is a serializable App metadata container
 type AppManifest interface {
 	// ID returns the app identifier, usually the same as the name.
@@ -43,6 +41,6 @@ type FirefoxApp struct {
 // Installer handles writing whitelist information for enabling the
 // NativeMessaging app.
 type Installer interface {
-	Install(u *user.User, app AppManifest) error
-	Uninstall(u *user.User, app AppManifest) error
+	Install(u User, app AppManifest) error
+	Uninstall(u User, app AppManifest) error
 }

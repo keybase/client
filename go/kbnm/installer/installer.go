@@ -1,16 +1,37 @@
 package installer
 
 import (
-	"os/user"
+	"os"
+	"path/filepath"
 
 	"github.com/keybase/client/go/kbnm/hostmanifest"
 )
 
 const kbnmAppName = "io.keybase.kbnm"
 
+// CurrentUser returns a hostmanifest.User while allowing for overrides using
+// environment variables:
+// * KBNM_INSTALL_ROOT != "" will force the user paths to be root
+// * KBNM_INSTALL_OVERLAY will prefix the paths
+func CurrentUser() (hostmanifest.User, error) {
+	u, err := hostmanifest.CurrentUser()
+	if err != nil {
+		return nil, err
+	}
+	if os.Getenv("KBNM_INSTALL_ROOT") != "" {
+		u.Admin = true
+		u.Path = ""
+	}
+	overlay := os.Getenv("KBNM_INSTALL_OVERLAY")
+	if overlay != "" {
+		u.Path = filepath.Join(overlay, u.Path)
+	}
+	return u, err
+}
+
 // UninstallKBNM removes NativeMessaging whitelisting for KBNM.
-func UninstallKBNM(overlay string) error {
-	u, err := user.Current()
+func UninstallKBNM() error {
+	u, err := CurrentUser()
 	if err != nil {
 		return err
 	}
@@ -19,7 +40,7 @@ func UninstallKBNM(overlay string) error {
 		Name: kbnmAppName,
 	}
 
-	for _, whitelist := range hostmanifest.KnownInstallers(overlay) {
+	for _, whitelist := range hostmanifest.KnownInstallers() {
 		if err := whitelist.Uninstall(u, app); err != nil {
 			return err
 		}
@@ -29,11 +50,12 @@ func UninstallKBNM(overlay string) error {
 }
 
 // UninstallKBNM writes NativeMessaging whitelisting for KBNM.
-func InstallKBNM(overlay string, path string) error {
-	u, err := user.Current()
+func InstallKBNM(path string) error {
+	u, err := CurrentUser()
 	if err != nil {
 		return err
 	}
+
 	app := hostmanifest.App{
 		Name:        kbnmAppName,
 		Description: "Keybase Native Messaging API",
@@ -42,7 +64,7 @@ func InstallKBNM(overlay string, path string) error {
 	}
 
 	var manifest hostmanifest.AppManifest
-	for browser, whitelist := range hostmanifest.KnownInstallers(overlay) {
+	for browser, whitelist := range hostmanifest.KnownInstallers() {
 		switch browser {
 		case "chrome", "chromium":
 			manifest = hostmanifest.ChromeApp{

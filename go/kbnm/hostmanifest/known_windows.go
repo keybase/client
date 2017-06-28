@@ -3,15 +3,14 @@ package hostmanifest
 import (
 	"encoding/json"
 	"os"
-	"os/user"
 	"path/filepath"
 
 	"golang.org/x/sys/windows/registry"
 )
 
 // KnownInstallers returns a map of browser-to-Installer that this package
-// knows about for this platform. Overlay is ignored on Windows.
-func KnownInstallers(overlay string) map[string]Installer {
+// knows about for this platform.
+func KnownInstallers() map[string]Installer {
 	return map[string]Installer{
 		"chrome": &whitelistRegistry{
 			Key: `SOFTWARE\Google\Chrome\NativeMessagingHosts`,
@@ -58,7 +57,9 @@ func (w *whitelistRegistry) paths(app AppManifest) (jsonPath string, keyPath str
 	return
 }
 
-func (w *whitelistRegistry) Install(u *user.User, app AppManifest) error {
+// Install on Windows ignores the provided user and always installs in the
+// CURRET_USER context, writing the JSON adjacent to the binary path.
+func (w *whitelistRegistry) Install(_ User, app AppManifest) error {
 	// We assume that the parentDir already exists, where the binary lives.
 	jsonPath, keyPath := w.paths(app)
 	if err := w.writeJSON(jsonPath, app); err != nil {
@@ -75,7 +76,7 @@ func (w *whitelistRegistry) Install(u *user.User, app AppManifest) error {
 	return k.SetStringValue("", jsonPath)
 }
 
-func (w *whitelistRegistry) Uninstall(u *user.User, app AppManifest) error {
+func (w *whitelistRegistry) Uninstall(_ User, app AppManifest) error {
 	scope := registry.CURRENT_USER
 	jsonPath, keyPath := w.paths(app)
 	if err := registry.DeleteKey(scope, keyPath); err != nil {
