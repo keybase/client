@@ -54,8 +54,11 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		inner:       inner,
 		innerLinkID: innerLinkID,
 	}
-
 	return ret, nil
+}
+
+func (l *chainLinkUnpacked) TeamID() (keybase1.TeamID, error) {
+	return l.inner.TeamID()
 }
 
 func (l *chainLinkUnpacked) Seqno() keybase1.Seqno {

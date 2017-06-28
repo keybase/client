@@ -73,13 +73,13 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func addProofsForKeyInUserSigchain(link *chainLinkUnpacked, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) *proofSetT {
-	a := key.Base.Provisioning
-	b := link.SignatureMetadata()
+func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) *proofSetT {
+	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning)
+	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata())
 	c := key.Base.Revocation
-	proofSet = proofSet.HappensBefore(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
 	if c != nil {
-		proofSet = proofSet.HappensBefore(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c))
 	}
 	return proofSet
 }
@@ -94,7 +94,7 @@ func addProofsForKeyInUserSigchain(link *chainLinkUnpacked, key *keybase1.Public
 // Does not:
 // - Apply the link nor modify state
 // - Check the rest of the format of the inner link
-func (l *TeamLoader) verifyLink(ctx context.Context,
+func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
 
 	if link.isStubbed() {
@@ -104,6 +104,14 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	err := link.AssertInnerOuterMatch()
 	if err != nil {
 		return proofSet, err
+	}
+
+	linkTeamID, err := link.TeamID()
+	if err != nil {
+		return proofSet, err
+	}
+	if !teamID.Eq(linkTeamID) {
+		return proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, linkTeamID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
@@ -120,7 +128,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	proofSet = addProofsForKeyInUserSigchain(link, key, proofSet)
+	proofSet = addProofsForKeyInUserSigchain(linkTeamID, link, user.Uid, key, proofSet)
 
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
@@ -165,13 +173,13 @@ func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData,
 	return team, nil
 }
 
-func addProofsForAdminPermission(link *chainLinkUnpacked, bookends keybase1.SignatureMetadataBookends, proofSet *proofSetT) *proofSetT {
-	a := bookends.Left
-	b := link.SignatureMetadata()
-	c := bookends.Right
-	proofSet = proofSet.HappensBefore(a, b)
+func addProofsForAdminPermission(id keybase1.TeamID, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
+	a := bookends.left
+	b := newProofTerm(id.AsUserOrTeam(), link.SignatureMetadata())
+	c := bookends.right
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
 	if c != nil {
-		proofSet = proofSet.HappensBefore(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c)
 	}
 	return proofSet
 }
@@ -199,7 +207,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		return proofSet, err
 	}
 
-	proofSet = addProofsForAdminPermission(link, adminBookends, proofSet)
+	proofSet = addProofsForAdminPermission(state.Chain.Id, link, adminBookends, proofSet)
 	return proofSet, nil
 }
 
