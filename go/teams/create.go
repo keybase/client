@@ -392,8 +392,9 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 		Name: (*SCTeamName)(&subteamName2),
 		ID:   (SCTeamID)(subteamID),
 		Parent: &SCTeamParent{
-			ID:    SCTeamID(parentTeam.GetID()),
-			Seqno: parentTeam.GetLatestSeqno() + 1, // the seqno of the *new* parent link
+			ID:      SCTeamID(parentTeam.GetID()),
+			Seqno:   parentTeam.GetLatestSeqno() + 1, // the seqno of the *new* parent link
+			SeqType: keybase1.SeqType_SEMIPRIVATE,
 		},
 		PerTeamKey: &SCPerTeamKey{
 			Generation: 1,
