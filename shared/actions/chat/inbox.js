@@ -38,14 +38,14 @@ let _backgroundLoopTask
 function* onInitialInboxLoad(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
-    if (!isMobile) {
-      // Only allow one loop at a time
-      if (!_backgroundLoopTask) {
-        yield take('chat:loadedInbox')
-        // Use spawn so this is never cancelled if this is
-        _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
-      }
-    }
+    // if (!isMobile) {
+    // // Only allow one loop at a time
+    // if (!_backgroundLoopTask) {
+    // yield take('chat:loadedInbox')
+    // // Use spawn so this is never cancelled if this is
+    // _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
+    // }
+    // }
   } finally {
   }
 }
