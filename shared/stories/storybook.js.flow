@@ -1,6 +1,6 @@
 // @flow
 
-declare function storiesOf(): any
+declare function storiesOf(name: string, module: any): any
 declare function action(name: string): any
 
 export {action, storiesOf}
