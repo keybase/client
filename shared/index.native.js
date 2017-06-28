@@ -16,6 +16,10 @@ import routeDefs from './routes'
 import {setRouteDef} from './actions/route-tree'
 import {appLink, mobileAppStateChanged} from './actions/app'
 import {setupSource} from './util/forward-logs'
+import {globalColors} from './styles'
+import {iconMeta} from './common-adapters/icon.constants'
+
+import {Navigation} from 'react-native-navigation'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
@@ -94,6 +98,31 @@ class Keybase extends Component {
 
 function load() {
   AppRegistry.registerComponent('Keybase', () => Keybase)
+  const navigatorStyle = {
+    navBarHidden: true,
+  }
+  Navigation.registerComponent('one', () => Box, global.store, Provider)
+  Navigation.registerComponent('two', () => Box, global.store, Provider)
+  Navigation.startTabBasedApp({
+    tabs: [
+      {
+        navigatorStyle,
+        screen: 'one', // this is a registered name for a screen
+        title: 'Screen One',
+        icon: iconMeta['icon-GPG-export'].require,
+      },
+      {
+        navigatorStyle,
+        screen: 'two',
+        icon: iconMeta['icon-bitcoin-logo-16'].require,
+      },
+    ],
+    tabsStyle: {
+      tabBarButtonColor: 'rgba(255, 255, 255, 0.6)',
+      tabBarSelectedButtonColor: 'white',
+      tabBarBackgroundColor: globalColors.darkBlue2,
+    },
+  })
 }
 
 export {load}
