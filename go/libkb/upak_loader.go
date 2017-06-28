@@ -459,8 +459,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 }
 
 // LoadKeyV2 looks through all incarnations for the user and returns the incarnation with the given
-// KID, as well as the Key data associated with that KID. It picks the first such incarnation if there
-// are multiple.
+// KID, as well as the Key data associated with that KID. It picks the latest such
+// incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, err error) {
 	if uid.IsNil() {
 		return nil, nil, NoUIDError{}

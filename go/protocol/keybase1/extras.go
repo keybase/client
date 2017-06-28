@@ -1115,12 +1115,16 @@ func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	return nil
 }
 
+// FindKID finds the Key and user incarnation that most recently used this KID.
+// It is possible for users to use the same KID across incarnations (though definitely
+// not condoned or encouraged). In that case, we'll give the most recent use.
 func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *PublicKeyV2NaCl) {
 	ret, ok := u.Current.DeviceKeys[kid]
 	if ok {
 		return &u.Current, &ret
 	}
-	for _, prev := range u.PastIncarnations {
+	for i := len(u.PastIncarnations) - 1; i >= 0; i-- {
+		prev := u.PastIncarnations[i]
 		ret, ok = prev.DeviceKeys[kid]
 		if ok {
 			return &prev, &ret
