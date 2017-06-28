@@ -38,6 +38,34 @@
     },
     {
       "type": "record",
+      "name": "SigChainLocation",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "SeqType",
+          "name": "seqType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MerkleTreeLocation",
+      "fields": [
+        {
+          "type": "UserOrTeamID",
+          "name": "leaf"
+        },
+        {
+          "type": "SigChainLocation",
+          "name": "loc"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SignatureMetadata",
       "fields": [
         {
@@ -55,6 +83,10 @@
         {
           "type": "Time",
           "name": "time"
+        },
+        {
+          "type": "SigChainLocation",
+          "name": "sigChainLocation"
         }
       ]
     },

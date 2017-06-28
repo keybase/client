@@ -194,6 +194,10 @@ func (w WrongKidError) Error() string {
 	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted, w.got)
 }
 
+func NewWrongKidError(w keybase1.KID, g keybase1.KID) WrongKidError {
+	return WrongKidError{w, g}
+}
+
 //=============================================================================
 
 type WrongKeyError struct {
