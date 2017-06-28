@@ -208,7 +208,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state
         .update('conversationStates', conversationStates =>
           updateConversation(conversationStates, conversationIDKey, conversation =>
-            // $FlowIssue
             conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
           )
         )
@@ -360,11 +359,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
       return state.update('conversationStates', conversationStates =>
-        updateConversation(
-          conversationStates,
-          conversationIDKey,
-          // $FlowIssue
-          conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
+        updateConversation(conversationStates, conversationIDKey, conversation =>
+          conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
         )
       )
     }
@@ -420,7 +416,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:outboxMessageBecameReal': {
       const {oldMessageKey, newMessageKey} = action.payload
-      // $FlowIssue getIn
       const localMessageState = state.getIn(['localMessageStates', oldMessageKey])
       // $FlowIssue deleteIn
       return state
@@ -564,6 +559,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
         .update('tempPendingConversations', tempPendingConversations =>
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
+        )
+    }
+    case 'chat:removeTempPendingConversations': {
+      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      return state
+        .update('tempPendingConversations', tempPendingConversations => tempPendingConversations.clear())
+        .update('pendingConversations', pendingConversations =>
+          pendingConversations.filterNot((v, k) => tempPendingConvIDs.includes(k))
         )
     }
     case 'chat:pendingToRealConversation': {

@@ -105,19 +105,40 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 }
 
 type SCChainLinkPayload struct {
-	Body     SCPayloadBody  `json:"body,omitempty"`
-	Ctime    int            `json:"ctime,omitempty"`
-	ExpireIn int            `json:"expire_in,omitempty"`
-	Prev     *string        `json:"prev,omitempty"`
-	SeqType  int            `json:"seq_type,omitempty"`
-	Seqno    keybase1.Seqno `json:"seqno,omitempty"`
-	Tag      string         `json:"tag,omitempty"`
+	Body     SCPayloadBody    `json:"body,omitempty"`
+	Ctime    int              `json:"ctime,omitempty"`
+	ExpireIn int              `json:"expire_in,omitempty"`
+	Prev     *string          `json:"prev,omitempty"`
+	SeqType  keybase1.SeqType `json:"seq_type,omitempty"`
+	Seqno    keybase1.Seqno   `json:"seqno,omitempty"`
+	Tag      string           `json:"tag,omitempty"`
+}
+
+func (s SCChainLinkPayload) ToSigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   s.Seqno,
+		SeqType: s.SeqType,
+	}
+}
+
+type SCMerkleRootSection struct {
+	Ctime    int               `json:"ctime"`
+	Seqno    keybase1.Seqno    `json:"seqno"`
+	HashMeta keybase1.HashMeta `json:"hash_meta"`
+}
+
+func (sr SCMerkleRootSection) ToMerkleRootV2() keybase1.MerkleRootV2 {
+	return keybase1.MerkleRootV2{
+		Seqno:    sr.Seqno,
+		HashMeta: sr.HashMeta,
+	}
 }
 
 type SCPayloadBody struct {
-	Key     *SCKeySection `json:"key,omitempty"`
-	Type    string        `json:"type,omitempty"`
-	Version int           `json:"version"`
+	Key        *SCKeySection       `json:"key,omitempty"`
+	Type       string              `json:"type,omitempty"`
+	MerkleRoot SCMerkleRootSection `json:"merkle_root"`
+	Version    int                 `json:"version"`
 
 	Team *SCTeamSection `json:"team,omitempty"`
 }
@@ -134,4 +155,12 @@ type SCKeySection struct {
 func ParseTeamChainLink(link string) (res SCChainLink, err error) {
 	err = json.Unmarshal([]byte(link), &res)
 	return res, err
+}
+
+func (p SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
+	t := p.Body.Team
+	if t == nil {
+		return nil
+	}
+	return t.Admin
 }

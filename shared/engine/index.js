@@ -444,11 +444,16 @@ class FakeEngine {
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  listenOnConnect() {}
-  listenOnDisconnect() {}
+  listenOnConnect(key: string, f: () => void) {}
+  listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
-  setIncomingHandler() {}
-  createSession() {
+  setIncomingHandler(name: string, callback: Function) {}
+  createSession(
+    incomingCallMap: ?incomingCallMapType,
+    waitingHandler: ?WaitingHandlerType,
+    cancelHandler: ?CancelHandlerType,
+    dangling?: boolean = false
+  ) {
     return new Session(0, {}, null, () => {}, () => {})
   }
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {

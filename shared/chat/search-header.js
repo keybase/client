@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (term) {
       dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
     } else {
-      dispatch(Creators.clearSearchResults())
+      dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
   onEnter: id => dispatch(Creators.stageUserForSearch(id)),
@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const SearchHeader = props => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput

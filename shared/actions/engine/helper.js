@@ -175,12 +175,12 @@ class EngineRpcCall {
         }
 
         if (!raceWinner) {
-          throw new Error('Undefined race winner', raceWinner)
+          throw new Error(`Undefined race winner ${raceWinner}`)
         }
 
         // Should be impossible
         if (!this._subSagas[raceWinner]) {
-          throw new Error('No subSaga to handle the raceWinner', raceWinner)
+          throw new Error(`No subSaga to handle the raceWinner ${raceWinner}`)
         }
 
         // We could have multiple things told to us!

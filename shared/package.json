@@ -5,7 +5,6 @@
   "scripts": {
     "_helper": "yarn run _node -- desktop/yarn-helper",
     "_node": "cross-env BABEL_ENV=yarn babel-node",
-    "flow": "./node_modules/.bin/flow .",
     "help": "yarn run _helper help",
     "lint": "yarn run lint-specific -- .",
     "lint-specific": "cd .. && shared/node_modules/.bin/eslint --quiet ",
@@ -146,7 +145,7 @@
     "eslint-plugin-react": "7.0.1",
     "eslint-plugin-standard": "3.0.1",
     "file-loader": "0.11.1",
-    "flow-bin": "0.41.0",
+    "flow-bin": "^0.48.0",
     "fs-extra": "git://github.com/keybase/node-fs-extra#80cec860b639db7b6c11893615b7f6495a82b985",
     "jest": "20.0.4",
     "minimist": "1.2.0",

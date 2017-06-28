@@ -16,11 +16,22 @@ protocol UPK {
       HashMeta hashMeta;
   }
 
+  record SigChainLocation {
+      Seqno seqno;
+      SeqType seqType;
+  }
+
+  record MerkleTreeLocation {
+    UserOrTeamID leaf;
+    SigChainLocation loc;
+  }
+
   record SignatureMetadata {
       KID signingKID;  // For an eldest key, the signing KID is itself.
       MerkleRootV2 prevMerkleRootSigned;
       Seqno firstAppearedUnverified;
       Time time;
+      SigChainLocation sigChainLocation; // Where this appeared in the user's sigchain
   }
 
   record PublicKeyV2Base {

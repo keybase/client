@@ -24,6 +24,7 @@
 ../protocol/.*
 ./desktop/build/.*
 ./desktop/release/.*
+.*/node_modules/react-native-tab-view/.*
 
 [include]
 
@@ -36,7 +37,6 @@ munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 unsafe.enable_getters_and_setters=true
-module.system.node.resolve_dirname=./node_modules
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.\(bmp\|gif\|jpg\|jpeg\|png\|psd\|svg\|webp\|m4v\|mov\|mp4\|mpeg\|mpg\|webm\|aac\|aiff\|caf\|m4a\|mp3\|wav\|html\|pdf\)$' -> 'RelativeImageStub'
@@ -54,4 +54,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 suppress_comment=\\(.\\|\n\\)*\\$ForceType
 
 [version]
-0.41.0
+0.48.0

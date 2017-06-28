@@ -2,7 +2,10 @@
 import * as Constants from '../../constants/searchv3'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
-import {apiserverGetWithSessionRpcPromise} from '../../constants/types/flow-types'
+import {
+  apiserverGetWithSessionRpcPromise,
+  userInterestingPeopleRpcPromise,
+} from '../../constants/types/flow-types'
 import {trim, keyBy} from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
@@ -13,6 +16,7 @@ import {SearchError} from '../../util/errors'
 
 import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {InterestingPerson} from '../../constants/types/flow-types'
 
 type RawResult = {
   score: number,
@@ -88,7 +92,7 @@ function _parseKeybaseRawResult(result: RawResult): Constants.SearchResult {
     }
   }
 
-  throw new SearchError('Invalid raw result for keybase. Missing result.keybase', result)
+  throw new SearchError(`Invalid raw result for keybase. Missing result.keybase ${JSON.stringify(result)}`)
 }
 
 function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
@@ -122,14 +126,30 @@ function _parseThirdPartyRawResult(result: RawResult): Constants.SearchResult {
     }
   }
 
-  throw new SearchError('Invalid raw result for service search. Missing result.service', result)
+  throw new SearchError(
+    `Invalid raw result for service search. Missing result.service ${JSON.stringify(result)}`
+  )
 }
 
 function _parseRawResultToRow(result: RawResult, service: Constants.Service) {
   if (service === '' || service === 'Keybase') {
-    return _parseKeybaseRawResult(result, true)
+    return _parseKeybaseRawResult(result)
   } else {
-    return _parseThirdPartyRawResult(result, !!result.keybase)
+    return _parseThirdPartyRawResult(result)
+  }
+}
+
+function _parseSuggestion(username: string) {
+  return {
+    id: _rawResultToId('keybase', username),
+    leftIcon: serviceIdToLogo24('keybase'),
+    leftUsername: username,
+    leftService: Constants.serviceIdToService('keybase'),
+    // TODO get this from the service
+    rightFullname: '',
+    rightIcon: null,
+    rightService: null,
+    rightUsername: null,
   }
 }
 
@@ -170,8 +190,23 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
   }
 }
 
+function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constants.SearchSuggestions<T>) {
+  const suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
+    param: {
+      maxUsers,
+    },
+  })
+
+  const rows = suggestions.map(person => _parseSuggestion(person.username))
+  const ids = rows.map(r => r.id)
+
+  yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
+  yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase'))
+}
+
 function* searchV3Saga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('searchv3:search', search)
+  yield Saga.safeTakeLatest('searchv3:searchSuggestions', searchSuggestions)
 }
 
 export default searchV3Saga

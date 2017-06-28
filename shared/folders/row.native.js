@@ -123,7 +123,7 @@ const Row = ({
   return (
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names

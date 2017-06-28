@@ -137,7 +137,7 @@ class BioRender extends Component<void, Props, void> {
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
                 <Text
                   type="BodySmallSecondaryLink"
-                  style={{...globalStyles.fontBold}}
+                  style={globalStyles.fontBold}
                   onClick={() => this.props.onClickFollowers(username)}
                 >
                   {userInfo.followersCount}
@@ -148,7 +148,7 @@ class BioRender extends Component<void, Props, void> {
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
                 <Text type="BodySmallSecondaryLink" onClick={() => this.props.onClickFollowing(username)}>
                   Following&nbsp;
-                  <Text type="BodySmallSecondaryLink" style={{...globalStyles.fontBold}}>
+                  <Text type="BodySmallSecondaryLink" style={globalStyles.fontBold}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>

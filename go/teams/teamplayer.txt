@@ -1,0 +1,298 @@
+# Pseudocode rules
+#
+# - there are some basics types
+# - `func foo(int i, bar[] bars) baz` is a function that takes args of type `i`, an array of `bar`s and
+#   returns a baz.
+# - all calls by value, so no one ever modifies their arguments
+# - only "storage" should have any side effects
+#
+
+type teamSnapshot
+	- id: the teamID of this team
+	- fqName: fully qualified name
+	- seeds: Team key seeds for all generations
+	- Full Membership, without implied admins
+	- links: list of <seqno, linkHash, stubbed> triples for all links in the chain; if the 'stubbed' bool is set, then the link was stubbed, and we didn't actually verify the sig.
+	- adminBookends: the admins for this team; each admin can have multiple bookends if he/she was added/deleted multiple times
+	- parent: teamID of parent
+
+# Intended usage:
+#  - Chat encrypt: LoadTeam() then get the latest key
+#  - Chat decrypt: LoadTeam(NeedKeyGeneration: receivedKeyGen, WantMembers: [sender]) then checks membership.. um how will # it check membership for people who are no longer in the team?#
+#  - Chat UI: Load() then get whatever it needs cosmetically
+#  - CLI team management: LoadTeam(NeedAdmin: true, ForceSync: true)
+#  - KBFS: similar to chat, bust also wants cache busting notifications
+
+LoadArg
+	- teamID
+	- needAdmin: bool, whether we need to be an admin. Will fail unless we are an admin in the returned Team. It is unreasonable to look at invites and list subteams with this set to false.
+	- needKeyGen: int, Load at least up to the keygen. Returns an error if the keygen is not loaded.
+	- neededMembers: UIDs, Refresh if these members are not current members of the team in the cache. Does not guarantee these members will be present in the returned team.
+	- forceRepoll: bool, force a sync with merkle, if the caller knows they want this for some reason.
+
+func load(loadArg arg, storage storage)
+
+	ret := playchain(arg.teamID, arg.needAdmin, arg.forceRepoll, nil, storage)
+	if !arg.forceRepoll && (!hasAllMembers(ret, arg.neededMembers) || !hasKeyGeneration(ret, arg.neededKeyGen))
+		ret = playchain(arg.teamID, arg.needAdmin, true, nil, s)
+	return ret
+
+func checkStubbed(link link, seqno[] neededSeqnos, bool needAdmin)
+	if isStubbed(link)
+		return
+	if (link.seqno in neededSeqnos) || needAdmin
+		throw "needed an unstubbed link"
+	if !linkCanBeStubbed(link)
+		throw "link type can't be stubbed"
+
+func playchain(teamID t, bool needAdmin, bool forceRepoll, seqno[] neededSeqnos, storage storage) teamSnaphot
+	# Load the team out of cold storage
+	ret, storedTime := get(storage, t)
+
+	if hasStubbedLinks(ret) && needAdmin
+		ret = nil
+
+	lastSeqno := nil
+	lastLinkID := nil
+	if (now() - storedTime > cacheTime) || ret.lastSeqno() < max(neededSeqnos) || forceRepoll
+		# Reference the merkle tree to fetch the last available sequence ID
+		# for the team in question.
+		lastSeqno, lastLinkID = fetchLastSeqnoFromServerMerkleTree(t)
+	else
+		lastSeqno = ret.lastSeqno()
+        lastLinkID = ret.lastLinkID()
+
+	proofSet := newProofSet()
+	parentChildOperations := []
+
+	if neededSeqnos != nil
+		ret, proofSet, parentChildOperations = fillInStubbedLinks(ret, neededSeqnos, ret.lastSeqno(), proofSet, parentChildOperations, storage)
+
+	teamUpdate := nil
+	if ret == nil || ret.lastSeqno() < lastSeqno
+		teamUpdate = getNewLinksFromServer(t, ret.lastSeqno(), needAdmin)
+
+	prev := ret.links[-1].link
+	for link in teamUpdate.Links
+
+		checkStubbed(link, neededSeqnos, needAdmin)
+
+		assertHashEquality(link.prev, hash(prev))
+
+		proofSet = verifyLink(ret, link, proofSet, storage)
+
+		## ParentChildOperations affect a parent and child chain in lockstep.
+		## So far they are: subteam create, and subteam rename
+		## TODO need a new server ticket so that child chain changes on each rename too
+		if isParentChildOperation(link)
+			parentChildOperations.push(toParentChildOperation(link))
+
+		prev = link
+		ret = patchWithNewLink(ret, link)
+
+	if lastLinkID != ret.lastLinkID()
+		throw "link id mismatch"
+	checkParentChildOperations(ret.parent, parentChildOperations)
+	checkProofs(team, proofSet, storage)
+
+	ret = addSecrets(ret, teamUpdate.box, teamsUpdate.prevs, teamUpdate.readerKeyMasks)
+
+	put(storage, t, ret)
+
+	checkNeededSeqnos(ret, neededSeqnos)
+
+	return ret
+
+# An adminBookend on a sigchain that is delegated at the start, and maybe revoked
+# by the time we get to end.
+type adminBookend
+	- admin: userID
+	- start: link
+	- end: *link
+
+type teamUpdate
+	- links: list of links
+	- box: box for the current user
+	- prevs: prevs for previous shared keys
+	- readerKeyMasks: reader key masks for all apps for all generations for user
+
+type parentChildOperations
+	- childOperation: the actual operation that happened
+	- parent: Seqno where the operation appears in the parent
+
+type storage
+	- key -> value
+
+type leafID
+	- a UID or a teamID
+
+type proofTerm
+	- leafID: the UID or teamID for this proofTerm
+	- seqno: the seqno in the local chain
+	- linkHash: the hash of that link in the local chain
+	- merkleSeqno: the merkle seqno signed into the link
+	- merkleHashMeta: the meta hash signed into the link
+
+# We need proof that a happens before b, (i.e., a < b)
+type proof
+	- a: proofTerm
+	- b: proofTerm
+
+type proofSet
+	- proof[]: a list of proofs that are needed to be proven by keybase
+
+func verifyLink(teamSnapshot ts, link link, proofSet proofSet, storage storage) proofSet
+
+	// Note that it's possible to check this signature, but we'd need a way to lookup
+	// users from deviceIDs, and I'm not sure how much it's buying us.
+	if isStubbed(link)
+		return proofSet
+
+	// Check that inner and outer fields are in harmony
+	checkLinkOuterInnerMatch(link)
+
+	// just using what the signature says, verify it, and figure out
+	// which public key was used in the verification
+	kid := verifySignatureAndExtractKID(link)
+
+	//
+	user := loadUserGivenLinkAndSignatureKID(link, kid)
+
+	proofSet = verifyUserSignature(user, link, proofSet)
+
+	needsAdmin := linkNeedsAdmin(link)
+
+	if needsAdmin
+		# TODO needs a server change to be explicit about which implicit admin to use,
+		# and where on the chain this privilege was granted
+		ancestorTeamID, ancestorTeamSeqno := getTeamIdAndSeqnoOfAdminUsed(link)
+
+		if ancestorTeamID == nil
+			throw "need admin but link didn't specify which team admin to use"
+		tmp := ts
+		while tmp.id != ancestorTeamID
+			tmp = playchain(tmp.parent, false, false, {ancestorTeamSeqno}, storage)
+		if tmp == nil
+			throw "didn't find parent in chain"
+		proofSet = verifyUserIsAdmin(tmp, user, link, proofSet)
+	else
+		verifyUserIsWriter(ts, user, link)
+
+	return proofSet
+
+func verifyUserSignature(user user, link link, proofSet proofSet) proofSet
+	k := getKeyFromLink(link)
+	assertSigned(k, link)
+	a,b := findKeyInUserSigchain(user, k, link.merkleSeqno)
+	proofSet = happensBefore(proofSet, a, link)
+	if b != nil
+		proofSet = happensBefore(proofSet, link, b)
+	return proofSet
+
+func findKeyInUserSigchain(user user, key k, seqno merkleSeqno)
+	# iterate over all of the user's links, looking for the latest
+	# provisioning of k before merkleSeqo. Return that link, and
+	# also, if available, the next revocation of k after that link.
+
+func verifyUserIsAdmin(teamSnapshot ts, user user, link link, proofSet proofSet)
+	for pb in ts.adminBookends
+		if user.uid == pb.admin && (pb.start.merkleSeqno <= link.merkleSeqno) && (pb.end == nil && link.merklSeqno <= pb.end.merkleSeqno)
+			proofSet = happensBefore(proofSet, pb.start, link)
+			if pb.end != nil
+				proofSet = happensBefore(proofSet, link, pb.end)
+		return proofSet
+	throw "user wasn't admin in team"
+
+func checkParentChildOperations(teamID parentID, parentChildOperations[] parentChildOperations, storage stroage)
+	neededSeqnos := []
+	for pco in parentChildOperations
+		neededSeqnos.push(pco.parent)
+	parent := playchain(parentID, false, false, neededSeqnos, storage)
+	for pco in parentChildOperations
+		parentOp := linkToOperation(parent.links[pco.parent])
+		assertOperationEqual(parentOp, pco.childOperation)
+
+func checkProofs(teamSnapshot team, proofSet proofSet, storage storage)
+	for proof in proofSet
+		checkProof(team proof, storage)
+
+func checkProof(teamSnapshot team, proof proof, storage storage)
+	merklePath := getMerklePathFromRootToLeaf(proof.b.merkleSeqno, proof.a.leafID)
+	verifyMerklePath(merklePath, proof.a.leafID, proof.a.linkHash)
+	verifyMetaHash(merklePath.metaHash, proof.b.merkleMetaHash)
+	chainTail := merklePath[proof.a.leafID]
+	assert(chainTail.Seqno >= proof.a.seqno)
+	linkList = nil
+	if isUser(proof.a.leafID)
+		user := loadUPAK2(proof.a.leafID, storage)
+		# TODO this means we'll have to store all verified link hashes in a UPAK2
+		# including tracker link hashes.
+		linkList = user.links
+	else
+		if team.id != proof.a.leafID
+			team = playchain(proof.a.leafID, false, false, {proof.a.seqno}, storage)
+		linkList = team.links
+	assert(listList[chainTail.seqno] == chainTail.linkHash)
+
+func checkNeededSeqnos(teamSnapshot team, seqno[] neededSeqnos)
+	for seqno in neededSeqnos
+		if team.links[seqno].stubbed
+			throw "needed link not filled"
+
+func fillInStubbedLinks(teamSnapshot ret, seqno[] neededSeqnos, seqno upperLimit, proofSet proofSet, parentChildOperations, storage storage)
+			-> (teamSnapshot, proofSet, parentChildOperations)
+	# seqnos needed from the server
+	newLinkSeqnos := []
+	for seqno in neededSeqnos
+		if ret.links[seqno].stubbed && seqno <= upperLimit
+			newLinkSeqnos.push(seqno)
+
+	## TODO need a new server endpoint for this
+	newLinks := getLinksFromServer(ret.id, newLinkSeqnos)
+	for link in newLinks
+		assertIsntStubbed(link)
+		proofSet = verifyLink(pret, link, proofSet, storage)
+		ret.links[seqno].stubbed = false
+		ret = patchWithNewLink(ret, link)
+		if isParentChildOperation(link)
+			parentChildOperations = append(parentChildOperations, toParentChildOperation(link))
+
+	return ret, proofSet, parentChildOperations
+
+func happensBefore(proofSet proofSet, link a, link b) proofSet
+	a := toProofTerm(a)
+	b := toProofTerm(b)
+	for proof in proofSet by -1 # walk backwards to avoid O(n^2) hidden work factor
+		if a.leafID == proof.a.leafID && b.leafID == proof.b.leafID && proof.a.seqno <= a.seqno && b.seqno <= proof.b.seqno
+			proof.a = proofTermMax(proof.a, a)
+			proof.b = proofTermMin(proof.b, b)
+			return proofSet
+	proofSet.push(proof(a,b))
+	return proofSet
+
+func proofTermMax(proofTerm a, proofTerm b) proofTerm
+	if a.seqno > b.seqno
+		return a
+	else
+		return b
+
+func proofTermMin(proofTerm a, proofTerm b) proofTerm
+	if a.seqno < b.seqno
+		return a
+	else
+		return b
+
+func toProofTerm(link a) proofTerm
+	# for the given sigchain link, extract the seqno in the chain, the leafID of the chain
+	# (i.e., the UID or the teamID), the hash of the link, and the location in the merkle
+	# tree seen at the time the link was signed
+
+func addSecrets(teamSnapshot ts,....) teamSnapshot
+	# Update the proof set with the given secret values as fetched from the server
+	# output the new snapshot.
+	# Make sure the secrets are in sync and match the sigchain state.
+
+func patchWithNewLink(teamSnapshot ts, link link) teamSnapshot
+	# Update the teamSnapshot with the given link, and output a new teamSnapshot
+	# reflect the delta in the link. Should be idempotent, since we might call it twice
+	# in the case of fillInStubbedLinks.

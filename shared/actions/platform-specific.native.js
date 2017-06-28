@@ -75,7 +75,7 @@ function configurePush() {
           emitter(
             ({
               payload: {
-                error: new Error('Unrecognized os for token:', token),
+                error: new Error(`Unrecognized os for token: ${token}`),
               },
               type: 'push:registrationError',
             }: PushConstants.PushRegistrationError)

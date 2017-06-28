@@ -277,13 +277,13 @@ func (m mockGregord) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res cha
 	return res, nil
 }
 
-func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncResult, error) {
+func (m mockGregord) Sync(ctx context.Context, arg gregor1.SyncArg) (gregor1.SyncResult, error) {
 	var res gregor1.SyncResult
-	msgs, err := m.sm.InBandMessagesSince(arg.UID(), arg.DeviceID(), arg.CTime())
+	msgs, err := m.sm.InBandMessagesSince(ctx, arg.UID(), arg.DeviceID(), arg.CTime())
 	if err != nil {
 		return res, err
 	}
-	state, err := m.sm.State(arg.UID(), arg.DeviceID(), nil)
+	state, err := m.sm.State(ctx, arg.UID(), arg.DeviceID(), nil)
 	if err != nil {
 		return res, err
 	}
@@ -302,10 +302,10 @@ func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncR
 	return res, nil
 }
 
-func (m mockGregord) ConsumeMessage(_ context.Context, msg gregor1.Message) error {
+func (m mockGregord) ConsumeMessage(ctx context.Context, msg gregor1.Message) error {
 	m.log.Debug("mockGregord: ConsumeMessage: msgID: %s Ctime: %s", msg.ToInBandMessage().Metadata().MsgID(),
 		msg.ToInBandMessage().Metadata().CTime())
-	_, err := m.sm.ConsumeMessage(msg)
+	_, err := m.sm.ConsumeMessage(ctx, msg)
 	return err
 }
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
@@ -314,8 +314,8 @@ func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message)
 func (m mockGregord) Ping(_ context.Context) (string, error) {
 	return "pong", nil
 }
-func (m mockGregord) State(_ context.Context, arg gregor1.StateArg) (gregor1.State, error) {
-	state, err := m.sm.State(arg.Uid, arg.Deviceid, arg.TimeOrOffset)
+func (m mockGregord) State(ctx context.Context, arg gregor1.StateArg) (gregor1.State, error) {
+	state, err := m.sm.State(ctx, arg.Uid, arg.Deviceid, arg.TimeOrOffset)
 	if err != nil {
 		return gregor1.State{}, err
 	}
@@ -441,7 +441,7 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 
 func doServerSync(t *testing.T, h *gregorHandler, srv mockGregord) ([]gregor.InBandMessage, []gregor.InBandMessage) {
 	_, token, _ := h.loggedIn(context.TODO())
-	pctime := h.gregorCli.StateMachineLatestCTime()
+	pctime := h.gregorCli.StateMachineLatestCTime(context.TODO())
 	ctime := gregor1.Time(0)
 	if pctime != nil {
 		ctime = gregor1.ToTime(*pctime)
@@ -547,7 +547,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 
 	// Try saving
 	var err error
-	if err = h.gregorCli.Save(); err != nil {
+	if err = h.gregorCli.Save(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -592,7 +592,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 
 	// Try saving
 	var err error
-	if err = h.gregorCli.Save(); err != nil {
+	if err = h.gregorCli.Save(context.TODO()); err != nil {
 		t.Fatal(err)
 	}
 

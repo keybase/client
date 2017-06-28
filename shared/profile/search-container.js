@@ -16,6 +16,7 @@ type HocIntermediateProps = {
   _onClick: (id: string) => void,
   _onChangeText: (nextText: string) => void,
   _onSelectService: () => void,
+  _onSelectService: (nextService: string) => void,
   search: (term: string, service: SearchConstants.Service) => void,
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
@@ -30,7 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
     if (term) {
       dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service))
     } else {
-      dispatch(clearSearchResults())
+      dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
   },
   onEnter: username => {

@@ -29,7 +29,7 @@ function brokenSeparator(idx, item, arr) {
   }
 }
 
-const Header = ({children, title, style}) => (
+const Header = ({children, title = '', style = {}}: any) => (
   <CommonHeader windowDragging={false} style={{...commonHeaderStyle, ...style}} type="Strong" title={title}>
     {children}
   </CommonHeader>

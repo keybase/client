@@ -407,6 +407,17 @@
         {
           "type": {
             "type": "map",
+            "values": {
+              "type": "array",
+              "items": "SubteamLogPoint"
+            },
+            "keys": "TeamID"
+          },
+          "name": "subteamLog"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "PerTeamKey",
             "keys": "PerTeamKeyGeneration"
           },
@@ -429,6 +440,20 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamLogPoint",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
         },
         {
           "type": "Seqno",

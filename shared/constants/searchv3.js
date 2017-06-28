@@ -66,6 +66,11 @@ export type Search<TypeToFire> = NoErrorTypedAction<
   {term: string, service: Service, actionTypeToFire: TypeToFire}
 >
 
+export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
+  'searchv3:searchSuggestions',
+  {actionTypeToFire: TypeToFire, maxUsers: number}
+>
+
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
   {searchResults: Array<SearchResultId>, searchTerm: string, service: Service}
