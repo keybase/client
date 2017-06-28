@@ -11,7 +11,7 @@ import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompo
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
-import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 type OwnProps = {
@@ -24,6 +24,7 @@ type OwnProps = {
   search: (term: string, service: SearchConstants.Service) => void,
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
+  showServiceFilter: boolean,
 }
 
 const mapStateToProps = createSelector(
@@ -75,7 +76,8 @@ const SearchHeader = props => {
         />
       </Box>
       <Box style={{alignSelf: 'center'}}>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+        {props.showServiceFilter &&
+          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
       </Box>
     </Box>
   )
@@ -84,6 +86,7 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
+  showServiceLogicHoc,
   onChangeSelectedSearchResultHoc,
   withHandlers(() => {
     let input
