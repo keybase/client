@@ -1,14 +1,6 @@
 // @flow
 
-function storiesOf(): any {
-  return 0
-}
-function action(): any {
-  return 0
-}
+declare function storiesOf(): any
+declare function action(name: string): any
 
-export {
-  action,
-  storiesOf,
-
-}
+export {action, storiesOf}
