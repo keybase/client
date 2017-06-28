@@ -9,7 +9,7 @@ import (
 )
 
 func TestRotate(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -57,7 +57,7 @@ func TestRotate(t *testing.T) {
 }
 
 func TestHandleRotateRequestOldGeneration(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -104,7 +104,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 }
 
 func TestHandleRotateRequest(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {

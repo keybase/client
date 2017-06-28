@@ -3597,6 +3597,21 @@ export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamLeaveRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamLeave', request)
+}
+
+export function teamsTeamLeaveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
+}
+export function teamsTeamLeaveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamLeave', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamLeaveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamLeave', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
 }
@@ -7077,6 +7092,11 @@ export type teamsTeamGetRpcParam = Exact<{
   forceRepoll: boolean
 }>
 
+export type teamsTeamLeaveRpcParam = Exact<{
+  name: string,
+  permanent: boolean
+}>
+
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
   username: string
@@ -7555,6 +7575,7 @@ export type rpc =
   | teamsTeamCreateRpc
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
+  | teamsTeamLeaveRpc
   | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc

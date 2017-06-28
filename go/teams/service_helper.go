@@ -185,8 +185,25 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if !t.IsMember(ctx, uv) {
 		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
 	}
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return err
+	}
+
+	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
+		return Leave(ctx, g, teamname, false)
+	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
 	return t.ChangeMembership(ctx, req)
+}
+
+func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+	return t.Leave(ctx, permanent)
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {

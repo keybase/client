@@ -297,7 +297,8 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
+	payload := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, payload); err != nil {
 		return err
 	}
 
@@ -359,7 +360,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
+	payload := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, payload); err != nil {
 		return err
 	}
 
@@ -370,8 +372,17 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+func (t *Team) Leave(ctx context.Context, permanent bool) error {
+	section, err := newMemberSet().Section(t.Chain.GetID(), nil)
+	if err != nil {
+		return err
+	}
+	payload := make(libkb.JSONPayload)
+	payload["permanent"] = permanent
+	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
+}
 
+func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return nil, err
@@ -428,7 +439,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, prepayload libkb.JSONPayload) error {
 	// create the change item
 	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -436,7 +447,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secret
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes, lease)
+	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, prepayload)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -454,6 +465,10 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	return t.me, nil
 }
 
+func usesPerTeamKeys(linkType libkb.LinkType) bool {
+	return linkType != libkb.LinkTypeLeave
+}
+
 func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
@@ -468,29 +483,33 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		return libkb.SigMultiItem{}, err
 	}
 	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
 
-	signingKey, err := t.keyManager.SigningKey()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	encryptionKey, err := t.keyManager.EncryptionKey()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-
-	if section.PerTeamKey != nil {
-		// need a reverse sig
-
-		// set a nil value (not empty) for reverse_sig (fails without this)
-		sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
-		reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
+	var signingKey libkb.NaclSigningKeyPair
+	var encryptionKey libkb.NaclDHKeyPair
+	if usesPerTeamKeys(linkType) {
+		signingKey, err = t.keyManager.SigningKey()
 		if err != nil {
 			return libkb.SigMultiItem{}, err
 		}
-		sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+		encryptionKey, err = t.keyManager.EncryptionKey()
+		if err != nil {
+			return libkb.SigMultiItem{}, err
+		}
+		if section.PerTeamKey != nil {
+			// need a reverse sig
+
+			// set a nil value (not empty) for reverse_sig (fails without this)
+			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+			reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
+			if err != nil {
+				return libkb.SigMultiItem{}, err
+			}
+			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+		}
 	}
 
 	sigJSON, err := sig.Marshal()
@@ -520,10 +539,12 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		Type:       string(linkType),
 		SigInner:   string(sigJSON),
 		TeamID:     t.Chain.GetID(),
-		PublicKeys: &libkb.SigMultiItemPublicKeys{
+	}
+	if usesPerTeamKeys(linkType) {
+		sigMultiItem.PublicKeys = &libkb.SigMultiItemPublicKeys{
 			Encryption: encryptionKey.GetKID(),
 			Signing:    signingKey.GetKID(),
-		},
+		}
 	}
 	return sigMultiItem, nil
 }
@@ -582,10 +603,11 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
-	payload := make(libkb.JSONPayload)
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, payload libkb.JSONPayload) libkb.JSONPayload {
 	payload["sigs"] = []interface{}{sigMultiItem}
-	payload["per_team_key"] = secretBoxes
+	if secretBoxes != nil {
+		payload["per_team_key"] = secretBoxes
+	}
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
 	}
