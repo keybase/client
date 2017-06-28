@@ -16,6 +16,10 @@ export type Props = {|
   activeOpacity?: number,
   // desktop only
   onMouseOver?: ?(event: SyntheticEvent) => void,
+  onMouseEnter?: ?() => void,
+  onMouseLeave?: ?() => void,
+  onMouseDown?: ?() => void,
+  onMouseUp?: ?() => void,
 |}
 
 declare export default class ClickableBox extends Component<void, Props, void> {}

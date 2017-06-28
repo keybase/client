@@ -125,4 +125,19 @@ const styleServices = {
   justifyContent: 'center',
 }
 
+const serviceTooltipStyle = {
+  ...transition('opacity'),
+  backgroundColor: globalColors.black_40,
+  borderBottom: '2px solid white',
+  borderRadius: 65,
+  color: globalColors.white,
+  cursor: 'default',
+  left: -16,
+  lineHeight: '22px',
+  minHeight: 22,
+  minWidth: 86,
+  position: 'absolute',
+  textAlign: 'center',
+  top: -24,
+}
 export default Filter

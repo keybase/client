@@ -12,15 +12,19 @@ class ClickableBox
   }
   _onMouseEnter = () => {
     this.setState({mouseIn: true})
+    this.props.onMouseEnter && this.props.onMouseEnter()
   }
   _onMouseLeave = () => {
     this.setState({mouseIn: false})
+    this.props.onMouseLeave && this.props.onMouseLeave()
   }
   _onMouseDown = () => {
     this.setState({mouseDown: true})
+    this.props.onMouseDown && this.props.onMouseDown()
   }
   _onMouseUp = () => {
     this.setState({mouseDown: false})
+    this.props.onMouseUp && this.props.onMouseUp()
   }
 
   render() {
