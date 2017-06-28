@@ -65,6 +65,7 @@ class UserInput extends Component<void, Props, State> {
 
   _onFocus = () => {
     this.setState({isFocused: true})
+    this.props.onFocus && this._textInput && this.props.onFocus(this._textInput.props.value)
   }
 
   _onBlur = () => {

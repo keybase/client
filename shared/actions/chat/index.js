@@ -1000,6 +1000,9 @@ function* _updateTempSearchConversation(
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   }
+
+  // Always clear the search results when you select/unselect
+  yield put(Creators.clearSearchResults())
 }
 
 function* _exitSearch() {
