@@ -7,6 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -22,6 +25,8 @@ type CmdTeamListMemberships struct {
 	userAssertion   string
 	includeSubteams bool
 	showAll         bool
+	verbose         bool
+	tabw            *tabwriter.Writer
 }
 
 func (c *CmdTeamListMemberships) SetTeam(s string) {
@@ -70,6 +75,10 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 				Name:  "all",
 				Usage: "Show all members of all teams you belong to",
 			},
+			cli.BoolFlag{
+				Name:  "v, verbose",
+				Usage: "Include more verbose output",
+			},
 		},
 	}
 }
@@ -85,14 +94,19 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 	c.includeSubteams = ctx.Bool("include-subteams")
 	c.showAll = ctx.Bool("all")
 
-	if c.team != "" {
-		if c.showAll {
+	if c.showAll {
+		if c.team != "" {
 			return errors.New("cannot specify a team and --all, please choose one")
+		}
+		if c.userAssertion != "" {
+			return errors.New("cannot specify a user and --all, please choose one")
 		}
 	}
 
 	c.json = ctx.Bool("json")
 	c.forcePoll = ctx.Bool("force-poll")
+	c.verbose = ctx.Bool("verbose")
+
 	return nil
 }
 
@@ -102,12 +116,59 @@ func (c *CmdTeamListMemberships) Run() error {
 		return err
 	}
 
+	if c.showAll {
+		return c.runAll(cli)
+	}
+	if c.team != "" {
+		return c.runGet(cli)
+	}
+
+	return c.runUser(cli)
+}
+
+func (c *CmdTeamListMemberships) runAll(cli keybase1.TeamsClient) error {
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("--all flag not implemented yet\n")
+	return nil
+}
+
+func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
 	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.team, ForceRepoll: c.forcePoll})
 	if err != nil {
 		return err
 	}
 
 	return c.output(details)
+}
+
+func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
+	list, err := cli.TeamList(context.Background(), keybase1.TeamListArg{UserAssertion: c.userAssertion})
+	if err != nil {
+		return err
+	}
+
+	if c.json {
+		b, err := json.MarshalIndent(list, "", "    ")
+		if err != nil {
+			return err
+		}
+		dui := c.G().UI.GetDumbOutputUI()
+		_, err = dui.Printf(string(b) + "\n")
+		return err
+	}
+
+	dui := c.G().UI.GetTerminalUI()
+	c.tabw = new(tabwriter.Writer)
+	c.tabw.Init(dui.OutputWriter(), 0, 8, 4, ' ', 0)
+
+	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
+	for _, t := range list.Teams {
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), list.Username, list.FullName)
+	}
+
+	c.tabw.Flush()
+
+	return nil
 }
 
 func (c *CmdTeamListMemberships) output(details keybase1.TeamDetails) error {
@@ -129,23 +190,30 @@ func (c *CmdTeamListMemberships) outputJSON(details keybase1.TeamDetails) error 
 }
 
 func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) error {
-	dui := c.G().UI.GetDumbOutputUI()
+	dui := c.G().UI.GetTerminalUI()
+	c.tabw = new(tabwriter.Writer)
+	c.tabw.Init(dui.OutputWriter(), 0, 8, 2, ' ', 0)
+
 	c.outputRole("owner", details.Members.Owners)
 	c.outputRole("admin", details.Members.Admins)
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
-	dui.Printf("At team key generation: %d\n", details.KeyGeneration)
+	c.tabw.Flush()
+
+	if c.verbose {
+		dui.Printf("At team key generation: %d\n", details.KeyGeneration)
+	}
+
 	return nil
 }
 
 func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.TeamMemberDetails) {
-	dui := c.G().UI.GetDumbOutputUI()
 	for _, member := range members {
 		var reset string
 		if !member.Active {
 			reset = " (inactive due to account reset)"
 		}
-		dui.Printf("%s\t%s\t%s%s\n", c.team, role, member.Username, reset)
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s%s\n", c.team, role, member.Username, reset)
 	}
 }
 
