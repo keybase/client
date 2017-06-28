@@ -41,7 +41,7 @@ Object.keys(iconMeta).map((type: IconType) => {
 storiesOf('Icon', module).add('Icon', () => (
   <div style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
     {Object.keys(sizes).map(size => (
-      <div key={size} style={{...globalStyles.flexBoxColumn}}>
+      <div key={size} style={globalStyles.flexBoxColumn}>
         <span>{size}</span>
         {sizes[size].map(type => <Icon key={type} type={type} {...commonProps} />)}
       </div>

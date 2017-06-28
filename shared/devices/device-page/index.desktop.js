@@ -24,7 +24,7 @@ const Header = ({name, currentDevice, revokedAt}) => (
       {name}
     </Text>
     {revokedAt && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       {currentDevice && <Text type="BodySmall">Current device</Text>}
     </Box>
   </Box>
@@ -41,9 +41,9 @@ const TimelineMarker = ({idx, max, type}) => (
 const Timeline = ({timeline}) => (
   <Box style={{marginTop: 30}}>
     {timeline.map(({type, desc, subDesc}, idx) => (
-      <Box key={desc} style={{...globalStyles.flexBoxRow}}>
+      <Box key={desc} style={globalStyles.flexBoxRow}>
         <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
-        <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">{desc}</Text>
           {subDesc &&
             (type === 'Added' || type === 'Revoked'
@@ -78,7 +78,7 @@ const Render = ({
   icon,
   revokeName,
 }: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
+  <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
       <BackButton onClick={onBack} />
     </Box>
@@ -89,7 +89,7 @@ const Render = ({
       >
         <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
       </Box>
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
         {!!timeline && <Timeline timeline={timeline} />}
         {!revokedAt &&

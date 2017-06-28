@@ -101,7 +101,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           />
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
-              <Box style={{...styleBadgeAvatar}}>
+              <Box style={styleBadgeAvatar}>
                 <Badge
                   badgeNumber={badgeNumber}
                   badgeStyle={{marginLeft: 0, marginRight: 0}}
@@ -137,7 +137,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className="nav-item">
           <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {badgeNumber > 0 &&
-            <Box style={{...styleBadgeNav}}>
+            <Box style={styleBadgeNav}>
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
@@ -172,7 +172,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
             {this.props.label}
           </Text>}
         {badgeNumber > 0 &&
-          <Box style={{...styleBadgeIcon}}>
+          <Box style={styleBadgeIcon}>
             <Badge
               badgeNumber={badgeNumber}
               badgeStyle={this.props.styleBadge}
