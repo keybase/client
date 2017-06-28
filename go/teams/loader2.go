@@ -174,7 +174,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	// In the simple case, we don't ask for explicit adminship, so we have to be admins of
 	// the current chain at or before the signature in question.
 	if explicitAdmin == nil {
-		err := (TeamSigChainState{inner: state.Chain}).AssertAdminRoleAtOrBefore(uv, link.SigChainLocation())
+		err := (TeamSigChainState{inner: state.Chain}).AssertWasAdminAt(uv, link.SigChainLocation())
 		return proofSet, err
 	}
 
@@ -184,7 +184,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	if err != nil {
 		return proofSet, err
 	}
-	adminBookends, err := (TeamSigChainState{inner: adminTeam.Chain}).AssertAdminRoleAt(uv, explicitAdmin.SigChainLocation())
+	adminBookends, err := (TeamSigChainState{inner: adminTeam.Chain}).AssertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
 	if err != nil {
 		return proofSet, err
 	}

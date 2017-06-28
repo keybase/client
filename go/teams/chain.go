@@ -121,7 +121,11 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 	return role
 }
 
-func (t TeamSigChainState) AssertAdminRoleAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret keybase1.SignatureMetadataBookends, err error) {
+// AssertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
+// Figure out when this admin permission was revoked, if at all. If the promotion event
+// wasn't found as specified, then return an AdminPermissionError. In addition, we return
+// a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
+func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret keybase1.SignatureMetadataBookends, err error) {
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
@@ -146,7 +150,11 @@ func findAdminDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetad
 	return nil
 }
 
-func (t TeamSigChainState) AssertAdminRoleAtOrBefore(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+// AssertWasAdminAt asserts that user (uv) was an admin (or owner) at the team at the given
+// SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
+// the go forwards to make sure there wasn't a demotion before the specified time. If there
+// was, we return an AdminPermissionError. If no adminship was found at all, we return a AdminPermissionError.
+func (t TeamSigChainState) AssertWasAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
