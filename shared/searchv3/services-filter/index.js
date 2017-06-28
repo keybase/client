@@ -128,7 +128,7 @@ const styleServices = {
 const serviceTooltipStyle = {
   ...transition('opacity'),
   backgroundColor: globalColors.black_40,
-  borderBottom: '2px solid white',
+  borderBottom: `2px ${globalColors.white}`,
   borderRadius: 65,
   color: globalColors.white,
   cursor: 'default',
