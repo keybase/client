@@ -1,11 +1,11 @@
 // @flow
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
+import Box from './box'
 import Icon from './icon'
 import React from 'react'
-import {action} from '@storybook/addon-actions'
+import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
-import {storiesOf} from '@storybook/react'
+import {storiesOf, action} from '../stories/storybook'
 
 import type {IconType} from './icon'
 
@@ -22,29 +22,39 @@ const commonProps = {
   },
 }
 
-const sizes = {}
+const load = () => {
+  const sizes = {}
+  // $FlowIssue
+  Object.keys(iconMeta).map((type: IconType) => {
+    const meta = iconMeta[type]
+    const twoRegMatch = type.match(/(\d+)-x-\d+$/)
+    const oneRegMatch = type.match(/(\d+)$/)
+    const size = meta.gridSize || (twoRegMatch && twoRegMatch[1]) || (oneRegMatch && oneRegMatch[1]) || '?'
 
-// $FlowIssue
-Object.keys(iconMeta).map((type: IconType) => {
-  const meta = iconMeta[type]
-  const twoRegMatch = type.match(/(\d+)-x-\d+$/)
-  const oneRegMatch = type.match(/(\d+)$/)
-  const size = meta.gridSize || (twoRegMatch && twoRegMatch[1]) || (oneRegMatch && oneRegMatch[1]) || '?'
+    if (!sizes[size]) {
+      sizes[size] = []
+    }
 
-  if (!sizes[size]) {
-    sizes[size] = []
-  }
+    sizes[size].push(type)
+  })
 
-  sizes[size].push(type)
-})
+  storiesOf('Icon', module).add('Icon', () =>
+    Object.keys(sizes).map(size => (
+      <Box key={size}>
+        <Text type="Body">{size}</Text>
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
+          }}
+        >
+          {sizes[size].map(type => <Icon key={type} type={type} {...commonProps} />)}
+        </Box>
+      </Box>
+    ))
+  )
+}
 
-storiesOf('Icon', module).add('Icon', () => (
-  <div style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
-    {Object.keys(sizes).map(size => (
-      <div key={size} style={globalStyles.flexBoxColumn}>
-        <span>{size}</span>
-        {sizes[size].map(type => <Icon key={type} type={type} {...commonProps} />)}
-      </div>
-    ))}
-  </div>
-))
+export default load

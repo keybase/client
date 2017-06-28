@@ -73,6 +73,5 @@ function getStyle(
   }
 }
 
-export {getStyle}
-
 export default Text
+export {getStyle}

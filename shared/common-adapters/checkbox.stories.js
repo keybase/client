@@ -1,9 +1,8 @@
 // @flow
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
+import Box from './box'
 import Checkbox from './checkbox'
 import React from 'react'
-import {action} from '@storybook/addon-actions'
-import {storiesOf} from '@storybook/react'
+import {storiesOf, action} from '../stories/storybook'
 
 const commonProps = {
   disabled: false,
@@ -11,11 +10,15 @@ const commonProps = {
   style: {margin: 10},
 }
 
-storiesOf('Checkbox', module).add('Checkbox', () => (
-  <div style={{flex: 1, overflow: 'auto'}}>
-    <Checkbox {...commonProps} label="Checkbox Unchecked Enabled" checked={false} />
-    <Checkbox {...commonProps} label="Checkbox Checked Enabled" checked={true} />
-    <Checkbox {...commonProps} label="Checkbox Unchecked Disabled" checked={false} disabled={true} />
-    <Checkbox {...commonProps} label="Checkbox Checked Disabled" checked={true} />
-  </div>
-))
+const load = () => {
+  storiesOf('Checkbox', module).add('Checkbox', () => (
+    <Box style={{flex: 1}}>
+      <Checkbox {...commonProps} label="Checkbox Unchecked Enabled" checked={false} />
+      <Checkbox {...commonProps} label="Checkbox Checked Enabled" checked={true} />
+      <Checkbox {...commonProps} label="Checkbox Unchecked Disabled" checked={false} disabled={true} />
+      <Checkbox {...commonProps} label="Checkbox Checked Disabled" checked={true} />
+    </Box>
+  ))
+}
+
+export default load
