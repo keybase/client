@@ -9,14 +9,19 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type cmdChatRead struct {
+type CmdChatRead struct {
 	libkb.Contextified
-
-	fetcher chatCLIConversationFetcher
-
+	fetcher        chatCLIConversationFetcher
 	showDeviceName bool
+}
+
+func NewCmdChatReadRunner(g *libkb.GlobalContext) *CmdChatRead {
+	return &CmdChatRead{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -25,16 +30,40 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Usage:        "Show new messages in a conversation and mark them as read.",
 		ArgumentHelp: "<conversation>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdChatRead{Contextified: libkb.NewContextified(g)}, "read", c)
+			cl.ChooseCommand(NewCmdChatReadRunner(g), "read", c)
 		},
 		Flags: getMessageFetcherFlags(),
 	}
 }
 
-func (c *cmdChatRead) Run() error {
+func (c *CmdChatRead) Fetch() (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
+	return c.fetcher.fetch(context.TODO(), c.G())
+}
+
+func (c *CmdChatRead) SetTeamChatForTest(n string) {
+	c.fetcher = chatCLIConversationFetcher{
+		query: chat1.GetConversationForCLILocalQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			Limit: chat1.UnreadFirstNumLimit{
+				NumRead: 1000,
+				AtLeast: 100,
+			},
+			MarkAsRead: false,
+		},
+		resolvingRequest: chatConversationResolvingRequest{
+			TlfName:     n,
+			TopicName:   "#general",
+			MembersType: chat1.ConversationMembersType_TEAM,
+			TopicType:   chat1.TopicType_CHAT,
+			Visibility:  chat1.TLFVisibility_PRIVATE,
+		},
+	}
+}
+
+func (c *CmdChatRead) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	convLocal, messages, err := c.fetcher.fetch(context.TODO(), c.G())
+	convLocal, messages, err := c.Fetch()
 	if err != nil {
 		return err
 	}
@@ -56,7 +85,7 @@ func (c *cmdChatRead) Run() error {
 	return nil
 }
 
-func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	var tlfName string
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
@@ -68,7 +97,7 @@ func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *cmdChatRead) GetUsage() libkb.Usage {
+func (c *CmdChatRead) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

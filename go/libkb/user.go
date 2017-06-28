@@ -260,13 +260,12 @@ func (u *User) StoreSigChain(ctx context.Context) error {
 	return err
 }
 
-func (u *User) LoadSigChains(ctx context.Context, allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
+func (u *User) LoadSigChains(ctx context.Context, f *MerkleUserLeaf, self bool) (err error) {
 	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock().Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
 		user:         u,
 		self:         self,
-		allKeys:      allKeys,
 		leaf:         f,
 		chainType:    PublicChain,
 		Contextified: u.Contextified,

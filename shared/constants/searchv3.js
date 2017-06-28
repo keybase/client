@@ -42,6 +42,7 @@ export type RowProps = {|
   showTrackerButton: boolean,
   onShowTracker: () => void,
   onClick: () => void,
+  selected: boolean,
 |}
 
 // A normalized version of the row props above.
@@ -63,6 +64,11 @@ export type SearchResult = {|
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
   {term: string, service: Service, actionTypeToFire: TypeToFire}
+>
+
+export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
+  'searchv3:searchSuggestions',
+  {actionTypeToFire: TypeToFire, maxUsers: number}
 >
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<

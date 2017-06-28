@@ -781,7 +781,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	<-i.startCh
 	<-i.finishCh
 
-	// A new slow-path timeout and a new slow-path timeout
+	// A new fast-path timeout and a new slow-path timeout
 	if !i.fastStats.eq(1, 2, 1, 0, 0) || !i.slowStats.eq(1, 1, 1, 0, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}

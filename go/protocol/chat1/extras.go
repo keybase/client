@@ -27,6 +27,10 @@ func (id TLFID) String() string {
 	return hex.EncodeToString(id)
 }
 
+func (id TLFID) Bytes() []byte {
+	return []byte(id)
+}
+
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
@@ -235,6 +239,10 @@ func (o *OutboxID) Eq(r *OutboxID) bool {
 
 func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
+}
+
+func (o OutboxID) Bytes() []byte {
+	return []byte(o)
 }
 
 func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
@@ -551,4 +559,12 @@ func (r *FindConversationsLocalRes) SetOffline() {
 
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+}
+
+func (o TLFConvOrdinal) Int() int {
+	return int(o)
+}
+
+func (o TLFConvOrdinal) IsFirst() bool {
+	return o.Int() == 1
 }

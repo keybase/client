@@ -1,0 +1,21 @@
+// @flow
+import {Component} from 'react'
+import type {Exact} from '../../../constants/types/more'
+
+export type Props = {|
+  onBack?: () => void,
+  onChange: (deviceName: string) => void,
+  onSubmit: () => void,
+  deviceName: ?string,
+  deviceNameError?: ?string,
+  submitEnabled: boolean,
+  waiting?: ?boolean,
+  existingDevices?: ?Array<string>,
+  existingDevicesTrimmed?: ?Array<string>,
+|}
+
+export type State = {
+  deviceName: ?string,
+}
+
+declare export default class SetPublicName extends Component<void, Props, void> {}

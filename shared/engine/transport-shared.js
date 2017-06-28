@@ -14,8 +14,9 @@ const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT
 const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
 
 // Wrapped to ensure its called once
-function _makeOnceOnly(f: () => void): () => void {
+function _makeOnceOnly<F: Function>(f: F): F {
   let once = false
+  // $FlowIssue
   return (...args) => {
     if (once) {
       rpcLog('engineInternal', 'ignoring multiple result calls', {args})
@@ -27,14 +28,15 @@ function _makeOnceOnly(f: () => void): () => void {
 }
 
 // Wrapped to add logging
-function _makeLogged(
-  f: () => void,
+function _makeLogged<F: Function>(
+  f: F,
   type: rpcLogType,
   logTitle: string,
   extraInfo?: ?Object,
   titleFromArgs?: ?Function
-): () => void {
+): F {
   if (printRPC) {
+    // $FlowIssue
     return (...args) => {
       rpcLog(type, titleFromArgs ? titleFromArgs(...args) : logTitle, {...extraInfo, args})
       f(...args)
@@ -45,8 +47,9 @@ function _makeLogged(
 }
 
 // Wrapped to make time delayed functions to test timing issues
-function _makeDelayed(f: () => void, amount: number): () => void {
+function _makeDelayed<F: Function>(f: F, amount: number): F {
   if (__DEV__ && amount > 0) {
+    // $FlowIssue
     return (...args) => {
       localLog('%c[RPC Delay call]', 'color: red')
       setTimeout(() => {
@@ -59,16 +62,16 @@ function _makeDelayed(f: () => void, amount: number): () => void {
 }
 
 // We basically always delay/log/ensure once all the calls back and forth
-function _wrap(
-  f: () => void,
+function _wrap<F: Function>(
+  f: F,
   logType: rpcLogType,
   amount: number,
   logTitle: string,
   logInfo?: Object
-): () => void {
-  const logged = _makeLogged(f, logType, logTitle, logInfo)
-  const delayed = _makeDelayed(logged, amount)
-  const onceOnly = _makeOnceOnly(delayed)
+): F {
+  const logged: F = _makeLogged(f, logType, logTitle, logInfo)
+  const delayed: F = _makeDelayed(logged, amount)
+  const onceOnly: F = _makeOnceOnly(delayed)
   return onceOnly
 }
 

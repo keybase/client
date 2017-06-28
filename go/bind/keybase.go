@@ -8,7 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
+	"runtime/trace"
 	"sync"
+	"time"
 
 	"strings"
 
@@ -16,7 +20,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/fsrpc"
@@ -74,6 +77,8 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
+	startTrace(logFile)
+
 	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
 	dnsServers := dnsNSFetcher.GetServers()
 	for _, srv := range dnsServers {
@@ -83,7 +88,6 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
-	pvlsource.NewPvlSourceAndInstall(kbCtx)
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -115,6 +119,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
+	svc.SetupCriticalSubServices()
 	svc.RunBackgroundOperations(uir)
 
 	serviceLog := config.GetLogFile()
@@ -228,4 +233,27 @@ func Reset() error {
 // Version returns semantic version string
 func Version() string {
 	return libkb.VersionString()
+}
+
+func startTrace(logFile string) {
+	if os.Getenv("KEYBASE_TRACE_MOBILE") != "1" {
+		return
+	}
+
+	tname := filepath.Join(filepath.Dir(logFile), "svctrace.out")
+	f, err := os.Create(tname)
+	if err != nil {
+		fmt.Printf("error creating %s\n", tname)
+		return
+	}
+	fmt.Printf("Go: starting trace %s\n", tname)
+	trace.Start(f)
+	go func() {
+		fmt.Printf("Go: sleeping 30s for trace\n")
+		time.Sleep(30 * time.Second)
+		fmt.Printf("Go: stopping trace %s\n", tname)
+		trace.Stop()
+		time.Sleep(5 * time.Second)
+		fmt.Printf("Go: trace stopped\n")
+	}()
 }

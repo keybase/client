@@ -23,6 +23,13 @@
     },
     {
       "type": "record",
+      "name": "TLFConvOrdinal",
+      "fields": [],
+      "typedef": "uint",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TopicID",
       "fields": [],
       "typedef": "bytes"
@@ -103,6 +110,15 @@
         "BLOCKED_3",
         "MUTED_4",
         "REPORTED_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConversationMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "REMOVED_1",
+        "LEFT_2"
       ]
     },
     {
@@ -572,6 +588,13 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRoot"
+          ],
+          "name": "merkleRoot"
         },
         {
           "type": [

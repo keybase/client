@@ -157,9 +157,9 @@ func (api *BaseAPIEngine) PrepareMethodWithBody(method string, url1 url.URL, arg
 		if err != nil {
 			return nil, err
 		}
-		body = ioutil.NopCloser(strings.NewReader(string(jsonString)))
+		body = bytes.NewReader(jsonString)
 	} else {
-		body = ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
+		body = strings.NewReader(arg.getHTTPArgs().Encode())
 	}
 
 	req, err := http.NewRequest(method, ruri, body)
@@ -174,7 +174,7 @@ func (api *BaseAPIEngine) PrepareMethodWithBody(method string, url1 url.URL, arg
 		typ = "application/x-www-form-urlencoded; charset=utf-8"
 	}
 
-	req.Header.Add("Content-Type", typ)
+	req.Header.Set("Content-Type", typ)
 	return req, nil
 }
 
@@ -224,6 +224,8 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		ctx = context.Background()
 	}
 	ctx = WithLogTag(ctx, "API")
+	arg.NetContext = ctx
+
 	api.G().Log.CDebugf(ctx, "+ API %s %s", req.Method, req.URL)
 
 	if err = api.fixHeaders(arg, req); err != nil {
@@ -373,6 +375,14 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 			g.G().Log.CDebugf(ctx, "retry loop aborting since chat went offline")
 			break
 		}
+
+		if req.GetBody != nil {
+			// post request body consumed, need to get it back
+			req.Body, err = req.GetBody()
+			if err != nil {
+				return nil, nil, err
+			}
+		}
 	}
 
 	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
@@ -383,7 +393,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
-	ctx, cancel := context.WithTimeout(origCtx, timeout)
+	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier)
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
 }
@@ -548,9 +558,10 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 			}
 			a.G().Log.Debug("fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
+
 		if a.G().Env.GetTorMode().UseSession() {
 			if len(tok) > 0 {
-				req.Header.Add("X-Keybase-Session", tok)
+				req.Header.Set("X-Keybase-Session", tok)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
 				a.G().Log.Warning("fixHeaders: need session, but session token empty")
 				return InternalError{Msg: "API request requires session, but session token empty"}
@@ -558,7 +569,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) error {
 		}
 		if a.G().Env.GetTorMode().UseCSRF() {
 			if len(csrf) > 0 {
-				req.Header.Add("X-CSRF-Token", csrf)
+				req.Header.Set("X-CSRF-Token", csrf)
 			} else if arg.SessionType == APISessionTypeREQUIRED {
 				a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
 				return InternalError{Msg: "API request requires session, but session csrf empty"}
@@ -640,7 +651,9 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 	} else {
 		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
 	}
-	return LoginRequiredError{Context: "your session has expired."}
+
+	// use ReloginRequiredError to signal that the session needs to be refreshed
+	return ReloginRequiredError{}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -672,6 +685,32 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
+	reqErr := a.getDecode(arg, v)
+	if reqErr == nil {
+		return nil
+	}
+
+	if err := a.refreshSession(arg, reqErr); err != nil {
+		return err
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API GetDecode %s session refreshed, trying again", arg.Endpoint)
+
+	reqErr = a.getDecode(arg, v)
+	if reqErr == nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode %s success after refresh", arg.Endpoint)
+		return nil
+	}
+	if _, relogin := reqErr.(ReloginRequiredError); relogin {
+		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
+		return LoginRequiredError{Context: "your session has expired"}
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API GetDecode %s error after refresh: %s", arg.Endpoint, reqErr)
+	return reqErr
+}
+
+func (a *InternalAPIEngine) getDecode(arg APIArg, v APIResponseWrapper) error {
 	resp, finisher, err := a.GetResp(arg)
 	if err != nil {
 		a.G().Log.CDebugf(arg.NetContext, "| API GetDecode, GetResp error: %s", err)
@@ -736,6 +775,31 @@ func (a *InternalAPIEngine) postResp(arg APIArg) (*http.Response, func(), error)
 }
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
+	reqErr := a.postDecode(arg, v)
+	if reqErr == nil {
+		return nil
+	}
+
+	if err := a.refreshSession(arg, reqErr); err != nil {
+		return err
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API PostDecode %s session refreshed, trying again", arg.Endpoint)
+	reqErr = a.postDecode(arg, v)
+	if reqErr == nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API PostDecode %s success after refresh", arg.Endpoint)
+		return nil
+	}
+	if _, relogin := reqErr.(ReloginRequiredError); relogin {
+		a.G().Log.CDebugf(arg.NetContext, "| API PostDecode %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
+		return LoginRequiredError{Context: "your session has expired"}
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API PostDecode %s error after refresh: %s", arg.Endpoint, reqErr)
+	return reqErr
+}
+
+func (a *InternalAPIEngine) postDecode(arg APIArg, v APIResponseWrapper) error {
 	resp, finisher, err := a.postResp(arg)
 	if err != nil {
 		return err
@@ -770,6 +834,69 @@ func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
 }
 
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
+	res, reqErr := a.doRequest(arg, req)
+	if reqErr == nil {
+		return res, nil
+	}
+
+	if err := a.refreshSession(arg, reqErr); err != nil {
+		return res, err
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API call %s session refreshed, trying again", arg.Endpoint)
+
+	if req.GetBody != nil {
+		// post request body consumed, need to get it back
+		var err error
+		req.Body, err = req.GetBody()
+		if err != nil {
+			return res, err
+		}
+	}
+
+	res, err := a.doRequest(arg, req)
+	if err == nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API call %s success after refresh", arg.Endpoint)
+		return res, nil
+	}
+
+	if _, relogin := err.(ReloginRequiredError); relogin {
+		a.G().Log.CDebugf(arg.NetContext, "| API call %s retry after refresh still asking for new session, bailing out", arg.Endpoint)
+		return res, LoginRequiredError{Context: "your session has expired"}
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API call %s error after refresh: %s", arg.Endpoint, err)
+
+	return res, err
+}
+
+func (a *InternalAPIEngine) refreshSession(arg APIArg, reqErr error) error {
+	_, relogin := reqErr.(ReloginRequiredError)
+	if !relogin {
+		return reqErr
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API call %s session expired, trying to refresh", arg.Endpoint)
+
+	if arg.SessionR != nil {
+		// can't re-login with a SessionR
+		return LoginRequiredError{Context: "your session has expired"}
+
+	}
+
+	username := a.G().Env.GetUsername()
+	if err := a.G().LoginState().LoginWithStoredSecret(username.String(), nil); err != nil {
+		a.G().Log.CDebugf(arg.NetContext, "| API call %s session refresh error: %s", arg.Endpoint, err)
+		return LoginRequiredError{Context: "your session has expired"}
+
+	}
+
+	a.G().Log.CDebugf(arg.NetContext, "| API call %s session refreshed", arg.Endpoint)
+	return nil
+
+}
+
+func (a *InternalAPIEngine) doRequest(arg APIArg, req *http.Request) (*APIRes, error) {
 	resp, finisher, jw, err := doRequestShared(a, arg, req, true)
 	if err != nil {
 		return nil, err

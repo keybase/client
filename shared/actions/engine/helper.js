@@ -6,7 +6,8 @@ import {RPCTimeoutError} from '../../util/errors'
 import engine, {EngineChannel} from '../../engine'
 
 import * as Saga from '../../util/saga'
-import {call, put, cancelled, fork, join} from 'redux-saga/effects'
+import {channel, buffers, delay} from 'redux-saga'
+import {call, put, cancelled, fork, join, take, cancel} from 'redux-saga/effects'
 
 import * as SagaTypes from '../../constants/types/saga'
 import * as FluxTypes from '../../constants/types/flux'
@@ -18,6 +19,8 @@ const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
 const rpcResult = (args: any) => ({type: '@@engineRPCCall:respondResult', payload: args})
 const rpcError = (args: any) => ({type: '@@engineRPCCall:respondError', payload: args})
 const rpcCancel = (args: any) => ({type: '@@engineRPCCall:respondCancel', payload: args})
+
+const _subSagaFinished = (args: any) => ({type: '@@engineRPCCall:subSagaFinished', payload: args})
 
 const _isResult = ({type} = {}) => type === '@@engineRPCCall:respondResult'
 const _isError = ({type} = {}) => type === '@@engineRPCCall:respondError'
@@ -62,6 +65,14 @@ function _handleRPCDecorator(rpcNameKey, saga) {
   }
 }
 
+// This decorator to put the result on a channel
+function _putReturnOnChan(chan, saga) {
+  return function*(...args: any) {
+    const returnVal = yield call(saga, ...args)
+    yield put(chan, _subSagaFinished(returnVal))
+  }
+}
+
 function passthroughResponseSaga() {
   return rpcResult()
 }
@@ -73,6 +84,7 @@ class EngineRpcCall {
   _rpcNameKey: string // Used for the waiting state and error messages.
   _request: any
 
+  _subSagaChannel: SagaTypes.Channel<*>
   _engineChannel: EngineChannel
   _cleanedUp: boolean
 
@@ -82,6 +94,7 @@ class EngineRpcCall {
     this._rpc = rpc
     this._cleanedUp = false
     this._request = request
+    this._subSagaChannel = channel(buffers.expanding(10))
     // $FlowIssue with this
     this.run = this.run.bind(this) // In case we mess up and forget to do call([ctx, ctx.run])
     const {finished: finishedSaga, ...subSagas} = sagaMap
@@ -91,19 +104,25 @@ class EngineRpcCall {
       )
     }
     const decoratedSubSagas = mapValues(subSagas, saga =>
-      _sagaWaitingDecorator(rpcNameKey, _handleRPCDecorator(rpcNameKey, saga))
+      _putReturnOnChan(
+        this._subSagaChannel,
+        _sagaWaitingDecorator(rpcNameKey, _handleRPCDecorator(rpcNameKey, saga))
+      )
     )
 
     this._subSagas = decoratedSubSagas
   }
 
-  *_cleanup(lastTask: ?any): Generator<any, any, any> {
+  *_cleanup(subSagaTasks: Array<any>): Generator<any, any, any> {
     if (!this._cleanedUp) {
       this._cleanedUp = true
       // TODO(mm) should we respond to the pending rpc with error if we hit this?
       // Nojima and Marco think it's okay for now - maybe discuss with core what we should do.
-      lastTask && lastTask.cancel()
+      if (subSagaTasks.length) {
+        yield cancel(...subSagaTasks)
+      }
       this._engineChannel.close()
+      this._subSagaChannel.close()
       yield put(Creators.waitingForRpc(this._rpcNameKey, false))
     } else {
       console.error('Already cleaned up')
@@ -113,25 +132,29 @@ class EngineRpcCall {
   *run(timeout: ?number): Generator<any, RpcRunResult, any> {
     this._engineChannel = yield call(this._rpc, [...Object.keys(this._subSagas), 'finished'], this._request)
 
-    let lastTask: ?any = null
+    const subSagaTasks: Array<any> = []
     while (true) {
       try {
-        // If we have a lastTask, let's also race that.
+        // Race against a subSaga task returning by taking on
         // We want to cancel that task if another message comes in
         // We also want to check to see if the last task tells us to bail early
         const incoming = yield call([this._engineChannel, this._engineChannel.race], {
           // If we have a task currently running, we don't want to race with the timeout
-          timeout: lastTask ? undefined : timeout,
-          racers: lastTask ? {lastTask: join(lastTask)} : {},
+          timeout: subSagaTasks.filter(t => t.isRunning()).length ? undefined : timeout,
+          racers: {subSagaFinished: take(this._subSagaChannel)},
         })
 
         if (incoming.timeout) {
-          yield call([this, this._cleanup], lastTask)
+          yield call([this, this._cleanup], subSagaTasks)
           throw new RPCTimeoutError(this._rpcNameKey, timeout)
         }
 
         if (incoming.finished) {
-          yield call([this, this._cleanup], lastTask)
+          // Wait for all the subSagas to finish
+          if (subSagaTasks.length) {
+            yield join(...subSagaTasks)
+          }
+          yield call([this, this._cleanup], subSagaTasks)
           const {error, params} = incoming.finished
           return finished({error, params})
         }
@@ -139,31 +162,33 @@ class EngineRpcCall {
         const raceWinner = Object.keys(incoming)[0]
         const result = incoming[raceWinner]
 
-        if (raceWinner === 'lastTask') {
-          const result = incoming.lastTask
+        if (raceWinner === 'subSagaFinished') {
+          const result = incoming.subSagaFinished.payload
           if (_isCancel(result) || _isError(result)) {
-            yield call([this, this._cleanup], lastTask)
+            yield call([this, this._cleanup], subSagaTasks)
             return BailedEarly
           } else {
-            lastTask = null
+            // Put a delay(0) so a task that is just about finished will correctly return false for .isRunning()
+            yield delay(0)
             continue
           }
         }
 
         if (!raceWinner) {
-          throw new Error('Undefined race winner', raceWinner)
+          throw new Error(`Undefined race winner ${raceWinner}`)
         }
 
         // Should be impossible
         if (!this._subSagas[raceWinner]) {
-          throw new Error('No subSaga to handle the raceWinner', raceWinner)
+          throw new Error(`No subSaga to handle the raceWinner ${raceWinner}`)
         }
 
         // We could have multiple things told to us!
-        lastTask = yield fork(this._subSagas[raceWinner], result)
+        const subSagaTask = yield fork(this._subSagas[raceWinner], result)
+        subSagaTasks.push(subSagaTask)
       } finally {
         if (yield cancelled()) {
-          yield call([this, this._cleanup], lastTask)
+          yield call([this, this._cleanup], subSagaTasks)
         }
       }
     }

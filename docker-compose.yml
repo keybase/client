@@ -43,6 +43,8 @@ services:
             - MYSQL_DSN=root:secret@tcp(mysql.local:3306)/keybase
             - CHAT_MYSQL_DSN=root:secret@tcp(mysql.local:3306)/keybase
             - GREGOR_TLF_SERVER=fmprpc+tls://kbweb.local:13010
+            - GREGOR_TEAM_SERVER=fmprpc+tls://kbweb.local:7890
+            - INSECURE_TLS_MODE=1
             - GREGOR_TLFAUTH_PRIVATE_SIGNING_KEY=e20589b8cd66d447aaee44b587305bd521f34f3085709b32b4e3bd479b20253e59ea153c88a8ea524d39e0ae58fa195749214b38a28fdb4229ba3390b2d33e86
             - GREGOR_TLFAUTH_PUBLIC_SIGNING_KEY=012059ea153c88a8ea524d39e0ae58fa195749214b38a28fdb4229ba3390b2d33e860a
         logging:

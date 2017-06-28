@@ -1,5 +1,5 @@
 // @flow
-import DeviceName from '../register/set-public-name/index.render'
+import DeviceName from '../register/set-public-name'
 import Error from './error/index.render'
 import HiddenString from '../../util/hidden-string'
 import InviteCode from './invite-code.render'

@@ -8,7 +8,7 @@ const followingStateToStyle = (followingState: Constants.FollowingState) => {
       color: globalColors.green2,
     },
     NoState: {
-      color: globalColors.black,
+      color: globalColors.black_40,
     },
     NotFollowing: {
       color: globalColors.blue,

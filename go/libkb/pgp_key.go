@@ -524,12 +524,29 @@ func (k *PGPKeyBundle) HasSecretKey() bool {
 	return k.PrivateKey != nil
 }
 
+// findPGPPrivateKey checks if supposed secret key PGPKeyBundle
+// contains any valid PrivateKey entities. Sometimes primary private
+// key is stupped out but there are subkeys with secret keys.
+func findPGPPrivateKey(k *PGPKeyBundle) bool {
+	if k.PrivateKey.PrivateKey != nil {
+		return true
+	}
+
+	for _, subKey := range k.Subkeys {
+		if subKey.PrivateKey != nil && subKey.PrivateKey.PrivateKey != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
-	} else if k.PrivateKey.PrivateKey == nil && k.GPGFallbackKey == nil {
+	} else if !findPGPPrivateKey(k) && k.GPGFallbackKey == nil {
 		err = BadKeyError{"no private key material or GPGKey"}
 	}
 	return

@@ -10,6 +10,7 @@ import {
   onClickFollowing,
   checkProof,
 } from '../actions/profile'
+import {searchSuggestions} from '../actions/searchv3/creators'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
@@ -106,7 +107,7 @@ export default connect(
       dispatch(addProof(missingProof.type))
     },
     onRecheckProof: (proof: Proof) => {
-      dispatch(checkProof(proof && proof.id))
+      dispatch(checkProof())
     },
     onRevokeProof: (proof: Proof) => {
       dispatch(
@@ -122,6 +123,7 @@ export default connect(
       )
     },
     onSearch: () => {
+      dispatch(searchSuggestions('profile:updateSearchResults'))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {
@@ -167,6 +169,7 @@ export default connect(
       ...dispatchProps,
       bioEditFns,
       currentFriendshipsTab: stateProps.currentFriendshipsTab,
+      followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
       isYou,

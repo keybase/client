@@ -46,9 +46,11 @@ const servicesFilterMap: DumbComponentMap<ServicesFilter> = {
 
 const commonServicesResultMapProps = {
   parentProps: {
-    style: {
-      width: 480,
-    },
+    style: isMobile
+      ? {}
+      : {
+          width: 480,
+        },
   },
   showTrackerButton: false,
   id: 0,
@@ -217,6 +219,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
   }
 })
 
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+})
+
 const servicesResultsListMapCommon = {
   mockStore: {
     config: {
@@ -224,7 +230,7 @@ const servicesResultsListMapCommon = {
       following: {},
     },
     entities: new EntitiesStateRecord({
-      searchv3Chat: Map(servicesResultsListMapCommonRows),
+      searchResults: Map(servicesResultsListMapCommonRows),
     }),
   },
   parentProps: {
@@ -232,6 +238,7 @@ const servicesResultsListMapCommon = {
       width: 420,
     },
   },
+  selectedId: null,
 }
 
 const servicesResultsListMap: DumbComponentMap<ResultsList> = {
@@ -275,6 +282,7 @@ const commonUserInputMapProps = {
   onClickAddButton: () => console.log('username input add button clicked'),
   onMoveSelectUp: () => console.log('username input moveSelectUp'),
   onMoveSelectDown: () => console.log('username input moveSelectDown'),
+  onEnter: () => console.log('username input on enter'),
 }
 
 const maxUsers = [
@@ -425,16 +433,10 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
   },
 }
 
-const desktopOnly = !isMobile
-  ? {
-      'SearchV3 result': servicesResultMap,
-      'SearchV3 resultsList': servicesResultsListMap,
-    }
-  : {}
-
 export default {
+  'SearchV3 resultsList': servicesResultsListMap,
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
   'SearchV3 user input (editable)': userInputEditableMap,
-  ...desktopOnly,
+  'SearchV3 result': servicesResultMap,
 }

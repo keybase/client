@@ -13,11 +13,3 @@ class Pinentry extends Component {
 }
 
 export default connect((state, ownProps) => state.pinentry.pinentryStates[ownProps.sessionID] || {})(Pinentry)
-
-export function selector(): (store: Object) => ?Object {
-  return store => ({
-    pinentry: {
-      pinentryStates: store.pinentry.pinentryStates || {},
-    },
-  })
-}

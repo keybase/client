@@ -68,7 +68,8 @@ class UserImage extends PureComponent<void, ImageProps, void> {
           position: 'absolute',
           right: 0,
           top: 0,
-          width: size,
+          minWidth: size,
+          maxWidth: size,
         }}
       />
     )
@@ -89,6 +90,8 @@ const Border = ({borderColor, size}) => (
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
+      minWidth: size,
+      maxWidth: size,
     }}
   />
 )
@@ -180,13 +183,14 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...globalStyles.noSelect,
           height: size,
           position: 'relative',
-          width: size,
+          minWidth: size,
+          maxWidth: size,
           ...style,
         }}
       >
         <Background loaded={this.state.loaded} loadingColor={loadingColor} />
         {url && <UserImage opacity={opacity} size={size} url={url} />}
-        {!!borderColor && <Border borderColor={borderColor} />}
+        {!!borderColor && <Border borderColor={borderColor} size={size} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
         {children}
       </div>

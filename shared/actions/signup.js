@@ -14,7 +14,7 @@ import {
 import {isMobile} from '../constants/platform'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 import {loginTab} from '../constants/tabs'
-import {navBasedOnLoginState} from './login/creators'
+import * as Creators from './login/creators'
 import {navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {
@@ -84,11 +84,12 @@ function checkInviteCode(
     })
 }
 
-function requestAutoInvite(): TypedAsyncAction<
-  CheckInviteCode | NavigateAppend | NavigateTo | SignupWaiting
-> {
-  return dispatch =>
-    new Promise((resolve, reject) => {
+function requestAutoInvite(): AsyncAction {
+  return dispatch => {
+    dispatch(Creators.setLoginFromRevokedDevice(''))
+    dispatch(Creators.setRevokedSelf(''))
+    dispatch(Creators.setDeletedSelf(''))
+    return new Promise((resolve, reject) => {
       signupGetInvitationCodeRpc({
         callback: (err, inviteCode) => {
           // TODO: It would be better to book-keep having asked for an auto
@@ -109,6 +110,7 @@ function requestAutoInvite(): TypedAsyncAction<
         },
       })
     })
+  }
 }
 
 function requestInvite(
@@ -261,8 +263,8 @@ function checkPassphrase(
         passphraseError = new HiddenString('Fields cannot be blank')
       } else if (passphrase1 !== passphrase2) {
         passphraseError = new HiddenString('Passphrases must match')
-      } else if (passphrase1.length < 12) {
-        passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
+      } else if (passphrase1.length < 6) {
+        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
       }
 
       if (passphraseError) {
@@ -453,7 +455,7 @@ function restartSignup(): TypedAsyncAction<RestartSignup | NavigateTo> {
         payload: {},
         type: Constants.restartSignup,
       })
-      dispatch(navBasedOnLoginState())
+      dispatch(Creators.navBasedOnLoginState())
       resolve()
     })
 }

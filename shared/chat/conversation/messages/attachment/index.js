@@ -5,7 +5,7 @@ import React from 'react'
 import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../../common-adapters'
 import {isMobile, fileUIName} from '../../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
-import {ImageRender} from './image'
+import {ImageRender, imgMaxWidth} from './image'
 
 import type {Props, ProgressBarProps, ImageIconProps} from '.'
 
@@ -35,22 +35,13 @@ const AttachmentTitle = ({
 }
 
 function PreviewImage({
-  message: {
-    attachmentDurationMs,
-    previewDurationMs,
-    previewPath,
-    previewType,
-    previewSize,
-    messageState,
-    messageID,
-    downloadProgress,
-    downloadedPath,
-    savedPath,
-  },
+  message: {attachmentDurationMs, previewDurationMs, previewType, previewSize, messageState, messageID},
+  localMessageState: {downloadProgress, previewPath, downloadedPath, savedPath},
   onMessageAction,
   onOpenInPopup,
 }: {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
   onMessageAction: ?() => void,
   onOpenInPopup: ?() => void,
 }) {
@@ -61,11 +52,18 @@ function PreviewImage({
       marginTop: globalMargins.xtiny,
       position: 'relative',
     }
+
+    const imgWidth = imgMaxWidth()
+    // Don't exceed screen dimensions, keep it scaled
+    const previewRatio = previewSize && previewSize.width
+      ? Math.min(previewSize.width, imgWidth) / previewSize.width
+      : 1
+
     const imgStyle = {
       borderRadius: 4,
       ...(previewSize
-        ? {height: previewSize.height, width: previewSize.width}
-        : {maxHeight: 320, maxWidth: 320}),
+        ? {height: previewRatio * previewSize.height, width: previewRatio * previewSize.width}
+        : {maxHeight: imgWidth, maxWidth: imgWidth}),
     }
 
     switch (messageState) {
@@ -178,16 +176,19 @@ const ShowInFileUi = ({onOpenInFileUI}) => (
 
 function PreviewImageWithInfo({
   message,
+  localMessageState,
   onMessageAction,
   onOpenInFileUI,
   onOpenInPopup,
 }: {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
   onMessageAction: ?() => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
 }) {
-  const {savedPath, messageState, downloadProgress, uploadProgress} = message
+  const {messageState} = message
+  const {downloadProgress, previewProgress, uploadProgress, savedPath} = localMessageState
 
   const overlayProgressBarStyle = {
     bottom: globalMargins.xtiny,
@@ -202,8 +203,13 @@ function PreviewImageWithInfo({
   return (
     <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
       <Box style={{...globalStyles.flexBoxColumn, alignSelf: 'flex-start', position: 'relative'}}>
-        <PreviewImage message={message} onMessageAction={onMessageAction} onOpenInPopup={onOpenInPopup} />
-        {(messageState === 'placeholder' || message.previewProgress !== null) &&
+        <PreviewImage
+          message={message}
+          localMessageState={localMessageState}
+          onMessageAction={onMessageAction}
+          onOpenInPopup={onOpenInPopup}
+        />
+        {(messageState === 'placeholder' || previewProgress !== null) &&
           <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>
             <ProgressIndicator style={{width: 32}} />
           </Box>}
@@ -221,9 +227,11 @@ function PreviewImageWithInfo({
 }
 
 function AttachmentIcon({
-  message: {messageState, downloadProgress, downloadedPath},
+  message: {messageState},
+  localMessageState: {downloadProgress, downloadedPath},
 }: {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
 }) {
   let iconType = 'icon-file-24'
   let style = {backgroundColor: globalColors.white, height: 24, marginBottom: 8, marginTop: 8}
@@ -244,18 +252,21 @@ function AttachmentIcon({
 
 function AttachmentMessageGeneric({
   message,
+  localMessageState,
   onMessageAction,
   onOpenInFileUI,
   onDownloadAttachment,
   onOpenInPopup,
 }: {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
   onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onDownloadAttachment: () => void,
   onOpenInPopup: ?() => void,
 }) {
-  const {savedPath, messageState, uploadProgress, downloadProgress} = message
+  const {messageState} = message
+  const {downloadProgress, savedPath, uploadProgress} = localMessageState
   const canOpen = messageState !== 'uploading' && messageState !== 'pending'
   return (
     <Box
@@ -266,7 +277,7 @@ function AttachmentMessageGeneric({
       }}
       onClick={!savedPath ? onDownloadAttachment : undefined}
     >
-      <AttachmentIcon message={message} />
+      <AttachmentIcon message={message} localMessageState={localMessageState} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.xtiny}}>
         <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
 
@@ -286,11 +297,13 @@ function AttachmentMessageGeneric({
 
 function AttachmentMessagePreviewImage({
   message,
+  localMessageState,
   onMessageAction,
   onOpenInFileUI,
   onOpenInPopup,
 }: {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
   onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
@@ -301,6 +314,7 @@ function AttachmentMessagePreviewImage({
       <AttachmentTitle {...message} onOpenInPopup={canOpen ? onOpenInPopup : null} />
       <PreviewImageWithInfo
         message={message}
+        localMessageState={localMessageState}
         onMessageAction={onMessageAction}
         onOpenInFileUI={onOpenInFileUI}
         onOpenInPopup={canOpen ? onOpenInPopup : null}
@@ -316,6 +330,7 @@ const AttachmentMessage = (props: Props) => {
       return (
         <AttachmentMessagePreviewImage
           message={props.message}
+          localMessageState={props.localMessageState}
           onMessageAction={props.onAction}
           onOpenInPopup={props.onOpenInPopup}
           onOpenInFileUI={props.onOpenInFileUI}
@@ -325,6 +340,7 @@ const AttachmentMessage = (props: Props) => {
       return (
         <AttachmentMessageGeneric
           message={props.message}
+          localMessageState={props.localMessageState}
           onMessageAction={props.onAction}
           onOpenInFileUI={props.onOpenInFileUI}
           onDownloadAttachment={props.onDownloadAttachment}

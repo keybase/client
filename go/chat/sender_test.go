@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
@@ -49,6 +50,7 @@ func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                       
 func (n *chatListener) PGPKeyInSecretStoreFile()                                            {}
 func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *chatListener) TeamKeyRotated(teamID keybase1.TeamID, teamName string)              {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
@@ -132,8 +134,16 @@ func userTc(t *testing.T, world *kbtest.ChatMockWorld, user *kbtest.FakeUser) *k
 	return &kbtest.ChatTestContext{}
 }
 
+func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.ChatMockWorld) {
+	res := kbtest.NewChatMockWorld(t, name, numUsers)
+	for _, w := range res.Tcs {
+		teams.NewTeamLoaderAndInstall(w.G)
+	}
+	return res
+}
+
 func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener) {
-	world := kbtest.NewChatMockWorld(t, "chatsender", numUsers)
+	world := NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
 	u := world.GetUsers()[0]

@@ -221,9 +221,12 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
 		case keybase1.AppState_FOREGROUND:
-			g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
-			if err := g.Connect(g.uri); err != nil {
-				g.chatLog.Debug(context.Background(), "error reconnecting")
+			// Make sure the URI is set before attempting this (possible it isnt in a race)
+			if g.uri != nil {
+				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+				if err := g.Connect(g.uri); err != nil {
+					g.chatLog.Debug(context.Background(), "error reconnecting")
+				}
 			}
 		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
@@ -370,7 +373,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 		}
 
 		if g.badger != nil {
-			s, err := g.getState()
+			s, err := g.getState(context.Background())
 			if err != nil {
 				g.Warning(context.Background(), "Cannot get state in PushHandler: %s", err)
 				return
@@ -389,7 +392,7 @@ func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler)
 	defer g.Unlock()
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
 
-	s, err := g.getState()
+	s, err := g.getState(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
@@ -412,7 +415,7 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 }
 
 func (g *gregorHandler) pushState(r keybase1.PushReason) {
-	s, err := g.getState()
+	s, err := g.getState(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
@@ -447,7 +450,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 
 	if t.IsZero() {
 		g.Debug(ctx, "replayInBandMessages: fresh replay: using state items")
-		state, err := gcli.StateMachineState(nil)
+		state, err := gcli.StateMachineState(ctx, nil)
 		if err != nil {
 			g.Debug(ctx, "unable to fetch state for replay: %s", err)
 			return nil, err
@@ -458,7 +461,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		}
 	} else {
 		g.Debug(ctx, "replayInBandMessages: incremental replay: using ibms since")
-		if msgs, err = gcli.StateMachineInBandMessagesSince(t); err != nil {
+		if msgs, err = gcli.StateMachineInBandMessagesSince(ctx, t); err != nil {
 			g.Debug(ctx, "unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
@@ -506,7 +509,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
 	if !g.firstConnect {
-		pt := gcli.StateMachineLatestCTime()
+		pt := gcli.StateMachineLatestCTime(ctx)
 		if pt != nil {
 			t = *pt
 		}
@@ -516,7 +519,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	}
 
 	// Sync down everything from the server
-	consumedMsgs, err := gcli.Sync(cli, syncRes)
+	consumedMsgs, err := gcli.Sync(ctx, cli, syncRes)
 	if err != nil {
 		g.Debug(ctx, "serverSync: error syncing from the server, reason: %s", err)
 		return nil, nil, err
@@ -565,7 +568,7 @@ func (g *gregorHandler) inboxParams(ctx context.Context, uid gregor1.UID) chat1.
 }
 
 func (g *gregorHandler) notificationParams(ctx context.Context, gcli *grclient.Client) (t gregor1.Time) {
-	pt := gcli.StateMachineLatestCTime()
+	pt := gcli.StateMachineLatestCTime(ctx)
 	if pt != nil {
 		t = gregor1.ToTime(*pt)
 	}
@@ -742,7 +745,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
-		state, err := gcli.StateMachineState(nil)
+		state, err := gcli.StateMachineState(ctx, nil)
 		if err != nil {
 			g.Debug(ctx, "BroadcastMessage: no state machine available: %s", err.Error())
 			return err
@@ -756,7 +759,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
 
 		// Send message to local state machine
-		gcli.StateMachineConsumeMessage(m)
+		gcli.StateMachineConsumeMessage(ctx, m)
 
 		// Forward to electron or whichever UI is listening for the new gregor state
 		if g.pushStateFilter(m) {
@@ -847,7 +850,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 	if err != nil {
 		return false, err
 	}
-	state, err := gcli.StateMachineState(nil)
+	state, err := gcli.StateMachineState(ctx, nil)
 	if err != nil {
 		return false, err
 	}
@@ -1046,17 +1049,14 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
+	// Send the oobm to that chat system so that it can potentially handle it
+	if g.G().PushHandler != nil {
+		g.G().PushHandler.HandleOobm(ctx, obm)
+	}
+
 	switch obm.System().String() {
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
-	case "chat.activity":
-		return g.G().PushHandler.Activity(ctx, obm)
-	case "chat.tlffinalize":
-		return g.G().PushHandler.TlfFinalize(ctx, obm)
-	case "chat.tlfresolve":
-		return g.G().PushHandler.TlfResolve(ctx, obm)
-	case "chat.typing":
-		return g.G().PushHandler.Typing(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1138,32 +1138,22 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	res = loggedInMaybe
-	aerr := g.G().LoginState().Account(func(a *libkb.Account) {
-		in, err := a.LoggedInLoad()
-		if err != nil {
-			g.G().Log.Debug("gregorHandler loggedIn check: LoggedInLoad error: %s", err)
-			res = loggedInMaybe
-			return
+	status, err := g.G().LoginState().APIServerSession()
+	if err != nil {
+		switch err.(type) {
+		case libkb.LoginRequiredError:
+			return uid, token, loggedInNo
+		case libkb.NoSessionError:
+			return uid, token, loggedInNo
+		default:
+			g.G().Log.Debug("gregorHandler APIServerSessionStatus error (%T): %s", err, err)
+
 		}
-		if !in {
-			g.G().Log.Debug("gregorHandler loggedIn check: not logged in")
-			res = loggedInNo
-			return
-		}
-		g.G().Log.Debug("gregorHandler: logged in, getting token and uid")
-		token = a.LocalSession().GetToken()
-		uid = a.LocalSession().GetUID()
-		res = loggedInYes
-	}, "gregor handler - login session")
-	if token == "" || uid == "" {
-		return uid, token, res
-	}
-	if aerr != nil {
-		return uid, token, res
+		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
+		return uid, token, loggedInMaybe
 	}
 
-	return uid, token, res
+	return status.UID, status.SessionToken, loggedInYes
 }
 
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *gregor1.AuthResult) (err error) {
@@ -1215,7 +1205,7 @@ func (g *gregorHandler) isReachable() bool {
 	}
 	if err != nil {
 		g.chatLog.Debug(ctx, "isReachable: error: terminating connection: %s", err.Error())
-		if err := g.Reconnect(ctx); err != nil {
+		if _, err := g.Reconnect(ctx); err != nil {
 			g.chatLog.Debug(ctx, "isReachable: error reconnecting: %s", err.Error())
 		}
 		return false
@@ -1224,15 +1214,17 @@ func (g *gregorHandler) isReachable() bool {
 	return true
 }
 
-func (g *gregorHandler) Reconnect(ctx context.Context) error {
+func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err error) {
 	if g.IsConnected() {
+		didShutdown = true
 		g.chatLog.Debug(ctx, "Reconnect: reconnecting to server")
 		g.Shutdown()
-		return g.Connect(g.uri)
+		return didShutdown, g.Connect(g.uri)
 	}
 
+	didShutdown = false
 	g.chatLog.Debug(ctx, "Reconnect: skipping reconnect, already disconnected")
-	return nil
+	return didShutdown, nil
 }
 
 func (g *gregorHandler) pingLoop() {
@@ -1294,11 +1286,19 @@ func (g *gregorHandler) pingLoop() {
 				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
 				if err == context.DeadlineExceeded {
 					g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
-					if err := g.Reconnect(ctx); err != nil {
-						g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id, err.Error())
+					var didShutdown bool
+					var err error
+					if didShutdown, err = g.Reconnect(ctx); err != nil {
+						g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id,
+							err.Error())
 					}
-					shutdownCancel()
-					return
+					// It is possible that we have already reconnected by the time we call Reconnect
+					// above. If that is the case, we don't want to terminate the ping loop. Only
+					// if Reconnect has actually reset the connection do we stop this ping loop.
+					if didShutdown {
+						shutdownCancel()
+						return
+					}
 				}
 			}
 		case <-g.shutdownCh:
@@ -1508,14 +1508,14 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 }
 
-func (g *gregorHandler) getState() (res gregor1.State, err error) {
+func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err error) {
 	var s gregor.State
 
 	if g == nil || g.gregorCli == nil {
 		return res, errors.New("gregor service not available (are you in standalone?)")
 	}
 
-	s, err = g.gregorCli.StateMachineState(nil)
+	s, err = g.gregorCli.StateMachineState(ctx, nil)
 	if err != nil {
 		return res, err
 	}
@@ -1533,8 +1533,8 @@ func (g *gregorHandler) getState() (res gregor1.State, err error) {
 	return res, nil
 }
 
-func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
-	return g.gh.getState()
+func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
+	return g.gh.getState(ctx)
 }
 
 func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {

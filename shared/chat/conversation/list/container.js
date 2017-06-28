@@ -89,8 +89,8 @@ const mapStateToProps = (
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  _onDownloadAttachment: (selectedConversation, messageID) => {
-    dispatch(Creators.saveAttachment(selectedConversation, messageID))
+  _onDownloadAttachment: messageKey => {
+    dispatch(Creators.saveAttachment(messageKey))
   },
   _onLoadMoreMessages: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(Creators.loadMoreMessages(conversationIDKey, false))
@@ -127,9 +127,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     onDeleteMessage: dispatchProps.onDeleteMessage,
     onEditMessage: dispatchProps.onEditMessage,
     onFocusInput: stateProps.onFocusInput,
-    onDownloadAttachment: messageID => {
-      stateProps.selectedConversation &&
-        dispatchProps._onDownloadAttachment(stateProps.selectedConversation, messageID)
+    onDownloadAttachment: messageKey => {
+      stateProps.selectedConversation && dispatchProps._onDownloadAttachment(messageKey)
     },
     onLoadMoreMessages: () => {
       stateProps.selectedConversation && dispatchProps._onLoadMoreMessages(stateProps.selectedConversation)

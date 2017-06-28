@@ -1,14 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-export type FriendshipUserInfo = {
+export type FriendshipUserInfo = {|
   username: string,
   thumbnailUrl: ?string,
   uid: string,
   fullname: string,
   followsYou: boolean,
   following: boolean,
-}
+|}
 
 export type Tab = 'Followers' | 'Following'
 
@@ -19,6 +19,7 @@ export type Props = {
   currentTab: Tab,
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,
+  followersLoaded: boolean,
   followers: Array<FriendshipUserInfo>,
   following: Array<FriendshipUserInfo>,
 }

@@ -22,6 +22,7 @@ class DumbSheetRender extends Component<void, Props, any> {
     this.state = {
       filterShow: false,
       localFilter: props.dumbFilter || '',
+      mockStore: null,
       testIndex: 0,
     }
 
@@ -41,7 +42,7 @@ class DumbSheetRender extends Component<void, Props, any> {
 
   _increment() {
     if (this.props.autoIncrement && this.state.testIndex !== -1) {
-      const total = this._getTotal(null, -1)
+      const total = this._getTotal(null)
       if (this.state.testIndex >= total) {
         this.setState({testIndex: -1})
       } else {
@@ -131,26 +132,32 @@ class DumbSheetRender extends Component<void, Props, any> {
     }
     const {component, mock} = this._getComponent(null, this.state.testIndex)
 
-    this._updateMockStore(mock.mockStore)
+    if (!this._updateMockStore(mock.mockStore)) return null
+
     console.log('test render idx', this.state.testIndex, component)
     return <Box>{this._makeStoreWrapper(component)}</Box>
   }
 
   _updateMockStore(mockStore: any) {
-    if (mockStore) {
-      if (!this._mockStore) {
-        this._mockStore = createStore(old => mockStore, mockStore)
+    if (mockStore === this._mockStore) return true
+
+    setImmediate(() => {
+      this._mockStore = mockStore
+      if (mockStore) {
+        if (!this.state.mockStore) {
+          this.setState({mockStore: createStore(old => mockStore, mockStore)})
+        } else {
+          // necessary to stop warnings about dynamically replacing the store https://github.com/reactjs/react-redux/releases/tag/v2.0.0
+          this.setState({mockStore: this.state.mockStore.replaceReducer(old => mockStore)})
+        }
       } else {
-        // necessary to stop warnings about dynamically replacing the store https://github.com/reactjs/react-redux/releases/tag/v2.0.0
-        this._mockStore.replaceReducer(old => mockStore)
+        this.setState({mockStore: null})
       }
-    } else {
-      this._mockStore = null
-    }
+    })
   }
 
   _makeStoreWrapper(component) {
-    return this._mockStore ? <Provider store={this._mockStore}>{component}</Provider> : component
+    return this.state.mockStore ? <Provider store={this.state.mockStore}>{component}</Provider> : component
   }
 
   renderSingle() {
@@ -260,7 +267,15 @@ class DumbSheetRender extends Component<void, Props, any> {
           />
         </Box>
         <Box style={styleBox}>
-          <Text type="BodySmall">{key}: {mockKey}</Text>
+          <Text type="BodySmall">
+            {key}
+            :
+            {' '}
+            {mockKey}
+            {!!mock.parentProps && !!mock.parentProps.style && Object.keys(mock.parentProps.style).length
+              ? ' (with parent props style) '
+              : ''}
+          </Text>
           <Box style={styleSmallScreen}>
             <Box {...mock.parentProps}>
               {this._makeStoreWrapper(component)}

@@ -12,6 +12,7 @@ export type UserDetails = {
 }
 
 export type Props = {
+  autoFocus?: boolean,
   placeholder?: string,
   userItems: Array<UserDetails>,
   usernameText: string,
@@ -20,6 +21,9 @@ export type Props = {
   onClickAddButton: () => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
+  onEnter: () => void,
 }
 
-export default class UserInput extends Component<void, Props, void> {}
+export default class UserInput extends Component<void, Props, void> {
+  focus: () => void
+}

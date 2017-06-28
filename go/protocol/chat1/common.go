@@ -26,6 +26,12 @@ func (o MessageID) DeepCopy() MessageID {
 	return o.DeepCopy()
 }
 
+type TLFConvOrdinal uint
+
+func (o TLFConvOrdinal) DeepCopy() TLFConvOrdinal {
+	return o.DeepCopy()
+}
+
 type TopicID []byte
 
 func (o TopicID) DeepCopy() TopicID {
@@ -211,6 +217,35 @@ var ConversationStatusRevMap = map[ConversationStatus]string{
 
 func (e ConversationStatus) String() string {
 	if v, ok := ConversationStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ConversationMemberStatus int
+
+const (
+	ConversationMemberStatus_ACTIVE  ConversationMemberStatus = 0
+	ConversationMemberStatus_REMOVED ConversationMemberStatus = 1
+	ConversationMemberStatus_LEFT    ConversationMemberStatus = 2
+)
+
+func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
+
+var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
+	"ACTIVE":  0,
+	"REMOVED": 1,
+	"LEFT":    2,
+}
+
+var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
+	0: "ACTIVE",
+	1: "REMOVED",
+	2: "LEFT",
+}
+
+func (e ConversationMemberStatus) String() string {
+	if v, ok := ConversationMemberStatusRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -648,6 +683,7 @@ type MessageClientHeaderVerified struct {
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	MerkleRoot   *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
@@ -668,6 +704,13 @@ func (o MessageClientHeaderVerified) DeepCopy() MessageClientHeaderVerified {
 		})(o.Prev),
 		Sender:       o.Sender.DeepCopy(),
 		SenderDevice: o.SenderDevice.DeepCopy(),
+		MerkleRoot: (func(x *MerkleRoot) *MerkleRoot {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MerkleRoot),
 		OutboxID: (func(x *OutboxID) *OutboxID {
 			if x == nil {
 				return nil

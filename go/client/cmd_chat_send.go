@@ -20,7 +20,7 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
-type cmdChatSend struct {
+type CmdChatSend struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
@@ -33,13 +33,32 @@ type cmdChatSend struct {
 	team          bool
 }
 
+func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
+	return &CmdChatSend{Contextified: libkb.NewContextified(g)}
+}
+
+func (c *CmdChatSend) SetTeamChatForTest(n string) {
+	c.team = true
+	c.resolvingRequest = chatConversationResolvingRequest{
+		TlfName:     n,
+		TopicName:   "#general",
+		MembersType: chat1.ConversationMembersType_TEAM,
+		TopicType:   chat1.TopicType_CHAT,
+		Visibility:  chat1.TLFVisibility_PRIVATE,
+	}
+}
+
+func (c *CmdChatSend) SetMessage(m string) {
+	c.message = m
+}
+
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "send",
 		Usage:        "Send a message to a conversation",
 		ArgumentHelp: "[conversation [message]]",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
+			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
 			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
@@ -47,7 +66,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-func (c *cmdChatSend) Run() (err error) {
+func (c *CmdChatSend) Run() (err error) {
 	chatClient, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -144,7 +163,7 @@ func (c *cmdChatSend) Run() (err error) {
 	return nil
 }
 
-func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
+func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
@@ -237,7 +256,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *cmdChatSend) GetUsage() libkb.Usage {
+func (c *CmdChatSend) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

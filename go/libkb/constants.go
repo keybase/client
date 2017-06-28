@@ -113,6 +113,8 @@ const (
 	LocalTrackMaxAge = 48 * time.Hour
 
 	CriticalClockSkewLimit = time.Hour
+
+	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -182,6 +184,7 @@ const (
 	SCBadInvitationCode      = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
+	SCKeyCorrupted           = int(keybase1.StatusCode_SCKeyCorrupted)
 	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
 	SCKeyBadGen              = int(keybase1.StatusCode_SCKeyBadGen)
 	SCKeyNoSecret            = int(keybase1.StatusCode_SCKeyNoSecret)
@@ -241,6 +244,8 @@ const (
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
 	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
+	SCChatDuplicateMessage   = int(keybase1.StatusCode_SCChatDuplicateMessage)
+	SCAccountReset           = int(keybase1.StatusCode_SCAccountReset)
 )
 
 const (
@@ -271,6 +276,7 @@ const (
 	LinkTypeNewSubteam       LinkType = "team.new_subteam"
 	LinkTypeSubteamHead      LinkType = "team.subteam_head"
 	LinkTypeChangeMembership LinkType = "team.change_membership"
+	LinkTypeRotateKey        LinkType = "team.rotate_key"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
@@ -515,8 +521,9 @@ const (
 )
 
 const (
-	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
-	EncryptionReasonChatMessage      EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonChatLocalStorage  EncryptionReason = "Keybase-Chat-Local-Storage-1"
+	EncryptionReasonChatMessage       EncryptionReason = "Keybase-Chat-Message-1"
+	EncryptionReasonTeamsLocalStorage EncryptionReason = "Keybase-Teams-Local-Storage-1"
 )
 
 type DeriveReason string
@@ -593,3 +600,11 @@ const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
 )
+
+var CITimeMultiplier time.Duration = 1
+
+func init() {
+	if RunningInCI() {
+		CITimeMultiplier = 3
+	}
+}

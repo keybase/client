@@ -11,10 +11,16 @@ type State = {
   pass2: string,
 }
 
-class PassphraseForm extends Component {
+type ContainerProps = {
+  ...Props,
+  checkPassphrase: (pass1: string, pass2: string) => void,
+  restartSignup: () => void,
+}
+
+class PassphraseForm extends Component<void, ContainerProps, State> {
   state: State
 
-  constructor(props: Props) {
+  constructor(props: ContainerProps) {
     super(props)
 
     this.state = {

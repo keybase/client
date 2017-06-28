@@ -2,16 +2,16 @@
 import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/searchv3'
 import * as Creators from '../../actions/chat/creators'
-import * as SearchCreators from '../../actions/searchv3/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {debounce} from 'lodash'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../actions/route-tree'
 import {getProfile} from '../../actions/tracker'
 import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
+import {selectedSearchIdHoc} from '../../searchv3/helpers'
+import {chatSearchResultArray} from '../../constants/selectors'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -36,7 +36,6 @@ type DispatchProps = {|
   ) => void,
   _hideKeyboard: () => void,
   onBack: () => void,
-  _search: (term: string, service: SearchConstants.Service) => void,
   _clearSearchResults: () => void,
   _onClickSearchResult: (id: string) => void,
   onShowTrackerInSearch: (id: string) => void,
@@ -78,7 +77,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersedes,
     threadLoadedOffline,
     inSearch: state.chat.inSearch,
-    searchResultIds: searchResults ? searchResults.toArray() : [],
+    searchResultIds: chatSearchResultArray(state),
     showSearchResults: !!searchResults,
   }
 }
@@ -93,14 +92,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
   },
   _hideKeyboard: () => dispatch(hideKeyboard()),
   onBack: () => dispatch(navigateUp()),
-  _search: debounce(
-    (term: string, service) => dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service)),
-    1e3
-  ),
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
     dispatch(Creators.stageUserForSearch(id))
-    dispatch(Creators.clearSearchResults(id))
+    dispatch(Creators.clearSearchResults())
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
 })
@@ -129,6 +124,7 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
+  selectedSearchIdHoc,
   withHandlers({
     onCloseSidePanel: props => () => props.setSidePanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
@@ -137,13 +133,6 @@ export default compose(
     onToggleSidePanel: props => () => {
       !props.sidePanelOpen && props._hideKeyboard()
       props.setSidePanelOpen(!props.sidePanelOpen)
-    },
-    search: props => (term, service) => {
-      if (term) {
-        props._search(term, service)
-      } else {
-        props._clearSearchResults()
-      }
     },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')

@@ -1,0 +1,31 @@
+// @flow
+import {Component} from 'react'
+
+import type {SearchResultId} from '../constants/searchv3'
+import type {UserDetails} from '../searchv3/user-input'
+
+export type Props = {
+  ids: Array<SearchResultId>,
+  navigateUp: () => void,
+  onClick: (id: SearchResultId) => void,
+  onClickAddButton: () => void,
+  onClose: () => void,
+  onChangeText: (s: string) => void,
+  onChangeSearchText: (s: string) => void,
+  onEnter: () => void,
+  onMoveSelectUp: () => void,
+  onMoveSelectDown: () => void,
+  onRemoveUser: () => void,
+  onSelectService: (s: string) => void,
+  onUpdateSelectedSearchResult: (id: ?SearchResultId) => void,
+  placeholder: string,
+  searchResultIds: Array<SearchResultId>,
+  searchText: string,
+  selectedSearchId: ?SearchResultId,
+  selectedService: string,
+  showAddButton: boolean,
+  usernameText: string,
+  userItems: Array<UserDetails>,
+}
+
+export default class Render extends Component<void, Props, void> {}

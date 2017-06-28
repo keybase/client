@@ -11,20 +11,22 @@ import (
 type TeamBox struct {
 	Nonce           string
 	SenderKID       keybase1.KID `json:"sender_kid"`
-	Generation      PerTeamSecretGeneration
+	Generation      keybase1.PerTeamKeyGeneration
 	Ctext           string
 	PerUserKeySeqno keybase1.Seqno `json:"per_user_key_seqno"`
 }
 
 // Open decrypts Ctext using encKey.
-func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) ([]byte, error) {
+func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) (keybase1.PerTeamKeySeed, error) {
+	var ret keybase1.PerTeamKeySeed
+
 	nonce, err := t.nonceBytes()
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 	ctext, err := t.ctextBytes()
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 	nei := &libkb.NaclEncryptionInfo{
 		Ciphertext:     ctext,
@@ -36,10 +38,15 @@ func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) ([]byte, error) {
 
 	plaintext, _, err := encKey.Decrypt(nei)
 	if err != nil {
-		return nil, err
+		return ret, err
 	}
 
-	return plaintext, nil
+	ret, err = libkb.MakeByte32Soft(plaintext)
+	if err != nil {
+		return ret, err
+	}
+
+	return ret, nil
 }
 
 func (t *TeamBox) nonceBytes() ([]byte, error) {

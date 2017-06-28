@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../../actions/route-tree'
 import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import * as ChatConstants from '../../../constants/chat'
@@ -45,11 +44,13 @@ function _attachmentMessagePopupHelper({
 }: AttachmentProps) {
   const attachment: ChatConstants.AttachmentMessage = message
   const items = []
+  let itemType = 'File'
+  if (attachment.filename != null && ChatConstants.isImageFileName(attachment.filename)) itemType = 'Image'
   items.push({
     onClick: () => {
       onSaveAttachment && onSaveAttachment(attachment)
     },
-    title: 'Save Image',
+    title: 'Save ' + itemType,
   })
 
   if (isIOS && onShareAttachment) {
@@ -57,7 +58,7 @@ function _attachmentMessagePopupHelper({
       onClick: () => {
         onShareAttachment && onShareAttachment(attachment)
       },
-      title: 'Share Image',
+      title: 'Share ' + itemType,
     })
   }
 
@@ -131,15 +132,22 @@ export default connect(
       you,
     }
   },
-  (dispatch: Dispatch, {routeProps}: OwnProps) => ({
+  (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
     onDeleteMessage: (message: ServerMessage) => {
       dispatch(deleteMessage(message))
     },
     onHidden: () => dispatch(navigateUp()),
     onShowEditor: () => dispatch(showEditor(routeProps.message)),
     onSaveAttachment: message =>
-      dispatch(({type: 'chat:saveAttachmentNative', payload: {message}}: ChatConstants.SaveAttachmentNative)),
+      dispatch(
+        ({
+          type: 'chat:saveAttachmentNative',
+          payload: {messageKey: message.key},
+        }: ChatConstants.SaveAttachmentNative)
+      ),
     onShareAttachment: message =>
-      dispatch(({type: 'chat:shareAttachment', payload: {message}}: ChatConstants.ShareAttachment)),
+      dispatch(
+        ({type: 'chat:shareAttachment', payload: {messageKey: message.key}}: ChatConstants.ShareAttachment)
+      ),
   })
 )(MessagePopup)

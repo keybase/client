@@ -18,7 +18,7 @@ function logUiLog(
   {text, level}: {text: RPCTypes.Text, level: RPCTypes.LogLevel},
   response: any
 ): Constants.LogAction {
-  log({level, text}, response)
+  log({level, text})
   return {payload: {level, text: text.data}, type: 'notifications:log'}
 }
 
@@ -53,6 +53,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
     service: true,
     session: true,
     tracking: true,
+    team: false,
     users: true,
   }
 

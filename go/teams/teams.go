@@ -15,57 +15,74 @@ import (
 type Team struct {
 	libkb.Contextified
 
+	ID             keybase1.TeamID
 	Name           string
 	Chain          *TeamSigChainState
 	Box            TeamBox
 	ReaderKeyMasks []keybase1.ReaderKeyMask
+	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded
 
 	keyManager *TeamKeyManager
 
-	me *libkb.User
+	me      *libkb.User
+	rotated bool
 }
 
 func NewTeam(g *libkb.GlobalContext, name string) *Team {
 	return &Team{Name: name, Contextified: libkb.NewContextified(g)}
 }
 
-func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
+func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
+	return t.Box.Generation
+}
+
+func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecretAllGenerations, err error) {
+	curr, err := t.SharedSecret(ctx)
+	if err != nil {
+		return ret, err
+	}
+	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
+}
+
+func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
+	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		secret, err := t.Box.Open(userEncKey)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
+		t.G().Log.CDebugf(ctx, "| Box#Open succeeded")
 
 		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		signingKey, err := keyManager.SigningKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 		encryptionKey, err := keyManager.EncryptionKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
-		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(int(t.Box.Generation))
+		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		if !teamKey.SigKID.SecureEqual(signingKey.GetKID()) {
-			return nil, errors.New("derived signing key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived signing key did not match key in team chain")
 		}
 
 		if !teamKey.EncKID.SecureEqual(encryptionKey.GetKID()) {
-			return nil, errors.New("derived encryption key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived encryption key did not match key in team chain")
 		}
 
 		// TODO: check that t.Box.SenderKID is a known device DH key for the
@@ -87,8 +104,8 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
-func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
-	role, err := t.MemberRole(ctx, uid)
+func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
+	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
 		t.G().Log.Debug("error getting user role: %s", err)
 		return false
@@ -99,11 +116,7 @@ func (t *Team) IsMember(ctx context.Context, uid keybase1.UID) bool {
 	return true
 }
 
-func (t *Team) MemberRole(ctx context.Context, uid keybase1.UID) (keybase1.TeamRole, error) {
-	uv, err := loadUserVersionByUID(ctx, t.G(), uid)
-	if err != nil {
-		return keybase1.TeamRole_NONE, err
-	}
+func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.Chain.GetUserRole(uv)
 }
 
@@ -164,7 +177,7 @@ func (t *Team) NextSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	secret, err := t.SharedSecret(ctx)
+	secrets, err := t.SharedSecretAllGenerations(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -172,7 +185,7 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 		if rkm.Application != application {
 			continue
 		}
-		key, err := t.applicationKeyForMask(rkm, secret)
+		key, err := t.applicationKeyForMask(rkm, secrets.At(rkm.Generation))
 		if err != nil {
 			return res, err
 		}
@@ -206,7 +219,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.applicationKeyForMask(max, secret)
 }
 
-func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation int, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secrets SharedSecretAllGenerations) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
 		if rkm.Application != application {
 			continue
@@ -214,13 +227,16 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 		if rkm.Generation != generation {
 			continue
 		}
-		return t.applicationKeyForMask(rkm, secret)
+		return t.applicationKeyForMask(rkm, secrets.At(generation))
 	}
 
 	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
+	if secret.IsZero() {
+		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
+	}
 	var derivationString string
 	switch mask.Application {
 	case keybase1.TeamApplication_KBFS:
@@ -252,57 +268,183 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 	return key, nil
 }
 
-func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
-	// create the change membership section + secretBoxes
-	section, secretBoxes, err := t.changeMembershipSection(ctx, req)
-	if err != nil {
-		return err
-	}
+func (t *Team) Rotate(ctx context.Context) error {
 
-	// create the change item
-	sigMultiItem, err := t.sigChangeItem(section)
-	if err != nil {
-		return err
-	}
-
-	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes)
-
-	// send it to the server
-	return t.postMulti(payload)
-}
-
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, error) {
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return SCTeamSection{}, nil, err
+		return err
 	}
 
-	// load the member set specified in req
-	memSet, err := newMemberSet(ctx, t.G(), req)
+	// load an empty member set (no membership changes)
+	memSet := newMemberSet()
+
+	admin, err := t.getAdminPermission(ctx, false)
 	if err != nil {
-		return SCTeamSection{}, nil, err
+		return err
 	}
 
 	// create the team section of the signature
-	section, err := memSet.Section(t.Chain.GetID())
+	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
-		return SCTeamSection{}, nil, err
+		return err
+	}
+
+	// rotate the team key for all current members
+	secretBoxes, perTeamKeySection, err := t.rotateBoxes(ctx, memSet)
+	if err != nil {
+		return err
+	}
+	section.PerTeamKey = perTeamKeySection
+
+	// post the change to the server
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
+		return err
+	}
+
+	// send notification that team key rotated
+	t.G().NotifyRouter.HandleTeamKeyRotated(ctx, t.Chain.GetID(), t.Name)
+
+	return nil
+}
+
+func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
+	role, err := t.Chain.GetUserRole(m)
+	if err != nil {
+		return false, err
+	}
+	if role == keybase1.TeamRole_OWNER || role == keybase1.TeamRole_ADMIN {
+		res = true
+	}
+	return res, nil
+}
+
+func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error) {
+
+	for _, member := range ms.None {
+		uids = append(uids, member.version.Uid)
+	}
+
+	for _, member := range ms.nonAdmins() {
+		admin, err := t.isAdminOrOwner(member.version)
+		if err != nil {
+			return nil, err
+		}
+		if admin {
+			uids = append(uids, member.version.Uid)
+		}
+	}
+
+	return uids, nil
+}
+
+func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
+	// create the change membership section + secretBoxes
+	section, secretBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	var merkleRoot *libkb.MerkleRoot
+	var lease *libkb.Lease
+
+	downgrades, err := t.getDowngradedUsers(memberSet)
+	if err != nil {
+		return err
+	}
+
+	if len(downgrades) != 0 {
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseByTeam(ctx, t.G(), t.Chain.GetID(), downgrades)
+		if err != nil {
+			return err
+		}
+	}
+	// post the change to the server
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
+		return err
+	}
+
+	if t.rotated {
+		// send notification that team key rotated
+		t.G().NotifyRouter.HandleTeamKeyRotated(ctx, t.Chain.GetID(), t.Name)
+	}
+	return nil
+}
+
+func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO -- recursively try parent teams if this one isn't an admin team.
+	// See CORE-5051
+	logPoint := t.Chain.GetAdminUserLogPoint(me.ToUserVersion())
+	if logPoint == nil {
+		if required {
+			err = errors.New("cannot perform this operation without adminship")
+		}
+		return nil, err
+	}
+
+	ret := SCTeamAdmin{
+		TeamID:  (SCTeamID)(t.ID),
+		Seqno:   logPoint.Seqno,
+		SeqType: keybase1.SeqType_SEMIPRIVATE,
+	}
+	return &ret, nil
+}
+
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, *memberSet, error) {
+	// make keys for the team
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return SCTeamSection{}, nil, nil, err
+	}
+
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, err
+	}
+
+	// load the member set specified in req
+	memSet, err := newMemberSetChange(ctx, t.G(), req)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, err
+	}
+
+	// create the team section of the signature
+	section, err := memSet.Section(t.Chain.GetID(), admin)
+	if err != nil {
+		return SCTeamSection{}, nil, nil, err
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
 	secretBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
 	if err != nil {
-		return SCTeamSection{}, nil, err
+		return SCTeamSection{}, nil, nil, err
 	}
 	section.PerTeamKey = perTeamKeySection
 
-	return section, secretBoxes, nil
+	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) loadMe() (*libkb.User, error) {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
+	// create the change item
+	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
+	if err != nil {
+		return err
+	}
+
+	// make the payload
+	payload := t.sigPayload(sigMultiItem, secretBoxes, lease)
+
+	// send it to the server
+	return t.postMulti(payload)
+}
+
+func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	if t.me == nil {
-		me, err := libkb.LoadMe(libkb.NewLoadUserArg(t.G()))
+		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, t.G()))
 		if err != nil {
 			return nil, err
 		}
@@ -312,8 +454,8 @@ func (t *Team) loadMe() (*libkb.User, error) {
 	return t.me, nil
 }
 
-func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) {
-	me, err := t.loadMe()
+func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -325,7 +467,7 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeMembershipSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section)
+	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -362,7 +504,7 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 	}
 	v2Sig, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
-		libkb.LinkTypeChangeMembership,
+		linkType,
 		t.NextSeqno(),
 		sigJSON,
 		latestLinkID2,
@@ -375,7 +517,7 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 	sigMultiItem := libkb.SigMultiItem{
 		Sig:        v2Sig,
 		SigningKID: deviceSigningKey.GetKID(),
-		Type:       string(libkb.LinkTypeChangeMembership),
+		Type:       string(linkType),
 		SigInner:   string(sigJSON),
 		TeamID:     t.Chain.GetID(),
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
@@ -387,10 +529,6 @@ func (t *Team) sigChangeItem(section SCTeamSection) (libkb.SigMultiItem, error) 
 }
 
 func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
-	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
-	if err != nil {
-		return nil, nil, err
-	}
 
 	// if there are any removals happening, need to rotate the
 	// team key, and recipients will be all the users in the team
@@ -400,24 +538,23 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		// of the team after the removal (and including any new members in this
 		// change)
 		t.G().Log.Debug("team change request contains removal, rotating team key")
-		existing, err := t.Members()
-		if err != nil {
-			return nil, nil, err
-		}
-		if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
-			return nil, nil, err
-		}
-		return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+		return t.rotateBoxes(ctx, memSet)
 	}
 
-	// don't need keys for existing members
+	// don't need keys for existing members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
 		return nil, nil, nil
 	}
 
-	boxes, err := t.keyManager.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	// get device key
+	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -425,10 +562,33 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	return boxes, nil, err
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes) libkb.JSONPayload {
+func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+	// get device key
+	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// rotate the team key for all current members
+	existing, err := t.Members()
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
+		return nil, nil, err
+	}
+	t.rotated = true
+
+	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+}
+
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretBoxes
+	if lease != nil {
+		payload["downgrade_lease_id"] = lease.LeaseID
+	}
 
 	if t.G().VDL.DumpPayload() {
 		pretty, err := json.MarshalIndent(payload, "", "\t")
@@ -452,4 +612,13 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		return err
 	}
 	return nil
+}
+
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {
+	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
+	teamByID, err := GetForApplication(ctx, g, id, application, refreshers)
+	if err != nil {
+		return teamPlusApplicationKeys, err
+	}
+	return teamByID.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }

@@ -1,5 +1,6 @@
 // @flow
-import Render from './index.render'
+import PaperKey from '.'
+
 import type {DumbComponentMap} from '../../../constants/types/more'
 
 const baseMock = {
@@ -11,8 +12,8 @@ const baseMock = {
   error: '',
 }
 
-const dumbComponentMap: DumbComponentMap<Render> = {
-  component: Render,
+const dumbComponentMap: DumbComponentMap<PaperKey> = {
+  component: PaperKey,
   mocks: {
     Normal: baseMock,
   },

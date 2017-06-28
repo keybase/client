@@ -28,8 +28,13 @@ type levelDBOps interface {
 }
 
 func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) error {
-	batch := new(leveldb.Batch)
 	idb := id.ToBytes(levelDbTableKv)
+	if aliases == nil || len(aliases) == 0 {
+		// if no aliases, just do a put
+		return ops.Put(idb, value, nil)
+	}
+
+	batch := new(leveldb.Batch)
 	batch.Put(idb, value)
 	if aliases != nil {
 		for _, alias := range aliases {

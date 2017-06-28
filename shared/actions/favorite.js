@@ -215,6 +215,7 @@ function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       yield call(favoriteFavoriteAddRpcPromise, {param: {folder}})
       const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
+      yield put(favoriteList())
       yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteAdd', error)
@@ -237,6 +238,7 @@ function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       yield call(favoriteFavoriteIgnoreRpcPromise, {param: {folder}})
       const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
+      yield put(favoriteList())
       yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteIgnore', error)

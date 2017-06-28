@@ -19,6 +19,7 @@ export class ImageIcon extends Component<void, ImageIconProps, void> {}
 
 export type Props = {
   message: Constants.AttachmentMessage,
+  localMessageState: Constants.LocalMessageState,
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onDownloadAttachment: () => void,

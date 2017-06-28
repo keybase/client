@@ -151,6 +151,7 @@ export type TrackerState = {
   username: string,
   shouldFollow: ?boolean,
   reason: ?string,
+  trackersLoaded: ?boolean,
   trackers: Array<FriendshipUserInfo>,
   tracking: Array<FriendshipUserInfo>,
   waiting: boolean,

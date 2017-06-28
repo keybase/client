@@ -13,14 +13,14 @@ import (
 )
 
 type CmdTeamCreate struct {
-	teamName  string
+	TeamName  string
 	SessionID int
 	libkb.Contextified
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 	var err error
-	v.teamName, err = ParseOneTeamName(ctx)
+	v.TeamName, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 	}
 
 	return cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-		Name:      v.teamName,
+		Name:      v.TeamName,
 		SessionID: v.SessionID,
 	})
 }
@@ -54,10 +54,14 @@ func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Usage:        "Create a team or a subteam.",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdTeamCreate{Contextified: libkb.NewContextified(g)}, "teamcreate", c)
+			cl.ChooseCommand(NewCmdTeamCreateRunner(g), "teamcreate", c)
 		},
 		Description: "Create a team or a subteam with specified name.",
 	}
+}
+
+func NewCmdTeamCreateRunner(g *libkb.GlobalContext) *CmdTeamCreate {
+	return &CmdTeamCreate{Contextified: libkb.NewContextified(g)}
 }
 
 func (v *CmdTeamCreate) GetUsage() libkb.Usage {

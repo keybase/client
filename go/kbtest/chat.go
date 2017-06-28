@@ -1,6 +1,7 @@
 package kbtest
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -429,6 +430,20 @@ func (m *ChatRemoteMock) headerToVerifiedForTesting(h chat1.MessageClientHeader)
 	}
 }
 
+func (m *ChatRemoteMock) promoteWriter(ctx context.Context, sender gregor1.UID, writers []gregor1.UID) []gregor1.UID {
+	res := make([]gregor1.UID, len(writers))
+	copy(res, writers)
+	for index, w := range writers {
+		if bytes.Equal(w.Bytes(), sender.Bytes()) {
+			res = append(res[:index], res[index+1:]...)
+			res = append([]gregor1.UID{sender}, res...)
+			return res
+		}
+	}
+	res = append([]gregor1.UID{sender}, res...)
+	return res
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -437,6 +452,8 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	if ri.ReadMsgid == ri.MaxMsgid {
 		m.readMsgid[arg.ConversationID.String()] = inserted.ServerHeader.MessageID
 	}
+	conv.Metadata.ActiveList = m.promoteWriter(ctx, arg.MessageBoxed.ClientHeader.Sender,
+		conv.Metadata.ActiveList)
 	conv.MaxMsgs = m.getMaxMsgs(arg.ConversationID)
 	conv.MaxMsgSummaries = nil
 	for _, m := range conv.MaxMsgs {
@@ -483,6 +500,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
 		}
 		if arg.IdTriple.TopicType == chat1.TopicType_CHAT &&
+			arg.MembersType != chat1.ConversationMembersType_TEAM &&
 			conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
 			// Existing CHAT conv

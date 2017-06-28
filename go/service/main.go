@@ -9,6 +9,8 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"runtime/pprof"
+	"runtime/trace"
 	"sync"
 	"time"
 
@@ -25,6 +27,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -104,7 +108,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g)),
+		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
@@ -180,6 +184,9 @@ func (d *Service) Handle(c net.Conn) {
 
 func (d *Service) Run() (err error) {
 	defer func() {
+
+		d.stopProfile()
+
 		if d.startCh != nil {
 			close(d.startCh)
 		}
@@ -188,6 +195,8 @@ func (d *Service) Run() (err error) {
 	}()
 
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
+
+	d.startProfile()
 
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
@@ -232,7 +241,11 @@ func (d *Service) Run() (err error) {
 
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
-		return
+		return err
+	}
+
+	if err = d.SetupCriticalSubServices(); err != nil {
+		return err
 	}
 
 	d.RunBackgroundOperations(uir)
@@ -240,6 +253,27 @@ func (d *Service) Run() (err error) {
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) SetupCriticalSubServices() error {
+	var err error
+	if err = d.setupTeams(); err != nil {
+		return err
+	}
+	if err = d.setupPVL(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Service) setupTeams() error {
+	teams.NewTeamLoaderAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupPVL() error {
+	pvlsource.NewPvlSourceAndInstall(d.G())
+	return nil
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {
@@ -256,6 +290,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
+	go d.identifySelf()
 }
 
 func (d *Service) startChatModules() {
@@ -323,6 +358,49 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	rkm.Start()
 }
 
+func (d *Service) identifySelf() {
+	uid := d.G().Env.GetUID()
+	if uid.IsNil() {
+		d.G().Log.Debug("identifySelf: no uid, skipping")
+		return
+	}
+	d.G().Log.Debug("identifySelf: running identify on uid %s", uid)
+	arg := keybase1.Identify2Arg{
+		Uid: uid,
+		Reason: keybase1.IdentifyReason{
+			Type: keybase1.IdentifyReasonType_BACKGROUND,
+		},
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NoSkipSelf:       true,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewIdentify2WithUID(d.G(), &arg)
+	if err := engine.RunEngine(eng, &engine.Context{NetContext: context.Background()}); err != nil {
+		d.G().Log.Debug("identifySelf: identify error %s", err)
+	}
+	d.G().Log.Debug("identifySelf: identify success on uid %s", uid)
+
+	// identify2 did a load user for self, so find it and cache it in FullSelfer.
+	them := eng.FullThemUser()
+	me := eng.FullMeUser()
+	var u *libkb.User
+	if them != nil && them.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using them for full user")
+		u = them
+	} else if me != nil && me.GetUID().Equal(uid) {
+		d.G().Log.Debug("identifySelf: using me for full user")
+		u = me
+	}
+	if u != nil {
+		if err := d.G().GetFullSelfer().Update(context.Background(), u); err != nil {
+			d.G().Log.Debug("identifySelf: error updating full self cache: %s", err)
+		} else {
+			d.G().Log.Debug("identifySelf: updated full self cache for: %s", u.GetName())
+		}
+	}
+}
+
 func (d *Service) runBackgroundIdentifier() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
@@ -355,6 +433,8 @@ func (d *Service) startupGregor() {
 		d.gregor.PushHandler(newUserHandler(d.G()))
 		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
+
+		d.gregor.PushHandler(newTeamHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
@@ -509,6 +589,7 @@ func (d *Service) OnLogin() error {
 	if !uid.IsNil() {
 		d.startChatModules()
 		d.runBackgroundIdentifierWithUID(uid)
+		go d.identifySelf()
 	}
 	return nil
 }
@@ -831,4 +912,57 @@ func (d *Service) tryLogin() {
 	} else {
 		d.G().Log.Debug("success running LoginOffline on service startup")
 	}
+}
+
+func (d *Service) startProfile() {
+	cpu := os.Getenv("KEYBASE_CPUPROFILE")
+	if cpu != "" {
+		f, err := os.Create(cpu)
+		if err != nil {
+			d.G().Log.Warning("error creating cpu profile: %s", err)
+		} else {
+			d.G().Log.Debug("+ starting service cpu profile in %s", cpu)
+			pprof.StartCPUProfile(f)
+		}
+	}
+
+	tr := os.Getenv("KEYBASE_SVCTRACE")
+	if tr != "" {
+		f, err := os.Create(tr)
+		if err != nil {
+			d.G().Log.Warning("error creating service trace: %s", err)
+		} else {
+			d.G().Log.Debug("+ starting service trace: %s", tr)
+			trace.Start(f)
+		}
+	}
+}
+
+func (d *Service) stopProfile() {
+	if os.Getenv("KEYBASE_CPUPROFILE") != "" {
+		d.G().Log.Debug("stopping cpu profile")
+		pprof.StopCPUProfile()
+	}
+
+	if os.Getenv("KEYBASE_SVCTRACE") != "" {
+		d.G().Log.Debug("stopping service execution trace")
+		trace.Stop()
+	}
+
+	mem := os.Getenv("KEYBASE_MEMPROFILE")
+	if mem == "" {
+		return
+	}
+	f, err := os.Create(mem)
+	if err != nil {
+		d.G().Log.Warning("could not create memory profile: %s", err)
+		return
+	}
+	defer f.Close()
+
+	runtime.GC() // get up-to-date statistics
+	if err := pprof.WriteHeapProfile(f); err != nil {
+		d.G().Log.Warning("could not write memory profile: %s", err)
+	}
+	d.G().Log.Debug("wrote memory profile %s", mem)
 }

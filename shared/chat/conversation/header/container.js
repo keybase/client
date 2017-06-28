@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
   onBack,
   onOpenFolder: () => dispatch(Creators.openFolder()),
-  onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+  onShowProfile: (username: string) => dispatch(onUserClick(username)),
   onToggleSidePanel,
 })
 

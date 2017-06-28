@@ -2,7 +2,7 @@
 import {Map, Record, List} from 'immutable'
 import * as SearchConstants from './searchv3'
 
-import type {LooseRecord} from './types/more'
+import type {KBRecord} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
 import type {DeviceDetailRecord} from './devices'
 
@@ -22,9 +22,9 @@ export type Replace = NoErrorTypedAction<
 export type Actions = Delete | Merge | Replace
 
 // State
-export type State = LooseRecord<{
+export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
-  searchResults: Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
 }>
 

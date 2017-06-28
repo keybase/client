@@ -5,6 +5,7 @@ protocol common {
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
+  @typedef("uint") @lint("ignore") record TLFConvOrdinal {}
   @typedef("bytes")  record TopicID {}
   @typedef("bytes")  record ConversationID {}
   @typedef("bytes")  record TLFID {}
@@ -65,6 +66,12 @@ protocol common {
     // as blocked.
     REPORTED_5
 
+  }
+
+  enum ConversationMemberStatus {
+    ACTIVE_0,  // in the channel
+    REMOVED_1, // removed from channel forcibly
+    LEFT_2     // voluntarily left conversation
   }
 
   record Pagination {
@@ -200,12 +207,20 @@ protocol common {
     boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
+
+    // These 2 fields are hints for the server.
+    // They can be derived from the message body, and are not signed.
     array<MessageID> deletes;
     array<MessagePreviousPointer> prev;
+
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
-    // Latest merkle root when sent. Can be nil.
+
+    // Latest merkle root when sent.
+    // Can be nil in MBv1 messages, ignored either way since not signed.
+    // Non-nil in MBv2 messages.
     union { null, MerkleRoot } merkleRoot;
+
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }
@@ -224,6 +239,9 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
+    // Latest merkle root when sent.
+    // Nil from v1 messages. Non-nil from v2 messages.
+    union { null, MerkleRoot } merkleRoot;
     union { null, OutboxID } outboxID;
     union { null, OutboxInfo } outboxInfo;
   }

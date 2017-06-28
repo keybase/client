@@ -1,5 +1,6 @@
 // @flow
 import * as SearchConstants from './searchv3'
+import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -8,6 +9,7 @@ import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
+import {parseUserId, serviceIdToIcon} from '../util/platforms'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
@@ -24,7 +26,7 @@ import type {
   ConversationID as RPCConversationID,
   TyperInfo,
 } from './types/flow-types-chat'
-import type {DeviceType, LooseRecord} from './types/more'
+import type {DeviceType, KBRecord} from './types/more'
 import type {TypedState} from './reducer'
 
 export type Username = string
@@ -133,16 +135,10 @@ export type AttachmentMessage = {
   title: ?string,
   attachmentDurationMs: ?number,
   previewType: ?AttachmentType,
-  previewPath: ?string,
   previewSize: ?AttachmentSize,
   previewDurationMs: ?number,
-  downloadedPath: ?string,
-  savedPath: string | null | false,
   uploadPath?: string,
   outboxID?: ?OutboxIDKey,
-  previewProgress: number | null /* between 0 - 1 */,
-  downloadProgress: number | null /* between 0 - 1 */,
-  uploadProgress: number | null /* between 0 - 1 */,
   messageState: AttachmentMessageState,
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
@@ -247,7 +243,7 @@ export const ConversationStateRecord = Record({
   typing: Set(),
 })
 
-export type ConversationState = Record<{
+export type ConversationState = KBRecord<{
   messageKeys: List<MessageKey>,
   // TODO del
   messages: List<Message>,
@@ -263,7 +259,7 @@ export type ConversationState = Record<{
   typing: Set<Username>,
 }>
 
-export type ConversationBadgeState = Record<{
+export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
   UnreadMessages: number,
 }>
@@ -287,7 +283,7 @@ export const InboxStateRecord = Record({
   time: 0,
 })
 
-export type InboxState = Record<{
+export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
@@ -311,7 +307,7 @@ export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
 export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
 export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
 
-export type MetaData = Record<{
+export type MetaData = KBRecord<{
   fullname: string,
   brokenTracker: boolean,
 }>
@@ -330,14 +326,40 @@ export const RekeyInfoRecord = Record({
   youCanRekey: false,
 })
 
-export type RekeyInfo = Record<{
+export type RekeyInfo = KBRecord<{
   rekeyParticipants: Participants,
   youCanRekey: boolean,
 }>
 
+export type LocalMessageStateProps = {
+  previewProgress: number | null /* between 0 - 1 */,
+  downloadProgress: number | null /* between 0 - 1 */,
+  uploadProgress: number | null /* between 0 - 1 */,
+  previewPath: ?string,
+  downloadedPath: ?string,
+  savedPath: string | null | false,
+}
+
+const LocalMessageState: (
+  props: $Shape<LocalMessageStateProps>
+) => KBRecord<LocalMessageStateProps> = Record({
+  previewProgress: null,
+  downloadProgress: null,
+  uploadProgress: null,
+  previewPath: null,
+  downloadedPath: null,
+  savedPath: null,
+})
+
+const defaultLocalMessageState = new LocalMessageState({})
+
+const getLocalMessageStateFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
+  state.chat.localMessageStates.get(messageKey, defaultLocalMessageState)
+
 // $FlowIssue with cast
-export const StateRecord: LooseRecord<T> = Record({
+export const StateRecord: KBRecord<T> = Record({
   messageMap: Map(),
+  localMessageStates: Map(),
   inbox: List(),
   inboxFilter: List(),
   inboxSearch: List(),
@@ -363,9 +385,10 @@ export const StateRecord: LooseRecord<T> = Record({
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type State = LooseRecord<{
+export type State = KBRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
+  localMessageStates: Map<MessageKey, LocalMessageState>,
   inbox: List<InboxState>,
   inboxFilter: List<string>,
   inboxSearch: List<string>,
@@ -483,6 +506,7 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
+export type RemoveTempPendingConversations = NoErrorTypedAction<'chat:removeTempPendingConversations', void>
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
@@ -599,48 +623,53 @@ export type UpdateBrokenTracker = NoErrorTypedAction<
 export type UploadProgress = NoErrorTypedAction<
   'chat:uploadProgress',
   {
-    messageID: MessageID,
-    bytesComplete: number,
-    bytesTotal: number,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
+    progress: ?number,
   }
 >
 export type DownloadProgress = NoErrorTypedAction<
   'chat:downloadProgress',
   {
-    bytesComplete?: number,
-    bytesTotal?: number,
-    conversationIDKey: ConversationIDKey,
+    progress: ?number,
     isPreview: boolean,
-    messageID: MessageID,
+    messageKey: MessageKey,
   }
 >
 export type LoadAttachment = NoErrorTypedAction<
   'chat:loadAttachment',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     loadPreview: boolean,
   }
 >
 export type SaveAttachment = NoErrorTypedAction<
   'chat:saveAttachment',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
+  }
+>
+export type AttachmentSaveStart = NoErrorTypedAction<
+  'chat:attachmentSaveStart',
+  {
+    messageKey: MessageKey,
+  }
+>
+export type AttachmentSaveFailed = NoErrorTypedAction<
+  'chat:attachmentSaveFailed',
+  {
+    messageKey: MessageKey,
   }
 >
 export type LoadAttachmentPreview = NoErrorTypedAction<
   'chat:loadAttachmentPreview',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 export type AttachmentLoaded = NoErrorTypedAction<
   'chat:attachmentLoaded',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     isPreview: boolean,
     path: ?string,
   }
@@ -648,8 +677,7 @@ export type AttachmentLoaded = NoErrorTypedAction<
 export type AttachmentSaved = NoErrorTypedAction<
   'chat:attachmentSaved',
   {
-    messageID: MessageID,
-    conversationIDKey: ConversationIDKey,
+    messageKey: MessageKey,
     path: ?string,
   }
 >
@@ -667,6 +695,14 @@ export type UpdateTempMessage = TypedAction<
   }
 >
 
+export type OutboxMessageBecameReal = NoErrorTypedAction<
+  'chat:outboxMessageBecameReal',
+  {
+    oldMessageKey: MessageKey,
+    newMessageKey: MessageKey,
+  }
+>
+
 export type MarkSeenMessage = NoErrorTypedAction<
   'chat:markSeenMessage',
   {
@@ -678,14 +714,14 @@ export type MarkSeenMessage = NoErrorTypedAction<
 export type SaveAttachmentNative = NoErrorTypedAction<
   'chat:saveAttachmentNative',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 
 export type ShareAttachment = NoErrorTypedAction<
   'chat:shareAttachment',
   {
-    message: AttachmentMessage,
+    messageKey: MessageKey,
   }
 >
 
@@ -715,6 +751,7 @@ export type Actions =
   | OpenFolder
   | PendingToRealConversation
   | PrependMessages
+  | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBadging
@@ -926,6 +963,14 @@ function messageKey(
   return `${conversationIDKey}:${kind}:${value}`
 }
 
+function splitMessageIDKey(
+  key: MessageKey
+): {conversationIDKey: ConversationIDKey, keyKind: string, messageID: MessageID} {
+  const [conversationIDKey, keyKind, messageIDStr] = key.split(':')
+  const messageID: MessageID = Number(messageIDStr)
+  return {conversationIDKey, keyKind, messageID}
+}
+
 function messageKeyValue(key: MessageKey): string {
   return key.split(':')[2]
 }
@@ -1007,6 +1052,39 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+function isImageFileName(filename: string): boolean {
+  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+}
+
+const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
+const getFollowingStates = (state: TypedState) => {
+  const ids = getInboxSearch(state)
+  let followingStateMap = {}
+  ids.forEach(id => {
+    const {username, serviceId} = parseUserId(id)
+    const service = SearchConstants.serviceIdToService(serviceId)
+    followingStateMap[id] = SearchConstants.followStateHelper(state, username, service)
+  })
+  return followingStateMap
+}
+
+const getUserItems = createShallowEqualSelector(
+  [getInboxSearch, getFollowingStates],
+  (inboxSearch, followingStates) =>
+    inboxSearch.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
+)
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1054,6 +1132,7 @@ export {
   messageKeyKind,
   messageKeyValue,
   messageKeyConversationIDKey,
+  splitMessageIDKey,
   outboxIDToKey,
   participantFilter,
   serverMessageToMessageBody,
@@ -1072,4 +1151,9 @@ export {
   getSelectedInbox,
   getTLF,
   getMuted,
+  getUserItems,
+  LocalMessageState,
+  defaultLocalMessageState,
+  getLocalMessageStateFromMessageKey,
+  isImageFileName,
 }

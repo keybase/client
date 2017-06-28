@@ -294,21 +294,6 @@ func (u NoKeyError) Error() string {
 	return "No public key found"
 }
 
-type NoEldestKeyError struct {
-}
-
-func (e NoEldestKeyError) Error() string {
-	return "No Eldest key found"
-}
-
-type NoActiveKeyError struct {
-	Username string
-}
-
-func (e NoActiveKeyError) Error() string {
-	return fmt.Sprintf("user %s has no active keys", e.Username)
-}
-
 type NoSyncedPGPKeyError struct{}
 
 func (e NoSyncedPGPKeyError) Error() string {
@@ -351,6 +336,20 @@ type NoSelectedKeyError struct {
 
 func (n NoSelectedKeyError) Error() string {
 	return "Please login again to verify your public key"
+}
+
+//=============================================================================
+
+type KeyCorruptedError struct {
+	Msg string
+}
+
+func (e KeyCorruptedError) Error() string {
+	msg := "Key corrupted"
+	if len(e.Msg) != 0 {
+		msg = msg + ": " + e.Msg
+	}
+	return msg
 }
 
 //=============================================================================
@@ -1801,6 +1800,16 @@ func (e ChatTLFFinalizedError) Error() string {
 
 //=============================================================================
 
+type ChatDuplicateMessageError struct {
+	OutboxID chat1.OutboxID
+}
+
+func (e ChatDuplicateMessageError) Error() string {
+	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
+}
+
+//=============================================================================
+
 type InvalidAddressError struct {
 	Msg string
 }
@@ -1937,4 +1946,22 @@ type EldestSeqnoMissingError struct{}
 
 func (e EldestSeqnoMissingError) Error() string {
 	return "user's eldest seqno has not been loaded"
+}
+
+//=============================================================================
+
+type AccountResetError struct {
+	expected keybase1.UserVersion
+	received keybase1.Seqno
+}
+
+func NewAccountResetError(uv keybase1.UserVersion, r keybase1.Seqno) AccountResetError {
+	return AccountResetError{expected: uv, received: r}
+}
+
+func (e AccountResetError) Error() string {
+	if e.received == keybase1.Seqno(0) {
+		return fmt.Sprintf("Account reset, and not reestablished (for user %s)", e.expected.String())
+	}
+	return fmt.Sprintf("Account reset, reestablished at %d (for user %s)", e.received, e.expected.String())
 }

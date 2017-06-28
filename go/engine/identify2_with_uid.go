@@ -103,14 +103,13 @@ func (i *identifyUser) Export() *keybase1.User {
 	panic("null user")
 }
 
-func (i *identifyUser) ExportToUserPlusKeys(now keybase1.Time) keybase1.UserPlusKeys {
+func (i *identifyUser) ExportToUserPlusKeys() keybase1.UserPlusKeys {
 	if i.thin != nil {
 		ret := i.thin.Base
-		ret.Uvv.LastIdentifiedAt = now
 		return ret
 	}
 	if i.full != nil {
-		return i.full.ExportToUserPlusKeys(now)
+		return i.full.ExportToUserPlusKeys()
 	}
 	panic("null user")
 }
@@ -144,6 +143,10 @@ func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
 
 func (i *identifyUser) isNil() bool {
 	return i.thin == nil && i.full == nil
+}
+
+func (i *identifyUser) Full() *libkb.User {
+	return i.full
 }
 
 func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
@@ -529,8 +532,9 @@ func (e *Identify2WithUID) exportToResult() *keybase1.Identify2Res {
 		return nil
 	}
 	return &keybase1.Identify2Res{
-		Upk:         e.toUserPlusKeys(),
-		TrackBreaks: e.trackBreaks,
+		Upk:          e.toUserPlusKeys(),
+		TrackBreaks:  e.trackBreaks,
+		IdentifiedAt: keybase1.ToTime(e.getNow()),
 	}
 }
 
@@ -566,7 +570,7 @@ func (e *Identify2WithUID) maybeCacheResult() {
 		return
 	}
 	e.getCache().Insert(v)
-	e.G().Log.Debug("| insert %+v", v)
+	e.G().VDL.Log(libkb.VLog1, "| insert %+v", v)
 
 	// Don't write failures to the disk cache
 	if isOK {
@@ -971,7 +975,8 @@ func (e *Identify2WithUID) loadSlowCacheFromDB() (ret *keybase1.Identify2Res) {
 		return nil
 	}
 	var tmp keybase1.Identify2Res
-	tmp.Upk = e.them.ExportToUserPlusKeys(ktm)
+	tmp.Upk = e.them.ExportToUserPlusKeys()
+	tmp.IdentifiedAt = ktm
 	ret = &tmp
 	return ret
 }
@@ -987,7 +992,7 @@ func (e *Identify2WithUID) storeSlowCacheToDB() (err error) {
 	}
 
 	key := e.dbKey(e.them.GetUID())
-	now := keybase1.ToTime(time.Now())
+	now := keybase1.ToTime(e.getNow())
 	err = e.G().LocalDb.PutObj(key, nil, now)
 	return err
 }
@@ -1013,7 +1018,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 		return false
 	}
 
-	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.Upk.Uvv.LastIdentifiedAt }
+	tfn := func(u keybase1.Identify2Res) keybase1.Time { return u.IdentifiedAt }
 	dfn := func(u keybase1.Identify2Res) time.Duration {
 		if u.TrackBreaks != nil {
 			return libkb.Identify2CacheBrokenTimeout
@@ -1047,7 +1052,7 @@ func (e *Identify2WithUID) checkSlowCacheHit() (ret bool) {
 	e.cachedRes = u
 
 	// Update so that it hits the fast cache the next time
-	u.Upk.Uvv.CachedAt = keybase1.ToTime(time.Now())
+	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow())
 	return true
 }
 
@@ -1063,7 +1068,7 @@ func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
 }
 
 func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
-	return e.them.ExportToUserPlusKeys(keybase1.ToTime(e.getNow()))
+	return e.them.ExportToUserPlusKeys()
 }
 
 func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
@@ -1097,4 +1102,18 @@ func (e *Identify2WithUID) TrackToken() keybase1.TrackToken {
 
 func (e *Identify2WithUID) ConfirmResult() keybase1.ConfirmResult {
 	return e.confirmResult
+}
+
+func (e *Identify2WithUID) FullMeUser() *libkb.User {
+	if e.me == nil {
+		return nil
+	}
+	return e.me.Full()
+}
+
+func (e *Identify2WithUID) FullThemUser() *libkb.User {
+	if e.them == nil {
+		return nil
+	}
+	return e.them.Full()
 }

@@ -256,7 +256,10 @@ func (s *Session) check() error {
 		s.valid = true
 		return nil
 	}
+	return s.checkWithServer()
+}
 
+func (s *Session) checkWithServer() error {
 	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
 	arg.SessionType = APISessionTypeOPTIONAL
@@ -308,7 +311,17 @@ func (s *Session) Invalidate() {
 	s.token = ""
 	s.csrf = ""
 	s.checked = false
-	s.G().NotifyRouter.HandleLogout()
+
+	// Note: this notification has been active for a long time, but
+	// doesn't pertain anymore as losing a session is not the same
+	// as being logged out, and we are refreshing expired session
+	// tokens now. But just in case taking it out causes problems,
+	// will leave mention of it here:
+	//
+	//     s.G().NotifyRouter.HandleLogout()
+	//
+	// It is now in libkb/globals.go at the end of the Logout() function.
+
 	s.G().Log.Debug("- session invalidated")
 }
 
@@ -370,4 +383,15 @@ func (s *Session) loadAndCheckProvisioned() (bool, error) {
 		return false, nil
 	}
 	return s.IsLoggedInAndProvisioned(), nil
+}
+
+func (s *Session) LoadAndForceCheck() (bool, error) {
+	err := s.Load()
+	if err != nil {
+		return false, err
+	}
+	if s.HasSessionToken() {
+		err = s.checkWithServer()
+	}
+	return s.IsValid(), err
 }

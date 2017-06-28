@@ -1,7 +1,6 @@
 // @flow
 import Banner from './banner/container'
-import Header from './header/container'
-import SearchHeader from '../search-header'
+import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../searchv3/results-list'
 import Input from './input/container'
 import List from './list/container'
@@ -21,6 +20,14 @@ type State = {
 class Conversation extends Component<void, Props, State> {
   state = {
     showDropOverlay: false,
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const convoChanged = this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+    const inSearchChanged = this.props.inSearch !== nextProps.inSearch
+    if ((convoChanged || inSearchChanged) && !nextProps.inSearch) {
+      this.props.onFocusInput()
+    }
   }
 
   _onDrop = e => {
@@ -98,22 +105,23 @@ class Conversation extends Component<void, Props, State> {
         onPaste={this._onPaste}
       >
         {offline}
-        {this.props.inSearch
-          ? <SearchHeader
-              search={this.props.search}
-              onChangeSearchText={this.props.onChangeSearchText}
-              usernameText={this.props.searchText}
-            />
-          : <Header
-              sidePanelOpen={this.props.sidePanelOpen}
-              onToggleSidePanel={this.props.onToggleSidePanel}
-              onBack={this.props.onBack}
-            />}
+        <HeaderOrSearchHeader
+          inSearch={this.props.inSearch}
+          sidePanelOpen={this.props.sidePanelOpen}
+          onToggleSidePanel={this.props.onToggleSidePanel}
+          onBack={this.props.onBack}
+          onChangeSearchText={this.props.onChangeSearchText}
+          searchText={this.props.searchText}
+          selectedConversationIDKey={this.props.selectedConversationIDKey}
+          selectedSearchId={this.props.selectedSearchId}
+          onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
+        />
         {this.props.showSearchResults
           ? <SearchResultsList
               items={this.props.searchResultIds}
               onClick={this.props.onClickSearchResult}
               onShowTracker={this.props.onShowTrackerInSearch}
+              selectedId={this.props.selectedSearchId}
             />
           : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
               <List

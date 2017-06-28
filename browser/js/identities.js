@@ -45,8 +45,8 @@ const identityMatchers = [
   {
     service: "github",
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
-    locationMatches: new RegExp('\.github\.com/([\\w]+)[/]?$'),
-    originAndPathMatches: '\.github\.com/[\\w]+[/]?$',
+    locationMatches: new RegExp('\.github\.com/([\\w\-]+)[/]?$'),
+    originAndPathMatches: '\.github\.com/[\\w\-]+[/]?$',
     css: ['body.page-profile']
   },
   {

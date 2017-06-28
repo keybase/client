@@ -25,11 +25,13 @@ protocol constants {
     SCDecryptionError_280,
     SCInvalidAddress_281,
     SCNoSession_283,
+    SCAccountReset_290,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
     SCMissingResult_801,
     SCKeyNotFound_901,
+    SCKeyCorrupted_905,
     SCKeyInUse_907,
     SCKeyBadGen_913,
     SCKeyNoSecret_914,
@@ -88,7 +90,9 @@ protocol constants {
     SCIdentifySummaryError_2511,
     SCNeedSelfRekey_2512,
     SCNeedOtherRekey_2513,
-    SCChatMessageCollision_2514
+    SCChatMessageCollision_2514,
+    SCChatDuplicateMessage_2515,
+    SCTeamReadError_2623
   }
 
 }

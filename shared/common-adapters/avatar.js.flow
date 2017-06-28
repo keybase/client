@@ -13,6 +13,7 @@ export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
+
 export type Props = {
   borderColor?: string,
   children?: any,

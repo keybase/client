@@ -623,19 +623,21 @@ func (e OutboxStateType) String() string {
 type OutboxErrorType int
 
 const (
-	OutboxErrorType_MISC     OutboxErrorType = 0
-	OutboxErrorType_OFFLINE  OutboxErrorType = 1
-	OutboxErrorType_IDENTIFY OutboxErrorType = 2
-	OutboxErrorType_TOOLONG  OutboxErrorType = 3
+	OutboxErrorType_MISC      OutboxErrorType = 0
+	OutboxErrorType_OFFLINE   OutboxErrorType = 1
+	OutboxErrorType_IDENTIFY  OutboxErrorType = 2
+	OutboxErrorType_TOOLONG   OutboxErrorType = 3
+	OutboxErrorType_DUPLICATE OutboxErrorType = 4
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
 
 var OutboxErrorTypeMap = map[string]OutboxErrorType{
-	"MISC":     0,
-	"OFFLINE":  1,
-	"IDENTIFY": 2,
-	"TOOLONG":  3,
+	"MISC":      0,
+	"OFFLINE":   1,
+	"IDENTIFY":  2,
+	"TOOLONG":   3,
+	"DUPLICATE": 4,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -643,6 +645,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	1: "OFFLINE",
 	2: "IDENTIFY",
 	3: "TOOLONG",
+	4: "DUPLICATE",
 }
 
 func (e OutboxErrorType) String() string {
@@ -878,6 +881,7 @@ type HeaderPlaintextV1 struct {
 	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	MerkleRoot      *MerkleRoot              `codec:"merkleRoot,omitempty" json:"merkleRoot,omitempty"`
 }
 
 func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
@@ -918,6 +922,13 @@ func (o HeaderPlaintextV1) DeepCopy() HeaderPlaintextV1 {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.HeaderSignature),
+		MerkleRoot: (func(x *MerkleRoot) *MerkleRoot {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MerkleRoot),
 	}
 }
 

@@ -24,6 +24,7 @@ export type Props = {
   children?: string,
   preview?: boolean, // if true render a simplified version
   style?: Object,
+  allowFontScaling?: boolean,
 }
 
 export default class Markdown extends Component<void, Props, void> {}

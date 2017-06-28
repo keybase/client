@@ -13,7 +13,8 @@
     },
     "globals": {
         "__DEV__": false,
-        "__SCREENSHOT__": false
+        "__SCREENSHOT__": false,
+        "__STORYBOOK__": false
     },
     "plugins": [
         "filenames", "babel", "import", "flowtype", "prettier"
@@ -33,7 +34,7 @@
         "flowtype/define-flow-type": "error",
         "flowtype/delimiter-dangle": ["error", "always-multiline"],
         "flowtype/generic-spacing": "off",
-        "flowtype/no-dupe-keys": "error",
+        "flowtype/no-dupe-keys": "off",
         "flowtype/object-type-delimiter": ["error", "comma"],
         "flowtype/require-valid-file-annotation": ["error", "always", {"annotationStyle": "line"}],
         "flowtype/semi": ["error", "never"],

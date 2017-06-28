@@ -79,17 +79,23 @@ const _urlChooseOption = (url: ?string) => {
   ])
 }
 
-function messageCreateComponent(style) {
+function messageCreateComponent(style, allowFontScaling) {
   return function(type, key, children, options) {
     switch (type) {
       case 'markup':
         return <Box key={key}>{children}</Box>
       case 'inline-code':
-        return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
+        return (
+          <Text type="Body" key={key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
+            {children}
+          </Text>
+        )
       case 'code-block':
         return (
           <Box key={key} style={codeSnippetBlockStyle}>
-            <Text type="Body" style={codeSnippetBlockTextStyle}>{children}</Text>
+            <Text type="Body" style={codeSnippetBlockTextStyle} allowFontScaling={allowFontScaling}>
+              {children}
+            </Text>
           </Box>
         )
       case 'link':
@@ -100,26 +106,46 @@ function messageCreateComponent(style) {
             style={linkStyle}
             onClickURL={options.href}
             onLongPress={() => _urlChooseOption(options.href)}
+            allowFontScaling={allowFontScaling}
           >
             {children}
           </Text>
         )
       case 'text-block':
         return (
-          <Text type="Body" key={key} style={{...neutralStyle, ...style}}>
+          <Text type="Body" key={key} style={{...neutralStyle, ...style}} allowFontScaling={allowFontScaling}>
             {children.length ? children : '\u200b'}
           </Text>
         )
       case 'bold':
-        return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
+        return (
+          <Text type="BodySemibold" key={key} style={boldStyle} allowFontScaling={allowFontScaling}>
+            {children}
+          </Text>
+        )
       case 'italic':
-        return <Text type="Body" key={key} style={italicStyle}>{children}</Text>
+        return (
+          <Text type="Body" key={key} style={italicStyle} allowFontScaling={allowFontScaling}>
+            {children}
+          </Text>
+        )
       case 'strike':
-        return <Text type="Body" key={key} style={strikeStyle}>{children}</Text>
+        return (
+          <Text type="Body" key={key} style={strikeStyle} allowFontScaling={allowFontScaling}>
+            {children}
+          </Text>
+        )
       case 'emoji':
-        return <EmojiIfExists emojiName={String(children)} size={15} key={key} />
+        return (
+          <EmojiIfExists
+            emojiName={String(children)}
+            size={15}
+            key={key}
+            allowFontScaling={allowFontScaling}
+          />
+        )
       case 'native-emoji':
-        return <Emoji emojiName={String(children)} size={15} key={key} />
+        return <Emoji emojiName={String(children)} size={15} key={key} allowFontScaling={allowFontScaling} />
       case 'quote-block':
         return <Box key={key} style={quoteBlockStyle}>{children}</Box>
     }
@@ -130,10 +156,14 @@ class Markdown extends PureComponent<void, Props, void> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)
-      : messageCreateComponent(this.props.style)
+      : messageCreateComponent(this.props.style, this.props.allowFontScaling)
     const content = parseMarkdown(this.props.children, createComponent)
     if (typeof content === 'string') {
-      return <Text type="Body" style={this.props.style}>{content}</Text>
+      return (
+        <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+          {content}
+        </Text>
+      )
     }
     return content
   }

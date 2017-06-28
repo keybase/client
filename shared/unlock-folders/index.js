@@ -73,7 +73,3 @@ export default connector.connect(
     phase,
   })
 )(UnlockFolders)
-
-export function selector(): (store: Object) => ?Object {
-  return store => ({unlockFolders: store.unlockFolders})
-}

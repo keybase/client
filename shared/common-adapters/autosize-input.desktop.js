@@ -59,6 +59,7 @@ class AutosizeInput extends Component<void, Props, State> {
         }}
       >
         <input
+          autoFocus={this.props.autoFocus}
           ref={el => {
             this._inputEl = el
           }}

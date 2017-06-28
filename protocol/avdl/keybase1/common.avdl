@@ -2,6 +2,7 @@
 @namespace("keybase.1")
 protocol Common {
 
+  // Time in milliseconds
   @typedef("long")
   record Time {}
 
@@ -30,6 +31,9 @@ protocol Common {
   @typedef("string")
   record SigID {}
 
+  @typedef("string")
+  record LeaseID {}
+
   // Most appearances of KIDs in protocol are in hex....
   @typedef("string")
   record KID {}
@@ -53,6 +57,12 @@ protocol Common {
 
   @typedef("int64") @lint("ignore")
   record Seqno {}
+
+  enum SeqType {
+    PUBLIC_1,
+    PRIVATE_2,
+    SEMIPRIVATE_3
+  }
 
   fixed Bytes32(32);
 
@@ -87,7 +97,7 @@ protocol Common {
 
   record KeybaseTime {
     Time unix;
-    int chain;
+    Seqno chain;
   }
 
   record RevokedKey {
@@ -147,7 +157,6 @@ protocol Common {
       int sigHints;
       long sigChain;
       Time cachedAt;
-      Time lastIdentifiedAt;
   }
 
   @lint("ignore")

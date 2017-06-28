@@ -4,7 +4,8 @@ import React, {PureComponent} from 'react'
 import {LeafTags, pathToString} from './'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 
-import type {RouteDefNode, RouteStateNode} from './'
+import type {Action} from '../constants/types/flux'
+import type {RouteDefNode, RouteStateNode, Path} from './'
 
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
@@ -28,13 +29,17 @@ export type RouteProps<P, S> = {
 
   // Call to update the state of the route node that rendered this component.
   setRouteState: (partialState: $Shape<S>) => void,
+
+  // Navigation if your path hasn't changed underneath you
+  navigateUp: () => Action,
+  navigateAppend: () => Action,
 }
 
 type RenderRouteNodeProps<S> = {
   isContainer: boolean,
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
-  setRouteState: (partialState: $Shape<S>) => void,
+  setRouteState: (path: Path, partialState: $Shape<S>) => void,
   path: I.List<string>,
   leafTags?: LeafTags,
   stack?: I.List<React$Element<any>>,

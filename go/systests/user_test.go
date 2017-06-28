@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -170,6 +171,13 @@ func randomUser(prefix string) *signupInfo {
 	}
 }
 
+func randomDevice() string {
+	b := make([]byte, 5)
+	rand.Read(b)
+	sffx := hex.EncodeToString(b)
+	return fmt.Sprintf("d_%s", sffx)
+}
+
 type notifyHandler struct {
 	logoutCh    chan struct{}
 	loginCh     chan string
@@ -292,6 +300,13 @@ func TestSignupLogout(t *testing.T) {
 			t.Fatalf("bad username in login notifcation: %q != %q", u, userInfo.username)
 		}
 		tc.G.Log.Debug("Got notification of login for %q", u)
+	}
+
+	// signup calls logout, so clear that from the notification channel
+	select {
+	case <-nh.logoutCh:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for signup's logout notification")
 	}
 
 	btc := client.NewCmdCurrencyAddRunner(tc2.G)

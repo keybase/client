@@ -355,6 +355,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               currentTab={this.props.currentFriendshipsTab}
               onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
               onUserClick={this.props.onUserClick}
+              followersLoaded={this.props.followersLoaded}
               followers={this.props.followers}
               following={this.props.following}
             />}
@@ -468,10 +469,10 @@ const styleProofMenu = {
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  alignSelf: 'center',
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 224,
   minHeight: 24,
   minWidth: 273,
   position: 'absolute',
@@ -481,13 +482,15 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.white,
+  fontSize: 12,
   padding: 3,
 }
 
 const styleSearchText = {
+  ...globalStyles.selectable,
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default ProfileRender

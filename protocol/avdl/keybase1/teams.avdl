@@ -4,10 +4,10 @@ protocol teams {
 
   enum TeamRole {
     NONE_0,
-    OWNER_1,
-    ADMIN_2,
-    WRITER_3,
-    READER_4
+    READER_1,
+    WRITER_2,
+    ADMIN_3,
+    OWNER_4
   }
 
   enum TeamApplication {
@@ -16,9 +16,14 @@ protocol teams {
     SALTPACK_3
   }
 
+  // PerTeamKeyGeneration describes the generation of the secret.
+  // The sequence starts at 1.
+  @typedef("int")
+  record PerTeamKeyGeneration {}
+
   record TeamApplicationKey {
     TeamApplication application;
-    int keyGeneration;
+    PerTeamKeyGeneration keyGeneration;
     Bytes32 key;
   }
 
@@ -27,16 +32,31 @@ protocol teams {
 
   record ReaderKeyMask {
     TeamApplication application;
-    int generation;
+    PerTeamKeyGeneration generation;
     MaskB64 mask;
   }
 
   @lint("ignore")
   record PerTeamKey {
-      int gen;
+      PerTeamKeyGeneration gen;
       Seqno seqno;
       KID sigKID;
       KID encKID;
+  }
+
+  fixed PerTeamKeySeed(32);
+
+  // Secret from which team keys are derived
+  record PerTeamKeySeedItem {
+    PerTeamKeySeed seed;
+    PerTeamKeyGeneration generation;
+    Seqno seqno;
+  }
+
+  record TeamMember {
+    UID uid;
+    TeamRole role;
+    Seqno eldestSeqno;
   }
 
   record TeamMembers {
@@ -46,24 +66,58 @@ protocol teams {
     array<UserVersion> readers;
   }
 
-  record TeamMembersUsernames {
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
+  record TeamMemberDetails {
+    UserVersion uv;
+    string username;
+    boolean active;
+  }
+
+  record TeamMembersDetails {
+    array<TeamMemberDetails> owners;
+    array<TeamMemberDetails> admins;
+    array<TeamMemberDetails> writers;
+    array<TeamMemberDetails> readers;
+  }
+
+  record TeamDetails {
+    TeamMembersDetails members;
+    PerTeamKeyGeneration keyGeneration;
   }
 
   record TeamChangeReq {
-    array<UID> owners;
-    array<UID> admins;
-    array<UID> writers;
-    array<UID> readers;
-    array<UID> none;
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+    array<UserVersion> none;
   }
 
   record UserVersion {
     UID uid;
     Seqno eldestSeqno;
+  }
+
+  record TeamPlusApplicationKeys {
+      TeamID id;
+      string name;
+      TeamApplication application;
+
+      array<UserVersion> writers;
+      array<UserVersion> onlyReaders;
+
+      array<TeamApplicationKey> applicationKeys;
+  }
+
+  // Snapshot of a loaded team.
+  record TeamData {
+    TeamSigChainState chain;
+    // generation -> seed
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    // application -> generation -> mask
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+    // Should only be used by TeamLoader
+    // because it is the only mutated field, and thus is not threadsafe to read.
+    Time cachedAt;
   }
 
   // State of a parsed team sigchain.
@@ -75,7 +129,7 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
-    string name;
+    TeamName name;
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;
@@ -89,12 +143,17 @@ protocol teams {
     // When a user leaves the team a NONE checkpoint appears in their list.
     map<UserVersion,array<UserLogPoint>> userLog;
 
+    // For each subteam; the timeline of its name.
+    // The checkpoints are always ordered by seqno.
+    // The latest name of the subteam is the role of its last checkpoint.
+    map<TeamID,array<SubteamLogPoint>> subteamLog;
+
     // Keyed by per-team-key generation
-    map<int, PerTeamKey> perTeamKeys;
+    map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
     // Set of types that were loaded stubbed-out and whose contents are missing.
     // Keyed by libkb.SigchainV2Type
-    map<int, bool> stubbedTypes;
+    map<int, boolean> stubbedTypes;
   }
 
   // A user became this role at a point in time
@@ -105,15 +164,78 @@ protocol teams {
     Seqno seqno;
   }
 
+  // A subteam got this name at this point in time.
+  record SubteamLogPoint {
+  // The new subteam name.
+    TeamName name;
+    // The seqno at which the subteam got this name.
+    Seqno seqno;
+  }
+
+  @typedef("string")
+  record TeamNamePart {}
+
   // matches the team name struct from api server
-  record TeamNameParts {
-    array<string> parts;
+  record TeamName {
+    array<TeamNamePart> parts;
+  }
+
+  // team.clkr gregor message body
+  @lint("ignore")
+  record TeamCLKRMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    PerTeamKeyGeneration generation;
+    int score;
+  }
+
+
+  /**
+   * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
+   * a refresh of the cached.
+   */
+  record TeamRefreshers {
+    // Load at least up to the keygen. Returns an error if the keygen is not loaded.
+    PerTeamKeyGeneration needKeyGeneration;
+    // Refresh if these members are not current writers or above of the team in the cache.
+    // Does not guarantee these members will be present in the returned team. This is especially
+    // relevant in the case of deleted users, who won't be there after the refresh.
+    // Does not work on implicit admins.
+    array<UserVersion> wantMembers;
+  }
+
+  record LoadTeamArg {
+    // One of these must be specified.
+    // ID is preferred. Name will always hit the server.
+    // If both are specified ID will be used and Name will be checked.
+    @lint("ignore")
+    TeamID ID;
+    string name;
+
+    // Whether we need to be an admin.
+    // Will fail unless we are an admin in the returned Team.
+    // If this is false, looking at invites or listing subteams in the response
+    // may not work even if the loading user is an admin.
+    boolean needAdmin;
+
+    TeamRefreshers refreshers;
+
+    boolean forceFullReload; // Ignore local data and fetch from the server.
+    boolean forceRepoll;     // Force a sync with merkle.
+    boolean staleOK;         // If a very stale cache hit is OK.
   }
 
   void teamCreate(int sessionID, string name);
-  TeamMembersUsernames teamGet(int sessionID, string name);
+  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+
+  /**
+   * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
+   * If refreshers are non-empty, then force a refresh of the cache if the requirements
+   * of the refreshers aren't met.
+   */
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
 }

@@ -98,6 +98,12 @@ export const CommonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const CommonSeqType = {
+  public: 1,
+  private: 2,
+  semiprivate: 3,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -129,11 +135,13 @@ export const ConstantsStatusCode = {
   scdecryptionerror: 280,
   scinvalidaddress: 281,
   scnosession: 283,
+  scaccountreset: 290,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scmissingresult: 801,
   sckeynotfound: 901,
+  sckeycorrupted: 905,
   sckeyinuse: 907,
   sckeybadgen: 913,
   sckeynosecret: 914,
@@ -193,6 +201,8 @@ export const ConstantsStatusCode = {
   scneedselfrekey: 2512,
   scneedotherrekey: 2513,
   scchatmessagecollision: 2514,
+  scchatduplicatemessage: 2515,
+  scteamreaderror: 2623,
 }
 
 export const CtlDbType = {
@@ -509,10 +519,10 @@ export const TeamsTeamApplication = {
 
 export const TeamsTeamRole = {
   none: 0,
-  owner: 1,
-  admin: 2,
-  writer: 3,
-  reader: 4,
+  reader: 1,
+  writer: 2,
+  admin: 3,
+  owner: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -3497,6 +3507,21 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsLoadTeamPlusApplicationKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request)
+}
+
+export function teamsLoadTeamPlusApplicationKeysRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.loadTeamPlusApplicationKeys', request)
+}
+export function teamsLoadTeamPlusApplicationKeysRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, callback, incomingCallMap) })
+}
+
+export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}>): Promise<teamsLoadTeamPlusApplicationKeysResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
 }
@@ -3797,6 +3822,21 @@ export function trackUntrackRpcPromise (request: $Exact<requestCommon & requestE
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function userInterestingPeopleRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}>) {
+  engineRpcOutgoing('keybase.1.user.interestingPeople', request)
+}
+
+export function userInterestingPeopleRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
+}
+export function userInterestingPeopleRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.interestingPeople', request, callback, incomingCallMap) })
+}
+
+export function userInterestingPeopleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}>): Promise<userInterestingPeopleResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.interestingPeople', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function userListTrackers2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
   engineRpcOutgoing('keybase.1.user.listTrackers2', request)
 }
@@ -4020,6 +4060,21 @@ export function userProfileEditRpcChannelMapOld (channelConfig: ChannelConfig<*>
 
 export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function userResetUserRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing('keybase.1.user.resetUser', request)
+}
+
+export function userResetUserRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
+}
+export function userResetUserRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.resetUser', request, callback, incomingCallMap) })
+}
+
+export function userResetUserRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.resetUser', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
@@ -4569,6 +4624,7 @@ export type HelloRes = string
 
 export type Identify2Res = {
   upk: UserPlusKeys,
+  identifiedAt: Time,
   trackBreaks?: ?IdentifyTrackBreaks,
 }
 
@@ -4669,6 +4725,11 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
+export type InterestingPerson = {
+  uid: UID,
+  username: string,
+}
+
 export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
@@ -4725,8 +4786,10 @@ export type KeyType =
 
 export type KeybaseTime = {
   unix: Time,
-  chain: int,
+  chain: Seqno,
 }
+
+export type LeaseID = string
 
 export type LinkCheckResult = {
   proofId: int,
@@ -4755,6 +4818,16 @@ export type ListResult = {
 export type LoadDeviceErr = {
   where: string,
   desc: string,
+}
+
+export type LoadTeamArg = {
+  ID: TeamID,
+  name: string,
+  needAdmin: boolean,
+  refreshers: TeamRefreshers,
+  forceFullReload: boolean,
+  forceRepoll: boolean,
+  staleOK: boolean,
 }
 
 export type LogLevel =
@@ -4831,6 +4904,7 @@ export type NotificationChannels = {
   kbfsrequest: boolean,
   badges: boolean,
   reachability: boolean,
+  team: boolean,
 }
 
 export type NotifyBadgesBadgeStateRpcParam = Exact<{
@@ -4885,6 +4959,11 @@ export type NotifySessionClientOutOfDateRpcParam = Exact<{
 
 export type NotifySessionLoggedInRpcParam = Exact<{
   username: string
+}>
+
+export type NotifyTeamTeamKeyRotatedRpcParam = Exact<{
+  teamID: TeamID,
+  teamName: string
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -5003,10 +5082,20 @@ export type PathType =
   | 1 // KBFS_1
 
 export type PerTeamKey = {
-  gen: int,
+  gen: PerTeamKeyGeneration,
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+}
+
+export type PerTeamKeyGeneration = int
+
+export type PerTeamKeySeed = any
+
+export type PerTeamKeySeedItem = {
+  seed: PerTeamKeySeed,
+  generation: PerTeamKeyGeneration,
+  seqno: Seqno,
 }
 
 export type PerUserKey = {
@@ -5225,7 +5314,7 @@ export type ReadArgs = {
 
 export type ReaderKeyMask = {
   application: TeamApplication,
-  generation: int,
+  generation: PerTeamKeyGeneration,
   mask: MaskB64,
 }
 
@@ -5302,6 +5391,7 @@ export type SaltpackEncryptOptions = {
   encryptionOnlyMode: boolean,
   noSelfEncrypt: boolean,
   binary: boolean,
+  saltpackVersion: int,
 }
 
 export type SaltpackEncryptedMessageInfo = {
@@ -5330,6 +5420,7 @@ export type SaltpackSenderType =
 export type SaltpackSignOptions = {
   detached: boolean,
   binary: boolean,
+  saltpackVersion: int,
 }
 
 export type SaltpackVerifyOptions = {
@@ -5389,6 +5480,11 @@ export type SelectKeyRes = {
   keyID: string,
   doSecretPush: boolean,
 }
+
+export type SeqType =
+    1 // PUBLIC_1
+  | 2 // PRIVATE_2
+  | 3 // SEMIPRIVATE_3
 
 export type Seqno = int64
 
@@ -5615,11 +5711,13 @@ export type StatusCode =
   | 280 // SCDecryptionError_280
   | 281 // SCInvalidAddress_281
   | 283 // SCNoSession_283
+  | 290 // SCAccountReset_290
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
   | 901 // SCKeyNotFound_901
+  | 905 // SCKeyCorrupted_905
   | 907 // SCKeyInUse_907
   | 913 // SCKeyBadGen_913
   | 914 // SCKeyNoSecret_914
@@ -5679,6 +5777,8 @@ export type StatusCode =
   | 2512 // SCNeedSelfRekey_2512
   | 2513 // SCNeedOtherRekey_2513
   | 2514 // SCChatMessageCollision_2514
+  | 2515 // SCChatDuplicateMessage_2515
+  | 2623 // SCTeamReadError_2623
 
 export type Stream = {
   fd: int,
@@ -5687,6 +5787,11 @@ export type Stream = {
 export type StringKVPair = {
   key: string,
   value: string,
+}
+
+export type SubteamLogPoint = {
+  name: TeamName,
+  seqno: Seqno,
 }
 
 export type TLF = {
@@ -5729,19 +5834,49 @@ export type TeamApplication =
 
 export type TeamApplicationKey = {
   application: TeamApplication,
-  keyGeneration: int,
+  keyGeneration: PerTeamKeyGeneration,
   key: Bytes32,
 }
 
+export type TeamCLKRMsg = {
+  teamID: TeamID,
+  generation: PerTeamKeyGeneration,
+  score: int,
+}
+
 export type TeamChangeReq = {
-  owners?: ?Array<UID>,
-  admins?: ?Array<UID>,
-  writers?: ?Array<UID>,
-  readers?: ?Array<UID>,
-  none?: ?Array<UID>,
+  owners?: ?Array<UserVersion>,
+  admins?: ?Array<UserVersion>,
+  writers?: ?Array<UserVersion>,
+  readers?: ?Array<UserVersion>,
+  none?: ?Array<UserVersion>,
+}
+
+export type TeamData = {
+  chain: TeamSigChainState,
+  perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
+  readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
+  cachedAt: Time,
+}
+
+export type TeamDetails = {
+  members: TeamMembersDetails,
+  keyGeneration: PerTeamKeyGeneration,
 }
 
 export type TeamID = string
+
+export type TeamMember = {
+  uid: UID,
+  role: TeamRole,
+  eldestSeqno: Seqno,
+}
+
+export type TeamMemberDetails = {
+  uv: UserVersion,
+  username: string,
+  active: boolean,
+}
 
 export type TeamMembers = {
   owners?: ?Array<UserVersion>,
@@ -5750,34 +5885,51 @@ export type TeamMembers = {
   readers?: ?Array<UserVersion>,
 }
 
-export type TeamMembersUsernames = {
-  owners?: ?Array<string>,
-  admins?: ?Array<string>,
-  writers?: ?Array<string>,
-  readers?: ?Array<string>,
+export type TeamMembersDetails = {
+  owners?: ?Array<TeamMemberDetails>,
+  admins?: ?Array<TeamMemberDetails>,
+  writers?: ?Array<TeamMemberDetails>,
+  readers?: ?Array<TeamMemberDetails>,
 }
 
-export type TeamNameParts = {
-  parts?: ?Array<string>,
+export type TeamName = {
+  parts?: ?Array<TeamNamePart>,
+}
+
+export type TeamNamePart = string
+
+export type TeamPlusApplicationKeys = {
+  id: TeamID,
+  name: string,
+  application: TeamApplication,
+  writers?: ?Array<UserVersion>,
+  onlyReaders?: ?Array<UserVersion>,
+  applicationKeys?: ?Array<TeamApplicationKey>,
+}
+
+export type TeamRefreshers = {
+  needKeyGeneration: PerTeamKeyGeneration,
+  wantMembers?: ?Array<UserVersion>,
 }
 
 export type TeamRole =
     0 // NONE_0
-  | 1 // OWNER_1
-  | 2 // ADMIN_2
-  | 3 // WRITER_3
-  | 4 // READER_4
+  | 1 // READER_1
+  | 2 // WRITER_2
+  | 3 // ADMIN_3
+  | 4 // OWNER_4
 
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
-  name: string,
+  name: TeamName,
   lastSeqno: Seqno,
   lastLinkID: LinkID,
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
+  subteamLog: {[key: string]: ?Array<SubteamLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
-  stubbedTypes: {[key: string]: bool},
+  stubbedTypes: {[key: string]: boolean},
 }
 
 export type Test = {
@@ -5919,16 +6071,16 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
-  uvv: UserVersionVector,
   perUserKeys?: ?Array<PerUserKey>,
-  deviceKeys?: ?Array<PublicKeyV2NaCl>,
-  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
-  remoteTracks?: ?Array<RemoteTrack>,
+  deviceKeys: {[key: string]: PublicKeyV2NaCl},
+  pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
+  remoteTracks: {[key: string]: RemoteTrack},
 }
 
 export type UserPlusKeysV2AllIncarnations = {
   current: UserPlusKeysV2,
   pastIncarnations?: ?Array<UserPlusKeysV2>,
+  uvv: UserVersionVector,
 }
 
 export type UserResolution = {
@@ -5977,7 +6129,6 @@ export type UserVersionVector = {
   sigHints: int,
   sigChain: long,
   cachedAt: Time,
-  lastIdentifiedAt: Time,
 }
 
 export type VerifySessionRes = {
@@ -6877,6 +7028,12 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
+  id: TeamID,
+  application: TeamApplication,
+  refreshers: TeamRefreshers
+}>
+
 export type teamsTeamAddMemberRpcParam = Exact<{
   name: string,
   username: string,
@@ -6900,7 +7057,8 @@ export type teamsTeamEditMemberRpcParam = Exact<{
 }>
 
 export type teamsTeamGetRpcParam = Exact<{
-  name: string
+  name: string,
+  forceRepoll: boolean
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -6967,6 +7125,10 @@ export type trackUntrackRpcParam = Exact<{
 export type uiPromptYesNoRpcParam = Exact<{
   text: Text,
   promptDefault: PromptDefault
+}>
+
+export type userInterestingPeopleRpcParam = Exact<{
+  maxUsers: int
 }>
 
 export type userListTrackers2RpcParam = Exact<{
@@ -7145,7 +7307,8 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
-type teamsTeamGetResult = TeamMembersUsernames
+type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
+type teamsTeamGetResult = TeamDetails
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7155,6 +7318,7 @@ type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 type trackTrackResult = ConfirmResult
 type uiPromptYesNoResult = boolean
+type userInterestingPeopleResult = ?Array<InterestingPerson>
 type userListTrackers2Result = UserSummary2Set
 type userListTrackersByNameResult = ?Array<Tracker>
 type userListTrackersResult = ?Array<Tracker>
@@ -7369,6 +7533,7 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsLoadTeamPlusApplicationKeysRpc
   | teamsTeamAddMemberRpc
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
@@ -7389,6 +7554,7 @@ export type rpc =
   | trackTrackRpc
   | trackTrackWithTokenRpc
   | trackUntrackRpc
+  | userInterestingPeopleRpc
   | userListTrackers2Rpc
   | userListTrackersByNameRpc
   | userListTrackersRpc
@@ -7404,6 +7570,7 @@ export type rpc =
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
   | userProfileEditRpc
+  | userResetUserRpc
   | userSearchRpc
 
 export type incomingCallMapType = Exact<{
@@ -7728,6 +7895,13 @@ export type incomingCallMapType = Exact<{
       upgradeTo: string,
       upgradeURI: string,
       upgradeMsg: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTeam.teamKeyRotated'?: (
+    params: Exact<{
+      teamID: TeamID,
+      teamName: string
     }>,
     response: CommonResponseHandler
   ) => void,

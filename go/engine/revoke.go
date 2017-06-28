@@ -120,6 +120,12 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+
+	lease, merkleRoot, err := libkb.RequestDowngradeLeaseByKID(ctx.NetContext, e.G(), kidsToRevoke)
+	if err != nil {
+		return err
+	}
+
 	ctx.LogUI.Info("Revoking KIDs:")
 	for _, kid := range kidsToRevoke {
 		ctx.LogUI.Info("  %s", kid)
@@ -206,7 +212,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	}
 
 	// Push the revoke sig
-	sig2, err := e.makeRevokeSig(ctx, me, sigKey, kidsToRevoke, deviceID)
+	sig2, err := e.makeRevokeSig(ctx, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -214,6 +220,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = sigsList
+	payload["downgrade_lease_id"] = lease.LeaseID
 
 	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v",
 		len(pukBoxes), pukPrev != nil, newPukGeneration)
@@ -283,9 +290,9 @@ func (e *RevokeEngine) getDeviceSecretKeys(ctx *Context, me *libkb.User) (libkb.
 }
 
 func (e *RevokeEngine) makeRevokeSig(ctx *Context, me *libkb.User, sigKey libkb.GenericKey,
-	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID) (libkb.JSONPayload, error) {
+	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID, merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, error) {
 
-	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
+	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID, merkleRoot)
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,7 @@ type DeconstructJig struct {
 }
 
 func TestTeamSigChainParse(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -55,7 +55,7 @@ func TestTeamSigChainParse(t *testing.T) {
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -73,7 +73,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1), true)
+	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1))
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
@@ -87,11 +87,11 @@ func TestTeamSigChainPlay1(t *testing.T) {
 			t.Logf("testing serde")
 		}
 
-		require.Equal(t, "t_9d6d1e37", string(state.GetName()))
+		require.Equal(t, "t_9d6d1e37", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
-		require.Equal(t, 2, ptk.Gen)
+		require.Equal(t, keybase1.PerTeamKeyGeneration(2), ptk.Gen)
 		require.Equal(t, keybase1.Seqno(3), ptk.Seqno)
 		require.Equal(t, "0120802f55ed5e14f61c730871b5e99d637054ff7f5ba0c1b2cc52b154e3baf80a000a", string(ptk.SigKID))
 		require.Equal(t, "0121e2511cbfb0418187a8e19183a1cd92637bc83fe116d1eb8984f52394495b5f120a", string(ptk.EncKID))
@@ -126,7 +126,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 }
 
 func TestTeamSigChainPlay2(t *testing.T) {
-	tc := libkb.SetupTest(t, "test_team_chains", 1)
+	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()
 
 	var jig DeconstructJig
@@ -144,7 +144,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		chainLinks = append(chainLinks, chainLink)
 	}
 
-	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1), true)
+	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1))
 	err = player.AddChainLinks(context.TODO(), chainLinks)
 	require.NoError(t, err)
 
@@ -152,11 +152,11 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	state, err := player.GetState()
 	require.NoError(t, err)
 	for i := 0; i < 2; i++ {
-		require.Equal(t, "t_bfaadb41", string(state.GetName()))
+		require.Equal(t, "t_bfaadb41", state.GetName().String())
 		require.False(t, state.IsSubteam())
 		ptk, err := state.GetLatestPerTeamKey()
 		require.NoError(t, err)
-		require.Equal(t, 1, ptk.Gen)
+		require.Equal(t, keybase1.PerTeamKeyGeneration(1), ptk.Gen)
 		require.Equal(t, keybase1.Seqno(1), ptk.Seqno)
 		require.Equal(t, "01208b245208e8951cde7abd3f5ebac5579424e51ed0951fe14ac8a7996c9ccf8ae50a", string(ptk.SigKID))
 		require.Equal(t, "01218ca00b08b4ee5729d957cf14155098b74199588bb5eee778ad1eae58bce26c370a", string(ptk.EncKID))

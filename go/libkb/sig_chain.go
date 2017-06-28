@@ -45,7 +45,6 @@ type SigChain struct {
 	username          NormalizedUsername
 	chainLinks        ChainLinks // the current subchain
 	idVerified        bool
-	allKeys           bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
 
@@ -646,11 +645,10 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest 
 		return cached, 0, err
 	}
 
-	if sc.allKeys || sc.loadedFromLinkOne {
-		if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
-			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
-			return cached, 0, err
-		}
+	// AllKeys mode is now the default.
+	if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
+		err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
+		return cached, 0, err
 	}
 
 	// There are 3 cases that we have to think about here for recording the
@@ -712,23 +710,23 @@ func reverseListOfChainLinks(arr []ChainLinks) {
 	}
 }
 
-func (c ChainLinks) popNRightmostLinks(n int) ChainLinks {
+func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 	return c[0 : len(c)-n]
 }
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
 // multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false othewise.
-func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily, loadAllSubchains bool) (bool, error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
 	// First consume the currently active sigchain.
 	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
-	if !loadAllSubchains || err != nil || ckf.kf == nil {
+	if err != nil || ckf.kf == nil {
 		return cached, err
 	}
 
 	allCached := cached
 
 	// Now let's examine any historical subchains, if there are any.
-	historicalLinks := sc.chainLinks.popNRightmostLinks(numLinksConsumed)
+	historicalLinks := sc.chainLinks.omittingNRightmostLinks(numLinksConsumed)
 	if len(historicalLinks) > 0 {
 		sc.G().Log.CDebugf(ctx, "After consuming %d links, there are %d historical links left",
 			numLinksConsumed, len(historicalLinks))
@@ -780,7 +778,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(ctx context.Context, allL
 			allCached = false
 		}
 		prevSubchains = append(prevSubchains, links)
-		allLinks = allLinks.popNRightmostLinks(len(links))
+		allLinks = allLinks.omittingNRightmostLinks(len(links))
 	}
 	reverseListOfChainLinks(prevSubchains)
 	sc.G().Log.CDebugf(ctx, "Loaded %d additional historical subchains", len(prevSubchains))
@@ -838,8 +836,6 @@ var PublicChain = &ChainType{
 type SigChainLoader struct {
 	user                 *User
 	self                 bool
-	allKeys              bool
-	allSubchains         bool
 	leaf                 *MerkleUserLeaf
 	chain                *SigChain
 	chainType            *ChainType
@@ -874,8 +870,8 @@ func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err erro
 }
 
 func (l *SigChainLoader) AccessPreload() bool {
-	if l.preload == nil || (l.preload.allKeys != l.allKeys) {
-		l.G().Log.Debug("| Preload failed")
+	if l.preload == nil {
+		l.G().Log.Debug("| Preload not provided")
 		return false
 	}
 	l.G().Log.Debug("| Preload successful")
@@ -915,15 +911,15 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 	links := ChainLinks{currentLink}
 
-	// Walk the links we have stored locally to load the current subchain and
-	// record the start of it. We might find out later when we check freshness
-	// that a reset has happened, so this result only gets used if the local
-	// chain turns out to be fresh. Note that unless the current subchain goes
-	// all the way back to seqno 1, we will also load one chain link before it.
-	// (That's necessary to detect some resets.)
+	// Load all the links we have locally, and record the start of the current
+	// subchain as we go. We might find out later when we check freshness that
+	// a reset has happened, so this result only gets used if the local chain
+	// turns out to be fresh.
 	for {
 		if currentLink.GetSeqno() == 1 {
-			l.currentSubchainStart = 1
+			if l.currentSubchainStart == 0 {
+				l.currentSubchainStart = 1
+			}
 			break
 		}
 		prevLink, err := ImportLinkFromStorage(currentLink.GetPrev(), l.selfUID(), l.G())
@@ -935,9 +931,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return nil
 		}
 		links = append(links, prevLink)
-		if isSubchainStart(currentLink, prevLink) {
+		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
-			break
 		}
 		currentLink = prevLink
 	}
@@ -956,7 +951,6 @@ func (l *SigChainLoader) MakeSigChain() error {
 		uid:                  l.user.GetUID(),
 		username:             l.user.GetNormalizedName(),
 		chainLinks:           l.links,
-		allKeys:              l.allKeys,
 		currentSubchainStart: l.currentSubchainStart,
 		Contextified:         l.Contextified,
 	}
@@ -1081,7 +1075,7 @@ func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	if l.ckf.kf == nil {
 		return nil
 	}
-	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf, l.allSubchains)
+	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf)
 	if err != nil {
 		return err
 	}

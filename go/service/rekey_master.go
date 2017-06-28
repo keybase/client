@@ -343,7 +343,7 @@ func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
 	defer r.G().Trace("hasGregorTLFRekeyMessages", func() error { return err })()
 
 	var state gregor1.State
-	state, err = r.gregor.getState()
+	state, err = r.gregor.getState(context.Background())
 	if err != nil {
 		return false, err
 	}

@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -51,9 +50,6 @@ func main() {
 
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
-
-	// Set a pvl source
-	pvlsource.NewPvlSourceAndInstall(g)
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
@@ -182,13 +178,19 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 			err = fmt.Errorf("Can't run command in standalone mode")
 			return err
 		}
-		err := service.NewService(g, false /* isDaemon */).StartLoopbackServer()
+		svc := service.NewService(g, false /* isDaemon */)
+		err = svc.SetupCriticalSubServices()
 		if err != nil {
-			if pflerr, ok := err.(libkb.PIDFileLockError); ok {
-				err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
-					pflerr.Filename)
-				return err
-			}
+			return err
+		}
+		err = svc.StartLoopbackServer()
+		if err != nil {
+			return err
+		}
+		if pflerr, ok := err.(libkb.PIDFileLockError); ok {
+			err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
+				pflerr.Filename)
+			return err
 		}
 		return err
 	}

@@ -1,0 +1,23 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  users: Array<string>,
+  onForgotPassphrase: () => void,
+  onSignup: () => void,
+  onSomeoneElse: () => void,
+  error: ?string,
+  waitingForResponse: boolean,
+  passphrase: string,
+  showTyping: boolean,
+  saveInKeychain: boolean,
+  selectedUser: ?string,
+  selectedUserChange: (selectedUser: string) => void,
+  passphraseChange: (passphrase: string) => void,
+  showTypingChange: (typingChange: boolean) => void,
+  onSubmit: () => void,
+  onFeedback: () => void,
+  onLogin: (user: string, passphrase: string) => void,
+}
+
+export default class Login extends Component<void, Props, void> {}

@@ -24,10 +24,17 @@ type LoadUserArg struct {
 	ForcePoll                bool // for cached user load, force a repoll
 	StaleOK                  bool // if stale cached versions are OK (for immutable fields)
 	CachedOnly               bool // only return cached data (StaleOK should be true as well)
-	AllKeys                  bool
 	LoginContext             LoginContext
 	AbortIfSigchainUnchanged bool
 	ResolveBody              *jsonw.Wrapper // some load paths plumb this through
+
+	// NOTE: We used to have these feature flags, but we got rid of them, to
+	// avoid problems where a yes-features load doesn't accidentally get served
+	// the result of an earlier no-features load from cache. We shouldn't add
+	// any more flags like this unless we also add machinery to avoid that
+	// mistake.
+	// AllKeys      bool
+	// AllSubchains bool
 
 	// We might have already loaded these if we're falling back from a
 	// failed LoadUserPlusKeys load
@@ -40,13 +47,20 @@ type LoadUserArg struct {
 }
 
 func (arg LoadUserArg) String() string {
-	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AllKeys:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
+	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
 		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
-		arg.ForcePoll, arg.StaleOK, arg.AllKeys, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
+		arg.ForcePoll, arg.StaleOK, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 	return LoadUserArg{Contextified: NewContextified(g)}
+}
+
+func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
+	return LoadUserArg{
+		Contextified: NewContextified(g),
+		NetContext:   ctx,
+	}
 }
 
 func NewLoadUserSelfArg(g *GlobalContext) LoadUserArg {
@@ -108,6 +122,11 @@ func (arg *LoadUserArg) WithUID(uid keybase1.UID) *LoadUserArg {
 
 func (arg *LoadUserArg) WithPublicKeyOptional() *LoadUserArg {
 	arg.PublicKeyOptional = true
+	return arg
+}
+
+func (arg *LoadUserArg) WithForcePoll() *LoadUserArg {
+	arg.ForcePoll = true
 	return arg
 }
 
@@ -269,7 +288,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(ctx, arg.AllKeys, &ret.leaf, arg.Self); err != nil {
+	if err = ret.LoadSigChains(ctx, &ret.leaf, arg.Self); err != nil {
 		return ret, err
 	}
 
@@ -298,6 +317,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		}
 
 	} else if !arg.PublicKeyOptional {
+		arg.G().Log.CDebugf(ctx, "No active key for user: %s", ret.GetUID())
 
 		var emsg string
 		if arg.Self {

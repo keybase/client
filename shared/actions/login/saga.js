@@ -162,7 +162,12 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
 })
 
 function* cancelLogin() {
-  yield put(navigateTo(['login'], [loginTab]))
+  const getNumAccounts = (state: TypedState) =>
+    state.login.configuredAccounts && state.login.configuredAccounts.length
+  const numAccounts = yield select(getNumAccounts)
+
+  const route = numAccounts ? ['login'] : []
+  yield put(navigateTo(route, [loginTab]))
 }
 
 function* selectKeySaga() {
@@ -414,6 +419,7 @@ const getPassphraseSaga = onBackSaga =>
   }
 
 function* handleProvisioningError(error) {
+  yield put(Creators.provisioningError(error))
   yield put(
     navigateAppend(
       [
@@ -428,7 +434,7 @@ function* handleProvisioningError(error) {
     )
   )
   yield race({onBack: take(Constants.onBack), navUp: take(RouteConstants.navigateUp)})
-  yield put(navigateTo(['login'], [loginTab]))
+  yield call(cancelLogin)
 }
 
 function* loginFlowSaga(usernameOrEmail) {
@@ -488,7 +494,10 @@ function* initalizeMyCodeStateForAddingADevice() {
 }
 
 function* startLoginSaga() {
-  yield put(navigateAppend(['usernameOrEmail'], [loginTab, 'login']))
+  yield put(Creators.setLoginFromRevokedDevice(''))
+  yield put(Creators.setRevokedSelf(''))
+  yield put(Creators.setDeletedSelf(''))
+  yield put(navigateTo(['login', 'usernameOrEmail'], [loginTab]))
 
   yield call(initalizeMyCodeStateForLogin)
 

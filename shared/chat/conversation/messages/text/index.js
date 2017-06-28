@@ -11,7 +11,7 @@ export type Props = {
 }
 
 const MessageText = ({text, type, isEditing}: Props) => (
-  <Markdown style={getStyle(type, isEditing)}>{text}</Markdown>
+  <Markdown style={getStyle(type, isEditing)} allowFontScaling={true}>{text}</Markdown>
 )
 
 // Encoding all 4 states as static objects so we don't re-render

@@ -249,6 +249,20 @@
           "name": "version"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "InterestingPerson",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -511,6 +525,27 @@
         {
           "name": "bio",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "interestingPeople": {
+      "request": [
+        {
+          "name": "maxUsers",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InterestingPerson"
+      }
+    },
+    "resetUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null
