@@ -283,8 +283,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
-	// Force an update of our known merkle root to include admin permission.
-	if _, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID); err != nil {
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
 		return err
 	}
 
@@ -350,8 +349,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		return err
 	}
 
-	// Force an update of our known merkle root to include admin permission.
-	if _, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID); err != nil {
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
 		return err
 	}
 
@@ -644,6 +642,15 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		return err
 	}
 	return nil
+}
+
+// ForceMerkleRootUpdate will call LookupTeam on MerkleClient to
+// update cached merkle root to include latest team sigs. Needed if
+// client wants to create a signature that refers to an adminship,
+// signature's merkle_root has to be more fresh than adminship's.
+func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
+	_, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID)
+	return err
 }
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {

@@ -158,8 +158,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	// Force an update of our known merkle root to include admin permission.
-	if _, err := g.GetMerkleClient().LookupTeam(ctx, parentTeam.ID); err != nil {
+	if err := parentTeam.ForceMerkleRootUpdate(ctx); err != nil {
 		return nil, err
 	}
 
