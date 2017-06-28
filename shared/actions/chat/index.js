@@ -3,6 +3,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as SearchCreators from '../searchv3/creators'
 import * as Inbox from './inbox'
 import * as Messages from './messages'
 import * as Shared from './shared'
@@ -711,6 +712,7 @@ function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
     yield put(Creators.selectConversation(null, false))
+    yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
   }
 

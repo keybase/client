@@ -10,6 +10,7 @@ import {
   onClickFollowing,
   checkProof,
 } from '../actions/profile'
+import {searchSuggestions} from '../actions/searchv3/creators'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
@@ -122,6 +123,7 @@ export default connect(
       )
     },
     onSearch: () => {
+      dispatch(searchSuggestions('profile:updateSearchResults'))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {

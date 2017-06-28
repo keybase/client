@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (term) {
       dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
     } else {
-      dispatch(Creators.clearSearchResults())
+      dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
   onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
