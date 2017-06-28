@@ -14,4 +14,4 @@ const load = () => {
   AppRegistry.registerComponent('Keybase', () => StorybookUI)
 }
 
-export default load
+export {load}
