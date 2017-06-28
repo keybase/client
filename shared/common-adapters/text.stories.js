@@ -110,7 +110,7 @@ const mapText = (secondary: boolean) => {
 
 const load = () => {
   storiesOf('Text', module).add('Text', () => (
-    <Box style={outterStyle}>
+    <Box style={outerStyle}>
       <Container backgroundColor={globalColors.white}>
         {mapText(false)}
       </Container>
@@ -122,7 +122,7 @@ const load = () => {
   ))
 }
 
-const outterStyle = isMobile
+const outerStyle = isMobile
   ? {}
   : {display: 'grid', flex: 1, gridTemplateColumns: 'repeat(2, 1fr)', overflow: 'auto'}
 
