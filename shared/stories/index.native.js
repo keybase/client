@@ -4,6 +4,9 @@ import React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import loadAvatar from '../common-adapters/avatar.stories'
 import loadBox from '../common-adapters/box.stories'
+import loadIcon from '../common-adapters/icon.stories'
+import loadCheckbox from '../common-adapters/checkbox.stories'
+import loadText from '../common-adapters/text.stories'
 import {StatusBar} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
 
@@ -17,8 +20,11 @@ const load = () => {
   ])
 
   configure(() => {
-    loadBox()
     loadAvatar()
+    loadBox()
+    loadCheckbox()
+    loadIcon()
+    loadText()
   }, module)
 }
 
