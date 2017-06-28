@@ -76,17 +76,14 @@ func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
 }
 
 func (t SigchainV2Type) RequiresAdminPermission() bool {
-	switch t {
-	case SigchainV2TypeTeamNewSubteam,
-		SigchainV2TypeTeamChangeMembership,
-		SigchainV2TypeTeamLeave,
-		SigchainV2TypeTeamSubteamHead,
-		SigchainV2TypeTeamRenameSubteam,
-		SigchainV2TypeTeamInvite,
-		SigchainV2TypeTeamRenameUpPointer:
-		return true
-	default:
+	if !t.IsTeamType() {
 		return false
+	}
+	switch t {
+	case SigchainV2TypeTeamLeave, SigchainV2TypeTeamRotateKey, SigchainV2TypeTeamRoot:
+		return false
+	default:
+		return true
 	}
 }
 
