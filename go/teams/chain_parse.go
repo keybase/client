@@ -12,9 +12,7 @@ import (
 type SCTeamName string
 type SCTeamID string
 
-func (s SCTeamID) ToTeamID() keybase1.TeamID {
-	return keybase1.TeamID(s)
-}
+func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
 
 // A (username, seqno) pair.
 // The username is adorned with "%n" at the end
@@ -78,8 +76,8 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-func (sc *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(keybase1.UserVersion(*sc).PercentForm()), nil
+func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
+	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm()), nil
 }
 
 // Non-team-specific stuff below the line
@@ -95,8 +93,8 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
-func (l *SCChainLink) isStubbed() bool {
-	return l.Payload == ""
+func (link *SCChainLink) isStubbed() bool {
+	return link.Payload == ""
 }
 
 func (link *SCChainLink) PayloadHash() libkb.LinkID {
@@ -168,8 +166,8 @@ func ParseTeamChainLink(link string) (res SCChainLink, err error) {
 	return res, err
 }
 
-func (p SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
-	t := p.Body.Team
+func (s SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
+	t := s.Body.Team
 	if t == nil {
 		return nil
 	}

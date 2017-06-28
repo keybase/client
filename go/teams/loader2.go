@@ -136,14 +136,18 @@ func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
 	return l.unimplementedVerificationTODO(ctx, nil)
 }
 
-func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData, admin SCTeamAdmin) (ret *keybase1.TeamData, err error) {
-	target := admin.TeamID.ToTeamID()
+func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData, uv keybase1.UserVersion, admin SCTeamAdmin) (ret *keybase1.TeamData, err error) {
+	target, err := admin.TeamID.ToTeamID()
+	if err != nil {
+		return nil, err
+	}
+
 	for team != nil && !team.Chain.Id.Eq(target) {
 		parent := team.Chain.ParentID
 		if parent == nil {
 			return nil, NewAdminNotFoundError(admin)
 		}
-		arg := load2ArgT{teamID: *parent}
+		arg := load2ArgT{teamID: *parent, me: uv}
 		if target.Eq(*parent) {
 			arg.needSeqnos = []keybase1.Seqno{admin.Seqno}
 		}
@@ -180,7 +184,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 
 	// The more complicated case is that there's an explicit admin permssion given, perhaps
 	// of a parent team.
-	adminTeam, err := l.walkUpToAdmin(ctx, state, *explicitAdmin)
+	adminTeam, err := l.walkUpToAdmin(ctx, state, uv, *explicitAdmin)
 	if err != nil {
 		return proofSet, err
 	}
