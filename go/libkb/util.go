@@ -628,12 +628,9 @@ func SleepWithContext(ctx context.Context, clock clockwork.Clock, duration time.
 	}
 }
 
-// RunningInCI will return true if it appears we are running in a CI environment.
-func RunningInCI() bool {
-	// All these env vars are set by Jenkins: https://ci.keyba.se/pipeline-syntax/globals#env
-	if os.Getenv("JENKINS_URL") != "" {
-		return true
+func CITimeMultiplier(g Contextifier) time.Duration {
+	if g.G().GetEnv().RunningInCI() {
+		return time.Duration(3)
 	}
-
-	return false
+	return time.Duration(1)
 }
