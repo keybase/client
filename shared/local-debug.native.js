@@ -13,11 +13,11 @@ let config: {[key: string]: any} = {
   clickableVisible: false,
   dumbChatOnly: false,
   dumbSheetOnly: false,
-  enableActionLogging: true,
+  enableActionLogging: false,
   enableStoreLogging: false,
   featureFlagsOverride: null,
   forceImmediateLogging: false,
-  forwardLogs: true,
+  forwardLogs: false,
   isDevApplePushToken: false,
   isTesting: nativeBridge.test === '1',
   immediateStateLogging: false,
@@ -28,29 +28,29 @@ let config: {[key: string]: any} = {
   printRoutes: false,
   reactPerf: false,
   reduxSagaLogger: false,
-  reduxSagaLoggerMasked: true,
-  redirectOnLogout: true,
+  reduxSagaLoggerMasked: false,
+  redirectOnLogout: false,
   showAllTrackers: false,
 }
 
-if (__DEV__ && true) {
-  config.isDevApplePushToken = true
-  config.clickableVisible = false
-  config.dumbChatOnly = false
-  config.dumbSheetOnly = false
-  config.enableActionLogging = false
-  config.enableStoreLogging = true
-  config.forwardLogs = true
-  config.immediateStateLogging = true
-  config.printOutstandingRPCs = true
-  config.printRPC = true
-  config.printRoutes = true
-  config.reactPerf = false
-  config.redirectOnLogout = false
-  config.reduxSagaLogger = true
-  config.reduxSagaLoggerMasked = false
-  config.showAllTrackers = false
-}
+// if (__DEV__ && true) {
+// config.isDevApplePushToken = true
+// config.clickableVisible = false
+// config.dumbChatOnly = false
+// config.dumbSheetOnly = false
+// config.enableActionLogging = false
+// config.enableStoreLogging = true
+// config.forwardLogs = true
+// config.immediateStateLogging = true
+// config.printOutstandingRPCs = true
+// config.printRPC = true
+// config.printRoutes = true
+// config.reactPerf = false
+// config.redirectOnLogout = false
+// config.reduxSagaLogger = true
+// config.reduxSagaLoggerMasked = false
+// config.showAllTrackers = false
+// }
 
 export const {
   actionStatFrequency,
