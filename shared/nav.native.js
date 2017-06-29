@@ -89,6 +89,11 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
 
 function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
+  // Skip extra view if no statusbar
+  if (hideStatusBar) {
+    return route.component
+  }
+
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
@@ -125,19 +130,18 @@ const forAndroid = ({hideNav, shim, tabBar}) => (
 
 function MainNavStack(props: Props) {
   const screens = props.routeStack
-  const shim = (
-    <Box style={flexOne}>
-      <CardStackShim
-        key={props.routeSelected}
-        stack={screens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
-      />
-      {![chatTab].includes(props.routeSelected) &&
-        <Offline reachability={props.reachability} appFocused={true} />}
-      <GlobalError />
-    </Box>
-  )
+  const shim = [
+    <CardStackShim
+      key={props.routeSelected}
+      stack={screens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+    />,
+    ![chatTab].includes(props.routeSelected) &&
+      <Offline key="offline" reachability={props.reachability} appFocused={true} />,
+    <GlobalError key="globalError" />,
+  ].filter(Boolean)
+
   const tabBar = (
     <TabBar
       onTabClick={props.switchTab}
@@ -164,19 +168,28 @@ function Nav(props: Props) {
     tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
   })
 
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-
-  return (
-    <Box style={globalStyles.fillAbsolute}>
-      <CardStackShim
-        stack={fullScreens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
-        mode="modal"
-      />
-      {layerScreens.map(r => r.leafComponent)}
-    </Box>
+  const shim = (
+    <CardStackShim
+      stack={fullScreens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+      mode="modal"
+    />
   )
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+  const layers = layerScreens.map(r => r.leafComponent)
+
+  // If we have layers, lets add an extra box, else lets just pass through
+  if (layers.length) {
+    return (
+      <Box style={globalStyles.fillAbsolute}>
+        {shim}
+        {layers}
+      </Box>
+    )
+  } else {
+    return shim
+  }
 }
 
 const sceneWrapStyleUnder = {

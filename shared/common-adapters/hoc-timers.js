@@ -17,8 +17,13 @@ function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?n
   }
 }
 
+function getDisplayName(WrappedComponent) {
+  return WrappedComponent.displayName || WrappedComponent.name || 'Component'
+}
+
 export default function HOCTimers<P: Object>(ComposedComponent: ReactClass<P & TimerProps>): ReactClass<P> {
   class TimersComponent extends Component<void, P, void> {
+    static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
     _timeoutIds: Array<number>
     _intervalIds: Array<number>
     _timerFuncs: TimerProps
