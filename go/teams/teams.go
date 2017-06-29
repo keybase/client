@@ -390,6 +390,21 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
 }
 
+func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
+	targetTeam = t
+	for !validator(targetTeam) && targetTeam.Chain.inner.ParentID != nil {
+		targetID := targetTeam.Chain.inner.ParentID
+		targetTeam, err = GetForTeamManagement(ctx, targetTeam.G(), *targetID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if !validator(targetTeam) {
+		return nil, nil
+	}
+	return targetTeam, nil
+}
+
 func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
@@ -397,26 +412,22 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	}
 
 	uv := me.ToUserVersion()
-	target_team := t
-	logPoint := target_team.Chain.GetAdminUserLogPoint(uv)
-	for logPoint == nil && target_team.Chain.inner.ParentID != nil {
-		target_id := target_team.Chain.inner.ParentID
-		target_team, err = GetForTeamManagement(ctx, target_team.G(), *target_id)
-		if err != nil {
-			return nil, err
-		}
-		logPoint = target_team.Chain.GetAdminUserLogPoint(uv)
+	targetTeam, err := t.traverseUpUntil(ctx, func(s *Team) bool {
+		return s.Chain.GetAdminUserLogPoint(uv) != nil
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	if logPoint == nil {
+	if targetTeam == nil {
 		if required {
 			err = errors.New("cannot perform this operation without adminship")
 		}
 		return nil, err
 	}
 
+	logPoint := targetTeam.Chain.GetAdminUserLogPoint(uv)
 	ret := SCTeamAdmin{
-		TeamID:  (SCTeamID)(target_team.ID),
+		TeamID:  (SCTeamID)(targetTeam.ID),
 		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
 		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
