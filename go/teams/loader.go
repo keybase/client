@@ -230,7 +230,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 
 	// Backfill stubbed links that need to be filled now.
 	if ret != nil && len(arg.needSeqnos) > 0 {
-		ret, proofSet, err = l.fillInStubbedLinks(ctx, ret, arg.needSeqnos, proofSet)
+		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
+			ctx, arg.me, ret, arg.needSeqnos, proofSet, parentChildOperations)
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +277,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
+		_, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
