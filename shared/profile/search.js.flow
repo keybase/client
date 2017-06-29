@@ -1,5 +1,6 @@
 // @flow
 import {Component} from 'react'
+import {List} from 'immutable'
 
 import type {SearchResultId} from '../constants/searchv3'
 import type {UserDetails} from '../searchv3/user-input'
@@ -25,7 +26,7 @@ export type Props = {
   selectedService: string,
   showAddButton: boolean,
   usernameText: string,
-  userItems: Array<UserDetails>,
+  userItems: List<UserDetails>,
 }
 
 export default class Render extends Component<void, Props, void> {}

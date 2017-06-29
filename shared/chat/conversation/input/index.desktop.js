@@ -136,7 +136,7 @@ class ConversationInput extends Component<void, InputProps, void> {
             multiple={true}
           />
           <Input
-            autoFocus={true}
+            autoFocus={false}
             small={true}
             style={styleInput}
             ref={this.props.inputSetRef}
