@@ -39,12 +39,12 @@ const codeSnippetBlockStyle = {
   paddingTop: globalMargins.xtiny,
 }
 
-const textBlockStyle = {display: 'block', ...wrapStyle, color: undefined, fontWeight: undefined}
-const linkStyle = {...wrapStyle, fontWeight: undefined}
-const neutralPreviewStyle = {color: undefined, fontWeight: undefined}
-const boldStyle = {...wrapStyle, color: undefined}
-const italicStyle = {...wrapStyle, color: undefined, fontStyle: 'italic', fontWeight: undefined}
-const strikeStyle = {...wrapStyle, color: undefined, fontWeight: undefined, textDecoration: 'line-through'}
+const textBlockStyle = {display: 'block', ...wrapStyle, color: 'inherit', fontWeight: 'inherit'}
+const linkStyle = {...wrapStyle, fontWeight: 'inherit'}
+const neutralPreviewStyle = {color: 'inherit', fontWeight: 'inherit'}
+const boldStyle = {...wrapStyle, color: 'inherit'}
+const italicStyle = {...wrapStyle, color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'}
+const strikeStyle = {...wrapStyle, color: 'inherit', fontWeight: 'inherit', textDecoration: 'line-through'}
 const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingLeft: 13}
 
 function previewCreateComponent(type, key, children, options) {
