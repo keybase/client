@@ -276,7 +276,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		proofSet, err = l.verifyLink(ctx, ret, link, proofSet)
+		proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}

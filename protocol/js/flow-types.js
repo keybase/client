@@ -5600,11 +5600,6 @@ export type SignatureMetadata = {
   sigChainLocation: SigChainLocation,
 }
 
-export type SignatureMetadataBookends = {
-  left: SignatureMetadata,
-  right?: ?SignatureMetadata,
-}
-
 export type SignupRes = {
   passphraseOk: boolean,
   postOk: boolean,

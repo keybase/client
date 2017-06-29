@@ -92,24 +92,6 @@ func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	}
 }
 
-type SignatureMetadataBookends struct {
-	Left  SignatureMetadata  `codec:"left" json:"left"`
-	Right *SignatureMetadata `codec:"right,omitempty" json:"right,omitempty"`
-}
-
-func (o SignatureMetadataBookends) DeepCopy() SignatureMetadataBookends {
-	return SignatureMetadataBookends{
-		Left: o.Left.DeepCopy(),
-		Right: (func(x *SignatureMetadata) *SignatureMetadata {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Right),
-	}
-}
-
 type MaskB64 []byte
 
 func (o MaskB64) DeepCopy() MaskB64 {

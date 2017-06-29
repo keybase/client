@@ -27,11 +27,6 @@ protocol teams {
     Bytes32 key;
   }
 
-  record SignatureMetadataBookends {
-    SignatureMetadata left;
-    union { null, SignatureMetadata } right;
-  }
-
   @typedef("bytes")
   record MaskB64 {}
 
