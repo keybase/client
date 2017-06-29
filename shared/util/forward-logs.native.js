@@ -18,19 +18,19 @@ function setupSource() {
   }
   forwarded = true
 
-  window.console.log = (...args) => {
-    localLog(...args)
-    logger.info(...args)
+  window.console.log = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
+    localLog(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+    logger.info(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
 
-  window.console.warn = (...args) => {
-    localWarn(...args)
-    logger.warn(...args)
+  window.console.warn = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
+    localWarn(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+    logger.warn(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
 
-  window.console.error = (...args) => {
-    localError(...args)
-    logger.error(...args)
+  window.console.error = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
+    localError(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+    logger.error(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
   }
 }
 

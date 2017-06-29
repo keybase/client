@@ -8,7 +8,7 @@ import {updateDebugConfig} from './actions/dev'
 
 const nativeBridge = NativeModules.KeybaseEngine
 
-const PERF = true
+const PERF = false
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
