@@ -29,7 +29,22 @@ const selectedSearchIdHoc = compose(
   })
 )
 
-// TODO types plz
+// TODO hook up this type
+/*
+type InProps = {
+  onRemoveUser: (id: Constants.SearchResultId) => void,
+  onExitSearch: () => void,
+  userItems: Array<{id: Constants.SearchResultId}>,
+  searchText: string,
+  onChangeSearchText: (nextText: string) => void,
+  clearSearchResults: () => void,
+  search: (search: string, service: Constants.Service) => void,
+}
+
+type OutProps = {
+  onClearSearch: () => void,
+}
+*/
 const clearSearchHoc = withHandlers({
   onClearSearch: ({
     onRemoveUser,
