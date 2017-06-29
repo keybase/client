@@ -43,9 +43,11 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
   }
 
   componentWillReceiveProps(nextProps: ContainerProps) {
-    this.setState({
-      deviceNameError: nextProps.deviceNameError,
-    })
+    if (this.props.deviceNameError !== nextProps.deviceNameError) {
+      this.setState({
+        deviceNameError: nextProps.deviceNameError,
+      })
+    }
   }
 
   _onChange = (deviceName: string) => {
