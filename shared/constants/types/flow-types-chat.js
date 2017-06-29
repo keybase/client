@@ -655,6 +655,21 @@ export function remoteGetS3ParamsRpcPromise (request: $Exact<requestCommon & {ca
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getS3Params', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteGetTLFConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.getTLFConversations', request)
+}
+
+export function remoteGetTLFConversationsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTLFConversations', request)
+}
+export function remoteGetTLFConversationsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.getTLFConversations', request, callback, incomingCallMap) })
+}
+
+export function remoteGetTLFConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): Promise<remoteGetTLFConversationsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getTLFConversations', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.getThreadRemote', request)
 }
@@ -683,6 +698,36 @@ export function remoteGetUnreadUpdateFullRpcChannelMapOld (channelConfig: Channe
 
 export function remoteGetUnreadUpdateFullRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): Promise<remoteGetUnreadUpdateFullResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.GetUnreadUpdateFull', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteJoinConversationRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.joinConversation', request)
+}
+
+export function remoteJoinConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.joinConversation', request)
+}
+export function remoteJoinConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.joinConversation', request, callback, incomingCallMap) })
+}
+
+export function remoteJoinConversationRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.joinConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteLeaveConversationRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.leaveConversation', request)
+}
+
+export function remoteLeaveConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.leaveConversation', request)
+}
+export function remoteLeaveConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.leaveConversation', request, callback, incomingCallMap) })
+}
+
+export function remoteLeaveConversationRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.leaveConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteMarkAsReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
@@ -1244,6 +1289,11 @@ export type GetMessagesRemoteRes = {
 }
 
 export type GetPublicConversationsRes = {
+  conversations?: ?Array<Conversation>,
+  rateLimit?: ?RateLimit,
+}
+
+export type GetTLFConversationsRes = {
   conversations?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
 }
@@ -2118,6 +2168,12 @@ export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
 
+export type remoteGetTLFConversationsRpcParam = Exact<{
+  tlfID: TLFID,
+  topicType: TopicType,
+  summarizeMaxMsgs: boolean
+}>
+
 export type remoteGetThreadRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
@@ -2126,6 +2182,14 @@ export type remoteGetThreadRemoteRpcParam = Exact<{
 
 export type remoteGetUnreadUpdateFullRpcParam = Exact<{
   inboxVers: InboxVers
+}>
+
+export type remoteJoinConversationRpcParam = Exact<{
+  convID: ConversationID
+}>
+
+export type remoteLeaveConversationRpcParam = Exact<{
+  convID: ConversationID
 }>
 
 export type remoteMarkAsReadRpcParam = Exact<{
@@ -2234,6 +2298,7 @@ type remoteGetInboxVersionResult = InboxVers
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 type remoteGetPublicConversationsResult = GetPublicConversationsRes
 type remoteGetS3ParamsResult = S3Params
+type remoteGetTLFConversationsResult = GetTLFConversationsRes
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 type remoteGetUnreadUpdateFullResult = UnreadUpdateFull
 type remoteMarkAsReadResult = MarkAsReadRes
@@ -2277,8 +2342,11 @@ export type rpc =
   | remoteGetMessagesRemoteRpc
   | remoteGetPublicConversationsRpc
   | remoteGetS3ParamsRpc
+  | remoteGetTLFConversationsRpc
   | remoteGetThreadRemoteRpc
   | remoteGetUnreadUpdateFullRpc
+  | remoteJoinConversationRpc
+  | remoteLeaveConversationRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc

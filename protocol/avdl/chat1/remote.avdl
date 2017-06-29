@@ -212,4 +212,14 @@ protocol remote {
 
   // Typing endpoints
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
+
+  // Channel endpoints
+  void joinConversation(ConversationID convID);
+  void leaveConversation(ConversationID convID);
+
+  record GetTLFConversationsRes {
+    array<Conversation> conversations; 
+    union { null, RateLimit } rateLimit;
+  }
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 }

@@ -438,6 +438,26 @@
           "name": "badge"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFConversationsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -777,6 +797,41 @@
         }
       ],
       "response": null
+    },
+    "joinConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "leaveConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "getTLFConversations": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
+        }
+      ],
+      "response": "GetTLFConversationsRes"
     }
   },
   "namespace": "chat.1"
