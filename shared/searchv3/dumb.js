@@ -283,6 +283,7 @@ const commonUserInputMapProps = {
   onMoveSelectUp: () => console.log('username input moveSelectUp'),
   onMoveSelectDown: () => console.log('username input moveSelectDown'),
   onEnter: () => console.log('username input on enter'),
+  onCancel: () => console.log('username cancel'),
 }
 
 const maxUsers = [

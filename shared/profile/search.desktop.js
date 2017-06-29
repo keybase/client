@@ -25,6 +25,7 @@ const Search = (props: Props) => (
             placeholder={props.placeholder}
             userItems={props.userItems}
             usernameText={props.searchText}
+            onCancel={props.onClose}
           />
         </Box>
         <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
