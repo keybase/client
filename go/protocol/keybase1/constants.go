@@ -100,6 +100,7 @@ const (
 	StatusCode_SCNeedOtherRekey         StatusCode = 2513
 	StatusCode_SCChatMessageCollision   StatusCode = 2514
 	StatusCode_SCChatDuplicateMessage   StatusCode = 2515
+	StatusCode_SCChatClientError        StatusCode = 2516
 	StatusCode_SCTeamReadError          StatusCode = 2623
 )
 
@@ -196,6 +197,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCNeedOtherRekey":         2513,
 	"SCChatMessageCollision":   2514,
 	"SCChatDuplicateMessage":   2515,
+	"SCChatClientError":        2516,
 	"SCTeamReadError":          2623,
 }
 
@@ -290,6 +292,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2513: "SCNeedOtherRekey",
 	2514: "SCChatMessageCollision",
 	2515: "SCChatDuplicateMessage",
+	2516: "SCChatClientError",
 	2623: "SCTeamReadError",
 }
 

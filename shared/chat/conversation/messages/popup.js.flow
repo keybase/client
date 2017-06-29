@@ -23,8 +23,8 @@ export type AttachmentProps = {
   you: string,
   onDownloadAttachment: () => void,
   onOpenInFileUI: () => void,
-  onShareAttachment?: () => void,
-  onSaveAttachment?: () => void,
+  onShareAttachment?: (m: AttachmentMessage) => void,
+  onSaveAttachment?: (m: AttachmentMessage) => void,
 } & BaseProps
 
 export class AttachmentPopupMenu extends Component<void, AttachmentProps, void> {}

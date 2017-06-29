@@ -20,6 +20,7 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdTeamAddMember(cl, g),
 			newCmdTeamRemoveMember(cl, g),
 			newCmdTeamEditMember(cl, g),
+			newCmdTeamLeave(cl, g),
 		},
 	}
 }

@@ -413,7 +413,7 @@ const IconHolder = ({iconFont}) => {
       }}
     >
       {Object.keys(sizes).map(size => (
-        <Box key={size} style={{...globalStyles.flexBoxColumn}}>
+        <Box key={size} style={globalStyles.flexBoxColumn}>
           <Text type="HeaderLink">Grid: {size}</Text>
           <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
             {sizes[size].map((i: IconType) => (

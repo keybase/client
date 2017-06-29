@@ -3,6 +3,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as SearchCreators from '../searchv3/creators'
 import * as Inbox from './inbox'
 import * as Messages from './messages'
 import * as Shared from './shared'
@@ -231,11 +232,11 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
-      dispatch(Creators.inboxStale(undefined))
+      dispatch(Creators.inboxStale())
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFResolve', ({convID, resolveInfo: {newTLFName}}) => {
-      dispatch(Creators.inboxStale(undefined))
+      dispatch(Creators.inboxStale())
     })
 
     engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
@@ -711,6 +712,7 @@ function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
     yield put(Creators.selectConversation(null, false))
+    yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
   }
 
@@ -933,7 +935,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   return (
     originalAction.type === 'chat:loadMoreMessages' &&
     checkAction.type === 'chat:clearMessages' &&
-    originalAction.conversationIDKey === checkAction.conversationIDKey
+    originalAction.payload.conversationIDKey === checkAction.payload.conversationIDKey
   )
 }
 
@@ -984,13 +986,13 @@ function* _updateTempSearchConversation(
   const inboxSearch = yield select(inboxSearchSelector)
   if (action.type === 'chat:stageUserForSearch') {
     const nextTempSearchConv = inboxSearch.push(user)
-    yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
     if (!nextTempSearchConv.isEmpty()) {
-      yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+      yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     } else {
       yield put(Creators.selectConversation(null, false))
     }
@@ -998,12 +1000,16 @@ function* _updateTempSearchConversation(
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   }
+
+  // Always clear the search results when you select/unselect
+  yield put(Creators.clearSearchResults())
 }
 
 function* _exitSearch() {
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
+  yield put(Creators.removeTempPendingConversations())
 }
 
 function* chatSaga(): SagaGenerator<any, any> {

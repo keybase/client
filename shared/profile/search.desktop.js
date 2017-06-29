@@ -24,16 +24,17 @@ const Search = (props: Props) => (
             onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
             placeholder={props.placeholder}
             userItems={props.userItems}
-            usernameText={props.searchText}
+            usernameText={props.usernameText}
           />
         </Box>
         <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
       </Box>
     </Box>
-    <Box style={{...styleSearchRow, justifyContent: 'center'}}>
-      <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-      <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-    </Box>
+    {props.showServiceFilter &&
+      <Box style={{...styleSearchRow, justifyContent: 'center'}}>
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+      </Box>}
     <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
       <ResultsList
         items={props.searchResultIds}

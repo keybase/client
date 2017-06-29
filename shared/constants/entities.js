@@ -24,7 +24,7 @@ export type Actions = Delete | Merge | Replace
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
-  searchResults: Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
 }>
 

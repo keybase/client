@@ -42,7 +42,7 @@ class DumbSheetRender extends Component<void, Props, any> {
 
   _increment() {
     if (this.props.autoIncrement && this.state.testIndex !== -1) {
-      const total = this._getTotal(null, -1)
+      const total = this._getTotal(null)
       if (this.state.testIndex >= total) {
         this.setState({testIndex: -1})
       } else {

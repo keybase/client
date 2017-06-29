@@ -67,6 +67,26 @@ func (t SigchainV2Type) IsTeamType() bool {
 	}
 }
 
+func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
+	role := keybase1.TeamRole_READER
+	if isAdmin {
+		role = keybase1.TeamRole_ADMIN
+	}
+	return t.TeamAllowStub(role)
+}
+
+func (t SigchainV2Type) RequiresAdminPermission() bool {
+	if !t.IsTeamType() {
+		return false
+	}
+	switch t {
+	case SigchainV2TypeTeamLeave, SigchainV2TypeTeamRotateKey, SigchainV2TypeTeamRoot:
+		return false
+	default:
+		return true
+	}
+}
+
 // whether the type can be stubbed for a team member with role
 func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 	switch role {
@@ -101,6 +121,7 @@ type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
 	sigID keybase1.SigID
+	sig   string
 	KID   keybase1.KID
 }
 
@@ -129,6 +150,22 @@ func (o OuterLinkV2WithMetadata) LinkID() LinkID {
 	return ComputeLinkID(o.raw)
 }
 
+func (o OuterLinkV2WithMetadata) Raw() []byte {
+	return o.raw
+}
+
+func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, err error) {
+	key, err := ImportKeypairFromKID(o.KID)
+	if err != nil {
+		return kid, err
+	}
+	_, err = key.VerifyString(ctx, o.sig, o.raw)
+	if err != nil {
+		return kid, err
+	}
+	return o.KID, nil
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
@@ -144,6 +181,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		sigID:       sigID,
 		raw:         payload,
 		KID:         kid,
+		sig:         armored,
 	}
 	return &ret, nil
 }

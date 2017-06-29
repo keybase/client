@@ -1,16 +1,16 @@
 // @flow
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
+import Box from './box'
 import React from 'react'
 import Text from './text'
-import {action} from '@storybook/addon-actions'
 import {globalColors, globalStyles} from '../styles'
-import {storiesOf} from '@storybook/react'
+import {storiesOf, action} from '../stories/storybook'
+import {isMobile} from '../constants/platform'
 
-const SmallGap = () => <div style={{minHeight: 24}} />
-const LargeGap = () => <div style={{minHeight: 36}} />
+const SmallGap = () => <Box style={{minHeight: 24}} />
+const LargeGap = () => <Box style={{minHeight: 36}} />
 
 const displayBlock = {
-  style: {display: 'block'},
+  style: isMobile ? {} : {display: 'block'},
 }
 const foregroundMode = {
   backgroundMode: 'Normal',
@@ -22,7 +22,7 @@ const hidden = {
   style: {opacity: 0},
 }
 const SecondaryColorBox = () => (
-  <div
+  <Box
     style={{
       ...globalStyles.flexBoxRow,
       ...globalStyles.fillAbsolute,
@@ -31,24 +31,24 @@ const SecondaryColorBox = () => (
       height: 30,
     }}
   >
-    <div style={{backgroundColor: globalColors.midnightBlue, flex: 1}} />
-    <div style={{backgroundColor: globalColors.blue, flex: 1}} />
-    <div style={{backgroundColor: globalColors.red, flex: 1}} />
-    <div style={{backgroundColor: globalColors.green, flex: 1}} />
-    <div style={{backgroundColor: globalColors.darkBlue, flex: 1}} />
-  </div>
+    <Box style={{backgroundColor: globalColors.midnightBlue, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.blue, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.red, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.green, flex: 1}} />
+    <Box style={{backgroundColor: globalColors.darkBlue, flex: 1}} />
+  </Box>
 )
 
 const Container = ({backgroundColor, children}) => (
-  <div
+  <Box
     style={{
       backgroundColor,
-      padding: 90,
+      padding: isMobile ? 10 : 90,
       position: 'relative',
     }}
   >
     {children}
-  </div>
+  </Box>
 )
 
 const groups = [
@@ -108,14 +108,22 @@ const mapText = (secondary: boolean) => {
   return items
 }
 
-storiesOf('Text', module).add('Text', () => (
-  <div style={{display: 'grid', flex: 1, gridTemplateColumns: 'repeat(2, 1fr)', overflow: 'auto'}}>
-    <Container backgroundColor={globalColors.white}>
-      {mapText(false)}
-    </Container>
-    <Container backgroundColor={globalColors.midnightBlue}>
-      <SecondaryColorBox />
-      {mapText(true)}
-    </Container>
-  </div>
-))
+const load = () => {
+  storiesOf('Text', module).add('Text', () => (
+    <Box style={outerStyle}>
+      <Container backgroundColor={globalColors.white}>
+        {mapText(false)}
+      </Container>
+      <Container backgroundColor={globalColors.midnightBlue}>
+        <SecondaryColorBox />
+        {mapText(true)}
+      </Container>
+    </Box>
+  ))
+}
+
+const outerStyle = isMobile
+  ? {}
+  : {display: 'grid', flex: 1, gridTemplateColumns: 'repeat(2, 1fr)', overflow: 'auto'}
+
+export default load

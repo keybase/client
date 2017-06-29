@@ -60,11 +60,36 @@ func (o MerkleRootV2) DeepCopy() MerkleRootV2 {
 	}
 }
 
+type SigChainLocation struct {
+	Seqno   Seqno   `codec:"seqno" json:"seqno"`
+	SeqType SeqType `codec:"seqType" json:"seqType"`
+}
+
+func (o SigChainLocation) DeepCopy() SigChainLocation {
+	return SigChainLocation{
+		Seqno:   o.Seqno.DeepCopy(),
+		SeqType: o.SeqType.DeepCopy(),
+	}
+}
+
+type MerkleTreeLocation struct {
+	Leaf UserOrTeamID     `codec:"leaf" json:"leaf"`
+	Loc  SigChainLocation `codec:"loc" json:"loc"`
+}
+
+func (o MerkleTreeLocation) DeepCopy() MerkleTreeLocation {
+	return MerkleTreeLocation{
+		Leaf: o.Leaf.DeepCopy(),
+		Loc:  o.Loc.DeepCopy(),
+	}
+}
+
 type SignatureMetadata struct {
-	SigningKID              KID          `codec:"signingKID" json:"signingKID"`
-	PrevMerkleRootSigned    MerkleRootV2 `codec:"prevMerkleRootSigned" json:"prevMerkleRootSigned"`
-	FirstAppearedUnverified Seqno        `codec:"firstAppearedUnverified" json:"firstAppearedUnverified"`
-	Time                    Time         `codec:"time" json:"time"`
+	SigningKID              KID              `codec:"signingKID" json:"signingKID"`
+	PrevMerkleRootSigned    MerkleRootV2     `codec:"prevMerkleRootSigned" json:"prevMerkleRootSigned"`
+	FirstAppearedUnverified Seqno            `codec:"firstAppearedUnverified" json:"firstAppearedUnverified"`
+	Time                    Time             `codec:"time" json:"time"`
+	SigChainLocation        SigChainLocation `codec:"sigChainLocation" json:"sigChainLocation"`
 }
 
 func (o SignatureMetadata) DeepCopy() SignatureMetadata {
@@ -72,7 +97,8 @@ func (o SignatureMetadata) DeepCopy() SignatureMetadata {
 		SigningKID:              o.SigningKID.DeepCopy(),
 		PrevMerkleRootSigned:    o.PrevMerkleRootSigned.DeepCopy(),
 		FirstAppearedUnverified: o.FirstAppearedUnverified.DeepCopy(),
-		Time: o.Time.DeepCopy(),
+		Time:             o.Time.DeepCopy(),
+		SigChainLocation: o.SigChainLocation.DeepCopy(),
 	}
 }
 
@@ -296,6 +322,7 @@ type UserPlusKeysV2AllIncarnations struct {
 	Current          UserPlusKeysV2    `codec:"current" json:"current"`
 	PastIncarnations []UserPlusKeysV2  `codec:"pastIncarnations" json:"pastIncarnations"`
 	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
+	SeqnoLinkIDs     map[Seqno]LinkID  `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -310,6 +337,15 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			return ret
 		})(o.PastIncarnations),
 		Uvv: o.Uvv.DeepCopy(),
+		SeqnoLinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			ret := make(map[Seqno]LinkID)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SeqnoLinkIDs),
 	}
 }
 

@@ -26,9 +26,9 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
 		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
 		p.SetKey("status", s)
-		p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	}
 	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
+	p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	return p
 }
 

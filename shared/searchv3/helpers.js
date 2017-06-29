@@ -31,16 +31,9 @@ const selectedSearchIdHoc = compose(
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onAddSelectedUser: ({
-      onChangeSearchText,
-      onAddSelectedUser,
-      search,
-      selectedSearchId,
-      selectedService,
-    }: OwnProps) => () => {
+    onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
       selectedSearchId && onAddSelectedUser(selectedSearchId)
       onChangeSearchText('')
-      search('', selectedService)
     },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
@@ -73,4 +66,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc}
+const showServiceLogicHoc = withPropsOnChange(['usernameText', 'userItems'], ({usernameText, userItems}) => ({
+  showServiceFilter: !!usernameText || userItems.count() === 0,
+}))
+
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc}

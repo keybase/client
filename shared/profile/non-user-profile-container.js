@@ -28,7 +28,9 @@ export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatc
     ...stateProps,
     ...dispatchProps,
     onOpenPrivateFolder: () =>
+      stateProps.myUsername &&
       dispatchProps.onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
-    onStartChat: () => dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
+    onStartChat: () =>
+      stateProps.myUsername && dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
   }
 })(NonUserProfile)

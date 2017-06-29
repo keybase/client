@@ -11,7 +11,7 @@ import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompo
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
-import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 type OwnProps = {
@@ -24,6 +24,7 @@ type OwnProps = {
   search: (term: string, service: SearchConstants.Service) => void,
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
+  showServiceFilter: boolean,
 }
 
 const mapStateToProps = createSelector(
@@ -42,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (term) {
       dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
     } else {
-      dispatch(Creators.clearSearchResults())
+      dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
   onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
@@ -50,7 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const SearchHeader = props => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48}}>
         <Box style={{flex: 1, marginLeft: globalMargins.medium}}>
           <UserInput
@@ -75,7 +76,8 @@ const SearchHeader = props => {
         />
       </Box>
       <Box style={{alignSelf: 'center'}}>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+        {props.showServiceFilter &&
+          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
       </Box>
     </Box>
   )
@@ -84,6 +86,7 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
+  showServiceLogicHoc,
   onChangeSelectedSearchResultHoc,
   withHandlers(() => {
     let input
@@ -104,7 +107,6 @@ export default compose(
     placeholder: 'Search for someone',
     showAddButton: false,
     onClickAddButton: () => console.log('todo'),
-    userItems: [],
   }),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {

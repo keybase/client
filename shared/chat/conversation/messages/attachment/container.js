@@ -25,10 +25,8 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onDownloadAttachment: (selectedConversation, messageID) => {
-    if (selectedConversation && messageID) {
-      dispatch(Creators.saveAttachment(selectedConversation, messageID))
-    }
+  _onDownloadAttachment: messageKey => {
+    messageKey && dispatch(Creators.saveAttachment(messageKey))
   },
   _onEnsurePreviewLoaded: (messageKey: Constants.MessageKey) =>
     dispatch(Creators.loadAttachmentPreview(messageKey)),
@@ -49,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, {measure, onAction}: OwnProps) =>
     }
   },
   onDownloadAttachment: () => {
-    dispatchProps._onDownloadAttachment(stateProps.routePath.get(1), stateProps.message.messageID)
+    dispatchProps._onDownloadAttachment(stateProps.message.key)
   },
   onOpenInFileUI: () => {
     dispatchProps._onOpenInFileUI(stateProps.localMessageState.savedPath)

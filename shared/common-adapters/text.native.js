@@ -4,6 +4,7 @@ import openURL from '../util/open-url'
 import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
+import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
 
@@ -18,6 +19,18 @@ class Text extends Component<void, Props, void> {
 
   _urlClick = () => {
     openURL(this.props.onClickURL)
+  }
+
+  shouldComponentUpdate(nextProps: Props): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
+        // child will be plain text
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
   }
 
   render() {
@@ -73,6 +86,5 @@ function getStyle(
   }
 }
 
-export {getStyle}
-
 export default Text
+export {getStyle}

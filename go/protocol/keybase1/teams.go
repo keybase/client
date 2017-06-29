@@ -92,6 +92,24 @@ func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	}
 }
 
+type SignatureMetadataBookends struct {
+	Left  SignatureMetadata  `codec:"left" json:"left"`
+	Right *SignatureMetadata `codec:"right,omitempty" json:"right,omitempty"`
+}
+
+func (o SignatureMetadataBookends) DeepCopy() SignatureMetadataBookends {
+	return SignatureMetadataBookends{
+		Left: o.Left.DeepCopy(),
+		Right: (func(x *SignatureMetadata) *SignatureMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Right),
+	}
+}
+
 type MaskB64 []byte
 
 func (o MaskB64) DeepCopy() MaskB64 {
@@ -437,6 +455,7 @@ type TeamSigChainState struct {
 	LastLinkID   LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
 	ParentID     *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
 	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
+	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
 	StubbedTypes map[int]bool                        `codec:"stubbedTypes" json:"stubbedTypes"`
 }
@@ -471,6 +490,22 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.UserLog),
+		SubteamLog: (func(x map[TeamID][]SubteamLogPoint) map[TeamID][]SubteamLogPoint {
+			ret := make(map[TeamID][]SubteamLogPoint)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []SubteamLogPoint) []SubteamLogPoint {
+					var ret []SubteamLogPoint
+					for _, v := range x {
+						vCopy := v.DeepCopy()
+						ret = append(ret, vCopy)
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.SubteamLog),
 		PerTeamKeys: (func(x map[PerTeamKeyGeneration]PerTeamKey) map[PerTeamKeyGeneration]PerTeamKey {
 			ret := make(map[PerTeamKeyGeneration]PerTeamKey)
 			for k, v := range x {
@@ -493,13 +528,25 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 }
 
 type UserLogPoint struct {
-	Role  TeamRole `codec:"role" json:"role"`
-	Seqno Seqno    `codec:"seqno" json:"seqno"`
+	Role    TeamRole          `codec:"role" json:"role"`
+	SigMeta SignatureMetadata `codec:"sigMeta" json:"sigMeta"`
 }
 
 func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
-		Role:  o.Role.DeepCopy(),
+		Role:    o.Role.DeepCopy(),
+		SigMeta: o.SigMeta.DeepCopy(),
+	}
+}
+
+type SubteamLogPoint struct {
+	Name  TeamName `codec:"name" json:"name"`
+	Seqno Seqno    `codec:"seqno" json:"seqno"`
+}
+
+func (o SubteamLogPoint) DeepCopy() SubteamLogPoint {
+	return SubteamLogPoint{
+		Name:  o.Name.DeepCopy(),
 		Seqno: o.Seqno.DeepCopy(),
 	}
 }
@@ -656,6 +703,20 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 	}
 }
 
+type TeamLeaveArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Permanent bool   `codec:"permanent" json:"permanent"`
+}
+
+func (o TeamLeaveArg) DeepCopy() TeamLeaveArg {
+	return TeamLeaveArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Permanent: o.Permanent,
+	}
+}
+
 type TeamEditMemberArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -694,6 +755,7 @@ type TeamsInterface interface {
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
+	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -785,6 +847,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamLeave": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamLeaveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamLeaveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamLeaveArg)(nil), args)
+						return
+					}
+					err = i.TeamLeave(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamEditMember": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamEditMemberArg, 1)
@@ -847,6 +925,11 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil)
 	return
 }
 

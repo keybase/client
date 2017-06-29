@@ -1,7 +1,4 @@
 // @flow
-import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-extend in RN iOS and Android
-import './globals.native'
-
 import DumbSheet from './dev/dumb-sheet'
 import DumbChatOnly from './dev/chat-only.native'
 import Main from './main'

@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(openRekeyDialog()),
-  onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+  onShowProfile: (username: string) => dispatch(onUserClick(username)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({

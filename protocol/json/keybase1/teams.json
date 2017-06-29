@@ -48,6 +48,23 @@
     },
     {
       "type": "record",
+      "name": "SignatureMetadataBookends",
+      "fields": [
+        {
+          "type": "SignatureMetadata",
+          "name": "left"
+        },
+        {
+          "type": [
+            null,
+            "SignatureMetadata"
+          ],
+          "name": "right"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MaskB64",
       "fields": [],
       "typedef": "bytes"
@@ -407,6 +424,17 @@
         {
           "type": {
             "type": "map",
+            "values": {
+              "type": "array",
+              "items": "SubteamLogPoint"
+            },
+            "keys": "TeamID"
+          },
+          "name": "subteamLog"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "PerTeamKey",
             "keys": "PerTeamKeyGeneration"
           },
@@ -429,6 +457,20 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamLogPoint",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
         },
         {
           "type": "Seqno",
@@ -615,6 +657,23 @@
         {
           "name": "username",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamLeave": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null

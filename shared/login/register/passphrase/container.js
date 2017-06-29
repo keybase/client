@@ -66,7 +66,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(Creators.openAccountResetPage())
   },
   onBack: () => dispatch(Creators.onBack()),
-  onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase, false))),
+  onSubmit: passphrase => dispatch(Creators.submitPassphrase(new HiddenString(passphrase), false)),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({

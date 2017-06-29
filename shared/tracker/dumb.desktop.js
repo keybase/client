@@ -338,12 +338,13 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'New user': trackerPropsToRenderProps(propsNewUser),
-    'New user Scroll1': {
-      ...trackerPropsToRenderProps(propsNewUser),
-      afterMount: (c, node) => {
-        node.querySelector('.scroll-container').scrollTop = 380
-      },
-    },
+    // Lots of visdiff flakes
+    // 'New user Scroll1': {
+    // ...trackerPropsToRenderProps(propsNewUser),
+    // afterMount: (c, node) => {
+    // node.querySelector('.scroll-container').scrollTop = 380
+    // },
+    // },
     'New user Scroll2': {
       ...trackerPropsToRenderProps(propsNewUser),
       afterMount: (c, node) => {

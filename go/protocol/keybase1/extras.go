@@ -1115,6 +1115,24 @@ func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	return nil
 }
 
+// FindKID finds the Key and user incarnation that most recently used this KID.
+// It is possible for users to use the same KID across incarnations (though definitely
+// not condoned or encouraged). In that case, we'll give the most recent use.
+func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *PublicKeyV2NaCl) {
+	ret, ok := u.Current.DeviceKeys[kid]
+	if ok {
+		return &u.Current, &ret
+	}
+	for i := len(u.PastIncarnations) - 1; i >= 0; i-- {
+		prev := u.PastIncarnations[i]
+		ret, ok = prev.DeviceKeys[kid]
+		if ok {
+			return &prev, &ret
+		}
+	}
+	return nil, nil
+}
+
 func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
 	for _, k := range u.DeviceKeys {
 		if k.Base.Kid.Equal(needle) {
@@ -1490,7 +1508,27 @@ func (t TeamName) ToTeamID() TeamID {
 	return res
 }
 
+// Return a new team name with the part added to the end.
+// For example {foo.bar}.Append(baz) -> {foo.bar.baz}
+func (t TeamName) Append(part string) (t3 TeamName, err error) {
+	t2 := t.DeepCopy()
+	t2.Parts = append(t2.Parts, TeamNamePart(part))
+	t3, err = TeamNameFromString(t2.String())
+	return t3, err
+}
+
+func (t TeamName) LastPart() TeamNamePart {
+	return t.Parts[len(t.Parts)-1]
+}
+
 func (u UserPlusKeys) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
+}
+
+func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,
 		EldestSeqno: u.EldestSeqno,
@@ -1507,8 +1545,20 @@ func (s PerTeamKeySeed) IsZero() bool {
 func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
 	var ret PerTeamKeySeed
 	if len(b) != len(ret) {
-		return PerTeamKeySeed{}, fmt.Errorf("decrypted yielded a bad-sized team secret: %d != %d", len(b), len(ret))
+		return PerTeamKeySeed{}, fmt.Errorf("decrypt yielded a bad-sized team secret: %d != %d", len(b), len(ret))
 	}
 	copy(ret[:], b)
 	return ret, nil
+}
+
+func (s SigChainLocation) Eq(s2 SigChainLocation) bool {
+	return s.Seqno == s2.Seqno && s.SeqType == s2.SeqType
+}
+
+func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
+	return s.SeqType == s2.SeqType && s.Seqno <= s2.Seqno
+}
+
+func (r TeamRole) IsAdminOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER
 }

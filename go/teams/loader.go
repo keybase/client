@@ -87,8 +87,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// Resolve the name to team ID. Will always hit the server for subteams.
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
-	if len(lArg.ID) == 0 {
-		teamID, err = l.resolveNameToIDUntrusted(ctx, lArg.Name)
+	if teamName != nil {
+		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			return nil, err
 		}
@@ -140,11 +140,28 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName string) (keybase1.TeamID, error) {
-	// TODO: Resolve the name to team ID.
+func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
-	// For subteams, ask the server.
-	panic("TODO: resolve team name to id")
+	if teamName.IsRootTeam() {
+		return teamName.ToTeamID(), nil
+	}
+
+	arg := libkb.NewRetryAPIArg("team/get")
+	arg.NetContext = ctx
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	arg.Args = libkb.HTTPArgs{
+		"name":        libkb.S{Val: teamName.String()},
+		"lookup_only": libkb.B{Val: true},
+	}
+
+	var rt rawTeam
+	if err := l.G().API.GetDecode(arg, &rt); err != nil {
+		return id, err
+	}
+	if !rt.ID.Exists() {
+		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
+	}
+	return id, nil
 }
 
 // Mostly the same as the public keybase.LoadTeamArg
@@ -222,12 +239,15 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	// Pull new links from the server
 	var teamUpdate *rawTeam
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
-		low := keybase1.Seqno(0)
+		lowSeqno := keybase1.Seqno(0)
+		lowGen := keybase1.PerTeamKeyGeneration(0)
 		if ret != nil {
-			low = ret.Chain.LastSeqno
+			lowSeqno = ret.Chain.LastSeqno
+			lowGen = TeamSigChainState{inner: ret.Chain}.GetLatestGeneration()
 		}
-		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (low:%v)", low)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, low)
+		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (lowSeqno:%v, lowGen:%v)",
+			lowSeqno, lowGen)
+		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen)
 		if err != nil {
 			return nil, err
 		}
@@ -238,14 +258,25 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if err != nil {
 		return nil, err
 	}
-	for _, link := range links {
-		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
-			if link.isStubbed() {
-				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
-			}
+	var prev libkb.LinkID
+	if ret != nil {
+		prev, err = TeamSigChainState{ret.Chain}.GetLatestLibkbLinkID()
+		if err != nil {
+			return nil, err
+		}
+	}
+	for i, link := range links {
+		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
+
+		if err := l.checkStubbed(ctx, arg, link); err != nil {
+			return nil, err
 		}
 
-		proofSet, err = l.verifyLinkSig(ctx, ret, arg.needAdmin, link, proofSet)
+		if !link.Prev().Eq(prev) {
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
+		}
+
+		proofSet, err = l.verifyLink(ctx, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -258,6 +289,11 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		if err != nil {
 			return nil, err
 		}
+		prev = link.LinkID()
+	}
+
+	if ret == nil {
+		return nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
 	if !ret.Chain.LastLinkID.Eq(lastLinkID) {
@@ -265,7 +301,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, ret.Chain.ParentID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}
@@ -278,7 +314,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if teamUpdate != nil {
 		ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("loading team secrets: %v", err)
 		}
 	}
 
@@ -425,43 +461,60 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 	return true
 }
 
-// Whether teh snapshot has loaded at least up to the key generation.
-func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, fromCache *keybase1.TeamData) error {
+// Whether the snapshot has loaded at least up to the key generation.
+func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, state *keybase1.TeamData) error {
 	if needKeyGeneration == 0 {
 		return nil
 	}
-	if fromCache == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not contain key generation: %v", needKeyGeneration)
 	}
-	panic("TODO: implement")
-	// return nil, fmt.Errorf("team key generation too low: %v < %v", foundGen, lArg.NeedKeyGeneration)
+	key, err := TeamSigChainState{inner: state.Chain}.GetLatestPerTeamKey()
+	if err != nil {
+		return err
+	}
+	if needKeyGeneration > key.Gen {
+		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
+	}
+	return nil
 }
 
 // Whether the snapshot has all of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, teamData *keybase1.TeamData) error {
+	wantMembers []keybase1.UserVersion, state *keybase1.TeamData) error {
 	if len(wantMembers) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not have wanted members")
 	}
-	panic("TODO: implement")
+	for _, uv := range wantMembers {
+		role, err := TeamSigChainState{inner: state.Chain}.GetUserRole(uv)
+		if err != nil {
+			return fmt.Errorf("could not get wanted user role: %v", err)
+		}
+		switch role {
+		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// pass
+		default:
+			return fmt.Errorf("wanted user %v is not a priveleged member", uv)
+		}
+	}
+	return nil
 }
 
 // Whether the snapshot has fully loaded, non-stubbed, all of the links.
-func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, teamData *keybase1.TeamData) error {
+func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, state *keybase1.TeamData) error {
 	if len(needSeqnos) == 0 {
 		return nil
 	}
-	if teamData == nil {
+	if state == nil {
 		return fmt.Errorf("nil team does not contain needed seqnos")
 	}
 	panic("TODO: implement")
 }
 
 func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	// TODO: make sure this punches through any caches and does an rpc.
 	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
 	if err != nil {
 		return r1, r2, err

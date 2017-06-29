@@ -14,7 +14,6 @@ const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [
     {
       desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
-      // $FlowIssue getIn
       subDesc: device.getIn(['revokedBy', 'name'], ''),
       type: 'Revoked',
     },
@@ -30,7 +29,6 @@ const buildTimeline = (device: DeviceDetail) => {
 
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
-    // $FlowIssue getIn
     subDesc: device.getIn(['provisioner', 'name'], ''),
     type: 'Added',
   }
@@ -39,7 +37,6 @@ const buildTimeline = (device: DeviceDetail) => {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  // $FlowIssue getIn
   device: state.entities.getIn(['devices', routeProps.deviceID]),
 })
 

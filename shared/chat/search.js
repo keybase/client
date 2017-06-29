@@ -12,7 +12,7 @@ import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
-import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 const mapStateToProps = createSelector(
@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     if (term) {
       dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
     } else {
-      dispatch(Creators.clearSearchResults())
+      dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
   onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
@@ -68,7 +68,8 @@ const SearchHeader = props => {
         />
       </Box>
       <Box style={{alignSelf: 'center'}}>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+        {props.showServiceFilter &&
+          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
       </Box>
       <SearchResultsList
         style={{flex: 1}}
@@ -86,6 +87,7 @@ export default compose(
   withState('selectedService', '_onSelectService', 'Keybase'),
   withState('usernameText', 'onChangeSearchText', ''),
   onChangeSelectedSearchResultHoc,
+  showServiceLogicHoc,
   withHandlers({
     onSelectService: props => nextService => {
       props._onSelectService(nextService)
@@ -101,6 +103,5 @@ export default compose(
     placeholder: 'Search for someone',
     showAddButton: false,
     onClickAddButton: () => console.log('todo'),
-    userItems: [],
   })
 )(SearchHeader)

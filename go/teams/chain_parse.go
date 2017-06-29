@@ -12,6 +12,8 @@ import (
 type SCTeamName string
 type SCTeamID string
 
+func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
+
 // A (username, seqno) pair.
 // The username is adorned with "%n" at the end
 // where n is the seqno IF the seqno is not 1.
@@ -36,8 +38,9 @@ type SCTeamMembers struct {
 }
 
 type SCTeamParent struct {
-	ID    SCTeamID       `json:"id"`
-	Seqno keybase1.Seqno `json:"seqno"`
+	ID      SCTeamID         `json:"id"`
+	Seqno   keybase1.Seqno   `json:"seqno"`
+	SeqType keybase1.SeqType `json:"seq_type"`
 }
 
 type SCSubteam struct {
@@ -58,6 +61,13 @@ type SCPerTeamKey struct {
 	ReverseSig string                        `json:"reverse_sig"`
 }
 
+func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   a.Seqno,
+		SeqType: a.SeqType,
+	}
+}
+
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 	uv, err := ParseUserVersion(keybase1.Unquote(b))
 	if err != nil {
@@ -67,8 +77,8 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 	return nil
 }
 
-func (sc *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(keybase1.UserVersion(*sc).PercentForm()), nil
+func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
+	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm()), nil
 }
 
 // Non-team-specific stuff below the line
@@ -84,8 +94,8 @@ type SCChainLink struct {
 	Version int          `json:"version"`
 }
 
-func (l *SCChainLink) isStubbed() bool {
-	return l.Payload == ""
+func (link *SCChainLink) isStubbed() bool {
+	return link.Payload == ""
 }
 
 func (link *SCChainLink) PayloadHash() libkb.LinkID {
@@ -105,19 +115,40 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 }
 
 type SCChainLinkPayload struct {
-	Body     SCPayloadBody  `json:"body,omitempty"`
-	Ctime    int            `json:"ctime,omitempty"`
-	ExpireIn int            `json:"expire_in,omitempty"`
-	Prev     *string        `json:"prev,omitempty"`
-	SeqType  int            `json:"seq_type,omitempty"`
-	Seqno    keybase1.Seqno `json:"seqno,omitempty"`
-	Tag      string         `json:"tag,omitempty"`
+	Body     SCPayloadBody    `json:"body,omitempty"`
+	Ctime    int              `json:"ctime,omitempty"`
+	ExpireIn int              `json:"expire_in,omitempty"`
+	Prev     *string          `json:"prev,omitempty"`
+	SeqType  keybase1.SeqType `json:"seq_type,omitempty"`
+	Seqno    keybase1.Seqno   `json:"seqno,omitempty"`
+	Tag      string           `json:"tag,omitempty"`
+}
+
+func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {
+	return keybase1.SigChainLocation{
+		Seqno:   s.Seqno,
+		SeqType: s.SeqType,
+	}
+}
+
+type SCMerkleRootSection struct {
+	Ctime    int               `json:"ctime"`
+	Seqno    keybase1.Seqno    `json:"seqno"`
+	HashMeta keybase1.HashMeta `json:"hash_meta"`
+}
+
+func (sr SCMerkleRootSection) ToMerkleRootV2() keybase1.MerkleRootV2 {
+	return keybase1.MerkleRootV2{
+		Seqno:    sr.Seqno,
+		HashMeta: sr.HashMeta,
+	}
 }
 
 type SCPayloadBody struct {
-	Key     *SCKeySection `json:"key,omitempty"`
-	Type    string        `json:"type,omitempty"`
-	Version int           `json:"version"`
+	Key        *SCKeySection       `json:"key,omitempty"`
+	Type       string              `json:"type,omitempty"`
+	MerkleRoot SCMerkleRootSection `json:"merkle_root"`
+	Version    int                 `json:"version"`
 
 	Team *SCTeamSection `json:"team,omitempty"`
 }
@@ -134,4 +165,12 @@ type SCKeySection struct {
 func ParseTeamChainLink(link string) (res SCChainLink, err error) {
 	err = json.Unmarshal([]byte(link), &res)
 	return res, err
+}
+
+func (s SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
+	t := s.Body.Team
+	if t == nil {
+		return nil
+	}
+	return t.Admin
 }

@@ -18,6 +18,7 @@ type UPAKLoader interface {
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
+	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
@@ -212,9 +213,12 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 
 	lock := u.locktab.AcquireOnName(ctx, u.G(), user.GetUID().String())
 	defer lock.Release(ctx)
-	upak := user.ExportToUPKV2AllIncarnations()
+	upak, err := user.ExportToUPKV2AllIncarnations()
+	if err != nil {
+		return err
+	}
 	upak.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
-	err := u.putUPAKToCache(ctx, &upak)
+	err = u.putUPAKToCache(ctx, upak)
 	return err
 }
 
@@ -347,8 +351,12 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	if user != nil {
-		tmp := user.ExportToUPKV2AllIncarnations()
-		ret = &tmp
+		// The `err` value might be non-nil above! Don't overwrite it.
+		var exportErr error
+		ret, exportErr = user.ExportToUPKV2AllIncarnations()
+		if exportErr != nil {
+			return nil, nil, exportErr
+		}
 		ret.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 	}
 
@@ -455,6 +463,42 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 
 	}
 	return up, nil
+}
+
+// LoadKeyV2 looks through all incarnations for the user and returns the incarnation with the given
+// KID, as well as the Key data associated with that KID. It picks the latest such
+// incarnation if there are multiple.
+func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, err error) {
+	if uid.IsNil() {
+		return nil, nil, NoUIDError{}
+	}
+
+	arg := NewLoadUserArg(u.G())
+	arg.UID = uid
+	arg.PublicKeyOptional = true
+	arg.NetContext = ctx
+
+	forcePollValues := []bool{false, true}
+
+	for _, fp := range forcePollValues {
+
+		arg.ForcePoll = fp
+
+		upak, _, err := u.LoadV2(arg)
+		if err != nil {
+			return nil, nil, err
+		}
+		if upak == nil {
+			return nil, nil, fmt.Errorf("Nil user, nil error from LoadUser")
+		}
+
+		ret, key = upak.FindKID(kid)
+		if key != nil {
+			break
+		}
+		ret = nil
+	}
+	return ret, key, nil
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {

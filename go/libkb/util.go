@@ -627,3 +627,10 @@ func SleepWithContext(ctx context.Context, clock clockwork.Clock, duration time.
 		return ctx.Err()
 	}
 }
+
+func CITimeMultiplier(g Contextifier) time.Duration {
+	if g.G().GetEnv().RunningInCI() {
+		return time.Duration(3)
+	}
+	return time.Duration(1)
+}
