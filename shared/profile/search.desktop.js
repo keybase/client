@@ -21,10 +21,9 @@ const Search = (props: Props) => (
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
             onRemoveUser={props.onRemoveUser}
-            onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
             placeholder={props.placeholder}
             userItems={props.userItems}
-            usernameText={props.usernameText}
+            usernameText={props.searchText}
           />
         </Box>
         <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />

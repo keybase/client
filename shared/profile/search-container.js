@@ -6,6 +6,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
+import {List} from 'immutable'
 import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
@@ -50,7 +51,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('usernameText', '_onChangeText', ''),
+  defaultProps({
+    placeholder: 'Type someone',
+    userItems: List(),
+    showAddButton: false,
+  }),
+  withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
@@ -67,11 +73,7 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
+      props.search(props.searchText, nextService)
     },
-  }),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
   })
 )(Search)

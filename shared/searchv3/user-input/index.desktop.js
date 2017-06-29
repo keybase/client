@@ -100,12 +100,13 @@ class UserInput extends Component<void, Props, State> {
   render() {
     const {
       autoFocus,
+      onChangeText,
+      onClearSearch,
+      onClickAddButton,
+      onRemoveUser,
       placeholder,
       userItems,
       usernameText,
-      onChangeText,
-      onClickAddButton,
-      onRemoveUser,
     } = this.props
     const {isFocused} = this.state
 
@@ -114,38 +115,46 @@ class UserInput extends Component<void, Props, State> {
       ? globalMargins.xtiny
       : 0
     return (
-      <Box
-        style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}
-        onClick={this.focus}
-        onMouseDown={this._preventInputDefocus}
-      >
-        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
-        <Box style={_inputLineStyle}>
-          <AutosizeInput
-            autoFocus={autoFocus}
-            ref={el => {
-              this._textInput = el
-            }}
-            inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
-            placeholder={userItems.length ? '' : placeholder}
-            value={usernameText}
-            onChange={onChangeText}
-            onKeyDown={this._onInputKeyDown}
-            onFocus={this._onFocus}
-            onBlur={this._onBlur}
-          />
-          {showAddButton &&
-            <Icon
-              onClick={onClickAddButton}
-              type="iconfont-add"
-              style={{
-                fontSize: 12,
-                color: globalColors.blue,
-                marginLeft: globalMargins.xtiny,
-                cursor: 'pointer',
+      <Box style={{...globalStyles.flexBoxRow, minHeight: 48, alignItems: 'center'}}>
+        <Box
+          style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center', flexWrap: 'wrap'}}
+          onClick={this.focus}
+          onMouseDown={this._preventInputDefocus}
+        >
+          {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
+          <Box style={_inputLineStyle}>
+            <AutosizeInput
+              autoFocus={autoFocus}
+              ref={el => {
+                this._textInput = el
               }}
-            />}
+              inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
+              placeholder={userItems.length ? '' : placeholder}
+              value={usernameText}
+              onChange={onChangeText}
+              onKeyDown={this._onInputKeyDown}
+              onFocus={this._onFocus}
+              onBlur={this._onBlur}
+            />
+            {showAddButton &&
+              <Icon
+                onClick={onClickAddButton}
+                type="iconfont-add"
+                style={{
+                  fontSize: 12,
+                  color: globalColors.blue,
+                  marginLeft: globalMargins.xtiny,
+                  cursor: 'pointer',
+                }}
+              />}
+          </Box>
         </Box>
+        {onClearSearch &&
+          <Icon
+            type="iconfont-close"
+            style={{height: 16, width: 16, marginRight: 10}}
+            onClick={onClearSearch}
+          />}
       </Box>
     )
   }

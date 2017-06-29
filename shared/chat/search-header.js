@@ -18,7 +18,6 @@ type OwnProps = {
   selectedConversationIDKey: Constants.ConversationIDKey,
   searchText: string,
   onChangeSearchText: (s: string) => void,
-  usernameText: string,
   selectedService: string,
   onSelectService: (s: string) => void,
   search: (term: string, service: SearchConstants.Service) => void,
