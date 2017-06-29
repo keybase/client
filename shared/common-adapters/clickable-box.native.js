@@ -17,6 +17,9 @@ const ClickableBox = ({
   feedback = true,
 }: Props) => {
   if (onClick) {
+    const clickStyle = style
+      ? {...(clickableVisible ? visibleStyle : boxStyle), ...style}
+      : clickableVisible ? visibleStyle : boxStyle
     if (feedback) {
       return (
         <TouchableOpacity
@@ -25,7 +28,7 @@ const ClickableBox = ({
           onPressIn={onPressIn}
           onPressOut={onPressOut}
           onLongPress={onLongPress}
-          style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
+          style={clickStyle}
           underlayColor={underlayColor || globalColors.white}
           activeOpacity={0.7}
         >
@@ -37,7 +40,7 @@ const ClickableBox = ({
         <TouchableWithoutFeedback
           onPressIn={onPressIn}
           onPressOut={onPressOut}
-          style={{...boxStyle, ...(clickableVisible ? visibleStyle : {}), ...style}}
+          style={clickStyle}
           onPress={onClick}
           onLongPress={onLongPress}
         >
@@ -47,7 +50,7 @@ const ClickableBox = ({
     }
   } else {
     return (
-      <Box style={{...boxStyle, ...style}}>
+      <Box style={style}>
         {children}
       </Box>
     )
@@ -59,6 +62,7 @@ const boxStyle = {
 }
 
 const visibleStyle = {
+  ...boxStyle,
   backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 

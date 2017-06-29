@@ -9,7 +9,14 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../sty
 import type {Props} from './header-hoc'
 
 function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
-  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
+  const HeaderHocWrapper = ({
+    onBack,
+    onCancel,
+    headerStyle,
+    title,
+    theme = 'light',
+    ...restProps
+  }: Props & P) => (
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
         <Box style={_titleStyle}>
@@ -22,6 +29,8 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
   )
+
+  return HeaderHocWrapper
 }
 
 const _backButtonIconStyleThemed = {

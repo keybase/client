@@ -24,10 +24,10 @@ type OwnProps = RouteProps<{}, {}>
 
 class CardStackShim extends Component {
   getScreenOptions = () => ({transitionInteractivityThreshold: 0.9})
-  getStateForAction = () => ({})
-  getActionForPathAndParams = () => ({})
-  getPathAndParamsForState = () => ({})
-  getComponentForState = () => ({})
+  getStateForAction = emptyObj
+  getActionForPathAndParams = emptyObj
+  getPathAndParamsForState = emptyObj
+  getComponentForState = emptyObj
 
   getComponentForRouteName = () => this.RenderRouteShim
 
@@ -56,9 +56,9 @@ class CardStackShim extends Component {
           .toArray(),
       },
       dispatch: this._dispatchShim,
-      navigate: () => {},
-      goBack: () => {},
-      setParams: () => {},
+      navigate: nop,
+      goBack: nop,
+      setParams: nop,
     }
 
     return (
@@ -66,6 +66,9 @@ class CardStackShim extends Component {
     )
   }
 }
+
+const nop = () => {}
+const emptyObj = () => ({})
 
 const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
   // android always uses light-content
@@ -109,7 +112,7 @@ function renderStackRoute(route) {
 
 const forIOS = ({hideNav, shim, tabBar}) => (
   <Box style={flexOne}>
-    <NativeKeyboardAvoidingView behavior={'padding'} style={sceneWrapStyleUnder}>
+    <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
       {shim}
     </NativeKeyboardAvoidingView>
     {!hideNav && tabBar}

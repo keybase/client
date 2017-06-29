@@ -1,5 +1,5 @@
 // @flow
-import Render from '.'
+import Devices from '.'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login/creators'
 import {compose, lifecycle, mapProps, withState} from 'recompose'
@@ -58,7 +58,8 @@ const menuItems = props => [
   {onClick: props.addNewPaperKey, title: 'New paper key'},
 ]
 
-const Devices = compose(
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentWillMount: function() {
       this.props.loadDevices()
@@ -72,6 +73,4 @@ const Devices = compose(
     revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
   })),
   withState('showingMenu', 'setShowingMenu', false)
-)(Render)
-
-export default connect(mapStateToProps, mapDispatchToProps)(Devices)
+)(Devices)
