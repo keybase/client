@@ -2,30 +2,22 @@
 import React from 'react'
 import {Text, Icon, PopupMenu} from '../common-adapters'
 import View from '../common-adapters/view.desktop' // TODO move to common
+import Row from '../common-adapters/row.desktop' // TODO move to common
 import {RowConnector} from './row'
 import {globalColors} from '../styles'
 
 import type {Props} from './'
 
-const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <View
-    alignItems="center"
-    backgroundColor={globalColors.white}
-    direction="row"
-    height="large"
+const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+  <Row
     onClick={showExistingDevicePage}
-  >
-    <View width={60} center={true}>
-      <Icon type={icon} style={isRevoked ? {opacity: 0.2} : null} />
-    </View>
-    <View rowDivider={true} flexGrow={true} alignSelf="stretch" justifyContent="center">
-      <Text style={isRevoked ? revokedName : normalName} type="BodySemibold">{name}</Text>
-      {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
-    </View>
-  </View>
-)
-
-const DeviceRow = RowConnector(_DeviceRow)
+    leftContent={<Icon type={icon} style={isRevoked ? {opacity: 0.2} : null} />}
+    middleContent={[
+      <Text key="name" style={isRevoked ? revokedName : normalName} type="BodySemibold">{name}</Text>,
+      isCurrentDevice && <Text key="cur" type="BodySmall">Current device</Text>,
+    ]}
+  />
+))
 
 const Revoked = ({expanded, onToggleExpanded, revokedDeviceIDs}) => {
   if (!revokedDeviceIDs.length) return null
@@ -66,14 +58,14 @@ const Header = ({setShowingMenu, showingMenu, deviceIDs, menuItems}) => (
 )
 
 const DevicesRender = (props: Props) => (
-  <View backgroundColor={globalColors.lightGrey}>
+  <View backgroundColor={globalColors.lightGrey} flexGrow={true}>
     <Header
       setShowingMenu={props.setShowingMenu}
       showingMenu={props.showingMenu}
       deviceIDs={props.deviceIDs}
       menuItems={props.menuItems}
     />
-    <View scrollVertical={true} flexGrow={true}>
+    <View scrollVertical={true}>
       <View backgroundColor={globalColors.white}>
         {props.deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       </View>

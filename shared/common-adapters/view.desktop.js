@@ -4,16 +4,16 @@ import glamorous from 'glamorous'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {intersperseFn} from '../util/arrays.js'
 
-type MarginType = $Keys<globalMargins>
+type MarginType = $Keys<typeof globalMargins>
 
 type FlexTypes = 'center' | 'stretch' | 'flex-start' | 'flex-end'
 
 type Props = {
-  alignItems?: 'center',
+  alignItems?: FlexTypes,
   alignSelf?: FlexTypes,
   backgroundColor?: string,
   center?: boolean,
-  children?: any,
+  children?: React$Element<*> | Array<React$Element<*>>,
   direction?: 'row' | 'column',
   flexGrow?: boolean,
   height?: MarginType | number | string,
@@ -43,6 +43,11 @@ const RowDivider = glamorous.div({
   right: 0,
 })
 
+const maybeGlobalMargin = val => {
+  if (globalMargins.hasOwnProperty(val)) return globalMargins[val]
+  return val
+}
+
 const View = (props: Props) => {
   const style = {
     ...(props.direction === 'row' ? globalStyles.flexBoxRow : globalStyles.flexBoxColumn), // default to column
@@ -51,17 +56,17 @@ const View = (props: Props) => {
     ...(props.alignItems ? {alignItems: props.alignItems} : null),
     ...(props.alignSelf ? {alignSelf: props.alignSelf} : null),
     ...(props.center ? {alignItems: 'center', justifyContent: 'center'} : null),
-    ...(props.scrollHorizontal || props.scrollVertical ? {overflow: 'auto'} : null),
+    ...(props.scrollHorizontal ? {overflowX: 'auto', flexGrow: 1, width: 0} : null),
+    ...(props.scrollVertical ? {overflowY: 'auto', flexGrow: 1, height: 0} : null),
     ...(props.onClick ? globalStyles.clickable : null),
     ...(props.flexGrow ? {flexGrow: 1} : null),
     ...(props.padding ? {padding: globalMargins[props.padding]} : null),
-    ...(props.height
-      ? {minHeight: typeof props.height === 'string' ? globalMargins[props.height] : props.height}
-      : null),
-    ...(props.width
-      ? {minWidth: typeof props.width === 'string' ? globalMargins[props.width] : props.width}
-      : null),
+    ...(props.height === undefined ? null : {height: maybeGlobalMargin(props.height)}),
+    ...(props.width === undefined ? null : {width: maybeGlobalMargin(props.width)}),
+    flexShrink: 0,
     position: 'relative',
+    minHeight: 0,
+    minWidth: 0,
     ...props.style,
   }
   const Div = glamorous.div(style)
@@ -69,7 +74,10 @@ const View = (props: Props) => {
   let children = props.children
   if (props.spacing) {
     const Sep = glamorous.div({height: globalMargins[props.spacing], width: globalMargins[props.spacing]})
-    children = intersperseFn(index => <Sep key={index} />, props.children)
+    children = intersperseFn(
+      index => <Sep key={index} />,
+      Array.isArray(props.children) ? props.children : [props.children]
+    )
   }
 
   return <Div onClick={props.onClick}>{children}{props.rowDivider && <RowDivider />} </Div>

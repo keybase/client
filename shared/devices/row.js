@@ -2,7 +2,6 @@
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {isMobile} from '../constants/platform'
-import {navigateAppend} from '../actions/route-tree'
 
 import type {IconType} from '../common-adapters/icon'
 import type {TypedState} from '../constants/reducer'
@@ -31,7 +30,7 @@ const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   return (state: TypedState) => selector(state)
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
   showExistingDevicePage: deviceID => dispatch(navigateAppend([{props: {deviceID}, selected: 'devicePage'}])),
 })
 
