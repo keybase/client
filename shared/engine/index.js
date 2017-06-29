@@ -294,7 +294,10 @@ class Engine {
 
     // Make a new session and start the request
     const session = this.createSession(incomingCallMap, waitingHandler)
-    session.start(method, param, callback)
+    // Dont make outgoing calls immediately since components can do this when they mount
+    setImmediate(() => {
+      session.start(method, param, callback)
+    })
     return session.id
   }
 
