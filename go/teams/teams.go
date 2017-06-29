@@ -283,6 +283,10 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
+		return err
+	}
+
 	// create the team section of the signature
 	section, err := memSet.Section(t.Chain.GetID(), admin)
 	if err != nil {
@@ -342,6 +346,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	// create the change membership section + secretBoxes
 	section, secretBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
+		return err
+	}
+
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
 		return err
 	}
 
@@ -634,6 +642,15 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		return err
 	}
 	return nil
+}
+
+// ForceMerkleRootUpdate will call LookupTeam on MerkleClient to
+// update cached merkle root to include latest team sigs. Needed if
+// client wants to create a signature that refers to an adminship,
+// signature's merkle_root has to be more fresh than adminship's.
+func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
+	_, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID)
+	return err
 }
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {

@@ -282,8 +282,6 @@ func TestLoaderWantMembers(t *testing.T) {
 
 // Test loading a team that has a subteam in it
 func TestLoaderParentEasy(t *testing.T) {
-	t.Skip("waiting for client merkle fix")
-
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -309,8 +307,6 @@ func TestLoaderParentEasy(t *testing.T) {
 
 // Test loading a subteam
 func TestLoaderSubteamEasy(t *testing.T) {
-	t.Skip("waiting for client merkle fix")
-
 	_, tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
