@@ -17,7 +17,7 @@ const Search = (props: Props) => (
             autoFocus={true}
             onChangeText={props.onChangeText}
             onClickAddButton={props.onClickAddButton}
-            onEnter={props.onEnter}
+            onAddSelectedUser={props.onAddSelectedUser}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
             onRemoveUser={props.onRemoveUser}
