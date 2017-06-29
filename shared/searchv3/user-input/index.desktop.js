@@ -85,6 +85,8 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
+    } else if (ev.key === 'Enter' && !this.props.usernameText && this.props.onEnterEmptyText) {
+      this.props.onEnterEmptyText()
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
       ev.preventDefault()

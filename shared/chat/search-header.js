@@ -67,6 +67,7 @@ const SearchHeader = props => {
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
             onAddSelectedUser={props.onAddSelectedUser}
+            onEnterEmptyText={props.onExitSearch}
           />
         </Box>
         <Icon
