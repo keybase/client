@@ -38,6 +38,7 @@ function execAndLog(cmd, options) {
 }
 
 function has_js_files(extra_commands) {
+  console.log('aaa', againstMaster, changeBase, commitHash, extra_commands)
   if (againstMaster) {
     console.log('Missing changeTarget, forcing has_js_files to true')
     return
