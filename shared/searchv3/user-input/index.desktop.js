@@ -72,7 +72,7 @@ class UserInput extends Component<void, Props, State> {
 
   _onInputKeyDown = ev => {
     if (
-      this.props.userItems.size &&
+      this.props.userItems.count() &&
       ev.key === 'Backspace' &&
       ev.target.selectionStart === 0 &&
       ev.target.selectionEnd === 0
