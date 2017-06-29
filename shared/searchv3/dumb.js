@@ -5,7 +5,7 @@ import ResultRow from './result-row'
 import ResultsList from './results-list'
 import UserInput from './user-input'
 import {StateRecord as EntitiesStateRecord} from '../constants/entities'
-import {Map} from 'immutable'
+import {List, Map} from 'immutable'
 import {isMobile} from '../constants/platform'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -285,7 +285,7 @@ const commonUserInputMapProps = {
   onEnter: () => console.log('username input on enter'),
 }
 
-const maxUsers = [
+const maxUsers = List([
   {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
   {followingState: 'Following', icon: null, service: 'Keybase', username: 'max', id: 'max'},
   {
@@ -295,9 +295,9 @@ const maxUsers = [
     username: 'denormalize',
     id: 'denormalize@twitter',
   },
-]
+])
 
-const chrisUsers = [
+const chrisUsers = List([
   {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
   {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris', id: 'chris'},
   {
@@ -335,14 +335,14 @@ const chrisUsers = [
     username: 'KeyserSosa',
     id: 'KeyserSosa@reddit',
   },
-]
+])
 
 const userInputMap: DumbComponentMap<UserInput> = {
   component: UserInput,
   mocks: {
     'Empty + Placeholder': {
       ...commonUserInputMapProps,
-      userItems: [],
+      userItems: List([]),
       usernameText: '',
     },
     'Users + Add': {

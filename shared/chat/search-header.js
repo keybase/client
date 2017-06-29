@@ -46,7 +46,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
-  onEnter: id => dispatch(Creators.stageUserForSearch(id)),
+  onEnter: id => (id ? dispatch(Creators.stageUserForSearch(id)) : dispatch(Creators.exitSearch())),
 })
 
 const SearchHeader = props => {

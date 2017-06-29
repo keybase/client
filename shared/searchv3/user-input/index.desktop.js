@@ -1,5 +1,4 @@
 // @flow
-import {last} from 'lodash'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
@@ -73,19 +72,19 @@ class UserInput extends Component<void, Props, State> {
 
   _onInputKeyDown = ev => {
     if (
-      this.props.userItems.length &&
+      this.props.userItems.count() &&
       ev.key === 'Backspace' &&
       ev.target.selectionStart === 0 &&
       ev.target.selectionEnd === 0
     ) {
-      this.props.onRemoveUser(last(this.props.userItems).id)
+      this.props.onRemoveUser(this.props.userItems.get(-1).id)
     } else if (ev.key === 'ArrowUp') {
       this.props.onMoveSelectUp()
       ev.preventDefault()
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
-    } else if (ev.key === 'Enter') {
+    } else if (ev.key === 'Enter' || ev.key === 'Tab') {
       this.props.onEnter()
       ev.preventDefault()
     }
