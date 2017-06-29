@@ -47,11 +47,11 @@ function has_js_files(extra_commands) {
   execAndLog('git diff --name-only "' + changeBase + '...' + commitHash + '"')
 
   var cmd =
-    'git diff --name-only ' +
+    'git diff --name-only "' +
     changeBase +
-    '...' +
+    '"..."' +
     commitHash +
-    " | grep '^shared/' | grep -v '^shared/jenkins_test\\.sh' | grep -v '^shared/jenkins-test\\.js' " +
+    "\" | grep '^shared/' | grep -v '^shared/jenkins_test\\.sh' | grep -v '^shared/jenkins-test\\.js' " +
     extra_commands
   console.log('filtered diff')
   var diff_files = execAndLog(cmd)
