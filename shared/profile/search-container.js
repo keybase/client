@@ -6,7 +6,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
-import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -52,12 +52,12 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('usernameText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  withState('searchText', 'onChangeSearchText', ''),
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
+  showServiceLogicHoc,
   withHandlers({
     onChangeText: (props: Props & HocIntermediateProps) => nextText => {
-      props.onChangeSearchText(nextText)
+      props._onChangeText(nextText)
       props.search(nextText, props.selectedService)
     },
     onClick: (props: Props & HocIntermediateProps) => id => {
@@ -67,12 +67,11 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props.search(props.searchText, nextService)
+      props.search(props.usernameText, nextService)
     },
   }),
   defaultProps({
     placeholder: 'Type someone',
     showAddButton: false,
-    userItems: [],
   })
 )(Search)

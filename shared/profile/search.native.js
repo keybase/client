@@ -23,13 +23,14 @@ const Search = (props: Props) => (
         placeholder={props.placeholder}
         showAddButton={props.showAddButton}
         userItems={props.userItems}
-        usernameText={props.searchText}
+        usernameText={props.usernameText}
       />
     </Box>
-    <Box style={styleSearchFilter}>
-      <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-      <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-    </Box>
+    {props.showServiceFilter &&
+      <Box style={styleSearchFilter}>
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+      </Box>}
     <Box>
       <ResultsList
         items={props.searchResultIds}
