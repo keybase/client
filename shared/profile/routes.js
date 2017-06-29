@@ -11,6 +11,7 @@ import PostProof from './post-proof-container'
 import ConfirmOrPending from './confirm-or-pending-container'
 import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
+import NonUserProfile from './non-user-profile-container'
 
 const proveEnterUsername = new RouteDefNode({
   component: ProveEnterUsername,
@@ -41,6 +42,9 @@ export const profileRoute = new RouteDefNode({
     },
     editAvatar: {
       component: EditAvatar,
+    },
+    nonUserProfile: {
+      component: NonUserProfile,
     },
     proveEnterUsername,
     proveWebsiteChoice: {

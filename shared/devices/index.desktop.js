@@ -43,10 +43,10 @@ const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDeviceP
       <Icon type={icon} />
     </Box>
     <Box style={{flex: 1, marginLeft: globalMargins.small}}>
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         <Text style={textStyle(isRevoked)} type="BodySemibold">{name}</Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
       </Box>
     </Box>

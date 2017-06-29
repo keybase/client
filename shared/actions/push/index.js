@@ -43,9 +43,13 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
+    const data = {
+      ...payload,
+      ...(payload.data || {}),
+    }
     // If we have received a silent notification, then just bail out of here, the service will
     // wake up and do what it needs to do.
-    if (payload.data && payload.data.silent) {
+    if (data.silent) {
       console.info('Push notification: silent notification received')
       const appFocused = yield select(Shared.focusedSelector)
       if (!appFocused) {
@@ -60,28 +64,25 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
     }
 
     // Check for conversation ID so we know where to navigate to
-    const convID = payload.data ? payload.data.convID : payload.convID
-    const type = payload.data ? payload.data.type : payload.type
-    if (type === 'chat.newmessage') {
-      if (!convID) {
+    if (data.type === 'chat.newmessage') {
+      if (!data.convID) {
         console.error('Push chat notification payload missing conversation ID')
         return
       }
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(navigateTo([chatTab, convID]))
-    } else if (type === 'follow') {
-      const username = payload.username
-      if (!username) {
+      yield put(navigateTo([chatTab, data.convID]))
+    } else if (data.type === 'follow') {
+      if (!data.username) {
         console.error('Follow notification payload missing username', JSON.stringify(payload))
         return
       }
-      console.info('Push notification: follow received, follower= ', username)
+      console.info('Push notification: follow received, follower= ', data.username)
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(onUserClick(username))
+      yield put(onUserClick(data.username))
     } else {
       console.error('Push notification payload missing or unknown type')
     }

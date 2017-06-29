@@ -5,6 +5,7 @@ protocol common {
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
+  @typedef("uint") @lint("ignore") record TLFConvOrdinal {}
   @typedef("bytes")  record TopicID {}
   @typedef("bytes")  record ConversationID {}
   @typedef("bytes")  record TLFID {}
@@ -68,8 +69,9 @@ protocol common {
   }
 
   enum ConversationMemberStatus {
-    ACTIVE_0,
-    REMOVED_1
+    ACTIVE_0,  // in the channel
+    REMOVED_1, // removed from channel forcibly
+    LEFT_2     // voluntarily left conversation
   }
 
   record Pagination {

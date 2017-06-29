@@ -3,9 +3,6 @@
 static NSString * logPath = @"";
 
 @implementation LogSend
-+ (void)setPath:(NSString*)uiLogPath {
-  logPath = uiLogPath;
-}
 
 RCT_EXPORT_MODULE();
 
@@ -13,6 +10,7 @@ RCT_REMAP_METHOD(logSend,
                  status:(NSString*)status
                  feedback:(NSString*)feedback
                  sendLogs:(BOOL)sendLogs
+                 logPath:(NSString*)logPath
                  resolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {

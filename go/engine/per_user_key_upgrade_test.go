@@ -54,7 +54,7 @@ func checkPerUserKeyCount(tc *libkb.TestContext, n int) {
 	t := tc.T
 	me, err := libkb.LoadMe(libkb.NewLoadUserForceArg(tc.G))
 	require.NoError(t, err)
-	require.Len(t, me.ExportToUserPlusKeys(keybase1.Time(0)).PerUserKeys, n, "per-user-key count")
+	require.Len(t, me.ExportToUserPlusKeys().PerUserKeys, n, "per-user-key count")
 }
 
 func checkPerUserKeyCountLocal(tc *libkb.TestContext, n int) {

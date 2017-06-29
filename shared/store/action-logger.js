@@ -21,7 +21,7 @@ const transform = (o: Array<any>) => {
 
 const logger = enableActionLogging
   ? setupLogger('actionLogger', 100, immediateStateLogging, transform, 50, true)
-  : {log: () => {}}
+  : {log: (...args: any) => {}}
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const oldState = store.getState()

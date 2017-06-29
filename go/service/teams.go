@@ -36,8 +36,8 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembersUsernames, error) {
-	return teams.Members(ctx, h.G().ExternalG(), arg.Name)
+func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {
+	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
 }
 
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
@@ -64,6 +64,10 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) error {
 	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+}
+
+func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) error {
+	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

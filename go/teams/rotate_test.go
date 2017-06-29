@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRotate(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -23,6 +24,12 @@ func TestRotate(t *testing.T) {
 		t.Fatalf("initial team generation: %d, expected 1", team.Box.Generation)
 	}
 	ctextInitial := team.Box.Ctext
+	keys1, err := team.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, len(keys1), 1)
+	require.Equal(t, keys1[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
 
 	if err := team.Rotate(context.TODO()); err != nil {
 		t.Fatal(err)
@@ -41,10 +48,16 @@ func TestRotate(t *testing.T) {
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+
+	keys2, err := after.AllApplicationKeys(context.TODO(), keybase1.TeamApplication_CHAT)
+	require.NoError(t, err)
+	require.Equal(t, len(keys2), 2)
+	require.Equal(t, keys2[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
+	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
 
 func TestHandleRotateRequestOldGeneration(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -91,7 +104,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 }
 
 func TestHandleRotateRequest(t *testing.T) {
-	tc, owner, other, name := memberSetupMultiple(t)
+	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {

@@ -56,7 +56,7 @@ function User({
   }
 
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <ClickableBox
         hoverColor={globalColors.blue4}
         onClick={() => onClickUser(user)}

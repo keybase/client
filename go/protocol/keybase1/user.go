@@ -452,6 +452,16 @@ func (o InterestingPeopleArg) DeepCopy() InterestingPeopleArg {
 	}
 }
 
+type ResetUserArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+func (o ResetUserArg) DeepCopy() ResetUserArg {
+	return ResetUserArg{
+		SessionID: o.SessionID,
+	}
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -485,6 +495,7 @@ type UserInterface interface {
 	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
 	InterestingPeople(context.Context, int) ([]InterestingPerson, error)
+	ResetUser(context.Context, int) error
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -763,6 +774,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"resetUser": {
+				MakeArg: func() interface{} {
+					ret := make([]ResetUserArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResetUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResetUserArg)(nil), args)
+						return
+					}
+					err = i.ResetUser(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -872,5 +899,11 @@ func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err 
 func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
 	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
 	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ResetUser(ctx context.Context, sessionID int) (err error) {
+	__arg := ResetUserArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.resetUser", []interface{}{__arg}, nil)
 	return
 }

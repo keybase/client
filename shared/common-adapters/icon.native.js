@@ -62,16 +62,17 @@ const Icon = (props: Exact<Props>) => {
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
-  return (
-    <ClickableBox
-      activeOpacity={0.8}
-      underlayColor={props.underlayColor || globalColors.white}
-      onClick={props.onClick}
-      style={boxStyle}
-    >
-      {icon}
-    </ClickableBox>
-  )
+
+  return props.onClick
+    ? <ClickableBox
+        activeOpacity={0.8}
+        underlayColor={props.underlayColor || globalColors.white}
+        onClick={props.onClick}
+        style={boxStyle}
+      >
+        {icon}
+      </ClickableBox>
+    : icon
 }
 
 export function iconTypeToImgSet(type: IconType) {

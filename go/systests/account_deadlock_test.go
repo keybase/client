@@ -22,11 +22,6 @@ func TestAccountDeadlock(t *testing.T) {
 
 	libkb.G.LocalDb = nil
 
-	libkb.CITimeMultiplier = 2
-	defer func() {
-		libkb.CITimeMultiplier = 1
-	}()
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)

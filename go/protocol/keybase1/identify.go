@@ -47,13 +47,15 @@ func (o IdentifyTrackBreaks) DeepCopy() IdentifyTrackBreaks {
 }
 
 type Identify2Res struct {
-	Upk         UserPlusKeys         `codec:"upk" json:"upk"`
-	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
+	Upk          UserPlusKeys         `codec:"upk" json:"upk"`
+	IdentifiedAt Time                 `codec:"identifiedAt" json:"identifiedAt"`
+	TrackBreaks  *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
 }
 
 func (o Identify2Res) DeepCopy() Identify2Res {
 	return Identify2Res{
-		Upk: o.Upk.DeepCopy(),
+		Upk:          o.Upk.DeepCopy(),
+		IdentifiedAt: o.IdentifiedAt.DeepCopy(),
 		TrackBreaks: (func(x *IdentifyTrackBreaks) *IdentifyTrackBreaks {
 			if x == nil {
 				return nil

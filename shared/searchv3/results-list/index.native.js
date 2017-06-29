@@ -24,9 +24,12 @@ class SearchResultsList extends Component<void, Props, void> {
 
   render() {
     const {style, items} = this.props
-    if (!items.length) {
+    if (items == null) {
+      return <Box />
+    } else if (!items.length) {
       return <EmptyResults style={style} />
     }
+
     return (
       <Box style={{width: '100%', ...style}}>
         <FlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />

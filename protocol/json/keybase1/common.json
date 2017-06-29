@@ -235,7 +235,7 @@
           "name": "unix"
         },
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "chain"
         }
       ]
@@ -377,10 +377,6 @@
         {
           "type": "Time",
           "name": "cachedAt"
-        },
-        {
-          "type": "Time",
-          "name": "lastIdentifiedAt"
         }
       ]
     },

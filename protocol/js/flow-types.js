@@ -201,6 +201,9 @@ export const ConstantsStatusCode = {
   scneedselfrekey: 2512,
   scneedotherrekey: 2513,
   scchatmessagecollision: 2514,
+  scchatduplicatemessage: 2515,
+  scchatclienterror: 2516,
+  scteamreaderror: 2623,
 }
 
 export const CtlDbType = {
@@ -3595,6 +3598,21 @@ export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamLeaveRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamLeave', request)
+}
+
+export function teamsTeamLeaveRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamLeave', request)
+}
+export function teamsTeamLeaveRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamLeave', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamLeaveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamLeave', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
 }
@@ -4058,6 +4076,21 @@ export function userProfileEditRpcChannelMapOld (channelConfig: ChannelConfig<*>
 
 export function userProfileEditRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: userProfileEditRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.profileEdit', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function userResetUserRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing('keybase.1.user.resetUser', request)
+}
+
+export function userResetUserRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.resetUser', request)
+}
+export function userResetUserRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.user.resetUser', request, callback, incomingCallMap) })
+}
+
+export function userResetUserRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.resetUser', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
@@ -4607,6 +4640,7 @@ export type HelloRes = string
 
 export type Identify2Res = {
   upk: UserPlusKeys,
+  identifiedAt: Time,
   trackBreaks?: ?IdentifyTrackBreaks,
 }
 
@@ -4768,7 +4802,7 @@ export type KeyType =
 
 export type KeybaseTime = {
   unix: Time,
-  chain: int,
+  chain: Seqno,
 }
 
 export type LeaseID = string
@@ -4851,6 +4885,11 @@ export type MerkleTreeID =
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
   | 3 // KBFS_PRIVATETEAM_3
+
+export type MerkleTreeLocation = {
+  leaf: UserOrTeamID,
+  loc: SigChainLocation,
+}
 
 export type MetadataResponse = {
   folderID: string,
@@ -5517,6 +5556,11 @@ export type Sig = {
   body: string,
 }
 
+export type SigChainLocation = {
+  seqno: Seqno,
+  seqType: SeqType,
+}
+
 export type SigHint = {
   remoteId: string,
   humanUrl: string,
@@ -5553,6 +5597,12 @@ export type SignatureMetadata = {
   prevMerkleRootSigned: MerkleRootV2,
   firstAppearedUnverified: Seqno,
   time: Time,
+  sigChainLocation: SigChainLocation,
+}
+
+export type SignatureMetadataBookends = {
+  left: SignatureMetadata,
+  right?: ?SignatureMetadata,
 }
 
 export type SignupRes = {
@@ -5759,6 +5809,9 @@ export type StatusCode =
   | 2512 // SCNeedSelfRekey_2512
   | 2513 // SCNeedOtherRekey_2513
   | 2514 // SCChatMessageCollision_2514
+  | 2515 // SCChatDuplicateMessage_2515
+  | 2516 // SCChatClientError_2516
+  | 2623 // SCTeamReadError_2623
 
 export type Stream = {
   fd: int,
@@ -5767,6 +5820,11 @@ export type Stream = {
 export type StringKVPair = {
   key: string,
   value: string,
+}
+
+export type SubteamLogPoint = {
+  name: TeamName,
+  seqno: Seqno,
 }
 
 export type TLF = {
@@ -5834,12 +5892,23 @@ export type TeamData = {
   cachedAt: Time,
 }
 
+export type TeamDetails = {
+  members: TeamMembersDetails,
+  keyGeneration: PerTeamKeyGeneration,
+}
+
 export type TeamID = string
 
 export type TeamMember = {
   uid: UID,
   role: TeamRole,
   eldestSeqno: Seqno,
+}
+
+export type TeamMemberDetails = {
+  uv: UserVersion,
+  username: string,
+  active: boolean,
 }
 
 export type TeamMembers = {
@@ -5849,11 +5918,11 @@ export type TeamMembers = {
   readers?: ?Array<UserVersion>,
 }
 
-export type TeamMembersUsernames = {
-  owners?: ?Array<string>,
-  admins?: ?Array<string>,
-  writers?: ?Array<string>,
-  readers?: ?Array<string>,
+export type TeamMembersDetails = {
+  owners?: ?Array<TeamMemberDetails>,
+  admins?: ?Array<TeamMemberDetails>,
+  writers?: ?Array<TeamMemberDetails>,
+  readers?: ?Array<TeamMemberDetails>,
 }
 
 export type TeamName = {
@@ -5886,11 +5955,12 @@ export type TeamRole =
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
-  name: string,
+  name: TeamName,
   lastSeqno: Seqno,
   lastLinkID: LinkID,
   parentID?: ?TeamID,
   userLog: {[key: string]: ?Array<UserLogPoint>},
+  subteamLog: {[key: string]: ?Array<SubteamLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
   stubbedTypes: {[key: string]: boolean},
 }
@@ -6002,7 +6072,7 @@ export type UserCard = {
 
 export type UserLogPoint = {
   role: TeamRole,
-  seqno: Seqno,
+  sigMeta: SignatureMetadata,
 }
 
 export type UserOrTeamID = string
@@ -6034,16 +6104,17 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
-  uvv: UserVersionVector,
   perUserKeys?: ?Array<PerUserKey>,
-  deviceKeys?: ?Array<PublicKeyV2NaCl>,
-  pgpKeys?: ?Array<PublicKeyV2PGPSummary>,
-  remoteTracks?: ?Array<RemoteTrack>,
+  deviceKeys: {[key: string]: PublicKeyV2NaCl},
+  pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
+  remoteTracks: {[key: string]: RemoteTrack},
 }
 
 export type UserPlusKeysV2AllIncarnations = {
   current: UserPlusKeysV2,
   pastIncarnations?: ?Array<UserPlusKeysV2>,
+  uvv: UserVersionVector,
+  seqnoLinkIDs: {[key: string]: LinkID},
 }
 
 export type UserResolution = {
@@ -6092,7 +6163,6 @@ export type UserVersionVector = {
   sigHints: int,
   sigChain: long,
   cachedAt: Time,
-  lastIdentifiedAt: Time,
 }
 
 export type VerifySessionRes = {
@@ -7021,7 +7091,13 @@ export type teamsTeamEditMemberRpcParam = Exact<{
 }>
 
 export type teamsTeamGetRpcParam = Exact<{
-  name: string
+  name: string,
+  forceRepoll: boolean
+}>
+
+export type teamsTeamLeaveRpcParam = Exact<{
+  name: string,
+  permanent: boolean
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -7271,7 +7347,7 @@ type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
-type teamsTeamGetResult = TeamMembersUsernames
+type teamsTeamGetResult = TeamDetails
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7502,6 +7578,7 @@ export type rpc =
   | teamsTeamCreateRpc
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
+  | teamsTeamLeaveRpc
   | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc
@@ -7533,6 +7610,7 @@ export type rpc =
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
   | userProfileEditRpc
+  | userResetUserRpc
   | userSearchRpc
 
 export type incomingCallMapType = Exact<{

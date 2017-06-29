@@ -11,25 +11,25 @@ import (
 
 var errKeybaseNotFound = errors.New("failed to find the keybase binary")
 
-// findKeybaseBinary returns the path to the Keybase binary, if it finds it.
-func findKeybaseBinary() (string, error) {
+// findKeybaseBinary returns the path to a Keybase binary, if it finds it.
+func findKeybaseBinary(name string) (string, error) {
 	// Is it near the kbnm binary?
 	dir, err := osext.ExecutableFolder()
 	if err == nil {
-		path := filepath.Join(dir, keybaseBinary)
+		path := filepath.Join(dir, name)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			return path, nil
 		}
 	}
 
 	// Is it in our PATH?
-	path, err := exec.LookPath(keybaseBinary)
+	path, err := exec.LookPath(name)
 	if err == nil {
 		return path, nil
 	}
 
 	// Last ditch effort!
-	path = guessKeybasePath()
+	path = guessKeybasePath(name)
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return path, nil
 	}

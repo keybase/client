@@ -11,7 +11,8 @@ type State = {
   email: string,
 }
 
-class UsernameEmailForm extends Component {
+// Todo: type properly
+class UsernameEmailForm extends Component<void, any, State> {
   state: State
 
   constructor(props: Props) {

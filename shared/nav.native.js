@@ -93,7 +93,13 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
 
 function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
+  // Skip extra view if no statusbar
+  if (hideStatusBar) {
+    return route.component
+  }
+
   const View = glamorous.view(route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver)
+
   return (
     <View>
       <StatusBar
@@ -155,6 +161,7 @@ function Nav(props: Props) {
         routeSelected={props.routeSelected}
         navigateUp={props.navigateUp}
         reachability={props.reachability}
+        hideNav={props.hideNav}
       />
     ),
     path: ['main'],

@@ -16,29 +16,54 @@ realpath() {
   fi
 }
 
-detect() {
+detect_chrome() {
+  declare filename="$1"
+
   # Find where the NativeMessagingHosts whitelist lives for this platform.
   whoami="$(whoami)"
   if [[ "$(uname -s)" == "Darwin" ]]; then
     # Mac
     if [[ "$whoami" == "root" ]]; then
-      echo "/Library/Google/Chrome/NativeMessagingHosts"
+      echo "/Library/Google/Chrome/NativeMessagingHosts/${filename}"
     else
-      echo "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
+      echo "$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts/${filename}"
     fi
   else
     # Linux
     if [[ "$whoami" == "root" ]]; then
-      echo "/etc/opt/chrome/native-messaging-hosts"
+      echo "/etc/opt/chrome/native-messaging-hosts/${filename}"
     else
-      echo "$HOME/.config/google-chrome/NativeMessagingHosts"
+      echo "$HOME/.config/google-chrome/NativeMessagingHosts/${filename}"
+    fi
+  fi
+}
+
+detect_firefox() {
+  declare filename="$1"
+
+  # Find where the NativeMessagingHosts whitelist lives for this platform.
+  whoami="$(whoami)"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    # Mac
+    if [[ "$whoami" == "root" ]]; then
+      echo "/Library/Application Support/Mozilla/NativeMessagingHosts/${filename}"
+    else
+      echo "$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/${filename}"
+    fi
+  else
+    # Linux
+    if [[ "$whoami" == "root" ]]; then
+      echo "/usr/lib/mozilla/native-messaging-hosts/${filename}"
+    else
+      echo "$HOME/.mozilla/native-messaging-hosts/${filename}"
     fi
   fi
 }
 
 install() {
   # Install the whitelist.
-  declare target="$1"
+  declare template="$1"
+  declare target="$2"
 
   local target_dir="$(dirname "$target")"
   if [[ ! -d "$target_dir" ]]; then
@@ -59,7 +84,7 @@ install() {
   fi
 
   echo "Writing: $target"
-  cat "$here/host_json.template" \
+  cat "$template" \
     | sed "s|@@HOST_PATH@@|$host_path|g" \
     > "$target"
 
@@ -83,14 +108,19 @@ main() {
 
   declare cmd="${1:-}"
 
-  readonly host_name="io.keybase.kbnm"
-  local target="$(detect)/${host_name}.json"
+  local here="$(dirname $(realpath "$BASH_SOURCE"))"
+  local filename="io.keybase.kbnm.json"
 
-  if [[ "$cmd" == "uninstall" ]]; then
-    uninstall "$target"
-  else
-    install "$target"
-  fi
+  case "$cmd" in
+    "uninstall")
+      uninstall "$(detect_chrome "$filename")"
+      uninstall "$(detect_firefox "$filename")"
+      ;;
+    *)
+      install "$here/host_json.template" "$(detect_chrome "$filename")"
+      install "$here/host_json.firefox.template" "$(detect_firefox "$filename")"
+      ;;
+  esac
 }
 
 

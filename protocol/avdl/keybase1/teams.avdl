@@ -27,6 +27,11 @@ protocol teams {
     Bytes32 key;
   }
 
+  record SignatureMetadataBookends {
+    SignatureMetadata left;
+    union { null, SignatureMetadata } right;
+  }
+
   @typedef("bytes")
   record MaskB64 {}
 
@@ -66,11 +71,22 @@ protocol teams {
     array<UserVersion> readers;
   }
 
-  record TeamMembersUsernames {
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
+  record TeamMemberDetails {
+    UserVersion uv;
+    string username;
+    boolean active;
+  }
+
+  record TeamMembersDetails {
+    array<TeamMemberDetails> owners;
+    array<TeamMemberDetails> admins;
+    array<TeamMemberDetails> writers;
+    array<TeamMemberDetails> readers;
+  }
+
+  record TeamDetails {
+    TeamMembersDetails members;
+    PerTeamKeyGeneration keyGeneration;
   }
 
   record TeamChangeReq {
@@ -97,8 +113,7 @@ protocol teams {
       array<TeamApplicationKey> applicationKeys;
   }
 
-  // This type is not really used yet.
-  // It is under the umbrella of the team loader refactor.
+  // Snapshot of a loaded team.
   record TeamData {
     TeamSigChainState chain;
     // generation -> seed
@@ -119,7 +134,7 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
-    string name;
+    TeamName name;
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;
@@ -133,6 +148,11 @@ protocol teams {
     // When a user leaves the team a NONE checkpoint appears in their list.
     map<UserVersion,array<UserLogPoint>> userLog;
 
+    // For each subteam; the timeline of its name.
+    // The checkpoints are always ordered by seqno.
+    // The latest name of the subteam is the role of its last checkpoint.
+    map<TeamID,array<SubteamLogPoint>> subteamLog;
+
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
@@ -145,7 +165,16 @@ protocol teams {
   record UserLogPoint {
     // The new role. Including NONE if the user left the team.
     TeamRole role;
-    // The seqno at which the user became this role.
+    // The seqno at which the user became this role, and other imporant
+    // details, like the last known MerkleRoot at that time.
+    SignatureMetadata sigMeta;
+  }
+
+  // A subteam got this name at this point in time.
+  record SubteamLogPoint {
+  // The new subteam name.
+    TeamName name;
+    // The seqno at which the subteam got this name.
     Seqno seqno;
   }
 
@@ -174,10 +203,10 @@ protocol teams {
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
     PerTeamKeyGeneration needKeyGeneration;
-    // Refresh if these members are not current members of the team in the cache.
+    // Refresh if these members are not current writers or above of the team in the cache.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
-    //
+    // Does not work on implicit admins.
     array<UserVersion> wantMembers;
   }
 
@@ -203,10 +232,11 @@ protocol teams {
   }
 
   void teamCreate(int sessionID, string name);
-  TeamMembersUsernames teamGet(int sessionID, string name);
+  TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
+  void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
 
   /**

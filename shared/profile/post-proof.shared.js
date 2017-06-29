@@ -137,7 +137,7 @@ export function propsForPlatform(props: Props): MoreProps {
         proofText: props.proofText,
         proofActionIcon: null,
         descriptionView: (
-          <Box style={{...globalStyles.flexBoxColumn}}>
+          <Box style={globalStyles.flexBoxColumn}>
             <Text type="BodySemibold" {...styleCentered}>
               Please serve the text below
               {' '}

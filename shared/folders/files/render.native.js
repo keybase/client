@@ -93,7 +93,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 action={<Box />}
                 icon={<Avatar size={40} username={p.name} />}
                 body={
-                  <Box style={{...globalStyles.flexBoxColumn}}>
+                  <Box style={globalStyles.flexBoxColumn}>
                     <Text type="BodySemibold" backgroundMode={backgroundMode}>{p.name}</Text>
                     <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
                   </Box>
@@ -136,7 +136,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
         }}
       >
         {intersperseFn(
-          i => <Divider key={i} theme={theme} />,
+          i => <Divider key={i} theme={theme} backgroundColor={null} color={null} />,
           youCanUnlock.map(device => (
             <ListItem
               key={device.name}
@@ -153,7 +153,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
               }
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
-                <Box style={{...globalStyles.flexBoxColumn}}>
+                <Box style={globalStyles.flexBoxColumn}>
                   <Text type="Body" backgroundMode={backgroundMode}>{device.name}</Text>
                   {device.type !== 'backup' &&
                     <Text type="BodySmall" backgroundMode={backgroundMode}>Open the Keybase app</Text>}
@@ -186,7 +186,7 @@ class FilesRender extends Component<void, Props, void> {
                   ...styleSectionTextThemed[this.props.theme],
                 }}
               />}
-            <Text type="BodySmallSemibold" style={{...styleSectionTextThemed[this.props.theme]}}>
+            <Text type="BodySmallSemibold" style={styleSectionTextThemed[this.props.theme]}>
               {section.name}
             </Text>
           </Box>

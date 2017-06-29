@@ -4,15 +4,36 @@ import SetPublicName from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 
+import type {Dispatch} from 'redux'
 import type {TypedState} from '../../../constants/reducer'
-import type {Props, State} from '.'
+import type {State} from '.'
+
+const trimDeviceName = (s: ?string): string => {
+  if (!s) return ''
+  return s.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+}
+
+const trimDeviceNames = (names: ?Array<string>): Array<string> => {
+  if (!names) return []
+  return names.map(n => {
+    return trimDeviceName(n)
+  })
+}
+
+type ContainerProps = {
+  onSubmit: (deviceName: ?string) => void,
+  onBack: () => void,
+  waiting: boolean,
+  deviceNameError: ?string,
+  existingDevices: ?Array<string>,
+  existingDevicesTrimmed: ?Array<string>,
+}
 
 // TODO remove this class
-class _SetPublicName extends Component<void, Props, State> {
-  props: Props
+class _SetPublicName extends Component<void, ContainerProps, State> {
   state: State
 
-  constructor(props: Props) {
+  constructor(props: ContainerProps) {
     super(props)
 
     this.state = {
@@ -21,12 +42,13 @@ class _SetPublicName extends Component<void, Props, State> {
   }
 
   render() {
-    const nameTaken = !!(this.props.existingDevices &&
-      this.state.deviceName &&
-      this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
-    const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
+    const deviceName = this.state.deviceName || ''
+    const deviceNameTrimmed: string = trimDeviceName(this.state.deviceName)
+    const nameTaken = !!(this.props.existingDevicesTrimmed &&
+      this.props.existingDevicesTrimmed.indexOf(deviceNameTrimmed) !== -1)
+    const submitEnabled = !!(deviceNameTrimmed.length >= 3 && deviceName.length <= 64 && !nameTaken)
     const nameTakenError = nameTaken
-      ? `The device name: '${this.state.deviceName || ''}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
+      ? `The device name: '${deviceName}' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
       : null
 
     return (
@@ -52,14 +74,15 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
-  existingDevices,
   deviceNameError,
+  existingDevices,
+  existingDevicesTrimmed: trimDeviceNames(existingDevices),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
   onBack: () => dispatch(Creators.onBack()),
   onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
 })
-// $FlowIssue
+
 export default connect(mapStateToProps, mapDispatchToProps)(_SetPublicName)

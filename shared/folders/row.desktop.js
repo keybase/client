@@ -134,7 +134,7 @@ const Row = ({
 
   return (
     <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         <Avatars
           users={users}
           styles={styles}

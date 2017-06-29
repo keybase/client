@@ -374,7 +374,7 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase
 	}
 	// Assuming this is a paperkey provision.
 
-	upak := e.args.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+	upak := e.args.Me.ExportToUserPlusAllKeys()
 	if len(upak.Base.PerUserKeys) == 0 {
 		e.G().Log.CDebugf(ctx.GetNetContext(), "DeviceKeygen skipping per-user-keys, none exist")
 		return nil, nil

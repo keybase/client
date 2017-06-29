@@ -245,7 +245,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           onClick={() => this.setState({foldersExpanded: true})}
         >
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
-            <Icon type="iconfont-ellipsis" style={{...styleFolderIcon}} />
+            <Icon type="iconfont-ellipsis" style={styleFolderIcon} />
           </Box>
           <Text type="BodySmall" style={{color: globalColors.black_60, marginBottom: 2}}>
             + {this.props.tlfs.length - folders.length} more
@@ -265,7 +265,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={globalStyles.flexBoxColumn}>
           {this.props.onBack &&
             <BackButton
               onClick={this.props.onBack}
@@ -469,10 +469,10 @@ const styleProofMenu = {
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  alignSelf: 'center',
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 224,
   minHeight: 24,
   minWidth: 273,
   position: 'absolute',
@@ -482,13 +482,15 @@ const styleSearchContainer = {
 
 const styleSearch = {
   color: globalColors.white,
+  fontSize: 12,
   padding: 3,
 }
 
 const styleSearchText = {
+  ...globalStyles.selectable,
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default ProfileRender

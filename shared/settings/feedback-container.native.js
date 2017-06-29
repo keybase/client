@@ -1,22 +1,15 @@
 // @flow
 import React, {Component} from 'react'
 
+import RNFetchBlob from 'react-native-fetch-blob'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {
-  isElectron,
-  isIOS,
-  isAndroid,
-  appVersionName,
-  appVersionCode,
-  mobileOsVersion,
-  version,
-} from '../constants/platform'
-import {dumpLoggers, getLogger} from '../util/periodic-logger'
-import {writeStream, cachesDirectoryPath} from '../util/file'
+import {isAndroid, appVersionName, appVersionCode, mobileOsVersion, version} from '../constants/platform'
+import {getLogger} from '../util/periodic-logger'
+import {writeStream, exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -52,62 +45,58 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
 
   _dumpLogs = () =>
     new Promise((resolve, reject) => {
-      // This isn't used on desktop yet, but we'll likely have to dump the logs there too
-      if (isElectron) {
-        reject(new Error('Not implemented on Desktop!'))
-      }
+      // We don't get the notification from the daemon so we have to do this ourselves
+      const logs = []
+      console.log('Starting log dump')
 
-      if (isIOS) {
-        // We don't get the notification from the daemon so we have to do this ourselves
-        const logs = []
-        console.log('Starting log dump')
+      const logNames = ['actionLogger', 'storeLogger']
 
-        const logNames = ['actionLogger', 'storeLogger']
-
-        logNames.forEach(name => {
-          try {
-            const logger = getLogger(name)
-            logger &&
-              logger.dumpAll((...args) => {
-                logs.push(args)
-              })
-          } catch (_) {}
-        })
-
-        logs.push(['=============CONSOLE.LOG START============='])
-        const logger = getLogger('iosConsoleLog')
-        logger &&
-          logger.dumpAll((...args) => {
-            // Skip the extra prefixes that period-logger uses.
-            logs.push([args[1], ...args.slice(2)])
-          })
-        logs.push(['=============CONSOLE.LOG END============='])
-
-        const path = `${cachesDirectoryPath}/Keybase/rn.log`
-        console.log('Starting log write')
-
-        writeStream(path, 'utf8')
-          .then(stream => {
-            const writeLogsPromises = logs.map((log, idx) => {
-              return () => {
-                return stream.write(JSON.stringify(log, null, 2))
-              }
+      logNames.forEach(name => {
+        try {
+          const logger = getLogger(name)
+          logger &&
+            logger.dumpAll((...args) => {
+              logs.push(args)
             })
+        } catch (_) {}
+      })
 
-            return serialPromises(writeLogsPromises).then(() => stream.close())
+      logs.push(['=============CONSOLE.LOG START============='])
+      const logger = getLogger('nativeConsoleLog')
+      logger &&
+        logger.dumpAll((...args) => {
+          // Skip the extra prefixes that period-logger uses.
+          logs.push([args[1], ...args.slice(2)])
+        })
+      logs.push(['=============CONSOLE.LOG END============='])
+
+      const dir = `${cachesDirectoryPath}/Keybase`
+      const path = `${dir}/rn.log`
+      console.log('Starting log write')
+
+      RNFetchBlob.fs
+        .isDir(dir)
+        .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
+        .then(() => exists(path))
+        .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(path, '', 'utf8')))
+        .then(() => writeStream(path, 'utf8', true))
+        .then(stream => {
+          const writeLogsPromises = logs.map((log, idx) => {
+            return () => {
+              return stream.write(JSON.stringify(log, null, 2))
+            }
           })
-          .then(success => {
-            console.log('Log write done')
-            resolve(true)
-          })
-          .catch(err => {
-            resolve(false)
-            console.warn(`Couldn't log send! ${err}`)
-          })
-      } else {
-        dumpLoggers()
-        resolve(true)
-      }
+
+          return serialPromises(writeLogsPromises).then(() => stream.close())
+        })
+        .then(success => {
+          console.log('Log write done')
+          resolve(path)
+        })
+        .catch(err => {
+          console.warn(`Couldn't log send! ${err}`)
+          reject(err)
+        })
     })
 
   componentWillUnmount() {
@@ -122,12 +111,12 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
     this.setState({sending: true, sentFeedback: false})
 
     this.props.setTimeout(() => {
-      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
 
       maybeDump
-        .then(() => {
+        .then(path => {
           console.log(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
-          return logSend(this.props.status, feedback, sendLogs)
+          return logSend(this.props.status, feedback, sendLogs, path)
         })
         .then(logSendId => {
           console.warn('logSendId is', logSendId)
@@ -135,6 +124,15 @@ class FeedbackContainer extends Component<void, {status: string} & TimerProps, S
             this.setState({
               sentFeedback: true,
               feedback: null,
+              sending: false,
+            })
+          }
+        })
+        .catch(err => {
+          console.warn('err in sending logs', err)
+          if (this.mounted) {
+            this.setState({
+              sentFeedback: false,
               sending: false,
             })
           }
@@ -164,7 +162,7 @@ export default compose(
           uid: state.config.uid,
           deviceID: state.config.deviceID,
           mobileOsVersion,
-          platform: isAndroid ? 'android' : isIOS ? 'ios' : 'desktop',
+          platform: isAndroid ? 'android' : 'ios',
           version,
           appVersionName,
           appVersionCode,

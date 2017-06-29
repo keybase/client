@@ -12,50 +12,59 @@ const Search = (props: Props) => (
   <Box style={styleSearchContainer}>
     <Box style={styleSearchRow}>
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Box style={{flexGrow: 1}}>
+        <Box style={{flexGrow: 1, padding: globalMargins.small}}>
           <UserInput
             autoFocus={true}
-            userItems={props.userItems}
-            onRemoveUser={props.onRemoveUser}
-            onClickAddButton={props.onClickAddButton}
-            placeholder={props.placeholder}
-            usernameText={props.searchText}
             onChangeText={props.onChangeText}
-            onMoveSelectUp={() => {}} // TODO
-            onMoveSelectDown={() => {}} // TODO
-            onEnter={() => {}} // TODO
+            onClickAddButton={props.onClickAddButton}
+            onEnter={props.onEnter}
+            onMoveSelectUp={props.onMoveSelectUp}
+            onMoveSelectDown={props.onMoveSelectDown}
+            onRemoveUser={props.onRemoveUser}
+            onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
+            placeholder={props.placeholder}
+            userItems={props.userItems}
+            usernameText={props.searchText}
           />
         </Box>
-        <Icon style={{alignSelf: 'center'}} type="iconfont-close" onClick={props.onClose} />
+        <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
       </Box>
     </Box>
     <Box style={{...styleSearchRow, justifyContent: 'center'}}>
       <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
       <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
     </Box>
-    <Box style={{...styleSearchRow, ...globalStyles.scrollable}}>
-      <ResultsList items={props.ids} onClick={props.onClick} selectedId={null} />
+    <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
+      <ResultsList
+        items={props.searchResultIds}
+        onClick={props.onClick}
+        selectedId={props.selectedSearchId}
+      />
     </Box>
   </Box>
 )
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
+  alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   flex: 1,
-  left: 300,
-  padding: globalMargins.small,
+  minWidth: 400,
   position: 'absolute',
   top: 10,
   zIndex: 20,
 }
 
+const styleSearchIcon = {
+  alignSelf: 'center',
+  padding: globalMargins.small,
+}
+
 const styleSearchRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  padding: globalMargins.tiny,
 }
 
 export default Search

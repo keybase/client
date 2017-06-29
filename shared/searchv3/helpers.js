@@ -12,7 +12,7 @@ type OwnProps = {
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onStageUserForSearch: (id: Constants.SearchResultId) => void,
+  onEnter: (id: Constants.SearchResultId) => void,
 }
 
 // Which search result is highlighted
@@ -21,7 +21,9 @@ const selectedSearchIdHoc = compose(
   lifecycle({
     componentWillReceiveProps: function(nextProps: OwnProps) {
       if (this.props.searchResultIds !== nextProps.searchResultIds) {
-        nextProps.onUpdateSelectedSearchResult(nextProps.searchResultIds[0] || null)
+        nextProps.onUpdateSelectedSearchResult(
+          (nextProps.searchResultIds && nextProps.searchResultIds[0]) || null
+        )
       }
     },
   })
@@ -29,16 +31,9 @@ const selectedSearchIdHoc = compose(
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onEnter: ({
-      selectedSearchId,
-      onStageUserForSearch,
-      onChangeSearchText,
-      selectedService,
-      search,
-    }: OwnProps) => () => {
-      selectedSearchId && onStageUserForSearch(selectedSearchId)
+    onEnter: ({onChangeSearchText, onEnter, selectedSearchId}: OwnProps) => () => {
+      selectedSearchId && onEnter(selectedSearchId)
       onChangeSearchText('')
-      search('', selectedService)
     },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'

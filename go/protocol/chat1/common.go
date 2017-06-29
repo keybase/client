@@ -26,6 +26,12 @@ func (o MessageID) DeepCopy() MessageID {
 	return o.DeepCopy()
 }
 
+type TLFConvOrdinal uint
+
+func (o TLFConvOrdinal) DeepCopy() TLFConvOrdinal {
+	return o.DeepCopy()
+}
+
 type TopicID []byte
 
 func (o TopicID) DeepCopy() TopicID {
@@ -221,6 +227,7 @@ type ConversationMemberStatus int
 const (
 	ConversationMemberStatus_ACTIVE  ConversationMemberStatus = 0
 	ConversationMemberStatus_REMOVED ConversationMemberStatus = 1
+	ConversationMemberStatus_LEFT    ConversationMemberStatus = 2
 )
 
 func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
@@ -228,11 +235,13 @@ func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o
 var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
 	"ACTIVE":  0,
 	"REMOVED": 1,
+	"LEFT":    2,
 }
 
 var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
 	0: "ACTIVE",
 	1: "REMOVED",
+	2: "LEFT",
 }
 
 func (e ConversationMemberStatus) String() string {

@@ -127,7 +127,7 @@ func (e *PaperKeyGen) syncPUK(ctx *Context) error {
 	}
 	var upak *keybase1.UserPlusAllKeys
 	if e.arg.Me != nil {
-		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+		tmp := e.arg.Me.ExportToUserPlusAllKeys()
 		upak = &tmp
 	}
 	err = pukring.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)

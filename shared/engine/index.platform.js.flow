@@ -23,7 +23,7 @@ declare function createClient(
   connectCallback: connectDisconnectCB,
   disconnectCallback: connectDisconnectCB
 ): createClientType
-declare function resetClient(): void
+declare function resetClient(client: createClientType): void
 declare function rpcLog(type: rpcLogType, ...args: Array<any>): void
 
 export {createClient, resetClient, rpcLog}

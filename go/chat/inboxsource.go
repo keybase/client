@@ -480,7 +480,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
-
 	return inbox, rl, nil
 }
 

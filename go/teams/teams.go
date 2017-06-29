@@ -20,6 +20,7 @@ type Team struct {
 	Chain          *TeamSigChainState
 	Box            TeamBox
 	ReaderKeyMasks []keybase1.ReaderKeyMask
+	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded
 
 	keyManager *TeamKeyManager
 
@@ -35,43 +36,53 @@ func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.Box.Generation
 }
 
-func (t *Team) SharedSecret(ctx context.Context) ([]byte, error) {
+func (t *Team) SharedSecretAllGenerations(ctx context.Context) (ret *SharedSecretAllGenerations, err error) {
+	curr, err := t.SharedSecret(ctx)
+	if err != nil {
+		return ret, err
+	}
+	return newSharedSecretAllGenerations(ctx, t.Box.Generation, curr, t.Prevs)
+}
+
+func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
+	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	if t.keyManager == nil {
 		userEncKey, err := t.perUserEncryptionKeyForBox(ctx)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		secret, err := t.Box.Open(userEncKey)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
+		t.G().Log.CDebugf(ctx, "| Box#Open succeeded")
 
-		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret[:], t.Box.Generation)
+		keyManager, err := NewTeamKeyManagerWithSecret(t.G(), secret, t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		signingKey, err := keyManager.SigningKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 		encryptionKey, err := keyManager.EncryptionKey()
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		teamKey, err := t.Chain.GetPerTeamKeyAtGeneration(t.Box.Generation)
 		if err != nil {
-			return nil, err
+			return keybase1.PerTeamKeySeed{}, err
 		}
 
 		if !teamKey.SigKID.SecureEqual(signingKey.GetKID()) {
-			return nil, errors.New("derived signing key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived signing key did not match key in team chain")
 		}
 
 		if !teamKey.EncKID.SecureEqual(encryptionKey.GetKID()) {
-			return nil, errors.New("derived encryption key did not match key in team chain")
+			return keybase1.PerTeamKeySeed{}, errors.New("derived encryption key did not match key in team chain")
 		}
 
 		// TODO: check that t.Box.SenderKID is a known device DH key for the
@@ -166,7 +177,7 @@ func (t *Team) NextSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	secret, err := t.SharedSecret(ctx)
+	secrets, err := t.SharedSecretAllGenerations(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -174,7 +185,7 @@ func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.Team
 		if rkm.Application != application {
 			continue
 		}
-		key, err := t.applicationKeyForMask(rkm, secret)
+		key, err := t.applicationKeyForMask(rkm, secrets.At(rkm.Generation))
 		if err != nil {
 			return res, err
 		}
@@ -208,7 +219,7 @@ func (t *Team) ApplicationKey(ctx context.Context, application keybase1.TeamAppl
 	return t.applicationKeyForMask(max, secret)
 }
 
-func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration, secrets SharedSecretAllGenerations) (keybase1.TeamApplicationKey, error) {
 	for _, rkm := range t.ReaderKeyMasks {
 		if rkm.Application != application {
 			continue
@@ -216,13 +227,16 @@ func (t *Team) ApplicationKeyAtGeneration(application keybase1.TeamApplication, 
 		if rkm.Generation != generation {
 			continue
 		}
-		return t.applicationKeyForMask(rkm, secret)
+		return t.applicationKeyForMask(rkm, secrets.At(generation))
 	}
 
 	return keybase1.TeamApplicationKey{}, libkb.NotFoundError{Msg: fmt.Sprintf("no mask found for application %d, generation %d", application, generation)}
 }
 
-func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte) (keybase1.TeamApplicationKey, error) {
+func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamKeySeed) (keybase1.TeamApplicationKey, error) {
+	if secret.IsZero() {
+		return keybase1.TeamApplicationKey{}, errors.New("nil shared secret in Team#applicationKeyForMask")
+	}
 	var derivationString string
 	switch mask.Application {
 	case keybase1.TeamApplication_KBFS:
@@ -255,6 +269,7 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret []byte)
 }
 
 func (t *Team) Rotate(ctx context.Context) error {
+
 	// make keys for the team
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
@@ -265,6 +280,10 @@ func (t *Team) Rotate(ctx context.Context) error {
 
 	admin, err := t.getAdminPermission(ctx, false)
 	if err != nil {
+		return err
+	}
+
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
 		return err
 	}
 
@@ -282,7 +301,8 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil); err != nil {
+	payload := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, payload); err != nil {
 		return err
 	}
 
@@ -329,6 +349,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		return err
 	}
 
+	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
+		return err
+	}
+
 	var merkleRoot *libkb.MerkleRoot
 	var lease *libkb.Lease
 
@@ -344,7 +368,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot); err != nil {
+	payload := make(libkb.JSONPayload)
+	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, payload); err != nil {
 		return err
 	}
 
@@ -355,8 +380,17 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
-func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+func (t *Team) Leave(ctx context.Context, permanent bool) error {
+	section, err := newMemberSet().Section(t.Chain.GetID(), nil)
+	if err != nil {
+		return err
+	}
+	payload := make(libkb.JSONPayload)
+	payload["permanent"] = permanent
+	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
+}
 
+func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return nil, err
@@ -374,8 +408,8 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 
 	ret := SCTeamAdmin{
 		TeamID:  (SCTeamID)(t.ID),
-		Seqno:   logPoint.Seqno,
-		SeqType: keybase1.SeqType_SEMIPRIVATE,
+		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
+		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
 	return &ret, nil
 }
@@ -413,7 +447,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	return section, secretBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, prepayload libkb.JSONPayload) error {
 	// create the change item
 	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -421,7 +455,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secret
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes, lease)
+	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, prepayload)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -439,6 +473,10 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 	return t.me, nil
 }
 
+func usesPerTeamKeys(linkType libkb.LinkType) bool {
+	return linkType != libkb.LinkTypeLeave
+}
+
 func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
@@ -453,29 +491,33 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		return libkb.SigMultiItem{}, err
 	}
 	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
 
-	signingKey, err := t.keyManager.SigningKey()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	encryptionKey, err := t.keyManager.EncryptionKey()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-
-	if section.PerTeamKey != nil {
-		// need a reverse sig
-
-		// set a nil value (not empty) for reverse_sig (fails without this)
-		sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
-		reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
+	var signingKey libkb.NaclSigningKeyPair
+	var encryptionKey libkb.NaclDHKeyPair
+	if usesPerTeamKeys(linkType) {
+		signingKey, err = t.keyManager.SigningKey()
 		if err != nil {
 			return libkb.SigMultiItem{}, err
 		}
-		sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+		encryptionKey, err = t.keyManager.EncryptionKey()
+		if err != nil {
+			return libkb.SigMultiItem{}, err
+		}
+		if section.PerTeamKey != nil {
+			// need a reverse sig
+
+			// set a nil value (not empty) for reverse_sig (fails without this)
+			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewNil())
+			reverseSig, _, _, err := libkb.SignJSON(sig, signingKey)
+			if err != nil {
+				return libkb.SigMultiItem{}, err
+			}
+			sig.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+		}
 	}
 
 	sigJSON, err := sig.Marshal()
@@ -505,10 +547,12 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		Type:       string(linkType),
 		SigInner:   string(sigJSON),
 		TeamID:     t.Chain.GetID(),
-		PublicKeys: &libkb.SigMultiItemPublicKeys{
+	}
+	if usesPerTeamKeys(linkType) {
+		sigMultiItem.PublicKeys = &libkb.SigMultiItemPublicKeys{
 			Encryption: encryptionKey.GetKID(),
 			Signing:    signingKey.GetKID(),
-		},
+		}
 	}
 	return sigMultiItem, nil
 }
@@ -539,7 +583,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		return nil, nil, err
 	}
 
-	boxes, err := t.keyManager.SharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -564,13 +608,14 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	}
 	t.rotated = true
 
-	return t.keyManager.RotateSharedSecretBoxes(deviceEncryptionKey, memSet.recipients)
+	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease) libkb.JSONPayload {
-	payload := make(libkb.JSONPayload)
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, payload libkb.JSONPayload) libkb.JSONPayload {
 	payload["sigs"] = []interface{}{sigMultiItem}
-	payload["per_team_key"] = secretBoxes
+	if secretBoxes != nil {
+		payload["per_team_key"] = secretBoxes
+	}
 	if lease != nil {
 		payload["downgrade_lease_id"] = lease.LeaseID
 	}
@@ -597,6 +642,15 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		return err
 	}
 	return nil
+}
+
+// ForceMerkleRootUpdate will call LookupTeam on MerkleClient to
+// update cached merkle root to include latest team sigs. Needed if
+// client wants to create a signature that refers to an adminship,
+// signature's merkle_root has to be more fresh than adminship's.
+func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
+	_, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID)
+	return err
 }
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {

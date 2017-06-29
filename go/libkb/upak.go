@@ -23,35 +23,45 @@ func BaseProofSet(u *keybase1.UserPlusAllKeys) *ProofSet {
 
 // checkKIDPGP checks that the user has the given PGP KID valid *now*. Note that it doesn't
 // check for revoked PGP keys, and it also does not check key expiration.
-func checkKIDPGP(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool) {
-	for _, key := range u.PGPKeys {
-		if key.KID.Equal(kid) {
+func checkKIDPGP(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool) {
+	for _, key := range u.Current.PGPKeys {
+		if key.Base.Kid.Equal(kid) {
 			return true
 		}
 	}
 	return false
 }
 
-func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
-	for _, key := range u.Base.DeviceKeys {
-		if key.KID.Equal(kid) {
-			return true, nil, false
+func checkKIDKeybase(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
+	exportRevokedAt := func(key keybase1.PublicKeyV2NaCl) *keybase1.KeybaseTime {
+		if key.Base.Revocation != nil {
+			// This is the inverse of the marshalling we do in rpc_exim.go.
+			return &keybase1.KeybaseTime{
+				Unix:  key.Base.Revocation.Time,
+				Chain: key.Base.Revocation.PrevMerkleRootSigned.Seqno,
+			}
+		}
+		return nil
+	}
+	for _, key := range u.Current.DeviceKeys {
+		if key.Base.Kid.Equal(kid) {
+			found = true
+			revokedAt = exportRevokedAt(key)
 		}
 	}
-	for _, key := range u.Base.RevokedDeviceKeys {
-		if key.Key.KID.Equal(kid) {
-			return true, &key.Time, false
+	for _, pastIncarnation := range u.PastIncarnations {
+		for _, key := range pastIncarnation.DeviceKeys {
+			if key.Base.Kid.Equal(kid) {
+				found = true
+				deleted = true
+				revokedAt = exportRevokedAt(key)
+			}
 		}
 	}
-	for _, key := range u.Base.DeletedDeviceKeys {
-		if key.KID.Equal(kid) {
-			return true, nil, true
-		}
-	}
-	return false, nil, false
+	return
 }
 
-func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
+func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	if IsPGPAlgo(AlgoType(kid.GetKeyType())) {
 		found = checkKIDPGP(u, kid)
 		return found, nil, false

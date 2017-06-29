@@ -194,6 +194,10 @@ func (w WrongKidError) Error() string {
 	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted, w.got)
 }
 
+func NewWrongKidError(w keybase1.KID, g keybase1.KID) WrongKidError {
+	return WrongKidError{w, g}
+}
+
 //=============================================================================
 
 type WrongKeyError struct {
@@ -1806,6 +1810,16 @@ type ChatDuplicateMessageError struct {
 
 func (e ChatDuplicateMessageError) Error() string {
 	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
+}
+
+//=============================================================================
+
+type ChatClientError struct {
+	Msg string
+}
+
+func (e ChatClientError) Error() string {
+	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
 }
 
 //=============================================================================

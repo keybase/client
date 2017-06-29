@@ -510,6 +510,20 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatMessageCollisionError{
 			HeaderHash: headerHash,
 		}
+	case SCChatDuplicateMessage:
+		var soutboxID string
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "OutboxID":
+				soutboxID = field.Value
+			}
+		}
+		boutboxID, _ := hex.DecodeString(soutboxID)
+		return ChatDuplicateMessageError{
+			OutboxID: chat1.OutboxID(boutboxID),
+		}
+	case SCChatClientError:
+		return ChatClientError{Msg: s.Desc}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -914,9 +928,9 @@ func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.Public
 	return pk
 }
 
-func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.PublicKeyV2Base) {
+func publicKeyV2BaseFromComputedKeyInfo(kid keybase1.KID, info ComputedKeyInfo) (base keybase1.PublicKeyV2Base) {
 	base = keybase1.PublicKeyV2Base{
-		Kid:      info.KID,
+		Kid:      kid,
 		IsSibkey: info.Sibkey,
 		IsEldest: info.Eldest,
 		CTime:    keybase1.TimeFromSeconds(info.CTime),
@@ -924,7 +938,7 @@ func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.Pub
 	}
 	if info.DelegatedAt != nil {
 		base.Provisioning = keybase1.SignatureMetadata{
-			Time: keybase1.Time(info.DelegatedAt.Unix),
+			Time: keybase1.TimeFromSeconds(info.DelegatedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.DelegatedAtHashMeta,
 				Seqno:    keybase1.Seqno(info.DelegatedAt.Chain),
@@ -936,15 +950,19 @@ func publicKeyV2BaseFromComputedKeyInfo(info ComputedKeyInfo) (base keybase1.Pub
 			base.Provisioning.SigningKID = info.DelegationsList[dLen-1].KID
 		}
 	}
+	base.Provisioning.SigChainLocation = info.DelegatedAtSigChainLocation
 	if info.RevokedAt != nil {
 		base.Revocation = &keybase1.SignatureMetadata{
-			Time: keybase1.Time(info.RevokedAt.Unix),
+			Time: keybase1.TimeFromSeconds(info.RevokedAt.Unix),
 			PrevMerkleRootSigned: keybase1.MerkleRootV2{
 				HashMeta: info.RevokedAtHashMeta,
 				Seqno:    keybase1.Seqno(info.RevokedAt.Chain),
 			},
 			FirstAppearedUnverified: info.FirstAppearedUnverified,
 			SigningKID:              info.RevokedBy,
+		}
+		if info.RevokedAtSigChainLocation != nil {
+			base.Revocation.SigChainLocation = *info.RevokedAtSigChainLocation
 		}
 	}
 	return
@@ -957,7 +975,7 @@ func (cki ComputedKeyInfos) exportDeviceKeyV2(kid keybase1.KID) (key keybase1.Pu
 		return
 	}
 	key = keybase1.PublicKeyV2NaCl{
-		Base:     publicKeyV2BaseFromComputedKeyInfo(*info),
+		Base:     publicKeyV2BaseFromComputedKeyInfo(kid, *info),
 		DeviceID: cki.KIDToDeviceID[kid],
 	}
 	if !info.Parent.IsNil() {
@@ -994,7 +1012,7 @@ func (cki ComputedKeyInfos) exportPGPKeyV2(kid keybase1.KID, kf *KeyFamily) (key
 		return
 	}
 	key = keybase1.PublicKeyV2PGPSummary{
-		Base:        publicKeyV2BaseFromComputedKeyInfo(*info),
+		Base:        publicKeyV2BaseFromComputedKeyInfo(kid, *info),
 		Fingerprint: keybase1.PGPFingerprint(bundle.GetFingerprint()),
 		Identities:  bundle.Export().PGPIdentities,
 	}
@@ -1113,17 +1131,17 @@ func (u *User) Export() *keybase1.User {
 	}
 }
 
-func (u *User) ExportToVersionVector(idTime keybase1.Time) keybase1.UserVersionVector {
+func (u *User) ExportToVersionVector() keybase1.UserVersionVector {
 	idv, _ := u.GetIDVersion()
 	return keybase1.UserVersionVector{
-		Id:               idv,
-		SigHints:         u.GetSigHintsVersion(),
-		SigChain:         int64(u.GetSigChainLastKnownSeqno()),
-		LastIdentifiedAt: idTime,
+		Id:       idv,
+		SigHints: u.GetSigHintsVersion(),
+		SigChain: int64(u.GetSigChainLastKnownSeqno()),
+		// CachedAt is set by the upak loader right before we write to disk.
 	}
 }
 
-func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys {
+func (u *User) ExportToUserPlusKeys() keybase1.UserPlusKeys {
 	ret := keybase1.UserPlusKeys{
 		Uid:         u.GetUID(),
 		Username:    u.GetName(),
@@ -1137,13 +1155,13 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 		ret.PerUserKeys = ckf.ExportPerUserKeys()
 	}
 
-	ret.Uvv = u.ExportToVersionVector(idTime)
+	ret.Uvv = u.ExportToVersionVector()
 	return ret
 }
 
-func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
+func (u *User) ExportToUserPlusAllKeys() keybase1.UserPlusAllKeys {
 	return keybase1.UserPlusAllKeys{
-		Base:         u.ExportToUserPlusKeys(idTime),
+		Base:         u.ExportToUserPlusKeys(),
 		PGPKeys:      u.GetComputedKeyFamily().ExportAllPGPKeys(),
 		RemoteTracks: u.ExportRemoteTracks(),
 	}
@@ -1156,24 +1174,24 @@ func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
 func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
-	if cki == nil {
-		cki.G().Log.Errorf("Found nil cached computed key infos for uid %s username %s, eldest seqno %v", uid.String(), username, eldestSeqno)
-		return keybase1.UserPlusKeysV2{}
-	}
 
 	var perUserKeysList PerUserKeysList
-	for _, puk := range cki.PerUserKeys {
-		perUserKeysList = append(perUserKeysList, puk)
+	if cki != nil {
+		for _, puk := range cki.PerUserKeys {
+			perUserKeysList = append(perUserKeysList, puk)
+		}
+		sort.Sort(perUserKeysList)
 	}
-	sort.Sort(perUserKeysList)
 
-	deviceKeysList := []keybase1.PublicKeyV2NaCl{}
-	pgpSummariesList := []keybase1.PublicKeyV2PGPSummary{}
-	for _, info := range cki.Infos {
-		if KIDIsPGP(info.KID) {
-			pgpSummariesList = append(pgpSummariesList, cki.exportPGPKeyV2(info.KID, kf))
-		} else {
-			deviceKeysList = append(deviceKeysList, cki.exportDeviceKeyV2(info.KID))
+	deviceKeys := make(map[keybase1.KID]keybase1.PublicKeyV2NaCl)
+	pgpSummaries := make(map[keybase1.KID]keybase1.PublicKeyV2PGPSummary)
+	if cki != nil {
+		for kid := range cki.Infos {
+			if KIDIsPGP(kid) {
+				pgpSummaries[kid] = cki.exportPGPKeyV2(kid, kf)
+			} else {
+				deviceKeys[kid] = cki.exportDeviceKeyV2(kid)
+			}
 		}
 	}
 
@@ -1182,13 +1200,13 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 		Username:    username,
 		EldestSeqno: eldestSeqno,
 		PerUserKeys: perUserKeysList,
-		DeviceKeys:  deviceKeysList,
-		PGPKeys:     pgpSummariesList,
+		DeviceKeys:  deviceKeys,
+		PGPKeys:     pgpSummaries,
 		// Uvv and RemoteTracks are set later, and only for the current incarnation
 	}
 }
 
-func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserPlusKeysV2AllIncarnations {
+func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	// The KeyFamily holds all the PGP key bundles, and it applies to all
 	// generations of this user.
 	kf := u.GetKeyFamily()
@@ -1198,41 +1216,48 @@ func (u *User) ExportToUPKV2AllIncarnations(idTime keybase1.Time) keybase1.UserP
 
 	// First assemble all the past versions of this user.
 	pastIncarnations := []keybase1.UserPlusKeysV2{}
-	for _, subchain := range u.sigChain().prevSubchains {
-		if len(subchain) == 0 {
-			u.G().Log.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
-			continue
+	if u.sigChain() != nil {
+		for _, subchain := range u.sigChain().prevSubchains {
+			if len(subchain) == 0 {
+				return nil, fmt.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
+			}
+			cki := subchain[len(subchain)-1].cki
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
 		}
-		cki := subchain[len(subchain)-1].cki
-		pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
 	}
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
 	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
-	current.Uvv = u.ExportToVersionVector(idTime)
-
-	remoteTracks := []keybase1.RemoteTrack{}
-	for _, track := range u.IDTable().GetTrackList() {
-		remoteTracks = append(remoteTracks, keybase1.RemoteTrack{
-			Username: string(track.whomUsername),
-			Uid:      track.whomUID,
-			LinkID:   keybase1.LinkID(hex.EncodeToString(track.LinkID())),
-		})
+	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
+	if u.IDTable() != nil {
+		for _, track := range u.IDTable().GetTrackList() {
+			current.RemoteTracks[track.whomUID] = track.Export()
+		}
 	}
-	current.RemoteTracks = remoteTracks
 
-	return keybase1.UserPlusKeysV2AllIncarnations{
+	// Collect the link IDs (that is, the hashes of the signature inputs) from all subchains.
+	linkIDs := map[keybase1.Seqno]keybase1.LinkID{}
+	if u.sigChain() != nil {
+		for _, link := range u.sigChain().chainLinks {
+			// Assert that all the links are in order as they go in. We should
+			// never fail this check, but we *really* want to know about it if
+			// we do.
+			if int(link.GetSeqno()) != len(linkIDs)+1 {
+				return nil, fmt.Errorf("Encountered out-of-sequence chain link %d while exporting uid %s username %s", link.GetSeqno(), u.GetUID(), u.GetName())
+			}
+			linkIDs[link.GetSeqno()] = link.LinkID().Export()
+		}
+	}
+
+	return &keybase1.UserPlusKeysV2AllIncarnations{
 		Current:          current,
 		PastIncarnations: pastIncarnations,
-	}
+		Uvv:              u.ExportToVersionVector(),
+		SeqnoLinkIDs:     linkIDs,
+	}, nil
 }
 
-type remoteTrackSorter []keybase1.RemoteTrack
-
-func (s remoteTrackSorter) Len() int           { return len(s) }
-func (s remoteTrackSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s remoteTrackSorter) Less(i, j int) bool { return s[i].Username < s[j].Username }
-
+// NOTE: This list *must* be in sorted order. If we ever write V3, be careful to keep it sorted!
 func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
 	var ret []keybase1.RemoteTrack
 	if u.IDTable() == nil {
@@ -1242,7 +1267,7 @@ func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
 	for _, track := range trackList {
 		ret = append(ret, track.Export())
 	}
-	sort.Sort(remoteTrackSorter(ret))
+	sort.Slice(ret, func(i, j int) bool { return ret[i].Username < ret[j].Username })
 	return ret
 }
 
@@ -1803,6 +1828,27 @@ func (e ChatMessageCollisionError) ToStatus() keybase1.Status {
 		Name:   "SC_CHAT_MESSAGE_COLLISION",
 		Desc:   e.Error(),
 		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatDuplicateMessageError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "OutboxID",
+		Value: e.OutboxID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatDuplicateMessage,
+		Name:   "SC_CHAT_DUPLICATE_MESSAGE",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatClientError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatClientError,
+		Name: "SC_CHAT_CLIENT_ERROR",
+		Desc: e.Error(),
 	}
 }
 

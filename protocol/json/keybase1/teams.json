@@ -48,6 +48,23 @@
     },
     {
       "type": "record",
+      "name": "SignatureMetadataBookends",
+      "fields": [
+        {
+          "type": "SignatureMetadata",
+          "name": "left"
+        },
+        {
+          "type": [
+            null,
+            "SignatureMetadata"
+          ],
+          "name": "right"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MaskB64",
       "fields": [],
       "typedef": "bytes"
@@ -170,35 +187,67 @@
     },
     {
       "type": "record",
-      "name": "TeamMembersUsernames",
+      "name": "TeamMemberDetails",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersDetails",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDetails",
+      "fields": [
+        {
+          "type": "TeamMembersDetails",
+          "name": "members"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
         }
       ]
     },
@@ -343,7 +392,7 @@
           "name": "id"
         },
         {
-          "type": "string",
+          "type": "TeamName",
           "name": "name"
         },
         {
@@ -375,6 +424,17 @@
         {
           "type": {
             "type": "map",
+            "values": {
+              "type": "array",
+              "items": "SubteamLogPoint"
+            },
+            "keys": "TeamID"
+          },
+          "name": "subteamLog"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "PerTeamKey",
             "keys": "PerTeamKeyGeneration"
           },
@@ -397,6 +457,20 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamLogPoint",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
         },
         {
           "type": "Seqno",
@@ -520,9 +594,13 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
         }
       ],
-      "response": "TeamMembersUsernames"
+      "response": "TeamDetails"
     },
     "teamChangeMembership": {
       "request": [
@@ -579,6 +657,23 @@
         {
           "name": "username",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamLeave": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null

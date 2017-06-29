@@ -560,3 +560,11 @@ func (r *FindConversationsLocalRes) SetOffline() {
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
+
+func (o TLFConvOrdinal) Int() int {
+	return int(o)
+}
+
+func (o TLFConvOrdinal) IsFirst() bool {
+	return o.Int() == 1
+}

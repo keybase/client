@@ -1,5 +1,6 @@
 // @flow
 import * as SearchConstants from './searchv3'
+import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
@@ -8,6 +9,7 @@ import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
+import {parseUserId, serviceIdToIcon} from '../util/platforms'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
@@ -241,7 +243,7 @@ export const ConversationStateRecord = Record({
   typing: Set(),
 })
 
-export type ConversationState = Record<{
+export type ConversationState = KBRecord<{
   messageKeys: List<MessageKey>,
   // TODO del
   messages: List<Message>,
@@ -257,7 +259,7 @@ export type ConversationState = Record<{
   typing: Set<Username>,
 }>
 
-export type ConversationBadgeState = Record<{
+export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
   UnreadMessages: number,
 }>
@@ -281,7 +283,7 @@ export const InboxStateRecord = Record({
   time: 0,
 })
 
-export type InboxState = Record<{
+export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
@@ -305,7 +307,7 @@ export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
 export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
 export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
 
-export type MetaData = Record<{
+export type MetaData = KBRecord<{
   fullname: string,
   brokenTracker: boolean,
 }>
@@ -324,7 +326,7 @@ export const RekeyInfoRecord = Record({
   youCanRekey: false,
 })
 
-export type RekeyInfo = Record<{
+export type RekeyInfo = KBRecord<{
   rekeyParticipants: Participants,
   youCanRekey: boolean,
 }>
@@ -504,6 +506,7 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
+export type RemoveTempPendingConversations = NoErrorTypedAction<'chat:removeTempPendingConversations', void>
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
@@ -748,6 +751,7 @@ export type Actions =
   | OpenFolder
   | PendingToRealConversation
   | PrependMessages
+  | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBadging
@@ -1052,6 +1056,35 @@ function isImageFileName(filename: string): boolean {
   return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
 }
 
+const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
+const getFollowingStates = (state: TypedState) => {
+  const ids = getInboxSearch(state)
+  let followingStateMap = {}
+  ids.forEach(id => {
+    const {username, serviceId} = parseUserId(id)
+    const service = SearchConstants.serviceIdToService(serviceId)
+    followingStateMap[id] = SearchConstants.followStateHelper(state, username, service)
+  })
+  return followingStateMap
+}
+
+const getUserItems = createShallowEqualSelector(
+  [getInboxSearch, getFollowingStates],
+  (inboxSearch, followingStates) =>
+    inboxSearch.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
+)
+
 const stateLoggerTransform = (state: State) => ({
   alwaysShow: state.get('alwaysShow').join(','),
   conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
@@ -1118,6 +1151,7 @@ export {
   getSelectedInbox,
   getTLF,
   getMuted,
+  getUserItems,
   LocalMessageState,
   defaultLocalMessageState,
   getLocalMessageStateFromMessageKey,

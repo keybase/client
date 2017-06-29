@@ -110,7 +110,9 @@ declare module 'resolveRoot' {
     resolveImage: (paths: any) => string,
   }
 }
-declare class Notification {}
+declare class Notification {
+  constructor (...args: any): this;
+}
 
 declare var __STORYBOOK__: boolean
 declare var __VERSION__: string
@@ -193,7 +195,8 @@ declare module 'react-dom' {
 
   declare function render<Config>(
     element: React$Element<Config>,
-    container: any
+    container: any,
+    cb?: Function
   ): React$Component<$DefaultPropsOf<Config>, $PropsOf<Config>, any>
 
   declare function unmountComponentAtNode(container: any): boolean

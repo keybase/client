@@ -244,6 +244,8 @@ const (
 	SCNeedSelfRekey          = int(keybase1.StatusCode_SCNeedSelfRekey)
 	SCNeedOtherRekey         = int(keybase1.StatusCode_SCNeedOtherRekey)
 	SCChatMessageCollision   = int(keybase1.StatusCode_SCChatMessageCollision)
+	SCChatDuplicateMessage   = int(keybase1.StatusCode_SCChatDuplicateMessage)
+	SCChatClientError        = int(keybase1.StatusCode_SCChatClientError)
 	SCAccountReset           = int(keybase1.StatusCode_SCAccountReset)
 )
 
@@ -276,6 +278,7 @@ const (
 	LinkTypeSubteamHead      LinkType = "team.subteam_head"
 	LinkTypeChangeMembership LinkType = "team.change_membership"
 	LinkTypeRotateKey        LinkType = "team.rotate_key"
+	LinkTypeLeave            LinkType = "team.leave"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
@@ -599,5 +602,3 @@ const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
 )
-
-var CITimeMultiplier time.Duration = 1
