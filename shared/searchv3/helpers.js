@@ -31,10 +31,9 @@ const selectedSearchIdHoc = compose(
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onEnter: ({onChangeSearchText, onEnter, search, selectedSearchId, selectedService}: OwnProps) => () => {
+    onEnter: ({onChangeSearchText, onEnter, selectedSearchId}: OwnProps) => () => {
       selectedSearchId && onEnter(selectedSearchId)
       onChangeSearchText('')
-      search('', selectedService)
     },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
