@@ -310,7 +310,8 @@ func GetRootCerts(serverAddr string) []byte {
 		if strings.HasSuffix(host, "dev.keybase.io") {
 			return []byte(DevRootCerts)
 		}
-		if strings.HasSuffix(host, "kbfs.keybase.io") {
+		if strings.HasSuffix(host, "kbfs.keybase.io") ||
+			strings.HasSuffix(host, "core.keybase.io") {
 			return []byte(ProductionRootCerts)
 		}
 	}
