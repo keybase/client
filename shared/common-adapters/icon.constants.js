@@ -25,6 +25,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-addon-lock-8.png'),
   },
+  'icon-addon-lock-active-12': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-12.png'),
+  },
   'icon-addon-lock-active-8': {
     isFont: false,
     extension: 'png',
@@ -1389,6 +1394,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-shh-active-16.png'),
+  },
+  'icon-shh-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-shh-active-24.png'),
   },
   'icon-subnav-folders-all': {
     isFont: false,
