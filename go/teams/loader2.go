@@ -106,12 +106,8 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 		return proofSet, err
 	}
 
-	linkTeamID, err := link.TeamID()
-	if err != nil {
-		return proofSet, err
-	}
-	if !teamID.Eq(linkTeamID) {
-		return proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, linkTeamID)
+	if !teamID.Eq(link.ID) {
+		return proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.ID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
@@ -128,7 +124,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 		return proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	proofSet = addProofsForKeyInUserSigchain(linkTeamID, link, user.Uid, key, proofSet)
+	proofSet = addProofsForKeyInUserSigchain(teamID, link, user.Uid, key, proofSet)
 
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
@@ -556,7 +552,7 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	var links []*chainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
-		link, err := unpackChainLink(&pLink2)
+		link, err := unpackChainLink(teamUpdate.ID, &pLink2)
 		if err != nil {
 			return nil, err
 		}

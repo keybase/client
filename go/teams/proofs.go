@@ -63,6 +63,15 @@ func newProofSet() *proofSetT {
 	return &proofSetT{make(map[proofIndex][]proof)}
 }
 
+// AddNeededHappensBeforeProof adds a new needed proof to the proof set. The
+// proof is that a happened before b.  If there are other proofs in the proof set
+// that prove the same thing, then we can tighten those proofs with a and b if
+// it makes sense.  For instance, if there is an existing proof that c<d,
+// but we know that c<a and b<d, then it suffices to replace c<d with a<b as
+// the needed proof. Each proof in the proof set in the end will correspond
+// to a merkle tree lookup, so it makes sense to be stingy. Return the modified
+// proof set with the new proofs needed, but the original arugment p will
+// be mutated.
 func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proofSetT {
 	idx := newProofIndex(a.leafID, b.leafID)
 	set := p.proofs[idx]
