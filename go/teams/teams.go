@@ -396,9 +396,18 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 		return nil, err
 	}
 
-	// TODO -- recursively try parent teams if this one isn't an admin team.
-	// See CORE-5051
-	logPoint := t.Chain.GetAdminUserLogPoint(me.ToUserVersion())
+	uv := me.ToUserVersion()
+	target_team := t
+	logPoint := target_team.Chain.GetAdminUserLogPoint(uv)
+	for logPoint == nil && target_team.Chain.inner.ParentID != nil {
+		target_id := target_team.Chain.inner.ParentID
+		target_team, err = GetForTeamManagement(ctx, target_team.G(), *target_id)
+		if err != nil {
+			return nil, err
+		}
+		logPoint = target_team.Chain.GetAdminUserLogPoint(uv)
+	}
+
 	if logPoint == nil {
 		if required {
 			err = errors.New("cannot perform this operation without adminship")
@@ -407,7 +416,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	}
 
 	ret := SCTeamAdmin{
-		TeamID:  (SCTeamID)(t.ID),
+		TeamID:  (SCTeamID)(target_team.ID),
 		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
 		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
