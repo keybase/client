@@ -392,17 +392,19 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
 	targetTeam = t
-	for !validator(targetTeam) && targetTeam.Chain.inner.ParentID != nil {
-		targetID := targetTeam.Chain.inner.ParentID
-		targetTeam, err = GetForTeamManagement(ctx, targetTeam.G(), *targetID)
+	for {
+		if validator(targetTeam) {
+			return targetTeam, nil
+		}
+		parentID := targetTeam.Chain.inner.ParentID
+		if parentID == nil {
+			return nil, nil
+		}
+		targetTeam, err = GetForTeamManagement(ctx, t.G(), *parentID)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if !validator(targetTeam) {
-		return nil, nil
-	}
-	return targetTeam, nil
 }
 
 func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
