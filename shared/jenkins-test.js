@@ -7,7 +7,7 @@ var changeTarget = 'origin/' + process.argv[4]
 var changeBase
 var againstMaster
 
-var defaultExecSyncOptions = {encoding: 'utf8'}
+var defaultExecSyncOptions = {encoding: 'utf8', stdio: 'inherit'}
 
 if (!process.argv[4]) {
   againstMaster = true
