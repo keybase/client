@@ -1,127 +1,99 @@
 // @flow
 import React from 'react'
-import {Box, Text, Icon, PopupMenu} from '../common-adapters'
+import {Text, Icon, PopupMenu} from '../common-adapters'
+import View from '../common-adapters/view.desktop' // TODO move to common
 import {RowConnector} from './row'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalColors} from '../styles'
 
 import type {Props} from './'
 
-type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
-
-const RevokedHeader = (props: RevokedHeaderProps) => (
-  <Box>
-    <Box style={stylesRevokedRow} onClick={props.onToggleExpanded}>
-      <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Revoked devices</Text>
-      <Icon
-        type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-        style={{padding: globalMargins.xtiny}}
-      />
-    </Box>
-    {props.expanded && props.children}
-  </Box>
-)
-
-const textStyle = isRevoked =>
-  isRevoked
-    ? {
-        color: globalColors.black_40,
-        fontStyle: 'italic',
-        textDecoration: 'line-through',
-      }
-    : {
-        fontStyle: 'italic',
-      }
-
 const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
-  <Box
-    className="existing-device-container"
-    key={name}
+  <View
+    alignItems="center"
+    backgroundColor={globalColors.white}
+    direction="row"
+    height="large"
     onClick={showExistingDevicePage}
-    style={{...stylesCommonRow, borderBottom: `1px solid ${globalColors.black_05}`}}
   >
-    <Box style={isRevoked ? {opacity: 0.2} : {}}>
-      <Icon type={icon} />
-    </Box>
-    <Box style={{flex: 1, marginLeft: globalMargins.small}}>
-      <Box style={globalStyles.flexBoxRow}>
-        <Text style={textStyle(isRevoked)} type="BodySemibold">{name}</Text>
-      </Box>
-      <Box style={globalStyles.flexBoxRow}>
-        {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
-      </Box>
-    </Box>
-  </Box>
+    <View width={60} center={true}>
+      <Icon type={icon} style={isRevoked ? {opacity: 0.2} : null} />
+    </View>
+    <View rowDivider={true} flexGrow={true} alignSelf="stretch" justifyContent="center">
+      <Text style={isRevoked ? revokedName : normalName} type="BodySemibold">{name}</Text>
+      {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
+    </View>
+  </View>
 )
 
 const DeviceRow = RowConnector(_DeviceRow)
 
-const RevokedDescription = () => (
-  <Box style={stylesRevokedDescription}>
-    <Text type="BodySmall" style={{color: globalColors.black_40}}>
-      Revoked devices will no longer be able to access your Keybase account.
-    </Text>
-  </Box>
-)
+const Revoked = ({expanded, onToggleExpanded, revokedDeviceIDs}) => {
+  if (!revokedDeviceIDs.length) return null
 
-const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box
-    style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: 48}}
-    onClick={addNewDevice}
+  return (
+    <View onClick={onToggleExpanded}>
+      <View direction="row" spacing="xtiny" padding="tiny" alignItems="center">
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Revoked devices</Text>
+        <Icon type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} />
+      </View>
+      {expanded &&
+        <View>
+          <View center={true} direction="row" height="medium" padding="tiny">
+            <Text type="BodySmall">
+              Revoked devices will no longer be able to access your Keybase account.
+            </Text>
+          </View>
+          {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} isRevoked={true} />)}
+        </View>}
+    </View>
+  )
+}
+const Header = ({setShowingMenu, showingMenu, deviceIDs, menuItems}) => (
+  <View
+    center={true}
+    direction="row"
+    height="large"
+    onClick={() => setShowingMenu(true)}
+    padding="tiny"
+    spacing="tiny"
+    backgroundColor={globalColors.white}
   >
     <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-    <Text type="BodyBigLink" onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
-    {showingMenu && <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
-  </Box>
+    <Text type="BodyBigLink" onClick={() => setShowingMenu(true)}>Add new...</Text>
+    {showingMenu &&
+      <PopupMenu style={stylesPopup} items={menuItems} onHidden={() => setShowingMenu(false)} />}
+  </View>
 )
 
-const DevicesRender = ({
-  deviceIDs,
-  revokedDeviceIDs,
-  showingRevoked,
-  onToggleShowRevoked,
-  menuItems,
-  showingMenu,
-  setShowingMenu,
-}: Props) => (
-  <Box style={stylesContainer}>
-    <DeviceHeader
-      menuItems={menuItems}
-      addNewDevice={() => setShowingMenu(true)}
-      showingMenu={showingMenu}
-      onHidden={() => setShowingMenu(false)}
+const DevicesRender = (props: Props) => (
+  <View backgroundColor={globalColors.lightGrey}>
+    <Header
+      setShowingMenu={props.setShowingMenu}
+      showingMenu={props.showingMenu}
+      deviceIDs={props.deviceIDs}
+      menuItems={props.menuItems}
     />
-    {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-    {!!revokedDeviceIDs.length &&
-      <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-        <RevokedDescription />
-        {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-      </RevokedHeader>}
-  </Box>
+    <View scrollVertical={true} flexGrow={true}>
+      <View backgroundColor={globalColors.white}>
+        {props.deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
+      </View>
+      <Revoked
+        expanded={props.showingRevoked}
+        onToggleExpanded={props.onToggleShowRevoked}
+        revokedDeviceIDs={props.revokedDeviceIDs}
+      />
+    </View>
+  </View>
 )
 
-const stylesContainer = {
-  ...globalStyles.scrollable,
-  flexGrow: 1,
+const normalName = {
+  fontStyle: 'italic',
 }
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
-  alignItems: 'center',
-  height: 48,
-  justifyContent: 'center',
-  padding: 8,
-}
-
-const stylesRevokedRow = {
-  ...stylesCommonRow,
-  height: 24,
-  justifyContent: 'flex-start',
-}
-
-const stylesRevokedDescription = {
-  ...stylesCommonRow,
-  height: 24,
+const revokedName = {
+  ...normalName,
+  color: globalColors.black_40,
+  textDecoration: 'line-through',
 }
 
 const stylesPopup = {
