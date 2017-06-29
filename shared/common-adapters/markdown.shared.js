@@ -30,9 +30,16 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
+// Quick check to avoid markdown parsing overhead
+const maybeMarkdown = markdown => {
+  return markdown && !markdown.match(/^[^`\\~*_:>]*$/)
+}
+
 export function parseMarkdown(markdown: ?string, markdownCreateComponent: MarkdownCreateComponent) {
   try {
-    return processAST(parser.parse(markdown || ''), markdownCreateComponent)
+    return maybeMarkdown(markdown)
+      ? processAST(parser.parse(markdown || ''), markdownCreateComponent)
+      : markdown
   } catch (err) {
     console.warn('Markdown parsing failed:', err)
     return markdown
