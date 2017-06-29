@@ -87,7 +87,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// Resolve the name to team ID. Will always hit the server for subteams.
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
-	if teamName != nil {
+	if !teamID.Exists() {
 		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			return nil, err
@@ -120,6 +120,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// The snapshot may have already been written to cache, but that should be ok,
 	// because the cache is keyed by ID.
 	if teamName != nil {
+		// (TODO: this won't work for renamed level 3 teams or above. There's work on this in miles/teamloader-names)
 		if !teamName.Eq(ret.Chain.Name) {
 			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name.String(), teamName.String())
 		}
@@ -130,7 +131,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
 	// TODO: stricter check on team ID format.
-	hasID := len(lArg.ID) > 0
+	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
 	if !hasID && !hasName {
 		return fmt.Errorf("team load arg must have either ID or Name")
@@ -158,7 +159,8 @@ func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keyb
 	if err := l.G().API.GetDecode(arg, &rt); err != nil {
 		return id, err
 	}
-	if !rt.ID.Exists() {
+	id = rt.ID
+	if !id.Exists() {
 		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
 	}
 	return id, nil

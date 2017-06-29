@@ -31,7 +31,8 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 	// seqnos needed from the server
 	var requestSeqnos []keybase1.Seqno
 	for _, seqno := range needSeqnos {
-		if seqno <= upperLimit {
+		linkIsAlreadyFilled := TeamSigChainState{inner: state.Chain}.IsLinkFullyPresent(seqno)
+		if seqno <= upperLimit && !linkIsAlreadyFilled {
 			requestSeqnos = append(requestSeqnos, seqno)
 		}
 	}

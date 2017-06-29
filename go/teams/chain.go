@@ -230,6 +230,13 @@ func (t TeamSigChainState) HasAnyStubbedLinks() bool {
 	return false
 }
 
+func (t TeamSigChainState) IsLinkFullyPresent(seqno keybase1.Seqno) bool {
+	if seqno > t.inner.LastSeqno {
+		return false
+	}
+	return !t.inner.StubbedLinks[seqno]
+}
+
 func (t TeamSigChainState) HasStubbedSeqno(seqno keybase1.Seqno) bool {
 	return t.inner.StubbedLinks[seqno]
 }
@@ -936,11 +943,7 @@ func (t *TeamSigChainPlayer) inflateLinkHelper(
 	}
 	if link.Seqno() > prevState.GetLatestSeqno() {
 		return nil, NewInflateErrorWithNote(link,
-			fmt.Sprintf("seqno too big %v > %v", link.Seqno(), prevState.GetLatestSeqno()))
-	}
-	err := link.AssertInnerOuterMatch()
-	if err != nil {
-		return nil, err
+			fmt.Sprintf("seqno off the chain %v > %v", link.Seqno(), prevState.GetLatestSeqno()))
 	}
 
 	// Check the that the link id matches our stubbed.
@@ -951,6 +954,11 @@ func (t *TeamSigChainPlayer) inflateLinkHelper(
 	if !seenLinkID.Eq(link.LinkID()) {
 		return nil, NewInflateErrorWithNote(link,
 			fmt.Sprintf("link id mismatch: %v != %v", link.LinkID().String(), seenLinkID.String()))
+	}
+
+	// Check that the link has not already been inflated.
+	if _, ok := prevState.inner.StubbedLinks[link.Seqno()]; !ok {
+		return nil, NewInflateErrorWithNote(link, "already inflated")
 	}
 
 	iRes, err := t.addInnerLink(prevState, link, signer, true)

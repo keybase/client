@@ -44,7 +44,7 @@ func (e InflateError) Error() string {
 	if e.note == nil {
 		return fmt.Sprintf("error inflating previously-stubbed link (seqno %d)", int(e.l.outerLink.Seqno))
 	}
-	return fmt.Sprintf("stubbed link when not expected (seqno %d) (%s)",
+	return fmt.Sprintf("error inflating previously-stubbed link (seqno %d) (%s)",
 		int(e.l.outerLink.Seqno), *e.note)
 }
 
