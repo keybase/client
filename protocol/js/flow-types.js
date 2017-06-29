@@ -202,6 +202,7 @@ export const ConstantsStatusCode = {
   scneedotherrekey: 2513,
   scchatmessagecollision: 2514,
   scchatduplicatemessage: 2515,
+  scchatclienterror: 2516,
   scteamreaderror: 2623,
 }
 
@@ -5809,6 +5810,7 @@ export type StatusCode =
   | 2513 // SCNeedOtherRekey_2513
   | 2514 // SCChatMessageCollision_2514
   | 2515 // SCChatDuplicateMessage_2515
+  | 2516 // SCChatClientError_2516
   | 2623 // SCTeamReadError_2623
 
 export type Stream = {
