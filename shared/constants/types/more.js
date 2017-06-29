@@ -82,7 +82,7 @@ export type PropsOf<C> = _PropsOf<*, C>
 export type DumbComponentMap<C: Component<*, *, *>> = {
   component: Class<C>,
   mocks: {
-    [key: string]: PropsOf<C>,
+    [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},
   },
 }
 

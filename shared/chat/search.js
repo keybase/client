@@ -49,7 +49,6 @@ const SearchHeader = props => {
           <UserInput
             autoFocus={true}
             userItems={props.userItems}
-            showAddButton={props.showAddButton}
             onRemoveUser={props.onRemoveUser}
             onClickAddButton={props.onClickAddButton}
             placeholder={props.placeholder}
