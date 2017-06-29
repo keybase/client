@@ -93,6 +93,7 @@ export default compose(
       },
     }
   }),
+  HocHelpers.clearSearchHoc,
   defaultProps({
     placeholder: 'Search for someone',
     showAddButton: false,

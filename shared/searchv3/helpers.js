@@ -29,6 +29,28 @@ const selectedSearchIdHoc = compose(
   })
 )
 
+// TODO types plz
+const clearSearchHoc = withHandlers({
+  onClearSearch: ({
+    onRemoveUser,
+    onExitSearch,
+    userItems,
+    searchText,
+    onChangeSearchText,
+    clearSearchResults,
+    search,
+  }) => () => {
+    if (userItems.count() === 0 && !searchText) {
+      onExitSearch()
+    } else {
+      userItems.forEach(({id}) => onRemoveUser(id))
+      onChangeSearchText('')
+      clearSearchResults()
+      search('', 'Keybase')
+    }
+  },
+})
+
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
     onEnter: ({onChangeSearchText, onEnter, selectedSearchId}: OwnProps) => () => {
@@ -66,8 +88,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const showServiceLogicHoc = withPropsOnChange(['usernameText', 'userItems'], ({usernameText, userItems}) => ({
-  showServiceFilter: !!usernameText || userItems.count() === 0,
+const showServiceLogicHoc = withPropsOnChange(['searchText', 'userItems'], ({searchText, userItems}) => ({
+  showServiceFilter: !!searchText || userItems.count() === 0,
 }))
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc}
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc, clearSearchHoc}
