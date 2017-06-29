@@ -11,9 +11,10 @@ func wrapWriteErr(err error, hostsPath string) error {
 	if !os.IsPermission(err) {
 		return err
 	}
+	dirName := filepath.Dir(hostsPath)
 	return fmt.Errorf("%s: Make sure you are the owner of the directory. "+
 		"You can run:\n "+
-		"  sudo chown -R $(whoami):staff %q", err, hostsPath)
+		"  sudo chown -R $(whoami):staff %q", err, dirName)
 }
 
 // whitelistPath is used for installing the whitelist as a JSON into a given
