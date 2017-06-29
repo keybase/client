@@ -72,6 +72,11 @@ func (t TeamSigChainState) IsSubteam() bool {
 	return t.inner.ParentID != nil
 }
 
+// Only non-nil if this is a subteam.
+func (t TeamSigChainState) GetParentID() *keybase1.TeamID {
+	return t.inner.ParentID
+}
+
 func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
@@ -397,7 +402,6 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 func (t *TeamSigChainPlayer) addChainLinkCommon(
 	ctx context.Context, prevState *TeamSigChainState, link SCChainLink) (
 	res TeamSigChainState, err error) {
-
 	oRes, err := t.checkOuterLink(ctx, prevState, link)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)

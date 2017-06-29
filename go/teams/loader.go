@@ -16,11 +16,11 @@ const freshnessLimit = time.Duration(1) * time.Hour
 // Load a Team from the TeamLoader.
 // Can be called from inside the teams package.
 func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg) (*Team, error) {
-	// teamData, err := g.GetTeamLoader().Load(ctx, lArg)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return nil, fmt.Errorf("TODO: implement team loader")
+	teamData, err := g.GetTeamLoader().Load(ctx, lArg)
+	if err != nil {
+		return nil, err
+	}
+	return NewTeam(ctx, g, teamData), nil
 }
 
 // Loader of keybase1.TeamData objects. Handles caching.
@@ -51,10 +51,6 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 }
 
 func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
-	return nil, fmt.Errorf("TODO: implement team loader")
-}
-
-func (l *TeamLoader) LoadTODO(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
 	me, err := l.getMe(ctx)
 	if err != nil {
 		return nil, err
@@ -186,6 +182,7 @@ type load2ArgT struct {
 // Load2 does the rest of the work loading a team.
 // It is `playchain` described in the pseudocode in teamplayer.txt
 func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *keybase1.TeamData, err error) {
+	ctx = libkb.WithLogTag(ctx, "LT")
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID), func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
