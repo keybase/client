@@ -25,6 +25,7 @@ console.log(' changeBase: ' + changeBase)
 
 function execAndLog(cmd, options) {
   try {
+    console.log('Running:', cmd, '\n\n')
     var temp = childProcess.execSync(cmd, Object.assign({}, defaultExecSyncOptions, options))
     console.log(temp)
   } catch (err) {
