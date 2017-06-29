@@ -5600,11 +5600,6 @@ export type SignatureMetadata = {
   sigChainLocation: SigChainLocation,
 }
 
-export type SignatureMetadataBookends = {
-  left: SignatureMetadata,
-  right?: ?SignatureMetadata,
-}
-
 export type SignupRes = {
   passphraseOk: boolean,
   postOk: boolean,
@@ -5962,7 +5957,7 @@ export type TeamSigChainState = {
   userLog: {[key: string]: ?Array<UserLogPoint>},
   subteamLog: {[key: string]: ?Array<SubteamLogPoint>},
   perTeamKeys: {[key: string]: PerTeamKey},
-  stubbedTypes: {[key: string]: boolean},
+  stubbedLinks: {[key: string]: boolean},
 }
 
 export type Test = {

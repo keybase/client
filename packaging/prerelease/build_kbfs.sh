@@ -25,7 +25,7 @@ if [ "$PLATFORM" = "windows" ]; then
   pkg="github.com/keybase/kbfs/kbfsdokan"
 fi
 
-echo "Building $build_dir/kbfs ($kbfs_build)"
+echo "Building $build_dir/kbfs ($kbfs_build) with $(go version)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
 
 if [ "$PLATFORM" = "darwin" ]; then

@@ -13,11 +13,14 @@ import (
 // TODO implement
 type parentChildOperation struct {
 	TODOImplement bool
+	// The seqno in the parent sigchain that corresponds to this operation.
+	parentSeqno keybase1.Seqno
 }
 
 // --------------------------------------------------
 
 type chainLinkUnpacked struct {
+	ID        keybase1.TeamID
 	source    *SCChainLink
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
@@ -26,7 +29,7 @@ type chainLinkUnpacked struct {
 	innerLinkID libkb.LinkID
 }
 
-func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
+func unpackChainLink(id keybase1.TeamID, link *SCChainLink) (*chainLinkUnpacked, error) {
 	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
 		return nil, err
@@ -47,14 +50,21 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))
 		innerLinkID = libkb.LinkID(tmp[:])
+		innerTeamID, err := inner.TeamID()
+		if err != nil {
+			return nil, err
+		}
+		if !innerTeamID.Eq(id) {
+			return nil, fmt.Errorf("Wrong teamID in inner link (%s != %s)", id, innerTeamID)
+		}
 	}
 	ret := &chainLinkUnpacked{
+		ID:          id,
 		source:      link,
 		outerLink:   outerLink,
 		inner:       inner,
 		innerLinkID: innerLinkID,
 	}
-
 	return ret, nil
 }
 

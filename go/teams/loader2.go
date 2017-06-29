@@ -73,13 +73,13 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func addProofsForKeyInUserSigchain(link *chainLinkUnpacked, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) *proofSetT {
-	a := key.Base.Provisioning
-	b := link.SignatureMetadata()
+func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, proofSet *proofSetT) *proofSetT {
+	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning)
+	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata())
 	c := key.Base.Revocation
-	proofSet = proofSet.HappensBefore(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
 	if c != nil {
-		proofSet = proofSet.HappensBefore(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c))
 	}
 	return proofSet
 }
@@ -94,7 +94,7 @@ func addProofsForKeyInUserSigchain(link *chainLinkUnpacked, key *keybase1.Public
 // Does not:
 // - Apply the link nor modify state
 // - Check the rest of the format of the inner link
-func (l *TeamLoader) verifyLink(ctx context.Context,
+func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (*proofSetT, error) {
 
 	if link.isStubbed() {
@@ -104,6 +104,10 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	err := link.AssertInnerOuterMatch()
 	if err != nil {
 		return proofSet, err
+	}
+
+	if !teamID.Eq(link.ID) {
+		return proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.ID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
@@ -120,7 +124,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	proofSet = addProofsForKeyInUserSigchain(link, key, proofSet)
+	proofSet = addProofsForKeyInUserSigchain(teamID, link, user.Uid, key, proofSet)
 
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
@@ -165,13 +169,13 @@ func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData,
 	return team, nil
 }
 
-func addProofsForAdminPermission(link *chainLinkUnpacked, bookends keybase1.SignatureMetadataBookends, proofSet *proofSetT) *proofSetT {
-	a := bookends.Left
-	b := link.SignatureMetadata()
-	c := bookends.Right
-	proofSet = proofSet.HappensBefore(a, b)
+func addProofsForAdminPermission(id keybase1.TeamID, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
+	a := bookends.left
+	b := newProofTerm(id.AsUserOrTeam(), link.SignatureMetadata())
+	c := bookends.right
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
 	if c != nil {
-		proofSet = proofSet.HappensBefore(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c)
 	}
 	return proofSet
 }
@@ -199,7 +203,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		return proofSet, err
 	}
 
-	proofSet = addProofsForAdminPermission(link, adminBookends, proofSet)
+	proofSet = addProofsForAdminPermission(state.Chain.Id, link, adminBookends, proofSet)
 	return proofSet, nil
 }
 
@@ -218,11 +222,40 @@ func (l *TeamLoader) isParentChildOperation(ctx context.Context,
 }
 
 func (l *TeamLoader) toParentChildOperation(ctx context.Context,
-	link *chainLinkUnpacked) *parentChildOperation {
+	link *chainLinkUnpacked) (*parentChildOperation, error) {
 
-	return &parentChildOperation{
-		TODOImplement: true,
+	if !l.isParentChildOperation(ctx, link) {
+		return nil, fmt.Errorf("link is not a parent-child operation: (seqno:%v, type:%v)",
+			link.Seqno(), link.LinkType())
 	}
+
+	if link.isStubbed() {
+		return nil, fmt.Errorf("child half of parent-child operation cannot be stubbed: (seqno:%v, type:%v)",
+			link.Seqno(), link.LinkType())
+	}
+
+	switch link.LinkType() {
+	case libkb.SigchainV2TypeTeamSubteamHead, libkb.SigchainV2TypeTeamRenameUpPointer:
+		if link.inner.Body.Team == nil {
+			return nil, fmt.Errorf("bad parent-child operation missing team section: (seqno:%v, type:%v)",
+				link.Seqno(), link.LinkType())
+		}
+		if link.inner.Body.Team.Parent == nil {
+			return nil, fmt.Errorf("parent-child operation missing team parent: (seqno:%v, type:%v)",
+				link.Seqno(), link.LinkType())
+		}
+		parentSeqno := link.inner.Body.Team.Parent.Seqno
+		if parentSeqno < 1 {
+			return nil, fmt.Errorf("bad parent-child up seqno: %v", parentSeqno)
+		}
+		return &parentChildOperation{
+			TODOImplement: true,
+			parentSeqno:   parentSeqno,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported parent-child operation: %v", link.LinkType())
+	}
+
 }
 
 // Apply a new link to the sigchain state.
@@ -283,7 +316,9 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	}
 
 	var needParentSeqnos []keybase1.Seqno
-	// TODO fill neededSeqnos
+	for _, pco := range parentChildOperations {
+		needParentSeqnos = append(needParentSeqnos, pco.parentSeqno)
+	}
 
 	parent, err := l.load2(ctx, load2ArgT{
 		teamID: *parentID,
@@ -303,6 +338,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
+	// TODO check that the operations match
 	_ = parent
 	return l.unimplementedVerificationTODO(ctx, nil)
 }
@@ -548,7 +584,7 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	var links []*chainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
-		link, err := unpackChainLink(&pLink2)
+		link, err := unpackChainLink(teamUpdate.ID, &pLink2)
 		if err != nil {
 			return nil, err
 		}
@@ -557,8 +593,21 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	return links, nil
 }
 
+// Whether the snapshot has fully loaded, non-stubbed, all of the links.
 func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 	state *keybase1.TeamData, needSeqnos []keybase1.Seqno) error {
 
-	panic("TODO: implement")
+	if len(needSeqnos) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain needed seqnos")
+	}
+
+	for _, seqno := range needSeqnos {
+		if (TeamSigChainState{inner: state.Chain}).HasStubbedSeqno(seqno) {
+			return fmt.Errorf("needed seqno is stubbed: %v", seqno)
+		}
+	}
+	return nil
 }

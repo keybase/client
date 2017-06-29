@@ -125,7 +125,7 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return
 // a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
-func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret keybase1.SignatureMetadataBookends, err error) {
+func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
@@ -133,8 +133,12 @@ func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keyb
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
 			}
-			ret.Left = point.SigMeta
-			ret.Right = findAdminDowngrade(points[(i + 1):])
+			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta)
+			r := findAdminDowngrade(points[(i + 1):])
+			if r != nil {
+				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r)
+				ret.right = &tmp
+			}
 			return ret, nil
 		}
 	}
@@ -202,12 +206,16 @@ func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGene
 }
 
 func (t TeamSigChainState) HasAnyStubbedLinks() bool {
-	for _, v := range t.inner.StubbedTypes {
+	for _, v := range t.inner.StubbedLinks {
 		if v {
 			return true
 		}
 	}
 	return false
+}
+
+func (t TeamSigChainState) HasStubbedSeqno(seqno keybase1.Seqno) bool {
+	return t.inner.StubbedLinks[seqno]
 }
 
 func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamName, error) {
@@ -398,7 +406,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
 
 	if stubbed {
-		newState.inner.StubbedTypes[int(oRes.outerLink.LinkType)] = true
+		newState.inner.StubbedLinks[oRes.outerLink.Seqno] = true
 	}
 
 	return *newState, nil
@@ -618,7 +626,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -846,7 +854,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())

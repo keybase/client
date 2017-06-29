@@ -92,24 +92,6 @@ func (o TeamApplicationKey) DeepCopy() TeamApplicationKey {
 	}
 }
 
-type SignatureMetadataBookends struct {
-	Left  SignatureMetadata  `codec:"left" json:"left"`
-	Right *SignatureMetadata `codec:"right,omitempty" json:"right,omitempty"`
-}
-
-func (o SignatureMetadataBookends) DeepCopy() SignatureMetadataBookends {
-	return SignatureMetadataBookends{
-		Left: o.Left.DeepCopy(),
-		Right: (func(x *SignatureMetadata) *SignatureMetadata {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Right),
-	}
-}
-
 type MaskB64 []byte
 
 func (o MaskB64) DeepCopy() MaskB64 {
@@ -457,7 +439,7 @@ type TeamSigChainState struct {
 	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
 	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	StubbedTypes map[int]bool                        `codec:"stubbedTypes" json:"stubbedTypes"`
+	StubbedLinks map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -515,15 +497,15 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
-		StubbedTypes: (func(x map[int]bool) map[int]bool {
-			ret := make(map[int]bool)
+		StubbedLinks: (func(x map[Seqno]bool) map[Seqno]bool {
+			ret := make(map[Seqno]bool)
 			for k, v := range x {
-				kCopy := k
+				kCopy := k.DeepCopy()
 				vCopy := v
 				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.StubbedTypes),
+		})(o.StubbedLinks),
 	}
 }
 
