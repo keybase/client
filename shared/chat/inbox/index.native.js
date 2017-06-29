@@ -295,7 +295,7 @@ const NoChats = () => (
   </Box>
 )
 
-class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {
@@ -419,4 +419,4 @@ const bottomMarkdownStyle = memoize(
   (showBold, subColor) => `${showBold}:${subColor}`
 )
 
-export default ConversationList
+export default Inbox
