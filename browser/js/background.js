@@ -91,7 +91,7 @@ function generateConditions(matchers)  {
 }
 
 
-if (chrome.declarativeContent) {
+if (typeof chrome.declarativeContent !== 'undefined') {
   // Register browser_action icon state
   // Via: https://developer.chrome.com/extensions/examples/api/pageAction/pageaction_by_url/background.js
   // Not available in Firefox yet.
