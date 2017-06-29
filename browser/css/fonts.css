@@ -2,23 +2,23 @@
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
-  src: url(chrome-extension://__MSG_@@extension_id__/fonts/OpenSans.ttf) format('truetype');
+  src: url(../fonts/OpenSans.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 600;
-  src: url(chrome-extension://__MSG_@@extension_id__/fonts/OpenSans-Semi_bold.ttf) format('truetype');
+  src: url(../fonts/OpenSans-Semi_bold.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
-  src: url(chrome-extension://__MSG_@@extension_id__/fonts/OpenSans_bold.ttf) format('truetype');
+  src: url(../fonts/OpenSans_bold.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Open Sans';
   font-style: italic;
   font-weight: 400;
-  src: url(chrome-extension://__MSG_@@extension_id__/fonts/OpenSans_italic.ttf) format('truetype');
+  src: url(../fonts/OpenSans_italic.ttf) format('truetype');
 }
