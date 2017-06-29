@@ -222,11 +222,40 @@ func (l *TeamLoader) isParentChildOperation(ctx context.Context,
 }
 
 func (l *TeamLoader) toParentChildOperation(ctx context.Context,
-	link *chainLinkUnpacked) *parentChildOperation {
+	link *chainLinkUnpacked) (*parentChildOperation, error) {
 
-	return &parentChildOperation{
-		TODOImplement: true,
+	if !l.isParentChildOperation(ctx, link) {
+		return nil, fmt.Errorf("link is not a parent-child operation: (seqno:%v, type:%v)",
+			link.Seqno(), link.LinkType())
 	}
+
+	if link.isStubbed() {
+		return nil, fmt.Errorf("child half of parent-child operation cannot be stubbed: (seqno:%v, type:%v)",
+			link.Seqno(), link.LinkType())
+	}
+
+	switch link.LinkType() {
+	case libkb.SigchainV2TypeTeamSubteamHead, libkb.SigchainV2TypeTeamRenameUpPointer:
+		if link.inner.Body.Team == nil {
+			return nil, fmt.Errorf("bad parent-child operation missing team section: (seqno:%v, type:%v)",
+				link.Seqno(), link.LinkType())
+		}
+		if link.inner.Body.Team.Parent == nil {
+			return nil, fmt.Errorf("parent-child operation missing team parent: (seqno:%v, type:%v)",
+				link.Seqno(), link.LinkType())
+		}
+		parentSeqno := link.inner.Body.Team.Parent.Seqno
+		if parentSeqno < 1 {
+			return nil, fmt.Errorf("bad parent-child up seqno: %v", parentSeqno)
+		}
+		return &parentChildOperation{
+			TODOImplement: true,
+			parentSeqno:   parentSeqno,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported parent-child operation: %v", link.LinkType())
+	}
+
 }
 
 // Apply a new link to the sigchain state.
@@ -287,7 +316,9 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	}
 
 	var needParentSeqnos []keybase1.Seqno
-	// TODO fill neededSeqnos
+	for _, pco := range parentChildOperations {
+		needParentSeqnos = append(needParentSeqnos, pco.parentSeqno)
+	}
 
 	parent, err := l.load2(ctx, load2ArgT{
 		teamID: *parentID,
@@ -307,6 +338,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
+	// TODO check that the operations match
 	_ = parent
 	return l.unimplementedVerificationTODO(ctx, nil)
 }
@@ -561,8 +593,21 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	return links, nil
 }
 
+// Whether the snapshot has fully loaded, non-stubbed, all of the links.
 func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 	state *keybase1.TeamData, needSeqnos []keybase1.Seqno) error {
 
-	panic("TODO: implement")
+	if len(needSeqnos) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain needed seqnos")
+	}
+
+	for _, seqno := range needSeqnos {
+		if (TeamSigChainState{inner: state.Chain}).HasStubbedSeqno(seqno) {
+			return fmt.Errorf("needed seqno is stubbed: %v", seqno)
+		}
+	}
+	return nil
 }

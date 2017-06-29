@@ -427,9 +427,9 @@
           "type": {
             "type": "map",
             "values": "boolean",
-            "keys": "int"
+            "keys": "Seqno"
           },
-          "name": "stubbedTypes"
+          "name": "stubbedLinks"
         }
       ]
     },

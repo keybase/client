@@ -151,9 +151,9 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
-    // Set of types that were loaded stubbed-out and whose contents are missing.
-    // Keyed by libkb.SigchainV2Type
-    map<int, boolean> stubbedTypes;
+    // Set of links that are stubbed-out and whose contents are missing.
+    // Keyed by seqno
+    map<Seqno, boolean> stubbedLinks;
   }
 
   // A user became this role at a point in time

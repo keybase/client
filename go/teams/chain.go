@@ -206,12 +206,16 @@ func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGene
 }
 
 func (t TeamSigChainState) HasAnyStubbedLinks() bool {
-	for _, v := range t.inner.StubbedTypes {
+	for _, v := range t.inner.StubbedLinks {
 		if v {
 			return true
 		}
 	}
 	return false
+}
+
+func (t TeamSigChainState) HasStubbedSeqno(seqno keybase1.Seqno) bool {
+	return t.inner.StubbedLinks[seqno]
 }
 
 func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamName, error) {
@@ -402,7 +406,7 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
 
 	if stubbed {
-		newState.inner.StubbedTypes[int(oRes.outerLink.LinkType)] = true
+		newState.inner.StubbedLinks[oRes.outerLink.Seqno] = true
 	}
 
 	return *newState, nil
@@ -622,7 +626,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -850,7 +854,7 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())

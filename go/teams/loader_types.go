@@ -13,6 +13,8 @@ import (
 // TODO implement
 type parentChildOperation struct {
 	TODOImplement bool
+	// The seqno in the parent sigchain that corresponds to this operation.
+	parentSeqno keybase1.Seqno
 }
 
 // --------------------------------------------------

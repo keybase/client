@@ -282,7 +282,11 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		if l.isParentChildOperation(ctx, link) {
-			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, link))
+			pco, err := l.toParentChildOperation(ctx, link)
+			if err != nil {
+				return nil, err
+			}
+			parentChildOperations = append(parentChildOperations, pco)
 		}
 
 		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
@@ -501,17 +505,6 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 		}
 	}
 	return nil
-}
-
-// Whether the snapshot has fully loaded, non-stubbed, all of the links.
-func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, state *keybase1.TeamData) error {
-	if len(needSeqnos) == 0 {
-		return nil
-	}
-	if state == nil {
-		return fmt.Errorf("nil team does not contain needed seqnos")
-	}
-	panic("TODO: implement")
 }
 
 func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
