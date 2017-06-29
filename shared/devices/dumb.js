@@ -3,6 +3,7 @@ import Devices from './container'
 import {List, Map} from 'immutable'
 import {StateRecord as DeviceState, DeviceDetailRecord} from '../constants/devices'
 import {StateRecord as EntityState} from '../constants/entities'
+import {globalStyles} from '../styles'
 
 const dev1 = new DeviceDetailRecord({
   created: 1444423192000,
@@ -71,6 +72,8 @@ const devices = Map({
   [rev3.deviceID]: rev3,
 })
 
+// add more to test scrolling
+
 const mockStore = {
   config: {
     username: 'chris',
@@ -87,7 +90,17 @@ export default {
   'Devices: Devices List': {
     component: Devices,
     mocks: {
-      Devices: {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},
+      Devices: {
+        mockStore,
+        parentProps: {
+          style: {
+            ...globalStyles.flexBoxColumn,
+            height: 200,
+          },
+        },
+        routeState: {showingRevoked: true},
+        setRouteState: () => {},
+      },
     },
   },
 }

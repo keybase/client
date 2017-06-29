@@ -69,6 +69,8 @@
     "eslint-plugin-node": "4.2.2",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
+    "glamor": "^2.20.25",
+    "glamorous": "^3.23.5",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
     "jsonfile": "3.0.0",
