@@ -38,7 +38,21 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
 
     this.state = {
       deviceName: null,
+      deviceNameError: null,
     }
+  }
+
+  componentWillReceiveProps(nextProps: ContainerProps) {
+    this.setState({
+      deviceNameError: nextProps.deviceNameError,
+    })
+  }
+
+  _onChange = (deviceName: string) => {
+    this.setState({
+      deviceName,
+      deviceNameError: null,
+    })
   }
 
   render() {
@@ -54,10 +68,10 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
     return (
       <SetPublicName
         deviceName={this.state.deviceName}
-        onChange={deviceName => this.setState({deviceName})}
+        onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
         onBack={this.props.onBack}
-        deviceNameError={nameTakenError || this.props.deviceNameError}
+        deviceNameError={nameTakenError || this.state.deviceNameError}
         existingDevices={this.props.existingDevices}
         submitEnabled={submitEnabled}
         waiting={this.props.waiting}

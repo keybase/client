@@ -16,6 +16,7 @@ export type Props = {|
 
 export type State = {
   deviceName: ?string,
+  deviceNameError: ?string,
 }
 
 declare export default class SetPublicName extends Component<void, Props, void> {}
