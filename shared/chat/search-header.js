@@ -107,7 +107,6 @@ export default compose(
     placeholder: 'Search for someone',
     showAddButton: false,
     onClickAddButton: () => console.log('todo'),
-    userItems: [],
   }),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {

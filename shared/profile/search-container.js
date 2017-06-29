@@ -73,6 +73,5 @@ export default compose(
   defaultProps({
     placeholder: 'Type someone',
     showAddButton: false,
-    userItems: [],
   })
 )(Search)

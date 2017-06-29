@@ -67,8 +67,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const showServiceLogicHoc = withPropsOnChange(['usernameText'], ({usernameText}) => ({
-  showServiceFilter: !!usernameText,
+const showServiceLogicHoc = withPropsOnChange(['usernameText', 'userItems'], ({usernameText, userItems}) => ({
+  showServiceFilter: !!usernameText || userItems.count() === 0,
 }))
 
 export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc}
