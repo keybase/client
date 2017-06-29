@@ -9,7 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 class FoldersRender extends Component<void, Props, void> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
-    const selectedColor = isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue
+    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     const iconStyle = isPublic
       ? {color: globalColors.yellowGreen2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
       : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}

@@ -29,11 +29,13 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
   const backgroundColor = isSelected ? globalColors.blue : globalColors.white
+  const marginRight = isSelected ? 0 : 1
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {
     backgroundColor,
     hasUnread,
+    marginRight,
     participantNeedToRekey,
     showBold,
     subColor,

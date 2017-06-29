@@ -11,6 +11,7 @@ export type RowProps = {
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: (key: ConversationIDKey) => void,
+  marginRight: number,
   participantNeedToRekey: boolean,
   participants: any,
   rekeyInfo: any,

@@ -43,7 +43,7 @@ class NewConversation extends PureComponent<void, {}, void> {
       <div
         style={{
           ...globalStyles.flexBoxRow,
-          backgroundColor: globalColors.white,
+          backgroundColor: globalColors.blue,
           alignItems: 'center',
           flexShrink: 0,
           minHeight: 48,
@@ -56,17 +56,28 @@ class NewConversation extends PureComponent<void, {}, void> {
             alignItems: 'center',
           }}
         >
-          <Icon
-            type="iconfont-add"
+          <div
             style={{
-              color: globalColors.lightGrey2,
-              backgroundColor: globalColors.white,
-              fontSize: 32,
+              borderRadius: 40,
+              padding: 8,
+              width: 40,
+              height: 40,
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
               marginLeft: globalMargins.tiny,
               marginRight: globalMargins.tiny,
             }}
-          />
-          <Text style={{color: globalColors.black_75}} type="BodyBigLink">New Conversation</Text>
+          >
+            <Icon
+              type="iconfont-people"
+              style={{
+                color: globalColors.blue,
+                fontSize: 24,
+                marginLeft: 1,
+                marginTop: 1,
+              }}
+            />
+          </div>
+          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
         </div>
       </div>
     )
@@ -127,10 +138,10 @@ const Avatars = ({
         flex: 1,
         justifyContent: 'flex-start',
         maxWidth: 48,
-        paddingLeft: 4,
+        paddingLeft: 8,
       }}
     >
-      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+      <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} />
       {icon}
     </div>
   )
@@ -249,7 +260,7 @@ const _Row = (props: RowProps) => {
   return (
     <div
       onClick={() => props.onSelectConversation(props.conversationIDKey)}
-      style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
+      style={{...rowContainerStyle, backgroundColor: props.backgroundColor, marginRight: props.marginRight}}
       title={`${props.unreadCount} unread`}
     >
       <Avatars
@@ -356,7 +367,7 @@ const unreadDotStyle = {
 
 const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
-  marginTop: 20,
+  marginTop: 32,
   zIndex: 1,
 }
 
@@ -370,12 +381,13 @@ const conversationRowStyle = {
   flex: 1,
   justifyContent: 'center',
   paddingRight: 8,
+  paddingLeft: 8,
 }
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
-  borderRight: `1px solid ${globalColors.black_05}`,
+  boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
   flex: 1,
   maxWidth: 241,
   minWidth: 241,
@@ -398,8 +410,8 @@ const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  maxHeight: 48,
-  minHeight: 48,
+  maxHeight: 56,
+  minHeight: 56,
 }
 
 export default Inbox

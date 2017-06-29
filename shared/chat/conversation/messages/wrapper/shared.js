@@ -116,17 +116,17 @@ const _containerNoHeaderStyle = {
 
 const _containerWithHeaderStyle = {
   ..._containerNoHeaderStyle,
-  marginTop: globalMargins.tiny,
 }
 
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
   paddingRight: globalMargins.tiny,
+  paddingBottom: 2,
 }
 
 const _rightSideWithHeaderStyle = {
   ..._rightSideNoHeaderStyle,
-  paddingTop: globalMargins.xtiny,
+  paddingTop: 6,
 }
 
 const _stylesFirstNewMessage = {
