@@ -1814,6 +1814,16 @@ func (e ChatDuplicateMessageError) Error() string {
 
 //=============================================================================
 
+type ChatClientError struct {
+	Msg string
+}
+
+func (e ChatClientError) Error() string {
+	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
+}
+
+//=============================================================================
+
 type InvalidAddressError struct {
 	Msg string
 }

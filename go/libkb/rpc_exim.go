@@ -522,6 +522,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatDuplicateMessageError{
 			OutboxID: chat1.OutboxID(boutboxID),
 		}
+	case SCChatClientError:
+		return ChatClientError{Msg: s.Desc}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -1825,6 +1827,14 @@ func (e ChatDuplicateMessageError) ToStatus() keybase1.Status {
 		Name:   "SC_CHAT_DUPLICATE_MESSAGE",
 		Desc:   e.Error(),
 		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatClientError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatClientError,
+		Name: "SC_CHAT_CLIENT_ERROR",
+		Desc: e.Error(),
 	}
 }
 
