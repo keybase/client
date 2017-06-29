@@ -3,6 +3,7 @@ package teams
 import (
 	"crypto/sha256"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -20,16 +21,17 @@ type parentChildOperation struct {
 // --------------------------------------------------
 
 type chainLinkUnpacked struct {
-	ID        keybase1.TeamID
 	source    *SCChainLink
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
 	inner *SCChainLinkPayload
-	// innerLinkID is nil if inner is nil (if the link is stubbed)
+	// nil if the link is stubbed
 	innerLinkID libkb.LinkID
+	// nil if the link is stubbed
+	innerTeamID keybase1.TeamID
 }
 
-func unpackChainLink(id keybase1.TeamID, link *SCChainLink) (*chainLinkUnpacked, error) {
+func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
 		return nil, err
@@ -40,6 +42,7 @@ func unpackChainLink(id keybase1.TeamID, link *SCChainLink) (*chainLinkUnpacked,
 	}
 	var inner *SCChainLinkPayload
 	var innerLinkID libkb.LinkID
+	var innerTeamID keybase1.TeamID
 	if link.Payload == "" {
 		// stubbed inner link
 	} else {
@@ -50,20 +53,17 @@ func unpackChainLink(id keybase1.TeamID, link *SCChainLink) (*chainLinkUnpacked,
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))
 		innerLinkID = libkb.LinkID(tmp[:])
-		innerTeamID, err := inner.TeamID()
+		innerTeamID, err = inner.TeamID()
 		if err != nil {
 			return nil, err
 		}
-		if !innerTeamID.Eq(id) {
-			return nil, fmt.Errorf("Wrong teamID in inner link (%s != %s)", id, innerTeamID)
-		}
 	}
 	ret := &chainLinkUnpacked{
-		ID:          id,
 		source:      link,
 		outerLink:   outerLink,
 		inner:       inner,
 		innerLinkID: innerLinkID,
+		innerTeamID: innerTeamID,
 	}
 	return ret, nil
 }

@@ -394,7 +394,10 @@ func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SC
 // Verify and add a chain link.
 // Does not modify self or any arguments.
 // The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
-func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *TeamSigChainState, link SCChainLink) (res TeamSigChainState, err error) {
+func (t *TeamSigChainPlayer) addChainLinkCommon(
+	ctx context.Context, prevState *TeamSigChainState, link SCChainLink) (
+	res TeamSigChainState, err error) {
+
 	oRes, err := t.checkOuterLink(ctx, prevState, link)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)

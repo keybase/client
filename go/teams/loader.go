@@ -233,7 +233,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	// Backfill stubbed links that need to be filled now.
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, ret, arg.needSeqnos, proofSet, parentChildOperations)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, proofSet, parentChildOperations)
 		if err != nil {
 			return nil, err
 		}

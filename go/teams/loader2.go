@@ -18,7 +18,7 @@ import (
 // If links are needed in full that are stubbed in state, go out and get them from the server.
 // Does not ask for any links above state's seqno, those will be fetched by getNewLinksFromServer.
 func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
-	me keybase1.UserVersion, state *keybase1.TeamData,
+	me keybase1.UserVersion, teamID keybase1.TeamID, state *keybase1.TeamData,
 	needSeqnos []keybase1.Seqno,
 	proofSet *proofSetT, parentChildOperations []*parentChildOperation) (
 	*keybase1.TeamData, *proofSetT, []*parentChildOperation, error) {
@@ -57,7 +57,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		}
 
 		var signer keybase1.UserVersion
-		signer, proofSet, err = l.verifyLink(ctx, state, link, proofSet)
+		signer, proofSet, err = l.verifyLink(ctx, teamID, state, link, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -96,6 +96,9 @@ func (l *TeamLoader) getNewLinksFromServer(ctx context.Context,
 	var rt rawTeam
 	if err := l.G().API.GetDecode(arg, &rt); err != nil {
 		return nil, err
+	}
+	if !rt.ID.Eq(teamID) {
+		return nil, fmt.Errorf("server returned wrong team ID: %v != %v", rt.ID, teamID)
 	}
 	return &rt, nil
 }
@@ -192,8 +195,8 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 		return uv, proofSet, err
 	}
 
-	if !teamID.Eq(link.ID) {
-		return proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.ID)
+	if !teamID.Eq(link.innerTeamID) {
+		return uv, proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
@@ -702,9 +705,15 @@ func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*c
 	var links []*chainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
-		link, err := unpackChainLink(teamUpdate.ID, &pLink2)
+		link, err := unpackChainLink(&pLink2)
 		if err != nil {
 			return nil, err
+		}
+		if !link.isStubbed() {
+			if !link.innerTeamID.Eq(teamUpdate.ID) {
+				return nil, fmt.Errorf("link has wrong team ID in response: %v != %v",
+					link.innerTeamID, teamUpdate.ID)
+			}
 		}
 		links = append(links, link)
 	}
