@@ -156,8 +156,8 @@ const BottomLine = ({
           alignSelf: 'center',
           backgroundColor: globalColors.red,
           borderRadius: 2,
-          paddingLeft: 4,
-          paddingRight: 4,
+          paddingLeft: globalMargins.xtiny,
+          paddingRight: globalMargins.xtiny,
         }}
       >
         <Text

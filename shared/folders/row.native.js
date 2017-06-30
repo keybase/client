@@ -166,8 +166,8 @@ const stylesAvatarContainer = {
   width: 48,
   paddingLeft: 8,
   paddingRight: 8,
-  paddingTop: 16 + 8,
-  paddingBottom: 16,
+  paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.small,
 }
 
 const stylesPrivate = {

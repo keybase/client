@@ -142,7 +142,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   _renderNav(badgeNumber: number) {
     if (this.props.source.type !== 'nav') return // needed to make flow happy
-    // const navIconStyle = this.props.selected ? stylesNavIconSelected : stylesNavIcon
     return (
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>

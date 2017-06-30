@@ -58,10 +58,10 @@ class NewConversation extends PureComponent<void, {}, void> {
         >
           <div
             style={{
-              borderRadius: 40,
-              padding: 8,
-              width: 40,
-              height: 40,
+              borderRadius: globalMargins.large,
+              padding: globalMargins.tiny,
+              width: globalMargins.large,
+              height: globalMargins.large,
               backgroundColor: 'rgba(255, 255, 255, 0.2)',
               marginLeft: globalMargins.tiny,
               marginRight: globalMargins.tiny,
@@ -138,7 +138,7 @@ const Avatars = ({
         flex: 1,
         justifyContent: 'flex-start',
         maxWidth: 48,
-        paddingLeft: 8,
+        paddingLeft: globalMargins.tiny,
       }}
     >
       <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} />
