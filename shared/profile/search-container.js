@@ -50,6 +50,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
+  defaultProps({
+    placeholder: 'Type someone',
+    showAddButton: false,
+    userItems: [],
+  }),
   withState('usernameText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   selectedSearchIdHoc,
@@ -69,9 +74,5 @@ export default compose(
       props._onSelectService(nextService)
       props.search(props.usernameText, nextService)
     },
-  }),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
   })
 )(Search)
