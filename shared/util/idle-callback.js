@@ -1,6 +1,6 @@
 // @flow
 import {forceImmediateLogging} from '../local-debug'
-import {isAndroid} from '../constants/platform'
+import {animationFriendlyDelay as _animationFriendlyDelay, useFallback} from './idle-callback-platform'
 
 function immediateCallback(
   cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
@@ -28,8 +28,6 @@ function cancelIdleCallbackFallback(id: number) {
   clearTimeout(id)
 }
 
-// TODO: Re-enable requestIdleCallback for Android once https://github.com/facebook/react-native/issues/9579 is fixed
-const useFallback = typeof window === 'undefined' || isAndroid || !window.requestIdleCallback
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback ? timeoutFallback : window.requestIdleCallback
@@ -38,4 +36,11 @@ const cancelIdleCallback = useFallback ? cancelIdleCallbackFallback : window.can
 const onIdlePromise = (timeout: number = 100) =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
-export {requestIdleCallback, cancelIdleCallback, onIdlePromise}
+// If there isn't one, lets just use idle
+const animationFriendlyDelay =
+  _animationFriendlyDelay ||
+  (f => {
+    requestIdleCallback(f, {timeout: 10})
+  })
+
+export {requestIdleCallback, cancelIdleCallback, onIdlePromise, animationFriendlyDelay}

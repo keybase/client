@@ -1,0 +1,6 @@
+// @flow
+
+declare function animationFriendlyDelay(() => void): void
+declare var useFallback: boolean
+
+export {animationFriendlyDelay, useFallback}
