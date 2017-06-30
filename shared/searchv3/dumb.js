@@ -282,6 +282,7 @@ const commonUserInputMapProps = {
   onClickAddButton: () => console.log('username input add button clicked'),
   onMoveSelectUp: () => console.log('username input moveSelectUp'),
   onMoveSelectDown: () => console.log('username input moveSelectDown'),
+  onCancel: () => console.log('username cancel'),
   onAddSelectedUser: () => console.log('on add selected user'),
 }
 

@@ -57,6 +57,7 @@ const SearchHeader = props => {
             onChangeText={props.onChangeText}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
+            onCancel={props.exitSearch}
             onAddSelectedUser={props.onAddSelectedUser}
           />
         </Box>

@@ -21,6 +21,7 @@ export type Props = {|
   onClickAddButton: () => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
+  onCancel?: () => void,
   onClearSearch?: () => void,
   onAddSelectedUser: () => void,
   onEnterEmptyText?: () => void,

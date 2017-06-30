@@ -90,6 +90,9 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
       ev.preventDefault()
+    } else if (ev.key === 'Escape') {
+      this.props.onCancel && this.props.onCancel()
+      ev.preventDefault()
     }
   }
 
