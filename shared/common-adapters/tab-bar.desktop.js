@@ -313,7 +313,7 @@ const navRealCSS = `
   .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
   .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${globalColors.white}; }
   .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
-  .nav-item:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
+  .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
 `
 
 const stylesNavText = {
