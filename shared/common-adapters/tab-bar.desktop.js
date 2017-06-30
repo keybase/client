@@ -92,9 +92,11 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
       <Box
+        className="nav-item-avatar"
         style={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
+          cursor: 'pointer',
           justifyContent: 'center',
           position: 'relative',
           ...this.props.style,
@@ -121,9 +123,10 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           </Box>}
         {!!this.props.label &&
           <Text
+            className="title"
             type="BodySmallSemiboldItalic"
             style={{
-              color,
+              color: undefined,
               fontSize: 11,
               textAlign: 'center',
               ...globalStyles.clickable,
@@ -307,8 +310,9 @@ const navRealCSS = `
   .nav-item.selected img { opacity: 1.0; }
 
   .nav-item .title { color: transparent; }
+  .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
   .nav-item.selected .title { color: ${globalColors.white}; }
-  .nav-item:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
+  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
   .nav-item:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
 `
 
