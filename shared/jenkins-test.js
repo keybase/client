@@ -9,8 +9,6 @@ var againstMaster
 
 var defaultExecSyncOptions = {encoding: 'utf8', stdio: 'inherit'}
 
-console.log('aaaaaaaa', process.argv)
-
 if (!process.argv[4] || process.argv[4] === 'master') {
   againstMaster = true
 } else {
@@ -28,10 +26,10 @@ console.log(' changeTarget: ' + changeTarget)
 console.log(' changeBase: ' + changeBase)
 
 function execAndLog(cmd, options) {
+  var temp
   try {
     console.log('Running:', cmd, '\n\n')
-    var temp = childProcess.execSync(cmd, Object.assign({}, defaultExecSyncOptions, options))
-    console.log(temp)
+    temp = childProcess.execSync(cmd, Object.assign({}, defaultExecSyncOptions, options))
   } catch (err) {
     console.log('Error running: ' + cmd + err.output, err)
     throw err
