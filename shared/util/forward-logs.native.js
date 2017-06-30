@@ -19,7 +19,9 @@ function setupSource() {
   forwarded = true
 
   window.console.log = (...args) => {
-    localLog(...args)
+    if (__DEV__) {
+      localLog(...args)
+    }
     logger.info(...args)
   }
 
