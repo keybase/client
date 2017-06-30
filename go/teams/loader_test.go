@@ -2,6 +2,7 @@ package teams
 
 import (
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -271,7 +272,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
-	t.Logf("U0 bumps the sigchain (setrole) (5)")
+	t.Logf("U0 bumps the sigchain (removemember) (5)")
 	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
 	require.NoError(t, err)
 
@@ -327,4 +328,122 @@ func TestLoaderSubteamEasy(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedSubteamName, TeamSigChainState{inner: team.Chain}.GetName())
 	require.Equal(t, parentID, *team.Chain.ParentID)
+}
+
+// Test loading a team and filling in links.
+// User loads a team T1 with subteam links stubbed out,
+// then gets added to T1.T2 and T1,
+// then loads T1.T2, which causes T1 to have to fill in the subteam links.
+func TestLoaderFillStubbed(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("create a team")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	// Hack to get around stale merkle root when creating subteam
+	// Michal's gonna fix this soon, then this line can go away.
+	_, err := tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
+	require.NoError(t, err)
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	require.NoError(t, err)
+
+	// Hack to get around stale merkle root when creating subteam
+	// Michal's gonna fix this soon, then this line can go away.
+	_, err = tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
+	require.NoError(t, err)
+
+	t.Logf("add U1 to the parent")
+	err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+
+	// Hack to get around stale merkle root when creating subteam
+	// Michal's gonna fix this soon, then this line can go away.
+	_, err = tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the parent")
+	_, err = tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: parentID,
+	})
+	require.NoError(t, err)
+
+	t.Logf("add U1 to the subteam")
+	subteamName, err := parentName.Append("mysubteam")
+	require.NoError(t, err)
+	err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam")
+	_, err = tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: *subteamID,
+	})
+	require.NoError(t, err)
+}
+
+// Test loading a team and when not a member of the parent.
+// User loads a team T1.T2 but has never been a member of T1.
+func TestLoaderNotInParent(t *testing.T) {
+	t.Skip("TODO: awaiting non-member parent read")
+
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("create a team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	require.NoError(t, err)
+
+	t.Logf("add U1 to the subteam")
+	subteamName, err := parentName.Append("mysubteam")
+	require.NoError(t, err)
+	err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam")
+	_, err = tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: *subteamID,
+	})
+	require.NoError(t, err)
+}
+
+// Test loading a sub-sub-team.
+// When not a member of the ancestors.
+func TestLoaderMultilevel(t *testing.T) {
+	t.Skip("TODO: awaiting non-member parent read")
+
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("create a team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
+	require.NoError(t, err)
+
+	t.Logf("create a sub-subteam")
+	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", parentName)
+	require.NoError(t, err)
+
+	expectedSubsubTeamName, err := parentName.Append("abc")
+	require.NoError(t, err)
+	expectedSubsubTeamName, err = parentName.Append("def")
+	require.NoError(t, err)
+
+	t.Logf("add the other user to the subsubteam")
+	err = AddMember(context.TODO(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("load the subteam")
+	team, err := tcs[1].G.GetTeamLoader().(*TeamLoader).LoadTODO(context.TODO(), keybase1.LoadTeamArg{
+		ID: *subsubteamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.Chain.Id, *subteamID)
+	require.Equal(t, expectedSubsubTeamName, TeamSigChainState{inner: team.Chain}.GetName())
+	require.Equal(t, subteamID, *team.Chain.ParentID)
 }

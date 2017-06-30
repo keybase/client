@@ -47,7 +47,7 @@ const Splash = HOCTimers(
 
 const Failure = (props: Props) => (
   <Box style={{...stylesLoginForm, marginTop: 0}}>
-    <Box style={{...stylesBannerRed}}>
+    <Box style={stylesBannerRed}>
       <Text type="BodySemibold" style={stylesTextBanner}>
         Oops, we had a problem communicating with our services. This might be because you lost connectivity.
       </Text>
@@ -82,14 +82,14 @@ const Intro = (props: Props) => (
     }}
   >
     {!!props.justRevokedSelf &&
-      <Box style={{...stylesBannerGreen}}>
+      <Box style={stylesBannerGreen}>
         <Text type="BodySemibold" style={stylesTextBanner}>
           <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justRevokedSelf}</Text>
           &nbsp;was revoked successfully.
         </Text>
       </Box>}
     {!!props.justDeletedSelf &&
-      <Box style={{...stylesBannerBlue}}>
+      <Box style={stylesBannerBlue}>
         <Text type="BodySemibold" style={stylesTextBanner}>
           Your Keybase account
           {' '}
@@ -98,7 +98,7 @@ const Intro = (props: Props) => (
         </Text>
       </Box>}
     {!!props.justLoginFromRevokedDevice &&
-      <Box style={{...stylesBannerBlue}}>
+      <Box style={stylesBannerBlue}>
         <Text type="BodySemibold" style={stylesTextBanner}>
           Your device has been revoked, please log in again.
         </Text>

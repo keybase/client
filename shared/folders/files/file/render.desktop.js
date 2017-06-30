@@ -14,7 +14,7 @@ class FileRender extends Component<void, Props, void> {
     return (
       <Box>
         <Text type="Body" style={filenameStyleThemed[this.props.theme]}>{this.props.name}</Text>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
           {!!this.props.lastModifiedBy &&
             <Box style={{display: 'inline'}}>

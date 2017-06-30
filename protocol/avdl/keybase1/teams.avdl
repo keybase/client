@@ -151,17 +151,21 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
-    // Set of types that were loaded stubbed-out and whose contents are missing.
-    // Keyed by libkb.SigchainV2Type
-    map<int, boolean> stubbedTypes;
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // Set of links that are stubbed-out and whose contents are missing.
+    // Keyed by seqno
+    map<Seqno, boolean> stubbedLinks;
   }
 
   // A user became this role at a point in time
   record UserLogPoint {
     // The new role. Including NONE if the user left the team.
     TeamRole role;
-    // The seqno at which the user became this role.
-    Seqno seqno;
+    // The seqno at which the user became this role, and other imporant
+    // details, like the last known MerkleRoot at that time.
+    SignatureMetadata sigMeta;
   }
 
   // A subteam got this name at this point in time.
@@ -230,6 +234,7 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
+  void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
 
   /**

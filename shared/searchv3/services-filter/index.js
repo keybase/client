@@ -102,7 +102,7 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
 
   render() {
     return (
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         {servicesOrder.map((service: Constants.Service) => (
           <Service
             key={service}

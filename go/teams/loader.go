@@ -87,7 +87,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// Resolve the name to team ID. Will always hit the server for subteams.
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
-	if teamName != nil {
+	if !teamID.Exists() {
 		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			return nil, err
@@ -120,6 +120,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// The snapshot may have already been written to cache, but that should be ok,
 	// because the cache is keyed by ID.
 	if teamName != nil {
+		// (TODO: this won't work for renamed level 3 teams or above. There's work on this in miles/teamloader-names)
 		if !teamName.Eq(ret.Chain.Name) {
 			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name.String(), teamName.String())
 		}
@@ -130,7 +131,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
 	// TODO: stricter check on team ID format.
-	hasID := len(lArg.ID) > 0
+	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
 	if !hasID && !hasName {
 		return fmt.Errorf("team load arg must have either ID or Name")
@@ -158,7 +159,8 @@ func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keyb
 	if err := l.G().API.GetDecode(arg, &rt); err != nil {
 		return id, err
 	}
-	if !rt.ID.Exists() {
+	id = rt.ID
+	if !id.Exists() {
 		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
 	}
 	return id, nil
@@ -230,7 +232,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 
 	// Backfill stubbed links that need to be filled now.
 	if ret != nil && len(arg.needSeqnos) > 0 {
-		ret, proofSet, err = l.fillInStubbedLinks(ctx, ret, arg.needSeqnos, proofSet)
+		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, proofSet, parentChildOperations)
 		if err != nil {
 			return nil, err
 		}
@@ -267,22 +270,26 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 	for i, link := range links {
 		l.G().Log.CDebugf(ctx, "TeamLoader processing link seqno:%v", link.Seqno())
-		if l.seqnosContains(arg.needSeqnos, link.Seqno()) || arg.needAdmin {
-			if link.isStubbed() {
-				return nil, fmt.Errorf("team sigchain link %v stubbed when not allowed", link.Seqno())
-			}
+
+		if err := l.checkStubbed(ctx, arg, link); err != nil {
+			return nil, err
 		}
+
 		if !link.Prev().Eq(prev) {
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		proofSet, err = l.verifyLinkSig(ctx, ret, arg.needAdmin, link, proofSet)
+		_, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
 
 		if l.isParentChildOperation(ctx, link) {
-			parentChildOperations = append(parentChildOperations, l.toParentChildOperation(ctx, link))
+			pco, err := l.toParentChildOperation(ctx, link)
+			if err != nil {
+				return nil, err
+			}
+			parentChildOperations = append(parentChildOperations, pco)
 		}
 
 		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
@@ -501,17 +508,6 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 		}
 	}
 	return nil
-}
-
-// Whether the snapshot has fully loaded, non-stubbed, all of the links.
-func (l *TeamLoader) satisfiesNeedSeqnos(ctx context.Context, needSeqnos []keybase1.Seqno, state *keybase1.TeamData) error {
-	if len(needSeqnos) == 0 {
-		return nil
-	}
-	if state == nil {
-		return fmt.Errorf("nil team does not contain needed seqnos")
-	}
-	panic("TODO: implement")
 }
 
 func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {

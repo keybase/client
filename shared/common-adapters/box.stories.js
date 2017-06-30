@@ -1,15 +1,15 @@
 // @flow
-/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 import React from 'react'
 import Box from './box'
-import {storiesOf} from '@storybook/react'
+import Text from './text'
+import {storiesOf} from '../stories/storybook'
 import {globalMargins, globalStyles, globalColors} from '../styles'
 
-storiesOf('Box', module).add('Box', () => (
-  <div style={{flex: 1, overflow: 'auto'}}>
-    {Object.keys(globalMargins).map(size => (
-      <div key={size} style={{...globalStyles.flexBoxRow, margin: 30, width: '100%'}}>
-        <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', width: '50%'}}>
+const load = () => {
+  storiesOf('Box', module).add('Box', () =>
+    Object.keys(globalMargins).map(size => (
+      <Box key={size} style={{...globalStyles.flexBoxRow, margin: 30, width: '100%'}}>
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', width: '50%'}}>
           <Box
             style={{
               borderColor: globalColors.grey,
@@ -20,12 +20,14 @@ storiesOf('Box', module).add('Box', () => (
               width: globalMargins[size],
             }}
           />
-        </div>
-        <div style={{width: '50%'}}>
-          <p>{size}</p>
-          <p>{globalMargins[size]}px</p>
-        </div>
-      </div>
-    ))}
-  </div>
-))
+        </Box>
+        <Box style={{width: '50%'}}>
+          <Text type="BodySmall">{size}: </Text>
+          <Text type="BodySmall">{globalMargins[size]}px</Text>
+        </Box>
+      </Box>
+    ))
+  )
+}
+
+export default load

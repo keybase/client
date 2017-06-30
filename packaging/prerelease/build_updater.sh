@@ -15,7 +15,7 @@ cd "$src_dir"
 
 mkdir -p "$build_dir"
 
-echo "Building $build_dir/updater"
+echo "Building $build_dir/updater with $(go version)"
 go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then

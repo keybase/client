@@ -5,7 +5,6 @@ import React, {Component} from 'react'
 import RenderRoute from './route-tree/render-route'
 import loadPerf from './util/load-perf'
 import hello from './util/hello'
-import {Box} from './common-adapters/index'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {debounce} from 'lodash'
@@ -72,16 +71,17 @@ class Main extends Component<void, any, void> {
 
     // TODO: move Push prompt into route
     const {showPushPrompt, mountPush} = this.props
+
+    if (showPushPrompt && mountPush) {
+      return <Push prompt={showPushPrompt} />
+    }
+
     return (
-      <Box style={{flex: 1, width: '100%'}}>
-        {!showPushPrompt &&
-          <RenderRoute
-            routeDef={this.props.routeDef}
-            routeState={this.props.routeState}
-            setRouteState={this.props.setRouteState}
-          />}
-        {mountPush && <Push prompt={showPushPrompt} />}
-      </Box>
+      <RenderRoute
+        routeDef={this.props.routeDef}
+        routeState={this.props.routeState}
+        setRouteState={this.props.setRouteState}
+      />
     )
   }
 }

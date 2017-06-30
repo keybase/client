@@ -986,13 +986,13 @@ function* _updateTempSearchConversation(
   const inboxSearch = yield select(inboxSearchSelector)
   if (action.type === 'chat:stageUserForSearch') {
     const nextTempSearchConv = inboxSearch.push(user)
-    yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+    yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
     if (!nextTempSearchConv.isEmpty()) {
-      yield put(Creators.startConversation(nextTempSearchConv.toArray(), false, true))
+      yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     } else {
       yield put(Creators.selectConversation(null, false))
     }
@@ -1000,6 +1000,9 @@ function* _updateTempSearchConversation(
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   }
+
+  // Always clear the search results when you select/unselect
+  yield put(Creators.clearSearchResults())
 }
 
 function* _exitSearch() {

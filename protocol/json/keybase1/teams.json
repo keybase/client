@@ -426,10 +426,18 @@
         {
           "type": {
             "type": "map",
-            "values": "boolean",
-            "keys": "int"
+            "values": "LinkID",
+            "keys": "Seqno"
           },
-          "name": "stubbedTypes"
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "Seqno"
+          },
+          "name": "stubbedLinks"
         }
       ]
     },
@@ -442,8 +450,8 @@
           "name": "role"
         },
         {
-          "type": "Seqno",
-          "name": "seqno"
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
         }
       ]
     },
@@ -640,6 +648,23 @@
         {
           "name": "username",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamLeave": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null

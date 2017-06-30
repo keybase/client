@@ -14,10 +14,10 @@ class FileRender extends Component<void, Props, void> {
     return (
       <Box>
         <Text type="BodySemibold" style={filenameStyleThemed[this.props.theme]}>{this.props.name}</Text>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
           {!!this.props.lastModifiedBy &&
-            <Box style={{...globalStyles.flexBoxRow}}>
+            <Box style={globalStyles.flexBoxRow}>
               <Text
                 type="BodySmall"
                 style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}}

@@ -90,7 +90,7 @@ class DumbSheetRender extends Component<void, Props, any> {
     return (
       <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref="scrollBox">
         <BackButton onClick={this.props.onBack} />
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={globalStyles.flexBoxRow}>
           <Input
             ref="filterInput"
             small={true}

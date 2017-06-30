@@ -1,19 +1,12 @@
 package teams
 
 import (
+	"crypto/sha256"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
-
-// Collection of ordering constraints waiting to be verified.
-// TODO implement
-type proofSetT struct{}
-
-func newProofSet() *proofSetT {
-	return &proofSetT{}
-}
 
 // --------------------------------------------------
 
@@ -21,6 +14,8 @@ func newProofSet() *proofSetT {
 // TODO implement
 type parentChildOperation struct {
 	TODOImplement bool
+	// The seqno in the parent sigchain that corresponds to this operation.
+	parentSeqno keybase1.Seqno
 }
 
 // --------------------------------------------------
@@ -30,6 +25,10 @@ type chainLinkUnpacked struct {
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
 	inner *SCChainLinkPayload
+	// nil if the link is stubbed
+	innerLinkID libkb.LinkID
+	// nil if the link is stubbed
+	innerTeamID keybase1.TeamID
 }
 
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
@@ -42,6 +41,8 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		return nil, err
 	}
 	var inner *SCChainLinkPayload
+	var innerLinkID libkb.LinkID
+	var innerTeamID keybase1.TeamID
 	if link.Payload == "" {
 		// stubbed inner link
 	} else {
@@ -50,13 +51,20 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 			return nil, fmt.Errorf("error unmarshaling link payload: %s", err)
 		}
 		inner = &payload
+		tmp := sha256.Sum256([]byte(link.Payload))
+		innerLinkID = libkb.LinkID(tmp[:])
+		innerTeamID, err = inner.TeamID()
+		if err != nil {
+			return nil, err
+		}
 	}
 	ret := &chainLinkUnpacked{
-		source:    link,
-		outerLink: outerLink,
-		inner:     inner,
+		source:      link,
+		outerLink:   outerLink,
+		inner:       inner,
+		innerLinkID: innerLinkID,
+		innerTeamID: innerTeamID,
 	}
-
 	return ret, nil
 }
 
@@ -78,4 +86,35 @@ func (l *chainLinkUnpacked) LinkType() libkb.SigchainV2Type {
 
 func (l *chainLinkUnpacked) isStubbed() bool {
 	return l.inner == nil
+}
+
+func (l chainLinkUnpacked) SignatureMetadata() keybase1.SignatureMetadata {
+	return l.inner.SignatureMetadata()
+}
+
+func (l chainLinkUnpacked) SigChainLocation() keybase1.SigChainLocation {
+	return l.inner.SigChainLocation()
+}
+
+func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {
+	return keybase1.SignatureMetadata{
+		PrevMerkleRootSigned: i.Body.MerkleRoot.ToMerkleRootV2(),
+		SigChainLocation:     i.SigChainLocation(),
+	}
+}
+
+func (l *chainLinkUnpacked) AssertInnerOuterMatch() (err error) {
+	var prev libkb.LinkID
+	if l.inner.Prev != nil {
+		prev, err = libkb.LinkIDFromHex(*l.inner.Prev)
+		if err != nil {
+			return err
+		}
+	}
+	linkType, err := libkb.SigchainV2TypeFromV1TypeTeams(l.inner.Body.Type)
+	if err != nil {
+		return err
+	}
+
+	return l.outerLink.AssertFields(l.inner.Body.Version, l.inner.Seqno, prev, l.innerLinkID, linkType)
 }

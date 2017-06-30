@@ -235,10 +235,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "y16ATKgHL/k6rQZqdXP1sIAJxE0=",
+			"checksumSHA1": "tw0BkvixAuw9Ai80hHzFy6W5mnk=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "00ac4db533f63ef97576cbc7b07939ff7daf7329",
-			"revisionTime": "2017-06-05T14:56:57Z"
+			"revision": "433e2f3d43ef1bd31387582a899389b2fbe2005e",
+			"revisionTime": "2017-06-28T15:29:38Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",

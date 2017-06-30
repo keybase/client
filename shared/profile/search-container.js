@@ -6,7 +6,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
-import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
   },
-  onEnter: username => {
+  onAddSelectedUser: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },
@@ -50,14 +50,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('usernameText', '_onChangeText', ''),
+  defaultProps({
+    placeholder: 'Type someone',
+    showAddButton: false,
+    userItems: [],
+  }),
+  withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  withState('searchText', 'onChangeSearchText', ''),
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
+  showServiceLogicHoc,
   withHandlers({
     onChangeText: (props: Props & HocIntermediateProps) => nextText => {
-      props.onChangeSearchText(nextText)
+      props._onChangeText(nextText)
       props.search(nextText, props.selectedService)
     },
     onClick: (props: Props & HocIntermediateProps) => id => {
@@ -69,10 +74,5 @@ export default compose(
       props._onSelectService(nextService)
       props.search(props.searchText, nextService)
     },
-  }),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
-    userItems: [],
   })
 )(Search)

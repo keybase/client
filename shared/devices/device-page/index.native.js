@@ -14,7 +14,7 @@ const Header = ({name, isCurrent, isRevoked}) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 20, marginTop: 10}}>
     <Text type="Header" style={isRevoked ? styleTitleRevoked : styleTitle}>{name}</Text>
     {isRevoked && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
-    <Box style={{...globalStyles.flexBoxRow}}>
+    <Box style={globalStyles.flexBoxRow}>
       {isCurrent && <Text type="BodySmall">Current device</Text>}
     </Box>
   </Box>
@@ -31,9 +31,9 @@ const TimelineMarker = ({idx, max, type}) => (
 const Timeline = ({timeline}) => (
   <Box style={{marginTop: 30}}>
     {timeline.map(({type, desc, subDesc}, idx) => (
-      <Box key={desc} style={{...globalStyles.flexBoxRow}}>
+      <Box key={desc} style={globalStyles.flexBoxRow}>
         <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
-        <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={globalStyles.flexBoxColumn}>
           <Text type="Body">{desc}</Text>
           {subDesc && (type === 'Added' || type === 'Revoked')
             ? <Text type="BodySmall">

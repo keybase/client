@@ -43,6 +43,7 @@ type TypedChainLink interface {
 	GetFirstAppearedMerkleSeqnoUnverified() keybase1.Seqno
 	GetDevice() *Device
 	DoOwnNewLinkFromServerNotifications(g *GlobalContext)
+	ToSigChainLocation() keybase1.SigChainLocation
 }
 
 //=========================================================================
@@ -55,6 +56,9 @@ type GenericChainLink struct {
 
 func (g *GenericChainLink) GetSigID() keybase1.SigID {
 	return g.unpacked.sigID
+}
+func (g *GenericChainLink) ToSigChainLocation() keybase1.SigChainLocation {
+	return g.ChainLink.ToSigChainLocation()
 }
 func (g *GenericChainLink) Type() string            { return "generic" }
 func (g *GenericChainLink) ToDisplayString() string { return "unknown" }

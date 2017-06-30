@@ -44,7 +44,7 @@ function User({
 
   if (user.service === 'keybase') {
     name = (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Text
           type={'BodySemibold'}
           style={{color: user.isFollowing ? globalColors.green2 : globalColors.blue}}
@@ -56,7 +56,7 @@ function User({
     )
   } else if (user.service === 'external') {
     name = (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon style={{marginRight: 5}} type={user.icon} />
           <Text type={'BodySemibold'}>{user.username}</Text>
@@ -68,7 +68,7 @@ function User({
 
   return (
     <ClickableBox onClick={() => onClickUser(user)}>
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -102,7 +102,7 @@ const GroupAction = ({
 }) => (
   <ClickableBox onClick={onClick}>
     <Box style={rowButtonStyle}>
-      <Icon type={icon} style={{...style}} />
+      <Icon type={icon} style={style} />
       <Text type="Body" style={{color: globalColors.blue, marginLeft: 8}}>{label}</Text>
     </Box>
   </ClickableBox>
