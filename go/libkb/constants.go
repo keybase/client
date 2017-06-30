@@ -233,6 +233,7 @@ const (
 	SCChatConvExists         = int(keybase1.StatusCode_SCChatConvExists)
 	SCChatUnknownTLFID       = int(keybase1.StatusCode_SCChatUnknownTLFID)
 	SCChatNotInConv          = int(keybase1.StatusCode_SCChatNotInConv)
+	SCChatNotInTeam          = int(keybase1.StatusCode_SCChatNotInTeam)
 	SCChatBadMsg             = int(keybase1.StatusCode_SCChatBadMsg)
 	SCChatBroadcast          = int(keybase1.StatusCode_SCChatBroadcast)
 	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
