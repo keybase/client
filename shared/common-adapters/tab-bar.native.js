@@ -51,7 +51,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           <Badge
             badgeNumber={badgeNumber}
             badgeStyle={{marginRight: -30, marginTop: -20}}
-            outlineColor={globalColors.darkBlue2}
+            outlineColor={globalColors.white}
           />
         </Box>
       )
