@@ -117,7 +117,6 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
     )
   }
 }
-
 const styleServices = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
@@ -125,7 +124,20 @@ const styleServices = {
   justifyContent: 'center',
 }
 
-const serviceTooltipStyle = {
+const serviceTooltipPlatformStyle = isMobile
+  ? {
+      borderBottomColor: `${globalColors.white}`,
+      borderBottomWidth: 2,
+      top: -8,
+    }
+  : {
+      ...transition('opacity'),
+      lineHeight: '22px',
+      cursor: 'default',
+      borderBottom: `2px ${globalColors.white}`,
+      top: -24,
+    }
+
   ...transition('opacity'),
   backgroundColor: globalColors.black_40,
   borderBottom: `2px ${globalColors.white}`,
