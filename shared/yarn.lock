@@ -3723,7 +3723,7 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-glamor@^2.20.25:
+glamor@2.20.25, glamor@^2.20.25:
   version "2.20.25"
   resolved "https://registry.yarnpkg.com/glamor/-/glamor-2.20.25.tgz#71b84b82b67a9327771ac59de53ee915d148a4a3"
   dependencies:
@@ -3732,7 +3732,13 @@ glamor@^2.20.25:
     object-assign "^4.1.0"
     prop-types "^15.5.8"
 
-glamorous@^3.22.1:
+glamorous-native@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/glamorous-native/-/glamorous-native-1.1.0.tgz#fd66355817c0a4961576ee103b4c7e5f8cb6f495"
+  dependencies:
+    brcast "^2.0.0"
+
+glamorous@3.23.4, glamorous@^3.22.1:
   version "3.23.4"
   resolved "https://registry.yarnpkg.com/glamorous/-/glamorous-3.23.4.tgz#a1e5f8045c332850105777dea4d3b21c5bdc4796"
   dependencies:

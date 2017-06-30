@@ -137,7 +137,7 @@ class ConversationInput extends Component<void, InputProps, void> {
           />
           <Input
             className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
-            autoFocus={true}
+            autoFocus={false}
             small={true}
             style={styleInput}
             ref={this.props.inputSetRef}

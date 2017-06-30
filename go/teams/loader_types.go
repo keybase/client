@@ -3,6 +3,7 @@ package teams
 import (
 	"crypto/sha256"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -13,6 +14,8 @@ import (
 // TODO implement
 type parentChildOperation struct {
 	TODOImplement bool
+	// The seqno in the parent sigchain that corresponds to this operation.
+	parentSeqno keybase1.Seqno
 }
 
 // --------------------------------------------------
@@ -22,8 +25,10 @@ type chainLinkUnpacked struct {
 	outerLink *libkb.OuterLinkV2WithMetadata
 	// inner is nil if the link is stubbed
 	inner *SCChainLinkPayload
-	// innerLinkID is nil if inner is nil (if the link is stubbed)
+	// nil if the link is stubbed
 	innerLinkID libkb.LinkID
+	// nil if the link is stubbed
+	innerTeamID keybase1.TeamID
 }
 
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
@@ -37,6 +42,7 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 	}
 	var inner *SCChainLinkPayload
 	var innerLinkID libkb.LinkID
+	var innerTeamID keybase1.TeamID
 	if link.Payload == "" {
 		// stubbed inner link
 	} else {
@@ -47,14 +53,18 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))
 		innerLinkID = libkb.LinkID(tmp[:])
+		innerTeamID, err = inner.TeamID()
+		if err != nil {
+			return nil, err
+		}
 	}
 	ret := &chainLinkUnpacked{
 		source:      link,
 		outerLink:   outerLink,
 		inner:       inner,
 		innerLinkID: innerLinkID,
+		innerTeamID: innerTeamID,
 	}
-
 	return ret, nil
 }
 

@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
+import glamorous from 'glamorous-native'
+import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
 
@@ -20,6 +21,18 @@ class Text extends Component<void, Props, void> {
     openURL(this.props.onClickURL)
   }
 
+  shouldComponentUpdate(nextProps: Props): boolean {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'style') {
+        return shallowEqual(obj, oth)
+      } else if (key === 'children' && this.props.plainText && nextProps.plainText) {
+        // child will be plain text
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
   render() {
     const style = {
       ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
@@ -33,19 +46,20 @@ class Text extends Component<void, Props, void> {
       )
     }
 
+    const StyledText = glamorous.text(style)
+
     return (
-      <NativeText
+      <StyledText
         ref={ref => {
           this._nativeText = ref
         }}
-        style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
         onLongPress={this.props.onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
-      </NativeText>
+      </StyledText>
     )
   }
 }

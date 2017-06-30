@@ -174,3 +174,11 @@ func (s SCChainLinkPayload) TeamAdmin() *SCTeamAdmin {
 	}
 	return t.Admin
 }
+
+func (s SCChainLinkPayload) TeamID() (keybase1.TeamID, error) {
+	t := s.Body.Team
+	if t == nil {
+		return keybase1.TeamID(""), errors.New("no team section")
+	}
+	return t.ID.ToTeamID()
+}
