@@ -46,24 +46,7 @@ type OutProps = {
 }
 */
 const clearSearchHoc = withHandlers({
-  onClearSearch: ({
-    onRemoveUser,
-    onExitSearch,
-    userItems,
-    searchText,
-    onChangeSearchText,
-    clearSearchResults,
-    search,
-  }) => () => {
-    if (userItems.count() === 0 && !searchText) {
-      onExitSearch()
-    } else {
-      userItems.forEach(({id}) => onRemoveUser(id))
-      onChangeSearchText('')
-      clearSearchResults()
-      search('', 'Keybase')
-    }
-  },
+  onClearSearch: ({onExitSearch}) => () => onExitSearch(),
 })
 
 const onChangeSelectedSearchResultHoc = compose(

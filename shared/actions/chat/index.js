@@ -31,7 +31,7 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
+import {inboxSearchSelector, previousConversationSelector, usernameSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -711,6 +711,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
+    yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
     yield put(Creators.selectConversation(null, false))
     yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
@@ -1006,10 +1007,14 @@ function* _updateTempSearchConversation(
 }
 
 function* _exitSearch() {
+  const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
+  if (inboxSearch.count() === 0) {
+    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
+  }
 }
 
 function* chatSaga(): SagaGenerator<any, any> {
