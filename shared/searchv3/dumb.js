@@ -355,6 +355,12 @@ const userInputMap: DumbComponentMap<UserInput> = {
       userItems: maxUsers,
       usernameText: 'ma',
     },
+    'Users + Text + Clear Search': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: 'ma',
+      onClearSearch: () => console.log('on clear search'),
+    },
     'Users (Wrap)': {
       ...commonUserInputMapProps,
       parentProps: {

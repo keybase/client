@@ -9,7 +9,7 @@ import ServiceFilter from '../searchv3/services-filter'
 import {Box} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
-import {globalStyles} from '../styles'
+import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
 import * as HocHelpers from '../searchv3/helpers'
 import {createSelector} from 'reselect'
@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const SearchHeader = props => {
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
       <UserInput
         ref={props.setInputRef}
         autoFocus={true}
