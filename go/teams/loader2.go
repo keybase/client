@@ -350,16 +350,11 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 }
 
 // Apply a new link to the sigchain state.
-// TODO: verify all sorts of things.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
-	me keybase1.UserVersion) (*keybase1.TeamData, error) {
-	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
+	signer keybase1.UserVersion, me keybase1.UserVersion) (*keybase1.TeamData, error) {
 
-	// TODO: This uses chain.go now. But chain.go is not in line
-	// with the new approach. It has TODOs to check things that
-	// are checked by proofSet etc now.
-	// And it does not use pre-unpacked types.
+	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
 	var player *TeamSigChainPlayer
 	if state == nil {
@@ -368,7 +363,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		player = NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
 	}
 
-	err := player.AddChainLinks(ctx, []SCChainLink{*link.source})
+	err := player.AppendChainLink(ctx, link, &signer)
 	if err != nil {
 		return nil, err
 	}

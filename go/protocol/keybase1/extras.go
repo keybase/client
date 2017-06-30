@@ -1400,6 +1400,10 @@ func (u UserVersion) String() string {
 	return fmt.Sprintf("%s%%%d", u.Uid, u.EldestSeqno)
 }
 
+func (u UserVersion) Eq(v UserVersion) bool {
+	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
+}
+
 func (k CryptKey) Material() Bytes32 {
 	return k.Key
 }
