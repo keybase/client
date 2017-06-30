@@ -18,20 +18,30 @@ function setupSource() {
   }
   forwarded = true
 
-  window.console.log = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
-    localLog(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-    logger.info(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+  const makeOverride = method => {
+    return function(a1, a2, a3, a4, a5) {
+      if (arguments.length === 1) {
+        localLog(a1)
+        logger[method](a1)
+      } else if (arguments.length === 2) {
+        localLog(a1, a2)
+        logger[method](a1, a2)
+      } else if (arguments.length === 3) {
+        localLog(a1, a2, a3)
+        logger[method](a1, a2, a3)
+      } else if (arguments.length === 4) {
+        localLog(a1, a2, a3, a4)
+        logger[method](a1, a2, a3, a4)
+      } else if (arguments.length === 5) {
+        localLog(a1, a2, a3, a4, a5)
+        logger[method](a1, a2, a3, a4, a5)
+      }
+    }
   }
 
-  window.console.warn = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
-    localWarn(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-    logger.warn(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-  }
-
-  window.console.error = (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) => {
-    localError(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-    logger.error(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
-  }
+  window.console.log = makeOverride('info')
+  window.console.warn = makeOverride('warn')
+  window.console.error = makeOverride('error')
 }
 
 export {setupSource, localLog, localWarn, localError}
