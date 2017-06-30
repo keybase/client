@@ -111,11 +111,11 @@ function maybeUpgradeSearchResultIdToKeybaseId(
     return id
   }
 
-  const searchResult = searchResultMap.get(id).toObject()
-  if (searchResult.leftService === 'Keybase') {
-    return searchResult.leftUsername
-  } else if (searchResult.rightService === 'Keybase') {
-    return searchResult.rightUsername || id
+  const searchResult = searchResultMap.get(id)
+  if (searchResult.get('leftService') === 'Keybase') {
+    return searchResult.get('leftUsername')
+  } else if (searchResult.get('rightService') === 'Keybase') {
+    return searchResult.get('rightUsername') || id
   }
 
   return id
