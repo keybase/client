@@ -50,11 +50,10 @@ const SearchHeader = props => {
           <UserInput
             autoFocus={true}
             userItems={props.userItems}
-            showAddButton={props.showAddButton}
             onRemoveUser={props.onRemoveUser}
             onClickAddButton={props.onClickAddButton}
             placeholder={props.placeholder}
-            usernameText={props.usernameText}
+            usernameText={props.searchText}
             onChangeText={props.onChangeText}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
@@ -85,13 +84,13 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  withState('usernameText', 'onChangeSearchText', ''),
+  withState('searchText', 'onChangeSearchText', ''),
   onChangeSelectedSearchResultHoc,
   showServiceLogicHoc,
   withHandlers({
     onSelectService: props => nextService => {
       props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
+      props.search(props.searchText, nextService)
     },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')

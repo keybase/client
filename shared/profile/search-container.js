@@ -55,7 +55,7 @@ export default compose(
     showAddButton: false,
     userItems: [],
   }),
-  withState('usernameText', '_onChangeText', ''),
+  withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
@@ -72,7 +72,7 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
+      props.search(props.searchText, nextService)
     },
   })
 )(Search)

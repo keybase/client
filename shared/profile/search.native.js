@@ -19,11 +19,9 @@ const Search = (props: Props) => (
         onMoveSelectUp={props.onMoveSelectUp}
         onMoveSelectDown={props.onMoveSelectDown}
         onRemoveUser={props.onRemoveUser}
-        onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
         placeholder={props.placeholder}
-        showAddButton={props.showAddButton}
         userItems={props.userItems}
-        usernameText={props.usernameText}
+        usernameText={props.searchText}
       />
     </Box>
     {props.showServiceFilter &&

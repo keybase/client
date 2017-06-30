@@ -29,6 +29,43 @@ const selectedSearchIdHoc = compose(
   })
 )
 
+// TODO hook up this type
+/*
+type InProps = {
+  onRemoveUser: (id: Constants.SearchResultId) => void,
+  onExitSearch: () => void,
+  userItems: Array<{id: Constants.SearchResultId}>,
+  searchText: string,
+  onChangeSearchText: (nextText: string) => void,
+  clearSearchResults: () => void,
+  search: (search: string, service: Constants.Service) => void,
+}
+
+type OutProps = {
+  onClearSearch: () => void,
+}
+*/
+const clearSearchHoc = withHandlers({
+  onClearSearch: ({
+    onRemoveUser,
+    onExitSearch,
+    userItems,
+    searchText,
+    onChangeSearchText,
+    clearSearchResults,
+    search,
+  }) => () => {
+    if (userItems.count() === 0 && !searchText) {
+      onExitSearch()
+    } else {
+      userItems.forEach(({id}) => onRemoveUser(id))
+      onChangeSearchText('')
+      clearSearchResults()
+      search('', 'Keybase')
+    }
+  },
+})
+
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
     onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
@@ -66,8 +103,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const showServiceLogicHoc = withPropsOnChange(['usernameText', 'userItems'], ({usernameText, userItems}) => ({
-  showServiceFilter: !!usernameText || userItems.length === 0,
+const showServiceLogicHoc = withPropsOnChange(['searchText', 'userItems'], ({searchText, userItems}) => ({
+  showServiceFilter: !!searchText || userItems.length === 0,
 }))
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc}
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc, clearSearchHoc}
