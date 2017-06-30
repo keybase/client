@@ -217,9 +217,9 @@ protocol remote {
   void joinConversation(ConversationID convID);
   void leaveConversation(ConversationID convID);
 
-  record GetTLFConversationsRes {
+  record GetTeamConversationsRes {
     array<Conversation> conversations; 
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
+  GetTeamConversationsRes getTeamConversations(TLFID teamID, TopicType topicType, boolean summarizeMaxMsgs);
 }

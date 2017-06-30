@@ -441,7 +441,7 @@
     },
     {
       "type": "record",
-      "name": "GetTLFConversationsRes",
+      "name": "GetTeamConversationsRes",
       "fields": [
         {
           "type": {
@@ -816,10 +816,10 @@
       ],
       "response": null
     },
-    "getTLFConversations": {
+    "getTeamConversations": {
       "request": [
         {
-          "name": "tlfID",
+          "name": "teamID",
           "type": "TLFID"
         },
         {
@@ -831,7 +831,7 @@
           "type": "boolean"
         }
       ],
-      "response": "GetTLFConversationsRes"
+      "response": "GetTeamConversationsRes"
     }
   },
   "namespace": "chat.1"

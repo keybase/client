@@ -1806,6 +1806,23 @@
           "name": "identifyFailures"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "JoinLeaveConversationLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2427,6 +2444,28 @@
         }
       ],
       "response": null
+    },
+    "joinConversationLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TLFID"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "leaveConversationLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
     }
   },
   "namespace": "chat.1"

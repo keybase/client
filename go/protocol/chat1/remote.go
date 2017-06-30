@@ -585,13 +585,13 @@ func (o SyncAllResult) DeepCopy() SyncAllResult {
 	}
 }
 
-type GetTLFConversationsRes struct {
+type GetTeamConversationsRes struct {
 	Conversations []Conversation `codec:"conversations" json:"conversations"`
 	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
-func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
-	return GetTLFConversationsRes{
+func (o GetTeamConversationsRes) DeepCopy() GetTeamConversationsRes {
+	return GetTeamConversationsRes{
 		Conversations: (func(x []Conversation) []Conversation {
 			var ret []Conversation
 			for _, v := range x {
@@ -952,15 +952,15 @@ func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
 	}
 }
 
-type GetTLFConversationsArg struct {
-	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
+type GetTeamConversationsArg struct {
+	TeamID           TLFID     `codec:"teamID" json:"teamID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
 	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
-func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
-	return GetTLFConversationsArg{
-		TlfID:            o.TlfID.DeepCopy(),
+func (o GetTeamConversationsArg) DeepCopy() GetTeamConversationsArg {
+	return GetTeamConversationsArg{
+		TeamID:           o.TeamID.DeepCopy(),
 		TopicType:        o.TopicType.DeepCopy(),
 		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
 	}
@@ -990,7 +990,7 @@ type RemoteInterface interface {
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 	JoinConversation(context.Context, ConversationID) error
 	LeaveConversation(context.Context, ConversationID) error
-	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
+	GetTeamConversations(context.Context, GetTeamConversationsArg) (GetTeamConversationsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1365,18 +1365,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getTLFConversations": {
+			"getTeamConversations": {
 				MakeArg: func() interface{} {
-					ret := make([]GetTLFConversationsArg, 1)
+					ret := make([]GetTeamConversationsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetTLFConversationsArg)
+					typedArgs, ok := args.(*[]GetTeamConversationsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetTLFConversationsArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetTeamConversationsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTLFConversations(ctx, (*typedArgs)[0])
+					ret, err = i.GetTeamConversations(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1512,7 +1512,7 @@ func (c RemoteClient) LeaveConversation(ctx context.Context, convID Conversation
 	return
 }
 
-func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res)
+func (c RemoteClient) GetTeamConversations(ctx context.Context, __arg GetTeamConversationsArg) (res GetTeamConversationsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getTeamConversations", []interface{}{__arg}, &res)
 	return
 }

@@ -644,4 +644,12 @@ protocol local {
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing);
 
+  // Channel management
+  record JoinLeaveConversationLocalRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  JoinLeaveConversationLocalRes joinConversationLocal(TLFID teamID, string topicName);
+  JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+
 }
