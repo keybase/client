@@ -2,7 +2,7 @@
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
-import parser, {emojiIndexByName} from '../markdown/parser'
+import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {MarkdownCreateComponent} from './markdown'
@@ -30,17 +30,13 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
-// Quick check to avoid markdown parsing overhead
-const maybeMarkdown = markdown => {
-  // only chars, numbers, whitespace, some common punctuation and periods that end sentences (not domains)
-  return markdown && !markdown.match(/^([A-Za-z0-9!?=+@#$%^&()[\]]|\s|\.\B)*$/)
-}
-
 export function parseMarkdown(markdown: ?string, markdownCreateComponent: MarkdownCreateComponent) {
+  const plainText = isPlainText(markdown)
+  if (plainText) {
+    return plainText
+  }
   try {
-    return maybeMarkdown(markdown)
-      ? processAST(parser.parse(markdown || ''), markdownCreateComponent)
-      : markdown
+    return processAST(parser.parse(markdown || ''), markdownCreateComponent)
   } catch (err) {
     console.warn('Markdown parsing failed:', err)
     return markdown
