@@ -293,10 +293,6 @@ const Row = RowConnector(_Row)
 class ConversationList extends PureComponent<void, Props, void> {
   _list: any
 
-  componentWillMount() {
-    this.props.loadInbox()
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
       this._onScroll()

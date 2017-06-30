@@ -336,8 +336,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }, 1000)
 
-  componentWillMount() {
-    this.props.loadInbox()
+  componentDidMount() {
     this._setupDataSource(this.props)
     if (this.props.rows.count()) {
       this._askForUnboxing(this.props.rows.first(), 30)
