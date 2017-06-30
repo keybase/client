@@ -18,7 +18,7 @@ export type Props = {|
   usernameText: string,
   onChangeText: (usernameText: string) => void,
   onRemoveUser: (id: string) => void,
-  onClickAddButton: () => void,
+  onClickAddButton: ?(() => void),
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
   onCancel?: () => void,

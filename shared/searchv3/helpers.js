@@ -55,7 +55,7 @@ const clearSearchHoc = withHandlers({
     clearSearchResults,
     search,
   }) => () => {
-    if (userItems.count() === 0 && !searchText) {
+    if (userItems.length === 0 && !searchText) {
       onExitSearch()
     } else {
       userItems.forEach(({id}) => onRemoveUser(id))
