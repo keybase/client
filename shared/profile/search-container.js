@@ -6,7 +6,6 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
-import {List} from 'immutable'
 import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
@@ -53,8 +52,8 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   defaultProps({
     placeholder: 'Type someone',
-    userItems: List(),
     showAddButton: false,
+    userItems: [],
   }),
   withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),

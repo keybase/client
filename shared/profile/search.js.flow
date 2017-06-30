@@ -24,7 +24,6 @@ export type Props = {
   selectedSearchId: ?SearchResultId,
   selectedService: string,
   showAddButton: boolean,
-  usernameText: string,
   userItems: Array<UserDetails>,
 }
 

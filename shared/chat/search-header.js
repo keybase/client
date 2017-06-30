@@ -64,6 +64,7 @@ const SearchHeader = props => {
         onMoveSelectDown={props.onMoveSelectDown}
         onClearSearch={props.onClearSearch}
         onAddSelectedUser={props.onAddSelectedUser}
+        onEnterEmptyText={props.exitSearch}
       />
       <Box style={{alignSelf: 'center'}}>
         {props.showServiceFilter &&

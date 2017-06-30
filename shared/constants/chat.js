@@ -1071,18 +1071,20 @@ const getFollowingStates = (state: TypedState) => {
 const getUserItems = createShallowEqualSelector(
   [getInboxSearch, getFollowingStates],
   (inboxSearch, followingStates) =>
-    inboxSearch.map(id => {
-      const {username, serviceId} = parseUserId(id)
-      const service = SearchConstants.serviceIdToService(serviceId)
-      return {
-        id: id,
-        followingState: followingStates[id],
-        // $FlowIssue ??
-        icon: serviceIdToIcon(serviceId),
-        username,
-        service,
-      }
-    })
+    inboxSearch
+      .map(id => {
+        const {username, serviceId} = parseUserId(id)
+        const service = SearchConstants.serviceIdToService(serviceId)
+        return {
+          id: id,
+          followingState: followingStates[id],
+          // $FlowIssue ??
+          icon: serviceIdToIcon(serviceId),
+          username,
+          service,
+        }
+      })
+      .toArray()
 )
 
 const stateLoggerTransform = (state: State) => ({

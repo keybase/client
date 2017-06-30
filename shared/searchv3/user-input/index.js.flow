@@ -23,6 +23,7 @@ export type Props = {|
   onMoveSelectDown: () => void,
   onClearSearch?: () => void,
   onAddSelectedUser: () => void,
+  onEnterEmptyText?: () => void,
 |}
 
 export default class UserInput extends Component<void, Props, void> {
