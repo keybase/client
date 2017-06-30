@@ -132,7 +132,7 @@ class TabBar extends Component<void, Props, void> {
 
 const underlineStyle = {
   ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.blue,
   height: 2,
   top: undefined,
 }
