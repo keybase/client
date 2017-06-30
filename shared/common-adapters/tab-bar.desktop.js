@@ -313,8 +313,8 @@ const navRealCSS = `
 `
 
 const stylesNavText = {
-  fontSize: 11,
-  marginTop: -2,
+  fontSize: 10,
+  marginTop: -3,
 }
 
 const styleBadgeAvatar = {
