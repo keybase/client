@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
   },
-  onEnter: username => {
+  onAddSelectedUser: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },

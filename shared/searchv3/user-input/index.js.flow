@@ -21,8 +21,8 @@ export type Props = {|
   onClickAddButton: () => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
-  onEnter: () => void,
   onClearSearch?: () => void,
+  onAddSelectedUser: () => void,
 |}
 
 export default class UserInput extends Component<void, Props, void> {

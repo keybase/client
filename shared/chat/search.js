@@ -39,6 +39,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.stageUserForSearch(id))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {
@@ -56,7 +57,7 @@ const SearchHeader = props => {
             onChangeText={props.onChangeText}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
-            onEnter={props.onEnter}
+            onAddSelectedUser={props.onAddSelectedUser}
           />
         </Box>
         <Icon

@@ -84,6 +84,22 @@ func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {
 	return libkb.ImportLinkID(t.GetLatestLinkID())
 }
 
+func (t TeamSigChainState) GetLinkIDBySeqno(seqno keybase1.Seqno) (keybase1.LinkID, error) {
+	l1, ok := t.inner.LinkIDs[seqno]
+	if !ok {
+		return l1, fmt.Errorf("seqno %v not in chain", seqno)
+	}
+	return l1, nil
+}
+
+func (t TeamSigChainState) GetLibkbLinkIDBySeqno(seqno keybase1.Seqno) (l2 libkb.LinkID, err error) {
+	l1, err := t.GetLinkIDBySeqno(seqno)
+	if err != nil {
+		return l2, err
+	}
+	return libkb.ImportLinkID(l1)
+}
+
 func (t TeamSigChainState) GetLatestGeneration() keybase1.PerTeamKeyGeneration {
 	return keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))
 }
@@ -125,7 +141,7 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return
 // a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
-func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret keybase1.SignatureMetadataBookends, err error) {
+func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
@@ -133,8 +149,12 @@ func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keyb
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
 			}
-			ret.Left = point.SigMeta
-			ret.Right = findAdminDowngrade(points[(i + 1):])
+			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta)
+			r := findAdminDowngrade(points[(i + 1):])
+			if r != nil {
+				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r)
+				ret.right = &tmp
+			}
 			return ret, nil
 		}
 	}
@@ -202,12 +222,16 @@ func (t TeamSigChainState) GetPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGene
 }
 
 func (t TeamSigChainState) HasAnyStubbedLinks() bool {
-	for _, v := range t.inner.StubbedTypes {
+	for _, v := range t.inner.StubbedLinks {
 		if v {
 			return true
 		}
 	}
 	return false
+}
+
+func (t TeamSigChainState) HasStubbedSeqno(seqno keybase1.Seqno) bool {
+	return t.inner.StubbedLinks[seqno]
 }
 
 func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamName, error) {
@@ -396,9 +420,10 @@ func (t *TeamSigChainPlayer) addChainLinkCommon(ctx context.Context, prevState *
 
 	newState.inner.LastSeqno = oRes.outerLink.Seqno
 	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
+	newState.inner.LinkIDs[oRes.outerLink.Seqno] = oRes.outerLink.LinkID().Export()
 
 	if stubbed {
-		newState.inner.StubbedTypes[int(oRes.outerLink.LinkType)] = true
+		newState.inner.StubbedLinks[oRes.outerLink.Seqno] = true
 	}
 
 	return *newState, nil
@@ -618,7 +643,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -846,7 +872,8 @@ func (t *TeamSigChainPlayer) addInnerLink(prevState *TeamSigChainState, link SCC
 				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
 				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
 				PerTeamKeys:  perTeamKeys,
-				StubbedTypes: make(map[int]bool),
+				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks: make(map[keybase1.Seqno]bool),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())

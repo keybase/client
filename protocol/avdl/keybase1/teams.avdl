@@ -27,11 +27,6 @@ protocol teams {
     Bytes32 key;
   }
 
-  record SignatureMetadataBookends {
-    SignatureMetadata left;
-    union { null, SignatureMetadata } right;
-  }
-
   @typedef("bytes")
   record MaskB64 {}
 
@@ -156,9 +151,12 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
-    // Set of types that were loaded stubbed-out and whose contents are missing.
-    // Keyed by libkb.SigchainV2Type
-    map<int, boolean> stubbedTypes;
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // Set of links that are stubbed-out and whose contents are missing.
+    // Keyed by seqno
+    map<Seqno, boolean> stubbedLinks;
   }
 
   // A user became this role at a point in time

@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
-  onEnter: id => dispatch(Creators.stageUserForSearch(id)),
+  onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {
@@ -62,8 +62,8 @@ const SearchHeader = props => {
         onChangeText={props.onChangeText}
         onMoveSelectUp={props.onMoveSelectUp}
         onMoveSelectDown={props.onMoveSelectDown}
-        onEnter={props.onEnter}
         onClearSearch={props.onClearSearch}
+        onAddSelectedUser={props.onAddSelectedUser}
       />
       <Box style={{alignSelf: 'center'}}>
         {props.showServiceFilter &&
