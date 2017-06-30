@@ -406,7 +406,7 @@ func (t *TeamSigChainPlayer) appendChainLinkHelper(
 		newState2 := prevState.DeepCopy()
 		newState = &newState2
 	} else {
-		if signer == nil {
+		if signer == nil || !signer.Uid.Exists() {
 			return res, fmt.Errorf("signing user not provided for team link")
 		}
 		iRes, err := t.addInnerLink(prevState, link, *signer, false)
@@ -472,6 +472,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, NewStubbedError(link)
 	}
 	payload := *link.inner
+
+	if !signer.Uid.Exists() {
+		return res, fmt.Errorf("empty link signer: %v", signer)
+	}
 
 	// TODO: this may be superfluous.
 	err = link.AssertInnerOuterMatch()
