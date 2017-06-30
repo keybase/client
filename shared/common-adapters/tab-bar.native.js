@@ -51,7 +51,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           <Badge
             badgeNumber={badgeNumber}
             badgeStyle={{marginRight: -30, marginTop: -20}}
-            outlineColor={globalColors.white}
+            outlineColor={globalColors.darkBlue2}
           />
         </Box>
       )
@@ -77,7 +77,6 @@ const TabBarButton = (props: TabBarButtonProps) => {
           {props.label}
         </Text>}
       {badgeComponent}
-      {props.isNav && props.selected && <Box style={underlineStyle} />}
     </Box>
   )
   if (props.onClick) {
@@ -128,13 +127,6 @@ class TabBar extends Component<void, Props, void> {
       </Box>
     )
   }
-}
-
-const underlineStyle = {
-  ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.blue,
-  height: 2,
-  top: undefined,
 }
 
 const stylesContainer = {
