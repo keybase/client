@@ -14,6 +14,7 @@ import {convertToError} from '../util/errors'
 import * as Saga from '../util/saga'
 import {delay} from 'redux-saga'
 import {call, race} from 'redux-saga/effects'
+import {animationFriendlyDelay} from '../util/idle-callback'
 
 import type {ChannelMap} from '../constants/types/saga'
 
@@ -295,7 +296,7 @@ class Engine {
     // Make a new session and start the request
     const session = this.createSession(incomingCallMap, waitingHandler)
     // Dont make outgoing calls immediately since components can do this when they mount
-    setImmediate(() => {
+    animationFriendlyDelay(() => {
       session.start(method, param, callback)
     })
     return session.id
