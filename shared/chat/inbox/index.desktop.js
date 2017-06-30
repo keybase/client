@@ -122,7 +122,7 @@ const Avatars = ({
   const avatarProps = participants
     .slice(0, 2)
     .map((username, idx) => ({
-      loadingColor: globalColors.blue3_40,
+      loadingColor: globalColors.lightGrey,
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       size: 24,
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,

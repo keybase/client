@@ -14,7 +14,7 @@ const Avatars = ({styles, users, ignored, isPublic}) => {
   const opacity = ignored ? 0.5 : 1
   const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
     borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
-    loadingColor: globalColors.blue3_40,
+    loadingColor: globalColors.lightGrey,
     size: 32,
     username,
   }))

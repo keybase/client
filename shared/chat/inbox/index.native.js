@@ -73,7 +73,7 @@ const Avatars = ({
     .slice(0, 2)
     .map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.blue3_40,
+      loadingColor: globalColors.lightGrey,
       size: 32,
       username,
     }))
