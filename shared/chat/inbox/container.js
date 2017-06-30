@@ -55,10 +55,7 @@ export default compose(
       rows: getRows(state),
     }),
     (dispatch: Dispatch) => ({
-      loadInbox: () => {
-        console.log('aaa')
-        dispatch(loadInbox())
-      },
+      loadInbox: () => dispatch(loadInbox()),
       onNewChat: () => dispatch(newChat([])),
       onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
         dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
