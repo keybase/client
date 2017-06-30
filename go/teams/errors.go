@@ -2,19 +2,50 @@ package teams
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func NewStubbedError(l *chainLinkUnpacked) StubbedError {
-	return StubbedError{l}
+	return StubbedError{l: l, note: nil}
+}
+
+func NewStubbedErrorWithNote(l *chainLinkUnpacked, note string) StubbedError {
+	return StubbedError{l: l, note: &note}
 }
 
 type StubbedError struct {
-	l *chainLinkUnpacked
+	l    *chainLinkUnpacked
+	note *string
 }
 
 func (e StubbedError) Error() string {
-	return fmt.Sprintf("stubbed link when not expected (seqno %d)", int(e.l.outerLink.Seqno))
+	if e.note == nil {
+		return fmt.Sprintf("stubbed link when not expected (seqno %d)", int(e.l.outerLink.Seqno))
+	}
+	return fmt.Sprintf("stubbed link when not expected (seqno %d) (%s)",
+		int(e.l.outerLink.Seqno), *e.note)
+}
+
+func NewInflateError(l *chainLinkUnpacked) InflateError {
+	return InflateError{l: l, note: nil}
+}
+
+func NewInflateErrorWithNote(l *chainLinkUnpacked, note string) InflateError {
+	return InflateError{l: l, note: &note}
+}
+
+type InflateError struct {
+	l    *chainLinkUnpacked
+	note *string
+}
+
+func (e InflateError) Error() string {
+	if e.note == nil {
+		return fmt.Sprintf("error inflating previously-stubbed link (seqno %d)", int(e.l.outerLink.Seqno))
+	}
+	return fmt.Sprintf("error inflating previously-stubbed link (seqno %d) (%s)",
+		int(e.l.outerLink.Seqno), *e.note)
 }
 
 type AdminPermissionError struct {
