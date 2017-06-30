@@ -102,4 +102,23 @@ function followStateHelper(state: TypedState, username: string, service: Service
   return 'NoState'
 }
 
-export {serviceIdToService, followStateHelper}
+function maybeUpgradeSearchResultIdToKeybaseId(
+  searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
+  id: SearchResultId
+): SearchResultId {
+  if (!searchResultMap.get(id)) {
+    console.warn('search result id not found in enitites.', id)
+    return id
+  }
+
+  const searchResult = searchResultMap.get(id).toObject()
+  if (searchResult.leftService === 'Keybase') {
+    return searchResult.leftUsername
+  } else if (searchResult.rightService === 'Keybase') {
+    return searchResult.rightUsername || id
+  }
+
+  return id
+}
+
+export {serviceIdToService, followStateHelper, maybeUpgradeSearchResultIdToKeybaseId}

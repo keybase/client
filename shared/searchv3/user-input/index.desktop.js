@@ -112,7 +112,7 @@ class UserInput extends Component<void, Props, State> {
     } = this.props
     const {isFocused} = this.state
 
-    const showAddButton = !!userItems.length && !usernameText.length
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
       ? globalMargins.xtiny
       : 0
@@ -139,6 +139,7 @@ class UserInput extends Component<void, Props, State> {
               onBlur={this._onBlur}
             />
             {showAddButton &&
+              onClickAddButton &&
               <Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"

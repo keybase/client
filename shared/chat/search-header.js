@@ -97,8 +97,6 @@ export default compose(
   HocHelpers.clearSearchHoc,
   defaultProps({
     placeholder: 'Search for someone',
-    showAddButton: false,
-    onClickAddButton: () => console.log('todo'),
   }),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {
