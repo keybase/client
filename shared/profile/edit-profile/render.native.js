@@ -39,6 +39,7 @@ const EditProfileRender = (props: Props) => (
       onChangeText={bio => props.onBioChange(bio)}
     />
     <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
+    <Button style={styleButton} type="Secondary" fullWidth={true} onClick={props.onSubmit} label="Cancel" />
   </StandardScreen>
 )
 
