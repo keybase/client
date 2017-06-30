@@ -21,7 +21,6 @@ var adminFeatureList = map[keybase1.UID]bool{
 	"b7c2eaddcced7727bcb229751d91e800": true, // Gabriel Handford, "gabrielh"
 	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
 	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
-	"8bc0fd2f5fefd30d3ec04452600f4300": true, // Andy Alness, "alness"
 	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
 	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
 	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
@@ -32,6 +31,10 @@ var adminFeatureList = map[keybase1.UID]bool{
 	"5c2ef2d4eddd2381daa681ac1a901519": true, // Max Goodman, "chromakode"
 	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
 	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+	"743338e8d5987e0e5077f0fddc763f19": true, // Taru Karttunen, "taruti"
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // Michał Zochniak, "zapu"
+	"0cfef3bacae68424de9bec5b7ff58600": true, // Andrey Petrov, "shazow"
+	"b848bce3d54a76e4da323aad2957e819": true, // Surya, "modalduality"
 }
 
 // EnableAdminFeature returns true if admin features should be enabled
