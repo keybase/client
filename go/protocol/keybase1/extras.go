@@ -1230,6 +1230,10 @@ func (ut UserOrTeamID) AsTeamOrBust() TeamID {
 	return tid
 }
 
+func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
+	return strings.Compare(string(ut), string(ut2))
+}
+
 func (ut UserOrTeamID) IsUser() bool {
 	suffix := ut[len(ut)-2:]
 	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX

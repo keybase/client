@@ -2,6 +2,7 @@ package teams
 
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
+	"sort"
 )
 
 func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata) proofTerm {
@@ -49,9 +50,6 @@ func (t proofTerm) min(u proofTerm) proofTerm {
 }
 
 func newProofIndex(a keybase1.UserOrTeamID, b keybase1.UserOrTeamID) proofIndex {
-	if string(a) < string(b) {
-		return proofIndex{a, b}
-	}
 	return proofIndex{b, a}
 }
 
@@ -80,9 +78,48 @@ func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proof
 		if proof.a.lessThanOrEqual(a) && b.lessThanOrEqual(proof.b) {
 			proof.a = proof.a.max(a)
 			proof.b = proof.b.min(b)
+			set[i] = proof
 			return p
 		}
 	}
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b})
 	return p
+}
+
+func (p *proofSetT) AllProofs() []proof {
+	var ret []proof
+	for _, v := range p.proofs {
+		for _, p := range v {
+			ret = append(ret, p)
+		}
+	}
+	sort.Slice(ret, func(i, j int) bool {
+		cmp := ret[i].a.leafID.Compare(ret[j].a.leafID)
+		if cmp < 0 {
+			return true
+		}
+		if cmp > 0 {
+			return false
+		}
+		cmp = ret[i].b.leafID.Compare(ret[j].b.leafID)
+		if cmp < 0 {
+			return true
+		}
+		if cmp > 0 {
+			return false
+		}
+		cs := ret[i].a.sigMeta.SigChainLocation.Seqno - ret[j].a.sigMeta.SigChainLocation.Seqno
+		if cs < 0 {
+			return true
+		}
+		if cs > 0 {
+			return false
+		}
+		cs = ret[i].b.sigMeta.SigChainLocation.Seqno - ret[i].b.sigMeta.SigChainLocation.Seqno
+		if cs < 0 {
+			return true
+		}
+		return false
+	})
+	return ret
 }
