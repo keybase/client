@@ -608,9 +608,15 @@ type backpressureDiskLimiter struct {
 	// diskCacheByteTracker, including the (implicit) maximum
 	// values of the semaphores, but not the actual semaphores
 	// themselves.
-	lock                 sync.RWMutex
-	journalTracker       journalTracker
+	lock sync.RWMutex
+	// overallTracker tracks the overall number of bytes used by Keybase.
+	overallTracker *backpressureTracker
+	// journalTracker tracks the journal bytes and files used.
+	journalTracker journalTracker
+	// diskCacheByteTracker tracks the disk cache bytes used.
 	diskCacheByteTracker *backpressureTracker
+	// syncCacheByteTracker tracks the sync cache bytes used.
+	syncCacheByteTracker *backpressureTracker
 }
 
 var _ DiskLimiter = (*backpressureDiskLimiter)(nil)
@@ -738,15 +744,28 @@ func newBackpressureDiskLimiter(
 	}
 
 	// byteLimit must be scaled by the proportion of the limit
-	// that the disk journal should consume. Add 0.5 to round up.
-	diskCacheByteLimit := int64((float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
+	// that the disk cache should consume. Add 0.5 for rounding.
+	diskCacheByteLimit := int64(
+		(float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
+	overallTracker, err := newBackpressureTracker(
+		1.0, 1.0, 1.0, params.byteLimit, freeBytes)
 	diskCacheByteTracker, err := newBackpressureTracker(
+		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
+	// For now, treat the sync cache the same as the disk cache.
+	syncCacheByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
 
 	bdl := &backpressureDiskLimiter{
-		log, params.maxDelay, params.delayFn,
-		params.freeBytesAndFilesFn, params.quotaFn, sync.RWMutex{},
-		journalTracker, diskCacheByteTracker,
+		log:                  log,
+		maxDelay:             params.maxDelay,
+		delayFn:              params.delayFn,
+		freeBytesAndFilesFn:  params.freeBytesAndFilesFn,
+		quotaFn:              params.quotaFn,
+		lock:                 sync.RWMutex{},
+		overallTracker:       overallTracker,
+		journalTracker:       journalTracker,
+		diskCacheByteTracker: diskCacheByteTracker,
+		syncCacheByteTracker: syncCacheByteTracker,
 	}
 	return bdl, nil
 }
