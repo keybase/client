@@ -23,7 +23,7 @@ const participants = ['chris', 'chrisnojima', 'oconnor663', 'cjb']
 const messages = [
   {
     type: 'Text',
-    message: new HiddenString('one'),
+    message: new HiddenString('one TEMP FOR VISDIFF'),
     author: 'chris',
     timestamp: now - 1000 * 100,
     messageID: 1,
