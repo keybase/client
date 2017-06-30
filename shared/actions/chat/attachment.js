@@ -6,7 +6,7 @@ import * as Creators from './creators'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Shared from './shared'
-import {call, take, put, select, cancel, fork, join, spawn, race} from 'redux-saga/effects'
+import {call, take, put, select, cancel, spawn} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
@@ -240,6 +240,65 @@ function* _appendAttachmentPlaceholder(
   return message
 }
 
+function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
+  return function*({bytesComplete, bytesTotal}) {
+    const curKey = yield call(getCurKey)
+    if (curKey) {
+      yield put(Creators.uploadProgress(curKey, bytesComplete / bytesTotal))
+    }
+    return EngineRpc.rpcResult()
+  }
+}
+
+function uploadOutboxIDSubSaga(
+  conversationIDKey: Constants.ConversationIDKey,
+  preview: boolean,
+  title: string,
+  filename: string,
+  setCurKey: (key: Constants.MessageKey) => void,
+  setOutboxId: Function
+) {
+  return function*({outboxID}) {
+    const outboxIDKey = Constants.outboxIDToKey(outboxID)
+    const placeholderMessage = yield call(
+      _appendAttachmentPlaceholder,
+      conversationIDKey,
+      outboxIDKey,
+      preview,
+      title,
+      filename
+    )
+    yield call(setCurKey, placeholderMessage.key)
+    yield call(setOutboxId, outboxIDKey)
+    return EngineRpc.rpcResult()
+  }
+}
+
+// Hacky since curKey can change on us
+const postAttachmentSagaMap = (
+  conversationIDKey: Constants.ConversationIDKey,
+  preview: boolean,
+  title: string,
+  filename: string,
+  getCurKey: () => ?Constants.MessageKey,
+  setCurKey: (key: Constants.MessageKey) => void,
+  setOutboxId: Function
+) => ({
+  'chat.1.chatUi.chatAttachmentUploadOutboxID': uploadOutboxIDSubSaga(
+    conversationIDKey,
+    preview,
+    title,
+    filename,
+    setCurKey,
+    setOutboxId
+  ),
+  'chat.1.chatUi.chatAttachmentUploadStart': EngineRpc.passthroughResponseSaga,
+  'chat.1.chatUi.chatAttachmentPreviewUploadStart': EngineRpc.passthroughResponseSaga,
+  'chat.1.chatUi.chatAttachmentUploadProgress': uploadProgressSubSaga(getCurKey),
+  'chat.1.chatUi.chatAttachmentUploadDone': EngineRpc.passthroughResponseSaga,
+  'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
+})
+
 function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
@@ -270,89 +329,56 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
   }
 
-  const channelConfig = Saga.singleFixedChannelConfig([
-    'chat.1.chatUi.chatAttachmentUploadOutboxID',
-    'chat.1.chatUi.chatAttachmentUploadStart',
-    'chat.1.chatUi.chatAttachmentPreviewUploadStart',
-    'chat.1.chatUi.chatAttachmentUploadProgress',
-    'chat.1.chatUi.chatAttachmentUploadDone',
-    'chat.1.chatUi.chatAttachmentPreviewUploadDone',
-    'finished',
-  ])
+  // TODO This is really hacky, should get reworked
+  let curKey: ?Constants.MessageKey = null
+  let outboxID = null
 
-  const channelMap = (yield call(ChatTypes.localPostFileAttachmentLocalRpcChannelMapOld, channelConfig, {
-    param,
-  }): any)
-  const outboxIDResp = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadOutboxID')
-  const {outboxID} = outboxIDResp.params
-  const outboxIDKey = Constants.outboxIDToKey(outboxID)
-  const placeholderMessage = yield call(
-    _appendAttachmentPlaceholder,
-    conversationIDKey,
-    outboxIDKey,
-    preview,
-    title,
-    filename
+  const getCurKey = () => curKey
+  const getOutboxIdKey = () => outboxID
+
+  const setCurKey = nextCurKey => {
+    curKey = nextCurKey
+  }
+  const setOutboxIdKey = nextOutboxID => (outboxID = nextOutboxID)
+
+  const postAttachment = new EngineRpc.EngineRpcCall(
+    postAttachmentSagaMap(conversationIDKey, preview, title, filename, getCurKey, setCurKey, setOutboxIdKey),
+    ChatTypes.localPostFileAttachmentLocalRpcChannelMap,
+    `localPostFileAttachmentLocal-${conversationIDKey}-${title}-${filename}`,
+    {param}
   )
-  outboxIDResp.response.result()
 
-  const progressTask = yield fork(function*() {
-    // When we receive the attachment placeholder message from the server, the
-    // local message key basis will change from the outboxID to the messageID.
-    // We need to watch for this so that the uploadProgress gets set on the
-    // right message key.
-    let curKey = placeholderMessage.key
-    while (true) {
-      const {progress, keyChanged, finished} = yield race({
-        progress: Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadProgress'),
-        finished: Saga.takeFromChannelMap(channelMap, 'finished'),
-        keyChanged: take(
-          action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === curKey
-        ),
-      })
-      if (keyChanged) {
-        curKey = keyChanged.payload.newMessageKey
-      } else if (progress) {
-        const {bytesComplete, bytesTotal} = progress.params
-        yield put(Creators.uploadProgress(curKey, bytesComplete / bytesTotal))
-      } else if (finished) {
-        if (finished.error) {
-          yield put(
-            Creators.updateTempMessage(
-              conversationIDKey,
-              {
-                messageState: 'failed',
-                failureDescription: 'upload unsuccessful',
-              },
-              outboxIDKey
-            )
-          )
-        }
-        yield put(Creators.uploadProgress(curKey, null))
-        yield cancel()
-      }
+  const keyChangedTask = yield Saga.safeTakeEvery(
+    action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === getCurKey(),
+    function*(action) {
+      curKey = action.payload.newMessageKey
     }
-  })
-
-  const uploadStart = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadStart')
-  uploadStart.response.result()
-
-  const previewUploadStart = yield Saga.takeFromChannelMap(
-    channelMap,
-    'chat.1.chatUi.chatAttachmentPreviewUploadStart'
   )
-  previewUploadStart.response.result()
-  const previewUploadDone = yield Saga.takeFromChannelMap(
-    channelMap,
-    'chat.1.chatUi.chatAttachmentPreviewUploadDone'
-  )
-  previewUploadDone.response.result()
-  const uploadDone = yield Saga.takeFromChannelMap(channelMap, 'chat.1.chatUi.chatAttachmentUploadDone')
-  uploadDone.response.result()
 
-  yield join(progressTask)
-  Saga.closeChannelMap(channelMap)
-  // The message is updated when uploading finishes via an incoming attachmentuploaded message.
+  try {
+    const result = yield call(postAttachment.run)
+    if (EngineRpc.isFinished(result)) {
+      if (result.error) {
+        const outboxIDKey = yield call(getOutboxIdKey)
+        yield put(
+          Creators.updateTempMessage(
+            conversationIDKey,
+            {
+              messageState: 'failed',
+              failureDescription: 'upload unsuccessful',
+            },
+            outboxIDKey
+          )
+        )
+      }
+      const curKey = yield call(getCurKey)
+      yield put(Creators.uploadProgress(curKey, null))
+    } else {
+      console.warn('Upload Attachment Failed')
+    }
+  } finally {
+    yield cancel(keyChangedTask)
+  }
 }
 
 function* onRetryAttachment({
