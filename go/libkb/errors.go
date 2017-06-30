@@ -1090,6 +1090,7 @@ const (
 	merkleErrorSkipHashMismatch
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
+	merkleErrorHashMeta
 )
 
 type MerkleClientError struct {
