@@ -2071,9 +2071,73 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 }
 
 func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConversationLocalArg) (res chat1.JoinLeaveConversationLocalRes, err error) {
-	return res, errors.New("not implemented")
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversation(%s)",
+		arg.TopicName))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
+	// List all the conversations on the team
+	teamConvs, err := h.remoteClient().GetTeamConversations(ctx, chat1.GetTeamConversationsArg{
+		TeamID:           arg.TeamID,
+		TopicType:        arg.TopicType,
+		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
+	})
+	if err != nil {
+		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
+		return res, err
+	}
+
+	// Localize the conversations so we can find the conversation ID
+	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
+		ConvsUnverified: teamConvs.Conversations,
+	})
+	if err != nil {
+		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
+		return res, err
+	}
+
+	var convID chat1.ConversationID
+	for _, conv := range teamConvsLocal {
+		topicName := utils.GetTopicName(conv)
+		if topicName != "" && topicName == arg.TopicName {
+			convID = conv.GetConvID()
+		}
+	}
+	if convID.IsNil() {
+		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
+	}
+
+	if err := h.remoteClient().JoinConversation(ctx, convID); err != nil {
+		h.Debug(ctx, "JoinConversationLocal: failed to join conversation: %s", err.Error())
+		return res, err
+	}
+
+	return chat1.JoinLeaveConversationLocalRes{
+		Offline: h.G().Syncer.IsConnected(ctx),
+	}, nil
 }
 
 func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
-	return res, errors.New("not implemented")
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("LeaveConversation(%s)", convID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
+	if err := h.remoteClient().LeaveConversation(ctx, convID); err != nil {
+		h.Debug(ctx, "LeaveConversationLocal: failed to leave conversation: %s", err.Error())
+		return res, err
+	}
+
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
 }

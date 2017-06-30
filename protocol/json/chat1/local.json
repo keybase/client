@@ -2452,6 +2452,10 @@
           "type": "TLFID"
         },
         {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
           "name": "topicName",
           "type": "string"
         }

@@ -442,3 +442,14 @@ func (c ByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ByConvID) Less(i, j int) bool {
 	return c[i].Less(c[j])
 }
+
+func GetTopicName(conv chat1.ConversationLocal) string {
+	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
+	if err != nil {
+		return ""
+	}
+	if !maxTopicMsg.IsValid() {
+		return ""
+	}
+	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
+}

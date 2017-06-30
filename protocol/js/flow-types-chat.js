@@ -730,33 +730,33 @@ export function remoteGetUnreadUpdateFullRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.GetUnreadUpdateFull', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function remoteJoinConversationRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>) {
+export function remoteJoinConversationRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteJoinConversationResult) => void} & {param: remoteJoinConversationRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.joinConversation', request)
 }
 
-export function remoteJoinConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): EngineChannel {
+export function remoteJoinConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteJoinConversationResult) => void} & {param: remoteJoinConversationRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.joinConversation', request)
 }
-export function remoteJoinConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): ChannelMap<*> {
+export function remoteJoinConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteJoinConversationResult) => void} & {param: remoteJoinConversationRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.joinConversation', request, callback, incomingCallMap) })
 }
 
-export function remoteJoinConversationRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteJoinConversationRpcParam}>): Promise<void> {
+export function remoteJoinConversationRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteJoinConversationResult) => void} & {param: remoteJoinConversationRpcParam}>): Promise<remoteJoinConversationResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.joinConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function remoteLeaveConversationRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>) {
+export function remoteLeaveConversationRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteLeaveConversationResult) => void} & {param: remoteLeaveConversationRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.leaveConversation', request)
 }
 
-export function remoteLeaveConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): EngineChannel {
+export function remoteLeaveConversationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteLeaveConversationResult) => void} & {param: remoteLeaveConversationRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.leaveConversation', request)
 }
-export function remoteLeaveConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): ChannelMap<*> {
+export function remoteLeaveConversationRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteLeaveConversationResult) => void} & {param: remoteLeaveConversationRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.leaveConversation', request, callback, incomingCallMap) })
 }
 
-export function remoteLeaveConversationRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteLeaveConversationRpcParam}>): Promise<void> {
+export function remoteLeaveConversationRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteLeaveConversationResult) => void} & {param: remoteLeaveConversationRpcParam}>): Promise<remoteLeaveConversationResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.leaveConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -1432,6 +1432,10 @@ export type JoinLeaveConversationLocalRes = {
   rateLimits?: ?Array<RateLimit>,
 }
 
+export type JoinLeaveConversationRemoteRes = {
+  rateLimit?: ?RateLimit,
+}
+
 export type LocalFileSource = {
   filename: string,
 }
@@ -2082,6 +2086,7 @@ export type localGetThreadNonblockRpcParam = Exact<{
 
 export type localJoinConversationLocalRpcParam = Exact<{
   teamID: TLFID,
+  topicType: TopicType,
   topicName: string
 }>
 
@@ -2347,6 +2352,8 @@ type remoteGetS3ParamsResult = S3Params
 type remoteGetTeamConversationsResult = GetTeamConversationsRes
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 type remoteGetUnreadUpdateFullResult = UnreadUpdateFull
+type remoteJoinConversationResult = JoinLeaveConversationRemoteRes
+type remoteLeaveConversationResult = JoinLeaveConversationRemoteRes
 type remoteMarkAsReadResult = MarkAsReadRes
 type remoteNewConversationRemote2Result = NewConversationRemoteRes
 type remoteNewConversationRemoteResult = NewConversationRemoteRes

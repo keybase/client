@@ -649,7 +649,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  JoinLeaveConversationLocalRes joinConversationLocal(TLFID teamID, string topicName);
+  JoinLeaveConversationLocalRes joinConversationLocal(TLFID teamID, TopicType topicType, string topicName);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
 
 }

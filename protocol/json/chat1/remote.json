@@ -441,6 +441,19 @@
     },
     {
       "type": "record",
+      "name": "JoinLeaveConversationRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTeamConversationsRes",
       "fields": [
         {
@@ -805,7 +818,7 @@
           "type": "ConversationID"
         }
       ],
-      "response": null
+      "response": "JoinLeaveConversationRemoteRes"
     },
     "leaveConversation": {
       "request": [
@@ -814,7 +827,7 @@
           "type": "ConversationID"
         }
       ],
-      "response": null
+      "response": "JoinLeaveConversationRemoteRes"
     },
     "getTeamConversations": {
       "request": [

@@ -3427,13 +3427,15 @@ func (o UpdateTypingArg) DeepCopy() UpdateTypingArg {
 }
 
 type JoinConversationLocalArg struct {
-	TeamID    TLFID  `codec:"teamID" json:"teamID"`
-	TopicName string `codec:"topicName" json:"topicName"`
+	TeamID    TLFID     `codec:"teamID" json:"teamID"`
+	TopicType TopicType `codec:"topicType" json:"topicType"`
+	TopicName string    `codec:"topicName" json:"topicName"`
 }
 
 func (o JoinConversationLocalArg) DeepCopy() JoinConversationLocalArg {
 	return JoinConversationLocalArg{
 		TeamID:    o.TeamID.DeepCopy(),
+		TopicType: o.TopicType.DeepCopy(),
 		TopicName: o.TopicName,
 	}
 }

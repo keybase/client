@@ -214,8 +214,11 @@ protocol remote {
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
 
   // Channel endpoints
-  void joinConversation(ConversationID convID);
-  void leaveConversation(ConversationID convID);
+  record JoinLeaveConversationRemoteRes {
+    union { null, RateLimit } rateLimit; 
+  }
+  JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
+  JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
 
   record GetTeamConversationsRes {
     array<Conversation> conversations; 

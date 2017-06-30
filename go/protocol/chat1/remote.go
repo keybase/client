@@ -585,6 +585,22 @@ func (o SyncAllResult) DeepCopy() SyncAllResult {
 	}
 }
 
+type JoinLeaveConversationRemoteRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o JoinLeaveConversationRemoteRes) DeepCopy() JoinLeaveConversationRemoteRes {
+	return JoinLeaveConversationRemoteRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetTeamConversationsRes struct {
 	Conversations []Conversation `codec:"conversations" json:"conversations"`
 	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
@@ -988,8 +1004,8 @@ type RemoteInterface interface {
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
-	JoinConversation(context.Context, ConversationID) error
-	LeaveConversation(context.Context, ConversationID) error
+	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
+	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	GetTeamConversations(context.Context, GetTeamConversationsArg) (GetTeamConversationsRes, error)
 }
 
@@ -1344,7 +1360,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]JoinConversationArg)(nil), args)
 						return
 					}
-					err = i.JoinConversation(ctx, (*typedArgs)[0].ConvID)
+					ret, err = i.JoinConversation(ctx, (*typedArgs)[0].ConvID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1360,7 +1376,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LeaveConversationArg)(nil), args)
 						return
 					}
-					err = i.LeaveConversation(ctx, (*typedArgs)[0].ConvID)
+					ret, err = i.LeaveConversation(ctx, (*typedArgs)[0].ConvID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1500,15 +1516,15 @@ func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTyping
 	return
 }
 
-func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (err error) {
+func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := JoinConversationArg{ConvID: convID}
-	err = c.Cli.Call(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (err error) {
+func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := LeaveConversationArg{ConvID: convID}
-	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res)
 	return
 }
 
