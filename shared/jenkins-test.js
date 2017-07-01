@@ -9,7 +9,9 @@ var againstMaster
 
 var defaultExecSyncOptions = {encoding: 'utf8', stdio: 'inherit'}
 
-if (!process.argv[4] || process.argv[4] === 'master') {
+console.log('argv', process.argv, process.argv[4], typeof process.argv[4])
+
+if (!process.argv[4]) {
   againstMaster = true
 } else {
   againstMaster = false
