@@ -32,6 +32,7 @@ function execAndLog(cmd, options) {
     console.log('Error running: ' + cmd + err.output, err)
     throw err
   }
+  console.log('output:', temp)
   return temp
 }
 
