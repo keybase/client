@@ -2092,6 +2092,9 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
 		return res, err
 	}
+	if teamConvs.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *teamConvs.RateLimit)
+	}
 
 	// Localize the conversations so we can find the conversation ID
 	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
@@ -2113,14 +2116,18 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	if err := h.remoteClient().JoinConversation(ctx, convID); err != nil {
+	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
+	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to join conversation: %s", err.Error())
 		return res, err
 	}
+	if joinRes.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *joinRes.RateLimit)
+	}
 
-	return chat1.JoinLeaveConversationLocalRes{
-		Offline: h.G().Syncer.IsConnected(ctx),
-	}, nil
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
 }
 
 func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2133,11 +2140,16 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		return res, err
 	}
 
-	if err := h.remoteClient().LeaveConversation(ctx, convID); err != nil {
+	leaveRes, err := h.remoteClient().LeaveConversation(ctx, convID)
+	if err != nil {
 		h.Debug(ctx, "LeaveConversationLocal: failed to leave conversation: %s", err.Error())
 		return res, err
 	}
+	if leaveRes.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *leaveRes.RateLimit)
+	}
 
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil
 }
