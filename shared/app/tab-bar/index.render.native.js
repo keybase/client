@@ -37,9 +37,7 @@ const tabBarHeight = 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.white,
-  borderTopColor: globalColors.black_10,
-  borderTopWidth: 1,
+  backgroundColor: globalColors.darkBlue2,
   height: tabBarHeight,
   justifyContent: 'flex-start',
 }
