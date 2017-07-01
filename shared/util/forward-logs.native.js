@@ -1,10 +1,11 @@
 // @flow
+import {noop} from 'lodash'
 import logger from './logger'
 import {forwardLogs} from '../local-debug'
 
 let forwarded = false
 
-const localLog = window.console.log.bind(window.console)
+const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
@@ -18,22 +19,30 @@ function setupSource() {
   }
   forwarded = true
 
-  window.console.log = (...args) => {
-    if (__DEV__) {
-      localLog(...args)
+  const makeOverride = method => {
+    return function(a1, a2, a3, a4, a5) {
+      if (arguments.length === 1) {
+        localLog(a1)
+        logger[method](a1)
+      } else if (arguments.length === 2) {
+        localLog(a1, a2)
+        logger[method](a1, a2)
+      } else if (arguments.length === 3) {
+        localLog(a1, a2, a3)
+        logger[method](a1, a2, a3)
+      } else if (arguments.length === 4) {
+        localLog(a1, a2, a3, a4)
+        logger[method](a1, a2, a3, a4)
+      } else if (arguments.length === 5) {
+        localLog(a1, a2, a3, a4, a5)
+        logger[method](a1, a2, a3, a4, a5)
+      }
     }
-    logger.info(...args)
   }
 
-  window.console.warn = (...args) => {
-    localWarn(...args)
-    logger.warn(...args)
-  }
-
-  window.console.error = (...args) => {
-    localError(...args)
-    logger.error(...args)
-  }
+  window.console.log = makeOverride('info')
+  window.console.warn = makeOverride('warn')
+  window.console.error = makeOverride('error')
 }
 
 export {setupSource, localLog, localWarn, localError}

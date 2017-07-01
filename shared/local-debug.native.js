@@ -8,6 +8,9 @@ import {updateDebugConfig} from './actions/dev'
 
 const nativeBridge = NativeModules.KeybaseEngine
 
+// Set this to true if you want to turn off most console logging so you can profile easier
+const PERF = false
+
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   clickableVisible: false,
@@ -50,6 +53,34 @@ if (__DEV__ && true) {
   config.reduxSagaLogger = true
   config.reduxSagaLoggerMasked = false
   config.showAllTrackers = false
+}
+
+if (PERF) {
+  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\n\n\n')
+  config = {
+    actionStatFrequency: 0,
+    clickableVisible: false,
+    dumbChatOnly: false,
+    dumbSheetOnly: false,
+    enableActionLogging: false,
+    enableStoreLogging: false,
+    featureFlagsOverride: null,
+    forceImmediateLogging: false,
+    forwardLogs: false,
+    isDevApplePushToken: false,
+    isTesting: false,
+    immediateStateLogging: false,
+    logStatFrequency: 0,
+    overrideLoggedInTab: null,
+    printOutstandingRPCs: false,
+    printRPC: false,
+    printRoutes: false,
+    reactPerf: false,
+    reduxSagaLogger: false,
+    reduxSagaLoggerMasked: false,
+    redirectOnLogout: false,
+    showAllTrackers: false,
+  }
 }
 
 export const {
