@@ -69,4 +69,4 @@ export default compose(
       })
     },
   })
-)(ConversationList)
+)(Inbox)
