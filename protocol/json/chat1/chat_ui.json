@@ -12,10 +12,6 @@
         {
           "name": "outboxID",
           "type": "OutboxID"
-        },
-        {
-          "name": "nojima",
-          "type": "int"
         }
       ],
       "response": null

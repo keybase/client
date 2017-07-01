@@ -1882,8 +1882,7 @@ export type chatUiChatAttachmentPreviewUploadStartRpcParam = Exact<{
 }>
 
 export type chatUiChatAttachmentUploadOutboxIDRpcParam = Exact<{
-  outboxID: OutboxID,
-  nojima: int
+  outboxID: OutboxID
 }>
 
 export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
@@ -2299,8 +2298,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadOutboxID'?: (
     params: Exact<{
       sessionID: int,
-      outboxID: OutboxID,
-      nojima: int
+      outboxID: OutboxID
     }>,
     response: CommonResponseHandler
   ) => void,

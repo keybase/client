@@ -9,8 +9,6 @@ var againstMaster
 
 var defaultExecSyncOptions = {encoding: 'utf8'}
 
-console.log('argv', process.argv, process.argv[4], typeof process.argv[4])
-
 if (!process.argv[4]) {
   againstMaster = true
 } else {
@@ -37,7 +35,6 @@ function execAndLog(cmd, options) {
 }
 
 function has_js_files(extra_commands) {
-  console.log('aaa', againstMaster, changeBase, commitHash, extra_commands)
   if (againstMaster) {
     console.log('Missing changeTarget, forcing has_js_files to true')
     return

@@ -16,24 +16,24 @@ helpers.rootLinuxNode(env, {
             [$class: 'RebuildSettings',
                 autoRebuild: true,
             ],
-            //[$class: "ParametersDefinitionProperty",
-            //    parameterDefinitions: [
-            //        [$class: 'StringParameterDefinition',
-            //            name: 'gregorProjectName',
-            //            defaultValue: '',
-            //            description: 'name of upstream gregor project',
-            //        ]
-            //    ]
-            //],
-            //[$class: "ParametersDefinitionProperty",
-            //    parameterDefinitions: [
-            //        [$class: 'StringParameterDefinition',
-            //            name: 'kbwebProjectName',
-            //            defaultValue: '',
-            //            description: 'name of upstream kbweb project',
-            //        ]
-            //    ]
-            //],
+            [$class: "ParametersDefinitionProperty",
+               parameterDefinitions: [
+                   [$class: 'StringParameterDefinition',
+                       name: 'gregorProjectName',
+                       defaultValue: '',
+                       description: 'name of upstream gregor project',
+                   ]
+               ]
+            ],
+            [$class: "ParametersDefinitionProperty",
+               parameterDefinitions: [
+                   [$class: 'StringParameterDefinition',
+                       name: 'kbwebProjectName',
+                       defaultValue: '',
+                       description: 'name of upstream kbweb project',
+                   ]
+               ]
+            ],
     ])
 
     env.BASEDIR=pwd()
@@ -95,7 +95,7 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = false
+        def hasGoChanges = hasChanges('go')
         def hasJSChanges = hasChanges('shared')
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
@@ -106,14 +106,14 @@ helpers.rootLinuxNode(env, {
                     test_linux_deps: {
                         if (hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
-                            // dir('go') {
-                                // sh "go install github.com/keybase/client/go/keybase"
-                                // sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                // clientImage = docker.build("keybaseprivate/kbclient")
-                                // sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                // archive("kbclient.tar.gz")
-                                // sh "rm kbclient.tar.gz"
-                            // }
+                            dir('go') {
+                                sh "go install github.com/keybase/client/go/keybase"
+                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                clientImage = docker.build("keybaseprivate/kbclient")
+                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                archive("kbclient.tar.gz")
+                                sh "rm kbclient.tar.gz"
+                            }
                         }
                         parallel (
                             test_linux: {
@@ -176,19 +176,19 @@ helpers.rootLinuxNode(env, {
                             },
                             test_kbfs: {
                                 if (hasGoChanges) {
-                                    // build([
-                                        // job: "/kbfs/master",
-                                        // parameters: [
-                                            // string(
-                                                // name: 'clientProjectName',
-                                                // value: env.JOB_NAME,
-                                            // ),
-                                            // string(
-                                                // name: 'kbwebNodePrivateIP',
-                                                // value: kbwebNodePrivateIP,
-                                            // ),
-                                        // ]
-                                    // ])
+                                    build([
+                                        job: "/kbfs/master",
+                                        parameters: [
+                                            string(
+                                                name: 'clientProjectName',
+                                                value: env.JOB_NAME,
+                                            ),
+                                            string(
+                                                name: 'kbwebNodePrivateIP',
+                                                value: kbwebNodePrivateIP,
+                                            ),
+                                        ]
+                                    ])
                                 }
                             },
                         )
