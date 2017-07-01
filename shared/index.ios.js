@@ -1,6 +1,6 @@
 // @flow
 // React-native tooling assumes this file is here, so we just require our real entry point
-import './globals.native'
+import './app/globals.native'
 
 // Load storybook or the app
 if (__STORYBOOK__) {
