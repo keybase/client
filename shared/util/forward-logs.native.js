@@ -1,10 +1,11 @@
 // @flow
+import {noop} from 'lodash'
 import logger from './logger'
 import {forwardLogs} from '../local-debug'
 
 let forwarded = false
 
-const localLog = __DEV__ ? window.console.log.bind(window.console) : function () {}
+const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
