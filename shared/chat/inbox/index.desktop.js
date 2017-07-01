@@ -45,7 +45,7 @@ class NewConversation extends PureComponent<void, {}, void> {
       <div
         style={{
           ...globalStyles.flexBoxRow,
-          backgroundColor: globalColors.white,
+          backgroundColor: globalColors.blue,
           alignItems: 'center',
           flexShrink: 0,
           minHeight: 48,
@@ -58,17 +58,28 @@ class NewConversation extends PureComponent<void, {}, void> {
             alignItems: 'center',
           }}
         >
-          <Icon
-            type="iconfont-add"
+          <div
             style={{
-              color: globalColors.lightGrey2,
-              backgroundColor: globalColors.white,
-              fontSize: 32,
+              borderRadius: globalMargins.large,
+              padding: globalMargins.tiny,
+              width: globalMargins.large,
+              height: globalMargins.large,
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
               marginLeft: globalMargins.tiny,
               marginRight: globalMargins.tiny,
             }}
-          />
-          <Text style={{color: globalColors.black_75}} type="BodyBigLink">New Conversation</Text>
+          >
+            <Icon
+              type="iconfont-people"
+              style={{
+                color: globalColors.blue,
+                fontSize: 24,
+                marginLeft: 1,
+                marginTop: 1,
+              }}
+            />
+          </div>
+          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
         </div>
       </div>
     )
@@ -104,7 +115,7 @@ const Avatars = ({
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
+        type={isSelected ? 'icon-addon-lock-active-8' : 'icon-addon-lock-8'}
         style={avatarLockIconStyle}
       />
     )
@@ -113,7 +124,7 @@ const Avatars = ({
   const avatarProps = participants
     .slice(0, 2)
     .map((username, idx) => ({
-      loadingColor: globalColors.blue3_40,
+      loadingColor: globalColors.lightGrey,
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
       size: 24,
       opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
@@ -129,10 +140,10 @@ const Avatars = ({
         flex: 1,
         justifyContent: 'flex-start',
         maxWidth: 48,
-        paddingLeft: 4,
+        paddingLeft: globalMargins.tiny,
       }}
     >
-      <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+      <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} />
       {icon}
     </div>
   )
@@ -251,7 +262,7 @@ const _Row = (props: RowProps) => {
   return (
     <div
       onClick={() => props.onSelectConversation(props.conversationIDKey)}
-      style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}
+      style={{...rowContainerStyle, backgroundColor: props.backgroundColor, marginRight: props.marginRight}}
       title={`${props.unreadCount} unread`}
     >
       <Avatars
@@ -267,7 +278,6 @@ const _Row = (props: RowProps) => {
         style={{
           ...globalStyles.flexBoxColumn,
           ...conversationRowStyle,
-          borderBottom: !props.isSelected ? `solid 1px ${globalColors.black_10}` : 'solid 1px transparent',
         }}
       >
         <TopLine
@@ -292,7 +302,7 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-class ConversationList extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<void, Props, void> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {
@@ -359,7 +369,7 @@ const unreadDotStyle = {
 
 const avatarMutedIconStyle = {
   marginLeft: -globalMargins.small,
-  marginTop: 20,
+  marginTop: 32,
   zIndex: 1,
 }
 
@@ -373,13 +383,16 @@ const conversationRowStyle = {
   flex: 1,
   justifyContent: 'center',
   paddingRight: 8,
+  paddingLeft: 8,
 }
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue4,
+  backgroundColor: globalColors.white,
+  boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
   flex: 1,
-  maxWidth: 240,
+  maxWidth: 241,
+  minWidth: 241,
 }
 
 const scrollableStyle = {
@@ -399,8 +412,8 @@ const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  maxHeight: 48,
-  minHeight: 48,
+  maxHeight: 56,
+  minHeight: 56,
 }
 
-export default ConversationList
+export default Inbox

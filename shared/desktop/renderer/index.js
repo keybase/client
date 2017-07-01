@@ -3,7 +3,7 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
-import Main from '../../main.desktop'
+import Main from '../../app/main.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -14,7 +14,7 @@ import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
-import routeDefs from '../../routes'
+import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
@@ -198,11 +198,11 @@ function setupHMR(store) {
   }
 
   module.hot &&
-    module.hot.accept(['../../main.desktop', '../../routes'], () => {
-      store.dispatch(setRouteDef(require('../../routes').default))
+    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
+      store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
         store.dispatch({type: updateReloading, payload: {reloading: true}})
-        const NewMain = require('../../main.desktop').default
+        const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
         if (resetEngineOnHMR) {
           engine().reset()

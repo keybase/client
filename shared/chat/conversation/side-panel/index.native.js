@@ -10,7 +10,7 @@ import {
   HeaderHoc,
   NativeScrollView,
 } from '../../../common-adapters/index.native'
-import {globalMargins, globalStyles} from '../../../styles'
+import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'
 
 import type {Props} from '.'
@@ -37,7 +37,10 @@ const _Contents = (props: Props) => (
         onCheck={checked => props.onMuteConversation(checked)}
         label="Mute notifications"
       />
-      <Icon type="icon-shh-active-16" style={{marginLeft: globalMargins.tiny}} />
+      <Icon
+        type="iconfont-shh"
+        style={{marginLeft: globalMargins.tiny, fontSize: 24, color: globalColors.black_20}}
+      />
     </Box>
 
     <Box style={globalStyles.flexBoxRow}>

@@ -10,6 +10,8 @@ import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
+// TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
+
 class TabBarItem extends Component<void, ItemProps, void> {
   render() {
     return this.props.children
@@ -55,6 +57,17 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
+const HighlightLine = () => (
+  <Box
+    style={{
+      ...globalStyles.fillAbsolute,
+      backgroundColor: globalColors.white,
+      right: undefined,
+      width: 2,
+    }}
+  />
+)
+
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   shouldComponentUpdate(nextProps: TabBarButtonProps, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -79,42 +92,41 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
       <Box
-        style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}}
+        className={'nav-item-avatar' + (this.props.selected ? ' selected' : '')}
+        style={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          cursor: 'pointer',
+          justifyContent: 'center',
+          position: 'relative',
+          ...this.props.style,
+        }}
         onClick={this.props.onClick}
       >
-        <Box
-          style={{
-            ...stylesTabBarButtonIcon,
-            paddingLeft: 0,
-            height: undefined,
-            justifyContent: 'center',
-            ...this.props.styleContainer,
-          }}
-        >
-          <Avatar
-            size={32}
-            onClick={this.props.onClick}
-            username={this.props.source.username}
-            borderColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
-            loadingColor={globalColors.blue3_40}
-            backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
-          />
-          {badgeNumber > 0 &&
-            <Box style={{width: 0, display: 'flex'}}>
-              <Box style={styleBadgeAvatar}>
-                <Badge
-                  badgeNumber={badgeNumber}
-                  badgeStyle={{marginLeft: 0, marginRight: 0}}
-                  outlineColor={globalColors.midnightBlue}
-                />
-              </Box>
-            </Box>}
-        </Box>
+        {this.props.selected && <HighlightLine />}
+        <Avatar
+          size={32}
+          onClick={this.props.onClick}
+          username={this.props.source.username}
+          loadingColor={globalColors.blue3_40}
+          backgroundColor={this.props.selected ? globalColors.white : globalColors.blue3_40}
+        />
+        {badgeNumber > 0 &&
+          <Box style={{width: 0, display: 'flex'}}>
+            <Box style={styleBadgeAvatar}>
+              <Badge
+                badgeNumber={badgeNumber}
+                badgeStyle={{marginLeft: 0, marginRight: 0}}
+                outlineColor={globalColors.darkBlue2}
+              />
+            </Box>
+          </Box>}
         {!!this.props.label &&
           <Text
+            className="title"
             type="BodySmallSemiboldItalic"
             style={{
-              color,
+              color: undefined,
               fontSize: 11,
               textAlign: 'center',
               ...globalStyles.clickable,
@@ -130,25 +142,36 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   _renderNav(badgeNumber: number) {
     if (this.props.source.type !== 'nav') return // needed to make flow happy
-    const navIconStyle = this.props.selected ? stylesNavIconSelected : stylesNavIcon
     return (
       <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
-        <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className="nav-item">
-          <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
+        <Box
+          style={{...stylesTabBarNavIcon, ...this.props.style}}
+          className={'nav-item' + (this.props.selected ? ' selected' : '')}
+        >
+          {this.props.selected && <HighlightLine />}
+          <Icon
+            type={this.props.source.icon}
+            style={{
+              color: this.props.selected ? globalColors.white : globalColors.blue3_40,
+              ...this.props.styleIcon,
+            }}
+          />
           {badgeNumber > 0 &&
             <Box style={styleBadgeNav}>
               <Badge
                 badgeNumber={badgeNumber}
                 badgeStyle={{marginLeft: 0, marginRight: globalMargins.tiny}}
-                outlineColor={globalColors.midnightBlue}
+                outlineColor={globalColors.darkBlue2}
               />
             </Box>}
           {!!this.props.label &&
-            <Text type="BodySmall" style={{...stylesNavText, ...this.props.styleLabel}}>
-              <span className={'title' + (this.props.selected ? ' selected' : '')}>
-                {this.props.label}
-              </span>
+            <Text
+              type="BodySmallSemibold"
+              style={{color: undefined, ...stylesNavText, ...this.props.styleLabel}}
+              className="title"
+            >
+              {this.props.label}
             </Text>}
         </Box>
       </Box>
@@ -184,7 +207,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 
   render() {
-    const color = this.props.selected ? globalColors.white : globalColors.blue3_40
+    const color = this.props.selected ? globalColors.white : globalColors.blue3_60
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
@@ -281,22 +304,20 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
+  .nav-item img { opacity: 0.6; }
+  .nav-item:hover img { opacity: 1.0; }
+  .nav-item.selected img { opacity: 1.0; }
+
   .nav-item .title { color: transparent; }
-  .nav-item:hover .title { color: ${globalColors.blue3_40}; }
-  .nav-item .title.selected { color: ${globalColors.white}; }
+  .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
+  .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${globalColors.white}; }
+  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
+  .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
 `
 
 const stylesNavText = {
-  fontSize: 11,
-  marginTop: 1,
-}
-
-const stylesNavIcon = {
-  color: globalColors.blue3_40,
-}
-
-const stylesNavIconSelected = {
-  color: globalColors.white,
+  fontSize: 10,
+  marginTop: -3,
 }
 
 const styleBadgeAvatar = {

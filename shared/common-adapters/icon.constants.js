@@ -15,6 +15,26 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-GPG-export.png'),
   },
+  'icon-addon-lock-12': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-12.png'),
+  },
+  'icon-addon-lock-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-8.png'),
+  },
+  'icon-addon-lock-active-12': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-12.png'),
+  },
+  'icon-addon-lock-active-8': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-addon-lock-active-8.png'),
+  },
   'icon-bitcoin-logo-16': {
     isFont: false,
     extension: 'png',
@@ -39,16 +59,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
-  },
-  'icon-chat-addon-lock-8': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-chat-addon-lock-8.png'),
-  },
-  'icon-chat-addon-lock-active-8': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-chat-addon-lock-active-8.png'),
   },
   'icon-coinbase-logo-16': {
     isFont: false,
@@ -815,6 +825,106 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-mutual-follow-32.png'),
   },
+  'icon-nav-chat-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-32.png'),
+  },
+  'icon-nav-chat-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-40.png'),
+  },
+  'icon-nav-chat-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-selected-32.png'),
+  },
+  'icon-nav-chat-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-chat-selected-40.png'),
+  },
+  'icon-nav-crypto-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-crypto-32.png'),
+  },
+  'icon-nav-crypto-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-crypto-selected-32.png'),
+  },
+  'icon-nav-devices-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-devices-32.png'),
+  },
+  'icon-nav-devices-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-devices-selected-32.png'),
+  },
+  'icon-nav-folders-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-32.png'),
+  },
+  'icon-nav-folders-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-40.png'),
+  },
+  'icon-nav-folders-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-selected-32.png'),
+  },
+  'icon-nav-folders-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-folders-selected-40.png'),
+  },
+  'icon-nav-people-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-32.png'),
+  },
+  'icon-nav-people-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-40.png'),
+  },
+  'icon-nav-people-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-selected-32.png'),
+  },
+  'icon-nav-people-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-people-selected-40.png'),
+  },
+  'icon-nav-settings-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-32.png'),
+  },
+  'icon-nav-settings-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-40.png'),
+  },
+  'icon-nav-settings-selected-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-selected-32.png'),
+  },
+  'icon-nav-settings-selected-40': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-nav-settings-selected-40.png'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
@@ -1284,6 +1394,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-shh-active-16.png'),
+  },
+  'icon-shh-active-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-shh-active-24.png'),
   },
   'icon-subnav-folders-all': {
     isFont: false,

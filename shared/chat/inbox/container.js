@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
-import ConversationList from './index'
+import Inbox from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
@@ -43,24 +43,25 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
   return I.List(pending.keys()).concat(inbox)
 })
 
+const mapStateToProps = (state: TypedState) => ({
+  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+  rows: getRows(state),
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  loadInbox: () => dispatch(loadInbox()),
+  onNewChat: () => dispatch(newChat([])),
+  onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
+    dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+})
+
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
-  connect(
-    (state: TypedState) => ({
-      isLoading: state.chat.get('inboxUntrustedState') === 'loading',
-      showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
-      rows: getRows(state),
-    }),
-    (dispatch: Dispatch) => ({
-      loadInbox: () => dispatch(loadInbox()),
-      onNewChat: () => dispatch(newChat([])),
-      onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-        dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
-    })
-  ),
+  connect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
@@ -68,4 +69,4 @@ export default compose(
       })
     },
   })
-)(ConversationList)
+)(Inbox)
