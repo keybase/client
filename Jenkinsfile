@@ -95,7 +95,7 @@ helpers.rootLinuxNode(env, {
             }
         }
 
-        def hasGoChanges = hasChanges('go')
+        def hasGoChanges = false
         def hasJSChanges = hasChanges('shared')
         println "Has go changes: " + hasGoChanges
         println "Has JS changes: " + hasJSChanges
@@ -106,19 +106,19 @@ helpers.rootLinuxNode(env, {
                     test_linux_deps: {
                         if (hasGoChanges) {
                             // Build the client docker first so we can immediately kick off KBFS
-                            dir('go') {
-                                sh "go install github.com/keybase/client/go/keybase"
-                                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                clientImage = docker.build("keybaseprivate/kbclient")
-                                sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
-                                archive("kbclient.tar.gz")
-                                sh "rm kbclient.tar.gz"
-                            }
+                            // dir('go') {
+                                // sh "go install github.com/keybase/client/go/keybase"
+                                // sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                // clientImage = docker.build("keybaseprivate/kbclient")
+                                // sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                // archive("kbclient.tar.gz")
+                                // sh "rm kbclient.tar.gz"
+                            // }
                         }
                         parallel (
                             test_linux: {
                                 dir("protocol") {
-                                    sh "./diff_test.sh"
+                                    // sh "./diff_test.sh"
                                 }
                                 parallel (
                                     test_linux_go: { withEnv([
@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         if (hasGoChanges) {
-                                            testGo("test_linux_go_")
+                                            // testGo("test_linux_go_")
                                         }
                                     }},
                                     test_linux_js: { withEnv([
@@ -176,19 +176,19 @@ helpers.rootLinuxNode(env, {
                             },
                             test_kbfs: {
                                 if (hasGoChanges) {
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            string(
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ),
-                                            string(
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ),
-                                        ]
-                                    ])
+                                    // build([
+                                        // job: "/kbfs/master",
+                                        // parameters: [
+                                            // string(
+                                                // name: 'clientProjectName',
+                                                // value: env.JOB_NAME,
+                                            // ),
+                                            // string(
+                                                // name: 'kbwebNodePrivateIP',
+                                                // value: kbwebNodePrivateIP,
+                                            // ),
+                                        // ]
+                                    // ])
                                 }
                             },
                         )
