@@ -11,9 +11,8 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitio
 import {chatTab, loginTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
-import {isIOS} from '../constants/platform'
+import {isAndroid, isIOS} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
-import glamorous from 'glamorous-native'
 
 import type {Props} from './nav'
 import type {TypedState} from '../constants/reducer'
@@ -98,10 +97,8 @@ function renderStackRoute(route) {
     return route.component
   }
 
-  const View = glamorous.view(route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver)
-
   return (
-    <View>
+    <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
       <StatusBar
         hidden={hideStatusBar}
         translucent={true}
@@ -109,41 +106,55 @@ function renderStackRoute(route) {
         barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
       />
       {route.component}
-    </View>
+    </Box>
   )
 }
 
-const Container = isIOS
-  ? ({shim, tabBar}) => (
-      <Box style={flexOne}>
-        <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
-          {shim}
-        </NativeKeyboardAvoidingView>
-      </Box>
-    )
-  : ({hideNav, shim, tabBar}) => (
-      <Box style={flexOne}>
-        <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
-          {shim}
-        </Box>
-      </Box>
-    )
+const forIOS = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
+      {shim}
+    </NativeKeyboardAvoidingView>
+    {!hideNav && tabBar}
+  </Box>
+)
 
-function MainNavStack({routeStack, routeSelected, navigateUp, reachability, hideNav}) {
-  const screens = routeStack
-  const shim = (
-    <Box style={flexOne}>
-      <CardStackShim
-        key={routeSelected}
-        stack={screens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={navigateUp}
-      />
-      {![chatTab].includes(routeSelected) && <Offline reachability={reachability} appFocused={true} />}
-      <GlobalError />
+const forAndroid = ({hideNav, shim, tabBar}) => (
+  <Box style={flexOne}>
+    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
+      {shim}
     </Box>
+    {!hideNav &&
+      <Box style={styleCollapsibleNavAndroid}>
+        {tabBar}
+      </Box>}
+  </Box>
+)
+
+function MainNavStack(props: Props) {
+  const screens = props.routeStack
+  const shim = [
+    <CardStackShim
+      key={props.routeSelected}
+      stack={screens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+    />,
+    ![chatTab].includes(props.routeSelected) &&
+      <Offline key="offline" reachability={props.reachability} appFocused={true} />,
+    <GlobalError key="globalError" />,
+  ].filter(Boolean)
+
+  const tabBar = (
+    <TabBar
+      onTabClick={props.switchTab}
+      selectedTab={props.routeSelected}
+      username={props.username}
+      badgeNumbers={props.navBadges.toJS()}
+    />
   )
-  return <Container hideNav={hideNav} shim={shim} />
+  const Container = isAndroid ? forAndroid : forIOS
+  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
 function Nav(props: Props) {
@@ -155,41 +166,33 @@ function Nav(props: Props) {
   const fullscreenPred = r => r.tags.fullscreen
   const mainScreens = baseScreens.takeUntil(fullscreenPred)
   const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
-    component: (
-      <MainNavStack
-        routeStack={mainScreens}
-        routeSelected={props.routeSelected}
-        navigateUp={props.navigateUp}
-        reachability={props.reachability}
-        hideNav={props.hideNav}
-      />
-    ),
     path: ['main'],
+    component: <MainNavStack {...props} routeStack={mainScreens} />,
     tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
   })
 
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-
-  return (
-    <Box style={globalStyles.fillAbsolute}>
-      <CardStackShim
-        stack={fullScreens}
-        renderRoute={renderStackRoute}
-        onNavigateBack={props.navigateUp}
-        mode="modal"
-      />
-      {layerScreens.map(r => r.leafComponent)}
-      {!props.hideNav &&
-        <Box style={isIOS ? null : styleCollapsibleNavAndroid}>
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            username={props.username}
-            badgeNumbers={props.navBadges.toJS()}
-          />
-        </Box>}
-    </Box>
+  const shim = (
+    <CardStackShim
+      stack={fullScreens}
+      renderRoute={renderStackRoute}
+      onNavigateBack={props.navigateUp}
+      mode="modal"
+    />
   )
+  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+  const layers = layerScreens.map(r => r.leafComponent)
+
+  // If we have layers, lets add an extra box, else lets just pass through
+  if (layers.length) {
+    return (
+      <Box style={globalStyles.fillAbsolute}>
+        {shim}
+        {layers}
+      </Box>
+    )
+  } else {
+    return shim
+  }
 }
 
 const sceneWrapStyleUnder = {
