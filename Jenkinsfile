@@ -16,24 +16,24 @@ helpers.rootLinuxNode(env, {
             [$class: 'RebuildSettings',
                 autoRebuild: true,
             ],
-            [$class: "ParametersDefinitionProperty",
-               parameterDefinitions: [
-                   [$class: 'StringParameterDefinition',
-                       name: 'gregorProjectName',
-                       defaultValue: '',
-                       description: 'name of upstream gregor project',
-                   ]
-               ]
-            ],
-            [$class: "ParametersDefinitionProperty",
-               parameterDefinitions: [
-                   [$class: 'StringParameterDefinition',
-                       name: 'kbwebProjectName',
-                       defaultValue: '',
-                       description: 'name of upstream kbweb project',
-                   ]
-               ]
-            ],
+            //[$class: "ParametersDefinitionProperty",
+            //    parameterDefinitions: [
+            //        [$class: 'StringParameterDefinition',
+            //            name: 'gregorProjectName',
+            //            defaultValue: '',
+            //            description: 'name of upstream gregor project',
+            //        ]
+            //    ]
+            //],
+            //[$class: "ParametersDefinitionProperty",
+            //    parameterDefinitions: [
+            //        [$class: 'StringParameterDefinition',
+            //            name: 'kbwebProjectName',
+            //            defaultValue: '',
+            //            description: 'name of upstream kbweb project',
+            //        ]
+            //    ]
+            //],
     ])
 
     env.BASEDIR=pwd()
@@ -118,7 +118,7 @@ helpers.rootLinuxNode(env, {
                         parallel (
                             test_linux: {
                                 dir("protocol") {
-                                    // sh "./diff_test.sh"
+                                    sh "./diff_test.sh"
                                 }
                                 parallel (
                                     test_linux_go: { withEnv([
@@ -127,7 +127,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
                                         if (hasGoChanges) {
-                                            // testGo("test_linux_go_")
+                                            testGo("test_linux_go_")
                                         }
                                     }},
                                     test_linux_js: { withEnv([
