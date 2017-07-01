@@ -133,7 +133,7 @@ const Row = ({
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Avatars users={users} styles={styles} ignored={ignored} isPublic={isPublic} />
+          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names
               users={users}

@@ -38,10 +38,10 @@ const mockTextMessage = (
 })
 
 const mockMetaData = (authorSeeds: Array<number>) => {
-  return new Immutable.Map(
+  return Immutable.Map(
     authorSeeds.map(s => [
       nameGen(s),
-      new ChatConstants.MetaDataRecord({
+      ChatConstants.MetaDataRecord({
         fullname: nameGen(s),
         brokenTracker: false,
       }),
@@ -50,7 +50,7 @@ const mockMetaData = (authorSeeds: Array<number>) => {
 }
 
 const mockFollowingMap = (authorSeeds: Array<number>, seedToBool) => {
-  return new Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
+  return Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
 }
 
 const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => ({
@@ -60,7 +60,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   metaDataMap,
   muted: false,
   you,
-  followingMap: mockFollowingMap(authorSeeds, () => true),
+  followingMap: mockFollowingMap(authorSeeds, _ => true),
   moreToLoad,
   onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
   onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),

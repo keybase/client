@@ -7,10 +7,6 @@ export function defaultColor(type: IconType): ?string {
   switch (type) {
     case 'iconfont-proof-broken':
       return globalColors.red
-    case 'iconfont-proof-followed':
-      return globalColors.green
-    case 'iconfont-proof-new':
-      return globalColors.blue2
     case 'iconfont-proof-pending':
       return globalColors.black_40
     case 'iconfont-close':
@@ -22,8 +18,6 @@ export function defaultColor(type: IconType): ?string {
 
 export function defaultHoverColor(type: IconType): ?string {
   switch (type) {
-    case 'iconfont-proof-new':
-    case 'iconfont-proof-followed':
     case 'iconfont-proof-broken':
     case 'iconfont-proof-pending':
       return defaultColor(type)
@@ -51,8 +45,6 @@ export function typeToIconMapper(type: IconType): IconType {
       return __SCREENSHOT__ ? 'icon-secure-static-266' : 'icon-secure-266'
     case 'icon-securing-266':
       return __SCREENSHOT__ ? 'icon-securing-static-266' : 'icon-securing-266'
-    case 'icon-connecting-266':
-      return __SCREENSHOT__ ? 'icon-loader-connecting-266-static' : 'icon-loader-connecting-266'
     case 'icon-loader-uploading-16':
       return __SCREENSHOT__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
     default:

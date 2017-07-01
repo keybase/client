@@ -130,7 +130,6 @@ func NewSubteamID() keybase1.TeamID {
 }
 
 func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
-
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")

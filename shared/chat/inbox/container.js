@@ -5,6 +5,8 @@ import Inbox from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
+import {compose, lifecycle} from 'recompose'
+import {throttle} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -54,4 +56,17 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Inbox)
+// Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
+// to not call loadInbox multiple times
+const throttleHelper = throttle(cb => cb(), 60 * 1000)
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentDidMount: function() {
+      throttleHelper(() => {
+        this.props.loadInbox()
+      })
+    },
+  })
+)(ConversationList)

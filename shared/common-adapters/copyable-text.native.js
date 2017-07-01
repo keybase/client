@@ -8,7 +8,8 @@ import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-export type Props = PropsCommon & {
+export type Props = {
+  ...PropsCommon,
   textStyle: Object,
 }
 
@@ -16,11 +17,11 @@ type State = {
   hasCopied: boolean,
 }
 
-class CopyableText extends Component<void, Props & TimerProps, State> {
+class CopyableText<P: Props & TimerProps> extends Component<void, P, State> {
   state: State
   lastCopyTimeoutId: ?number
 
-  constructor(props: Props) {
+  constructor(props: P) {
     super(props)
     this.state = {
       hasCopied: false,

@@ -78,7 +78,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 action={<Box />}
                 icon={<Avatar size={40} username={p.name} />}
                 body={
-                  <Box style={{...globalStyles.flexBoxColumn}}>
+                  <Box style={globalStyles.flexBoxColumn}>
                     <Text type="BodySemibold">{p.name}</Text>
                     <Text type="BodySmall">{p.devices}</Text>
                   </Box>
@@ -166,7 +166,7 @@ class FilesRender extends Component<void, Props, void> {
                   ...styleSectionTextThemed[this.props.theme],
                 }}
               />}
-            <Text type="BodySmallSemibold" style={{...styleSectionTextThemed[this.props.theme]}}>
+            <Text type="BodySmallSemibold" style={styleSectionTextThemed[this.props.theme]}>
               {section.name}
             </Text>
           </Box>

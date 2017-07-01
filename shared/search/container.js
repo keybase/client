@@ -88,20 +88,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     isMobile ? mobileOnClickUserInGroup(dispatch, user) : dispatch(selectUserForInfo(user)),
   onGroupChat: (username, selectedUsers) => {
     dispatch(reset())
-    dispatch(startConversation(selectedUsers.map(searchResultToAssertion).concat(username || '')))
+    dispatch(startConversation((selectedUsers || []).map(searchResultToAssertion).concat(username || '')))
   },
   onOpenPrivateGroupFolder: (username, selectedUsers) => {
     if (username) {
       dispatch(reset())
       dispatch(
-        openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))
+        openInKBFS(
+          privateFolderWithUsers((selectedUsers || []).map(searchResultToAssertion).concat(username))
+        )
       )
     }
   },
   onOpenPublicGroupFolder: (username, selectedUsers) => {
     if (username) {
       dispatch(reset())
-      dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion))))
+      dispatch(openInKBFS(publicFolderWithUsers((selectedUsers || []).map(searchResultToAssertion))))
     }
   },
   onRemoveUserFromGroup: user => dispatch(removeUserFromGroup(user)),
@@ -121,7 +123,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onOpenPublicGroupFolder: () =>
     dispatchProps.onOpenPublicGroupFolder(stateProps.username, stateProps.selectedUsers),
   onSearch: (term, selectedPlatform) =>
-    dispatchProps.onSearch(term, selectedPlatform, stateProps.searchPlatform),
+    dispatchProps.onSearch(term, selectedPlatform, stateProps.selectedService),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Search)

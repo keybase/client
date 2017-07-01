@@ -12,7 +12,7 @@ export type Props = {
   icon: IconType,
   name: string,
   onCancel: () => void,
-  onSubmit: () => void,
+  onSubmit: Function,
   type: DeviceType,
 }
 

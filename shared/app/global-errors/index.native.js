@@ -87,6 +87,10 @@ class GlobalError extends Component<void, Props, State> {
   }
 
   render() {
+    if (this.state.size === 'Closed') {
+      return null
+    }
+
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails

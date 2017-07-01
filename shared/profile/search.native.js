@@ -13,26 +13,37 @@ const Search = (props: Props) => (
     <Box style={{flexGrow: 1}}>
       <UserInput
         autoFocus={true}
-        userItems={props.userItems}
-        showAddButton={props.showAddButton}
-        onRemoveUser={props.onRemoveUser}
-        onClickAddButton={props.onClickAddButton}
-        placeholder={props.placeholder}
-        usernameText={props.searchText}
+        onAddSelectedUser={props.onAddSelectedUser}
         onChangeText={props.onChangeText}
-        onMoveSelectUp={() => {}} // TODO
-        onMoveSelectDown={() => {}} // TODO
-        onEnter={() => {}} // TODO
+        onClickAddButton={props.onClickAddButton}
+        onMoveSelectUp={props.onMoveSelectUp}
+        onMoveSelectDown={props.onMoveSelectDown}
+        onRemoveUser={props.onRemoveUser}
+        placeholder={props.placeholder}
+        userItems={props.userItems}
+        usernameText={props.searchText}
       />
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center'}}>
-      <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-      <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-    </Box>
+    {props.showServiceFilter &&
+      <Box style={styleSearchFilter}>
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+      </Box>}
     <Box>
-      <ResultsList items={props.ids} onClick={props.onClick} selectedId={null} />
+      <ResultsList
+        items={props.searchResultIds}
+        onClick={props.onClick}
+        selectedId={props.selectedSearchId}
+      />
     </Box>
   </StandardScreen>
 )
+
+const styleSearchFilter = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingTop: globalMargins.tiny,
+}
 
 export default Search

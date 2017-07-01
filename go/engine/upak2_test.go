@@ -36,7 +36,8 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 	u, err := libkb.LoadUser(arg)
 	require.NoError(t, err)
 
-	exported := u.ExportToUPKV2AllIncarnations()
+	exported, err := u.ExportToUPKV2AllIncarnations()
+	require.NoError(t, err)
 
 	if len(exported.PastIncarnations) != 1 {
 		t.Fatalf("Expected exactly 1 past incarnation, found %d", len(exported.PastIncarnations))
@@ -68,6 +69,21 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 		t2 := time.Unix(userKeyInfo.CTime, 0)
 		if !t1.Equal(t2) {
 			t.Fatalf("exported key ctime is not equal: %s != %s", t1, t2)
+		}
+	}
+
+	// Make sure all the chain links made it into the link IDs list.
+	if len(exported.SeqnoLinkIDs) != int(u.GetSigChainLastKnownSeqno()) {
+		t.Fatalf("expected SeqnoLinkIDs to be len %d but found %d", u.GetSigChainLastKnownSeqno(), len(exported.SeqnoLinkIDs))
+	}
+	// Make sure all seqnos are present.
+	for seqno := 1; seqno <= len(exported.SeqnoLinkIDs); seqno++ {
+		linkID, ok := exported.SeqnoLinkIDs[keybase1.Seqno(seqno)]
+		if !ok {
+			t.Fatalf("seqno %d missing from link IDs map", seqno)
+		}
+		if len(linkID) == 0 {
+			t.Fatalf("found empty LinkID at seqno %d, that's pretty weird", seqno)
 		}
 	}
 }

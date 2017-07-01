@@ -243,7 +243,7 @@ export const ConversationStateRecord = Record({
   typing: Set(),
 })
 
-export type ConversationState = Record<{
+export type ConversationState = KBRecord<{
   messageKeys: List<MessageKey>,
   // TODO del
   messages: List<Message>,
@@ -259,7 +259,7 @@ export type ConversationState = Record<{
   typing: Set<Username>,
 }>
 
-export type ConversationBadgeState = Record<{
+export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
   UnreadMessages: number,
 }>
@@ -283,7 +283,7 @@ export const InboxStateRecord = Record({
   time: 0,
 })
 
-export type InboxState = Record<{
+export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
@@ -307,7 +307,7 @@ export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
 export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
 export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
 
-export type MetaData = Record<{
+export type MetaData = KBRecord<{
   fullname: string,
   brokenTracker: boolean,
 }>
@@ -326,7 +326,7 @@ export const RekeyInfoRecord = Record({
   youCanRekey: false,
 })
 
-export type RekeyInfo = Record<{
+export type RekeyInfo = KBRecord<{
   rekeyParticipants: Participants,
   youCanRekey: boolean,
 }>
@@ -506,6 +506,7 @@ export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
 >
+export type RemoveTempPendingConversations = NoErrorTypedAction<'chat:removeTempPendingConversations', void>
 export type RetryMessage = NoErrorTypedAction<
   'chat:retryMessage',
   {conversationIDKey: ConversationIDKey, outboxIDKey: OutboxIDKey}
@@ -750,6 +751,7 @@ export type Actions =
   | OpenFolder
   | PendingToRealConversation
   | PrependMessages
+  | RemoveTempPendingConversations
   | SelectConversation
   | StartConversation
   | UpdateBadging
@@ -1069,18 +1071,20 @@ const getFollowingStates = (state: TypedState) => {
 const getUserItems = createShallowEqualSelector(
   [getInboxSearch, getFollowingStates],
   (inboxSearch, followingStates) =>
-    inboxSearch.map(id => {
-      const {username, serviceId} = parseUserId(id)
-      const service = SearchConstants.serviceIdToService(serviceId)
-      return {
-        id: id,
-        followingState: followingStates[id],
-        // $FlowIssue ??
-        icon: serviceIdToIcon(serviceId),
-        username,
-        service,
-      }
-    })
+    inboxSearch
+      .map(id => {
+        const {username, serviceId} = parseUserId(id)
+        const service = SearchConstants.serviceIdToService(serviceId)
+        return {
+          id: id,
+          followingState: followingStates[id],
+          // $FlowIssue ??
+          icon: serviceIdToIcon(serviceId),
+          username,
+          service,
+        }
+      })
+      .toArray()
 )
 
 const stateLoggerTransform = (state: State) => ({

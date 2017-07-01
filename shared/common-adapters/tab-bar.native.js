@@ -98,7 +98,7 @@ class TabBar extends Component<void, Props, void> {
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
           <Box style={{flex: 1}}>
-            <Box style={{...item.props.styleContainer}}>
+            <Box style={item.props.styleContainer}>
               {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
             </Box>
           </Box>
@@ -113,7 +113,7 @@ class TabBar extends Component<void, Props, void> {
 
   render() {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
           {this._labels()}
         </Box>

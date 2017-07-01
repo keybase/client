@@ -143,7 +143,7 @@ class BioRender extends Component<void, Props, void> {
           {!!userInfo.bio &&
             <Text
               type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
-              style={{...stylesBio}}
+              style={stylesBio}
               {...bioLineClamp}
             >
               {userInfo.bio}

@@ -11,7 +11,7 @@ const SubscriptionCheckbox = (props: {
   description: string,
   groupName: string,
   name: string,
-  onToggle: (name: string) => void,
+  onToggle: (groupName: string, name: string) => void,
   subscribed: boolean,
 }) => (
   <Checkbox
@@ -27,7 +27,7 @@ const SubscriptionCheckbox = (props: {
 const Group = (props: {
   allowEdit: boolean,
   groupName: string,
-  onToggle: (name: string) => void,
+  onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: () => void,
   settings: ?Array<NotificationsSettingsState>,
   title: string,

@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
-import {debounce} from 'lodash'
+import {debounce, memoize} from 'lodash'
 // $FlowIssue
 import FlatList from '../../fixme/Lists/FlatList'
 
@@ -80,28 +80,44 @@ const Avatars = ({
     .toArray()
 
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'flex-end',
-        backgroundColor,
-        justifyContent: 'flex-start',
-        maxWidth: 56,
-        minWidth: 56,
-        paddingLeft: globalMargins.xtiny,
-      }}
-    >
-      <Box style={{position: 'relative'}}>
+    <Box style={avatarBoxStyle(backgroundColor)}>
+      <Box style={avatarInnerBoxStyle}>
         <MultiAvatar
           singleSize={40}
           multiSize={32}
           avatarProps={avatarProps}
-          style={{alignSelf: 'center', backgroundColor, opacity}}
+          style={{...multiStyle(backgroundColor), opacity}}
         />
         {icon}
       </Box>
     </Box>
   )
+}
+
+const multiStyle = memoize(backgroundColor => {
+  return {
+    alignSelf: 'center',
+    backgroundColor,
+  }
+})
+
+const avatarBoxStyle = memoize(backgroundColor => {
+  return {
+    ..._avatarBoxStyle,
+    backgroundColor,
+  }
+})
+
+const _avatarBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-end',
+  justifyContent: 'flex-start',
+  maxWidth: 56,
+  minWidth: 56,
+  paddingLeft: globalMargins.xtiny,
+}
+const avatarInnerBoxStyle = {
+  position: 'relative',
 }
 
 const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
@@ -145,8 +161,6 @@ const BottomLine = ({
   snippet,
   backgroundColor,
 }) => {
-  const boldOverride = showBold ? globalStyles.fontBold : null
-
   let content
 
   if (youNeedToRekey) {
@@ -181,7 +195,7 @@ const BottomLine = ({
     )
   } else if (snippet) {
     content = (
-      <Markdown preview={true} style={{...boldOverride, color: subColor, fontSize: 13, lineHeight: 17}}>
+      <Markdown preview={true} style={bottomMarkdownStyle(showBold, subColor)}>
         {snippet}
       </Markdown>
     )
@@ -323,8 +337,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }, 1000)
 
-  componentWillMount() {
-    this.props.loadInbox()
+  componentDidMount() {
     this._setupDataSource(this.props)
     if (this.props.rows.count()) {
       this._askForUnboxing(this.props.rows.first(), 30)
@@ -394,5 +407,15 @@ const rowContainerStyle = {
   maxHeight: 64,
   minHeight: 64,
 }
+
+const bottomMarkdownStyle = memoize(
+  (showBold, subColor) => ({
+    color: subColor,
+    fontSize: 13,
+    lineHeight: 17,
+    ...(showBold ? globalStyles.fontBold : {}),
+  }),
+  (showBold, subColor) => `${showBold}:${subColor}`
+)
 
 export default Inbox

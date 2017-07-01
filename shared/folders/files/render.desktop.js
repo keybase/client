@@ -32,7 +32,7 @@ const Section = ({section, theme}) => (
             type="iconfont-thunderbolt"
             style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}}
           />}
-        <Text type="BodySmallSemibold" style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
+        <Text type="BodySmallSemibold" style={styleSectionTextThemed[theme]}>{section.name}</Text>
       </Box>
     </Box>
     {intersperseFn(i => <Divider key={i} />, section.files.map(f => <File key={f.name} {...f} />))}
@@ -41,7 +41,7 @@ const Section = ({section, theme}) => (
 
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Text type="BodySemibold" style={styleWarningBanner}>
         This folder is waiting for either participant to turn on a device.
       </Text>
@@ -62,7 +62,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
               action={<Box />}
               icon={<Avatar size={40} username={p.name} />}
               body={
-                <Box style={{...globalStyles.flexBoxColumn}}>
+                <Box style={globalStyles.flexBoxColumn}>
                   <Text type="Body" backgroundMode={backgroundMode}>{p.name}</Text>
                   <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
                 </Box>
@@ -84,7 +84,7 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, t
 
 const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Text type="BodySemibold" style={styleWarningBanner}>
         Until you take one of the steps below, you're at risk of losing data forever.
       </Text>
@@ -114,7 +114,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
               }
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
-                <Box style={{...globalStyles.flexBoxColumn}}>
+                <Box style={globalStyles.flexBoxColumn}>
                   <Text type="Body" backgroundMode={backgroundMode}>{device.name}</Text>
                   {device.type !== 'backup' &&
                     <Text type="BodySmall" backgroundMode={backgroundMode}>Open the Keybase app</Text>}

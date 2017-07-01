@@ -439,7 +439,8 @@ type TeamSigChainState struct {
 	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
 	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	StubbedTypes map[int]bool                        `codec:"stubbedTypes" json:"stubbedTypes"`
+	LinkIDs      map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -497,27 +498,36 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
-		StubbedTypes: (func(x map[int]bool) map[int]bool {
-			ret := make(map[int]bool)
+		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			ret := make(map[Seqno]LinkID)
 			for k, v := range x {
-				kCopy := k
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.LinkIDs),
+		StubbedLinks: (func(x map[Seqno]bool) map[Seqno]bool {
+			ret := make(map[Seqno]bool)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
 				vCopy := v
 				ret[kCopy] = vCopy
 			}
 			return ret
-		})(o.StubbedTypes),
+		})(o.StubbedLinks),
 	}
 }
 
 type UserLogPoint struct {
-	Role  TeamRole `codec:"role" json:"role"`
-	Seqno Seqno    `codec:"seqno" json:"seqno"`
+	Role    TeamRole          `codec:"role" json:"role"`
+	SigMeta SignatureMetadata `codec:"sigMeta" json:"sigMeta"`
 }
 
 func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
-		Role:  o.Role.DeepCopy(),
-		Seqno: o.Seqno.DeepCopy(),
+		Role:    o.Role.DeepCopy(),
+		SigMeta: o.SigMeta.DeepCopy(),
 	}
 }
 
@@ -685,6 +695,20 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 	}
 }
 
+type TeamLeaveArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Permanent bool   `codec:"permanent" json:"permanent"`
+}
+
+func (o TeamLeaveArg) DeepCopy() TeamLeaveArg {
+	return TeamLeaveArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Permanent: o.Permanent,
+	}
+}
+
 type TeamEditMemberArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -723,6 +747,7 @@ type TeamsInterface interface {
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
+	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -814,6 +839,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamLeave": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamLeaveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamLeaveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamLeaveArg)(nil), args)
+						return
+					}
+					err = i.TeamLeave(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamEditMember": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamEditMemberArg, 1)
@@ -876,6 +917,11 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil)
 	return
 }
 

@@ -1,14 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-export type FriendshipUserInfo = {
+export type FriendshipUserInfo = {|
   username: string,
   thumbnailUrl: ?string,
   uid: string,
   fullname: string,
   followsYou: boolean,
   following: boolean,
-}
+|}
 
 export type Tab = 'Followers' | 'Following'
 

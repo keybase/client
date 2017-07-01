@@ -108,7 +108,7 @@ function Result({
     <ListItem
       type="Small"
       icon={icon}
-      body={<Box style={{...globalStyles.flexBoxRow}}>{alignedBody}{extraInfo}</Box>}
+      body={<Box style={globalStyles.flexBoxRow}>{alignedBody}{extraInfo}</Box>}
       action={<Box />}
       onClick={onClickResult}
       bodyContainerStyle={{marginBottom: 0, marginTop: 0, marginRight: 0}}

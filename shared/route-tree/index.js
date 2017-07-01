@@ -35,20 +35,24 @@ const _RouteDefNode = I.Record({
   children: I.Map(),
 })
 
-type RouteDefParams<P> = {
+type RouteDefParamsCommon<P> = {
   defaultSelected?: string,
   tags?: LeafTags,
   initialState?: {},
   children?: {[key: string]: RouteDefParams<P> | (() => RouteDefNode)} | ((name: string) => RouteDefNode),
-} & ( // This lengthy type definition was necessary to get all of our component permutations to type check.
-  | {
-      component?:
-        | Component<any, P, any>
-        | $Supertype<Component<any, P, any>>
-        | Class<ConnectedComponent<P, any, any, any>>
-        | Class<TypedConnectedComponent<P>>,
-    }
-  | {containerComponent: Component<any, P, any>})
+}
+
+// TODO type this properly. component and container component are mutually exclusive
+type RouteDefParams<P> = {
+  component?: ?(
+    | Component<any, P, any>
+    | $Supertype<Component<any, P, any>>
+    | Class<ConnectedComponent<P, any, any, any>>
+    | Class<TypedConnectedComponent<P>>),
+  containerComponent?: ?Component<any, P, any>,
+  ...RouteDefParamsCommon<P>,
+}
+
 export class RouteDefNode extends _RouteDefNode {
   constructor({
     defaultSelected,

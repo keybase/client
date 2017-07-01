@@ -5,10 +5,11 @@ import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapter
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import {debounce} from 'lodash'
+import KeyHandler from '../../util/key-handler.desktop'
 
 import type {Props, RowProps} from './'
 
-class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
+class _AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
   render() {
     return (
       <div
@@ -36,6 +37,7 @@ class AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
     )
   }
 }
+const AddNewRow = KeyHandler(_AddNewRow)
 
 class NewConversation extends PureComponent<void, {}, void> {
   render() {
@@ -303,10 +305,6 @@ const Row = RowConnector(_Row)
 class Inbox extends PureComponent<void, Props, void> {
   _list: any
 
-  componentWillMount() {
-    this.props.loadInbox()
-  }
-
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
       this._onScroll()
@@ -335,7 +333,11 @@ class Inbox extends PureComponent<void, Props, void> {
   render() {
     return (
       <div style={containerStyle}>
-        <AddNewRow onNewChat={this.props.onNewChat} />
+        <AddNewRow
+          onNewChat={this.props.onNewChat}
+          hotkeys={['ctrl+n', 'command+n']}
+          onHotkey={this.props.onNewChat}
+        />
         {this.props.showNewConversation && <NewConversation />}
         <div style={scrollableStyle} onScroll={this._onScroll}>
           <ReactList

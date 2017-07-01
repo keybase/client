@@ -3,7 +3,7 @@ import {Buffer} from 'buffer'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 
-import type {incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 const nativeBridge = NativeModules.KeybaseEngine
 const RNEmitter = new NativeEventEmitter(nativeBridge)
@@ -73,7 +73,7 @@ function createClient(
   return client
 }
 
-function resetClient() {
+function resetClient(client: createClientType) {
   // Tell the RN bridge to reset itself
   nativeBridge.reset()
 }

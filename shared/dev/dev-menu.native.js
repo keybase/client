@@ -19,7 +19,7 @@ class DevMenu extends Component {
       {name: 'Test Popup', onClick: this.props.onTestPopup},
     ]
     return (
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         <MenuList items={menuItems} />
       </Box>
     )

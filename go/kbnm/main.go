@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
+	"github.com/keybase/client/go/kbnm/installer"
 	"github.com/qrtz/nativemessaging"
 )
 
@@ -72,12 +74,35 @@ func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSO
 	return abortErr
 }
 
+func exit(code int, msg string, a ...interface{}) {
+	fmt.Fprintf(os.Stderr, msg+"\n", a...)
+	os.Exit(code)
+}
+
 func main() {
 	flag.Parse()
 
 	if *versionFlag {
 		fmt.Printf("%s-%s\n", internalVersion, Version)
 		os.Exit(0)
+	}
+
+	switch flag.Arg(0) {
+	case "install":
+		kbnmPath, err := findKeybaseBinary(kbnmBinary)
+		if err != nil {
+			exit(2, "error finding kbnm binary: %s", err)
+		}
+		log.Print("installing: ", kbnmPath)
+		if err := installer.InstallKBNM(kbnmPath); err != nil {
+			exit(2, "error installing kbnm whitelist: %s", err)
+		}
+		exit(0, "Installed NativeMessaging whitelists.")
+	case "uninstall":
+		if err := installer.UninstallKBNM(); err != nil {
+			exit(2, "error uninstalling kbnm whitelist: %s", err)
+		}
+		exit(0, "Uninstalled NativeMessaging whitelists.")
 	}
 
 	// Native messages include a prefix which describes the length of each message.
@@ -103,8 +128,7 @@ func main() {
 			break
 		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %s", err)
-			os.Exit(1)
+			exit(1, "stream processig error: %s", err)
 		}
 	}
 }

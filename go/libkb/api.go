@@ -363,7 +363,7 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 		if i > 0 {
 			g.G().Log.CDebugf(ctx, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, canc, err := doTimeout(ctx, cli, req, timeout)
+		resp, canc, err := doTimeout(ctx, g, cli, req, timeout)
 		if err == nil {
 			return resp, canc, nil
 		}
@@ -392,8 +392,8 @@ func doRetry(ctx context.Context, g Contextifier, arg APIArg, cli *Client, req *
 // doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
-func doTimeout(origCtx context.Context, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
-	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier)
+func doTimeout(origCtx context.Context, g Contextifier, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	ctx, cancel := context.WithTimeout(origCtx, timeout*CITimeMultiplier(g))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
 }
