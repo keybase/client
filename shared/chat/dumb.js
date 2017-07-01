@@ -23,7 +23,7 @@ const participants = ['chris', 'chrisnojima', 'oconnor663', 'cjb']
 const messages = [
   {
     type: 'Text',
-    message: new HiddenString('one TEMP FOR VISDIFF'),
+    message: new HiddenString('one'),
     author: 'chris',
     timestamp: now - 1000 * 100,
     messageID: 1,
@@ -121,7 +121,7 @@ const inbox = [
     conversationIDKey: 'convo1',
     status: 'unfiled',
     time: now,
-    snippet: 'fiveTEMPTEMP',
+    snippet: 'five',
     unreadCount: 3,
   }),
   new InboxStateRecord({
