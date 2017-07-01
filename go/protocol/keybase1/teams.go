@@ -439,6 +439,7 @@ type TeamSigChainState struct {
 	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
 	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
 	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
+	LinkIDs      map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
 	StubbedLinks map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
 }
 
@@ -497,6 +498,15 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.PerTeamKeys),
+		LinkIDs: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			ret := make(map[Seqno]LinkID)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.LinkIDs),
 		StubbedLinks: (func(x map[Seqno]bool) map[Seqno]bool {
 			ret := make(map[Seqno]bool)
 			for k, v := range x {

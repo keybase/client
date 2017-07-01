@@ -127,7 +127,7 @@ class UserInput extends Component<void, Props, State> {
   render() {
     const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
 
-    const showAddButton = !!userItems.length && !usernameText.length
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
       <ClickableBox feedback={false} onClick={this.focus}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
@@ -159,6 +159,7 @@ class UserInput extends Component<void, Props, State> {
               onChangeText={onChangeText}
             />
             {showAddButton &&
+              onClickAddButton &&
               <Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"

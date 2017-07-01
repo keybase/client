@@ -13,17 +13,15 @@ const Search = (props: Props) => (
     <Box style={{flexGrow: 1}}>
       <UserInput
         autoFocus={true}
+        onAddSelectedUser={props.onAddSelectedUser}
         onChangeText={props.onChangeText}
         onClickAddButton={props.onClickAddButton}
-        onEnter={props.onEnter}
         onMoveSelectUp={props.onMoveSelectUp}
         onMoveSelectDown={props.onMoveSelectDown}
         onRemoveUser={props.onRemoveUser}
-        onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
         placeholder={props.placeholder}
-        showAddButton={props.showAddButton}
         userItems={props.userItems}
-        usernameText={props.usernameText}
+        usernameText={props.searchText}
       />
     </Box>
     {props.showServiceFilter &&

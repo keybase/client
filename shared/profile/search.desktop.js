@@ -17,14 +17,14 @@ const Search = (props: Props) => (
             autoFocus={true}
             onChangeText={props.onChangeText}
             onClickAddButton={props.onClickAddButton}
-            onEnter={props.onEnter}
+            onAddSelectedUser={props.onAddSelectedUser}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
             onRemoveUser={props.onRemoveUser}
-            onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
             placeholder={props.placeholder}
             userItems={props.userItems}
-            usernameText={props.usernameText}
+            usernameText={props.searchText}
+            onCancel={props.onClose}
           />
         </Box>
         <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />

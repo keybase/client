@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
   },
-  onEnter: username => {
+  onAddSelectedUser: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },
@@ -50,7 +50,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('usernameText', '_onChangeText', ''),
+  defaultProps({
+    placeholder: 'Type someone',
+    showAddButton: false,
+    userItems: [],
+  }),
+  withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
@@ -67,11 +72,7 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
+      props.search(props.searchText, nextService)
     },
-  }),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
   })
 )(Search)
