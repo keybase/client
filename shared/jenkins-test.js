@@ -15,11 +15,7 @@ if (!process.argv[4]) {
   againstMaster = true
 } else {
   againstMaster = false
-  changeBase = (childProcess.execSync(
-    'git merge-base ' + changeTarget + ' ' + commitHash,
-    defaultExecSyncOptions
-  ) || '')
-    .replace('\n', '')
+  changeBase = execAndLog('git merge-base "' + changeTarget + '" "' + commitHash + '"').replace('\n', '')
 }
 
 console.log('shared/jenkins-test.sh recieved type: ' + testType)
