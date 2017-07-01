@@ -76,7 +76,7 @@ function buildParser() {
     // only chars, numbers, whitespace, some common punctuation and periods
     // that end sentences (not domains)
     const plaintextExp = /^([A-Za-z0-9!?=+@#$%^&()[\],'"\s]|\.\B)*$/
-    module.exports.isPlainText = function(markdown) {
+    module.exports.isPlainText = function isPlainText(markdown) {
       return markdown && markdown.match(plaintextExp) ? markdown.trim() : null
     }
   `
