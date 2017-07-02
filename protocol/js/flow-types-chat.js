@@ -355,6 +355,21 @@ export function localGetMessagesLocalRpcPromise (request: $Exact<requestCommon &
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.GetMessagesLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localGetTLFConversationsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetTLFConversationsLocalResult) => void} & {param: localGetTLFConversationsLocalRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.getTLFConversationsLocal', request)
+}
+
+export function localGetTLFConversationsLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetTLFConversationsLocalResult) => void} & {param: localGetTLFConversationsLocalRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getTLFConversationsLocal', request)
+}
+export function localGetTLFConversationsLocalRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetTLFConversationsLocalResult) => void} & {param: localGetTLFConversationsLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.getTLFConversationsLocal', request, callback, incomingCallMap) })
+}
+
+export function localGetTLFConversationsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetTLFConversationsLocalResult) => void} & {param: localGetTLFConversationsLocalRpcParam}>): Promise<localGetTLFConversationsLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getTLFConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>) {
   engineRpcOutgoing('chat.1.local.getThreadLocal', request)
 }
@@ -383,6 +398,21 @@ export function localGetThreadNonblockRpcChannelMapOld (channelConfig: ChannelCo
 
 export function localGetThreadNonblockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadNonblockResult) => void} & {param: localGetThreadNonblockRpcParam}>): Promise<localGetThreadNonblockResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getThreadNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localJoinConversationByIDLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localJoinConversationByIDLocalResult) => void} & {param: localJoinConversationByIDLocalRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.joinConversationByIDLocal', request)
+}
+
+export function localJoinConversationByIDLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localJoinConversationByIDLocalResult) => void} & {param: localJoinConversationByIDLocalRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.joinConversationByIDLocal', request)
+}
+export function localJoinConversationByIDLocalRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localJoinConversationByIDLocalResult) => void} & {param: localJoinConversationByIDLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.joinConversationByIDLocal', request, callback, incomingCallMap) })
+}
+
+export function localJoinConversationByIDLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localJoinConversationByIDLocalResult) => void} & {param: localJoinConversationByIDLocalRpcParam}>): Promise<localJoinConversationByIDLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.joinConversationByIDLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function localJoinConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localJoinConversationLocalResult) => void} & {param: localJoinConversationLocalRpcParam}>) {
@@ -685,19 +715,19 @@ export function remoteGetS3ParamsRpcPromise (request: $Exact<requestCommon & {ca
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getS3Params', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function remoteGetTeamConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTeamConversationsResult) => void} & {param: remoteGetTeamConversationsRpcParam}>) {
-  engineRpcOutgoing('chat.1.remote.getTeamConversations', request)
+export function remoteGetTLFConversationsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.getTLFConversations', request)
 }
 
-export function remoteGetTeamConversationsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTeamConversationsResult) => void} & {param: remoteGetTeamConversationsRpcParam}>): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTeamConversations', request)
+export function remoteGetTLFConversationsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getTLFConversations', request)
 }
-export function remoteGetTeamConversationsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTeamConversationsResult) => void} & {param: remoteGetTeamConversationsRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.getTeamConversations', request, callback, incomingCallMap) })
+export function remoteGetTLFConversationsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.getTLFConversations', request, callback, incomingCallMap) })
 }
 
-export function remoteGetTeamConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTeamConversationsResult) => void} & {param: remoteGetTeamConversationsRpcParam}>): Promise<remoteGetTeamConversationsResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getTeamConversations', request, (error, result) => error ? reject(error) : resolve(result)))
+export function remoteGetTLFConversationsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetTLFConversationsResult) => void} & {param: remoteGetTLFConversationsRpcParam}>): Promise<remoteGetTLFConversationsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getTLFConversations', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
@@ -1323,7 +1353,13 @@ export type GetPublicConversationsRes = {
   rateLimit?: ?RateLimit,
 }
 
-export type GetTeamConversationsRes = {
+export type GetTLFConversationsLocalRes = {
+  convs?: ?Array<ConversationLocal>,
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
+}
+
+export type GetTLFConversationsRes = {
   conversations?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
 }
@@ -2070,6 +2106,12 @@ export type localGetMessagesLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localGetTLFConversationsLocalRpcParam = Exact<{
+  tlfName: string,
+  topicType: TopicType,
+  membersType: ConversationMembersType
+}>
+
 export type localGetThreadLocalRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
@@ -2084,9 +2126,14 @@ export type localGetThreadNonblockRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localJoinConversationByIDLocalRpcParam = Exact<{
+  convID: ConversationID
+}>
+
 export type localJoinConversationLocalRpcParam = Exact<{
-  teamID: TLFID,
+  tlfName: string,
   topicType: TopicType,
+  visibility: TLFVisibility,
   topicName: string
 }>
 
@@ -2217,9 +2264,10 @@ export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
 
-export type remoteGetTeamConversationsRpcParam = Exact<{
-  teamID: TLFID,
+export type remoteGetTLFConversationsRpcParam = Exact<{
+  tlfID: TLFID,
   topicType: TopicType,
+  membersType: ConversationMembersType,
   summarizeMaxMsgs: boolean
 }>
 
@@ -2329,8 +2377,10 @@ type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 type localGetInboxNonblockLocalResult = NonblockFetchRes
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 type localGetMessagesLocalResult = GetMessagesLocalRes
+type localGetTLFConversationsLocalResult = GetTLFConversationsLocalRes
 type localGetThreadLocalResult = GetThreadLocalRes
 type localGetThreadNonblockResult = NonblockFetchRes
+type localJoinConversationByIDLocalResult = JoinLeaveConversationLocalRes
 type localJoinConversationLocalResult = JoinLeaveConversationLocalRes
 type localLeaveConversationLocalResult = JoinLeaveConversationLocalRes
 type localMakePreviewResult = MakePreviewRes
@@ -2349,7 +2399,7 @@ type remoteGetInboxVersionResult = InboxVers
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 type remoteGetPublicConversationsResult = GetPublicConversationsRes
 type remoteGetS3ParamsResult = S3Params
-type remoteGetTeamConversationsResult = GetTeamConversationsRes
+type remoteGetTLFConversationsResult = GetTLFConversationsRes
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 type remoteGetUnreadUpdateFullResult = UnreadUpdateFull
 type remoteJoinConversationResult = JoinLeaveConversationRemoteRes
@@ -2375,8 +2425,10 @@ export type rpc =
   | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc
+  | localGetTLFConversationsLocalRpc
   | localGetThreadLocalRpc
   | localGetThreadNonblockRpc
+  | localJoinConversationByIDLocalRpc
   | localJoinConversationLocalRpc
   | localLeaveConversationLocalRpc
   | localMakePreviewRpc
@@ -2397,7 +2449,7 @@ export type rpc =
   | remoteGetMessagesRemoteRpc
   | remoteGetPublicConversationsRpc
   | remoteGetS3ParamsRpc
-  | remoteGetTeamConversationsRpc
+  | remoteGetTLFConversationsRpc
   | remoteGetThreadRemoteRpc
   | remoteGetUnreadUpdateFullRpc
   | remoteJoinConversationRpc

@@ -2070,6 +2070,33 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	return nil
 }
 
+func (h *Server) doJoinConversation(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
+	if err != nil {
+		h.Debug(ctx, "doJoinConversation: failed to join conversation: %s", err.Error())
+		return res, err
+	}
+	if joinRes.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *joinRes.RateLimit)
+	}
+
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
+}
+
+func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversationByID(%s)", convID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return h.doJoinConversation(ctx, convID)
+}
+
 func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConversationLocalArg) (res chat1.JoinLeaveConversationLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
@@ -2082,9 +2109,18 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
+		arg.Visibility == chat1.TLFVisibility_PUBLIC)
+	if err != nil {
+		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
+		return res, err
+	}
+
 	// List all the conversations on the team
-	teamConvs, err := h.remoteClient().GetTeamConversations(ctx, chat1.GetTeamConversationsArg{
-		TeamID:           arg.TeamID,
+	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            nameInfo.ID,
+		MembersType:      chat1.ConversationMembersType_TEAM,
 		TopicType:        arg.TopicType,
 		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
 	})
@@ -2116,18 +2152,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
-	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to join conversation: %s", err.Error())
-		return res, err
-	}
-	if joinRes.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *joinRes.RateLimit)
-	}
-
-	res.RateLimits = utils.AggRateLimits(res.RateLimits)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
-	return res, nil
+	return h.doJoinConversation(ctx, convID)
 }
 
 func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2149,6 +2174,50 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		res.RateLimits = append(res.RateLimits, *leaveRes.RateLimit)
 	}
 
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
+}
+
+func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFConversationsLocalArg) (res chat1.GetTLFConversationsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConverations(%s)",
+		arg.TlfName))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
+	if err != nil {
+		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
+		return res, err
+	}
+
+	tlfRes, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            nameInfo.ID,
+		TopicType:        arg.TopicType,
+		MembersType:      arg.MembersType,
+		SummarizeMaxMsgs: false,
+	})
+	if tlfRes.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *tlfRes.RateLimit)
+	}
+
+	// Localize the conversations
+	convsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
+		ConvsUnverified: tlfRes.Conversations,
+	})
+	if err != nil {
+		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
+		return res, err
+	}
+
+	res.Convs = convsLocal
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil

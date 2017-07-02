@@ -570,6 +570,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetTLFConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }

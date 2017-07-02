@@ -454,7 +454,7 @@
     },
     {
       "type": "record",
-      "name": "GetTeamConversationsRes",
+      "name": "GetTLFConversationsRes",
       "fields": [
         {
           "type": {
@@ -829,10 +829,10 @@
       ],
       "response": "JoinLeaveConversationRemoteRes"
     },
-    "getTeamConversations": {
+    "getTLFConversations": {
       "request": [
         {
-          "name": "teamID",
+          "name": "tlfID",
           "type": "TLFID"
         },
         {
@@ -840,11 +840,15 @@
           "type": "TopicType"
         },
         {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
         }
       ],
-      "response": "GetTeamConversationsRes"
+      "response": "GetTLFConversationsRes"
     }
   },
   "namespace": "chat.1"

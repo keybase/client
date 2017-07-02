@@ -649,7 +649,15 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  JoinLeaveConversationLocalRes joinConversationLocal(TLFID teamID, TopicType topicType, string topicName);
+  JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, TLFVisibility visibility, string topicName);
+  JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  
+  record GetTLFConversationsLocalRes {
+    array<ConversationLocal> convs;
+    boolean offline;
+    array<RateLimit> rateLimits; 
+  }
+  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
 }

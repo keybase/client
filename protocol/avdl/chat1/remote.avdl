@@ -220,9 +220,9 @@ protocol remote {
   JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
   JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
 
-  record GetTeamConversationsRes {
+  record GetTLFConversationsRes {
     array<Conversation> conversations; 
     union { null, RateLimit } rateLimit;
   }
-  GetTeamConversationsRes getTeamConversations(TLFID teamID, TopicType topicType, boolean summarizeMaxMsgs);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, ConversationMembersType membersType, boolean summarizeMaxMsgs);
 }
