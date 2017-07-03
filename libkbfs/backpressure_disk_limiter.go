@@ -165,23 +165,31 @@ func (bt *backpressureTracker) updateFree(freeResources int64) {
 	bt.updateSemaphoreMax()
 }
 
-func (bt *backpressureTracker) beforeBlockPut(
+func (bt *backpressureTracker) reserve(
 	ctx context.Context, blockResources int64) (
 	availableResources int64, err error) {
 	return bt.semaphore.Acquire(ctx, blockResources)
 }
 
-func (bt *backpressureTracker) afterBlockPut(
-	blockResources int64, putData bool) {
-	if putData {
-		bt.used += blockResources
-		bt.updateSemaphoreMax()
+func (bt *backpressureTracker) commit(blockResources int64) {
+	bt.used += blockResources
+	bt.updateSemaphoreMax()
+}
+
+func (bt *backpressureTracker) rollback(blockResources int64) {
+	bt.semaphore.Release(blockResources)
+}
+
+func (bt *backpressureTracker) commitOrRollback(
+	blockResources int64, shouldCommit bool) {
+	if shouldCommit {
+		bt.commit(blockResources)
 	} else {
-		bt.semaphore.Release(blockResources)
+		bt.rollback(blockResources)
 	}
 }
 
-func (bt *backpressureTracker) onBlocksDelete(blockResources int64) {
+func (bt *backpressureTracker) releaseAndCommit(blockResources int64) {
 	if blockResources == 0 {
 		return
 	}
@@ -192,18 +200,9 @@ func (bt *backpressureTracker) onBlocksDelete(blockResources int64) {
 	bt.updateSemaphoreMax()
 }
 
-func (bt *backpressureTracker) beforeDiskBlockCachePut(blockResources int64) (
+func (bt *backpressureTracker) tryReserve(blockResources int64) (
 	availableResources int64) {
-	// TODO: Implement TryAcquire that automatically rolls back if it would go
-	// negative.
-	availableResources = bt.semaphore.ForceAcquire(blockResources)
-	if availableResources < 0 {
-		// We must roll back the acquisition of resources. We should still
-		// return the negative number, however, so the disk block cache
-		// knows how much to evict.
-		bt.afterBlockPut(blockResources, false)
-	}
-	return availableResources
+	return bt.semaphore.TryAcquire(blockResources)
 }
 
 func (bt *backpressureTracker) getLimitInfo() (used int64, limit float64) {
@@ -511,18 +510,18 @@ func (jt journalTracker) getSemaphoreCounts() (byteCount, fileCount int64) {
 func (jt journalTracker) beforeBlockPut(
 	ctx context.Context, blockBytes, blockFiles int64) (
 	availableBytes, availableFiles int64, err error) {
-	availableBytes, err = jt.byte.beforeBlockPut(ctx, blockBytes)
+	availableBytes, err = jt.byte.reserve(ctx, blockBytes)
 	if err != nil {
 		return availableBytes, jt.file.semaphore.Count(), err
 	}
 	defer func() {
 		if err != nil {
-			jt.byte.afterBlockPut(blockBytes, false)
+			jt.byte.commitOrRollback(blockBytes, false)
 			availableBytes = jt.byte.semaphore.Count()
 		}
 	}()
 
-	availableFiles, err = jt.file.beforeBlockPut(ctx, blockFiles)
+	availableFiles, err = jt.file.reserve(ctx, blockFiles)
 	if err != nil {
 		return availableBytes, availableFiles, err
 	}
@@ -533,8 +532,8 @@ func (jt journalTracker) beforeBlockPut(
 func (jt journalTracker) afterBlockPut(
 	blockBytes, blockFiles int64, putData bool,
 	chargedTo keybase1.UserOrTeamID) {
-	jt.byte.afterBlockPut(blockBytes, putData)
-	jt.file.afterBlockPut(blockFiles, putData)
+	jt.byte.commitOrRollback(blockBytes, putData)
+	jt.file.commitOrRollback(blockFiles, putData)
 	jt.getQuotaTracker(chargedTo).afterBlockPut(blockBytes, putData)
 }
 
@@ -543,9 +542,9 @@ func (jt journalTracker) onBlocksFlush(
 	jt.getQuotaTracker(chargedTo).onBlocksFlush(blockBytes)
 }
 
-func (jt journalTracker) onBlocksDelete(blockBytes, blockFiles int64) {
-	jt.byte.onBlocksDelete(blockBytes)
-	jt.file.onBlocksDelete(blockFiles)
+func (jt journalTracker) releaseAndCommit(blockBytes, blockFiles int64) {
+	jt.byte.releaseAndCommit(blockBytes)
+	jt.file.releaseAndCommit(blockFiles)
 }
 
 func (jt journalTracker) getUsedBytes() int64 {
@@ -610,7 +609,7 @@ type backpressureDiskLimiter struct {
 	// themselves.
 	lock sync.RWMutex
 	// overallTracker tracks the overall number of bytes used by Keybase.
-	overallTracker *backpressureTracker
+	overallByteTracker *backpressureTracker
 	// journalTracker tracks the journal bytes and files used.
 	journalTracker journalTracker
 	// diskCacheByteTracker tracks the disk cache bytes used.
@@ -762,7 +761,7 @@ func newBackpressureDiskLimiter(
 		freeBytesAndFilesFn:  params.freeBytesAndFilesFn,
 		quotaFn:              params.quotaFn,
 		lock:                 sync.RWMutex{},
-		overallTracker:       overallTracker,
+		overallByteTracker:   overallTracker,
 		journalTracker:       journalTracker,
 		diskCacheByteTracker: diskCacheByteTracker,
 		syncCacheByteTracker: syncCacheByteTracker,
@@ -838,6 +837,7 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
+	bdl.overallByteTracker.onEnable(diskCacheBytes)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
@@ -845,6 +845,7 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.diskCacheByteTracker.onDisable(diskCacheBytes)
+	bdl.overallByteTracker.onDisable(diskCacheBytes)
 }
 
 func (bdl *backpressureDiskLimiter) getDelayLocked(
@@ -934,6 +935,7 @@ func (bdl *backpressureDiskLimiter) afterBlockPut(
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.journalTracker.afterBlockPut(blockBytes, blockFiles, putData, chargedTo)
+	bdl.overallByteTracker.commitOrRollback(blockBytes, putData)
 }
 
 func (bdl *backpressureDiskLimiter) onBlocksFlush(
@@ -947,7 +949,8 @@ func (bdl *backpressureDiskLimiter) onBlocksDelete(
 	ctx context.Context, blockBytes, blockFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalTracker.onBlocksDelete(blockBytes, blockFiles)
+	bdl.journalTracker.releaseAndCommit(blockBytes, blockFiles)
+	bdl.overallByteTracker.releaseAndCommit(blockBytes)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
@@ -957,7 +960,8 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.diskCacheByteTracker.onBlocksDelete(blockBytes)
+	bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)
+	bdl.overallByteTracker.releaseAndCommit(blockBytes)
 }
 
 func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
@@ -985,16 +989,17 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	//
 	// TODO: Keep track of other used bytes separately.
 	bdl.diskCacheByteTracker.updateFree(
-		freeBytes + bdl.journalTracker.getUsedBytes())
+		freeBytes + bdl.overallByteTracker.used -
+			bdl.diskCacheByteTracker.used)
 
-	return bdl.diskCacheByteTracker.beforeDiskBlockCachePut(blockBytes), nil
+	return bdl.diskCacheByteTracker.tryReserve(blockBytes), nil
 }
 
 func (bdl *backpressureDiskLimiter) afterDiskBlockCachePut(
 	ctx context.Context, blockBytes int64, putData bool) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.diskCacheByteTracker.afterBlockPut(blockBytes, putData)
+	bdl.diskCacheByteTracker.commitOrRollback(blockBytes, putData)
 }
 
 func (bdl *backpressureDiskLimiter) getQuotaInfo(

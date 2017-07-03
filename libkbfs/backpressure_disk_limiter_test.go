@@ -91,7 +91,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	bt.updateFree(400)
 
-	avail, err = bt.beforeBlockPut(context.Background(), 10)
+	avail, err = bt.reserve(context.Background(), 10)
 	require.NoError(t, err)
 	require.Equal(t, int64(89), avail)
 
@@ -100,7 +100,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(100), bt.semaphoreMax)
 	require.Equal(t, int64(89), bt.semaphore.Count())
 
-	bt.afterBlockPut(10, true)
+	bt.commitOrRollback(10, true)
 
 	require.Equal(t, int64(11), bt.used)
 	require.Equal(t, int64(400), bt.free)
@@ -109,7 +109,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	// Then try to put a block but fail it.
 
-	avail, err = bt.beforeBlockPut(context.Background(), 9)
+	avail, err = bt.reserve(context.Background(), 9)
 	require.NoError(t, err)
 	require.Equal(t, int64(80), avail)
 
@@ -118,7 +118,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(100), bt.semaphoreMax)
 	require.Equal(t, int64(80), bt.semaphore.Count())
 
-	bt.afterBlockPut(9, false)
+	bt.commitOrRollback(9, false)
 
 	require.Equal(t, int64(11), bt.used)
 	require.Equal(t, int64(400), bt.free)
@@ -127,7 +127,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 
 	// Finally, delete a block.
 
-	bt.onBlocksDelete(11)
+	bt.releaseAndCommit(11)
 
 	require.Equal(t, int64(0), bt.used)
 	require.Equal(t, int64(400), bt.free)
@@ -135,7 +135,7 @@ func TestBackpressureTrackerCounters(t *testing.T) {
 	require.Equal(t, int64(100), bt.semaphore.Count())
 
 	// This should be a no-op.
-	bt.onBlocksDelete(0)
+	bt.releaseAndCommit(0)
 
 	require.Equal(t, int64(0), bt.used)
 	require.Equal(t, int64(400), bt.free)
@@ -394,7 +394,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	// ...and, finally, delete it.
 
-	jt.onBlocksDelete(10, 5)
+	jt.releaseAndCommit(10, 5)
 
 	// max = min(k(U+F), L) = min(0.15(1+240), 400) = 36.
 	expectedByteSnapshot = jtSnapshot{
