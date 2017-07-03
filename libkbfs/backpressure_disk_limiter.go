@@ -107,7 +107,7 @@ func (bt backpressureTracker) currLimit() float64 {
 	freeFloat := float64(bt.free)
 	limit := bt.limitFrac * (usedFloat + freeFloat)
 	minLimit := math.Min(limit, float64(bt.limit))
-	// Magic number of 512 gets us past overflow issues at the limit due to
+	// The magic number of 512 gets us past overflow issues at the limit due to
 	// floating point precision.
 	maxFloatForInt64 := float64(math.MaxInt64 - 512)
 	if minLimit > maxFloatForInt64 {
@@ -615,7 +615,7 @@ type backpressureDiskLimiter struct {
 	// values of the semaphores, but not the actual semaphores
 	// themselves.
 	lock sync.RWMutex
-	// overallTracker tracks the overall number of bytes used by Keybase.
+	// overallByteTracker tracks the overall number of bytes used by Keybase.
 	overallByteTracker *backpressureTracker
 	// journalTracker tracks the journal bytes and files used.
 	journalTracker journalTracker
@@ -753,7 +753,7 @@ func newBackpressureDiskLimiter(
 	// that the disk cache should consume. Add 0.5 for rounding.
 	diskCacheByteLimit := int64(
 		(float64(params.byteLimit) * params.diskCacheFrac) + 0.5)
-	overallTracker, err := newBackpressureTracker(
+	overallByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, 1.0, params.byteLimit, freeBytes)
 	diskCacheByteTracker, err := newBackpressureTracker(
 		1.0, 1.0, params.diskCacheFrac, diskCacheByteLimit, freeBytes)
@@ -768,7 +768,7 @@ func newBackpressureDiskLimiter(
 		freeBytesAndFilesFn:  params.freeBytesAndFilesFn,
 		quotaFn:              params.quotaFn,
 		lock:                 sync.RWMutex{},
-		overallByteTracker:   overallTracker,
+		overallByteTracker:   overallByteTracker,
 		journalTracker:       journalTracker,
 		diskCacheByteTracker: diskCacheByteTracker,
 		syncCacheByteTracker: syncCacheByteTracker,
@@ -841,7 +841,7 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 	bdl.overallByteTracker.onDisable(journalStoredBytes)
 }
 
-func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
+func (bdl *backpressureDiskLimiter) onByteTrackerEnable(ctx context.Context,
 	diskCacheBytes int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
@@ -849,7 +849,7 @@ func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
 	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
 }
 
-func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
+func (bdl *backpressureDiskLimiter) onByteTrackerDisable(ctx context.Context,
 	diskCacheBytes int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
@@ -964,9 +964,6 @@ func (bdl *backpressureDiskLimiter) onBlocksDelete(
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
 	ctx context.Context, blockBytes int64) {
-	if blockBytes == 0 {
-		return
-	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)

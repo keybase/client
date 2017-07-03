@@ -225,7 +225,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 			// Notify the disk limiter of the disk cache's size once we've
 			// determined it.
 			ctx := context.Background()
-			cache.config.DiskLimiter().onDiskBlockCacheEnable(ctx,
+			cache.config.DiskLimiter().onByteTrackerEnable(ctx,
 				int64(cache.currBytes))
 		}
 		close(startedCh)
@@ -963,6 +963,6 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 		cache.log.CWarningf(ctx, "Error closing tlfDb: %+v", err)
 	}
 	cache.tlfDb = nil
-	cache.config.DiskLimiter().onDiskBlockCacheDisable(ctx,
+	cache.config.DiskLimiter().onByteTrackerDisable(ctx,
 		int64(cache.currBytes))
 }

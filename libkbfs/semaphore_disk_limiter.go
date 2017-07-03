@@ -117,14 +117,14 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 	sdl.quotaTracker.onJournalDisable(journalUnflushedBytes)
 }
 
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheEnable(
+func (sdl semaphoreDiskLimiter) onByteTrackerEnable(
 	ctx context.Context, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
 	}
 }
 
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheDisable(
+func (sdl semaphoreDiskLimiter) onByteTrackerDisable(
 	ctx context.Context, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.Release(diskCacheBytes)

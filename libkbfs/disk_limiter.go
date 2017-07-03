@@ -5,6 +5,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+type diskLimitTrackerType int
+
+const (
+	journalLimitTracker diskLimitTrackerType = iota
+	diskCacheLimitTracker
+	syncCacheLimitTracker
+)
+
 type diskBlockCacheLimiter interface {
 	// onDiskBlockCacheDelete is called by the disk block cache after deleting
 	// blocks from the cache.
@@ -19,19 +27,20 @@ type diskBlockCacheLimiter interface {
 	// a block into the cache. It returns how many bytes it acquired.
 	afterDiskBlockCachePut(ctx context.Context, blockBytes int64,
 		putData bool)
-
-	// onDiskBlockCacheEnable is called when the disk block cache is enabled to
-	// begin accounting for its blocks.
-	onDiskBlockCacheEnable(ctx context.Context, cacheBytes int64)
-
-	// onDiskBlockCacheDisable is called when the disk block cache is disabled to
-	// stop accounting for its blocks.
-	onDiskBlockCacheDisable(ctx context.Context, cacheBytes int64)
 }
 
 // DiskLimiter is an interface for limiting disk usage.
 type DiskLimiter interface {
 	diskBlockCacheLimiter
+
+	// onByteTrackerEnable is called when a byte tracker is enabled to begin
+	// accounting.
+	onByteTrackerEnable(ctx context.Context, cacheBytes int64)
+
+	// onByteTrackerDisable is called when a byte tracker is disable to stop
+	// accounting.
+	onByteTrackerDisable(ctx context.Context, cacheBytes int64)
+
 	// onJournalEnable is called when initializing a TLF journal
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0. The updated available byte
@@ -74,11 +83,10 @@ type DiskLimiter interface {
 	onBlocksFlush(ctx context.Context, blockBytes int64,
 		chargedTo keybase1.UserOrTeamID)
 
-	// onBlocksDelete is called after deleting blocks of the given
-	// byte and file count, both of which must be >= 0. (Deleting
-	// a block with either zero byte or zero file count shouldn't
-	// happen, but may as well let it go through.)
-	onBlocksDelete(ctx context.Context, blockBytes, blockFiles int64)
+	// onBlocksDelete is called after deleting blocks for a given tracker of
+	// the given byte and file count, both of which must be >= 0.
+	onBlocksDelete(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+		blockFiles int64)
 
 	// getQuotaInfo returns the quota info as known by the disk
 	// limiter.
