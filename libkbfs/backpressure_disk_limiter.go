@@ -954,19 +954,16 @@ func (bdl *backpressureDiskLimiter) onBlocksFlush(
 	bdl.journalTracker.onBlocksFlush(blockBytes, chargedTo)
 }
 
-func (bdl *backpressureDiskLimiter) onBlocksDelete(
-	ctx context.Context, blockBytes, blockFiles int64) {
+func (bdl *backpressureDiskLimiter) onBlocksDelete(ctx context.Context,
+	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalTracker.releaseAndCommit(blockBytes, blockFiles)
-	bdl.overallByteTracker.releaseAndCommit(blockBytes)
-}
-
-func (bdl *backpressureDiskLimiter) onDiskBlockCacheDelete(
-	ctx context.Context, blockBytes int64) {
-	bdl.lock.Lock()
-	defer bdl.lock.Unlock()
-	bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)
+	switch typ {
+	case journalLimitTracker:
+		bdl.journalTracker.releaseAndCommit(blockBytes, blockFiles)
+	case diskCacheLimitTracker:
+		bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)
+	}
 	bdl.overallByteTracker.releaseAndCommit(blockBytes)
 }
 

@@ -174,19 +174,14 @@ func (sdl semaphoreDiskLimiter) onBlocksFlush(
 	sdl.quotaTracker.onBlocksFlush(blockBytes)
 }
 
-func (sdl semaphoreDiskLimiter) onBlocksDelete(
-	ctx context.Context, blockBytes, blockFiles int64) {
+func (sdl semaphoreDiskLimiter) onBlocksDelete(ctx context.Context,
+	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
 	if blockBytes != 0 {
 		sdl.byteSemaphore.Release(blockBytes)
 	}
 	if blockFiles != 0 {
 		sdl.fileSemaphore.Release(blockFiles)
 	}
-}
-
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheDelete(ctx context.Context,
-	blockBytes int64) {
-	sdl.onBlocksDelete(ctx, blockBytes, 0)
 }
 
 func (sdl semaphoreDiskLimiter) beforeDiskBlockCachePut(ctx context.Context,

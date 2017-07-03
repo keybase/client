@@ -50,7 +50,7 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
-	sdl.onBlocksDelete(ctx, 9, 1)
+	sdl.onBlocksDelete(ctx, unknownLimitTracker, 9, 1)
 
 	require.Equal(t, int64(10), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(2), sdl.fileSemaphore.Count())

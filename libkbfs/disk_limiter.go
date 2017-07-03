@@ -8,16 +8,13 @@ import (
 type diskLimitTrackerType int
 
 const (
-	journalLimitTracker diskLimitTrackerType = iota
+	unknownLimitTracker diskLimitTrackerType = iota
+	journalLimitTracker
 	diskCacheLimitTracker
 	syncCacheLimitTracker
 )
 
 type diskBlockCacheLimiter interface {
-	// onDiskBlockCacheDelete is called by the disk block cache after deleting
-	// blocks from the cache.
-	onDiskBlockCacheDelete(ctx context.Context, blockBytes int64)
-
 	// beforeDiskBlockCachePut is called by the disk block cache before putting
 	// a block into the cache. It returns the total number of available bytes.
 	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (

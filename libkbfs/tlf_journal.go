@@ -1242,7 +1242,8 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 			return err
 		}
 
-		j.diskLimiter.onBlocksDelete(ctx, removedBytes, removedFiles)
+		j.diskLimiter.onBlocksDelete(ctx, journalLimitTracker, removedBytes,
+			removedFiles)
 	}
 
 	j.journalLock.Lock()

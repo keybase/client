@@ -731,7 +731,8 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
 	}
-	cache.config.DiskLimiter().onDiskBlockCacheDelete(ctx, sizeRemoved)
+	cache.config.DiskLimiter().onBlocksDelete(ctx, diskCacheLimitTracker,
+		sizeRemoved, 0)
 
 	return numRemoved, sizeRemoved, nil
 }
