@@ -64,6 +64,26 @@ const Text = glamorous.text(
     props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
 )
 
+const Image = glamorous.image(
+  {
+    resizeMode: 'contain',
+  },
+  props =>
+    props.style && props.style.width !== undefined
+      ? {
+          width: props.style.width,
+        }
+      : null,
+  props =>
+    props.style && props.style.height !== undefined
+      ? {
+          height: props.style.height,
+        }
+      : null,
+  props =>
+    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
+)
+
 const Icon = (props: Exact<Props>) => {
   let iconType = shared.typeToIconMapper(props.type)
 
@@ -87,10 +107,7 @@ const Icon = (props: Exact<Props>) => {
       </Text>
     )
   } else {
-    return null
-    // const height = props.style && props.style.height && {height: props.style.height}
-    // const Image = glamorous.image({resizeMode: 'contain', ...width, ...height, ...backgroundColor})
-    // icon = <Image source={iconMeta[iconType].require} style={props.style} />
+    icon = <Image source={iconMeta[iconType].require} style={props.style} />
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
