@@ -243,6 +243,21 @@ func (f failingRemote) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateT
 	return nil
 }
 
+func (f failingRemote) GetTLFConversations(ctx context.Context, arg chat1.GetTLFConversationsArg) (chat1.GetTLFConversationsRes, error) {
+	require.Fail(f.t, "GetTLFConversations")
+	return chat1.GetTLFConversationsRes{}, nil
+}
+
+func (f failingRemote) JoinConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	require.Fail(f.t, "JoinConversation")
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (f failingRemote) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	require.Fail(f.t, "LeaveConversation")
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }

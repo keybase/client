@@ -435,6 +435,14 @@ func (c ConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
+type ConvLocalByTopicName []chat1.ConversationLocal
+
+func (c ConvLocalByTopicName) Len() int      { return len(c) }
+func (c ConvLocalByTopicName) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ConvLocalByTopicName) Less(i, j int) bool {
+	return GetTopicName(c[i]) < GetTopicName(c[j])
+}
+
 type ByConvID []chat1.ConversationID
 
 func (c ByConvID) Len() int      { return len(c) }

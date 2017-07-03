@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -2216,6 +2217,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
 		return res, err
 	}
+	sort.Sort(utils.ConvLocalByTopicName(convsLocal))
 
 	res.Convs = convsLocal
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
