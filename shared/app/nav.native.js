@@ -183,7 +183,7 @@ function Nav(props: Props) {
   const layers = layerScreens.map(r => r.leafComponent)
 
   // If we have layers, lets add an extra box, else lets just pass through
-  if (layers.length) {
+  if (layers.count()) {
     return (
       <Box style={globalStyles.fillAbsolute}>
         {shim}
