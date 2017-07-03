@@ -2047,6 +2047,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
+	j.log.CDebugf(ctx, "Put update rev=%d id=%s", rmd.Revision(), mdID)
 
 	j.signalWork()
 
@@ -2198,6 +2199,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
+	j.log.CDebugf(ctx, "Put resolution rev=%d id=%s", rmd.Revision(), mdID)
 
 	j.resume(journalPauseConflict)
 	j.signalWork()

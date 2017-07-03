@@ -770,6 +770,10 @@ func (j *mdJournal) convertToBranch(
 			if err != nil {
 				return err
 			}
+		} else {
+			j.log.CDebugf(ctx,
+				"Not cache-replacing rev=%d: old ID=%s, entry.ID=%s, err=%+v",
+				brmd.RevisionNumber(), oldIrmd.mdID, entry.ID, err)
 		}
 
 		j.log.CDebugf(ctx, "Changing ID for rev=%s from %s to %s",
