@@ -5,8 +5,38 @@ import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.met
 import {clickableVisible} from '../local-debug'
 import glamorous from 'glamorous-native'
 import shallowEqual from 'shallowequal'
+import {StyleSheet} from 'react-native'
 
 import type {Props, TextType, Background} from './text'
+
+const StyledText = glamorous.text({}, props => props.style)
+
+const backgroundModes = [
+  'Normal',
+  'Announcements',
+  'Success',
+  'Information',
+  'HighRisk',
+  'Documentation',
+  'Terminal',
+]
+
+const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
+  const meta = metaData[type]
+  backgroundModes.forEach(mode => {
+    map[`${type}:${mode}`] = {
+      ...fontSizeToSizeStyle(meta.fontSize),
+      color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+      ...meta.styleOverride,
+    }
+  })
+  return map
+}, {})
+
+console.log('aaa', styleMap)
+const styles = StyleSheet.create(styleMap)
+
+// Init common styles for perf
 
 class Text extends Component<void, Props, void> {
   _nativeText: any
@@ -34,25 +64,27 @@ class Text extends Component<void, Props, void> {
   }
 
   render() {
-    const style = {
-      ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
+    const baseStyle = styles[`${this.props.type}:${this.props.backgroundMode || 'Normal'}`]
+    const dynamicStyle = {
+      ...(this.props.backgroundMode === 'Normal'
+        ? {}
+        : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
       ...(clickableVisible && this.props.onClick ? visibleStyle : {}),
-      ...this.props.style,
     }
 
-    if (style['color'] === undefined) {
-      console.warn(
-        'Text color is not being set properly, might be Markdown overriding to undefined (common-adapters/text.native.js)'
-      )
+    let style
+    if (!Object.keys(dynamicStyle).length) {
+      style = this.props.style ? [baseStyle, this.props.style] : baseStyle
+    } else {
+      style = [baseStyle, dynamicStyle, this.props.style]
     }
-
-    const StyledText = glamorous.text(style)
 
     return (
       <StyledText
         ref={ref => {
           this._nativeText = ref
         }}
+        style={style}
         {...lineClamp(this.props.lineClamp)}
         onPress={this.props.onClick || (this.props.onClickURL ? this._urlClick : undefined)}
         onLongPress={this.props.onLongPress}
@@ -68,6 +100,23 @@ const visibleStyle = {
   backgroundColor: 'rgba(0, 255, 0, 0.1)',
 }
 
+// external things call this so leave the original alone
+function _getStyle(
+  type: TextType,
+  backgroundMode?: Background = 'Normal',
+  lineClampNum?: ?number,
+  clickable?: ?boolean
+) {
+  if (backgroundMode === 'Normal') return null
+  const meta = metaData[type]
+  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
+
+  return {
+    ...colorStyle,
+    ...textDecoration,
+  }
+}
 function getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',

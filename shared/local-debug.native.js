@@ -9,7 +9,7 @@ import {updateDebugConfig} from './actions/dev'
 const nativeBridge = NativeModules.KeybaseEngine
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
