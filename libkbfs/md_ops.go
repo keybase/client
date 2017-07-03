@@ -598,6 +598,7 @@ func (md *MDOpsStandard) put(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
+	md.log.CDebugf(ctx, "Put MD rev=%d id=%s", rmd.Revision(), mdID)
 
 	return irmd, nil
 }

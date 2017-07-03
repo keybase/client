@@ -142,10 +142,10 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
 
 			rmds[slot] = rmd
 
-			if err := mdcache.Put(rmd); err != nil {
-				config.MakeLogger("").CDebugf(ctx, "Error putting md "+
-					"%d into the cache: %v", rmd.Revision(), err)
-			}
+			// We don't cache the MD here, since it's already done in
+			// `MDOpsStandard` for MDs that come from a remote server.
+			// MDs that come from the local journal don't get cached
+			// as part of a get, to avoid races as in KBFS-2224.
 		}
 	}
 
@@ -251,7 +251,11 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 			}
 			rmdCopy.data = pmd
 
-			// Overwrite the cached copy with the new copy
+			// Overwrite the cached copy with the new copy.  Unlike in
+			// `getMDRange`, it's safe to put this into the cache
+			// blindly, since updates coming from our local journal
+			// would always be readable, and thus not subject to this
+			// rewrite.
 			irmdCopy := MakeImmutableRootMetadata(rmdCopy,
 				rmd.LastModifyingWriterVerifyingKey(), rmd.MdID(),
 				rmd.LocalTimestamp())
