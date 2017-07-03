@@ -51,14 +51,14 @@ const Icon = (props: Exact<Props>) => {
     })
 
     icon = (
-      <Text>
+      <Text style={props.style}>
         {code}
       </Text>
     )
   } else {
     const height = props.style && props.style.height && {height: props.style.height}
     const Image = glamorous.image({resizeMode: 'contain', ...width, ...height, ...backgroundColor})
-    icon = <Image source={iconMeta[iconType].require} />
+    icon = <Image source={iconMeta[iconType].require} style={props.style} />
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
