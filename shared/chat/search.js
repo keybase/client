@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
+      dispatch(SearchCreators.search(term, 'chat:pendingSearchResults', 'chat:updateSearchResults', service))
     } else {
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }

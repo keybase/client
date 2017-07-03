@@ -63,13 +63,15 @@ export type SearchResult = {|
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
-  {term: string, service: Service, actionTypeToFire: TypeToFire}
+  {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
 >
 
 export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
   'searchv3:searchSuggestions',
   {actionTypeToFire: TypeToFire, maxUsers: number}
 >
+
+export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
@@ -78,6 +80,7 @@ export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
 
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
+export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 
 function serviceIdToService(serviceId: string): Service {
   return {

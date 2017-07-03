@@ -662,6 +662,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
     }
+    case 'chat:searchPending': {
+      const {payload: {pending}} = action
+      return state.set('searchPending', pending)
+    }
   }
 
   return state

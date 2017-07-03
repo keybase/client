@@ -29,7 +29,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSid
   _clearSearchResults: () => dispatch(clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service))
+      dispatch(
+        SearchCreators.search(term, 'profile:pendingSearchResults', 'profile:updateSearchResults', service)
+      )
     } else {
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
