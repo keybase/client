@@ -6,9 +6,63 @@ import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {omit} from 'lodash'
 import glamorous from 'glamorous-native'
+import {NativeStyleSheet} from './native-wrappers.native.js'
 
 import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
+
+const fontSizes = Object.keys(iconMeta).reduce((map, type) => {
+  const meta = iconMeta[type]
+  if (meta.gridSize) {
+    map[meta.gridSize] = {
+      fontSize: meta.gridSize,
+    }
+  }
+  return map
+}, {})
+
+const styles = NativeStyleSheet.create(fontSizes)
+
+const Text = glamorous.text(
+  {
+    color: globalColors.black_40,
+    fontFamily: 'kb',
+  },
+  props =>
+    props.style && props.style.width !== undefined
+      ? {
+          width: props.style.width,
+        }
+      : null,
+  props => {
+    const color =
+      (props.style && props.style.color) ||
+      shared.defaultColor(props.type) ||
+      (props.opacity && globalColors.lightGrey)
+    if (color) {
+      return {color}
+    } else return null
+  },
+  props =>
+    props.style && props.style.textAlign !== undefined
+      ? {
+          textAlign: props.style.textAlign,
+        }
+      : null,
+  props => {
+    if ((props.style && props.style.fontSize !== undefined) || props.style.width !== undefined) {
+      return {fontSize: props.style.fontSize || props.style.width}
+    }
+
+    const temp = shared.fontSize(shared.typeToIconMapper(props.type))
+    if (temp) {
+      return styles[temp.fontSize]
+    }
+    return null
+  },
+  props =>
+    props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
+)
 
 const Icon = (props: Exact<Props>) => {
   let iconType = shared.typeToIconMapper(props.type)
@@ -22,43 +76,21 @@ const Icon = (props: Exact<Props>) => {
     return null
   }
 
-  const color =
-    (props.style && props.style.color) ||
-    shared.defaultColor(props.type) ||
-    (props.opacity ? globalColors.lightGrey : globalColors.black_40)
-  const styleWidth = props.style && props.style.width
-  const width = styleWidth && {width: props.style.width}
-  const backgroundColor = (props.style && {backgroundColor: props.style.backgroundColor}) || {}
-
   let icon
 
   if (iconMeta[iconType].isFont) {
-    const fontSizeHint = shared.fontSize(iconType)
-    const fontSize =
-      (props.style &&
-      (props.style.fontSize || styleWidth) && {fontSize: props.style.fontSize || styleWidth}) ||
-      fontSizeHint
-    const textAlign = props.style && props.style.textAlign
     const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
 
-    const Text = glamorous.text({
-      color,
-      fontFamily: 'kb',
-      textAlign,
-      ...fontSize,
-      ...width,
-      ...backgroundColor,
-    })
-
     icon = (
-      <Text style={props.style}>
+      <Text style={props.style} type={props.type}>
         {code}
       </Text>
     )
   } else {
-    const height = props.style && props.style.height && {height: props.style.height}
-    const Image = glamorous.image({resizeMode: 'contain', ...width, ...height, ...backgroundColor})
-    icon = <Image source={iconMeta[iconType].require} style={props.style} />
+    return null
+    // const height = props.style && props.style.height && {height: props.style.height}
+    // const Image = glamorous.image({resizeMode: 'contain', ...width, ...height, ...backgroundColor})
+    // icon = <Image source={iconMeta[iconType].require} style={props.style} />
   }
 
   const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
