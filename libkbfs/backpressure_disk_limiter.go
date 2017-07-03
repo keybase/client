@@ -106,7 +106,14 @@ func (bt backpressureTracker) currLimit() float64 {
 	usedFloat := float64(bt.used)
 	freeFloat := float64(bt.free)
 	limit := bt.limitFrac * (usedFloat + freeFloat)
-	return math.Min(limit, float64(bt.limit))
+	minLimit := math.Min(limit, float64(bt.limit))
+	// Magic number of 512 gets us past overflow issues at the limit due to
+	// floating point precision.
+	maxFloatForInt64 := float64(math.MaxInt64 - 512)
+	if minLimit > maxFloatForInt64 {
+		minLimit = maxFloatForInt64
+	}
+	return minLimit
 }
 
 func (bt backpressureTracker) usedFrac() float64 {
@@ -818,6 +825,7 @@ func (bdl *backpressureDiskLimiter) onJournalEnable(
 	availableBytes, availableFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
+	bdl.overallByteTracker.onEnable(journalStoredBytes)
 	return bdl.journalTracker.onEnable(
 		journalStoredBytes, journalUnflushedBytes, journalFiles, chargedTo)
 }
@@ -830,14 +838,15 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 	defer bdl.lock.Unlock()
 	bdl.journalTracker.onDisable(
 		journalStoredBytes, journalUnflushedBytes, journalFiles, chargedTo)
+	bdl.overallByteTracker.onDisable(journalStoredBytes)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheEnable(ctx context.Context,
 	diskCacheBytes int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
 	bdl.overallByteTracker.onEnable(diskCacheBytes)
+	bdl.diskCacheByteTracker.onEnable(diskCacheBytes)
 }
 
 func (bdl *backpressureDiskLimiter) onDiskBlockCacheDisable(ctx context.Context,
