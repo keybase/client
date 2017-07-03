@@ -454,9 +454,9 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return r.public, nil
 	}
 
-	if env.NewContext().GetRunMode() != libkb.ProductionRunMode &&
-		req.Name == TeamName &&
-		libkbfs.EnableAdminFeature(ctx, r.team.fs.config) {
+	if req.Name == TeamName &&
+		(env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
+			libkbfs.EnableAdminFeature(ctx, r.team.fs.config)) {
 		return r.team, nil
 	}
 
@@ -516,7 +516,7 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Name: PublicName,
 		},
 	}
-	if env.NewContext().GetRunMode() != libkb.ProductionRunMode &&
+	if env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
 		libkbfs.EnableAdminFeature(ctx, r.team.fs.config) {
 		res = append(res, fuse.Dirent{
 			Type: fuse.DT_Dir,

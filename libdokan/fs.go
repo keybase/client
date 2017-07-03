@@ -377,11 +377,11 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			return nil, false, dokan.ErrAccessDenied
 		}
 		return f.root.private.open(ctx, oc, ps[1:])
-	case `TEAM` == ps[0]:
+	case strings.ToUpper(TeamName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case TeamName == ps[0]:
-		if env.NewContext().GetRunMode() == libkb.ProductionRunMode ||
+		if env.NewContext().GetRunMode() == libkb.ProductionRunMode &&
 			!libkbfs.EnableAdminFeature(ctx, f.config) {
 			return nil, false, dokan.ErrObjectNameNotFound
 		}
@@ -663,7 +663,7 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 		if err != nil {
 			return err
 		}
-		if env.NewContext().GetRunMode() != libkb.ProductionRunMode &&
+		if env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
 			libkbfs.EnableAdminFeature(ctx, r.team.fs.config) {
 			ns.Name = TeamName
 			err = callback(&ns)
