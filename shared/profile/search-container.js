@@ -24,12 +24,15 @@ type HocIntermediateProps = {
 
 const mapStateToProps = (state: TypedState) => ({
   searchResultIds: profileSearchResultArray(state),
+  showSearchPending: state.profile.searchPending,
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
   _clearSearchResults: () => dispatch(clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service))
+      dispatch(
+        SearchCreators.search(term, 'profile:pendingSearchResults', 'profile:updateSearchResults', service)
+      )
     } else {
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }

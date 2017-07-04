@@ -167,13 +167,17 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Search<T>) {
+function* search<T>({
+  payload: {term, service, pendingActionTypeToFire, finishedActionTypeToFire},
+}: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
-    yield put(Creators.finishedSearch(actionTypeToFire, cachedResults, term, service))
+    yield put(Creators.finishedSearch(finishedActionTypeToFire, cachedResults, term, service))
     return
   }
+
+  yield put(Creators.pendingSearch(pendingActionTypeToFire, true))
 
   try {
     yield call(onIdlePromise, 1e3)
@@ -194,9 +198,11 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
 
     const ids = rows.map(r => r.id)
     yield put(EntityAction.mergeEntity(['searchQueryToResult'], {[searchQuery]: ids}))
-    yield put(Creators.finishedSearch(actionTypeToFire, ids, term, service))
+    yield put(Creators.finishedSearch(finishedActionTypeToFire, ids, term, service))
   } catch (error) {
     console.warn('error in searching', error)
+  } finally {
+    yield put(Creators.pendingSearch(pendingActionTypeToFire, false))
   }
 }
 

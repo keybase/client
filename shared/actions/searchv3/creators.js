@@ -3,14 +3,22 @@ import * as Constants from '../../constants/searchv3'
 
 function search<T>(
   term: string,
-  actionTypeToFire: T,
+  pendingActionTypeToFire: T,
+  finishedActionTypeToFire: T,
   service: Constants.Service = 'Keybase'
 ): Constants.Search<T> {
-  return {type: 'searchv3:search', payload: {actionTypeToFire, term, service}}
+  return {
+    type: 'searchv3:search',
+    payload: {finishedActionTypeToFire, pendingActionTypeToFire, service, term},
+  }
 }
 
 function searchSuggestions<T>(actionTypeToFire: T, maxUsers?: number = 10): Constants.SearchSuggestions<T> {
   return {type: 'searchv3:searchSuggestions', payload: {actionTypeToFire, maxUsers}}
+}
+
+function pendingSearch<T>(actionTypeToFire: T, pending: boolean): Constants.PendingSearch<T> {
+  return {type: actionTypeToFire, payload: {pending}}
 }
 
 function finishedSearch<T>(
@@ -22,4 +30,4 @@ function finishedSearch<T>(
   return {type: actionTypeToFire, payload: {searchTerm, searchResults, service}}
 }
 
-export {search, searchSuggestions, finishedSearch}
+export {finishedSearch, pendingSearch, search, searchSuggestions}
