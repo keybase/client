@@ -1,5 +1,4 @@
 // @flow
-import DumbSheet from '../dev/dumb-sheet'
 import Push from '../push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
@@ -66,6 +65,7 @@ class Main extends Component<void, any, void> {
 
   render() {
     if (this.props.dumbFullscreen) {
+      const DumbSheet = require('../dev/dumb-sheet').default
       return <DumbSheet />
     }
 
