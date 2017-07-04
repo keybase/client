@@ -810,6 +810,18 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 	return int64(freeBytes), int64(freeFiles), nil
 }
 
+func (bdl *backpressureDiskLimiter) trackerFromType(typ diskLimitTrackerType) (
+	tracker diskLimitByteTracker) {
+	switch typ {
+	case diskCacheLimitTracker:
+		return bdl.diskCacheByteTracker
+	case syncCacheLimitTracker:
+		return bdl.syncCacheByteTracker
+	default:
+		panic("Unknown byte tracker type")
+	}
+}
+
 func (bdl *backpressureDiskLimiter) getJournalSnapshotsForTest(
 	chargedTo keybase1.UserOrTeamID) (
 	byteSnapshot, fileSnapshot, quotaSnapshot jtSnapshot) {
@@ -963,6 +975,8 @@ func (bdl *backpressureDiskLimiter) onBlocksDelete(ctx context.Context,
 		bdl.journalTracker.releaseAndCommit(blockBytes, blockFiles)
 	case diskCacheLimitTracker:
 		bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)
+	case syncCacheLimitTracker:
+		bdl.syncCacheByteTracker.releaseAndCommit(blockBytes)
 	}
 	bdl.overallByteTracker.releaseAndCommit(blockBytes)
 }
@@ -985,17 +999,24 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 		return 0, err
 	}
 
+	bdl.overallByteTracker.updateFree(freeBytes)
+	count := bdl.overallByteTracker.tryReserve(blockBytes)
+	if count < 0 {
+		return count, nil
+	}
 	// We calculate the total free bytes by adding up the reported
 	// free bytes, the disk cache used bytes, *and* any other used
 	// bytes (e.g., the journal cache). For now, we hack this by
 	// lumping the other used bytes with the reported free bytes.
-	//
-	// TODO: Keep track of other used bytes separately.
 	bdl.diskCacheByteTracker.updateFree(
 		freeBytes + bdl.overallByteTracker.used -
 			bdl.diskCacheByteTracker.used)
 
-	return bdl.diskCacheByteTracker.tryReserve(blockBytes), nil
+	count = bdl.diskCacheByteTracker.tryReserve(blockBytes)
+	if count < 0 {
+		bdl.overallByteTracker.rollback(blockBytes)
+	}
+	return count, nil
 }
 
 func (bdl *backpressureDiskLimiter) afterDiskBlockCachePut(

@@ -14,6 +14,18 @@ const (
 	syncCacheLimitTracker
 )
 
+type diskLimitByteTracker interface {
+	onEnable(usedResources int64) int64
+	onDisable(usedResources int64)
+	updateFree(freeResources int64)
+	reserve(ctx context.Context, resources int64) (available int64, err error)
+	tryReserve(resources int64) (available int64)
+	commit(resources int64)
+	rollback(resources int64)
+	commitOrRollback(resources int64, shouldCommit bool)
+	releaseAndCommit(resources int64)
+}
+
 type diskBlockCacheLimiter interface {
 	// beforeDiskBlockCachePut is called by the disk block cache before putting
 	// a block into the cache. It returns the total number of available bytes.
