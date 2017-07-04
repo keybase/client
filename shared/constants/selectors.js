@@ -21,6 +21,8 @@ const previousConversationSelector = ({chat: {previousConversation}}: TypedState
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
+const chatSearchPending = ({chat: {searchPending}}: TypedState) => searchPending
+
 const chatSearchResultArray = createSelector(
   ({chat: {searchResults}}: TypedState) => searchResults,
   searchResults => (searchResults ? searchResults.toArray() : [])
@@ -39,6 +41,7 @@ export {
   amIFollowing,
   amIBeingFollowed,
   cachedSearchResults,
+  chatSearchPending,
   chatSearchResultArray,
   createShallowEqualSelector,
   inboxSearchSelector,

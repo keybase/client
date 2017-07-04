@@ -7,19 +7,20 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, Icon} from '../common-adapters'
+import {Box, Icon, ProgressIndicator} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
-import {chatSearchResultArray} from '../constants/selectors'
+import {chatSearchPending, chatSearchResultArray} from '../constants/selectors'
 import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 const mapStateToProps = createSelector(
-  [Constants.getUserItems, chatSearchResultArray],
-  (userItems, searchResultIds) => ({
-    userItems,
+  [Constants.getUserItems, chatSearchResultArray, chatSearchPending],
+  (userItems, searchResultIds, searchPending) => ({
     searchResultIds,
+    showSearchPending: searchPending,
+    userItems,
   })
 )
 
@@ -71,13 +72,15 @@ const SearchHeader = props => {
         {props.showServiceFilter &&
           <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
       </Box>
-      <SearchResultsList
-        style={{flex: 1}}
-        items={props.searchResultIds}
-        onClick={props.onClickSearchResult}
-        onShowTracker={props.onShowTrackerInSearch}
-        selectedId={props.selectedSearchId}
-      />
+      {props.showSearchPending
+        ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+        : <SearchResultsList
+            style={{flex: 1}}
+            items={props.searchResultIds}
+            onClick={props.onClickSearchResult}
+            onShowTracker={props.onShowTrackerInSearch}
+            selectedId={props.selectedSearchId}
+          />}
     </Box>
   )
 }
