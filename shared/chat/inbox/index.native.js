@@ -377,7 +377,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           data={this.state.rows}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
-          initialNumToRender={30}
           onViewableItemsChanged={this._onViewChanged}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
