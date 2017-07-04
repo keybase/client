@@ -1,5 +1,8 @@
 /*eslint-disable */
 
+declare module 'mousetrap' {
+  declare var exports: any
+}
 declare module 'Interpolation' {
   declare var exports: any
 }
