@@ -11,7 +11,9 @@ import {NativeStyleSheet} from './native-wrappers.native.js'
 import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
 
-const fontSizes = Object.keys(iconMeta).reduce((map, type) => {
+// In order to optimize this commonly used component we use StyleSheet on all the default variants
+// so we can pass IDs around instead of full objects
+const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
   const meta = iconMeta[type]
   if (meta.gridSize) {
     map[meta.gridSize] = {
@@ -24,10 +26,12 @@ const fontSizes = Object.keys(iconMeta).reduce((map, type) => {
 const styles = NativeStyleSheet.create(fontSizes)
 
 const Text = glamorous.text(
+  // static styles
   {
     color: globalColors.black_40,
     fontFamily: 'kb',
   },
+  // dynamic styles. check for undefined and send null
   props =>
     props.style && props.style.width !== undefined
       ? {
