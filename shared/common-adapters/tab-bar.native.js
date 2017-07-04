@@ -33,7 +33,6 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 }
 
 const TabBarButton = (props: TabBarButtonProps) => {
-  const iconColor = props.selected ? globalColors.white : globalColors.blue3_40
   const badgeNumber = props.badgeNumber || 0
 
   let badgeComponent = null
@@ -65,9 +64,6 @@ const TabBarButton = (props: TabBarButtonProps) => {
       <Icon
         type={props.source.icon}
         style={{
-          color: iconColor,
-          fontSize: 32,
-          textAlign: 'center',
           width: props.isNav ? 40 : 32,
           ...props.styleIcon,
         }}

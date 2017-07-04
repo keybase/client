@@ -85,6 +85,7 @@ const Avatars = ({
       loadingColor: globalColors.lightGrey,
       size: 32,
       username,
+      skipBackground: true,
     }))
     .toArray()
 

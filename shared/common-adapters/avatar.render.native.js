@@ -139,12 +139,14 @@ class AvatarRender extends PureComponent<void, Props, State> {
       followIconStyle,
       followIconSize,
       children,
+      skipBackground,
     } = this.props
 
     return (
       <ClickableBox onClick={onClick} feedback={false}>
         <Box style={boxStyle(size, style)}>
-          <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
+          {skipBackground &&
+            <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />}
           {!!url && <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
           {followIconType &&

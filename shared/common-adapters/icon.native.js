@@ -50,7 +50,10 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    if ((props.style && props.style.fontSize !== undefined) || props.style.width !== undefined) {
+    if (
+      (props.style && props.style.fontSize !== undefined) ||
+      (props.style && props.style.width !== undefined)
+    ) {
       return {fontSize: props.style.fontSize || props.style.width}
     }
 

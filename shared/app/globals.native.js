@@ -11,7 +11,7 @@ import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-exte
 // __STORYBOOK__
 // if we're in storybook mode
 if (typeof __STORYBOOK__ === 'undefined') {
-  __STORYBOOK__ = true
+  __STORYBOOK__ = false
 }
 
 // __SCREENSHOT__
