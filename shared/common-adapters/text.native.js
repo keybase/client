@@ -33,7 +33,6 @@ const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
   return map
 }, {})
 
-console.log('aaa', styleMap)
 const styles = StyleSheet.create(styleMap)
 
 // Init common styles for perf
