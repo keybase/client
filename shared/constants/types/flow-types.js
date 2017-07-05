@@ -528,6 +528,14 @@ export const TeamsTeamRole = {
   owner: 4,
 }
 
+export const TeamsTypeInviteCategory = {
+  none: 0,
+  unknown: 1,
+  keybase: 2,
+  email: 3,
+  sbs: 4,
+}
+
 export const TlfKeysTLFIdentifyBehavior = {
   defaultKbfs: 0,
   chatCli: 1,
@@ -5930,6 +5938,24 @@ export type TeamDetails = {
 
 export type TeamID = string
 
+export type TeamInvite = {
+  role: TeamRole,
+  id: TeamInviteID,
+  type: TeamInviteType,
+  name: TeamInviteName,
+}
+
+export type TeamInviteID = string
+
+export type TeamInviteName = string
+
+export type TeamInviteSocialNetwork = string
+
+export type TeamInviteType =
+    { c: 1, unknown: ?string }
+  | { c: 4, sbs: ?TeamInviteSocialNetwork }
+  | { c: any }
+
 export type TeamList = {
   uid: UID,
   username: string,
@@ -6002,6 +6028,7 @@ export type TeamSigChainState = {
   perTeamKeys: {[key: string]: PerTeamKey},
   linkIDs: {[key: string]: LinkID},
   stubbedLinks: {[key: string]: boolean},
+  activeInvites: {[key: string]: TeamInvite},
 }
 
 export type Test = {
@@ -6069,6 +6096,13 @@ export type Tracker = {
   status: int,
   mTime: Time,
 }
+
+export type TypeInviteCategory =
+    0 // NONE_0
+  | 1 // UNKNOWN_1
+  | 2 // KEYBASE_2
+  | 3 // EMAIL_3
+  | 4 // SBS_4
 
 export type UID = string
 

@@ -304,6 +304,14 @@ func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRol
 	})
 }
 
+func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
+	t.inner.ActiveInvites[i.Id] = i
+}
+
+func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
+	delete(t.inner.ActiveInvites, i)
+}
+
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
 	if len(t.inner.SubteamLog[id]) > 0 {
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
@@ -582,6 +590,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	hasAdmin := func(has bool) error {
 		return hasGeneric(has, team.Admin != nil, "admin")
 	}
+	hasInvites := func(has bool) error {
+		return hasGeneric(has, team.Invites != nil, "invite")
+	}
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
@@ -599,6 +610,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(true),
+			hasInvites(false),
 			hasAdmin(false))
 		if err != nil {
 			return res, err
@@ -666,6 +678,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasName(false),
 			hasMembers(true),
 			hasParent(false),
+			hasInvites(false),
 			hasSubteam(false))
 		if err != nil {
 			return res, err
@@ -754,6 +767,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(false),
+			hasInvites(false),
 			hasAdmin(false))
 		if err != nil {
 			return res, err
@@ -787,6 +801,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(false),
 			hasParent(false),
 			hasSubteam(true),
+			hasInvites(false),
 			hasPerTeamKey(false))
 		if err != nil {
 			return res, err
@@ -835,6 +850,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(true),
 			hasParent(true),
 			hasSubteam(false),
+			hasInvites(false),
 			hasPerTeamKey(true))
 		if err != nil {
 			return res, err
@@ -893,8 +909,39 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, nil
 	case "team.subteam_rename":
 		return res, fmt.Errorf("subteam renaming not yet supported: %s", payload.Body.Type)
-	case "team.invitation":
-		return res, fmt.Errorf("invitations not yet supported: %s", payload.Body.Type)
+	case "team.invite":
+		err = libkb.PickFirstError(
+			allowInflate(false),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(false),
+			hasInvites(true))
+		if err != nil {
+			return res, err
+		}
+
+		// Check that the signer is an admin or owner to have permission to make this link.
+		signerRole, err := prevState.GetUserRole(signer)
+		if err != nil {
+			return res, err
+		}
+		switch signerRole {
+		case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+			// ok
+		default:
+			return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
+		}
+
+		additions, cancelations, err := t.sanityCheckInvites(*team.Invites)
+		if err != nil {
+			return res, err
+		}
+
+		res.newState = prevState.DeepCopy()
+		t.updateInvites(&res.newState, additions, cancelations)
+		return res, nil
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -955,6 +1002,87 @@ func (t *TeamSigChainPlayer) inflateLinkHelper(
 	delete(iRes.newState.inner.StubbedLinks, link.Seqno())
 
 	return &iRes.newState, nil
+}
+
+// sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
+// format that we can use. It checks:
+//  - that invite IDs are repeated
+//  - that <name,type> pairs aren't reused
+//  - that IDs parse into proper keybase1.TeamInviteIDs
+//  - that the invite type parses into proper TeamInviteType, or that it's an unknown
+//    invite that we're OK to not act upon.
+// Returns nicely formatted data structures.
+func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
+
+	type assignment struct {
+		i    SCTeamInvite
+		role keybase1.TeamRole
+	}
+	var all []assignment
+
+	if invites.Admins != nil {
+		additions[keybase1.TeamRole_ADMIN] = nil
+		for _, i := range *invites.Admins {
+			all = append(all, assignment{i, keybase1.TeamRole_ADMIN})
+		}
+	}
+
+	if invites.Writers != nil {
+		additions[keybase1.TeamRole_WRITER] = nil
+		for _, i := range *invites.Writers {
+			all = append(all, assignment{i, keybase1.TeamRole_WRITER})
+		}
+	}
+
+	if invites.Readers != nil {
+		additions[keybase1.TeamRole_READER] = nil
+		for _, i := range *invites.Readers {
+			all = append(all, assignment{i, keybase1.TeamRole_READER})
+		}
+	}
+
+	// Set to `true` if it was an addition and `false` if it was a deletion
+	byID := make(map[keybase1.TeamInviteID]bool)
+	byName := make(map[string]bool)
+
+	keyFunc := func(i SCTeamInvite) string {
+		return fmt.Sprintf("%s:%s", i.Type, i.Name)
+	}
+
+	if invites.Cancel != nil {
+		for _, c := range *invites.Cancel {
+			id, err := c.TeamInviteID()
+			if err != nil {
+				return nil, nil, err
+			}
+			if byID[id] {
+				return nil, nil, NewInviteError(fmt.Sprintf("ID %s appears twice as a cancelation", c))
+			}
+			byID[id] = false
+			cancelations = append(cancelations, id)
+		}
+	}
+
+	for _, invite := range all {
+		res, err := invite.i.TeamInvite(invite.role)
+		if err != nil {
+			return nil, nil, err
+		}
+		id := res.Id
+		_, seen := byID[id]
+		if seen {
+			return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s appears twice in invite set", id))
+		}
+		key := keyFunc(invite.i)
+		if byName[key] {
+			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
+		}
+		byName[key] = true
+		byID[id] = true
+		additions[res.Role] = append(additions[res.Role], res)
+	}
+
+	return additions, cancelations, nil
 }
 
 // Check that all the users are formatted correctly.
@@ -1083,5 +1211,16 @@ func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, 
 		for _, uv := range uvs {
 			stateToUpdate.inform(uv, role, sigMeta)
 		}
+	}
+}
+
+func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID) {
+	for _, invites := range additions {
+		for _, invite := range invites {
+			stateToUpdate.informNewInvite(invite)
+		}
+	}
+	for _, cancelation := range cancelations {
+		stateToUpdate.informCanceledInvite(cancelation)
 	}
 }

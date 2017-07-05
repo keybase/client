@@ -54,6 +54,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -363,6 +369,81 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TypeInviteCategory",
+      "symbols": [
+        "NONE_0",
+        "UNKNOWN_1",
+        "KEYBASE_2",
+        "EMAIL_3",
+        "SBS_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamInviteType",
+      "switch": {
+        "type": "TypeInviteCategory",
+        "name": "c"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SBS",
+            "def": false
+          },
+          "body": "TeamInviteSocialNetwork"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteSocialNetwork",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "TeamSigChainState",
       "fields": [
@@ -438,6 +519,14 @@
             "keys": "Seqno"
           },
           "name": "stubbedLinks"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "activeInvites"
         }
       ]
     },
