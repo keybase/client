@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import SetPublicName from '.'
 import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
+import {clearDeviceNameError} from '../../../actions/signup'
 
 import type {Dispatch} from 'redux'
 import type {TypedState} from '../../../constants/reducer'
@@ -23,6 +24,7 @@ const trimDeviceNames = (names: ?Array<string>): Array<string> => {
 type ContainerProps = {
   onSubmit: (deviceName: ?string) => void,
   onBack: () => void,
+  clearDeviceNameError: () => void,
   waiting: boolean,
   deviceNameError: ?string,
   existingDevices: ?Array<string>,
@@ -38,23 +40,16 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
 
     this.state = {
       deviceName: null,
-      deviceNameError: null,
-    }
-  }
-
-  componentWillReceiveProps(nextProps: ContainerProps) {
-    if (this.props.deviceNameError !== nextProps.deviceNameError) {
-      this.setState({
-        deviceNameError: nextProps.deviceNameError,
-      })
     }
   }
 
   _onChange = (deviceName: string) => {
     this.setState({
       deviceName,
-      deviceNameError: null,
     })
+    if (this.props.deviceNameError) {
+      this.props.clearDeviceNameError()
+    }
   }
 
   render() {
@@ -73,7 +68,7 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
         onChange={this._onChange}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
         onBack={this.props.onBack}
-        deviceNameError={nameTakenError || this.state.deviceNameError}
+        deviceNameError={nameTakenError || this.props.deviceNameError}
         existingDevices={this.props.existingDevices}
         submitEnabled={submitEnabled}
         waiting={this.props.waiting}
@@ -84,19 +79,19 @@ class _SetPublicName extends Component<void, ContainerProps, State> {
 
 type OwnProps = {
   routeProps: {
-    deviceNameError?: ?string,
     existingDevices?: ?Array<string>,
   },
 }
 
-const mapStateToProps = (state: TypedState, {routeProps: {existingDevices, deviceNameError}}: OwnProps) => ({
-  deviceNameError,
+const mapStateToProps = (state: TypedState, {routeProps: {existingDevices}}: OwnProps) => ({
+  deviceNameError: state.signup.deviceNameError,
   existingDevices,
   existingDevicesTrimmed: trimDeviceNames(existingDevices),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
+  clearDeviceNameError: () => dispatch(clearDeviceNameError()),
   onBack: () => dispatch(Creators.onBack()),
   onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
 })
