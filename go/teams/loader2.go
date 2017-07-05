@@ -252,7 +252,8 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 
 func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked, uv keybase1.UserVersion) error {
-	return l.unimplementedVerificationTODO(ctx, nil)
+
+	return (TeamSigChainState{state.Chain}).AssertWasReaderAt(uv, link.SigChainLocation())
 }
 
 func (l *TeamLoader) walkUpToAdmin(ctx context.Context, team *keybase1.TeamData, uv keybase1.UserVersion, admin SCTeamAdmin) (ret *keybase1.TeamData, err error) {
