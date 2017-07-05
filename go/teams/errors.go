@@ -27,12 +27,31 @@ func (e StubbedError) Error() string {
 		int(e.l.outerLink.Seqno), *e.note)
 }
 
-func NewInflateError(l *chainLinkUnpacked) InflateError {
-	return InflateError{l: l, note: nil}
+type InvalidLink struct {
+	l    *chainLinkUnpacked
+	note string
 }
 
-func NewInflateErrorWithNote(l *chainLinkUnpacked, note string) InflateError {
-	return InflateError{l: l, note: &note}
+func (e InvalidLink) Error() string {
+	return fmt.Sprintf("invalid link (seqno %d): %s", e.l.Seqno(), e.note)
+}
+
+func NewInvalidLink(l *chainLinkUnpacked, format string, args ...interface{}) InvalidLink {
+	return InvalidLink{l, fmt.Sprintf(format, args...)}
+}
+
+type AppendLinkError struct {
+	prevSeqno keybase1.Seqno
+	l         *chainLinkUnpacked
+	inner     error
+}
+
+func (e AppendLinkError) Error() string {
+	return fmt.Sprintf("appending %v->%v: %v", e.prevSeqno, e.l.Seqno(), e.inner)
+}
+
+func NewAppendLinkError(l *chainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
+	return AppendLinkError{prevSeqno, l, inner}
 }
 
 type InflateError struct {
@@ -46,6 +65,27 @@ func (e InflateError) Error() string {
 	}
 	return fmt.Sprintf("error inflating previously-stubbed link (seqno %d) (%s)",
 		int(e.l.outerLink.Seqno), *e.note)
+}
+
+func NewInflateError(l *chainLinkUnpacked) InflateError {
+	return InflateError{l: l, note: nil}
+}
+
+func NewInflateErrorWithNote(l *chainLinkUnpacked, note string) InflateError {
+	return InflateError{l: l, note: &note}
+}
+
+type UnexpectedSeqnoError struct {
+	expected keybase1.Seqno
+	actual   keybase1.Seqno
+}
+
+func (e UnexpectedSeqnoError) Error() string {
+	return fmt.Sprintf("expected seqno:%v but got %v", e.expected, e.actual)
+}
+
+func NewUnexpectedSeqnoError(expected, actual keybase1.Seqno) UnexpectedSeqnoError {
+	return UnexpectedSeqnoError{expected, actual}
 }
 
 type AdminPermissionError struct {

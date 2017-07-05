@@ -375,9 +375,9 @@ func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLin
 	newState, err := t.appendChainLinkHelper(ctx, prevState, link, signer)
 	if err != nil {
 		if prevState == nil {
-			return fmt.Errorf("at beginning: %v", err)
+			return NewAppendLinkError(link, keybase1.Seqno(0), err)
 		}
-		return fmt.Errorf("at seqno %v: %v", prevState.GetLatestSeqno(), err)
+		return NewAppendLinkError(link, prevState.GetLatestSeqno(), err)
 	}
 
 	// Accept the new state
@@ -401,17 +401,17 @@ func (t *TeamSigChainPlayer) appendChainLinkHelper(
 	var newState *TeamSigChainState
 	if link.isStubbed() {
 		if prevState == nil {
-			return res, errors.New("first link cannot be stubbed")
+			return res, NewStubbedErrorWithNote(link, "first link cannot be stubbed")
 		}
 		newState2 := prevState.DeepCopy()
 		newState = &newState2
 	} else {
 		if signer == nil || !signer.Uid.Exists() {
-			return res, fmt.Errorf("signing user not provided for team link")
+			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
 		iRes, err := t.addInnerLink(prevState, link, *signer, false)
 		if err != nil {
-			return res, fmt.Errorf("team sigchain inner link: %s", err)
+			return res, err
 		}
 		newState = &iRes.newState
 	}
@@ -434,11 +434,11 @@ type checkInnerLinkResult struct {
 func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
 	if prevState == nil {
 		if link.Seqno() != 1 {
-			return fmt.Errorf("expected seqno:1 but got:%v", link.Seqno())
+			return NewUnexpectedSeqnoError(keybase1.Seqno(1), link.Seqno())
 		}
 	} else {
 		if link.Seqno() != prevState.inner.LastSeqno+1 {
-			return fmt.Errorf("expected seqno:%v but got:%v", prevState.inner.LastSeqno+1, link.Seqno())
+			return NewUnexpectedSeqnoError(prevState.inner.LastSeqno+1, link.Seqno())
 		}
 	}
 
@@ -474,7 +474,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	payload := *link.inner
 
 	if !signer.Uid.Exists() {
-		return res, fmt.Errorf("empty link signer: %v", signer)
+		return res, NewInvalidLink(link, "empty link signer")
 	}
 
 	// TODO: this may be superfluous.
@@ -489,16 +489,16 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	_ = payload.SeqType
 
 	if payload.Tag != "signature" {
-		return res, fmt.Errorf("unrecognized tag: '%s'", payload.Tag)
+		return res, NewInvalidLink(link, "unrecognized tag: '%s'", payload.Tag)
 	}
 
 	if payload.Body.Team == nil {
-		return res, errors.New("missing team section")
+		return res, NewInvalidLink(link, "missing team section")
 	}
 	team := payload.Body.Team
 
 	if len(team.ID) == 0 {
-		return res, errors.New("missing team id")
+		return res, NewInvalidLink(link, "missing team id")
 	}
 	teamID, err := keybase1.TeamIDFromString(string(team.ID))
 	if err != nil {
