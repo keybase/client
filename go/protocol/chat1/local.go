@@ -2880,6 +2880,53 @@ func (o FindConversationsLocalRes) DeepCopy() FindConversationsLocalRes {
 	}
 }
 
+type JoinLeaveConversationLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes {
+	return JoinLeaveConversationLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type GetTLFConversationsLocalRes struct {
+	Convs      []ConversationLocal `codec:"convs" json:"convs"`
+	Offline    bool                `codec:"offline" json:"offline"`
+	RateLimits []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
+	return GetTLFConversationsLocalRes{
+		Convs: (func(x []ConversationLocal) []ConversationLocal {
+			var ret []ConversationLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Convs),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -3407,6 +3454,56 @@ func (o UpdateTypingArg) DeepCopy() UpdateTypingArg {
 	}
 }
 
+type JoinConversationLocalArg struct {
+	TlfName    string        `codec:"tlfName" json:"tlfName"`
+	TopicType  TopicType     `codec:"topicType" json:"topicType"`
+	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
+	TopicName  string        `codec:"topicName" json:"topicName"`
+}
+
+func (o JoinConversationLocalArg) DeepCopy() JoinConversationLocalArg {
+	return JoinConversationLocalArg{
+		TlfName:    o.TlfName,
+		TopicType:  o.TopicType.DeepCopy(),
+		Visibility: o.Visibility.DeepCopy(),
+		TopicName:  o.TopicName,
+	}
+}
+
+type JoinConversationByIDLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o JoinConversationByIDLocalArg) DeepCopy() JoinConversationByIDLocalArg {
+	return JoinConversationByIDLocalArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type LeaveConversationLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
+	return LeaveConversationLocalArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type GetTLFConversationsLocalArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
+func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
+	return GetTLFConversationsLocalArg{
+		TlfName:     o.TlfName,
+		TopicType:   o.TopicType.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+	}
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3433,6 +3530,10 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
+	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -3839,6 +3940,70 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"joinConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]JoinConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]JoinConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]JoinConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.JoinConversationLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"joinConversationByIDLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]JoinConversationByIDLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]JoinConversationByIDLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]JoinConversationByIDLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.JoinConversationByIDLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"leaveConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]LeaveConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LeaveConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LeaveConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.LeaveConversationLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getTLFConversationsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTLFConversationsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTLFConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTLFConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTLFConversationsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3973,5 +4138,27 @@ func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConve
 
 func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) JoinConversationLocal(ctx context.Context, __arg JoinConversationLocalArg) (res JoinLeaveConversationLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.joinConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) JoinConversationByIDLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
+	__arg := JoinConversationByIDLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.joinConversationByIDLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LeaveConversationLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
+	__arg := LeaveConversationLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.leaveConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetTLFConversationsLocal(ctx context.Context, __arg GetTLFConversationsLocalArg) (res GetTLFConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getTLFConversationsLocal", []interface{}{__arg}, &res)
 	return
 }
