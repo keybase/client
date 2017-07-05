@@ -23,16 +23,16 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 	return tc, u, name
 }
 
-func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other_a, other_b *kbtest.FakeUser, name string) {
+func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name string) {
 	tc = SetupTest(t, "team", 1)
 
-	other_a, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
 
-	other_b, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other_a, ot
 
 	name = createTeam(tc)
 
-	return tc, owner, other_a, other_b, name
+	return tc, owner, otherA, otherB, name
 }
 
 func TestMemberOwner(t *testing.T) {
@@ -252,18 +252,18 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 }
 
 func TestLeave(t *testing.T) {
-	tc, owner, other_a, other_b, name := memberSetupMultiple(t)
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, other_a.Username); err != nil {
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other_b.Username); err != nil {
+	if err := SetRoleWriter(context.TODO(), tc.G, name, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
 
-	if err := other_a.Login(tc.G); err != nil {
+	if err := otherA.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
@@ -271,7 +271,7 @@ func TestLeave(t *testing.T) {
 	}
 	tc.G.Logout()
 
-	if err := other_b.Login(tc.G); err != nil {
+	if err := otherB.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
@@ -286,10 +286,10 @@ func TestLeave(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if team.IsMember(context.TODO(), other_a.GetUserVersion()) {
+	if team.IsMember(context.TODO(), otherA.GetUserVersion()) {
 		t.Fatal("Admin user is still member after leave.")
 	}
-	if team.IsMember(context.TODO(), other_b.GetUserVersion()) {
+	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
 		t.Fatal("Writer user is still member after leave.")
 	}
 }
