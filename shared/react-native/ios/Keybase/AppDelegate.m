@@ -75,14 +75,14 @@ const BOOL isDebug = NO;
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   NSFileManager* fm = [NSFileManager defaultManager];
-  
+
   // Make keybasePath if it doesn't exist
   [fm createDirectoryAtPath:keybasePath
                             withIntermediateDirectories:YES
                             attributes:nil
                             error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
-  
+
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
@@ -163,7 +163,7 @@ const BOOL isDebug = NO;
       self.backgroundTask = UIBackgroundTaskInvalid;
     }];
   }
-  
+
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
   completionHandler(UIBackgroundFetchResultNewData);
   }
