@@ -229,8 +229,30 @@ protocol teams {
     boolean staleOK;         // If a very stale cache hit is OK.
   }
 
+  record ImplicitRole {
+    TeamRole role;
+    TeamID ancestor;
+  }
+
+  record MemberInfo {
+    @jsonkey("team_id")
+    TeamID teamID;
+    @jsonkey("fq_name")
+    string fqName; 
+    TeamRole role;
+    union{null, ImplicitRole} implicit;
+  }
+
+  record TeamList {
+    UID uid;
+    string username;
+    string fullName;
+    array<MemberInfo> teams;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+  TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

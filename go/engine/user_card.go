@@ -99,3 +99,14 @@ func displayUserCardAsync(ctx context.Context, g *libkb.GlobalContext, iui libkb
 	}()
 	return ch
 }
+
+func GetFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (string, error) {
+	card, err := getUserCard(ctx, g, uid, false)
+	if err != nil {
+		return "", err
+	}
+	if card == nil {
+		return "", nil
+	}
+	return card.FullName, nil
+}
