@@ -1,6 +1,4 @@
 // @flow
-import DumbChatOnly from '../dev/chat-only.native'
-import DumbSheet from '../dev/dumb-sheet'
 import Main from './main'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
@@ -74,8 +72,11 @@ class Keybase extends Component {
     let child
 
     if (dumbSheetOnly) {
+      // Defer loading this
+      const DumbSheet = require('../dev/dumb-sheet').default
       child = <Box style={{flex: 1, marginTop: 40}}><DumbSheet /></Box>
     } else if (dumbChatOnly) {
+      const DumbChatOnly = require('../dev/chat-only.native').default
       child = <DumbChatOnly />
     } else {
       child = <Main />

@@ -1,5 +1,5 @@
 // @flow
-import {noop} from 'lodash'
+import noop from 'lodash/noop'
 import logger from './logger'
 import {forwardLogs} from '../local-debug'
 

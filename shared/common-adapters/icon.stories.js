@@ -6,6 +6,7 @@ import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {storiesOf, action} from '../stories/storybook'
+import {isMobile} from '../constants/platform'
 
 import type {IconType} from './icon'
 
@@ -16,9 +17,13 @@ const commonProps = {
   onMouseLeave: () => action('onMouseLeave'),
   style: {
     borderColor: globalColors.black_05,
-    borderStyle: 'solid',
     borderWidth: 1,
     margin: 5,
+    ...(isMobile
+      ? {}
+      : {
+          borderStyle: 'solid',
+        }),
   },
 }
 

@@ -4,7 +4,7 @@ import ReactList from 'react-list'
 import {Text, MultiAvatar, Icon, Usernames, Markdown} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 import KeyHandler from '../../util/key-handler.desktop'
 
 import type {Props, RowProps} from './'

@@ -7,7 +7,7 @@ import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
-import {uniq} from 'lodash'
+import uniq from 'lodash/uniq'
 
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'

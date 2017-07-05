@@ -4,7 +4,7 @@ import ErrorComponent from '../common-adapters/error-profile'
 import Friendships from './friendships'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import _ from 'lodash'
+import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import {
   BackButton,
@@ -179,25 +179,22 @@ class Profile extends Component<void, Props, State> {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
-    let folders = _.chain(this.props.tlfs)
-      .orderBy('isPublic', 'asc')
-      .map(folder => (
-        <Box key={folder.path} style={styleFolderLine}>
-          <Icon
-            {...shared.folderIconProps(folder, styleFolderIcon)}
-            onClick={() => this.props.onFolderClick(folder)}
-          />
-          <Text
-            type="Body"
-            style={{...styleFolderTextLine, ...styleFolderText}}
-            onClick={() => this.props.onFolderClick(folder)}
-          >
-            {folder.isPublic ? 'public/' : 'private/'}
-            {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
-          </Text>
-        </Box>
-      ))
-      .value()
+    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
+      <Box key={folder.path} style={styleFolderLine}>
+        <Icon
+          {...shared.folderIconProps(folder, styleFolderIcon)}
+          onClick={() => this.props.onFolderClick(folder)}
+        />
+        <Text
+          type="Body"
+          style={{...styleFolderTextLine, ...styleFolderText}}
+          onClick={() => this.props.onFolderClick(folder)}
+        >
+          {folder.isPublic ? 'public/' : 'private/'}
+          {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
+        </Text>
+      </Box>
+    ))
 
     const missingProofs = !this.props.isYou
       ? []

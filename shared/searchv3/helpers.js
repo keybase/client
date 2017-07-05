@@ -2,7 +2,7 @@
 
 import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
 import * as Constants from '../constants/searchv3'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 
 type OwnProps = {
   onChangeSearchText: (s: string) => void,

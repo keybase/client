@@ -1,5 +1,5 @@
 // @flow
-import {pick} from 'lodash'
+import pick from 'lodash/pick'
 import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
 import RegisterMap from '../../login/register/dumb'

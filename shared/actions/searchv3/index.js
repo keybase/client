@@ -6,7 +6,8 @@ import {
   apiserverGetWithSessionRpcPromise,
   userInterestingPeopleRpcPromise,
 } from '../../constants/types/flow-types'
-import {trim, keyBy} from 'lodash'
+import trim from 'lodash/trim'
+import keyBy from 'lodash/keyBy'
 import {call, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'

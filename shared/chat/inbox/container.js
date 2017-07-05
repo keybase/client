@@ -6,7 +6,7 @@ import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
-import {throttle} from 'lodash'
+import throttle from 'lodash/throttle'
 
 import type {TypedState} from '../../constants/reducer'
 

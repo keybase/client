@@ -10,6 +10,7 @@ export type URLMap = {
 }
 
 export type Props = {
+  skipBackground?: boolean,
   borderColor?: string,
   children?: any,
   following?: ?boolean,

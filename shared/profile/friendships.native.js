@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
+import chunk from 'lodash/chunk'
 import {
   Box,
   Avatar,
@@ -78,7 +78,7 @@ class FriendshipsRender extends Component<void, Props, State> {
 
   _setDataSource = props => {
     const data = props.currentTab === 'Followers' ? props.followers : props.following
-    const dataSource = this._dataSource.cloneWithRows(_.chunk(data || [], 3))
+    const dataSource = this._dataSource.cloneWithRows(chunk(data || [], 3))
     this.setState({dataSource})
   }
 
