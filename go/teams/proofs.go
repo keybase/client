@@ -89,8 +89,8 @@ func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proof
 func (p *proofSetT) AllProofs() []proof {
 	var ret []proof
 	for _, v := range p.proofs {
-		for _, p := range v {
-			ret = append(ret, p)
+		for _, proof := range v {
+			ret = append(ret, proof)
 		}
 	}
 	sort.Slice(ret, func(i, j int) bool {
