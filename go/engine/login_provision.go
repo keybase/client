@@ -633,6 +633,16 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 		// they chose not to use a device
 		e.G().Log.Debug("user has devices, but chose not to use any of them")
 		if pgp {
+			if e.perUserKeyring != nil {
+				e.G().Log.Debug("per user keyring enabled, syncing it")
+				if syncErr := e.perUserKeyring.Sync(ctx.GetNetContext()); syncErr != nil {
+					return syncErr
+				}
+				if e.perUserKeyring.HasAnyKeys() {
+					e.G().Log.Debug("user has a puk, not attempting pgp provision")
+					return libkb.ProvisionViaDeviceRequiredError{}
+				}
+			}
 			// they have pgp keys, so try that:
 			return e.tryPGP(ctx)
 		}

@@ -48,7 +48,7 @@ protocol provisionUi {
     */
   boolean switchToGPGSignOK(int sessionID, GPGKey key, string importError);
 
-  DeviceID chooseDevice(int sessionID, array<Device> devices);
+  DeviceID chooseDevice(int sessionID, array<Device> devices, boolean canSelectNoDevice);
 
   enum ChooseType {
     EXISTING_DEVICE_0,

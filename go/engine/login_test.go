@@ -712,7 +712,6 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 }
 
 func testSign(t *testing.T, tc libkb.TestContext) {
-
 	// should be able to sign something with new device keys without
 	// entering a passphrase
 	var sink bytes.Buffer
