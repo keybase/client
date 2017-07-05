@@ -34,6 +34,12 @@ func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext 
 	return tc
 }
 
+func SetupEngineTestPUK(tb testing.TB, name string) libkb.TestContext {
+	tc := SetupEngineTest(tb, name)
+	tc.Tp.UpgradePerUserKey = true
+	return tc
+}
+
 type FakeUser struct {
 	Username      string
 	Email         string

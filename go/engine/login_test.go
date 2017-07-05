@@ -658,6 +658,59 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	assertSecretStored(tc, username)
 }
 
+// If a user has a synced pgp key, they can use it to provision their first device.
+// After that, if they have a PUK, then they should not be able to provision with
+// the synced pgp key again.
+func TestProvisionSyncedPGPWithPUK(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	// (PUK is on)
+	tc = SetupEngineTestPUK(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	// (PUK is on)
+	tc2 := SetupEngineTestPUK(t, "login")
+	defer tc2.Cleanup()
+
+	ctx2 := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+
+	// this should fail, the user should not be allowed to use synced pgp key to provision
+	// second device when PUK is on:
+	eng2 := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng2, ctx2); err == nil {
+		t.Fatal("Provision w/ synced pgp key successful on device 2 w/ PUK enabled")
+	}
+}
+
 func testSign(t *testing.T, tc libkb.TestContext) {
 
 	// should be able to sign something with new device keys without
