@@ -74,8 +74,20 @@ func TestTeamSigChainPlay1(t *testing.T) {
 	}
 
 	player := NewTeamSigChainPlayer(tc.G, NewUserVersion(keybase1.UID("4bf92804c02fb7d2cd36a6d420d6f619"), 1))
-	err = player.AddChainLinks(context.TODO(), chainLinks)
-	require.NoError(t, err)
+	for _, cLink := range chainLinks {
+		link, err := unpackChainLink(&cLink)
+		require.NoError(t, err)
+		var signer *keybase1.UserVersion
+		if !link.isStubbed() {
+			// Assume the signing user has never reset.
+			signer = &keybase1.UserVersion{
+				Uid:         link.inner.Body.Key.UID,
+				EldestSeqno: keybase1.Seqno(1),
+			}
+		}
+		err = player.AppendChainLink(context.TODO(), link, signer)
+		require.NoError(t, err)
+	}
 
 	// Check once before and after serializing and deserializing
 	state, err := player.GetState()
@@ -145,7 +157,20 @@ func TestTeamSigChainPlay2(t *testing.T) {
 	}
 
 	player := NewTeamSigChainPlayer(tc.G, NewUserVersion("99759da4f968b16121ece44652f01a19", 1))
-	err = player.AddChainLinks(context.TODO(), chainLinks)
+	for _, cLink := range chainLinks {
+		link, err := unpackChainLink(&cLink)
+		require.NoError(t, err)
+		var signer *keybase1.UserVersion
+		if !link.isStubbed() {
+			// Assume the signing user has never reset.
+			signer = &keybase1.UserVersion{
+				Uid:         link.inner.Body.Key.UID,
+				EldestSeqno: keybase1.Seqno(1),
+			}
+		}
+		err = player.AppendChainLink(context.TODO(), link, signer)
+		require.NoError(t, err)
+	}
 	require.NoError(t, err)
 
 	// Check once before and after serializing and deserializing

@@ -56,13 +56,17 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 				link, "filling stubbed link")
 		}
 
-		var signer keybase1.UserVersion
+		var signer *keybase1.UserVersion
 		signer, proofSet, err = l.verifyLink(ctx, teamID, state, link, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
 
-		state, err = l.inflateLink(ctx, state, link, signer, me)
+		if signer == nil || !signer.Uid.Exists() {
+			return state, proofSet, parentChildOperations, fmt.Errorf("blank signer for full link: %v", signer)
+		}
+
+		state, err = l.inflateLink(ctx, state, link, *signer, me)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -193,36 +197,36 @@ func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keyba
 // Does not:
 // - Apply the link nor modify state
 // - Check the rest of the format of the inner link
-// Returns the signer
+// Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
-	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (keybase1.UserVersion, *proofSetT, error) {
-	var uv keybase1.UserVersion
+	state *keybase1.TeamData, link *chainLinkUnpacked, proofSet *proofSetT) (*keybase1.UserVersion, *proofSetT, error) {
 
 	if link.isStubbed() {
-		return uv, proofSet, nil
+		return nil, proofSet, nil
 	}
 
 	err := link.AssertInnerOuterMatch()
 	if err != nil {
-		return uv, proofSet, err
+		return nil, proofSet, err
 	}
 
 	if !teamID.Eq(link.innerTeamID) {
-		return uv, proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
+		return nil, proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
 	if err != nil {
-		return uv, proofSet, err
+		return nil, proofSet, err
 	}
 
 	user, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
 	if err != nil {
-		return uv, proofSet, err
+		return nil, proofSet, err
 	}
+	uv := user.ToUserVersion()
 
 	if !kid.Equal(key.Base.Kid) {
-		return uv, proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
+		return nil, proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
 	var teamLinkMap map[keybase1.Seqno]keybase1.LinkID
@@ -235,7 +239,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
 	if state == nil {
-		return uv, proofSet, nil
+		return &uv, proofSet, nil
 	}
 
 	if link.outerLink.LinkType.RequiresAdminPermission() {
@@ -243,7 +247,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context, teamID keybase1.TeamID,
 	} else {
 		err = l.verifyWriterOrReaderPermissions(ctx, state, link, user.ToUserVersion())
 	}
-	return user.ToUserVersion(), proofSet, err
+	return &uv, proofSet, err
 }
 
 func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
@@ -364,16 +368,12 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 }
 
 // Apply a new link to the sigchain state.
-// TODO: verify all sorts of things.
+// `signer` may be nil iff link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
-	me keybase1.UserVersion) (*keybase1.TeamData, error) {
-	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
+	signer *keybase1.UserVersion, me keybase1.UserVersion) (*keybase1.TeamData, error) {
 
-	// TODO: This uses chain.go now. But chain.go is not in line
-	// with the new approach. It has TODOs to check things that
-	// are checked by proofSet etc now.
-	// And it does not use pre-unpacked types.
+	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
 	var player *TeamSigChainPlayer
 	if state == nil {
@@ -382,7 +382,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		player = NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
 	}
 
-	err := player.AddChainLinks(ctx, []SCChainLink{*link.source})
+	err := player.AppendChainLink(ctx, link, signer)
 	if err != nil {
 		return nil, err
 	}

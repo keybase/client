@@ -202,6 +202,13 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		ret = l.storage.Get(ctx, arg.teamID)
 	}
 
+	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
+		// Check that we are the same person as when this team was last loaded as a courtesy.
+		// This should never happen. We shouldn't be able to decrypt someone else's snapshot.
+		l.G().Log.CWarningf(ctx, "team loader got someone else's snapshot, discarding.")
+		ret = nil
+	}
+
 	// Determine whether to repoll merkle.
 	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
 	if discardCache {
@@ -276,7 +283,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		_, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
+		var signer *keybase1.UserVersion
+		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -289,7 +297,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			parentChildOperations = append(parentChildOperations, pco)
 		}
 
-		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
+		ret, err = l.applyNewLink(ctx, ret, link, signer, arg.me)
 		if err != nil {
 			return nil, err
 		}
