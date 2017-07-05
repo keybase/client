@@ -126,3 +126,17 @@ func NewProofError(p proof, s string) ProofError {
 func (p ProofError) Error() string {
 	return fmt.Sprintf("proof error for proof %+v: %s", p.p, p.msg)
 }
+
+type PermissionError struct {
+	TeamID      keybase1.TeamID
+	UserVersion keybase1.UserVersion
+	Desc        string
+}
+
+func NewPermissionError(t keybase1.TeamID, uv keybase1.UserVersion, d string) PermissionError {
+	return PermissionError{t, uv, d}
+}
+
+func (e PermissionError) Error() string {
+	return fmt.Sprintf("For team %s, user %s: %s", e.TeamID, e.UserVersion.PercentForm(), e.Desc)
+}

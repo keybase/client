@@ -1574,3 +1574,7 @@ func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
 func (r TeamRole) IsAdminOrAbove() bool {
 	return r == TeamRole_ADMIN || r == TeamRole_OWNER
 }
+
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
+}

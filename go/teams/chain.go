@@ -176,6 +176,39 @@ func findAdminDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetad
 	return nil
 }
 
+func findReaderDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetadata {
+	for _, p := range points {
+		if !p.Role.IsReaderOrAbove() {
+			return &p.SigMeta
+		}
+	}
+	return nil
+}
+
+// AssertWasReaderAt asserts that user (uv) was a reader or above at the team at the given
+// SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
+// the go forwards to make sure there wasn't a demotion before the specified time. If there
+// was, we return a PermissionError. If no adminship was found at all, we return a PermissionError.
+// NOTE: This is a copy-pasta of AssertWasAdminAt, but I became sad about having to factor out
+// the commonality, so decided copy-paste was easiest.
+func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+	points := t.inner.UserLog[uv]
+	for i := len(points) - 1; i >= 0; i-- {
+		point := points[i]
+		// OK great, we found an admin point in the log that's less than or equal to the
+		// given one
+		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsReaderOrAbove() {
+			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
+			// If so, that's a problem!
+			if right := findReaderDowngrade(points[(i + 1):]); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
+				return NewPermissionError(t.GetID(), uv, "permission was downgraded too soon!")
+			}
+			return nil
+		}
+	}
+	return NewPermissionError(t.GetID(), uv, "not found")
+}
+
 // AssertWasAdminAt asserts that user (uv) was an admin (or owner) at the team at the given
 // SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
 // the go forwards to make sure there wasn't a demotion before the specified time. If there
