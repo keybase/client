@@ -1831,6 +1831,8 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 			fbo.log.CDebugf(ctx,
 				"Blocking a write because of a full dirty buffer")
 			doLogUnblocked = true
+		case <-ctx.Done():
+			return ctx.Err()
 		case err = <-errListener:
 			// Fall through to check the cause of the error below.
 		}
