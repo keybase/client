@@ -663,7 +663,8 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	if len(joinedConvIDs) > 0 {
 		var ibox chat1.Inbox
 		ibox, _, err = s.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
-			ConvIDs: joinedConvIDs,
+			ConvIDs:          joinedConvIDs,
+			SummarizeMaxMsgs: true,
 		}, nil)
 		if err != nil {
 			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
@@ -999,16 +1000,36 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		uloader = s.G().GetUPAKLoader()
 	}
 
-	var err error
-	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
-		ctx,
-		uloader,
-		conversationLocal.Info.TlfName,
-		conversationRemote.Metadata.ActiveList)
-	if err != nil {
-		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
+	// Form the writers name list, either from the active list + TLF name, or from the
+	// channel information for a team chat
+	switch conversationRemote.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		for _, uid := range conversationRemote.Metadata.AllList {
+			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
+			if err != nil {
+				// If we are offline, we just won't know who is in the channel
+				continue
+			}
+			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
+				uname.String())
+		}
+	case chat1.ConversationMembersType_KBFS:
+		var err error
+		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+			ctx,
+			uloader,
+			conversationLocal.Info.TlfName,
+			conversationRemote.Metadata.ActiveList)
+		if err != nil {
+			errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+	default:
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			"unknown members type", conversationRemote, unverifiedTLFName,
+			chat1.ConversationErrorType_PERMANENT, nil)
 		return conversationLocal
 	}
 
