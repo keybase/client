@@ -1,9 +1,9 @@
 // @flow
-import _ from 'lodash'
+import trim from 'lodash/trim'
 import {ValidationError} from './errors'
 
 function isBlank(s: string): boolean {
-  return _.trim(s).length === 0
+  return trim(s).length === 0
 }
 
 function hasSpaces(s: string): boolean {

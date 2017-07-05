@@ -2,7 +2,9 @@
 import * as shared from './index.shared'
 import Friendships from './friendships'
 import React, {PureComponent} from 'react'
-import _ from 'lodash'
+import flow from 'lodash/flow'
+import map from 'lodash/map'
+import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import {
   Box,
@@ -215,9 +217,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
       }
     }
 
-    let folders = _.chain(this.props.tlfs)
-      .orderBy('isPublic', 'asc')
-      .map(folder => (
+    let folders = flow(
+      x => orderBy(x, 'isPublic', 'asc'),
+      map(folder => (
         <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
           <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
             <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
@@ -234,7 +236,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           </Text>
         </Box>
       ))
-      .value()
+    )(this.props.tlfs)
 
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)

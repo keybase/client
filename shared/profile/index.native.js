@@ -4,7 +4,9 @@ import ErrorComponent from '../common-adapters/error-profile'
 import Friendships from './friendships'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import _ from 'lodash'
+import flow from 'lodash/flow'
+import orderBy from 'lodash/orderBy'
+import map from 'lodash/map'
 import moment from 'moment'
 import {
   BackButton,
@@ -179,9 +181,9 @@ class Profile extends Component<void, Props, State> {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
-    let folders = _.chain(this.props.tlfs)
-      .orderBy('isPublic', 'asc')
-      .map(folder => (
+    let folders = flow(
+      x => orderBy(x, 'isPublic', 'asc'),
+      map(folder => (
         <Box key={folder.path} style={styleFolderLine}>
           <Icon
             {...shared.folderIconProps(folder, styleFolderIcon)}
@@ -197,8 +199,7 @@ class Profile extends Component<void, Props, State> {
           </Text>
         </Box>
       ))
-      .value()
-
+    )(this.props.tlfs)
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)

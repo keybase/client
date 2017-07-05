@@ -5,7 +5,7 @@
 
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
-import {noop} from 'lodash'
+import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine
 

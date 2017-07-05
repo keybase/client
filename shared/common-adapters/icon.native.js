@@ -4,7 +4,7 @@ import ClickableBox from './clickable-box'
 import React from 'react'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
-import {omit} from 'lodash'
+import omit from 'lodash/omit'
 import glamorous from 'glamorous-native'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 

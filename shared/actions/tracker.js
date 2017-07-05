@@ -2,7 +2,7 @@
 import * as Constants from '../constants/tracker'
 import * as RPCTypes from '../constants/types/flow-types'
 import Session from '../engine/session'
-import _ from 'lodash'
+import get from 'lodash/get'
 import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
@@ -802,10 +802,10 @@ function _fillFolders(username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const state: TypedState = getState()
     const root = state.favorite
-    const pubIg = _.get(root, 'public.ignored', [])
-    const pubTlf = _.get(root, 'public.tlfs', [])
-    const privIg = _.get(root, 'private.ignored', [])
-    const privTlf = _.get(root, 'private.tlfs', [])
+    const pubIg = get(root, 'public.ignored', [])
+    const pubTlf = get(root, 'public.tlfs', [])
+    const privIg = get(root, 'private.ignored', [])
+    const privTlf = get(root, 'private.tlfs', [])
 
     const tlfs = []
       .concat(pubIg, pubTlf, privIg, privTlf)

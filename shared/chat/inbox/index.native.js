@@ -13,7 +13,8 @@ import {
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
-import {debounce, memoize} from 'lodash'
+import debounce from 'lodash/debounce'
+import memoize from 'lodash/memoize'
 // $FlowIssue
 import FlatList from '../../fixme/Lists/FlatList'
 

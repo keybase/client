@@ -7,7 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import visdiff from './visdiff'
 import {execSync} from 'child_process'
-import {padEnd} from 'lodash'
+import padEnd from 'lodash/padEnd'
 
 const [, , command, ...rest] = process.argv
 
