@@ -73,36 +73,6 @@ const Conversation = (props: Props) => (
 
               {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
             </Box>}
-    ?
-    {' '}
-    <SearchResultsList
-      items={props.searchResultIds}
-      onClick={props.onClickSearchResult}
-      onShowTracker={props.onShowTrackerInSearch}
-      selectedId={props.selectedSearchId}
-      style={{flex: 1}}
-    />
-    : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      <List
-        focusInputCounter={props.focusInputCounter}
-        listScrollDownCounter={props.listScrollDownCounter}
-        onEditLastMessage={props.onEditLastMessage}
-        onScrollDown={props.onScrollDown}
-        onFocusInput={props.onFocusInput}
-        editLastMessageCounter={props.editLastMessageCounter}
-      />
-      <Banner />
-      {props.showLoader && <LoadingLine />}
-      {props.finalizeInfo
-        ? <OldProfileResetNotice />
-        : <Input
-            focusInputCounter={props.focusInputCounter}
-            onEditLastMessage={props.onEditLastMessage}
-            onScrollDown={props.onScrollDown}
-          />}
-
-      {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
-    </Box>}
   </Box>
 )
 
