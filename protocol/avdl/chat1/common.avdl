@@ -116,6 +116,11 @@ protocol common {
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
   }
 
+  record ConversationMember {
+    gregor1.UID uid;
+    ConversationID convID;
+  }
+
   record ConversationIDTriple {
     @lint("ignore")
     TLFID tlfid;
@@ -149,7 +154,11 @@ protocol common {
 
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
+    // *** Empty for TEAM chats. ***
     array<gregor1.UID> activeList;
+
+    // All of the users in the conversation, regardless of active status.
+    array<gregor1.UID> allList;
   }
 
   record ConversationReaderInfo {

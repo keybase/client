@@ -361,6 +361,13 @@
             "items": "gregor1.UID"
           },
           "name": "activeList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "allList"
         }
       ]
     },

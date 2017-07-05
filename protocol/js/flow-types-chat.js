@@ -1193,6 +1193,7 @@ export type ConversationMetadata = {
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
+  allList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationReaderInfo = {
