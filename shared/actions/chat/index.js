@@ -31,7 +31,13 @@ import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import {some} from 'lodash'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
+import {
+  usernameSelector,
+  inboxSearchSelector,
+  previousConversationSelector,
+  searchResultMapSelector,
+} from '../../constants/selectors'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -711,6 +717,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
+    yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
     yield put(Creators.selectConversation(null, false))
     yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
@@ -981,16 +988,18 @@ function* _updateTempSearchConversation(
   action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
 ) {
   const {payload: {user}} = action
+  const searchResultMap = yield select(searchResultMapSelector)
+  const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
   const me = yield select(usernameSelector)
 
   const inboxSearch = yield select(inboxSearchSelector)
   if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.push(user)
+    const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
     yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
+    const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
     if (!nextTempSearchConv.isEmpty()) {
       yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     } else {
@@ -1006,10 +1015,14 @@ function* _updateTempSearchConversation(
 }
 
 function* _exitSearch() {
+  const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
+  if (inboxSearch.count() === 0) {
+    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
+  }
 }
 
 function* chatSaga(): SagaGenerator<any, any> {

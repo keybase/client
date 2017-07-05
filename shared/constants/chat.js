@@ -377,6 +377,8 @@ export const StateRecord: KBRecord<T> = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
+  previousConversation: null,
+  searchPending: false,
   searchResults: null,
   selectedUsersInSearch: List(),
   inSearch: false,
@@ -407,6 +409,8 @@ export type State = KBRecord<{
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
+  previousConversation: ?ConversationIDKey,
+  searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
@@ -523,6 +527,10 @@ export type SetInboxUntrustedState = NoErrorTypedAction<
 >
 export type SetInitialConversation = NoErrorTypedAction<
   'chat:setInitialConversation',
+  {conversationIDKey: ?ConversationIDKey}
+>
+export type SetPreviousConversation = NoErrorTypedAction<
+  'chat:setPreviousConversation',
   {conversationIDKey: ?ConversationIDKey}
 >
 export type SetLoaded = NoErrorTypedAction<
@@ -1071,18 +1079,20 @@ const getFollowingStates = (state: TypedState) => {
 const getUserItems = createShallowEqualSelector(
   [getInboxSearch, getFollowingStates],
   (inboxSearch, followingStates) =>
-    inboxSearch.map(id => {
-      const {username, serviceId} = parseUserId(id)
-      const service = SearchConstants.serviceIdToService(serviceId)
-      return {
-        id: id,
-        followingState: followingStates[id],
-        // $FlowIssue ??
-        icon: serviceIdToIcon(serviceId),
-        username,
-        service,
-      }
-    })
+    inboxSearch
+      .map(id => {
+        const {username, serviceId} = parseUserId(id)
+        const service = SearchConstants.serviceIdToService(serviceId)
+        return {
+          id: id,
+          followingState: followingStates[id],
+          // $FlowIssue ??
+          icon: serviceIdToIcon(serviceId),
+          username,
+          service,
+        }
+      })
+      .toArray()
 )
 
 const stateLoggerTransform = (state: State) => ({

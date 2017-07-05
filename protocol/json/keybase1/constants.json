@@ -97,6 +97,7 @@
         "SCChatMessageCollision_2514",
         "SCChatDuplicateMessage_2515",
         "SCChatClientError_2516",
+        "SCChatNotInTeam_2517",
         "SCTeamReadError_2623"
       ]
     }

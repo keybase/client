@@ -7,7 +7,7 @@ import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React from 'react'
 import SidePanel from './side-panel/container'
 import Banner from './banner/container'
-import {Box, LoadingLine, Text} from '../../common-adapters'
+import {Box, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
@@ -42,35 +42,37 @@ const Conversation = (props: Props) => (
       selectedConversationIDKey={props.selectedConversationIDKey}
       onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
     />
-    {props.showSearchResults
-      ? <SearchResultsList
-          items={props.searchResultIds}
-          onClick={props.onClickSearchResult}
-          onShowTracker={props.onShowTrackerInSearch}
-          selectedId={props.selectedSearchId}
-          style={{flex: 1}}
-        />
-      : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <List
-            focusInputCounter={props.focusInputCounter}
-            listScrollDownCounter={props.listScrollDownCounter}
-            onEditLastMessage={props.onEditLastMessage}
-            onScrollDown={props.onScrollDown}
-            onFocusInput={props.onFocusInput}
-            editLastMessageCounter={props.editLastMessageCounter}
-          />
-          <Banner />
-          {props.showLoader && <LoadingLine />}
-          {props.finalizeInfo
-            ? <OldProfileResetNotice />
-            : <Input
+    {props.showSearchPending
+      ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+      : props.showSearchResults
+          ? <SearchResultsList
+              items={props.searchResultIds}
+              onClick={props.onClickSearchResult}
+              onShowTracker={props.onShowTrackerInSearch}
+              selectedId={props.selectedSearchId}
+              style={{flex: 1}}
+            />
+          : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              <List
                 focusInputCounter={props.focusInputCounter}
+                listScrollDownCounter={props.listScrollDownCounter}
                 onEditLastMessage={props.onEditLastMessage}
                 onScrollDown={props.onScrollDown}
-              />}
+                onFocusInput={props.onFocusInput}
+                editLastMessageCounter={props.editLastMessageCounter}
+              />
+              <Banner />
+              {props.showLoader && <LoadingLine />}
+              {props.finalizeInfo
+                ? <OldProfileResetNotice />
+                : <Input
+                    focusInputCounter={props.focusInputCounter}
+                    onEditLastMessage={props.onEditLastMessage}
+                    onScrollDown={props.onScrollDown}
+                  />}
 
-          {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
-        </Box>}
+              {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
+            </Box>}
   </Box>
 )
 

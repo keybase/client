@@ -37,7 +37,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	if err != nil {
 		return res, err
 	}
-	res.KeyGeneration = t.Box.Generation
+	res.KeyGeneration = t.Generation()
 	res.Members, err = members(ctx, g, t, forceRepoll)
 	if err != nil {
 		return res, err

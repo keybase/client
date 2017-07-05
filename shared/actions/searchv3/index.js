@@ -167,13 +167,17 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Search<T>) {
+function* search<T>({
+  payload: {term, service, pendingActionTypeToFire, finishedActionTypeToFire},
+}: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
-    yield put(Creators.finishedSearch(actionTypeToFire, cachedResults, term, service))
+    yield put(Creators.finishedSearch(finishedActionTypeToFire, cachedResults, term, service))
     return
   }
+
+  yield put(Creators.pendingSearch(pendingActionTypeToFire, true))
 
   try {
     yield call(onIdlePromise, 1e3)
@@ -181,12 +185,24 @@ function* search<T>({payload: {term, service, actionTypeToFire}}: Constants.Sear
     const rows = searchResults.list.map((result: RawResult) => {
       return _parseRawResultToRow(result, service || 'Keybase')
     })
-    const ids = rows.map(r => r.id)
+    // Make a version that maps from keybase id to SearchResult.
+    // This is in case we want to lookup this data by their keybase id. (like the case of upgrading a 3rd party result to a kb result)
+    const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
+      id: r.rightUsername || '',
+      leftService: 'Keybase',
+      leftUsername: r.rightUsername,
+      leftIcon: null,
+    }))
     yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
+    yield put(EntityAction.mergeEntity(['searchResults'], keyBy(kbRows, 'id')))
+
+    const ids = rows.map(r => r.id)
     yield put(EntityAction.mergeEntity(['searchQueryToResult'], {[searchQuery]: ids}))
-    yield put(Creators.finishedSearch(actionTypeToFire, ids, term, service))
+    yield put(Creators.finishedSearch(finishedActionTypeToFire, ids, term, service))
   } catch (error) {
     console.warn('error in searching', error)
+  } finally {
+    yield put(Creators.pendingSearch(pendingActionTypeToFire, false))
   }
 }
 

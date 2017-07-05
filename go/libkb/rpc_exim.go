@@ -449,6 +449,21 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatNotInConvError{
 			UID: uid,
 		}
+	case SCChatNotInTeam:
+		var uid gregor1.UID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "UID":
+				val, err := hex.DecodeString(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat not in conv UID")
+				}
+				uid = gregor1.UID(val)
+			}
+		}
+		return ChatNotInTeamError{
+			UID: uid,
+		}
 	case SCChatTLFFinalized:
 		var tlfID chat1.TLFID
 		for _, field := range s.Fields {
@@ -1751,6 +1766,20 @@ func (e ChatNotInConvError) ToStatus() keybase1.Status {
 		Fields: []keybase1.StringKVPair{kv},
 	}
 }
+
+func (e ChatNotInTeamError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "UID",
+		Value: e.UID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatNotInTeam,
+		Name:   "SC_CHAT_NOT_IN_TEAM",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
 func (e ChatBadMsgError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatBadMsg,

@@ -21,7 +21,7 @@ export default (props: Props) =>
   props.inSearch
     ? <SearchHeader
         onChangeSearchText={props.onChangeSearchText}
-        usernameText={props.searchText}
+        searchText={props.searchText}
         selectedConversationIDKey={props.selectedConversationIDKey}
         selectedSearchId={props.selectedSearchId}
         onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}

@@ -1,35 +1,41 @@
 // @flow
 import React from 'react'
 import type {Folder} from './list'
-import type {IconType} from '../common-adapters/icon'
-import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
+import {Box, Button, Text, Icon, MultiAvatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
-  let boxStyle: Object = {
-    width: smallMode ? globalMargins.large : 48,
-    minHeight: smallMode ? globalMargins.large : 48,
-    padding: globalMargins.tiny,
+const Avatars = ({styles, users, smallMode, ignored, isPublic}) => {
+  if (!isPublic && users.length > 1) {
+    users = users.filter(({you}) => !you)
   }
+  const avatarCount = Math.min(2, users.length)
+  const opacity = ignored ? 0.5 : 1
+  const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+    borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
+    loadingColor: globalColors.lightGrey,
+    size: smallMode ? 24 : 32,
+    username,
+  }))
 
-  if (isPublic) {
-    boxStyle.backgroundColor = globalColors.yellowGreen
-  } else {
-    boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
-  }
-
-  const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
-    <Box style={boxStyle}>
-      {groupAvatar
-        ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
-        : <Avatar
-            size={smallMode ? 24 : 32}
-            username={userAvatar}
-            opacity={ignored ? 0.5 : 1.0}
-            backgroundColor={styles.rowContainer.backgroundColor}
-          />}
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
+        width: smallMode ? globalMargins.large : 56,
+        padding: globalMargins.tiny,
+      }}
+    >
+      <Box style={{position: 'relative'}}>
+        <MultiAvatar
+          singleSize={smallMode ? 32 : 40}
+          multiSize={smallMode ? 24 : 32}
+          avatarProps={avatarProps}
+          style={{alignSelf: 'center', opacity}}
+        />
+      </Box>
     </Box>
   )
 }
@@ -53,6 +59,10 @@ const Modified = ({smallMode, styles, modified}) => {
 }
 
 const RowMeta = ({ignored, meta, styles}) => {
+  if (meta === 'ignored') {
+    return
+  }
+
   const metaColors = {
     new: globalColors.white,
     rekey: globalColors.white,
@@ -63,9 +73,10 @@ const RowMeta = ({ignored, meta, styles}) => {
     rekey: globalColors.red,
   }
 
-  const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
+  const metaProps = {
+    title: meta || '',
+    style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {},
+  }
 
   return <Meta {...metaProps} />
 }
@@ -87,12 +98,10 @@ const Row = ({
   ignored,
   meta,
   modified,
-  hasData,
   smallMode,
   onChat,
   onOpen,
   onClick,
-  groupAvatar,
   userAvatar,
   onRekey,
   path,
@@ -114,44 +123,33 @@ const Row = ({
   }
   const styles = isPublic ? stylesPublic : stylesPrivate
 
-  let backgroundColor = styles.rowContainer.backgroundColor
-  let nameColor = styles.nameColor
   let redColor = globalColors.red
 
   if (ignored) {
-    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
-    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
     redColor = globalColors.red_75
   }
 
   const containerStyle = {
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
-    backgroundColor,
+    backgroundColor: globalColors.white,
   }
-
-  const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
     <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
       <Box style={globalStyles.flexBoxRow}>
-        <Avatars
-          users={users}
-          styles={styles}
-          smallMode={smallMode}
-          groupAvatar={groupAvatar}
-          userAvatar={userAvatar}
-          ignored={ignored}
-          isPublic={isPublic}
-        />
+        <Avatars users={users} styles={styles} smallMode={smallMode} ignored={ignored} isPublic={isPublic} />
         <Box style={stylesBodyContainer}>
           <Usernames
             users={users}
             type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'}
-            style={{color: nameColor}}
+            style={{
+              color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
+              opacity: ignored ? 0.6 : 1,
+            }}
             redColor={redColor}
           />
-          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+          {meta && !ignored && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) &&
             modified &&
             <Modified modified={modified} styles={styles} smallMode={smallMode} />}
@@ -160,9 +158,9 @@ const Row = ({
           !isPublic &&
           !hasReadOnlyUsers &&
           meta !== 'rekey' &&
-          <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
+          <Box style={{...stylesActionContainer, width: smallMode ? undefined : 64}}>
             <Text
-              type="BodySmall"
+              type="BodySmallSecondaryLink"
               className="folder-row-hover-action"
               onClick={onChatClick}
               style={styles.action}
@@ -170,11 +168,17 @@ const Row = ({
               Chat
             </Text>
           </Box>}
-        <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
+        <Box
+          style={{
+            ...stylesActionContainer,
+            width: smallMode ? undefined : 64,
+            marginRight: globalMargins.small,
+          }}
+        >
           {!smallMode &&
             meta !== 'rekey' &&
             <Text
-              type="BodySmall"
+              type="BodySmallSecondaryLink"
               className="folder-row-hover-action"
               onClick={onOpenClick}
               style={styles.action}
@@ -183,9 +187,8 @@ const Row = ({
             </Text>}
           {meta === 'rekey' &&
             <Button
-              backgroundMode={styles.modifiedMode}
               small={true}
-              type="Secondary"
+              type="PrimaryPrivate"
               onClick={e => {
                 if (onRekey) {
                   e.stopPropagation()
@@ -195,25 +198,8 @@ const Row = ({
               label="Rekey"
               style={styles.action}
             />}
-          <Icon
-            type={icon}
-            style={{
-              visibility: hasData ? 'visible' : 'hidden',
-              ...(smallMode && !hasData ? {display: 'none'} : {}),
-            }}
-          />
         </Box>
       </Box>
-      <Box
-        style={{
-          height: 1,
-          backgroundColor: globalColors.black_05,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-        }}
-      />
     </Box>
   )
 }
@@ -227,16 +213,12 @@ const rowContainer = {
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.darkBlue,
+    backgroundColor: globalColors.white,
     color: globalColors.white,
-  },
-  hasStuffIcon: {
-    small: 'icon-folder-private-has-stuff-24',
-    normal: 'icon-folder-private-has-stuff-32',
   },
   ignored: {
     color: globalColors.white_40,
-    backgroundColor: 'rgba(0, 26, 51, 0.4)',
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-private-group-24',
@@ -247,7 +229,6 @@ const stylesPrivate = {
   action: {
     ...globalStyles.clickable,
     alignSelf: 'center',
-    color: globalColors.white,
     marginRight: globalMargins.tiny,
   },
 }
@@ -258,13 +239,9 @@ const stylesPublic = {
     backgroundColor: globalColors.white,
     color: globalColors.yellowGreen2,
   },
-  hasStuffIcon: {
-    small: 'icon-folder-public-has-stuff-24',
-    normal: 'icon-folder-public-has-stuff-32',
-  },
   ignored: {
     color: globalColors.white_75,
-    backgroundColor: globalColors.yellowGreen,
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-public-group-24',
@@ -275,7 +252,6 @@ const stylesPublic = {
   action: {
     ...globalStyles.clickable,
     alignSelf: 'center',
-    color: globalColors.black_60,
     marginRight: globalMargins.tiny,
   },
 }
@@ -291,7 +267,7 @@ const stylesBodyContainer = {
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-end',
+  justifyContent: 'center',
 }
 
 const stylesModified = {

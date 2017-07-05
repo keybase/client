@@ -1743,6 +1743,16 @@ func (e ChatNotInConvError) Error() string {
 
 //=============================================================================
 
+type ChatNotInTeamError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInTeamError) Error() string {
+	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+}
+
+//=============================================================================
+
 type ChatBadMsgError struct {
 	Msg string
 }

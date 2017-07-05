@@ -101,6 +101,7 @@ const (
 	StatusCode_SCChatMessageCollision   StatusCode = 2514
 	StatusCode_SCChatDuplicateMessage   StatusCode = 2515
 	StatusCode_SCChatClientError        StatusCode = 2516
+	StatusCode_SCChatNotInTeam          StatusCode = 2517
 	StatusCode_SCTeamReadError          StatusCode = 2623
 )
 
@@ -198,6 +199,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatMessageCollision":   2514,
 	"SCChatDuplicateMessage":   2515,
 	"SCChatClientError":        2516,
+	"SCChatNotInTeam":          2517,
 	"SCTeamReadError":          2623,
 }
 
@@ -293,6 +295,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2514: "SCChatMessageCollision",
 	2515: "SCChatDuplicateMessage",
 	2516: "SCChatClientError",
+	2517: "SCChatNotInTeam",
 	2623: "SCTeamReadError",
 }
 

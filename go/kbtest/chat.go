@@ -620,6 +620,18 @@ func (m *ChatRemoteMock) UpdateTypingRemote(ctx context.Context, arg chat1.Updat
 	return nil
 }
 
+func (m *ChatRemoteMock) GetTLFConversations(ctx context.Context, arg chat1.GetTLFConversationsArg) (chat1.GetTLFConversationsRes, error) {
+	return chat1.GetTLFConversationsRes{}, nil
+}
+
+func (m *ChatRemoteMock) JoinConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
 type convByNewlyUpdated struct {
 	mock *ChatRemoteMock
 }

@@ -136,7 +136,8 @@ class ConversationInput extends Component<void, InputProps, void> {
             multiple={true}
           />
           <Input
-            autoFocus={true}
+            className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+            autoFocus={false}
             small={true}
             style={styleInput}
             ref={this.props.inputSetRef}
@@ -156,7 +157,15 @@ class ConversationInput extends Component<void, InputProps, void> {
           <Icon onClick={this.props.filePickerOpen} style={styleIcon} type="iconfont-attachment" />
         </Box>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
-          <Text type="BodySmall" style={{...styleFooter, flexGrow: 1, textAlign: 'left'}}>
+          <Text
+            type="BodySmall"
+            style={{
+              flexGrow: 1,
+              marginBottom: globalMargins.xtiny,
+              marginLeft: globalMargins.tiny,
+              textAlign: 'left',
+            }}
+          >
             {isTyping(this.props.typing)}
           </Text>
           <Text type="BodySmall" style={{...styleFooter, textAlign: 'right'}} onClick={this.props.inputFocus}>
@@ -174,11 +183,16 @@ const isTyping = typing => {
   }
   switch (typing.length) {
     case 1:
-      return `${typing[0]} is typing`
+      return [<Text key={0} type="BodySmallSemibold">{typing[0]}</Text>, ` is typing`]
     case 2:
-      return `${typing[0]} and ${typing[1]} are typing`
+      return [
+        <Text key={0} type="BodySmallSemibold">{typing[0]}</Text>,
+        ` and `,
+        <Text key={1} type="BodySmallSemibold">{typing[1]}</Text>,
+        ` are typing`,
+      ]
     default:
-      return `${typing.join(', ')} are typing`
+      return [<Text key={0} type="BodySmallSemibold">{typing.join(', ')}</Text>, ` are typing`]
   }
 }
 

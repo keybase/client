@@ -7,19 +7,20 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, Icon} from '../common-adapters'
+import {Box, Icon, ProgressIndicator} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
-import {chatSearchResultArray} from '../constants/selectors'
-import {onChangeSelectedSearchResultHoc} from '../searchv3/helpers'
+import {chatSearchPending, chatSearchResultArray} from '../constants/selectors'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 const mapStateToProps = createSelector(
-  [Constants.getUserItems, chatSearchResultArray],
-  (userItems, searchResultIds) => ({
-    userItems,
+  [Constants.getUserItems, chatSearchResultArray, chatSearchPending],
+  (userItems, searchResultIds, searchPending) => ({
     searchResultIds,
+    showSearchPending: searchPending,
+    userItems,
   })
 )
 
@@ -29,7 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
+      dispatch(SearchCreators.search(term, 'chat:pendingSearchResults', 'chat:updateSearchResults', service))
     } else {
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
@@ -39,6 +40,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.stageUserForSearch(id))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
 const SearchHeader = props => {
@@ -49,15 +51,15 @@ const SearchHeader = props => {
           <UserInput
             autoFocus={true}
             userItems={props.userItems}
-            showAddButton={props.showAddButton}
             onRemoveUser={props.onRemoveUser}
             onClickAddButton={props.onClickAddButton}
             placeholder={props.placeholder}
-            usernameText={props.usernameText}
+            usernameText={props.searchText}
             onChangeText={props.onChangeText}
             onMoveSelectUp={props.onMoveSelectUp}
             onMoveSelectDown={props.onMoveSelectDown}
-            onEnter={props.onEnter}
+            onCancel={props.exitSearch}
+            onAddSelectedUser={props.onAddSelectedUser}
           />
         </Box>
         <Icon
@@ -67,15 +69,18 @@ const SearchHeader = props => {
         />
       </Box>
       <Box style={{alignSelf: 'center'}}>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+        {props.showServiceFilter &&
+          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
       </Box>
-      <SearchResultsList
-        style={{flex: 1}}
-        items={props.searchResultIds}
-        onClick={props.onClickSearchResult}
-        onShowTracker={props.onShowTrackerInSearch}
-        selectedId={props.selectedSearchId}
-      />
+      {props.showSearchPending
+        ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+        : <SearchResultsList
+            style={{flex: 1}}
+            items={props.searchResultIds}
+            onClick={props.onClickSearchResult}
+            onShowTracker={props.onShowTrackerInSearch}
+            selectedId={props.selectedSearchId}
+          />}
     </Box>
   )
 }
@@ -83,12 +88,13 @@ const SearchHeader = props => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  withState('usernameText', 'onChangeSearchText', ''),
+  withState('searchText', 'onChangeSearchText', ''),
   onChangeSelectedSearchResultHoc,
+  showServiceLogicHoc,
   withHandlers({
     onSelectService: props => nextService => {
       props._onSelectService(nextService)
-      props.search(props.usernameText, nextService)
+      props.search(props.searchText, nextService)
     },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')
@@ -100,6 +106,5 @@ export default compose(
     placeholder: 'Search for someone',
     showAddButton: false,
     onClickAddButton: () => console.log('todo'),
-    userItems: [],
   })
 )(SearchHeader)

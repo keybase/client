@@ -5,7 +5,7 @@
 
 import * as Tabs from './constants/tabs'
 import {jsonDebugFileName} from './constants/platform.desktop'
-import {updateConfig} from './command-line.desktop.js'
+import {updateConfig} from './app/command-line.desktop.js'
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,

@@ -27,11 +27,6 @@ protocol teams {
     Bytes32 key;
   }
 
-  record SignatureMetadataBookends {
-    SignatureMetadata left;
-    union { null, SignatureMetadata } right;
-  }
-
   @typedef("bytes")
   record MaskB64 {}
 
@@ -156,9 +151,12 @@ protocol teams {
     // Keyed by per-team-key generation
     map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
 
-    // Set of types that were loaded stubbed-out and whose contents are missing.
-    // Keyed by libkb.SigchainV2Type
-    map<int, boolean> stubbedTypes;
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // Set of links that are stubbed-out and whose contents are missing.
+    // Keyed by seqno
+    map<Seqno, boolean> stubbedLinks;
   }
 
   // A user became this role at a point in time
@@ -231,8 +229,30 @@ protocol teams {
     boolean staleOK;         // If a very stale cache hit is OK.
   }
 
+  record ImplicitRole {
+    TeamRole role;
+    TeamID ancestor;
+  }
+
+  record MemberInfo {
+    @jsonkey("team_id")
+    TeamID teamID;
+    @jsonkey("fq_name")
+    string fqName; 
+    TeamRole role;
+    union{null, ImplicitRole} implicit;
+  }
+
+  record TeamList {
+    UID uid;
+    string username;
+    string fullName;
+    array<MemberInfo> teams;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
+  TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

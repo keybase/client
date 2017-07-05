@@ -12,7 +12,7 @@ type OwnProps = {
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onEnter: (id: Constants.SearchResultId) => void,
+  onAddSelectedUser: (id: Constants.SearchResultId) => void,
 }
 
 // Which search result is highlighted
@@ -29,10 +29,30 @@ const selectedSearchIdHoc = compose(
   })
 )
 
+// TODO hook up this type
+/*
+type InProps = {
+  onRemoveUser: (id: Constants.SearchResultId) => void,
+  onExitSearch: () => void,
+  userItems: Array<{id: Constants.SearchResultId}>,
+  searchText: string,
+  onChangeSearchText: (nextText: string) => void,
+  clearSearchResults: () => void,
+  search: (search: string, service: Constants.Service) => void,
+}
+
+type OutProps = {
+  onClearSearch: () => void,
+}
+*/
+const clearSearchHoc = withHandlers({
+  onClearSearch: ({onExitSearch}) => () => onExitSearch(),
+})
+
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onEnter: ({onChangeSearchText, onEnter, selectedSearchId}: OwnProps) => () => {
-      selectedSearchId && onEnter(selectedSearchId)
+    onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
+      selectedSearchId && onAddSelectedUser(selectedSearchId)
       onChangeSearchText('')
     },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
@@ -66,4 +86,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc}
+const showServiceLogicHoc = withPropsOnChange(['searchText', 'userItems'], ({searchText, userItems}) => ({
+  showServiceFilter: !!searchText || userItems.length === 0,
+}))
+
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc, clearSearchHoc}
