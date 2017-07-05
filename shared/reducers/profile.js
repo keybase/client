@@ -27,6 +27,7 @@ const initialState: State = {
   username: '',
   usernameValid: true,
   waiting: false,
+  searchPending: false,
   searchResults: null,
 }
 
@@ -187,6 +188,13 @@ export default function(state: State = initialState, action: Actions) {
       return {
         ...state,
         searchResults: null,
+      }
+    }
+    case 'profile:pendingSearchResults': {
+      const {payload: {pending}} = action
+      return {
+        ...state,
+        searchPending: pending,
       }
     }
   }

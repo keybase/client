@@ -15,6 +15,7 @@ import * as HocHelpers from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 type OwnProps = {
+  clearSearchResults: () => void,
   selectedConversationIDKey: Constants.ConversationIDKey,
   searchText: string,
   onChangeSearchText: (s: string) => void,
@@ -40,7 +41,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'chat:updateSearchResults', service))
+      dispatch(SearchCreators.search(term, 'chat:pendingSearchResults', 'chat:updateSearchResults', service))
     } else {
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
@@ -91,6 +92,7 @@ export default compose(
       },
       onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
         props._onSelectService(nextService)
+        props.clearSearchResults()
         props.search(props.searchText, nextService)
       },
     }

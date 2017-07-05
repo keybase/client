@@ -145,10 +145,15 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 		}
 		p.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)
 	}
-	p.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
+
+	allowed := len(arg.Devices)
+	if arg.CanSelectNoDevice {
+		p.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
+		allowed++
+	}
 	p.parent.Output("\n")
 
-	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, p.parent, "Choose a device", 1, len(arg.Devices)+1)
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, p.parent, "Choose a device", 1, allowed)
 
 	if err != nil {
 		if err == ErrInputCanceled {
@@ -157,7 +162,7 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 		return keybase1.DeviceID(""), err
 	}
 
-	if ret == len(arg.Devices)+1 {
+	if arg.CanSelectNoDevice && ret == len(arg.Devices)+1 {
 		// no access selection
 		return keybase1.DeviceID(""), nil
 	}

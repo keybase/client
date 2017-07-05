@@ -22,16 +22,16 @@ func TestMerkle(t *testing.T) {
 	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
-	leaf, err := tc.G.MerkleClient.LookupTeam(context.TODO(), team.Chain.GetID())
+	leaf, err := tc.G.MerkleClient.LookupTeam(context.TODO(), team.ID)
 	require.NoError(t, err)
 	require.NotNil(t, leaf)
 	t.Logf("team merkle leaf: %v", spew.Sdump(leaf))
 	if leaf.TeamID.IsNil() {
 		t.Fatalf("nil teamID; likely merkle hasn't yet published and polling is busted")
 	}
-	require.Equal(t, team.Chain.GetID(), leaf.TeamID, "team id")
-	require.Equal(t, team.Chain.GetLatestSeqno(), leaf.Private.Seqno)
-	require.Equal(t, team.Chain.GetLatestLinkID(), leaf.Private.LinkID.Export())
+	require.Equal(t, team.ID, leaf.TeamID, "team id")
+	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
+	require.Equal(t, team.chain().GetLatestLinkID(), leaf.Private.LinkID.Export())
 	// leaf.Private.SigID not checked
 	require.Nil(t, leaf.Public, "team public leaf")
 }
