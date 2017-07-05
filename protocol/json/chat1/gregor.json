@@ -226,14 +226,14 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "joined"
         },
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "removed"
         }

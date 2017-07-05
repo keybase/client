@@ -222,6 +222,18 @@ func (e ConversationStatus) String() string {
 	return ""
 }
 
+type ConversationMember struct {
+	Uid    gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o ConversationMember) DeepCopy() ConversationMember {
+	return ConversationMember{
+		Uid:    o.Uid.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type ConversationMemberStatus int
 
 const (

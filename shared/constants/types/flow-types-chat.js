@@ -1173,6 +1173,11 @@ export type ConversationLocal = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
+export type ConversationMember = {
+  uid: gregor1.UID,
+  convID: ConversationID,
+}
+
 export type ConversationMemberStatus =
     0 // ACTIVE_0
   | 1 // REMOVED_1
@@ -1994,8 +1999,8 @@ export type UnreadUpdateFull = {
 
 export type UpdateConversationMembership = {
   inboxVers: InboxVers,
-  joined?: ?Array<ConversationID>,
-  removed?: ?Array<ConversationID>,
+  joined?: ?Array<ConversationMember>,
+  removed?: ?Array<ConversationMember>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{

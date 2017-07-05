@@ -113,6 +113,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ConversationMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [

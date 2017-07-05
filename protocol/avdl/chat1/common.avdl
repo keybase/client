@@ -68,6 +68,11 @@ protocol common {
 
   }
 
+  record ConversationMember {
+    gregor1.UID uid;
+    ConversationID convID;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly
@@ -114,11 +119,6 @@ protocol common {
     boolean readOnly;
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
-  }
-
-  record ConversationMember {
-    gregor1.UID uid;
-    ConversationID convID;
   }
 
   record ConversationIDTriple {

@@ -70,10 +70,10 @@ protocol gregor {
         ConversationID convID;
         boolean typing; 
     }
-   
+
     record UpdateConversationMembership {
         InboxVers inboxVers;
-        array<ConversationID> joined;
-        array<ConversationID> removed;
+        array<ConversationMember> joined;
+        array<ConversationMember> removed;
     }
 }
