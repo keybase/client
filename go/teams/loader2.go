@@ -690,9 +690,6 @@ func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase
 }
 
 func (l *TeamLoader) unimplementedVerificationTODO(ctx context.Context, meanwhile error) error {
-	if l.G().Env.GetRunMode() != libkb.DevelRunMode {
-		return fmt.Errorf("team verification not implemented")
-	}
 	l.G().Log.Warning("TODO: team verification not implemented, skipping verification")
 	return meanwhile
 }
