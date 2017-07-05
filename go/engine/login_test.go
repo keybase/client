@@ -718,6 +718,76 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	}
 }
 
+// Provision device using a private GPG key (not synced to keybase
+// server), import private key to lksec. With PUK, shouldn't be allowed on
+// device 2.
+func TestProvisionGPGWithPUK(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTestPUK(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// force them to have a puk
+	ForcePUK(tc2)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc3 := SetupEngineTestPUK(t, "login")
+	defer tc3.Cleanup()
+
+	// we need the gpg keyring
+	if err := tc2.MoveGpgKeyringTo(tc3); err != nil {
+		t.Fatal(err)
+	}
+
+	// run login on new device
+	ctx3 := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc3.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng3 := NewLogin(tc3.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng3, ctx3)
+	if err == nil {
+		t.Fatal("Provision w/ gpg key successful on device 2 w/ PUK enabled")
+	}
+	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
+		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
+	}
+}
+
 func testSign(t *testing.T, tc libkb.TestContext) {
 	// should be able to sign something with new device keys without
 	// entering a passphrase
