@@ -25,6 +25,7 @@ type Props = {
   loadingColor: ?string,
   onClick?: ?() => void,
   opacity: ?number,
+  skipBackground?: boolean,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,

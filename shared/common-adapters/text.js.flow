@@ -48,7 +48,7 @@ type Props = {
   onClickURL?: ?string,
   onPress?: void,
   onLongPress?: () => void,
-  style?: Object,
+  style?: any,
   type: TextType,
   title?: ?string,
   allowHighlightText?: boolean, // if true, highlighttext through refs works
