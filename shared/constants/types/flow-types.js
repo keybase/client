@@ -167,6 +167,7 @@ export const ConstantsStatusCode = {
   scdevicerequired: 1411,
   scdeviceprevprovisioned: 1413,
   scdevicenoprovision: 1414,
+  scdeviceprovisionviadevice: 1415,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -5798,6 +5799,7 @@ export type StatusCode =
   | 1411 // SCDeviceRequired_1411
   | 1413 // SCDevicePrevProvisioned_1413
   | 1414 // SCDeviceNoProvision_1414
+  | 1415 // SCDeviceProvisionViaDevice_1415
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503
@@ -6916,7 +6918,8 @@ export type proveUiPromptUsernameRpcParam = Exact<{
 }>
 
 export type provisionUiChooseDeviceRpcParam = Exact<{
-  devices?: ?Array<Device>
+  devices?: ?Array<Device>,
+  canSelectNoDevice: boolean
 }>
 
 export type provisionUiChooseDeviceTypeRpcParam = Exact<{
@@ -8138,7 +8141,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.provisionUi.chooseDevice'?: (
     params: Exact<{
       sessionID: int,
-      devices?: ?Array<Device>
+      devices?: ?Array<Device>,
+      canSelectNoDevice: boolean
     }>,
     response: {
       error: RPCErrorHandler,

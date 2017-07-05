@@ -370,6 +370,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ret
 	case SCDevicePrevProvisioned:
 		return DeviceAlreadyProvisionedError{}
+	case SCDeviceProvisionViaDevice:
+		return ProvisionViaDeviceRequiredError{}
 	case SCDeviceNoProvision:
 		return ProvisionUnavailableError{}
 	case SCGPGUnavailable:
@@ -1636,6 +1638,14 @@ func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDeviceNoProvision,
 		Name: "SC_DEVICE_NO_PROVISION",
+		Desc: e.Error(),
+	}
+}
+
+func (e ProvisionViaDeviceRequiredError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceProvisionViaDevice,
+		Name: "SC_DEVICE_PROVISION_VIA_DEVICE",
 		Desc: e.Error(),
 	}
 }
