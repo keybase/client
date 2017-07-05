@@ -14,7 +14,7 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
 
 const UserAvatar = ({author, showImage}) => (
   <Box style={_userAvatarStyle}>
-    {showImage && <Avatar size={24} username={author} />}
+    {showImage && <Avatar size={24} username={author} skipBackground={true} />}
   </Box>
 )
 
