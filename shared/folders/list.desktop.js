@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import Row from './row'
-import _ from 'lodash'
+import some from 'lodash/some'
 import type {IconType} from '../common-adapters/icon'
 import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
@@ -51,7 +51,7 @@ const Rows = ({
           {...tlf}
           key={rowKey(tlf.users)}
           isPublic={isPublic}
-          hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
+          hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
           ignored={isIgnored}
           onChat={onChat}
           onClick={onClick}

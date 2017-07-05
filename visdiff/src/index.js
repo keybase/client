@@ -8,7 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import {spawnSync} from 'child_process'
-import _ from 'lodash'
+import union from 'lodash/union'
 import mkdirp from 'mkdirp'
 import del from 'del'
 import gm from 'gm'
@@ -28,7 +28,7 @@ const DIFF_ERROR = 'error'
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
 const WORK_DIR = process.env['VISDIFF_WORK_DIR'] || path.join(os.tmpdir(), 'visdiff')
 
-function spawn (...args) {
+function spawn(...args) {
   var res = spawnSync(...args)
   if (res.error) {
     throw res.error
@@ -38,11 +38,11 @@ function spawn (...args) {
   return res
 }
 
-function packageHash () {
+function packageHash() {
   return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex').substr(0, 12)
 }
 
-function checkout (commit) {
+function checkout(commit) {
   const origPackageHash = packageHash()
 
   del.sync([`node_modules.${origPackageHash}`])
@@ -70,7 +70,7 @@ function checkout (commit) {
   spawn('yarn', ['install'], {stdio: 'inherit'})
 }
 
-function renderScreenshots (commitRange) {
+function renderScreenshots(commitRange) {
   const repoPath = spawn('git', ['rev-parse', '--show-toplevel'], {encoding: 'utf-8'}).stdout.trim()
   const relPath = path.relative(repoPath, process.cwd())
   if (!fs.existsSync(WORK_DIR)) {
@@ -81,7 +81,9 @@ function renderScreenshots (commitRange) {
       process.exit(1)
     }
   } else {
-    console.log(`Note: using existing work dir: ${WORK_DIR}. Try clearing out this directory if you are having problems.`)
+    console.log(
+      `Note: using existing work dir: ${WORK_DIR}. Try clearing out this directory if you are having problems.`
+    )
   }
   const workPath = path.join(WORK_DIR, relPath)
   console.log(`Running in work dir: ${workPath}`)
@@ -96,7 +98,7 @@ function renderScreenshots (commitRange) {
   }
 }
 
-function compareScreenshots (commitRange, diffDir, callback) {
+function compareScreenshots(commitRange, diffDir, callback) {
   console.log('Comparing screenshots...')
   const results = {}
 
@@ -104,9 +106,9 @@ function compareScreenshots (commitRange, diffDir, callback) {
 
   const files0 = fs.readdirSync(`screenshots/${commitRange[0]}`)
   const files1 = fs.readdirSync(`screenshots/${commitRange[1]}`)
-  const files = _.union(files0, files1)
+  const files = union(files0, files1)
   const totalFiles = files.length
-  function compareNext () {
+  function compareNext() {
     const filename = files.pop()
     if (!filename) {
       callback(diffDir, commitRange, results)
@@ -146,7 +148,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
     }
 
     const compareOptions = {
-      tolerance: 1e-6,  // leave a little wiggle room for antialiasing inconsistencies
+      tolerance: 1e-6, // leave a little wiggle room for antialiasing inconsistencies
       file: diffPath,
     }
     gm.compare(oldPath, newPath, compareOptions, (err, isEqual) => {
@@ -161,7 +163,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
   compareNext()
 }
 
-function processDiff (diffDir, commitRange, results) {
+function processDiff(diffDir, commitRange, results) {
   const errorResults = []
   const changedResults = []
   const newResults = []
@@ -257,9 +259,13 @@ function processDiff (diffDir, commitRange, results) {
     }
 
     if (errorResults.length) {
-      commentLines.unshift(`:no_entry: Error rendering the commits ${commitRange[0]}...${commitRange[1]} on ${os.platform()}. <details><summary>:mag_right: ${countParts.join(', ')}</summary>\n`)
+      commentLines.unshift(
+        `:no_entry: Error rendering the commits ${commitRange[0]}...${commitRange[1]} on ${os.platform()}. <details><summary>:mag_right: ${countParts.join(', ')}</summary>\n`
+      )
     } else {
-      commentLines.unshift(`The commits ${commitRange[0]}...${commitRange[1]} introduce visual changes on ${os.platform()}. <details><summary>:mag_right: ${countParts.join(', ')}</summary>\n`)
+      commentLines.unshift(
+        `The commits ${commitRange[0]}...${commitRange[1]} introduce visual changes on ${os.platform()}. <details><summary>:mag_right: ${countParts.join(', ')}</summary>\n`
+      )
     }
     commentLines.push(`</summary>`)
     const commentBody = commentLines.join('\n')
@@ -309,7 +315,7 @@ function processDiff (diffDir, commitRange, results) {
   console.log(`Results in: ${path.resolve('screenshots', diffDir)}`)
 }
 
-function resolveCommit (name) {
+function resolveCommit(name) {
   let result
   if (name.startsWith('merge-base(')) {
     let params
@@ -328,7 +334,7 @@ function resolveCommit (name) {
     console.log(`Error resolving commit "${name}":`, result.error, result.stderr)
     process.exit(1)
   }
-  let resolved = result.stdout.trim().substr(0, 12)  // remove whitespace and clip for shorter paths
+  let resolved = result.stdout.trim().substr(0, 12) // remove whitespace and clip for shorter paths
   console.log(`Resolved "${name}" -> ${resolved}`)
   return resolved
 }
@@ -339,7 +345,7 @@ if (process.argv.length !== 3) {
 }
 
 const commitRange = process.argv[2]
-  .split(/\.{2,3}/)  // Travis gives us ranges like START...END
+  .split(/\.{2,3}/) // Travis gives us ranges like START...END
   .map(resolveCommit)
 
 console.log(`Performing visual diff of ${commitRange[0]}...${commitRange[1]}:`)

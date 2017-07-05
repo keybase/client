@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/gregor'
 import * as CommonConstants from '../constants/common'
-import {keyBy} from 'lodash'
+import keyBy from 'lodash/keyBy'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
 const initialState: Constants.State = {

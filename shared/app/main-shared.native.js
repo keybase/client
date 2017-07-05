@@ -1,5 +1,4 @@
 // @flow
-import DumbSheet from '../dev/dumb-sheet'
 import Push from '../push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
@@ -7,7 +6,7 @@ import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {bootstrap} from '../actions/config'
 import {connect} from 'react-redux'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
@@ -66,6 +65,7 @@ class Main extends Component<void, any, void> {
 
   render() {
     if (this.props.dumbFullscreen) {
+      const DumbSheet = require('../dev/dumb-sheet').default
       return <DumbSheet />
     }
 

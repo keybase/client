@@ -5,11 +5,12 @@
 
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
+import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
@@ -56,7 +57,12 @@ if (__DEV__ && true) {
 }
 
 if (PERF) {
-  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\n\n\n')
+  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
+
+  window.console.log = noop
+  window.console.warn = noop
+  window.console.error = noop
+
   config = {
     actionStatFrequency: 0,
     clickableVisible: false,

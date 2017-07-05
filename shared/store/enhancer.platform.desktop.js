@@ -3,7 +3,7 @@ import DevTools from '../desktop/renderer/redux-dev-tools'
 import {batchedSubscribe} from 'redux-batched-subscribe'
 import {compose, applyMiddleware} from 'redux'
 import {enableStoreLogging} from '../local-debug'
-import {throttle} from 'lodash'
+import throttle from 'lodash/throttle'
 
 const throttleNotify = throttle(notify => notify(), 200)
 

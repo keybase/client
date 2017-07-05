@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
+import get from 'lodash/get'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'
@@ -33,7 +33,6 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 }
 
 const TabBarButton = (props: TabBarButtonProps) => {
-  const iconColor = props.selected ? globalColors.white : globalColors.blue3_40
   const badgeNumber = props.badgeNumber || 0
 
   let badgeComponent = null
@@ -65,9 +64,6 @@ const TabBarButton = (props: TabBarButtonProps) => {
       <Icon
         type={props.source.icon}
         style={{
-          color: iconColor,
-          fontSize: 32,
-          textAlign: 'center',
           width: props.isNav ? 40 : 32,
           ...props.styleIcon,
         }}
@@ -93,7 +89,7 @@ class TabBar extends Component<void, Props, void> {
   _labels(): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
-      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
           <Box style={{flex: 1}}>

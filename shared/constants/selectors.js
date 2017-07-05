@@ -1,6 +1,6 @@
 // @flow
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import {isEqualWith} from 'lodash'
+import isEqualWith from 'lodash/isEqualWith'
 
 import type {TypedState} from './reducer'
 import type {SearchQuery} from './searchv3'

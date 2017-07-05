@@ -2,7 +2,7 @@
 
 import path from 'path'
 import fs from 'fs'
-import _ from 'lodash'
+import words from 'lodash/words'
 import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../../dev/dumb-sheet/component-map.desktop'
@@ -56,7 +56,7 @@ app.on('ready', () => {
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
     sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
-      const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
+      const filenameParts = [msg.key, msg.mockKey].map(s => words(s).join('_').replace(/[^\w_]/g, ''))
       if (msg.isError) {
         filenameParts.push('ERROR')
       }
