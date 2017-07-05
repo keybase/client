@@ -29,7 +29,7 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/con
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
-import {some} from 'lodash'
+import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector, inboxSearchSelector, searchResultMapSelector} from '../../constants/selectors'
 import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'

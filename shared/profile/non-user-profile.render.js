@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Avatar, BackButton, Box, Button, Icon, Text} from '../common-adapters'
-import {capitalize} from 'lodash'
+import capitalize from 'lodash/capitalize'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 import {platformToLogo24} from '../constants/search'
 import {AVATAR_SIZE, HEADER_SIZE} from '../profile/index.desktop'
