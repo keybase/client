@@ -406,3 +406,14 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
 }
+
+func ForcePUK(tc libkb.TestContext) {
+	arg := &PerUserKeyUpgradeArgs{}
+	eng := NewPerUserKeyUpgrade(tc.G, arg)
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+	if err := RunEngine(eng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+}

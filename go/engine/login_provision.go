@@ -622,8 +622,19 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	}
 
 	arg := keybase1.ChooseDeviceArg{
-		Devices: expDevices,
+		Devices:           expDevices,
+		CanSelectNoDevice: true,
 	}
+
+	// check to see if they have a PUK, in which case they must select a device
+	hasPUK, err := e.hasPerUserKey(ctx)
+	if err != nil {
+		return err
+	}
+	if hasPUK {
+		arg.CanSelectNoDevice = false
+	}
+
 	id, err := ctx.ProvisionUI.ChooseDevice(ctx.GetNetContext(), arg)
 	if err != nil {
 		return err
@@ -633,16 +644,11 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 		// they chose not to use a device
 		e.G().Log.Debug("user has devices, but chose not to use any of them")
 		if pgp {
-			if e.perUserKeyring != nil {
-				e.G().Log.Debug("per user keyring enabled, syncing it")
-				if syncErr := e.perUserKeyring.Sync(ctx.GetNetContext()); syncErr != nil {
-					return syncErr
-				}
-				if e.perUserKeyring.HasAnyKeys() {
-					e.G().Log.Debug("user has a puk, not attempting pgp provision")
-					return libkb.ProvisionViaDeviceRequiredError{}
-				}
+			if hasPUK {
+				e.G().Log.Debug("user has a per-user-key, not attempting pgp provision")
+				return libkb.ProvisionViaDeviceRequiredError{}
 			}
+
 			// they have pgp keys, so try that:
 			return e.tryPGP(ctx)
 		}
@@ -1015,6 +1021,13 @@ func (e *loginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
 	}
 	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), e.G())
 	return nil
+}
+
+func (e *loginProvision) hasPerUserKey(ctx *Context) (bool, error) {
+	if e.arg.User == nil {
+		return false, errors.New("no user object in arg")
+	}
+	return len(e.arg.User.ExportToUserPlusKeys().PerUserKeys) > 0, nil
 }
 
 func (e *loginProvision) displaySuccess(ctx *Context) error {

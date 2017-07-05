@@ -690,6 +690,9 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// force them to have a puk
+	ForcePUK(tc)
+
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	// (PUK is on)
 	tc2 := SetupEngineTestPUK(t, "login")
@@ -706,8 +709,12 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	// this should fail, the user should not be allowed to use synced pgp key to provision
 	// second device when PUK is on:
 	eng2 := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng2, ctx2); err == nil {
+	err := RunEngine(eng2, ctx2)
+	if err == nil {
 		t.Fatal("Provision w/ synced pgp key successful on device 2 w/ PUK enabled")
+	}
+	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
+		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
 	}
 }
 
