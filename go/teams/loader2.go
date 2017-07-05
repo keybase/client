@@ -126,6 +126,9 @@ func (l *TeamLoader) getLinksFromServer(ctx context.Context,
 	if err := l.G().API.GetDecode(arg, &rt); err != nil {
 		return nil, err
 	}
+	if !rt.ID.Eq(teamID) {
+		return nil, fmt.Errorf("server returned wrong team ID: %v != %v", rt.ID, teamID)
+	}
 	return &rt, nil
 }
 

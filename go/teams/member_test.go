@@ -222,8 +222,8 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if before.Box.Generation != 1 {
-		t.Fatalf("initial team generation: %d, expected 1", before.Box.Generation)
+	if before.Generation() != 1 {
+		t.Fatalf("initial team generation: %d, expected 1", before.Generation())
 	}
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -240,12 +240,14 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if after.Box.Generation != 2 {
-		t.Errorf("after member remove: team generation: %d, expected 2", after.Box.Generation)
+	if after.Generation() != 2 {
+		t.Errorf("after member remove: team generation: %d, expected 2", after.Generation())
 	}
 
-	if after.Box.Ctext == before.Box.Ctext {
-		t.Error("TeamBox.Ctext did not change when member removed")
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Error("Team secret did not change when member removed")
 	}
 }
 
