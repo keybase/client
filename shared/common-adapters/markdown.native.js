@@ -60,7 +60,7 @@ function previewCreateComponent(style) {
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
-        return <Text type="Body" key={key} style={{...neutralStyle, ...style}}>{children}</Text>
+        return <Text type="Body" key={key} style={[neutralStyle, style]}>{children}</Text>
     }
   }
 }
@@ -113,7 +113,7 @@ function messageCreateComponent(style, allowFontScaling) {
         )
       case 'text-block':
         return (
-          <Text type="Body" key={key} style={{...neutralStyle, ...style}} allowFontScaling={allowFontScaling}>
+          <Text type="Body" key={key} style={[neutralStyle, style]} allowFontScaling={allowFontScaling}>
             {children.length ? children : '\u200b'}
           </Text>
         )

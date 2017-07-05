@@ -9,14 +9,24 @@ import {
   Box,
   ClickableBox,
   LoadingLine,
+  NativeStyleSheet,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
-import {debounce, memoize} from 'lodash'
+import debounce from 'lodash/debounce'
+import memoize from 'lodash/memoize'
 // $FlowIssue
 import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
+
+const styles = NativeStyleSheet.create({
+  bottomLine: {
+    color: globalColors.black_40,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+})
 
 const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
   <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
@@ -76,6 +86,7 @@ const Avatars = ({
       loadingColor: globalColors.lightGrey,
       size: 32,
       username,
+      skipBackground: true,
     }))
     .toArray()
 
@@ -194,8 +205,23 @@ const BottomLine = ({
       </Text>
     )
   } else if (snippet) {
+    const baseStyle = styles['bottomLine']
+
+    let style
+    if (subColor !== globalColors.black_40 || showBold) {
+      style = [
+        {
+          color: subColor,
+          ...(showBold ? globalStyles.fontBold : {}),
+        },
+        baseStyle,
+      ]
+    } else {
+      style = baseStyle
+    }
+
     content = (
-      <Markdown preview={true} style={bottomMarkdownStyle(showBold, subColor)}>
+      <Markdown preview={true} style={style}>
         {snippet}
       </Markdown>
     )
@@ -352,7 +378,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           data={this.state.rows}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
-          initialNumToRender={30}
           onViewableItemsChanged={this._onViewChanged}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
@@ -407,15 +432,5 @@ const rowContainerStyle = {
   maxHeight: 64,
   minHeight: 64,
 }
-
-const bottomMarkdownStyle = memoize(
-  (showBold, subColor) => ({
-    color: subColor,
-    fontSize: 13,
-    lineHeight: 17,
-    ...(showBold ? globalStyles.fontBold : {}),
-  }),
-  (showBold, subColor) => `${showBold}:${subColor}`
-)
 
 export default Inbox
