@@ -107,7 +107,6 @@ func (e *PerUserKeyBackground) Run(ectx *Context) (err error) {
 
 	// start the loop and return
 	go func() {
-		e.meta("loop-start")
 		err := e.loop(ctx, ectx)
 		if err != nil {
 			e.G().Log.CDebugf(ctx, "PerUserKeyBackground loop error: %s", err)
@@ -129,7 +128,12 @@ func (e *PerUserKeyBackground) Shutdown() {
 }
 
 func (e *PerUserKeyBackground) loop(ctx context.Context, ectx *Context) error {
-	if err := libkb.SleepWithContext(ctx, e.G().Clock(), e.args.Settings.Start); err != nil {
+	// wakeAt times are calculated before a meta before their corresponding sleep.
+	// To avoid the race where the testing goroutine calls advance before
+	// this routine decides when to wake up. That led to this routine never waking.
+	wakeAt := e.G().Clock().Now().Add(e.args.Settings.Start)
+	e.meta("loop-start")
+	if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
 		return err
 	}
 	e.meta("woke-start")
@@ -145,11 +149,14 @@ func (e *PerUserKeyBackground) loop(ctx context.Context, ectx *Context) error {
 		if e.args.testingRoundResCh != nil {
 			e.args.testingRoundResCh <- err
 		}
-		if err := libkb.SleepWithContext(ctx, e.G().Clock(), e.args.Settings.Interval); err != nil {
+		wakeAt = e.G().Clock().Now().Add(e.args.Settings.Interval)
+		e.meta("loop-round-complete")
+		if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
 			return err
 		}
+		wakeAt = e.G().Clock().Now().Add(e.args.Settings.WakeUp)
 		e.meta("woke-interval")
-		if err := libkb.SleepWithContext(ctx, e.G().Clock(), e.args.Settings.WakeUp); err != nil {
+		if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
 			return err
 		}
 		e.meta("woke-wakeup")

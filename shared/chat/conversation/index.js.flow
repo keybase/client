@@ -22,6 +22,7 @@ export type Props = {|
   threadLoadedOffline: boolean,
   searchV3Enabled: boolean,
   inSearch: boolean,
+  showSearchPending: boolean,
   showSearchResults: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   onClickSearchResult: (id: string) => void,

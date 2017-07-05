@@ -167,6 +167,7 @@ export const ConstantsStatusCode = {
   scdevicerequired: 1411,
   scdeviceprevprovisioned: 1413,
   scdevicenoprovision: 1414,
+  scdeviceprovisionviadevice: 1415,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -203,6 +204,7 @@ export const ConstantsStatusCode = {
   scchatmessagecollision: 2514,
   scchatduplicatemessage: 2515,
   scchatclienterror: 2516,
+  scchatnotinteam: 2517,
   scteamreaderror: 2623,
 }
 
@@ -3613,6 +3615,21 @@ export function teamsTeamLeaveRpcPromise (request: $Exact<requestCommon & reques
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamLeave', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamList', request)
+}
+
+export function teamsTeamListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamList', request)
+}
+export function teamsTeamListRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamList', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam}>): Promise<teamsTeamListResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamRemoveMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamRemoveMember', request)
 }
@@ -4722,6 +4739,11 @@ export type Identity = {
   breaksTracking: boolean,
 }
 
+export type ImplicitRole = {
+  role: TeamRole,
+  ancestor: TeamID,
+}
+
 export type InstallAction =
     0 // UNKNOWN_0
   | 1 // NONE_1
@@ -4863,6 +4885,13 @@ export type MDBlock = {
 }
 
 export type MaskB64 = bytes
+
+export type MemberInfo = {
+  teamID: TeamID,
+  fqName: string,
+  role: TeamRole,
+  implicit?: ?ImplicitRole,
+}
 
 export type MerkleRoot = {
   version: int,
@@ -5770,6 +5799,7 @@ export type StatusCode =
   | 1411 // SCDeviceRequired_1411
   | 1413 // SCDevicePrevProvisioned_1413
   | 1414 // SCDeviceNoProvision_1414
+  | 1415 // SCDeviceProvisionViaDevice_1415
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503
@@ -5806,6 +5836,7 @@ export type StatusCode =
   | 2514 // SCChatMessageCollision_2514
   | 2515 // SCChatDuplicateMessage_2515
   | 2516 // SCChatClientError_2516
+  | 2517 // SCChatNotInTeam_2517
   | 2623 // SCTeamReadError_2623
 
 export type Stream = {
@@ -5893,6 +5924,13 @@ export type TeamDetails = {
 }
 
 export type TeamID = string
+
+export type TeamList = {
+  uid: UID,
+  username: string,
+  fullName: string,
+  teams?: ?Array<MemberInfo>,
+}
 
 export type TeamMember = {
   uid: UID,
@@ -6880,7 +6918,8 @@ export type proveUiPromptUsernameRpcParam = Exact<{
 }>
 
 export type provisionUiChooseDeviceRpcParam = Exact<{
-  devices?: ?Array<Device>
+  devices?: ?Array<Device>,
+  canSelectNoDevice: boolean
 }>
 
 export type provisionUiChooseDeviceTypeRpcParam = Exact<{
@@ -7094,6 +7133,10 @@ export type teamsTeamGetRpcParam = Exact<{
 export type teamsTeamLeaveRpcParam = Exact<{
   name: string,
   permanent: boolean
+}>
+
+export type teamsTeamListRpcParam = Exact<{
+  userAssertion: string
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -7344,6 +7387,7 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsTeamGetResult = TeamDetails
+type teamsTeamListResult = TeamList
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7575,6 +7619,7 @@ export type rpc =
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
   | teamsTeamLeaveRpc
+  | teamsTeamListRpc
   | teamsTeamRemoveMemberRpc
   | testPanicRpc
   | testTestCallbackRpc
@@ -8096,7 +8141,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.provisionUi.chooseDevice'?: (
     params: Exact<{
       sessionID: int,
-      devices?: ?Array<Device>
+      devices?: ?Array<Device>,
+      canSelectNoDevice: boolean
     }>,
     response: {
       error: RPCErrorHandler,

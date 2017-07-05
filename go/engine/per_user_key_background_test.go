@@ -140,6 +140,7 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			require.FailNow(t, "channel timed out")
 		}
+		expectMeta(t, metaCh, "loop-round-complete")
 		if i < n-1 {
 			advance(arg.Settings.Interval + time.Second)
 			expectMeta(t, metaCh, "woke-interval")
@@ -259,6 +260,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	// second run that doesn't do anything
 	advance(arg.Settings.Interval + time.Second)
@@ -271,6 +273,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	checkPerUserKeyCount(&tc, 1)
 	checkPerUserKeyCountLocal(&tc, 1)
@@ -323,6 +326,7 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	t.Logf("sign up and in")
 	tc.Tp.UpgradePerUserKey = false
@@ -342,6 +346,7 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	checkPerUserKeyCount(&tc, 1)
 	checkPerUserKeyCountLocal(&tc, 1)

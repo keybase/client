@@ -72,6 +72,11 @@ func (t TeamSigChainState) IsSubteam() bool {
 	return t.inner.ParentID != nil
 }
 
+// Only non-nil if this is a subteam.
+func (t TeamSigChainState) GetParentID() *keybase1.TeamID {
+	return t.inner.ParentID
+}
+
 func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
@@ -143,16 +148,17 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 // a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
 func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
+	linkMap := t.inner.LinkIDs
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
 		if point.SigMeta.SigChainLocation.Eq(scl) {
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
 			}
-			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta)
+			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta, linkMap)
 			r := findAdminDowngrade(points[(i + 1):])
 			if r != nil {
-				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r)
+				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r, linkMap)
 				ret.right = &tmp
 			}
 			return ret, nil
@@ -168,6 +174,39 @@ func findAdminDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetad
 		}
 	}
 	return nil
+}
+
+func findReaderDowngrade(points []keybase1.UserLogPoint) *keybase1.SignatureMetadata {
+	for _, p := range points {
+		if !p.Role.IsReaderOrAbove() {
+			return &p.SigMeta
+		}
+	}
+	return nil
+}
+
+// AssertWasReaderAt asserts that user (uv) was a reader or above at the team at the given
+// SigChainLocation (scl). Thus, we start at the point given, go backwards until we find a promotion,
+// the go forwards to make sure there wasn't a demotion before the specified time. If there
+// was, we return a PermissionError. If no adminship was found at all, we return a PermissionError.
+// NOTE: This is a copy-pasta of AssertWasAdminAt, but I became sad about having to factor out
+// the commonality, so decided copy-paste was easiest.
+func (t TeamSigChainState) AssertWasReaderAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (err error) {
+	points := t.inner.UserLog[uv]
+	for i := len(points) - 1; i >= 0; i-- {
+		point := points[i]
+		// OK great, we found an admin point in the log that's less than or equal to the
+		// given one
+		if point.SigMeta.SigChainLocation.LessThanOrEqualTo(scl) && point.Role.IsReaderOrAbove() {
+			// But now we reverse and go forward, and check that it wasn't revoked or downgraded.
+			// If so, that's a problem!
+			if right := findReaderDowngrade(points[(i + 1):]); right != nil && right.SigChainLocation.LessThanOrEqualTo(scl) {
+				return NewPermissionError(t.GetID(), uv, "permission was downgraded too soon!")
+			}
+			return nil
+		}
+	}
+	return NewPermissionError(t.GetID(), uv, "not found")
 }
 
 // AssertWasAdminAt asserts that user (uv) was an admin (or owner) at the team at the given
@@ -342,176 +381,116 @@ func NewTeamSigChainPlayerWithState(g *libkb.GlobalContext, reader keybase1.User
 	return res
 }
 
+// Get the latest state.
+// The caller may _not_ modify the returned state.
 func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 	t.Lock()
 	defer t.Unlock()
 
 	if t.storedState != nil {
-		// The caller shouldn't modify the returned value, but that's really easy to screw up
-		// so DeepCopy to defend our internal state.
-		return t.storedState.DeepCopy(), nil
+		return *t.storedState, nil
 	}
 	return res, fmt.Errorf("no links loaded")
 }
 
-func (t *TeamSigChainPlayer) AddChainLinks(ctx context.Context, links []SCChainLink) error {
+// Add a chain link to the end. It can be stubbed.
+// It must have already been partially verified by TeamLoader.
+// `signer` may be nil iff link is stubbed.
+// If this returns an error, the TeamSigChainPlayer was not modified.
+func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLinkUnpacked, signer *keybase1.UserVersion) error {
 	t.Lock()
 	defer t.Unlock()
 
-	return t.addChainLinksCommon(ctx, links)
-}
-
-// Add links.
-// Used to check stubbed links, but that is now the responsibility of loader.
-// This interface will change to do single links soon.
-// If this returns an error, the TeamSigChainPlayer was not modified.
-func (t *TeamSigChainPlayer) addChainLinksCommon(ctx context.Context, links []SCChainLink) error {
-	if len(links) == 0 {
-		return errors.New("no chainlinks to add")
-	}
-
-	var state *TeamSigChainState
+	var prevState *TeamSigChainState
 	if t.storedState != nil {
-		state = t.storedState
+		prevState = t.storedState
 	}
 
-	for _, link := range links {
-		newState, err := t.addChainLinkCommon(ctx, state, link)
-		if err != nil {
-			if state == nil {
-				return fmt.Errorf("at beginning: %v", err)
-			}
-			return fmt.Errorf("at seqno %v: %v", state.GetLatestSeqno(), err)
+	newState, err := t.appendChainLinkHelper(ctx, prevState, link, signer)
+	if err != nil {
+		if prevState == nil {
+			return NewAppendLinkError(link, keybase1.Seqno(0), err)
 		}
-		state = &newState
+		return NewAppendLinkError(link, prevState.GetLatestSeqno(), err)
 	}
 
 	// Accept the new state
-	t.storedState = state
+	t.storedState = &newState
 	return nil
 }
 
-// Verify and add a chain link.
+// Add a chain link to the end.
+// `signer` may be nil iff link is stubbed.
 // Does not modify self or any arguments.
 // The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
-func (t *TeamSigChainPlayer) addChainLinkCommon(
-	ctx context.Context, prevState *TeamSigChainState, link SCChainLink) (
+func (t *TeamSigChainPlayer) appendChainLinkHelper(
+	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *keybase1.UserVersion) (
 	res TeamSigChainState, err error) {
 
-	oRes, err := t.checkOuterLink(ctx, prevState, link)
+	err = t.checkOuterLink(ctx, prevState, link)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
 
-	stubbed := oRes.innerLink == nil
-
 	var newState *TeamSigChainState
-	if stubbed {
+	if link.isStubbed() {
 		if prevState == nil {
-			return res, errors.New("first link cannot be stubbed")
+			return res, NewStubbedErrorWithNote(link, "first link cannot be stubbed")
 		}
 		newState2 := prevState.DeepCopy()
 		newState = &newState2
 	} else {
-		unLink, err := unpackChainLink(&link)
+		if signer == nil || !signer.Uid.Exists() {
+			return res, NewInvalidLink(link, "signing user not provided for team link")
+		}
+		iRes, err := t.addInnerLink(prevState, link, *signer, false)
 		if err != nil {
 			return res, err
-		}
-		iRes, err := t.addInnerLink(prevState, unLink, oRes.signingUser, false)
-		if err != nil {
-			return res, fmt.Errorf("team sigchain inner link: %s", err)
 		}
 		newState = &iRes.newState
 	}
 
-	newState.inner.LastSeqno = oRes.outerLink.Seqno
-	newState.inner.LastLinkID = oRes.outerLink.LinkID().Export()
-	newState.inner.LinkIDs[oRes.outerLink.Seqno] = oRes.outerLink.LinkID().Export()
+	newState.inner.LastSeqno = link.Seqno()
+	newState.inner.LastLinkID = link.LinkID().Export()
+	newState.inner.LinkIDs[link.Seqno()] = link.LinkID().Export()
 
-	if stubbed {
-		newState.inner.StubbedLinks[oRes.outerLink.Seqno] = true
+	if link.isStubbed() {
+		newState.inner.StubbedLinks[link.Seqno()] = true
 	}
 
 	return *newState, nil
-}
-
-type checkOuterLinkResult struct {
-	outerLink   libkb.OuterLinkV2WithMetadata
-	signingUser keybase1.UserVersion
-
-	// optional inner link info
-	innerLink *SCChainLinkPayload
 }
 
 type checkInnerLinkResult struct {
 	newState TeamSigChainState
 }
 
-func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link SCChainLink) (res checkOuterLinkResult, err error) {
+func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
 	if prevState == nil {
-		if link.Seqno != 1 {
-			return res, fmt.Errorf("expected seqno:1 but got:%v", link.Seqno)
+		if link.Seqno() != 1 {
+			return NewUnexpectedSeqnoError(keybase1.Seqno(1), link.Seqno())
 		}
 	} else {
-		if link.Seqno != prevState.inner.LastSeqno+1 {
-			return res, fmt.Errorf("expected seqno:%v but got:%v", prevState.inner.LastSeqno+1, link.Seqno)
+		if link.Seqno() != prevState.inner.LastSeqno+1 {
+			return NewUnexpectedSeqnoError(prevState.inner.LastSeqno+1, link.Seqno())
 		}
 	}
 
-	if link.Version != TeamSigChainPlayerSupportedLinkVersion {
-		return res, fmt.Errorf("expected version:%v but got:%v", TeamSigChainPlayerSupportedLinkVersion, link.Version)
-	}
-
-	if len(link.Sig) == 0 {
-		return res, errors.New("link has empty sig")
-	}
-	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
-	if err != nil {
-		return res, err
-	}
-	res.outerLink = *outerLink
-
-	// TODO CORE-5297 verify the sig. Without this this is all crazy.
-
-	// TODO CORE-5297 verify the signers identity and authorization. Without this this is all crazy.
-
-	// TODO support validating signatures even after account reset.
-	//      we need the specified eldest seqno from the server for this.
-	// TODO for now just assume seqno=1. Need to do something else to support links made by since-reset users.
-	res.signingUser = NewUserVersion(link.UID, 1)
-
-	// check that the outer link matches the server info
-	err = outerLink.AssertSomeFields(link.Version, link.Seqno)
-	if err != nil {
-		return res, err
-	}
-
 	if prevState == nil {
-		if len(outerLink.Prev) != 0 {
-			return res, fmt.Errorf("expected outer nil prev but got:%s", outerLink.Prev)
+		if len(link.Prev()) != 0 {
+			return fmt.Errorf("expected outer nil prev but got:%s", link.Prev())
 		}
 	} else {
 		prevStateLastLinkID, err := libkb.ImportLinkID(prevState.inner.LastLinkID)
 		if err != nil {
-			return res, fmt.Errorf("invalid prev last link id: %v", err)
+			return fmt.Errorf("invalid prev last link id: %v", err)
 		}
-		if !outerLink.Prev.Eq(prevStateLastLinkID) {
-			return res, fmt.Errorf("wrong outer prev: %s != %s", outerLink.Prev, prevState.inner.LastLinkID)
+		if !link.Prev().Eq(prevStateLastLinkID) {
+			return fmt.Errorf("wrong outer prev: %s != %s", link.Prev(), prevState.inner.LastLinkID)
 		}
 	}
 
-	if link.Payload == "" {
-		// stubbed inner link
-		res.innerLink = nil
-	} else {
-		payload, err := link.UnmarshalPayload()
-		if err != nil {
-			return res, fmt.Errorf("error unmarshaling link payload: %s", err)
-		}
-		res.innerLink = &payload
-	}
-
-	return res, nil
+	return nil
 }
 
 // Check and add the inner link.
@@ -528,6 +507,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 	payload := *link.inner
 
+	if !signer.Uid.Exists() {
+		return res, NewInvalidLink(link, "empty link signer")
+	}
+
 	// TODO: this may be superfluous.
 	err = link.AssertInnerOuterMatch()
 	if err != nil {
@@ -540,16 +523,16 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	_ = payload.SeqType
 
 	if payload.Tag != "signature" {
-		return res, fmt.Errorf("unrecognized tag: '%s'", payload.Tag)
+		return res, NewInvalidLink(link, "unrecognized tag: '%s'", payload.Tag)
 	}
 
 	if payload.Body.Team == nil {
-		return res, errors.New("missing team section")
+		return res, NewInvalidLink(link, "missing team section")
 	}
 	team := payload.Body.Team
 
 	if len(team.ID) == 0 {
-		return res, errors.New("missing team id")
+		return res, NewInvalidLink(link, "missing team id")
 	}
 	teamID, err := keybase1.TeamIDFromString(string(team.ID))
 	if err != nil {
