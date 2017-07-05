@@ -2,8 +2,6 @@
 import * as shared from './index.shared'
 import Friendships from './friendships'
 import React, {PureComponent} from 'react'
-import flow from 'lodash/flow'
-import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import moment from 'moment'
 import {
@@ -217,26 +215,23 @@ class ProfileRender extends PureComponent<void, Props, State> {
       }
     }
 
-    let folders = flow(
-      x => orderBy(x, 'isPublic', 'asc'),
-      map(folder => (
-        <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
-            <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
-          </Box>
-          <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
-            <Usernames
-              inline={false}
-              users={folder.users}
-              type="Body"
-              style={{color: 'inherit'}}
-              containerStyle={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}
-              prefix={folder.isPublic ? 'public/' : 'private/'}
-            />
-          </Text>
+    let folders = orderBy(this.props.tlfs, 'isPublic', 'asc').map(folder => (
+      <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
+          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
         </Box>
-      ))
-    )(this.props.tlfs)
+        <Text type="Body" className="hover-underline" style={{marginTop: 2}}>
+          <Usernames
+            inline={false}
+            users={folder.users}
+            type="Body"
+            style={{color: 'inherit'}}
+            containerStyle={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}
+            prefix={folder.isPublic ? 'public/' : 'private/'}
+          />
+        </Text>
+      </Box>
+    ))
 
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)

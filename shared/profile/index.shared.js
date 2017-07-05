@@ -1,7 +1,5 @@
 // @flow
 import without from 'lodash/without'
-import flow from 'lodash/flow'
-import map from 'lodash/map'
 import uniq from 'lodash/uniq'
 import difference from 'lodash/difference'
 import {globalColors} from '../styles'
@@ -31,7 +29,7 @@ export function missingProofs(
   onClick: (missingProof: MissingProof) => void
 ): Array<MissingProof> {
   let availableProofTypes = without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
-  const userProofTypes = flow(map(p => p.type), uniq)(userProofs)
+  const userProofTypes = uniq(userProofs.map(p => p.type))
 
   const missingRegular = difference(availableProofTypes, userProofTypes).map(type => ({
     type,
