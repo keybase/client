@@ -126,6 +126,10 @@ func (h HashMeta) String() string {
 	return hex.EncodeToString(h)
 }
 
+func (h HashMeta) Eq(h2 HashMeta) bool {
+	return hmac.Equal(h[:], h2[:])
+}
+
 func (h *HashMeta) UnmarshalJSON(b []byte) error {
 	hm, err := HashMetaFromString(Unquote(b))
 	if err != nil {

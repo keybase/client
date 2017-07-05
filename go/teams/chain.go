@@ -148,16 +148,17 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 // a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
 func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
+	linkMap := t.inner.LinkIDs
 	for i := len(points) - 1; i >= 0; i-- {
 		point := points[i]
 		if point.SigMeta.SigChainLocation.Eq(scl) {
 			if !point.Role.IsAdminOrAbove() {
 				return ret, NewAdminPermissionError(t.GetID(), uv, "not admin permission")
 			}
-			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta)
+			ret.left = newProofTerm(t.GetID().AsUserOrTeam(), point.SigMeta, linkMap)
 			r := findAdminDowngrade(points[(i + 1):])
 			if r != nil {
-				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r)
+				tmp := newProofTerm(t.GetID().AsUserOrTeam(), *r, linkMap)
 				ret.right = &tmp
 			}
 			return ret, nil

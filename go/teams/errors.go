@@ -73,3 +73,16 @@ func (e AdminNotFoundError) Error() string {
 func NewAdminNotFoundError(a SCTeamAdmin) AdminNotFoundError {
 	return AdminNotFoundError{a}
 }
+
+type ProofError struct {
+	p   proof
+	msg string
+}
+
+func NewProofError(p proof, s string) ProofError {
+	return ProofError{p, s}
+}
+
+func (p ProofError) Error() string {
+	return fmt.Sprintf("proof error for proof %+v: %s", p.p, p.msg)
+}

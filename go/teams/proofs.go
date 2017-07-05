@@ -1,17 +1,21 @@
 package teams
 
 import (
+	"context"
+	"fmt"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"sort"
 )
 
-func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata) proofTerm {
-	return proofTerm{leafID: i, sigMeta: s}
+func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm map[keybase1.Seqno]keybase1.LinkID) proofTerm {
+	return proofTerm{leafID: i, sigMeta: s, linkMap: lm}
 }
 
 type proofTerm struct {
 	leafID  keybase1.UserOrTeamID
 	sigMeta keybase1.SignatureMetadata
+	linkMap map[keybase1.Seqno]keybase1.LinkID
 }
 
 type proofTermBookends struct {
@@ -122,4 +126,77 @@ func (p *proofSetT) AllProofs() []proof {
 		return false
 	})
 	return ret
+}
+
+// lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
+// to this proof. It will contact the API server.  Returns the sigchain tail on success.
+func (p proof) lookupMerkleTreeChain(ctx context.Context, g *libkb.GlobalContext) (ret *libkb.MerkleTriple, err error) {
+	leaf, err := g.MerkleClient.LookupLeafAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	if err != nil {
+		return nil, err
+	}
+	if p.a.leafID.IsUser() {
+		ret = leaf.Public
+	} else {
+		ret = leaf.Private
+	}
+	return ret, nil
+}
+
+// check a single proof. Call to the merkle API enddpoint, and then ensure that the
+// data that comes back fits the proof and previously checked sighcain links.
+func (p proof) check(ctx context.Context, g *libkb.GlobalContext) error {
+	triple, err := p.lookupMerkleTreeChain(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	// laterSeqno is the tail of chain A at the time when B was signed
+	// earlierSeqno is the tail of chain A at the time when A was signed
+	laterSeqno := triple.Seqno
+	earlierSeqno := p.a.sigMeta.SigChainLocation.Seqno
+	if earlierSeqno > laterSeqno {
+		return NewProofError(p, fmt.Sprintf("seqno %d > %d", earlierSeqno, laterSeqno))
+	}
+	lm := p.a.linkMap
+	if lm == nil {
+		return NewProofError(p, "nil link map")
+	}
+
+	linkID, ok := lm[laterSeqno]
+
+	// We loaded this user originally to get a sigchain as fresh as a certain key provisioning.
+	// In this scenario, we might need a fresher version, so force a poll all the way through
+	// the server, and then try again. If we fail the second time, we a force repoll, then
+	// we're toast.
+	if !ok && p.a.leafID.IsUser() {
+		g.Log.CDebugf(ctx, "proof#check: missed load for %s at %d; trying a force repoll", p.a.leafID.String(), laterSeqno)
+		lm, err := forceLinkMapRefreshForUser(ctx, g, p.a.leafID.AsUserOrBust())
+		if err != nil {
+			return err
+		}
+		linkID, ok = lm[laterSeqno]
+	}
+
+	if !ok {
+		return NewProofError(p, fmt.Sprintf("no linkID for seqno %d", laterSeqno))
+	}
+
+	if !triple.LinkID.Export().Eq(linkID) {
+		return NewProofError(p, fmt.Sprintf("hash mismatch: %s != %s", triple.LinkID, linkID))
+	}
+	return nil
+}
+
+// check the entire proof set, failing if any one proof fails.
+func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext) error {
+	for _, v := range p.proofs {
+		for _, proof := range v {
+			err := proof.check(ctx, g)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
