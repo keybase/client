@@ -124,6 +124,7 @@ class Conversation extends Component<void, Props, State> {
                   onClick={this.props.onClickSearchResult}
                   onShowTracker={this.props.onShowTrackerInSearch}
                   selectedId={this.props.selectedSearchId}
+                  style={{...globalStyles.scrollable, flexGrow: 1}}
                 />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
                   <List

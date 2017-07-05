@@ -13,7 +13,7 @@ function search<T>(
   }
 }
 
-function searchSuggestions<T>(actionTypeToFire: T, maxUsers?: number = 10): Constants.SearchSuggestions<T> {
+function searchSuggestions<T>(actionTypeToFire: T, maxUsers?: number = 50): Constants.SearchSuggestions<T> {
   return {type: 'searchv3:searchSuggestions', payload: {actionTypeToFire, maxUsers}}
 }
 
