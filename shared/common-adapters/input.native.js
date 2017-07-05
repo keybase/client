@@ -4,7 +4,7 @@
 import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
-import {NativeTextInput} from './index.native'
+import {NativeTextInput} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 

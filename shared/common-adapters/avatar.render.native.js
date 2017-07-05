@@ -2,7 +2,8 @@
 import Icon from './icon'
 import React, {PureComponent} from 'react'
 import {globalColors} from '../styles'
-import {ClickableBox, Box} from './index.native'
+import ClickableBox from './clickable-box'
+import Box from './box'
 import memoize from 'lodash/memoize'
 import glamorous from 'glamorous-native'
 
