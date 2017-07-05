@@ -339,6 +339,10 @@
       "name": "TeamData",
       "fields": [
         {
+          "type": "boolean",
+          "name": "secretless"
+        },
+        {
           "type": "TeamSigChainState",
           "name": "chain"
         },

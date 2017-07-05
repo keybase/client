@@ -5948,6 +5948,7 @@ export type TeamChangeSet = {
 }
 
 export type TeamData = {
+  secretless: boolean,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},

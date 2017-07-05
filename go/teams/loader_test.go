@@ -377,8 +377,6 @@ func TestLoaderFillStubbed(t *testing.T) {
 // Test loading a team and when not a member of the parent.
 // User loads a team T1.T2 but has never been a member of T1.
 func TestLoaderNotInParent(t *testing.T) {
-	t.Skip("TODO: awaiting non-member parent read")
-
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -402,11 +400,9 @@ func TestLoaderNotInParent(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Test loading a sub-sub-team.
-// When not a member of the ancestors.
+// Test loading a sub-sub-team: a.b.c.
+// When not a member of the ancestors: a, a.b.
 func TestLoaderMultilevel(t *testing.T) {
-	t.Skip("TODO: awaiting non-member parent read")
-
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -414,16 +410,16 @@ func TestLoaderMultilevel(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
 	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
-	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", parentName)
+	subTeamName, err := parentName.Append("abc")
+	require.NoError(t, err)
+	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", subTeamName)
 	require.NoError(t, err)
 
-	expectedSubsubTeamName, err := parentName.Append("abc")
-	require.NoError(t, err)
-	expectedSubsubTeamName, err = parentName.Append("def")
+	expectedSubsubTeamName, err := subTeamName.Append("def")
 	require.NoError(t, err)
 
 	t.Logf("add the other user to the subsubteam")
@@ -435,7 +431,6 @@ func TestLoaderMultilevel(t *testing.T) {
 		ID: *subsubteamID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, team.Chain.Id, *subteamID)
+	require.Equal(t, *subsubteamID, team.Chain.Id)
 	require.Equal(t, expectedSubsubTeamName, TeamSigChainState{inner: team.Chain}.GetName())
-	require.Equal(t, subteamID, *team.Chain.ParentID)
 }
