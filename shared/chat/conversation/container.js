@@ -27,6 +27,7 @@ type StateProps = {|
   inSearch: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   showSearchResults: boolean,
+  showSearchPending: boolean,
 |}
 
 type DispatchProps = {|
@@ -66,8 +67,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     }
   }
 
-  const searchResults = state.chat.searchResults
-
+  const {inSearch, searchPending, searchResults} = state.chat
   return {
     finalizeInfo,
     rekeyInfo,
@@ -76,8 +76,9 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersededBy,
     supersedes,
     threadLoadedOffline,
-    inSearch: state.chat.inSearch,
+    inSearch,
     searchResultIds: chatSearchResultArray(state),
+    showSearchPending: searchPending,
     showSearchResults: !!searchResults,
   }
 }

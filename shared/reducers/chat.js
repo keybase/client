@@ -607,6 +607,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setInitialConversation': {
       return state.set('initialConversation', action.payload.conversationIDKey)
     }
+    case 'chat:setPreviousConversation': {
+      return state.set('previousConversation', action.payload.conversationIDKey)
+    }
     case 'chat:stageUserForSearch': {
       const {payload: {user}} = action
       if (state.selectedUsersInSearch.includes(user)) {
@@ -658,6 +661,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
+    }
+    case 'chat:pendingSearchResults': {
+      const {payload: {pending}} = action
+      return state.set('searchPending', pending)
     }
   }
 
