@@ -29,7 +29,7 @@ export function missingProofs(
   onClick: (missingProof: MissingProof) => void
 ): Array<MissingProof> {
   let availableProofTypes = without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
-  const userProofTypes = uniq(userProofs.map(p => p.type))
+  const userProofTypes = uniq(([] || userProofs).map(p => p.type))
 
   const missingRegular = difference(availableProofTypes, userProofTypes).map(type => ({
     type,

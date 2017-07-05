@@ -215,7 +215,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       }
     }
 
-    let folders = orderBy(this.props.tlfs, 'isPublic', 'asc').map(folder => (
+    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
           <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
