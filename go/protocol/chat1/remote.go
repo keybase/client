@@ -695,12 +695,21 @@ func (o GetPublicConversationsArg) DeepCopy() GetPublicConversationsArg {
 type PostRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
+	Atmentions     []gregor1.UID  `codec:"atmentions" json:"atmentions"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 	return PostRemoteArg{
 		ConversationID: o.ConversationID.DeepCopy(),
 		MessageBoxed:   o.MessageBoxed.DeepCopy(),
+		Atmentions: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Atmentions),
 	}
 }
 
