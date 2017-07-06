@@ -637,7 +637,7 @@ func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.Conversation
 	}
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
-	mbox, _, err := sender.Prepare(ctx, msg, membersType, nil)
+	mbox, _, _, err := sender.Prepare(ctx, msg, membersType, nil)
 	return mbox, err
 }
 
