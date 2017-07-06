@@ -64,7 +64,7 @@ const messages = [
   },
   {
     type: 'Text',
-    message: new HiddenString('fiveTEMPTEMP'),
+    message: new HiddenString('five'),
     author: 'chris',
     timestamp: now - 1000 * 96,
     messageID: 5,
@@ -122,7 +122,7 @@ const inbox = [
     conversationIDKey: 'convo1',
     status: 'unfiled',
     time: now,
-    snippet: 'five',
+    snippet: 'fiveTEMPTEMP',
     unreadCount: 3,
   }),
   new InboxStateRecord({
