@@ -337,6 +337,10 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
 }
 
+func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+	return nil
+}
+
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
 	targetTeam = t
 	for {
