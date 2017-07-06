@@ -16,7 +16,6 @@ type CmdChatListMembers struct {
 
 	tlfName, topicName string
 	topicType          chat1.TopicType
-	membersType        chat1.ConversationMembersType
 }
 
 func NewCmdChatListMembersRunner(g *libkb.GlobalContext) *CmdChatListMembers {
@@ -33,7 +32,7 @@ func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListMembersRunner(g), "list-members", c)
 		},
-		Flags: mustGetChatFlags("topic-type", "team"),
+		Flags: mustGetChatFlags("topic-type"),
 	}
 }
 
@@ -49,7 +48,7 @@ func (c *CmdChatListMembers) Run() error {
 		Query: &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
 				Name:        c.tlfName,
-				MembersType: c.membersType,
+				MembersType: chat1.ConversationMembersType_TEAM,
 			},
 			TopicName: &c.topicName,
 			TopicType: &c.topicType,
@@ -85,12 +84,6 @@ func (c *CmdChatListMembers) ParseArgv(ctx *cli.Context) (err error) {
 	if c.topicType, err = parseConversationTopicType(ctx); err != nil {
 		return err
 	}
-	if ctx.Bool("team") {
-		c.membersType = chat1.ConversationMembersType_TEAM
-	} else {
-		c.membersType = chat1.ConversationMembersType_KBFS
-	}
-
 	return nil
 }
 
