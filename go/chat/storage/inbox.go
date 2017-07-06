@@ -951,14 +951,15 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	return nil
 }
 
-func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers, joined []chat1.Conversation,
-	removed []chat1.ConversationID) (err Error) {
+func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
+	userJoined []chat1.Conversation, userRemoved []chat1.ConversationID,
+	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	i.Debug(ctx, "MembershipUpdate: updating joined: %d removed: %d", len(joined), len(removed))
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d", len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -967,9 +968,10 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers, join
 		return err
 	}
 
-	convs := i.mergeConvs(ibox.Conversations, joined)
+	// Process our own changes
+	convs := i.mergeConvs(ibox.Conversations, userJoined)
 	removedMap := make(map[string]bool)
-	for _, r := range removed {
+	for _, r := range userRemoved {
 		removedMap[r.String()] = true
 	}
 	ibox.Conversations = nil
@@ -979,8 +981,30 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers, join
 		}
 	}
 	sort.Sort(ByDatabaseOrder(ibox.Conversations))
-	ibox.InboxVersion = vers
 
+	// Update all lists with other people joining and leaving
+	convMap := make(map[string]*chat1.Conversation)
+	for _, c := range ibox.Conversations {
+		convMap[c.GetConvID().String()] = &c
+	}
+	for _, oj := range othersJoined {
+		if cp, ok := convMap[oj.ConvID.String()]; ok {
+			cp.Metadata.AllList = append(cp.Metadata.AllList, oj.Uid)
+		}
+	}
+	for _, or := range othersRemoved {
+		if cp, ok := convMap[or.ConvID.String()]; ok {
+			var newAllList []gregor1.UID
+			for _, u := range cp.Metadata.AllList {
+				if !u.Eq(or.Uid) {
+					newAllList = append(newAllList, u)
+				}
+			}
+			cp.Metadata.AllList = newAllList
+		}
+	}
+
+	ibox.InboxVersion = vers
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
 		return err
 	}

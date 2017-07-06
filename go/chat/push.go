@@ -540,6 +540,53 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 	return nil
 }
 
+func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
+	conv chat1.ConversationLocal) {
+
+	kuid := keybase1.UID(uid.String())
+	if g.shouldSendNotifications() {
+		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv)
+	} else {
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+			[]chat1.ConversationID{conv.GetConvID()}, false)
+	}
+}
+
+func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) {
+
+	kuid := keybase1.UID(uid.String())
+	if g.shouldSendNotifications() {
+		g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID)
+	} else {
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid,
+			[]chat1.ConversationID{convID}, false)
+	}
+}
+
+func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
+	member chat1.ConversationMember, joined bool) {
+
+	unameFailed := false
+	name, err := g.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(member.Uid.String()))
+	if err != nil {
+		g.Debug(ctx, "notifyMembersUpdate: failed to lookup username for: %s msg: %s", member.Uid,
+			err.Error())
+		unameFailed = true
+	}
+
+	if !unameFailed {
+		activity := chat1.NewChatActivityWithMembersUpdate(chat1.MembersUpdateInfo{
+			ConvID: member.ConvID,
+			Member: name.String(),
+			Joined: joined,
+		})
+		g.notifyNewChatActivity(ctx, uid, member.ConvID, nil, &activity)
+	} else {
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid, []chat1.ConversationID{member.ConvID}, false)
+	}
+}
+
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -604,23 +651,27 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
-		defer func() {
-			// Send notifications for changed conversations (might need to make this better in the future)
-			g.Debug(ctx, "MembershipUpdate: sending inbox stale notification")
-			g.G().Syncer.SendChatStaleNotifications(ctx, uid, nil, true)
-		}()
 
 		// Write out changes to local storage
-		var joined, removed []chat1.ConversationID
-		for _, cm := range update.Joined {
-			joined = append(joined, cm.ConvID)
-		}
-		for _, cm := range update.Removed {
-			removed = append(removed, cm.ConvID)
-		}
-		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joined, removed); err != nil {
+		updateRes, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
+			update.Removed)
+		if err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err
+		}
+
+		// Send out notifications
+		for _, c := range updateRes.UserJoinedConvs {
+			g.notifyJoinChannel(ctx, uid, c)
+		}
+		for _, c := range updateRes.UserRemovedConvs {
+			g.notifyLeftChannel(ctx, uid, c)
+		}
+		for _, cm := range updateRes.OthersJoinedConvs {
+			g.notifyMembersUpdate(ctx, uid, cm, true)
+		}
+		for _, cm := range updateRes.OthersRemovedConvs {
+			g.notifyMembersUpdate(ctx, uid, cm, false)
 		}
 
 		return nil

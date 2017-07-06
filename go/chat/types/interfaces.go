@@ -81,7 +81,7 @@ type InboxSource interface {
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		joinedConvs []chat1.ConversationID, removedConvs []chat1.ConversationID) error
+		joined []chat1.ConversationMember, removed []chat1.ConversationMember) (MembershipUpdateRes, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
