@@ -1304,9 +1304,12 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
-	newMessage   chan chat1.MessageUnboxed
-	threadsStale chan []chat1.ConversationID
-	inboxStale   chan struct{}
+	newMessage    chan chat1.MessageUnboxed
+	threadsStale  chan []chat1.ConversationID
+	inboxStale    chan struct{}
+	joinedConv    chan chat1.ConversationLocal
+	leftConv      chan chat1.ConversationID
+	membersUpdate chan chat1.MembersUpdateInfo
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1339,18 +1342,30 @@ func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Con
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
-	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+	switch typ {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
 		n.newMessage <- activity.IncomingMessage().Message
+	case chat1.ChatActivityType_MEMBERS_UPDATE:
+		n.membersUpdate <- activity.MembersUpdate()
 	}
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
+func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
+	n.joinedConv <- conv
+}
+func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
+	n.leftConv <- convID
+}
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
-		newMessage:   make(chan chat1.MessageUnboxed, 100),
-		threadsStale: make(chan []chat1.ConversationID, 100),
-		inboxStale:   make(chan struct{}, 100),
+		newMessage:    make(chan chat1.MessageUnboxed, 100),
+		threadsStale:  make(chan []chat1.ConversationID, 100),
+		inboxStale:    make(chan struct{}, 100),
+		joinedConv:    make(chan chat1.ConversationLocal, 100),
+		leftConv:      make(chan chat1.ConversationID, 100),
+		membersUpdate: make(chan chat1.MembersUpdateInfo, 100),
 	}
 }
 
@@ -1861,11 +1876,16 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			return
 		}
 
-		//tc := ctc.world.Tcs[users[0].Username]
-		//tc1 := ctc.world.Tcs[users[1].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx
-		//uid := users[0].User.GetUID().ToBytes()
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
@@ -1909,6 +1929,22 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		select {
+		case conv := <-listener1.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
 		}))
@@ -1917,6 +1953,21 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
+
+		select {
+		case convID := <-listener1.leftConv:
+			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.False(t, act.Joined)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
 
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
