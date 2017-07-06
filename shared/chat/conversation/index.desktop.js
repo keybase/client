@@ -116,10 +116,6 @@ class Conversation extends Component<void, Props, State> {
           selectedSearchId={this.props.selectedSearchId}
           onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
         />
-        {this.props.showSearchSuggestions &&
-          <Box style={{padding: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Recommendations</Text>
-          </Box>}
         {this.props.showSearchPending
           ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
           : this.props.showSearchResults
@@ -128,6 +124,7 @@ class Conversation extends Component<void, Props, State> {
                   onClick={this.props.onClickSearchResult}
                   onShowTracker={this.props.onShowTrackerInSearch}
                   selectedId={this.props.selectedSearchId}
+                  showSearchSuggestions={this.props.showSearchSuggestions}
                   style={{...globalStyles.scrollable, flexGrow: 1}}
                 />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>

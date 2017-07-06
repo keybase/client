@@ -50,6 +50,7 @@ const Conversation = (props: Props) => (
               onClick={props.onClickSearchResult}
               onShowTracker={props.onShowTrackerInSearch}
               selectedId={props.selectedSearchId}
+              showSearchSuggestions={props.showSearchSuggestions}
               style={{flex: 1}}
             />
           : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>

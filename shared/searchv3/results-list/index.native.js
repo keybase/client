@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import Row from '../result-row/container'
-import {Box} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
+import {globalColors, globalMargins} from '../../styles'
 // $FlowIssue
 import FlatList from '../../fixme/Lists/FlatList'
 import EmptyResults from './empty'
@@ -23,7 +24,7 @@ class SearchResultsList extends Component<void, Props, void> {
   }
 
   render() {
-    const {style, items} = this.props
+    const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
       return <Box />
     } else if (!items.length) {
@@ -32,6 +33,12 @@ class SearchResultsList extends Component<void, Props, void> {
 
     return (
       <Box style={{width: '100%', ...style}}>
+        {showSearchSuggestions &&
+          <Box style={{padding: globalMargins.tiny}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+              Recommendations
+            </Text>
+          </Box>}
         <FlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />
       </Box>
     )
