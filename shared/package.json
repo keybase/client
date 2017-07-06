@@ -37,7 +37,8 @@
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
     "storybook": "start-storybook -s . -p 6006",
     "rn-storybook": "storybook start -p 7007",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "modules": "yarn install --pure-lockfile"
   },
   "jest": {
     "modulePaths": [
