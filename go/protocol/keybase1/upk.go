@@ -48,6 +48,32 @@ func (o HashMeta) DeepCopy() HashMeta {
 	})(o)
 }
 
+type UPK2MinorVersion int
+
+const (
+	UPK2MinorVersion_V0 UPK2MinorVersion = 0
+	UPK2MinorVersion_V1 UPK2MinorVersion = 1
+)
+
+func (o UPK2MinorVersion) DeepCopy() UPK2MinorVersion { return o }
+
+var UPK2MinorVersionMap = map[string]UPK2MinorVersion{
+	"V0": 0,
+	"V1": 1,
+}
+
+var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
+	0: "V0",
+	1: "V1",
+}
+
+func (e UPK2MinorVersion) String() string {
+	if v, ok := UPK2MinorVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type MerkleRootV2 struct {
 	Seqno    Seqno    `codec:"seqno" json:"seqno"`
 	HashMeta HashMeta `codec:"hashMeta" json:"hashMeta"`
@@ -323,6 +349,7 @@ type UserPlusKeysV2AllIncarnations struct {
 	PastIncarnations []UserPlusKeysV2  `codec:"pastIncarnations" json:"pastIncarnations"`
 	Uvv              UserVersionVector `codec:"uvv" json:"uvv"`
 	SeqnoLinkIDs     map[Seqno]LinkID  `codec:"seqnoLinkIDs" json:"seqnoLinkIDs"`
+	MinorVersion     UPK2MinorVersion  `codec:"minorVersion" json:"minorVersion"`
 }
 
 func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations {
@@ -346,6 +373,7 @@ func (o UserPlusKeysV2AllIncarnations) DeepCopy() UserPlusKeysV2AllIncarnations 
 			}
 			return ret
 		})(o.SeqnoLinkIDs),
+		MinorVersion: o.MinorVersion.DeepCopy(),
 	}
 }
 

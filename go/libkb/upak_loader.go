@@ -83,6 +83,8 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.m = make(map[string]*keybase1.UserPlusKeysV2AllIncarnations)
 }
 
+const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V1
+
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
 	if u.Freshness == time.Duration(0) || u.noCache {
@@ -96,6 +98,8 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
+		// Note that below we check the minor version and then discard the cached object if it's
+		// stale. But no need in memory, since we'll never have the old version in memory.
 		u.G().Log.CDebugf(ctx, "| hit memory cache")
 		if info != nil {
 			info.InCache = true
@@ -107,6 +111,8 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		} else if !found {
 			u.G().Log.CDebugf(ctx, "| missed disk cache")
+		} else if tmp.MinorVersion != UPK2MinorVersionCurrent {
+			u.G().Log.CDebugf(ctx, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
 		} else {
 			u.G().Log.CDebugf(ctx, "| hit disk cache")
 			upak = &tmp
