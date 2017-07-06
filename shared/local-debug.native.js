@@ -59,6 +59,10 @@ if (__DEV__ && true) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
+  window.console._log = window.console.log
+  window.console._warn = window.console.warn
+  window.console._error = window.console.error
+
   window.console.log = noop
   window.console.warn = noop
   window.console.error = noop
