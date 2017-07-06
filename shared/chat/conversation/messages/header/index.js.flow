@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  moreToLoad: boolean,
+  moreToLoad: ?boolean,
 }
 
 export default class Header extends Component<void, Props, void> {}

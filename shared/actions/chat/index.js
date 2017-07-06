@@ -353,7 +353,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
 
-      if (!oldConversationState.get('moreToLoad')) {
+      if (oldConversationState.get('moreToLoad') === false) {
         console.log('Bailing on chat load more due to no more to load')
         return
       }
