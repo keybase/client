@@ -63,7 +63,7 @@ const messages = [
   },
   {
     type: 'Text',
-    message: new HiddenString('five'),
+    message: new HiddenString('fiveTEMPTEMP'),
     author: 'chris',
     timestamp: now - 1000 * 96,
     messageID: 5,

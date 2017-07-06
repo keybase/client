@@ -29,7 +29,7 @@ function execAndLog(cmd, options, blankOnError = false) {
   } catch (err) {
     // ok, command just errored out
     if (blankOnError && err.status === 1 && err.stderr === null) {
-      return temp
+      return null
     }
     console.log('Error running: ' + cmd + err.output, err)
     throw err
@@ -58,7 +58,7 @@ function has_js_files(extra_commands) {
     "\" | grep '^shared/' | grep -v '^shared/jenkins_test\\.sh' | grep -v '^shared/jenkins-test\\.js' " +
     extra_commands
   console.log('filtered diff')
-  var diff_files = execAndLog(cmd, {stdio: 'inherit'}, true)
+  var diff_files = execAndLog(cmd, null, true)
 
   if (!diff_files) {
     console.log('no files js cares about')
