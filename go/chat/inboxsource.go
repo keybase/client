@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"strings"
 
@@ -1031,6 +1032,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
 				uname.String())
 		}
+		// Sort alphabetically
+		sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
+			return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
+		})
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
