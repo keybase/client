@@ -22,6 +22,7 @@ type UPAKLoader interface {
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
+	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
@@ -572,6 +573,24 @@ func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID)
 		return nil
 	}, false)
 	return ret, err
+}
+
+// LookupUID is a verified map of username -> UID. IT calls into the resolver, which gives un untrusted
+// UID, but verifies with the UPAK loader that the mapping UID -> username is correct.
+func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error) {
+	rres := u.G().Resolver.Resolve(un.String())
+	if err := rres.GetError(); err != nil {
+		return keybase1.UID(""), err
+	}
+	un2, err := u.LookupUsername(ctx, rres.GetUID())
+	if err != nil {
+		return keybase1.UID(""), err
+	}
+	if !un.Eq(un2) {
+		u.G().Log.CWarningf(ctx, "Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
+		return keybase1.UID(""), NewBadUsernameError(un.String())
+	}
+	return rres.GetUID(), nil
 }
 
 func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, info *CachedUserLoadInfo) (username NormalizedUsername, deviceName string, deviceType string, err error) {
