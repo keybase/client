@@ -37,7 +37,8 @@
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
     "storybook": "start-storybook -s . -p 6006",
     "rn-storybook": "storybook start -p 7007",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "modules": "yarn install --pure-lockfile"
   },
   "jest": {
     "modulePaths": [
@@ -163,8 +164,7 @@
     "redux-logger": "3.0.6",
     "source-map-support": "0.4.15",
     "style-loader": "0.18.1",
-    "uglify-js": "git://github.com/mishoo/UglifyJS2#harmony-v2.8.22",
-    "uglifyjs-webpack-plugin": "0.4.3",
+    "uglifyjs-webpack-plugin": "1.0.0-beta.1",
     "unused-files-webpack-plugin": "3.0.1",
     "webpack": "2.6.1",
     "webpack-dashboard": "0.4.0",
