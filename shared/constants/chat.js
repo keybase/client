@@ -232,7 +232,7 @@ export const ConversationStateRecord = Record({
   messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
-  moreToLoad: true,
+  moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
   isStale: false,
@@ -249,7 +249,7 @@ export type ConversationState = KBRecord<{
   // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
-  moreToLoad: boolean,
+  moreToLoad: ?boolean,
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
