@@ -73,7 +73,6 @@ func newTeamTester(t *testing.T) *teamTester {
 
 func (tt *teamTester) addUser(pre string) {
 	tctx := setupTest(tt.t, pre)
-	tctx.Tp.UpgradePerUserKey = true
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)

@@ -15,13 +15,13 @@ func TestPerUserKeyUpgrade(t *testing.T) {
 	tc := SetupEngineTest(t, "pukup")
 	defer tc.Cleanup()
 
-	tc.Tp.UpgradePerUserKey = false
+	tc.Tp.DisableUpgradePerUserKey = true
 
 	fu := CreateAndSignupFakeUserPaper(tc, "pukup")
 
 	checkPerUserKeyCount(&tc, 0)
 
-	tc.Tp.UpgradePerUserKey = true
+	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("upgrade")
 	upgrade := func() *PerUserKeyUpgrade {

@@ -21,8 +21,6 @@ func TestPerUserKeySignupAndPullKeys(t *testing.T) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.UpgradePerUserKey = true
-
 	fu := CreateAndSignupFakeUser(tc, "se")
 
 	if err = AssertLoggedIn(tc); err != nil {
@@ -63,8 +61,6 @@ func TestPerUserKeySignupPlusPaper(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	var err error
-
-	tc.Tp.UpgradePerUserKey = true
 
 	fu := CreateAndSignupFakeUserPaper(tc, "se")
 
