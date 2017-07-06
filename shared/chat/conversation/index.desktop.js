@@ -7,7 +7,7 @@ import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React, {Component} from 'react'
 import SidePanel from './side-panel/container'
-import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
+import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 
@@ -116,46 +116,50 @@ class Conversation extends Component<void, Props, State> {
           selectedSearchId={this.props.selectedSearchId}
           onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
         />
-        {this.props.showSearchResults
-          ? <SearchResultsList
-              items={this.props.searchResultIds}
-              onClick={this.props.onClickSearchResult}
-              onShowTracker={this.props.onShowTrackerInSearch}
-              selectedId={this.props.selectedSearchId}
-            />
-          : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <List
-                focusInputCounter={this.props.focusInputCounter}
-                listScrollDownCounter={this.props.listScrollDownCounter}
-                onEditLastMessage={this.props.onEditLastMessage}
-                onScrollDown={this.props.onScrollDown}
-                onFocusInput={this.props.onFocusInput}
-                editLastMessageCounter={this.props.editLastMessageCounter}
-              />
-              <Banner />
-              {this.props.showLoader && <LoadingLine />}
-              {this.props.finalizeInfo
-                ? <OldProfileResetNotice />
-                : <Input
+        {this.props.showSearchPending
+          ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+          : this.props.showSearchResults
+              ? <SearchResultsList
+                  items={this.props.searchResultIds}
+                  onClick={this.props.onClickSearchResult}
+                  onShowTracker={this.props.onShowTrackerInSearch}
+                  selectedId={this.props.selectedSearchId}
+                  showSearchSuggestions={this.props.showSearchSuggestions}
+                  style={{...globalStyles.scrollable, flexGrow: 1}}
+                />
+              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  <List
                     focusInputCounter={this.props.focusInputCounter}
+                    listScrollDownCounter={this.props.listScrollDownCounter}
                     onEditLastMessage={this.props.onEditLastMessage}
                     onScrollDown={this.props.onScrollDown}
-                  />}
-              {this.props.sidePanelOpen &&
-                <div
-                  style={{
-                    ...globalStyles.flexBoxColumn,
-                    bottom: 0,
-                    position: 'absolute',
-                    right: 0,
-                    top: 35,
-                    width: 320,
-                  }}
-                >
-                  <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                    onFocusInput={this.props.onFocusInput}
+                    editLastMessageCounter={this.props.editLastMessageCounter}
+                  />
+                  <Banner />
+                  {this.props.showLoader && <LoadingLine />}
+                  {this.props.finalizeInfo
+                    ? <OldProfileResetNotice />
+                    : <Input
+                        focusInputCounter={this.props.focusInputCounter}
+                        onEditLastMessage={this.props.onEditLastMessage}
+                        onScrollDown={this.props.onScrollDown}
+                      />}
+                  {this.props.sidePanelOpen &&
+                    <div
+                      style={{
+                        ...globalStyles.flexBoxColumn,
+                        bottom: 0,
+                        position: 'absolute',
+                        right: 0,
+                        top: 35,
+                        width: 320,
+                      }}
+                    >
+                      <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                    </div>}
+                  {dropOverlay}
                 </div>}
-              {dropOverlay}
-            </div>}
       </Box>
     )
   }

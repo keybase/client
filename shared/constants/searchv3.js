@@ -63,7 +63,7 @@ export type SearchResult = {|
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'searchv3:search',
-  {term: string, service: Service, actionTypeToFire: TypeToFire}
+  {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
 >
 
 export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
@@ -71,13 +71,19 @@ export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
   {actionTypeToFire: TypeToFire, maxUsers: number}
 >
 
+export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
+
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
   {searchResults: Array<SearchResultId>, searchTerm: string, service: Service}
 >
 
 // Generic so others can make their own version
-export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<T, {searchResults: List<SearchResultId>}>
+export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<
+  T,
+  {searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
+>
+export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 
 function serviceIdToService(serviceId: string): Service {
   return {
@@ -102,4 +108,23 @@ function followStateHelper(state: TypedState, username: string, service: Service
   return 'NoState'
 }
 
-export {serviceIdToService, followStateHelper}
+function maybeUpgradeSearchResultIdToKeybaseId(
+  searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
+  id: SearchResultId
+): SearchResultId {
+  if (!searchResultMap.get(id)) {
+    console.warn('search result id not found in enitites.', id)
+    return id
+  }
+
+  const searchResult = searchResultMap.get(id)
+  if (searchResult.get('leftService') === 'Keybase') {
+    return searchResult.get('leftUsername')
+  } else if (searchResult.get('rightService') === 'Keybase') {
+    return searchResult.get('rightUsername') || id
+  }
+
+  return id
+}
+
+export {serviceIdToService, followStateHelper, maybeUpgradeSearchResultIdToKeybaseId}

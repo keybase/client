@@ -173,7 +173,7 @@ func TestDeprovisionPUK(t *testing.T) {
 func testDeprovision(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
-	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 	if tc.G.SecretStoreAll == nil {
 		t.Fatal("Need a secret store for this test")
 	}
@@ -195,7 +195,7 @@ func TestDeprovisionAfterRevokePaperPUK(t *testing.T) {
 func testDeprovisionAfterRevokePaper(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
-	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 	if tc.G.SecretStoreAll == nil {
 		t.Fatal("Need a secret store for this test")
 	}
@@ -428,7 +428,7 @@ func TestDeprovisionLastDevicePUK(t *testing.T) {
 func testDeprovisionLastDevice(t *testing.T, upgradePerUserKey bool) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
-	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 	if tc.G.SecretStoreAll == nil {
 		t.Fatal("Need a secret store for this test")
 	}

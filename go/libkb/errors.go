@@ -1090,6 +1090,7 @@ const (
 	merkleErrorSkipHashMismatch
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
+	merkleErrorHashMeta
 )
 
 type MerkleClientError struct {
@@ -1433,6 +1434,12 @@ func (e PassphraseProvisionImpossibleError) Error() string {
 	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
 }
 
+type ProvisionViaDeviceRequiredError struct{}
+
+func (e ProvisionViaDeviceRequiredError) Error() string {
+	return "You must select an existing device to provision a new device"
+}
+
 type ProvisionUnavailableError struct{}
 
 func (e ProvisionUnavailableError) Error() string {
@@ -1739,6 +1746,16 @@ type ChatNotInConvError struct {
 
 func (e ChatNotInConvError) Error() string {
 	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
+}
+
+//=============================================================================
+
+type ChatNotInTeamError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInTeamError) Error() string {
+	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
 }
 
 //=============================================================================

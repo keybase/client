@@ -1,5 +1,5 @@
 // @flow
-import {uniq} from 'lodash'
+import uniq from 'lodash/uniq'
 import {runMode} from './platform'
 
 import type {Tab} from './tabs'

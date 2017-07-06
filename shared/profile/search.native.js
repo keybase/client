@@ -3,8 +3,8 @@ import React from 'react'
 import ServiceFilter from '../searchv3/services-filter'
 import ResultsList from '../searchv3/results-list'
 import UserInput from '../searchv3/user-input'
-import {Box, StandardScreen, Text} from '../common-adapters'
-import {globalStyles, globalMargins} from '../styles'
+import {Box, ProgressIndicator, StandardScreen, Text} from '../common-adapters'
+import {globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './search'
 
@@ -30,11 +30,16 @@ const Search = (props: Props) => (
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>}
     <Box>
-      <ResultsList
-        items={props.searchResultIds}
-        onClick={props.onClick}
-        selectedId={props.selectedSearchId}
-      />
+      {props.showSearchPending
+        ? <Box style={styleSpinner}>
+            <ProgressIndicator size="large" />
+          </Box>
+        : <ResultsList
+            items={props.searchResultIds}
+            onClick={props.onClick}
+            selectedId={props.selectedSearchId}
+            showSearchSuggestions={props.showSearchSuggestions}
+          />}
     </Box>
   </StandardScreen>
 )
@@ -44,6 +49,10 @@ const styleSearchFilter = {
   alignItems: 'center',
   justifyContent: 'center',
   paddingTop: globalMargins.tiny,
+}
+
+const styleSpinner = {
+  paddingTop: globalMargins.small,
 }
 
 export default Search

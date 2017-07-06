@@ -75,14 +75,14 @@ const BOOL isDebug = NO;
   NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
   NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   NSFileManager* fm = [NSFileManager defaultManager];
-  
+
   // Make keybasePath if it doesn't exist
   [fm createDirectoryAtPath:keybasePath
                             withIntermediateDirectories:YES
                             attributes:nil
                             error:nil];
   [self addSkipBackupAttributeToItemAtPath:keybasePath];
-  
+
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath];
   [self createBackgroundReadableDirectory:levelDBPath];
@@ -104,6 +104,8 @@ const BOOL isDebug = NO;
 
   NSURL *jsCodeLocation;
 
+  // Uncomment for prod JS in dev mode
+  // jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
@@ -161,7 +163,7 @@ const BOOL isDebug = NO;
       self.backgroundTask = UIBackgroundTaskInvalid;
     }];
   }
-  
+
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
   completionHandler(UIBackgroundFetchResultNewData);
   }

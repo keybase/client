@@ -126,6 +126,10 @@ func (h HashMeta) String() string {
 	return hex.EncodeToString(h)
 }
 
+func (h HashMeta) Eq(h2 HashMeta) bool {
+	return hmac.Equal(h[:], h2[:])
+}
+
 func (h *HashMeta) UnmarshalJSON(b []byte) error {
 	hm, err := HashMetaFromString(Unquote(b))
 	if err != nil {
@@ -1230,6 +1234,10 @@ func (ut UserOrTeamID) AsTeamOrBust() TeamID {
 	return tid
 }
 
+func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
+	return strings.Compare(string(ut), string(ut2))
+}
+
 func (ut UserOrTeamID) IsUser() bool {
 	suffix := ut[len(ut)-2:]
 	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX
@@ -1394,6 +1402,10 @@ func (u UserVersion) PercentForm() string {
 
 func (u UserVersion) String() string {
 	return fmt.Sprintf("%s%%%d", u.Uid, u.EldestSeqno)
+}
+
+func (u UserVersion) Eq(v UserVersion) bool {
+	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
 }
 
 func (k CryptKey) Material() Bytes32 {
@@ -1561,4 +1573,51 @@ func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
 
 func (r TeamRole) IsAdminOrAbove() bool {
 	return r == TeamRole_ADMIN || r == TeamRole_OWNER
+}
+
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
+}
+
+type idDesc struct {
+	byteLen int
+	suffix  byte
+	typ     string
+}
+
+func (i idDesc) check(s string) error {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	if len(b) != i.byteLen {
+		return fmt.Errorf("%s: wrong ID len (got %d)", i.typ, len(b))
+	}
+	sffx := b[len(b)-1]
+	if sffx != i.suffix {
+		return fmt.Errorf("%s: wrong suffix byte (got 0x%x)", i.typ, sffx)
+	}
+	return nil
+}
+
+func TeamInviteIDFromString(s string) (TeamInviteID, error) {
+	if err := (idDesc{16, 0x27, "team invite ID"}).check(s); err != nil {
+		return TeamInviteID(""), err
+	}
+	return TeamInviteID(s), nil
+}
+
+func TeamInviteTypeFromString(s string) (TeamInviteType, error) {
+	switch s {
+	case "keybase":
+		return NewTeamInviteTypeDefault(TypeInviteCategory_KEYBASE), nil
+	case "email":
+		return NewTeamInviteTypeDefault(TypeInviteCategory_EMAIL), nil
+	case "twitter", "github", "facebook", "reddit", "hackernews":
+		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+	default:
+		// Don't want to break existing clients if we see an unknown invite
+		// type.
+		return NewTeamInviteTypeWithUnknown(s), nil
+	}
 }

@@ -40,6 +40,14 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (ke
 	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
 }
 
+func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (keybase1.TeamList, error) {
+	x, err := teams.List(ctx, h.G().ExternalG(), arg)
+	if err != nil {
+		return keybase1.TeamList{}, err
+	}
+	return *x, nil
+}
+
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }

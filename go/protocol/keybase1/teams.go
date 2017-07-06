@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -101,6 +102,12 @@ func (o MaskB64) DeepCopy() MaskB64 {
 		}
 		return append([]byte(nil), x...)
 	})(o)
+}
+
+type TeamInviteID string
+
+func (o TeamInviteID) DeepCopy() TeamInviteID {
+	return o
 }
 
 type ReaderKeyMask struct {
@@ -429,18 +436,164 @@ func (o TeamData) DeepCopy() TeamData {
 	}
 }
 
+type TypeInviteCategory int
+
+const (
+	TypeInviteCategory_NONE    TypeInviteCategory = 0
+	TypeInviteCategory_UNKNOWN TypeInviteCategory = 1
+	TypeInviteCategory_KEYBASE TypeInviteCategory = 2
+	TypeInviteCategory_EMAIL   TypeInviteCategory = 3
+	TypeInviteCategory_SBS     TypeInviteCategory = 4
+)
+
+func (o TypeInviteCategory) DeepCopy() TypeInviteCategory { return o }
+
+var TypeInviteCategoryMap = map[string]TypeInviteCategory{
+	"NONE":    0,
+	"UNKNOWN": 1,
+	"KEYBASE": 2,
+	"EMAIL":   3,
+	"SBS":     4,
+}
+
+var TypeInviteCategoryRevMap = map[TypeInviteCategory]string{
+	0: "NONE",
+	1: "UNKNOWN",
+	2: "KEYBASE",
+	3: "EMAIL",
+	4: "SBS",
+}
+
+func (e TypeInviteCategory) String() string {
+	if v, ok := TypeInviteCategoryRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type TeamInviteType struct {
+	C__       TypeInviteCategory       `codec:"c" json:"c"`
+	Unknown__ *string                  `codec:"unknown,omitempty" json:"unknown,omitempty"`
+	Sbs__     *TeamInviteSocialNetwork `codec:"sbs,omitempty" json:"sbs,omitempty"`
+}
+
+func (o *TeamInviteType) C() (ret TypeInviteCategory, err error) {
+	switch o.C__ {
+	case TypeInviteCategory_UNKNOWN:
+		if o.Unknown__ == nil {
+			err = errors.New("unexpected nil value for Unknown__")
+			return ret, err
+		}
+	case TypeInviteCategory_SBS:
+		if o.Sbs__ == nil {
+			err = errors.New("unexpected nil value for Sbs__")
+			return ret, err
+		}
+	}
+	return o.C__, nil
+}
+
+func (o TeamInviteType) Unknown() (res string) {
+	if o.C__ != TypeInviteCategory_UNKNOWN {
+		panic("wrong case accessed")
+	}
+	if o.Unknown__ == nil {
+		return
+	}
+	return *o.Unknown__
+}
+
+func (o TeamInviteType) Sbs() (res TeamInviteSocialNetwork) {
+	if o.C__ != TypeInviteCategory_SBS {
+		panic("wrong case accessed")
+	}
+	if o.Sbs__ == nil {
+		return
+	}
+	return *o.Sbs__
+}
+
+func NewTeamInviteTypeWithUnknown(v string) TeamInviteType {
+	return TeamInviteType{
+		C__:       TypeInviteCategory_UNKNOWN,
+		Unknown__: &v,
+	}
+}
+
+func NewTeamInviteTypeWithSbs(v TeamInviteSocialNetwork) TeamInviteType {
+	return TeamInviteType{
+		C__:   TypeInviteCategory_SBS,
+		Sbs__: &v,
+	}
+}
+
+func NewTeamInviteTypeDefault(c TypeInviteCategory) TeamInviteType {
+	return TeamInviteType{
+		C__: c,
+	}
+}
+
+func (o TeamInviteType) DeepCopy() TeamInviteType {
+	return TeamInviteType{
+		C__: o.C__.DeepCopy(),
+		Unknown__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Unknown__),
+		Sbs__: (func(x *TeamInviteSocialNetwork) *TeamInviteSocialNetwork {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Sbs__),
+	}
+}
+
+type TeamInviteSocialNetwork string
+
+func (o TeamInviteSocialNetwork) DeepCopy() TeamInviteSocialNetwork {
+	return o
+}
+
+type TeamInviteName string
+
+func (o TeamInviteName) DeepCopy() TeamInviteName {
+	return o
+}
+
+type TeamInvite struct {
+	Role TeamRole       `codec:"role" json:"role"`
+	Id   TeamInviteID   `codec:"id" json:"id"`
+	Type TeamInviteType `codec:"type" json:"type"`
+	Name TeamInviteName `codec:"name" json:"name"`
+}
+
+func (o TeamInvite) DeepCopy() TeamInvite {
+	return TeamInvite{
+		Role: o.Role.DeepCopy(),
+		Id:   o.Id.DeepCopy(),
+		Type: o.Type.DeepCopy(),
+		Name: o.Name.DeepCopy(),
+	}
+}
+
 type TeamSigChainState struct {
-	Reader       UserVersion                         `codec:"reader" json:"reader"`
-	Id           TeamID                              `codec:"id" json:"id"`
-	Name         TeamName                            `codec:"name" json:"name"`
-	LastSeqno    Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
-	LastLinkID   LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
-	ParentID     *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
-	UserLog      map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
-	SubteamLog   map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
-	PerTeamKeys  map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	LinkIDs      map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
-	StubbedLinks map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
+	Reader        UserVersion                         `codec:"reader" json:"reader"`
+	Id            TeamID                              `codec:"id" json:"id"`
+	Name          TeamName                            `codec:"name" json:"name"`
+	LastSeqno     Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID    LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
+	ParentID      *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog       map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
+	SubteamLog    map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
+	PerTeamKeys   map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
+	LinkIDs       map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks  map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
+	ActiveInvites map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -516,6 +669,15 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.StubbedLinks),
+		ActiveInvites: (func(x map[TeamInviteID]TeamInvite) map[TeamInviteID]TeamInvite {
+			ret := make(map[TeamInviteID]TeamInvite)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ActiveInvites),
 	}
 }
 
@@ -623,6 +785,63 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	}
 }
 
+type ImplicitRole struct {
+	Role     TeamRole `codec:"role" json:"role"`
+	Ancestor TeamID   `codec:"ancestor" json:"ancestor"`
+}
+
+func (o ImplicitRole) DeepCopy() ImplicitRole {
+	return ImplicitRole{
+		Role:     o.Role.DeepCopy(),
+		Ancestor: o.Ancestor.DeepCopy(),
+	}
+}
+
+type MemberInfo struct {
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	FqName   string        `codec:"fqName" json:"fq_name"`
+	Role     TeamRole      `codec:"role" json:"role"`
+	Implicit *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+}
+
+func (o MemberInfo) DeepCopy() MemberInfo {
+	return MemberInfo{
+		TeamID: o.TeamID.DeepCopy(),
+		FqName: o.FqName,
+		Role:   o.Role.DeepCopy(),
+		Implicit: (func(x *ImplicitRole) *ImplicitRole {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Implicit),
+	}
+}
+
+type TeamList struct {
+	Uid      UID          `codec:"uid" json:"uid"`
+	Username string       `codec:"username" json:"username"`
+	FullName string       `codec:"fullName" json:"fullName"`
+	Teams    []MemberInfo `codec:"teams" json:"teams"`
+}
+
+func (o TeamList) DeepCopy() TeamList {
+	return TeamList{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName,
+		Teams: (func(x []MemberInfo) []MemberInfo {
+			var ret []MemberInfo
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Teams),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -646,6 +865,18 @@ func (o TeamGetArg) DeepCopy() TeamGetArg {
 		SessionID:   o.SessionID,
 		Name:        o.Name,
 		ForceRepoll: o.ForceRepoll,
+	}
+}
+
+type TeamListArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	UserAssertion string `codec:"userAssertion" json:"userAssertion"`
+}
+
+func (o TeamListArg) DeepCopy() TeamListArg {
+	return TeamListArg{
+		SessionID:     o.SessionID,
+		UserAssertion: o.UserAssertion,
 	}
 }
 
@@ -744,6 +975,7 @@ func (o LoadTeamPlusApplicationKeysArg) DeepCopy() LoadTeamPlusApplicationKeysAr
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
+	TeamList(context.Context, TeamListArg) (TeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) error
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
@@ -787,6 +1019,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGet(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamList": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamList(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -902,6 +1150,11 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err e
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res TeamList, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamList", []interface{}{__arg}, &res)
 	return
 }
 

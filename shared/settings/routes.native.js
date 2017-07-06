@@ -6,7 +6,6 @@ import Settings from './'
 import InvitationsContainer from './invites/container'
 import InviteGenerated from './invite-generated'
 import Feedback from './feedback-container'
-import DumbSheet from '../dev/dumb-sheet'
 import Push from '../push/push.native'
 import DevicesRoute from '../devices/routes'
 import WebLinks from './web-links'
@@ -20,6 +19,12 @@ import DevMenu from '../dev/dev-menu'
 import Screenprotector from './screenprotector-container.native'
 
 import * as Constants from '../constants/settings'
+
+// Defer making this until we route there
+const DumbWrapper = () => {
+  const DumbSheet = require('../dev/dumb-sheet').default
+  return <DumbSheet />
+}
 
 const routeTree = new RouteDefNode({
   component: Settings,
@@ -54,7 +59,8 @@ const routeTree = new RouteDefNode({
     [Constants.devMenuTab]: {
       component: DevMenu,
       children: {
-        dumbSheet: {component: DumbSheet},
+        // Defer loading this
+        dumbSheet: {component: DumbWrapper},
         push: {
           component: () => <Push prompt={true} />,
         },

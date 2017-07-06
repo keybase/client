@@ -7,7 +7,7 @@ import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
-import {uniq} from 'lodash'
+import uniq from 'lodash/uniq'
 
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
@@ -568,6 +568,12 @@ function setInitialConversation(
   return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
 }
 
+function setPreviousConversation(
+  conversationIDKey: ?Constants.ConversationIDKey
+): Constants.SetPreviousConversation {
+  return {payload: {conversationIDKey}, type: 'chat:setPreviousConversation'}
+}
+
 function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
@@ -675,6 +681,7 @@ export {
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
+  setPreviousConversation,
   setSelectedRouteState,
   setTypers,
   setUnboxing,

@@ -21,6 +21,7 @@ type Props = {
   loadingColor: ?string,
   onClick?: ?() => void,
   opacity: ?number,
+  skipBackground?: boolean,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,
@@ -178,6 +179,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
       followIconType,
       followIconStyle,
       children,
+      skipBackground,
     } = this.props
 
     return (
@@ -192,7 +194,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...style,
         }}
       >
-        <Background loaded={this.state.loaded} loadingColor={loadingColor} />
+        {!skipBackground && <Background loaded={this.state.loaded} loadingColor={loadingColor} />}
         {url && <UserImage opacity={opacity} size={size} url={url} />}
         {!!borderColor && <Border borderColor={borderColor} size={size} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}

@@ -1,7 +1,7 @@
 // @flow
 
 import HiddenString from '../util/hidden-string'
-import {capitalize} from 'lodash'
+import capitalize from 'lodash/capitalize'
 
 import type {PlanLevel} from './settings'
 import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'

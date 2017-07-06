@@ -13,7 +13,7 @@ import {
 import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import {isMobile} from '../constants/platform'
-import {keyBy} from 'lodash'
+import keyBy from 'lodash/keyBy'
 import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'

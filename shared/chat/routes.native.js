@@ -44,7 +44,7 @@ const conversationRoute = new RouteDefNode({
 const routeTree = new RouteDefNode({
   component: ConvListOrSearch,
   children: () => conversationRoute,
-  tags: {persistChildren: true, underStatusBar: true},
+  tags: {persistChildren: true},
 })
 
 export default routeTree

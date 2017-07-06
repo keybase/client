@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
+import trim from 'lodash/trim'
 import {
   CommonDeviceType,
   signupGetInvitationCodeRpc,
@@ -296,7 +296,7 @@ function submitDeviceName(
     new Promise((resolve, reject) => {
       // TODO do some checking on the device name - ideally this is done on the service side
       let deviceNameError = null
-      if (_.trim(deviceName).length === 0) {
+      if (trim(deviceName).length === 0) {
         deviceNameError = 'Device name must not be empty.'
       }
 

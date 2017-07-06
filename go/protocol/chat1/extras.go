@@ -380,6 +380,15 @@ func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
 }
 
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+	for _, msg := range c.MaxMessages {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -554,6 +563,14 @@ func (r *DownloadAttachmentLocalRes) SetOffline() {
 }
 
 func (r *FindConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *JoinLeaveConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 

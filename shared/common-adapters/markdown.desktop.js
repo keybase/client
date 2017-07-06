@@ -97,7 +97,7 @@ class Markdown extends PureComponent<void, Props, void> {
       this.props.children,
       this.props.preview ? previewCreateComponent : messageCreateComponent
     )
-    return <Text type="Body" style={this.props.style}>{content}</Text>
+    return <Text type="Body" style={{whiteSpace: 'pre', ...this.props.style}}>{content}</Text>
   }
 }
 

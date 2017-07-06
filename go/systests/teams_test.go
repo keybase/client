@@ -43,6 +43,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if before.Generation() != 1 {
 		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
 	}
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
 	tt.users[1].revokePaperKey()
 	tt.users[0].waitForRotate(team)
@@ -55,8 +56,9 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if after.Generation() != 2 {
 		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
 	}
-	if after.Box.Ctext == before.Box.Ctext {
-		t.Errorf("team box ctext did not change with rotation")
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Fatal("team secret did not change when rotated")
 	}
 }
 
@@ -71,7 +73,6 @@ func newTeamTester(t *testing.T) *teamTester {
 
 func (tt *teamTester) addUser(pre string) {
 	tctx := setupTest(tt.t, pre)
-	tctx.Tp.UpgradePerUserKey = true
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)

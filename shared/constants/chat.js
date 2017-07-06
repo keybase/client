@@ -4,7 +4,8 @@ import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {clamp, invert} from 'lodash'
+import clamp from 'lodash/clamp'
+import invert from 'lodash/invert'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
@@ -377,7 +378,10 @@ export const StateRecord: KBRecord<T> = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
+  previousConversation: null,
+  searchPending: false,
   searchResults: null,
+  searchShowingSuggestions: false,
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
@@ -407,7 +411,10 @@ export type State = KBRecord<{
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
+  previousConversation: ?ConversationIDKey,
+  searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
 }>
@@ -523,6 +530,10 @@ export type SetInboxUntrustedState = NoErrorTypedAction<
 >
 export type SetInitialConversation = NoErrorTypedAction<
   'chat:setInitialConversation',
+  {conversationIDKey: ?ConversationIDKey}
+>
+export type SetPreviousConversation = NoErrorTypedAction<
+  'chat:setPreviousConversation',
   {conversationIDKey: ?ConversationIDKey}
 >
 export type SetLoaded = NoErrorTypedAction<

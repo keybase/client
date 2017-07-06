@@ -295,6 +295,9 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 		NetContext:     ctx,
+		RetryCount : 3,
+		InitialTimeout : 4 * time.Second,
+		RetryMultiplier : 1.5,
 	})
 
 	if res.err != nil {

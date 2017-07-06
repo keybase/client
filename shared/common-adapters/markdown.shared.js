@@ -2,7 +2,7 @@
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
-import parser, {emojiIndexByName} from '../markdown/parser'
+import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {MarkdownCreateComponent} from './markdown'
@@ -31,6 +31,10 @@ function processAST(ast, createComponent) {
 }
 
 export function parseMarkdown(markdown: ?string, markdownCreateComponent: MarkdownCreateComponent) {
+  const plainText = isPlainText(markdown)
+  if (plainText) {
+    return plainText
+  }
   try {
     return processAST(parser.parse(markdown || ''), markdownCreateComponent)
   } catch (err) {

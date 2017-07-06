@@ -2,8 +2,9 @@
 import Icon from './icon'
 import React, {PureComponent} from 'react'
 import {globalColors} from '../styles'
-import {ClickableBox, Box} from './index.native'
-import {memoize} from 'lodash'
+import ClickableBox from './clickable-box'
+import Box from './box'
+import memoize from 'lodash/memoize'
 import glamorous from 'glamorous-native'
 
 import type {AvatarSize} from './avatar'
@@ -25,6 +26,7 @@ type Props = {
   loadingColor: ?string,
   onClick?: ?() => void,
   opacity: ?number,
+  skipBackground?: boolean,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,
@@ -139,12 +141,14 @@ class AvatarRender extends PureComponent<void, Props, State> {
       followIconStyle,
       followIconSize,
       children,
+      skipBackground,
     } = this.props
 
     return (
       <ClickableBox onClick={onClick} feedback={false}>
         <Box style={boxStyle(size, style)}>
-          <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />
+          {skipBackground &&
+            <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />}
           {!!url && <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}
           {followIconType &&

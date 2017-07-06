@@ -2,7 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/tracker'
 import * as RPCTypes from '../constants/types/flow-types'
-import _ from 'lodash'
+import uniqBy from 'lodash/uniqBy'
 
 import type {Action} from '../constants/types/flux'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -98,7 +98,7 @@ function updateNonUserState(
 }
 
 function dedupeProofs(proofs: Array<Constants.Proof>): Array<Constants.Proof> {
-  return _.uniqBy(proofs, 'id')
+  return uniqBy(proofs, 'id')
 }
 
 function updateUserState(

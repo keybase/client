@@ -1,6 +1,6 @@
 // @flow
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import {isEqualWith} from 'lodash'
+import isEqualWith from 'lodash/isEqualWith'
 
 import type {TypedState} from './reducer'
 import type {SearchQuery} from './searchv3'
@@ -16,13 +16,25 @@ const searchResultSelector = ({entities: {searchResults}}: TypedState, username:
 
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
+const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
+
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
+
+const searchResultMapSelector = createSelector(
+  ({entities: {searchResults}}: TypedState) => searchResults,
+  searchResults => searchResults
+)
+
+const chatSearchPending = ({chat: {searchPending}}: TypedState) => searchPending
 
 const chatSearchResultArray = createSelector(
   ({chat: {searchResults}}: TypedState) => searchResults,
   searchResults => (searchResults ? searchResults.toArray() : [])
 )
+
+const chatSearchShowingSuggestions = ({chat: {searchShowingSuggestions}}: TypedState) =>
+  searchShowingSuggestions
 
 const profileSearchResultArray = createSelector(
   ({profile: {searchResults}}: TypedState) => searchResults,
@@ -34,14 +46,18 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
 )
 
 export {
-  amIFollowing,
   amIBeingFollowed,
+  amIFollowing,
   cachedSearchResults,
+  chatSearchPending,
+  chatSearchShowingSuggestions,
   chatSearchResultArray,
   createShallowEqualSelector,
   inboxSearchSelector,
   loggedInSelector,
+  previousConversationSelector,
   profileSearchResultArray,
+  searchResultMapSelector,
   searchResultSelector,
   usernameSelector,
 }

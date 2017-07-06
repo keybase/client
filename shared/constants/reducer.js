@@ -20,7 +20,10 @@ import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
 import * as Tracker from '../constants/tracker'
 import * as UnlockFolders from '../constants/unlock-folders'
-import {isEmpty, omitBy, isObject, isArray} from 'lodash'
+import isEmpty from 'lodash/isEmpty'
+import omitBy from 'lodash/omitBy'
+import isObject from 'lodash/isObject'
+import isArray from 'lodash/isArray'
 
 export type TypedState = {
   config: Config.State,

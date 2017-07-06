@@ -9,14 +9,24 @@ import {
   Box,
   ClickableBox,
   LoadingLine,
+  NativeStyleSheet,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, statusBarHeight, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
-import {debounce, memoize} from 'lodash'
+import debounce from 'lodash/debounce'
+import memoize from 'lodash/memoize'
 // $FlowIssue
 import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
+
+const styles = NativeStyleSheet.create({
+  bottomLine: {
+    color: globalColors.black_40,
+    fontSize: 13,
+    lineHeight: 17,
+  },
+})
 
 const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
   <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
@@ -58,28 +68,25 @@ const Avatars = ({
 
   let icon
   if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
+    icon = <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarMutedIconStyle} />
   } else if (participantNeedToRekey || youNeedToRekey) {
     icon = (
       <Icon
-        type={isSelected ? 'icon-chat-addon-lock-active-8' : 'icon-chat-addon-lock-8'}
+        type={isSelected ? 'icon-addon-lock-active-12' : 'icon-addon-lock-12'}
         style={avatarLockIconStyle}
       />
     )
   }
 
+  const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
   const avatarProps = participants
     .slice(0, 2)
     .map((username, idx) => ({
       borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.blue3_40,
+      loadingColor: globalColors.lightGrey,
       size: 32,
-      style: youNeedToRekey || participantNeedToRekey
-        ? {
-            opacity: 0.4,
-          }
-        : undefined,
       username,
+      skipBackground: true,
     }))
     .toArray()
 
@@ -90,7 +97,7 @@ const Avatars = ({
           singleSize={40}
           multiSize={32}
           avatarProps={avatarProps}
-          style={multiStyle(backgroundColor)}
+          style={{...multiStyle(backgroundColor), opacity}}
         />
         {icon}
       </Box>
@@ -144,8 +151,7 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             inline={true}
             plainText={true}
             type="BodySemibold"
-            style={{...boldOverride, color: usernameColor}}
-            containerStyle={{color: usernameColor, paddingRight: 7}}
+            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')}
           />
@@ -170,21 +176,27 @@ const BottomLine = ({
 
   if (youNeedToRekey) {
     content = (
-      <Text
-        type="BodySmallSemibold"
-        backgroundMode="Terminal"
+      <Box
         style={{
-          alignSelf: 'flex-start',
+          alignSelf: 'center',
           backgroundColor: globalColors.red,
           borderRadius: 2,
-          color: globalColors.white,
-          fontSize: 11,
-          paddingLeft: 2,
-          paddingRight: 2,
+          paddingLeft: globalMargins.xtiny,
+          paddingRight: globalMargins.xtiny,
         }}
       >
-        REKEY NEEDED
-      </Text>
+        <Text
+          type="BodySmallSemibold"
+          backgroundMode="Terminal"
+          style={{
+            color: globalColors.white,
+            fontSize: 11,
+            lineHeight: 14,
+          }}
+        >
+          REKEY NEEDED
+        </Text>
+      </Box>
     )
   } else if (participantNeedToRekey) {
     content = (
@@ -193,8 +205,23 @@ const BottomLine = ({
       </Text>
     )
   } else if (snippet) {
+    const baseStyle = styles['bottomLine']
+
+    let style
+    if (subColor !== globalColors.black_40 || showBold) {
+      style = [
+        {
+          color: subColor,
+          ...(showBold ? globalStyles.fontBold : {}),
+        },
+        baseStyle,
+      ]
+    } else {
+      style = baseStyle
+    }
+
     content = (
-      <Markdown preview={true} style={bottomMarkdownStyle(showBold, subColor)}>
+      <Markdown preview={true} style={style}>
         {snippet}
       </Markdown>
     )
@@ -288,14 +315,14 @@ const NoChats = () => (
       top: 48,
     }}
   >
-    <Icon type="icon-fancy-chat-72-x-52" style={{marginBottom: globalMargins.small}} />
-    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.blue3_40}}>
+    <Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: globalMargins.medium}} />
+    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.black_40}}>
       All conversations are end-to-end encrypted.
     </Text>
   </Box>
 )
 
-class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {
@@ -336,8 +363,7 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }, 1000)
 
-  componentWillMount() {
-    this.props.loadInbox()
+  componentDidMount() {
     this._setupDataSource(this.props)
     if (this.props.rows.count()) {
       this._askForUnboxing(this.props.rows.first(), 30)
@@ -352,7 +378,6 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
           data={this.state.rows}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
-          initialNumToRender={30}
           onViewableItemsChanged={this._onViewChanged}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
@@ -363,9 +388,8 @@ class ConversationList extends PureComponent<void, Props, {rows: Array<any>}> {
 
 const boxStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.darkBlue4,
+  backgroundColor: globalColors.white,
   flex: 1,
-  paddingTop: statusBarHeight,
   position: 'relative',
 }
 
@@ -409,14 +433,4 @@ const rowContainerStyle = {
   minHeight: 64,
 }
 
-const bottomMarkdownStyle = memoize(
-  (showBold, subColor) => ({
-    color: subColor,
-    fontSize: 13,
-    lineHeight: 17,
-    ...(showBold ? globalStyles.fontBold : {}),
-  }),
-  (showBold, subColor) => `${showBold}:${subColor}`
-)
-
-export default ConversationList
+export default Inbox

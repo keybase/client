@@ -23,6 +23,7 @@ import {
   TouchableNativeFeedback as NativeTouchableNativeFeedback,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
   TouchableHighlight as NativeTouchableHighlight,
+  TouchableOpacity as NativeTouchableOpacity,
   WebView as NativeWebView,
 } from 'react-native'
 import ScrollView from './scroll-view.native'
@@ -53,5 +54,6 @@ export {
   NativeTouchableNativeFeedback,
   NativeTouchableWithoutFeedback,
   NativeTouchableHighlight,
+  NativeTouchableOpacity,
   NativeWebView,
 }

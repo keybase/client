@@ -18,7 +18,7 @@ type UPAKLoader interface {
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
-	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, error)
+	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
@@ -83,6 +83,8 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.m = make(map[string]*keybase1.UserPlusKeysV2AllIncarnations)
 }
 
+const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V1
+
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
 	if u.Freshness == time.Duration(0) || u.noCache {
@@ -96,6 +98,8 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
+		// Note that below we check the minor version and then discard the cached object if it's
+		// stale. But no need in memory, since we'll never have the old version in memory.
 		u.G().Log.CDebugf(ctx, "| hit memory cache")
 		if info != nil {
 			info.InCache = true
@@ -107,6 +111,8 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		} else if !found {
 			u.G().Log.CDebugf(ctx, "| missed disk cache")
+		} else if tmp.MinorVersion != UPK2MinorVersionCurrent {
+			u.G().Log.CDebugf(ctx, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
 		} else {
 			u.G().Log.CDebugf(ctx, "| hit disk cache")
 			upak = &tmp
@@ -468,9 +474,9 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // LoadKeyV2 looks through all incarnations for the user and returns the incarnation with the given
 // KID, as well as the Key data associated with that KID. It picks the latest such
 // incarnation if there are multiple.
-func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, err error) {
+func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
 	if uid.IsNil() {
-		return nil, nil, NoUIDError{}
+		return nil, nil, nil, NoUIDError{}
 	}
 
 	arg := NewLoadUserArg(u.G())
@@ -486,19 +492,20 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 
 		upak, _, err := u.LoadV2(arg)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		if upak == nil {
-			return nil, nil, fmt.Errorf("Nil user, nil error from LoadUser")
+			return nil, nil, nil, fmt.Errorf("Nil user, nil error from LoadUser")
 		}
 
+		linkMap = upak.SeqnoLinkIDs
 		ret, key = upak.FindKID(kid)
 		if key != nil {
 			break
 		}
 		ret = nil
 	}
-	return ret, key, nil
+	return ret, key, linkMap, nil
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {

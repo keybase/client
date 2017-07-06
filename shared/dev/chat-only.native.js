@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import _ from 'lodash'
+import range from 'lodash/range'
 import * as Immutable from 'immutable'
 import * as ChatConstants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
@@ -84,7 +84,7 @@ class Main extends React.Component {
   constructor() {
     super()
     this.state = {
-      messages: _.range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
+      messages: range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
     }
   }
 
@@ -92,7 +92,7 @@ class Main extends React.Component {
     console.log('prepending message')
     const i = this.state.messages.length
     this.setState({
-      messages: _.range(i, i + 10)
+      messages: range(i, i + 10)
         .map(i => mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent'))
         .concat(this.state.messages),
     })
