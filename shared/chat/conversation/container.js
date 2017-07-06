@@ -7,7 +7,6 @@ import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import {connect} from 'react-redux'
 import {getProfile} from '../../actions/tracker'
-import {hideKeyboard} from '../../actions/app'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
@@ -34,7 +33,6 @@ type DispatchProps = {|
     conversationIDKey: Constants.ConversationIDKey,
     inputs: Array<Constants.AttachmentInput>
   ) => void,
-  _hideKeyboard: () => void,
   onOpenInfoPanelMobile: () => void,
   onBack: () => void,
   _clearSearchResults: () => void,
@@ -94,7 +92,6 @@ const mapDispatchToProps = (
       ])
     )
   },
-  _hideKeyboard: () => dispatch(hideKeyboard()),
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
