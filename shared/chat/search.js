@@ -7,10 +7,10 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, Icon, ProgressIndicator} from '../common-adapters'
+import {Box, Icon, ProgressIndicator, Text} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
-import {globalStyles, globalMargins} from '../styles'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 import {chatSearchPending, chatSearchResultArray} from '../constants/selectors'
 import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
@@ -74,13 +74,19 @@ const SearchHeader = props => {
       </Box>
       {props.showSearchPending
         ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
-        : <SearchResultsList
-            style={{flex: 1}}
-            items={props.searchResultIds}
-            onClick={props.onClickSearchResult}
-            onShowTracker={props.onShowTrackerInSearch}
-            selectedId={props.selectedSearchId}
-          />}
+        : <Box>
+            {props.showSearchSuggestions &&
+              <Text type="BodySmallSemibold" style={styleSearchSuggestions}>
+                Recommendations
+              </Text>}
+            <SearchResultsList
+              style={{flex: 1}}
+              items={props.searchResultIds}
+              onClick={props.onClickSearchResult}
+              onShowTracker={props.onShowTrackerInSearch}
+              selectedId={props.selectedSearchId}
+            />
+          </Box>}
     </Box>
   )
 }
@@ -108,3 +114,8 @@ export default compose(
     onClickAddButton: () => console.log('todo'),
   })
 )(SearchHeader)
+
+const styleSearchSuggestions = {
+  color: globalColors.black_60,
+  padding: globalMargins.tiny,
+}
