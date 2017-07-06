@@ -30,6 +30,9 @@ protocol teams {
   @typedef("bytes")
   record MaskB64 {}
 
+  @typedef("string")
+  record TeamInviteID {}
+
   record ReaderKeyMask {
     TeamApplication application;
     PerTeamKeyGeneration generation;
@@ -120,6 +123,32 @@ protocol teams {
     Time cachedAt;
   }
 
+  enum TypeInviteCategory {
+    NONE_0,
+    UNKNOWN_1,
+    KEYBASE_2,
+    EMAIL_3,
+    SBS_4
+  }
+
+  variant TeamInviteType switch (TypeInviteCategory c) {
+    case UNKNOWN: string;
+    case SBS: TeamInviteSocialNetwork;
+    default: void;
+  }
+
+  @typedef("string")
+  record TeamInviteSocialNetwork {}
+  @typedef("string")
+  record TeamInviteName {}
+
+  record TeamInvite {
+    TeamRole role;
+    TeamInviteID id;
+    TeamInviteType type;
+    TeamInviteName name;
+  }
+
   // State of a parsed team sigchain.
   // Should be treated as immutable when outside TeamSigChainPlayer.
   // Modified internally to TeamSigChainPlayer.
@@ -157,6 +186,9 @@ protocol teams {
     // Set of links that are stubbed-out and whose contents are missing.
     // Keyed by seqno
     map<Seqno, boolean> stubbedLinks;
+
+    // All invitations that are currently active.
+    map<TeamInviteID,TeamInvite> activeInvites;
   }
 
   // A user became this role at a point in time
@@ -238,7 +270,7 @@ protocol teams {
     @jsonkey("team_id")
     TeamID teamID;
     @jsonkey("fq_name")
-    string fqName; 
+    string fqName;
     TeamRole role;
     union{null, ImplicitRole} implicit;
   }

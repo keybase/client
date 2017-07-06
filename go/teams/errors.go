@@ -140,3 +140,15 @@ func NewPermissionError(t keybase1.TeamID, uv keybase1.UserVersion, d string) Pe
 func (e PermissionError) Error() string {
 	return fmt.Sprintf("For team %s, user %s: %s", e.TeamID, e.UserVersion.PercentForm(), e.Desc)
 }
+
+type InviteError struct {
+	msg string
+}
+
+func NewInviteError(m string) InviteError {
+	return InviteError{m}
+}
+
+func (i InviteError) Error() string {
+	return fmt.Sprintf("Invite error: %s", i.msg)
+}

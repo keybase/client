@@ -1578,3 +1578,46 @@ func (r TeamRole) IsAdminOrAbove() bool {
 func (r TeamRole) IsReaderOrAbove() bool {
 	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
 }
+
+type idDesc struct {
+	byteLen int
+	suffix  byte
+	typ     string
+}
+
+func (i idDesc) check(s string) error {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	if len(b) != i.byteLen {
+		return fmt.Errorf("%s: wrong ID len (got %d)", i.typ, len(b))
+	}
+	sffx := b[len(b)-1]
+	if sffx != i.suffix {
+		return fmt.Errorf("%s: wrong suffix byte (got 0x%x)", i.typ, sffx)
+	}
+	return nil
+}
+
+func TeamInviteIDFromString(s string) (TeamInviteID, error) {
+	if err := (idDesc{16, 0x27, "team invite ID"}).check(s); err != nil {
+		return TeamInviteID(""), err
+	}
+	return TeamInviteID(s), nil
+}
+
+func TeamInviteTypeFromString(s string) (TeamInviteType, error) {
+	switch s {
+	case "keybase":
+		return NewTeamInviteTypeDefault(TypeInviteCategory_KEYBASE), nil
+	case "email":
+		return NewTeamInviteTypeDefault(TypeInviteCategory_EMAIL), nil
+	case "twitter", "github", "facebook", "reddit", "hackernews":
+		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+	default:
+		// Don't want to break existing clients if we see an unknown invite
+		// type.
+		return NewTeamInviteTypeWithUnknown(s), nil
+	}
+}
