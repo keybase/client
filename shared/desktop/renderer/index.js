@@ -19,7 +19,6 @@ import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
-import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
@@ -175,14 +174,12 @@ function render(store, MainComponent) {
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
-        <GlobalEscapeHandler>
-          <div style={{display: 'flex', flex: 1}}>
-            <RemoteManager />
-            <FontLoader />
-            <MainComponent />
-            {dt}
-          </div>
-        </GlobalEscapeHandler>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteManager />
+          <FontLoader />
+          <MainComponent />
+          {dt}
+        </div>
       </Root>
     </AppContainer>,
     document.getElementById('root')
