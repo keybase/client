@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  *
- * @providesModule MetroListView
  * @flow
+ * @format
  */
 'use strict'
 
@@ -28,6 +28,7 @@ type NormalProps = {
 
   // Provide either `items` or `sections`
   items?: ?Array<Item>, // By default, an Item is assumed to be {key: string}
+  // $FlowFixMe - Something is a little off with the type Array<Item>
   sections?: ?Array<{key: string, data: Array<Item>}>,
 
   /**
@@ -39,10 +40,16 @@ type NormalProps = {
    * Set this true while waiting for new data from a refresh.
    */
   refreshing?: boolean,
+  /**
+   * If true, renders items next to each other horizontally instead of stacked vertically.
+   */
+  horizontal?: ?boolean,
 }
 type DefaultProps = {
-  keyExtractor: (item: Item) => string,
+  keyExtractor: (item: Item, index: number) => string,
 }
+/* $FlowFixMe - the renderItem passed in from SectionList is optional there but
+ * required here */
 type Props = NormalProps & DefaultProps
 
 /**
@@ -61,7 +68,13 @@ class MetroListView extends React.Component {
   scrollToItem(params: {animated?: ?boolean, item: Item, viewPosition?: number}) {
     throw new Error('scrollToItem not supported in legacy ListView.')
   }
-  scrollToLocation() {
+  scrollToLocation(params: {
+    animated?: ?boolean,
+    itemIndex: number,
+    sectionIndex: number,
+    viewOffset?: number,
+    viewPosition?: number,
+  }) {
     throw new Error('scrollToLocation not supported in legacy ListView.')
   }
   scrollToOffset(params: {animated?: ?boolean, offset: number}) {
@@ -71,8 +84,13 @@ class MetroListView extends React.Component {
   getListRef() {
     return this._listRef
   }
+  setNativeProps(props: Object) {
+    if (this._listRef) {
+      this._listRef.setNativeProps(props)
+    }
+  }
   static defaultProps: DefaultProps = {
-    keyExtractor: (item, index) => item.key || index,
+    keyExtractor: (item, index) => item.key || String(index),
     renderScrollComponent: (props: Props) => {
       if (props.onRefresh) {
         return (
