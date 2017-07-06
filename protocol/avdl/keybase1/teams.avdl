@@ -123,7 +123,7 @@ protocol teams {
     Time cachedAt;
   }
 
-  enum TypeInviteCategory {
+  enum TeamInviteCategory {
     NONE_0,
     UNKNOWN_1,
     KEYBASE_2,
@@ -131,7 +131,7 @@ protocol teams {
     SBS_4
   }
 
-  variant TeamInviteType switch (TypeInviteCategory c) {
+  variant TeamInviteType switch (TeamInviteCategory c) {
     case UNKNOWN: string;
     case SBS: TeamInviteSocialNetwork;
     default: void;

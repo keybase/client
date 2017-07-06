@@ -370,7 +370,7 @@
     },
     {
       "type": "enum",
-      "name": "TypeInviteCategory",
+      "name": "TeamInviteCategory",
       "symbols": [
         "NONE_0",
         "UNKNOWN_1",
@@ -383,7 +383,7 @@
       "type": "variant",
       "name": "TeamInviteType",
       "switch": {
-        "type": "TypeInviteCategory",
+        "type": "TeamInviteCategory",
         "name": "c"
       },
       "cases": [

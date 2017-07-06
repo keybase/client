@@ -1019,6 +1019,7 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 		role keybase1.TeamRole
 	}
 	var all []assignment
+	additions = make(map[keybase1.TeamRole][]keybase1.TeamInvite)
 
 	if invites.Admins != nil {
 		additions[keybase1.TeamRole_ADMIN] = nil
@@ -1064,7 +1065,7 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 	}
 
 	for _, invite := range all {
-		res, err := invite.i.TeamInvite(invite.role)
+		res, err := invite.i.TeamInvite(t.G(), invite.role)
 		if err != nil {
 			return nil, nil, err
 		}

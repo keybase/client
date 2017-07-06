@@ -28,7 +28,7 @@ type SCTeamSection struct {
 	Subteam    *SCSubteam     `json:"subteam,omitempty"`
 	PerTeamKey *SCPerTeamKey  `json:"per_team_key,omitempty"`
 	Admin      *SCTeamAdmin   `json:"admin,omitempty"`
-	Invites    *SCTeamInvites `json:"invite,omitempty"`
+	Invites    *SCTeamInvites `json:"invites,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -202,12 +202,12 @@ func (i SCTeamInviteID) TeamInviteID() (keybase1.TeamInviteID, error) {
 	return keybase1.TeamInviteIDFromString(string(i))
 }
 
-func (i SCTeamInvite) TeamInvite(r keybase1.TeamRole) (keybase1.TeamInvite, error) {
+func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole) (keybase1.TeamInvite, error) {
 	id, err := i.ID.TeamInviteID()
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
-	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type))
+	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type), g.Env.GetRunMode() == libkb.DevelRunMode)
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
