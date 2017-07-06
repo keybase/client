@@ -119,20 +119,20 @@ export default compose(
     renderComponent(NoConversation)
   ),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
-  withState('sidePanelOpen', 'setSidePanelOpen', false),
+  withState('infoPanelOpen', 'setInfoPanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
   selectedSearchIdHoc,
   withHandlers({
-    onCloseSidePanel: props => () => props.setSidePanelOpen(false),
+    onCloseInfoPanel: props => () => props.setInfoPanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
-    onToggleSidePanel: props => () => {
-      !props.sidePanelOpen && props._hideKeyboard()
-      props.setSidePanelOpen(!props.sidePanelOpen)
+    onToggleInfoPanel: props => () => {
+      !props.infoPanelOpen && props._hideKeyboard()
+      props.setInfoPanelOpen(!props.infoPanelOpen)
     },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')
@@ -143,7 +143,7 @@ export default compose(
   lifecycle({
     componentWillReceiveProps: function(nextProps: Props) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-        this.props.onCloseSidePanel()
+        this.props.onCloseInfoPanel()
       }
     },
   })

@@ -59,18 +59,18 @@ const _Contents = (props: Props) => (
 
 const Contents = HeaderHoc(_Contents)
 
-const SidePanel = (props: Props) => (
+const InfoPanel = (props: Props) => (
   <PopupDialog
-    onClose={props.onToggleSidePanel}
+    onClose={props.onToggleInfoPanel}
     styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
     styleContainer={{borderRadius: 0}}
   >
     <Contents
       {...props}
-      onBack={props.onToggleSidePanel}
+      onBack={props.onToggleInfoPanel}
       headerStyle={{borderBottomWidth: 0, marginTop: 0}}
     />
   </PopupDialog>
 )
 
-export default SidePanel
+export default InfoPanel

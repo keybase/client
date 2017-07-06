@@ -8,7 +8,7 @@ export type Props = {
   onMuteConversation: (muted: boolean) => void,
   onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
-  onToggleSidePanel: () => void,
+  onToggleInfoPanel: () => void,
   participants: List<{
     username: string,
     following: boolean,
@@ -18,4 +18,4 @@ export type Props = {
   }>,
 }
 
-export default class SidePanel extends Component<void, Props, void> {}
+export default class InfoPanel extends Component<void, Props, void> {}

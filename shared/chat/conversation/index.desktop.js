@@ -6,7 +6,7 @@ import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React, {Component} from 'react'
-import SidePanel from './side-panel/container'
+import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
@@ -107,8 +107,8 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <HeaderOrSearchHeader
           inSearch={this.props.inSearch}
-          sidePanelOpen={this.props.sidePanelOpen}
-          onToggleSidePanel={this.props.onToggleSidePanel}
+          infoPanelOpen={this.props.infoPanelOpen}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           onBack={this.props.onBack}
           onChangeSearchText={this.props.onChangeSearchText}
           searchText={this.props.searchText}
@@ -144,7 +144,7 @@ class Conversation extends Component<void, Props, State> {
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}
                       />}
-                  {this.props.sidePanelOpen &&
+                  {this.props.infoPanelOpen &&
                     <div
                       style={{
                         ...globalStyles.flexBoxColumn,
@@ -155,7 +155,7 @@ class Conversation extends Component<void, Props, State> {
                         width: 320,
                       }}
                     >
-                      <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                      <InfoPanel onToggleInfoPanel={this.props.onToggleInfoPanel} />
                     </div>}
                   {dropOverlay}
                 </div>}

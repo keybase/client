@@ -12,8 +12,8 @@ type Props = {
   selectedSearchId: ?SearchConstants.SearchResultId,
   selectedConversationIDKey: ?ChatConstants.ConversationIDKey,
   onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
-  sidePanelOpen: boolean,
-  onToggleSidePanel: () => void,
+  infoPanelOpen: boolean,
+  onToggleInfoPanel: () => void,
   onBack: () => void,
 }
 
@@ -27,7 +27,7 @@ export default (props: Props) =>
         onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
       />
     : <Header
-        sidePanelOpen={props.sidePanelOpen}
-        onToggleSidePanel={props.onToggleSidePanel}
+        infoPanelOpen={props.infoPanelOpen}
+        onToggleInfoPanel={props.onToggleInfoPanel}
         onBack={props.onBack}
       />
