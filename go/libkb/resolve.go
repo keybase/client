@@ -290,14 +290,14 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 	ha.Add("fields", S{fields})
 	ares, res.err = r.G().API.Get(APIArg{
-		Endpoint:       "user/lookup",
-		SessionType:    APISessionTypeNONE,
-		Args:           ha,
-		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
-		NetContext:     ctx,
-		RetryCount : 3,
-		InitialTimeout : 4 * time.Second,
-		RetryMultiplier : 1.5,
+		Endpoint:        "user/lookup",
+		SessionType:     APISessionTypeNONE,
+		Args:            ha,
+		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
+		NetContext:      ctx,
+		RetryCount:      3,
+		InitialTimeout:  4 * time.Second,
+		RetryMultiplier: 1.5,
 	})
 
 	if res.err != nil {
