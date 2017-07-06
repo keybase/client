@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"strings"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 // TestRootCert is a CA cert which can be used for testing TLS support.
@@ -310,9 +312,14 @@ func GetRootCerts(serverAddr string) []byte {
 		if strings.HasSuffix(host, "dev.keybase.io") {
 			return []byte(DevRootCerts)
 		}
-		if strings.HasSuffix(host, "kbfs.keybase.io") ||
-			strings.HasSuffix(host, "core.keybase.io") {
+		if strings.HasSuffix(host, "kbfs.keybase.io") {
 			return []byte(ProductionRootCerts)
+		}
+		if strings.HasSuffix(host, "core.keybase.io") {
+			cert, ok := libkb.BundledCAs["api.keybase.io"]
+			if ok {
+				return []byte(cert)
+			}
 		}
 	}
 
