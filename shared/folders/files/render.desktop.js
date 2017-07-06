@@ -17,13 +17,12 @@ import {
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
-const Divider = ({theme}) => (
+const Divider = ({theme}) =>
   <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor: globalColors.white}}>
     <Box style={{marginLeft: 48 + 8, backgroundColor: globalColors.black_05, flex: 1}} />
   </Box>
-)
 
-const Section = ({section, theme}) => (
+const Section = ({section, theme}) =>
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: globalMargins.medium}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: globalMargins.tiny}}>
@@ -32,12 +31,13 @@ const Section = ({section, theme}) => (
             type="iconfont-thunderbolt"
             style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}}
           />}
-        <Text type="BodySmallSemibold" style={styleSectionTextThemed[theme]}>{section.name}</Text>
+        <Text type="BodySmallSemibold" style={styleSectionTextThemed[theme]}>
+          {section.name}
+        </Text>
       </Box>
     </Box>
     {intersperseFn(i => <Divider key={i} />, section.files.map(f => <File key={f.name} {...f} />))}
   </Box>
-)
 
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
@@ -55,7 +55,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
       >
         {intersperseFn(
           i => <Divider key={i} />,
-          waitingForParticipantUnlock.map(p => (
+          waitingForParticipantUnlock.map(p =>
             <ListItem
               key={p.name}
               type="Large"
@@ -63,12 +63,16 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
               icon={<Avatar size={40} username={p.name} />}
               body={
                 <Box style={globalStyles.flexBoxColumn}>
-                  <Text type="Body" backgroundMode={backgroundMode}>{p.name}</Text>
-                  <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
+                  <Text type="Body" backgroundMode={backgroundMode}>
+                    {p.name}
+                  </Text>
+                  <Text type="BodySmall" backgroundMode={backgroundMode}>
+                    {p.devices}
+                  </Text>
                 </Box>
               }
             />
-          ))
+          )
         )}
       </Box>
     </Box>
@@ -98,7 +102,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
       >
         {intersperseFn(
           i => <Divider key={i} />,
-          youCanUnlock.map(device => (
+          youCanUnlock.map(device =>
             <ListItem
               key={device.name}
               type="Large"
@@ -115,13 +119,17 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
                 <Box style={globalStyles.flexBoxColumn}>
-                  <Text type="Body" backgroundMode={backgroundMode}>{device.name}</Text>
+                  <Text type="Body" backgroundMode={backgroundMode}>
+                    {device.name}
+                  </Text>
                   {device.type !== 'backup' &&
-                    <Text type="BodySmall" backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+                    <Text type="BodySmall" backgroundMode={backgroundMode}>
+                      Open the Keybase app
+                    </Text>}
                 </Box>
               }
             />
-          ))
+          )
         )}
       </Box>
     </Box>
@@ -180,19 +188,19 @@ class FilesRender extends Component<void, Props, void> {
 
           {ignored
             ? allowIgnore &&
-                <Button
-                  type="Secondary"
-                  onClick={this.props.unIgnoreCurrentFolder}
-                  label="Unignore folder"
-                  style={{marginRight: 0}}
-                />
+              <Button
+                type="Secondary"
+                onClick={this.props.unIgnoreCurrentFolder}
+                label="Unignore folder"
+                style={{marginRight: 0}}
+              />
             : allowIgnore &&
-                <Button
-                  type="Secondary"
-                  onClick={this.props.ignoreCurrentFolder}
-                  label="Ignore folder"
-                  style={{marginRight: 0}}
-                />}
+              <Button
+                type="Secondary"
+                onClick={this.props.ignoreCurrentFolder}
+                label="Ignore folder"
+                style={{marginRight: 0}}
+              />}
         </Box>
       )
     }
@@ -200,15 +208,17 @@ class FilesRender extends Component<void, Props, void> {
     if (this.props.recentFilesSection.length) {
       return (
         <Box style={globalStyles.flexBoxColumn}>
-          {this.props.recentFilesSection.map(s => (
+          {this.props.recentFilesSection.map(s =>
             <Section key={s.name} section={s} theme={this.props.theme} />
-          ))}
+          )}
         </Box>
       )
     } else {
       return (
         <Box style={styleNoFiles}>
-          <Text type="Body" backgroundMode={backgroundMode}>This folder is empty.</Text>
+          <Text type="Body" backgroundMode={backgroundMode}>
+            This folder is empty.
+          </Text>
           <Text type="BodyPrimaryLink" onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>
             Open folder
           </Text>
@@ -263,14 +273,16 @@ class FilesRender extends Component<void, Props, void> {
               bottom: 16,
             }}
           >
-            {this.props.users.map(u => (
+            {this.props.users.map(u =>
               <Box key={u.username} style={{height: 32, width: 28}}>
                 <Avatar username={u.username} size={32} borderColor={globalColors.white} />
               </Box>
-            ))}
+            )}
           </Box>
           <Box style={styleTLFNameContainer}>
-            <Text type="BodySemibold" style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
+            <Text type="BodySemibold" style={tlfTextStyle}>
+              {isPrivate ? 'private/' : 'public/'}
+            </Text>
             <Usernames users={this.props.users} type="Header" style={tlfTextStyle} />
           </Box>
         </Box>

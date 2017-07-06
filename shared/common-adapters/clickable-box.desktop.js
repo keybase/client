@@ -4,8 +4,11 @@ import {globalStyles} from '../styles'
 
 import type {Props} from './clickable-box'
 
-class ClickableBox
-  extends React.Component<void, Props & {children: any}, {mouseDown: boolean, mouseIn: boolean}> {
+class ClickableBox extends React.Component<
+  void,
+  Props & {children: any},
+  {mouseDown: boolean, mouseIn: boolean}
+> {
   state = {
     mouseDown: false,
     mouseIn: false,

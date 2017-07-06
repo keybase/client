@@ -14,7 +14,7 @@ const ConversationHeader = ({
   onToggleSidePanel,
   sidePanelOpen,
   users,
-}: Props) => (
+}: Props) =>
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
@@ -54,7 +54,6 @@ const ConversationHeader = ({
       onClick={onToggleSidePanel}
     />
   </Box>
-)
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,

@@ -21,7 +21,7 @@ const backgroundMode = {
 const hidden = {
   style: {opacity: 0},
 }
-const SecondaryColorBox = () => (
+const SecondaryColorBox = () =>
   <Box
     style={{
       ...globalStyles.flexBoxRow,
@@ -37,9 +37,8 @@ const SecondaryColorBox = () => (
     <Box style={{backgroundColor: globalColors.green, flex: 1}} />
     <Box style={{backgroundColor: globalColors.darkBlue, flex: 1}} />
   </Box>
-)
 
-const Container = ({backgroundColor, children}) => (
+const Container = ({backgroundColor, children}) =>
   <Box
     style={{
       backgroundColor,
@@ -49,7 +48,6 @@ const Container = ({backgroundColor, children}) => (
   >
     {children}
   </Box>
-)
 
 const groups = [
   [{label: 'Header big Header big', type: 'HeaderBig'}],
@@ -84,7 +82,7 @@ const mapText = (secondary: boolean) => {
 
   groups.forEach((group, gidx) => {
     group.forEach(types => {
-      const item = key => (
+      const item = key =>
         <Text
           type={types.type}
           onClick={types.action ? action(`${types.type} clicked`) : undefined}
@@ -97,7 +95,6 @@ const mapText = (secondary: boolean) => {
         >
           {types.label}
         </Text>
-      )
       items.push(item(types.type + '1'))
       items.push(item(types.type + '2'))
       items.push(<SmallGap key={types.type} />)
@@ -109,7 +106,7 @@ const mapText = (secondary: boolean) => {
 }
 
 const load = () => {
-  storiesOf('Text', module).add('Text', () => (
+  storiesOf('Text', module).add('Text', () =>
     <Box style={outerStyle}>
       <Container backgroundColor={globalColors.white}>
         {mapText(false)}
@@ -119,7 +116,7 @@ const load = () => {
         {mapText(true)}
       </Container>
     </Box>
-  ))
+  )
 }
 
 const outerStyle = isMobile

@@ -28,7 +28,7 @@ const styles = NativeStyleSheet.create({
   },
 })
 
-const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
+const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) =>
   <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
     <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
@@ -41,7 +41,6 @@ const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: bo
         <LoadingLine />
       </Box>}
   </Box>
-)
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
@@ -157,7 +156,9 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
           />
         </Box>
       </Box>
-      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
+      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>
+        {timestamp}
+      </Text>
       {hasUnread && <Box style={unreadDotStyle} />}
     </Box>
   )
@@ -305,7 +306,7 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-const NoChats = () => (
+const NoChats = () =>
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -320,7 +321,6 @@ const NoChats = () => (
       All conversations are end-to-end encrypted.
     </Text>
   </Box>
-)
 
 class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   state = {rows: []}

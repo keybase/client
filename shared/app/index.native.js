@@ -74,7 +74,11 @@ class Keybase extends Component {
     if (dumbSheetOnly) {
       // Defer loading this
       const DumbSheet = require('../dev/dumb-sheet').default
-      child = <Box style={{flex: 1, marginTop: 40}}><DumbSheet /></Box>
+      child = (
+        <Box style={{flex: 1, marginTop: 40}}>
+          <DumbSheet />
+        </Box>
+      )
     } else if (dumbChatOnly) {
       const DumbChatOnly = require('../dev/chat-only.native').default
       child = <DumbChatOnly />

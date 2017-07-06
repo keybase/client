@@ -7,7 +7,7 @@ import type {Props} from './meta'
 import {globalColors} from '../styles'
 import {isAndroid} from '../constants/platform'
 
-const Meta = ({title, style}: Props) => (
+const Meta = ({title, style}: Props) =>
   <Box
     style={{
       borderRadius: 2,
@@ -31,6 +31,5 @@ const Meta = ({title, style}: Props) => (
       {title && title.toUpperCase()}
     </Text>
   </Box>
-)
 
 export default Meta

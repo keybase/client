@@ -11,7 +11,9 @@ class RequestInviteRender extends Component {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text style={stylesHeader} type="Header">Request an invite code</Text>
+        <Text style={stylesHeader} type="Header">
+          Request an invite code
+        </Text>
         <Icon style={stylesIcon} type="icon-invite-code-48" />
         <Input
           hintText="Your email address"

@@ -9,11 +9,10 @@ import {isMobile} from '../constants/platform'
 
 import type {Props} from './button'
 
-const Progress = ({small}) => (
+const Progress = ({small}) =>
   <Box style={progress}>
     <ProgressIndicator style={progressStyle(small)} white={false} />
   </Box>
-)
 
 class Button extends Component<void, Props, void> {
   render() {

@@ -16,7 +16,11 @@ function KeybaseResultBody({username, searchText, isFollowing}) {
 }
 
 function ExternalResultBody({username, searchText}) {
-  return <Text type="BodySemibold" style={{color: globalColors.black_75}}>{username}</Text>
+  return (
+    <Text type="BodySemibold" style={{color: globalColors.black_75}}>
+      {username}
+    </Text>
+  )
 }
 
 function KeybaseExtraInfo({username, fullName, isFollowing, searchText}) {
@@ -29,7 +33,9 @@ function KeybaseExtraInfo({username, fullName, isFollowing, searchText}) {
         </Text>
       </Box>
       {!!fullName &&
-        <Text type="BodySmall" style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
+        <Text type="BodySmall" style={{...fullNameStyle, color: globalColors.black_40}}>
+          {fullName}
+        </Text>}
     </Box>
   )
 }
@@ -40,7 +46,10 @@ function ExternalExtraInfo({fullNameOnService, icon, serviceAvatar, serviceUsern
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
         {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername && <Text type="BodySmallSemibold">{serviceUsername}</Text>}
+        {!!serviceUsername &&
+          <Text type="BodySmallSemibold">
+            {serviceUsername}
+          </Text>}
       </Box>
       {!!fullNameOnService &&
         <Text type="BodySmall" style={{...fullNameStyle, color: globalColors.black_40}}>
@@ -146,14 +155,14 @@ class UserSearchRender extends Component<void, Props, void> {
               marginRight: 'auto',
             }}
           />}
-        {this.props.results.map(r => (
+        {this.props.results.map(r =>
           <Result
             key={r.service + (r.icon ? r.icon : '') + r.username}
             result={r}
             searchText={this.props.searchText || ''}
             onClickResult={this.props.onClickResult}
           />
-        ))}
+        )}
       </Box>
     )
   }

@@ -8,7 +8,7 @@ import {platformToLogo24} from '../../constants/search'
 
 import type {Props} from './non-user.render'
 
-const NonUserRender = (props: Props) => (
+const NonUserRender = (props: Props) =>
   <Box style={styleContainer}>
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
     <Box style={styleBioBlurb}>
@@ -20,17 +20,25 @@ const NonUserRender = (props: Props) => (
       />
       <Box style={styleUsernameRow} onClick={() => openURL(props.profileUrl)}>
         <Icon type={platformToLogo24(props.serviceName)} />
-        <Text type="HeaderBig" style={styleUsername}>{props.username}</Text>
+        <Text type="HeaderBig" style={styleUsername}>
+          {props.username}
+        </Text>
       </Box>
-      {props.fullname && <Text type="BodySemibold" style={styleFullname}>{props.fullname}</Text>}
-      <Text type="BodySmall" style={styleServiceLabel}>{capitalize(props.serviceName)} user</Text>
+      {props.fullname &&
+        <Text type="BodySemibold" style={styleFullname}>
+          {props.fullname}
+        </Text>}
+      <Text type="BodySmall" style={styleServiceLabel}>
+        {capitalize(props.serviceName)} user
+      </Text>
     </Box>
     <Text
       type="BodySmall"
       style={styleDetails}
-    >{`When ${props.username} connects Keybase and their ${capitalize(props.serviceName)} account, your computer will verify them and rekey the folder or conversation.`}</Text>
+    >{`When ${props.username} connects Keybase and their ${capitalize(
+      props.serviceName
+    )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
   </Box>
-)
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,

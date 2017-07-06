@@ -9,7 +9,8 @@ const baseMock = {
   onBack: () => console.log('onBack'),
   error: convertToRPCError({
     code: 901,
-    desc: "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't",
+    desc:
+      "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't",
   }),
 }
 

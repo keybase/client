@@ -4,7 +4,7 @@ import Text from './text'
 import type {Props} from './meta'
 import {globalColors} from '../styles'
 
-const Meta = ({title, style}: Props) => (
+const Meta = ({title, style}: Props) =>
   <Text
     type="Header"
     style={{
@@ -22,6 +22,5 @@ const Meta = ({title, style}: Props) => (
   >
     {title}
   </Text>
-)
 
 export default Meta

@@ -92,7 +92,8 @@ export default connect(
   (dispatch: any, ownProps: OwnProps) => {
     const actions = bindActionCreators(trackerActions, dispatch)
     return {
-      errorRetry: ownProps.errorRetry ||
+      errorRetry:
+        ownProps.errorRetry ||
         (() => {
           actions.getProfile(ownProps.username, true)
         }),

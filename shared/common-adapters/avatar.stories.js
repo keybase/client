@@ -21,7 +21,9 @@ const load = () => {
       }
       return (
         <Box key={size}>
-          <Text type="Body">{size}</Text>
+          <Text type="Body">
+            {size}
+          </Text>
           <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
             <Avatar {...commonProps} />
             <Avatar {...commonProps} borderColor="blue" />

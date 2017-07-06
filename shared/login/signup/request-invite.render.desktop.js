@@ -10,7 +10,9 @@ class RequestInviteRender extends Component<void, Props, void> {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Box style={stylesBox}>
-          <Text style={stylesHeader} type="Header">Request an invite code</Text>
+          <Text style={stylesHeader} type="Header">
+            Request an invite code
+          </Text>
           <Icon style={stylesIcon} type="icon-invite-code-48" />
           <Input
             style={stylesInput}

@@ -36,8 +36,12 @@ function ErrorMessage({error}) {
       data-error={true}
       style={{alignSelf: 'flex-start', border: '5px solid red', font: '12px/16px sans-serif', padding: 14}}
     >
-      <p>{error.stack}</p>
-      <p>{JSON.stringify(error)}</p>
+      <p>
+        {error.stack}
+      </p>
+      <p>
+        {JSON.stringify(error)}
+      </p>
     </div>
   )
 }

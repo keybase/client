@@ -10,9 +10,10 @@ export type Props = {
   isEditing: boolean,
 }
 
-const MessageText = ({text, type, isEditing}: Props) => (
-  <Markdown style={getStyle(type, isEditing)} allowFontScaling={true}>{text}</Markdown>
-)
+const MessageText = ({text, type, isEditing}: Props) =>
+  <Markdown style={getStyle(type, isEditing)} allowFontScaling={true}>
+    {text}
+  </Markdown>
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {

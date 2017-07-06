@@ -15,13 +15,13 @@ const load = () => {
   const req = require.context('../common-adapters', true, /\.stories\.js$/)
 
   // Add material-ui dependency
-  addDecorator(story => (
+  addDecorator(story =>
     <MuiThemeProvider muiTheme={materialTheme}>
       <ScrollView key="scrollview" style={{flex: 1}}>
         {story()}
       </ScrollView>
     </MuiThemeProvider>
-  ))
+  )
 
   configure(() => {
     req.keys().forEach(filename => {

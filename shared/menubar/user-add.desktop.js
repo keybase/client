@@ -11,7 +11,7 @@ type State = {
   text: string,
 }
 
-const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
+const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) =>
   <Box
     style={{
       ...stylesButtonContainer,
@@ -29,7 +29,6 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
       label={isPublic ? 'Open public folder' : 'New private folder'}
     />
   </Box>
-)
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
   const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'

@@ -75,7 +75,10 @@ function linuxSocketDialPath(): string {
 }
 
 const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
-const darwinSandboxCacheRoot = `${getenv('HOME', '')}/Library/Group Containers/keybase/Library/Caches/${envedPathOSX[runMode]}/`
+const darwinSandboxCacheRoot = `${getenv(
+  'HOME',
+  ''
+)}/Library/Group Containers/keybase/Library/Caches/${envedPathOSX[runMode]}/`
 const darwinSandboxSocketPath = path.join(darwinSandboxCacheRoot, socketName)
 
 function findSocketDialPath(): string {

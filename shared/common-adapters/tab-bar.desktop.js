@@ -57,7 +57,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-const HighlightLine = () => (
+const HighlightLine = () =>
   <Box
     style={{
       ...globalStyles.fillAbsolute,
@@ -66,7 +66,6 @@ const HighlightLine = () => (
       width: 2,
     }}
   />
-)
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   shouldComponentUpdate(nextProps: TabBarButtonProps, nextState: any): boolean {
@@ -144,7 +143,9 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.source.type !== 'nav') return // needed to make flow happy
     return (
       <Box onClick={this.props.onClick}>
-        <style>{navRealCSS}</style>
+        <style>
+          {navRealCSS}
+        </style>
         <Box
           style={{...stylesTabBarNavIcon, ...this.props.style}}
           className={'nav-item' + (this.props.selected ? ' selected' : '')}

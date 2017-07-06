@@ -59,7 +59,8 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
     case KbfsCommonFSErrorType.timeout:
       return {
         title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
-        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+        body: `The ${notification.params
+          .mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
       }
 
     case KbfsCommonFSErrorType.rekeyNeeded:
@@ -94,7 +95,8 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
         } else {
           return {
             title: 'Keybase: Out of temporary space',
-            body: 'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
+            body:
+              'Keybase is using too many file system resources temporarily, and writes will fail until the data syncs to the remote server.',
           }
         }
       }

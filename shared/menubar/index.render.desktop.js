@@ -45,7 +45,10 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
 
     return (
       <Box style={styles.container}>
-        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin &&
+          <style>
+            {_realCSS}
+          </style>}
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
@@ -138,7 +141,10 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
 
     return (
       <Box style={styles.container}>
-        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin &&
+          <style>
+            {_realCSS}
+          </style>}
         {isDarwin && <ArrowTick />}
         <Box style={{...stylesTopRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
           <Box
@@ -150,9 +156,9 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
               marginLeft: 24 + 8,
             }}
           >
-            {badgeTypes.map(tab => (
+            {badgeTypes.map(tab =>
               <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
-            ))}
+            )}
           </Box>
           <Icon
             style={{
@@ -199,8 +205,8 @@ body {
 }
 `
 
-const ArrowTick = () => // Css triangle!
-(
+const ArrowTick = () =>
+  // Css triangle!
   <Box
     style={{
       height: 0,
@@ -216,7 +222,6 @@ const ArrowTick = () => // Css triangle!
       borderBottom: `6px solid ${globalColors.white}`,
     }}
   />
-)
 
 const BadgeIcon = ({
   tab,

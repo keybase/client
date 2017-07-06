@@ -5,7 +5,7 @@ import {globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
+const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) =>
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -17,15 +17,21 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
     }}
   >
     <Text type="Header">{`Block the conversation with ${participants}?`}</Text>
-    <Text type="Body" style={{marginTop: globalMargins.large}}>You won't see this conversation anymore.</Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>To unblock it, run:</Text>
+    <Text type="Body" style={{marginTop: globalMargins.large}}>
+      You won't see this conversation anymore.
+    </Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      To unblock it, run:
+    </Text>
     <Text
       type="Terminal"
       style={{...globalStyles.selectable, alignSelf: 'center', marginTop: globalMargins.small}}
     >
       keybase chat hide -u {participants}
     </Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>in the terminal on a desktop computer.</Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      in the terminal on a desktop computer.
+    </Text>
     <Box style={{...globalStyles.flexBoxColum, marginTop: globalMargins.xlarge}}>
       <Button type="Secondary" onClick={onBack} label="No, don't block them" />
       <Button
@@ -42,13 +48,12 @@ const _Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAnd
       />
     </Box>
   </Box>
-)
 
 // Wrap it in a Header if its mobile. Normally we'd put HeaderHoc on the whole thing but the Popupdialog needs it to
 // apply to the insides and not the outter container.
 const Contents = HeaderHoc(_Contents)
 
-const RenderBlockConversationWarning = (props: Props) => (
+const RenderBlockConversationWarning = (props: Props) =>
   <PopupDialog
     onClose={props.onBack}
     styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
@@ -56,6 +61,5 @@ const RenderBlockConversationWarning = (props: Props) => (
   >
     <Contents {...props} />
   </PopupDialog>
-)
 
 export default RenderBlockConversationWarning

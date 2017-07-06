@@ -44,9 +44,11 @@ const load = () => {
   })
 
   storiesOf('Icon', module).add('Icon', () =>
-    Object.keys(sizes).map(size => (
+    Object.keys(sizes).map(size =>
       <Box key={size}>
-        <Text type="Body">{size}</Text>
+        <Text type="Body">
+          {size}
+        </Text>
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -58,7 +60,7 @@ const load = () => {
           {sizes[size].map(type => <Icon key={type} type={type} {...commonProps} />)}
         </Box>
       </Box>
-    ))
+    )
   )
 }
 

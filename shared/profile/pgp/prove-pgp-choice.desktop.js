@@ -8,7 +8,9 @@ class ProvePgpChoice extends Component<void, Props, void> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>
-        <Text style={styleTitle} type="Header">Add a PGP key</Text>
+        <Text style={styleTitle} type="Header">
+          Add a PGP key
+        </Text>
         <ChoiceList
           options={[
             {

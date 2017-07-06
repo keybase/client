@@ -70,16 +70,17 @@ export class RouteDefNode extends _RouteDefNode {
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
-      children: typeof children === 'function'
-        ? children
-        : I.Seq(children)
-            .map(
-              params =>
-                params instanceof RouteDefNode || typeof params === 'function'
-                  ? params
-                  : new RouteDefNode(params)
-            )
-            .toMap(),
+      children:
+        typeof children === 'function'
+          ? children
+          : I.Seq(children)
+              .map(
+                params =>
+                  params instanceof RouteDefNode || typeof params === 'function'
+                    ? params
+                    : new RouteDefNode(params)
+              )
+              .toMap(),
     })
   }
 

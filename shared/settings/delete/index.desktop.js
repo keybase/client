@@ -17,9 +17,12 @@ function DeleteMe(props: Props) {
         paddingBottom: globalMargins.xlarge,
       }}
     >
-      <Text type="Header" style={{marginTop: globalMargins.medium}}>So this is goodbye?</Text>
+      <Text type="Header" style={{marginTop: globalMargins.medium}}>
+        So this is goodbye?
+      </Text>
       <Text type="Body" style={{textAlign: 'center', padding: globalMargins.small}}>
-        If you delete your account, you can't get it back, and you can't create another account with the same name.
+        If you delete your account, you can't get it back, and you can't create another account with the same
+        name.
       </Text>
       <Button
         style={{marginTop: globalMargins.small}}

@@ -135,7 +135,11 @@ class DumbSheetRender extends Component<void, Props, any> {
     if (!this._updateMockStore(mock.mockStore)) return null
 
     console.log('test render idx', this.state.testIndex, component)
-    return <Box>{this._makeStoreWrapper(component)}</Box>
+    return (
+      <Box>
+        {this._makeStoreWrapper(component)}
+      </Box>
+    )
   }
 
   _updateMockStore(mockStore: any) {
@@ -157,7 +161,11 @@ class DumbSheetRender extends Component<void, Props, any> {
   }
 
   _makeStoreWrapper(component) {
-    return this.state.mockStore ? <Provider store={this.state.mockStore}>{component}</Provider> : component
+    return this.state.mockStore
+      ? <Provider store={this.state.mockStore}>
+          {component}
+        </Provider>
+      : component
   }
 
   renderSingle() {
@@ -269,9 +277,7 @@ class DumbSheetRender extends Component<void, Props, any> {
         <Box style={styleBox}>
           <Text type="BodySmall">
             {key}
-            :
-            {' '}
-            {mockKey}
+            : {mockKey}
             {!!mock.parentProps && !!mock.parentProps.style && Object.keys(mock.parentProps.style).length
               ? ' (with parent props style) '
               : ''}

@@ -178,9 +178,11 @@ class BaseList extends Component<void, Props, State> {
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
       <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
-        <style>{realCSS}</style>
+        <style>
+          {realCSS}
+        </style>
         <Virtualized.AutoSizer onResize={this._onResize}>
-          {({height, width}) => (
+          {({height, width}) =>
             <Virtualized.List
               messageKeys={this.props.messageKeys}
               listRerender={this.state.listRerender}
@@ -198,8 +200,7 @@ class BaseList extends Component<void, Props, State> {
               scrollToIndex={scrollToIndex}
               style={listStyle}
               width={width}
-            />
-          )}
+            />}
         </Virtualized.AutoSizer>
       </div>
     )

@@ -92,7 +92,9 @@ class GlobalError extends Component<void, Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>{message}</Text>
+          <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+            {message}
+          </Text>
         </Box>
         <Box style={overlayFillStyle}>
           <Icon type="icon-loader-connecting-266" />
@@ -118,7 +120,9 @@ class GlobalError extends Component<void, Props, State> {
           {summary &&
             <Icon type="iconfont-close" onClick={onDismiss} style={{color: globalColors.white_75}} />}
         </Box>
-        <Text type="BodyBig" style={detailStyle}>{details}</Text>
+        <Text type="BodyBig" style={detailStyle}>
+          {details}
+        </Text>
       </Box>
     )
   }

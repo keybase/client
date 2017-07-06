@@ -118,7 +118,9 @@ class GlobalError extends Component<void, Props, State> {
         </NativeTouchableWithoutFeedback>
         <NativeScrollView>
           <Text type="BodySmall" style={detailStyle}>
-            {this.props.error && this.props.error.message}{'\n\n'}{details}
+            {this.props.error && this.props.error.message}
+            {'\n\n'}
+            {details}
           </Text>
         </NativeScrollView>
       </Box>

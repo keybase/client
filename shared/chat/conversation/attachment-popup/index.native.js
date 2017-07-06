@@ -40,7 +40,7 @@ const AttachmentView = ({
   isZoomed: boolean,
   onToggleZoom: () => void,
   path: ?string,
-}) => (
+}) =>
   <Box style={{...globalStyles.flexBoxCenter, flex: 1}}>
     {!!path &&
       <AutoMaxSizeImage
@@ -49,7 +49,6 @@ const AttachmentView = ({
       />}
     {!path && <ProgressIndicator style={{width: 48}} white={true} />}
   </Box>
-)
 
 const AttachmentPopup = ({
   message,
@@ -95,8 +94,12 @@ const AttachmentPopup = ({
           >
             {title}
           </Text>
-          <Text type="BodySmall">Sent by {author}</Text>
-          <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+          <Text type="BodySmall">
+            Sent by {author}
+          </Text>
+          <Text type="BodySmall">
+            {formatTimeForPopup(timestamp)}
+          </Text>
           <Text type="BodySmall" style={{color: globalColors.black, marginTop: globalMargins.large}}>
             Your device can not preview this file.
           </Text>

@@ -69,7 +69,9 @@ class ListRender extends Component<void, Props, State> {
       <Box style={stylesIgnoreContainer}>
         <ClickableBox onClick={this._onIgnoredToggle}>
           <Box style={styles.topBox}>
-            <Text type="BodySmallSemibold" style={{color: headingColor}}>Ignored folders</Text>
+            <Text type="BodySmallSemibold" style={{color: headingColor}}>
+              Ignored folders
+            </Text>
             <Icon
               type={caretIcon}
               style={{

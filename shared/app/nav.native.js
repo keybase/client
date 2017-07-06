@@ -110,16 +110,15 @@ function renderStackRoute(route) {
   )
 }
 
-const forIOS = ({hideNav, shim, tabBar}) => (
+const forIOS = ({hideNav, shim, tabBar}) =>
   <Box style={flexOne}>
     <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
       {shim}
     </NativeKeyboardAvoidingView>
     {!hideNav && tabBar}
   </Box>
-)
 
-const forAndroid = ({hideNav, shim, tabBar}) => (
+const forAndroid = ({hideNav, shim, tabBar}) =>
   <Box style={flexOne}>
     <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
       {shim}
@@ -129,7 +128,6 @@ const forAndroid = ({hideNav, shim, tabBar}) => (
         {tabBar}
       </Box>}
   </Box>
-)
 
 function MainNavStack(props: Props) {
   const screens = props.routeStack

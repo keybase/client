@@ -24,7 +24,9 @@ class DeviceRow extends Component<void, {device: Device}, void> {
         <div style={deviceRowStyles.iconWrapper}>
           <Icon type={icon} style={{height: 22}} />
         </div>
-        <Text type="BodySemiboldItalic" style={{marginLeft: 16}}>{this.props.device.name}</Text>
+        <Text type="BodySemiboldItalic" style={{marginLeft: 16}}>
+          {this.props.device.name}
+        </Text>
       </div>
     )
   }
@@ -35,7 +37,8 @@ export default class DeviceList extends Component<void, Props, void> {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Text type="Body" style={styles.infoText}>
-          This computer and possibly others are unable to read some of your folders. To avoid losing data forever, please turn on one of the devices below:
+          This computer and possibly others are unable to read some of your folders. To avoid losing data
+          forever, please turn on one of the devices below:
         </Text>
         <div style={styles.devicesContainer}>
           {this.props.devices && this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d} />)}

@@ -54,36 +54,74 @@ function previewCreateComponent(type, key, children, options) {
     case 'native-emoji':
       return <Emoji emojiName={String(children)} size={11} key={key} />
     default:
-      return <Text type="BodySmall" key={key} style={neutralPreviewStyle}>{children}</Text>
+      return (
+        <Text type="BodySmall" key={key} style={neutralPreviewStyle}>
+          {children}
+        </Text>
+      )
   }
 }
 
 function messageCreateComponent(type, key, children, options) {
   switch (type) {
     case 'markup':
-      return <Box key={key}>{children}</Box>
+      return (
+        <Box key={key}>
+          {children}
+        </Box>
+      )
     case 'inline-code':
-      return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
+      return (
+        <Text type="Body" key={key} style={codeSnippetStyle}>
+          {children}
+        </Text>
+      )
     case 'code-block':
-      return <Text type="Body" key={key} style={codeSnippetBlockStyle}>{children}</Text>
+      return (
+        <Text type="Body" key={key} style={codeSnippetBlockStyle}>
+          {children}
+        </Text>
+      )
     case 'link':
       return (
-        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
+        <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>
+          {children}
+        </Text>
       )
     case 'text-block':
-      return <Text type="Body" key={key} style={textBlockStyle}>{children.length ? children : '\u200b'}</Text>
+      return (
+        <Text type="Body" key={key} style={textBlockStyle}>
+          {children.length ? children : '\u200b'}
+        </Text>
+      )
     case 'bold':
-      return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
+      return (
+        <Text type="BodySemibold" key={key} style={boldStyle}>
+          {children}
+        </Text>
+      )
     case 'italic':
-      return <Text type="Body" key={key} style={italicStyle}>{children}</Text>
+      return (
+        <Text type="Body" key={key} style={italicStyle}>
+          {children}
+        </Text>
+      )
     case 'strike':
-      return <Text type="Body" key={key} style={strikeStyle}>{children}</Text>
+      return (
+        <Text type="Body" key={key} style={strikeStyle}>
+          {children}
+        </Text>
+      )
     case 'emoji':
       return <EmojiIfExists emojiName={String(children)} size={16} key={key} />
     case 'native-emoji':
       return <Emoji emojiName={String(children)} size={16} key={key} />
     case 'quote-block':
-      return <Box key={key} style={quoteStyle}>{children}</Box>
+      return (
+        <Box key={key} style={quoteStyle}>
+          {children}
+        </Box>
+      )
   }
 }
 
@@ -97,7 +135,11 @@ class Markdown extends PureComponent<void, Props, void> {
       this.props.children,
       this.props.preview ? previewCreateComponent : messageCreateComponent
     )
-    return <Text type="Body" style={{whiteSpace: 'pre', ...this.props.style}}>{content}</Text>
+    return (
+      <Text type="Body" style={{whiteSpace: 'pre', ...this.props.style}}>
+        {content}
+      </Text>
+    )
   }
 }
 

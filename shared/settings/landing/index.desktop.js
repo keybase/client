@@ -88,7 +88,7 @@ function SpaceInfo({
   )
 }
 
-const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
+const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) =>
   <Button
     style={{marginRight: 0}}
     type="Follow"
@@ -98,9 +98,8 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 
       e.stopPropagation()
     }}
   />
-)
 
-const DowngradeLink = ({onClick}) => (
+const DowngradeLink = ({onClick}) =>
   <Text
     type={'BodySmall'}
     link={true}
@@ -112,7 +111,6 @@ const DowngradeLink = ({onClick}) => (
   >
     Downgrade
   </Text>
-)
 
 function PlanActionVariants({variants, onClick}: {variants: PlanActionVariantsProps, onClick: () => void}) {
   switch (variants.type) {
@@ -147,7 +145,9 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
           >
             {level}
           </Text>
-          <Text type={'BodySmall'}>({price})</Text>
+          <Text type={'BodySmall'}>
+            ({price})
+          </Text>
         </Box>
         {selected && <Meta title="Your Plan" style={{backgroundColor: globalColors.blue2}} />}
       </Box>
@@ -218,7 +218,7 @@ function Plan({
       <Box style={globalStyles.flexBoxColumn}>
         <SubHeading>Your plan</SubHeading>
       </Box>
-      {plans.map(p => (
+      {plans.map(p =>
         <PlanLevelRow
           key={p.planLevel}
           level={p.planLevel}
@@ -234,7 +234,7 @@ function Plan({
             comparePlans(from, p)
           )}
         />
-      ))}
+      )}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type="BodySmall">
@@ -263,7 +263,9 @@ function AccountEmail({
       }}
     >
       <Box style={globalStyles.flexBoxColumn}>
-        <Text type="BodySemibold">{email}</Text>
+        <Text type="BodySemibold">
+          {email}
+        </Text>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon
             type={isVerified ? 'iconfont-check' : 'iconfont-close'}
@@ -280,7 +282,9 @@ function AccountEmail({
           </Text>
         </Box>
       </Box>
-      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>Edit</Text>
+      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>
+        Edit
+      </Text>
     </Box>
   )
 }
@@ -291,7 +295,9 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
       <Text type="Body" style={{marginRight: globalMargins.xtiny}}>
         Passphrase:
       </Text>
-      <Text type="Body" style={{flex: 1}}>•••••••••</Text>
+      <Text type="Body" style={{flex: 1}}>
+        •••••••••
+      </Text>
       <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
         Edit
       </Text>

@@ -17,7 +17,9 @@ const SetPublicName = ({
 }: Props) => {
   return (
     <Container style={stylesContainer} onBack={onBack}>
-      <Text type="Header" style={stylesHeader}>Set a public name for this device:</Text>
+      <Text type="Header" style={stylesHeader}>
+        Set a public name for this device:
+      </Text>
       <Icon type="icon-computer-64" style={stylesIcon} />
       <Input
         autoFocus={true}

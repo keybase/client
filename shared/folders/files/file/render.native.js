@@ -13,9 +13,13 @@ class FileRender extends Component<void, Props, void> {
   _renderBody() {
     return (
       <Box>
-        <Text type="BodySemibold" style={filenameStyleThemed[this.props.theme]}>{this.props.name}</Text>
+        <Text type="BodySemibold" style={filenameStyleThemed[this.props.theme]}>
+          {this.props.name}
+        </Text>
         <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
+          <Text type="BodySmall" style={pathStyleThemed[this.props.theme]}>
+            {this.props.path}
+          </Text>
           {!!this.props.lastModifiedBy &&
             <Box style={globalStyles.flexBoxRow}>
               <Text
@@ -37,7 +41,9 @@ class FileRender extends Component<void, Props, void> {
               <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
                 {this.props.lastModifiedMeta}
               </Text>
-              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}> by </Text>
+              <Text type="BodySmall" style={modifiedByStyleThemed[this.props.theme]}>
+                {' '}by{' '}
+              </Text>
               <Text
                 type="BodySmallInlineLink"
                 style={{

@@ -27,7 +27,9 @@ const Render = (props: Props) => {
           overlay={platformIconOverlay}
           overlayColor={platformIconOverlayColor}
         />
-        <Text type="Header" style={{color: globalColors.blue}}>{username}</Text>
+        <Text type="Header" style={{color: globalColors.blue}}>
+          {username}
+        </Text>
         {!!usernameSubtitle &&
           <Text type="Body" style={{color: globalColors.black_20, paddingBottom: globalMargins.large}}>
             {usernameSubtitle}
@@ -38,7 +40,10 @@ const Render = (props: Props) => {
         >
           {message}
         </Text>
-        {!!messageSubtitle && <Text type="BodySmall" style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
+        {!!messageSubtitle &&
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            {messageSubtitle}
+          </Text>}
       </Box>
       <Box
         style={{
@@ -70,7 +75,9 @@ const Wrapped = (props: Props) => {
         height: globalMargins.large,
       }}
     >
-      <Text backgroundMode="Terminal" type="BodySemibold">{title}</Text>
+      <Text backgroundMode="Terminal" type="BodySemibold">
+        {title}
+      </Text>
     </Box>
   )
   return (

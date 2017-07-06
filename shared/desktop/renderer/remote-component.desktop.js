@@ -118,7 +118,11 @@ class RemoteComponent extends Component {
   }
 
   render() {
-    return <div>{this.props.component}:{this.remoteWindowId}</div>
+    return (
+      <div>
+        {this.props.component}:{this.remoteWindowId}
+      </div>
+    )
   }
 
   shouldComponentUpdate(nextProps: any) {

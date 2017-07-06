@@ -28,8 +28,6 @@ let config: {[key: string]: any} = {
   printRoutes: false,
   reactPerf: false,
   redirectOnLogout: true,
-  reduxDevToolsEnable: false,
-  reduxDevToolsSelect: state => state, // only watch a subset of the store
   reduxSagaLogger: false,
   reduxSagaLoggerMasked: true,
   resetEngineOnHMR: false,
@@ -104,8 +102,6 @@ export const {
   printRPC,
   printRoutes,
   reactPerf,
-  reduxDevToolsEnable,
-  reduxDevToolsSelect,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   resetEngineOnHMR,

@@ -9,7 +9,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './header-hoc'
 
 function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
-  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
+  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) =>
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
         {onBack &&
@@ -26,12 +26,13 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
           />}
         {title &&
           <Box style={_titleStyle}>
-            <Text type="Header">{title}</Text>
+            <Text type="Header">
+              {title}
+            </Text>
           </Box>}
       </Box>
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
-  )
 }
 
 const _containerStyle = {

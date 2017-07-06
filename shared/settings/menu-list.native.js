@@ -23,8 +23,12 @@ export default class MenuList extends Component<void, Props, State> {
     return (
       <ClickableBox onClick={rowData.onClick}>
         <Box style={{margin: 10, ...globalStyles.flexBoxRow, flex: 1}}>
-          <Text type="BodySmall">{rowData.name}</Text>
-          <Text type="BodySmall" style={{flex: 1}}>{rowData.hasChildren ? '>' : ''}</Text>
+          <Text type="BodySmall">
+            {rowData.name}
+          </Text>
+          <Text type="BodySmall" style={{flex: 1}}>
+            {rowData.hasChildren ? '>' : ''}
+          </Text>
         </Box>
       </ClickableBox>
     )

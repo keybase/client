@@ -11,8 +11,12 @@ class GPGSign extends Component<void, Props, void> {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>
         <RowCSS />
-        <Text type="Header" style={styles.header}>Let's sign your installation of keybase with GPG</Text>
-        <Text type="Body" style={styles.subHeader}>Allow Keybase to run PGP commands?</Text>
+        <Text type="Header" style={styles.header}>
+          Let's sign your installation of keybase with GPG
+        </Text>
+        <Text type="Body" style={styles.subHeader}>
+          Allow Keybase to run PGP commands?
+        </Text>
         <Row
           onClick={() => this.props.onSubmit(true)}
           icon="icon-GPG-export"

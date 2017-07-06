@@ -41,7 +41,9 @@ const PostProof = (props: Props) => {
       <Icon style={styleClose} type="iconfont-close" onClick={() => onCancel()} />
       {!!errorMessage &&
         <Box style={styleErrorBanner}>
-          <Text style={styleErrorBannerText} type="BodySemibold">{errorMessage}</Text>
+          <Text style={styleErrorBannerText} type="BodySemibold">
+            {errorMessage}
+          </Text>
         </Box>}
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Box style={styleContentContainer}>
@@ -59,10 +61,20 @@ const PostProof = (props: Props) => {
           >
             {platformUserName}
           </Text>
-          {!!platformSubtitle && <Text style={stylePlatformSubtitle} type="Body">{platformSubtitle}</Text>}
-          {descriptionView || (descriptionText && <Text type="Body">{descriptionText}</Text>)}
+          {!!platformSubtitle &&
+            <Text style={stylePlatformSubtitle} type="Body">
+              {platformSubtitle}
+            </Text>}
+          {descriptionView ||
+            (descriptionText &&
+              <Text type="Body">
+                {descriptionText}
+              </Text>)}
           {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
-          {!!noteText && <Text style={styleNoteText} type="Body">{noteText}</Text>}
+          {!!noteText &&
+            <Text style={styleNoteText} type="Body">
+              {noteText}
+            </Text>}
           {!!proofAction &&
             !!proofActionIcon &&
             <LinkWithIcon

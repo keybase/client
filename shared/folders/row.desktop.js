@@ -52,8 +52,12 @@ const Modified = ({smallMode, styles, modified}) => {
   return (
     <Box style={stylesModified}>
       <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" />
-      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
+        Modified {modified.when} by&nbsp;
+      </Text>
+      <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>
+        {modified.username}
+      </Text>
     </Box>
   )
 }

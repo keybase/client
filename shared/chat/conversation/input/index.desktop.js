@@ -183,20 +183,34 @@ const isTyping = typing => {
   }
   switch (typing.length) {
     case 1:
-      return [<Text key={0} type="BodySmallSemibold">{typing[0]}</Text>, ` is typing`]
+      return [
+        <Text key={0} type="BodySmallSemibold">
+          {typing[0]}
+        </Text>,
+        ` is typing`,
+      ]
     case 2:
       return [
-        <Text key={0} type="BodySmallSemibold">{typing[0]}</Text>,
+        <Text key={0} type="BodySmallSemibold">
+          {typing[0]}
+        </Text>,
         ` and `,
-        <Text key={1} type="BodySmallSemibold">{typing[1]}</Text>,
+        <Text key={1} type="BodySmallSemibold">
+          {typing[1]}
+        </Text>,
         ` are typing`,
       ]
     default:
-      return [<Text key={0} type="BodySmallSemibold">{typing.join(', ')}</Text>, ` are typing`]
+      return [
+        <Text key={0} type="BodySmallSemibold">
+          {typing.join(', ')}
+        </Text>,
+        ` are typing`,
+      ]
   }
 }
 
-const EmojiPicker = ({emojiPickerToggle, onClick}) => (
+const EmojiPicker = ({emojiPickerToggle, onClick}) =>
   <Box>
     <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0, top: 0}} onClick={emojiPickerToggle} />
     <Box style={{position: 'relative'}}>
@@ -205,7 +219,6 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
       </Box>
     </Box>
   </Box>
-)
 
 const styleInput = {
   flex: 1,

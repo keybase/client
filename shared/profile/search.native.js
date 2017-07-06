@@ -8,7 +8,7 @@ import {globalStyles, globalMargins} from '../styles'
 
 import type {Props} from './search'
 
-const Search = (props: Props) => (
+const Search = (props: Props) =>
   <StandardScreen style={globalStyles.flexBoxColumn} onCancel={props.onClose} title="Search people">
     <Box style={{flexGrow: 1}}>
       <UserInput
@@ -26,7 +26,9 @@ const Search = (props: Props) => (
     </Box>
     {props.showServiceFilter &&
       <Box style={styleSearchFilter}>
-        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
+        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">
+          Filter:
+        </Text>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>}
     <Box>
@@ -41,7 +43,6 @@ const Search = (props: Props) => (
           />}
     </Box>
   </StandardScreen>
-)
 
 const styleSearchFilter = {
   ...globalStyles.flexBoxRow,

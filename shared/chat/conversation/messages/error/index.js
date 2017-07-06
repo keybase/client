@@ -7,11 +7,12 @@ export type Props = {
   reason: string,
 }
 
-const Error = ({reason}: Props) => (
+const Error = ({reason}: Props) =>
   <Box style={errorStyle}>
-    <Text type="BodySmallItalic" style={textStyle}>{reason}</Text>
+    <Text type="BodySmallItalic" style={textStyle}>
+      {reason}
+    </Text>
   </Box>
-)
 
 const textStyle = {
   color: globalColors.red,

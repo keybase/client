@@ -9,7 +9,9 @@ class ProveWebsiteChoice extends Component<void, Props, void> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>
-        <Text style={styleTitle} type="Header">Prove your website in two ways:</Text>
+        <Text style={styleTitle} type="Header">
+          Prove your website in two ways:
+        </Text>
         <ChoiceList
           options={[
             {

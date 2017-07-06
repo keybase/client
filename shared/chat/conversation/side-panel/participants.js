@@ -17,7 +17,7 @@ type Props = {
   style?: ?Object,
 }
 
-const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
+const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) =>
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
     {participants.map(info => {
       const {username, following, fullname, broken, isYou} = info
@@ -51,11 +51,12 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
     <ClickableBox onClick={() => onAddParticipant()}>
       <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Icon type="icon-user-add-32" style={{marginRight: 12}} />
-        <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>Add another participant</Text>
+        <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>
+          Add another participant
+        </Text>
       </Box>
     </ClickableBox>
   </Box>
-)
 
 const rowStyle = {
   ...globalStyles.flexBoxColumn,

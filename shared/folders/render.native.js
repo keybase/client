@@ -56,7 +56,7 @@ class FoldersRender extends Component<void, Props, void> {
             marginBottom: globalMargins.xtiny,
           }}
         >
-          {[false, true].map(isPublic => (
+          {[false, true].map(isPublic =>
             <TabBarItem
               key={isPublic ? 'public' : 'private'}
               selected={this.props.showingPrivate !== isPublic}
@@ -75,7 +75,7 @@ class FoldersRender extends Component<void, Props, void> {
                 onToggleShowIgnored={this.props.onToggleShowIgnored}
               />
             </TabBarItem>
-          ))}
+          )}
         </TabBar>
       </Box>
     )

@@ -110,7 +110,7 @@ class ConversationInput extends Component<void, Props, void> {
   }
 }
 
-const Typing = ({typing}) => (
+const Typing = ({typing}) =>
   <Box
     style={{
       ...globalStyles.flexBoxRow,
@@ -124,7 +124,6 @@ const Typing = ({typing}) => (
   >
     <Icon type="icon-typing-24" style={{width: 20}} />
   </Box>
-)
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
   text

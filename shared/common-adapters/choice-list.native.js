@@ -34,7 +34,7 @@ class ChoiceList extends Component<void, Props, State> {
     const {options} = this.props
     return (
       <Box>
-        {options.map((op, idx) => (
+        {options.map((op, idx) =>
           <ClickableBox
             key={idx}
             underlayColor={globalColors.blue4}
@@ -46,15 +46,21 @@ class ChoiceList extends Component<void, Props, State> {
               <Box style={styleIconContainer(this.state.activeIndex === idx)}>
                 {typeof op.icon === 'string'
                   ? <Icon style={styleIcon} type={op.icon} />
-                  : <Box style={styleIcon}>{op.icon}</Box>}
+                  : <Box style={styleIcon}>
+                      {op.icon}
+                    </Box>}
               </Box>
               <Box style={styleInfoContainer}>
-                <Text style={styleInfoTitle} type="Header">{op.title}</Text>
-                <Text type="Body">{op.description}</Text>
+                <Text style={styleInfoTitle} type="Header">
+                  {op.title}
+                </Text>
+                <Text type="Body">
+                  {op.description}
+                </Text>
               </Box>
             </Box>
           </ClickableBox>
-        ))}
+        )}
       </Box>
     )
   }

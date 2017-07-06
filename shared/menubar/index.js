@@ -168,7 +168,9 @@ class Menubar extends Component<void, Props, void> {
   _showBug() {
     const version = __VERSION__ // eslint-disable-line no-undef
     shell.openExternal(
-      `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`
+      `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
+        version
+      )}`
     )
   }
 

@@ -8,7 +8,9 @@ import type {Props} from '.'
 const PaperKey = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingForResponse}: Props) => {
   return (
     <Container style={styles.container} onBack={() => onBack()}>
-      <Text type="Header" style={styles.header}>Type in your paper key:</Text>
+      <Text type="Header" style={styles.header}>
+        Type in your paper key:
+      </Text>
       <Icon type="icon-paper-key-48" style={styles.icon} />
       <Input
         autoFocus={true}

@@ -20,7 +20,7 @@ type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
 }
 
-const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (
+const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) =>
   <ClickableBox
     onClick={() => {
       onClick && onClick(username)
@@ -35,10 +35,11 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
         followsYou={followsYou}
         following={following}
       />
-      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+        {username}
+      </Text>
     </Box>
   </ClickableBox>
-)
 
 const userEntryContainerStyle = {
   ...globalStyles.flexBoxColumn,

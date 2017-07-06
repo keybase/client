@@ -6,7 +6,7 @@ import {Box, Icon, Text} from '../common-adapters/index.native'
 
 import type {Props} from './about'
 
-const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
+const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) =>
   <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
     <Icon type="icon-keybase-logo-64" />
     <Text
@@ -18,8 +18,9 @@ const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
     <Text style={{marginBottom: globalMargins.tiny}} type="BodyPrimaryLink" onClick={onShowTerms}>
       Terms and Conditions
     </Text>
-    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>Privacy Policy</Text>
+    <Text type="BodyPrimaryLink" onClick={onShowPrivacyPolicy}>
+      Privacy Policy
+    </Text>
   </Box>
-)
 
 export default About

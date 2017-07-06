@@ -5,7 +5,7 @@ import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
-const Row = ({username, onUsernameClicked}) => (
+const Row = ({username, onUsernameClicked}) =>
   <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
     <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
     <Box style={innerRowStyle}>
@@ -15,7 +15,6 @@ const Row = ({username, onUsernameClicked}) => (
       </Text>
     </Box>
   </Box>
-)
 
 const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => {
   return (
@@ -42,9 +41,9 @@ const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) 
           {rekeyInfo &&
             rekeyInfo
               .get('rekeyParticipants')
-              .map(username => (
+              .map(username =>
                 <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
-              ))}
+              )}
         </Box>
       </Box>
     </Box>

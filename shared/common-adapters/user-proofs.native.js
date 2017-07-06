@@ -76,8 +76,13 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
           <Text type="Body" onClick={() => onClickProfile(proof)} style={styleProofName}>
-            <Text type="Body" style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-            {!!proof.id && <Text type="Body" style={styleProofType}>@{proof.type}</Text>}
+            <Text type="Body" style={shared.proofNameStyle(proof)}>
+              {proof.name}
+            </Text>
+            {!!proof.id &&
+              <Text type="Body" style={styleProofType}>
+                @{proof.type}
+              </Text>}
           </Text>
           {proof.meta &&
             proof.meta !== metaNone &&
@@ -161,7 +166,7 @@ class ProofsRender extends Component<void, Props, void> {
     return (
       <Box style={{...styleContainer, ...this.props.style}}>
         {this.props.type === 'proofs' &&
-          this.props.proofs.map((p, idx) => (
+          this.props.proofs.map((p, idx) =>
             <ProofRow
               key={`${p.id || ''}${p.type}`}
               proof={p}
@@ -170,11 +175,11 @@ class ProofsRender extends Component<void, Props, void> {
               hasMenu={!!onClickProofMenu}
               style={{minHeight: 32}}
             />
-          ))}
+          )}
         {this.props.type === 'missingProofs' &&
-          this.props.missingProofs.map((mp, idx) => (
+          this.props.missingProofs.map((mp, idx) =>
             <MissingProofRow key={mp.type} missingProof={mp} style={{minHeight: 32}} />
-          ))}
+          )}
       </Box>
     )
   }

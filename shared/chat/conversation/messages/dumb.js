@@ -180,12 +180,11 @@ mocks['failure reason'] = {
   metaDataMap,
 }
 
-const StackedMessages = ({mock1, mock2}: any) => (
+const StackedMessages = ({mock1, mock2}: any) =>
   <Box>
     <Wrapper {...mock1} />
     <Wrapper {...mock2} />
   </Box>
-)
 
 /*
 const attachmentBaseMessage = {

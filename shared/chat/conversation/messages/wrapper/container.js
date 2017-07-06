@@ -29,10 +29,12 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const isFollowing = !!Constants.getFollowingMap(state)[author]
   const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
 
-  const isFirstNewMessage = !!(conversationState &&
+  const isFirstNewMessage = !!(
+    conversationState &&
     message &&
     message.messageID &&
-    conversationState.get('firstNewMessageID') === message.messageID)
+    conversationState.get('firstNewMessageID') === message.messageID
+  )
   const {message: prevMessage} = lookupMessageProps(state, prevMessageKey)
   const skipMsgHeader = prevMessage && prevMessage.type === 'Text' && prevMessage.author === author
 
@@ -43,9 +45,8 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     prevMessage.timestamp &&
     message.timestamp &&
     message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs
-  const timestamp = firstMessageEver || firstVisibleMessage || oldEnough
-    ? formatTimeForMessages(message.timestamp)
-    : null
+  const timestamp =
+    firstMessageEver || firstVisibleMessage || oldEnough ? formatTimeForMessages(message.timestamp) : null
   const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
   const isEditing = message === Constants.getEditingMessage(state)
 

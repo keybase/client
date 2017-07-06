@@ -9,7 +9,9 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
     !!props.notification &&
       <Box key="banner" style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
         {typeof props.notification.message === 'string'
-          ? <Text style={styleBannerText} type="BodySemibold">{props.notification.message}</Text>
+          ? <Text style={styleBannerText} type="BodySemibold">
+              {props.notification.message}
+            </Text>
           : props.notification.message}
       </Box>,
   ]

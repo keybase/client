@@ -15,7 +15,9 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode="Information" type="BodySemibold">&bull; You must have karma &ge; 2</Text>
+        <Text backgroundMode="Information" type="BodySemibold">
+          &bull; You must have karma &ge; 2
+        </Text>
         <Text backgroundMode="Information" type="BodySemibold">
           &bull; You must enter your uSeRName with exact case
         </Text>
@@ -27,7 +29,11 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
 }
 
 function customError(error: string, code: ?number) {
-  return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
+  return (
+    <Text style={styleErrorBannerText} type="BodySemibold">
+      {error}
+    </Text>
+  )
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {

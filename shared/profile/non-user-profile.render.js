@@ -8,7 +8,7 @@ import {AVATAR_SIZE, HEADER_SIZE} from '../profile/index.desktop'
 
 import type Props from './non-user-profile.render'
 
-const NonUserRender = (props: Props) => (
+const NonUserRender = (props: Props) =>
   <Box style={styleContainer}>
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
     <Box style={globalStyles.flexBoxColumn}>
@@ -29,8 +29,13 @@ const NonUserRender = (props: Props) => (
               {props.username}
             </Text>
           </Box>
-          {props.fullname && <Text type="BodySemibold" style={styleFullname}>{props.fullname}</Text>}
-          <Text type="BodySmall" style={styleServiceLabel}>{props.serviceName} user</Text>
+          {props.fullname &&
+            <Text type="BodySemibold" style={styleFullname}>
+              {props.fullname}
+            </Text>}
+          <Text type="BodySmall" style={styleServiceLabel}>
+            {props.serviceName} user
+          </Text>
           <Button
             style={{marginTop: globalMargins.medium}}
             onClick={props.onStartChat}
@@ -49,11 +54,12 @@ const NonUserRender = (props: Props) => (
         <Text
           type="BodySmall"
           style={styleDetails}
-        >{`When ${props.username} connects Keybase and their ${capitalize(props.serviceName)} account, your computer will verify them and rekey the folder or conversation.`}</Text>
+        >{`When ${props.username} connects Keybase and their ${capitalize(
+          props.serviceName
+        )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
       </Box>
     </Box>
   </Box>
-)
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,

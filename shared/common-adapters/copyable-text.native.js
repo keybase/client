@@ -47,7 +47,9 @@ class CopyableText<P: Props & TimerProps> extends Component<void, P, State> {
         style={style}
       >
         <Box style={styleBase}>
-          <Text style={{...styleText, ...textStyle}} type="BodySmall">{value}</Text>
+          <Text style={{...styleText, ...textStyle}} type="BodySmall">
+            {value}
+          </Text>
           <Box style={styleCopyToastContainer}>
             <Box style={styleCopyToast}>
               <Text style={styleCopyToastText} type="Body">

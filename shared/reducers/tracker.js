@@ -697,10 +697,12 @@ function remoteProofToProof(
     (lcr &&
       proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff, lcr.breaksTracking)) ||
     oldProofState
-  const isTracked = !!(lcr &&
+  const isTracked = !!(
+    lcr &&
     lcr.diff &&
     lcr.diff.type === RPCTypes.IdentifyCommonTrackDiffType.none &&
-    !lcr.breaksTracking)
+    !lcr.breaksTracking
+  )
   const {diffMeta, statusMeta} = diffAndStatusMeta(
     lcr && lcr.diff && lcr.diff.type,
     lcr && lcr.proofResult,

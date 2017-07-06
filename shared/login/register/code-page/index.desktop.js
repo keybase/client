@@ -19,9 +19,11 @@ import {getStyle} from '../../../common-adapters/text'
 
 import type {Props} from '.'
 
-const SubTitle = ({usePhone}) => (
+const SubTitle = ({usePhone}) =>
   <p>
-    <Text type="Body">In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
+    <Text type="Body">
+      In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to
+    </Text>
     <Icon
       type="iconfont-identity-devices"
       style={{
@@ -32,18 +34,21 @@ const SubTitle = ({usePhone}) => (
     />
     <Text type="Body">Devices > Add a new device.</Text>
   </p>
-)
 
-const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
+const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) =>
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={{marginTop: 60}}>Type in text code</Text>
+    <Text type="Header" style={{marginTop: 60}}>
+      Type in text code
+    </Text>
     <p style={{marginTop: 10}}>
       <Text type="Body">Run&nbsp;</Text>
       <Text type="TerminalInline">keybase device add</Text>
       <Text type="Body">&nbsp;on your other device and type this code there: </Text>
     </p>
     <Icon type="icon-computer-text-code-48" style={{marginTop: 28}} />
-    <Text type="Body" style={stylesPaperkey}>{textCode}</Text>
+    <Text type="Body" style={stylesPaperkey}>
+      {textCode}
+    </Text>
     {_otherIsPhone(otherDeviceRole) &&
       <p
         style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}
@@ -55,12 +60,13 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
         </Text>
       </p>}
   </Container>
-)
 
-const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
+const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) =>
   <Container style={{...stylesContainer, alignItems: 'stretch'}} onBack={onBack}>
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, overflowY: 'auto'}}>
-      <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Scan this QR code</Text>
+      <Text style={{marginBottom: 11, marginTop: 38}} type="Header">
+        Scan this QR code
+      </Text>
       <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
       <div style={stylesQrContainer}>
         <div style={{background: `url("${qrCode}")`, ...stylesQr}} />
@@ -74,7 +80,6 @@ const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
       </p>
     </div>
   </Container>
-)
 
 const CodePageEnterText = ({
   enterCodeErrorText,
@@ -84,9 +89,11 @@ const CodePageEnterText = ({
   onChangeText,
   textEntered,
   setCodePageMode,
-}) => (
+}) =>
   <Container style={stylesContainer} onBack={onBack}>
-    <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Type in text code</Text>
+    <Text style={{marginBottom: 11, marginTop: 38}} type="Header">
+      Type in text code
+    </Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
     <Icon style={{marginBottom: 40, marginTop: 30}} type="icon-phone-text-code-32" />
     <Input
@@ -114,7 +121,6 @@ const CodePageEnterText = ({
         </Text>
       </p>}
   </Container>
-)
 
 function _otherIsPhone(otherDeviceRole) {
   return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1

@@ -5,13 +5,14 @@ import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from '.'
 
-const Banner = ({color, backgroundColor, desc}) => (
+const Banner = ({color, backgroundColor, desc}) =>
   <Box style={{...stylesBanner, backgroundColor}}>
-    <Text type="BodySemibold" style={{color}}>{desc}</Text>
+    <Text type="BodySemibold" style={{color}}>
+      {desc}
+    </Text>
   </Box>
-)
 
-const Header = ({name, currentDevice, revokedAt}) => (
+const Header = ({name, currentDevice, revokedAt}) =>
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start'}}>
     <Text
       type="Header"
@@ -23,44 +24,47 @@ const Header = ({name, currentDevice, revokedAt}) => (
     >
       {name}
     </Text>
-    {revokedAt && <Text type="Header" style={stylesMeta}>REVOKED</Text>}
+    {revokedAt &&
+      <Text type="Header" style={stylesMeta}>
+        REVOKED
+      </Text>}
     <Box style={globalStyles.flexBoxRow}>
       {currentDevice && <Text type="BodySmall">Current device</Text>}
     </Box>
   </Box>
-)
 
-const TimelineMarker = ({idx, max, type}) => (
+const TimelineMarker = ({idx, max, type}) =>
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginRight: 16}}>
     <Box style={{...stylesLine, height: 5, opacity: idx ? 1 : 0}} />
     {type === 'Revoked' ? <Box style={stylesCircleClosed} /> : <Box style={stylesCircleOpen} />}
     <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>
-)
 
-const Timeline = ({timeline}) => (
+const Timeline = ({timeline}) =>
   <Box style={{marginTop: 30}}>
-    {timeline.map(({type, desc, subDesc}, idx) => (
+    {timeline.map(({type, desc, subDesc}, idx) =>
       <Box key={desc} style={globalStyles.flexBoxRow}>
         <TimelineMarker idx={idx} max={timeline.length - 1} type={type} />
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="Body">{desc}</Text>
+          <Text type="Body">
+            {desc}
+          </Text>
           {subDesc &&
             (type === 'Added' || type === 'Revoked'
               ? <Text type="BodySmall">
-                  by
-                  {' '}
+                  by{' '}
                   <Text style={{color: globalColors.black_75, fontStyle: 'italic'}} type="BodySmall">
                     {subDesc}
                   </Text>
                 </Text>
-              : <Text type="BodySmall">{subDesc}</Text>)}
+              : <Text type="BodySmall">
+                  {subDesc}
+                </Text>)}
           <Box style={{height: 15}} />
         </Box>
       </Box>
-    ))}
+    )}
   </Box>
-)
 
 const Render = ({
   name,
@@ -77,7 +81,7 @@ const Render = ({
   bannerDesc,
   icon,
   revokeName,
-}: Props) => (
+}: Props) =>
   <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
       <BackButton onClick={onBack} />
@@ -102,7 +106,6 @@ const Render = ({
       </Box>
     </Box>
   </Box>
-)
 
 const stylesBanner = {
   ...globalStyles.flexBoxRow,

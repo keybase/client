@@ -45,7 +45,9 @@ class QR extends Component<void, Props, {permissionGranted: ?boolean}> {
       } else if (this.state.permissionGranted === false) {
         return (
           <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-            <Text type="BodyError" style={{textAlign: 'center'}}>Couldn't get camera permissions.</Text>
+            <Text type="BodyError" style={{textAlign: 'center'}}>
+              Couldn't get camera permissions.
+            </Text>
           </Box>
         )
       } else {

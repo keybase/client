@@ -20,7 +20,9 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
-        <Text type="BodySmallSemibold" style={stylesDividerText}>Ignored folders</Text>
+        <Text type="BodySmallSemibold" style={stylesDividerText}>
+          Ignored folders
+        </Text>
         <Icon type={caretIcon} style={{color: globalColors.black_40}} />
       </Box>
       {showIgnored &&
@@ -43,10 +45,10 @@ const Rows = ({
   onClick,
   onRekey,
   smallMode,
-}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
+}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) =>
   <Box>
     {!!tlfs &&
-      tlfs.map(tlf => (
+      tlfs.map(tlf =>
         <Row
           {...tlf}
           key={rowKey(tlf.users)}
@@ -59,9 +61,8 @@ const Rows = ({
           onOpen={onOpen}
           smallMode={smallMode}
         />
-      ))}
+      )}
   </Box>
-)
 
 class ListRender extends Component<void, Props, void> {
   _scrollContainer = null
@@ -88,7 +89,9 @@ class ListRender extends Component<void, Props, void> {
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}} ref={this._setRef}>
-        <style>{realCSS}</style>
+        <style>
+          {realCSS}
+        </style>
         {this.props.extraRows}
         <Rows {...this.props} isIgnored={false} tlfs={this.props.tlfs || []} />
         {!this.props.smallMode &&

@@ -36,7 +36,9 @@ const MessagePopupHeader = ({
     >
       <Icon type={iconName} style={{marginBottom: globalMargins.tiny, marginTop: -6}} />
       <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.green2}}>ENCRYPTED</Text>
+        <Text type="BodySmall" style={{color: globalColors.green2}}>
+          ENCRYPTED
+        </Text>
         <Text
           type="BodySmall"
           style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
@@ -45,10 +47,16 @@ const MessagePopupHeader = ({
         </Text>
       </Box>
       <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>by</Text>
-        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>&nbsp;{deviceName}</Text>
+        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+          by
+        </Text>
+        <Text type="BodySmallItalic" style={{color: globalColors.black_60}}>
+          &nbsp;{deviceName}
+        </Text>
       </Box>
-      <Text type="BodySmall" style={{color: globalColors.black_40}}>{formatTimeForPopup(timestamp)}</Text>
+      <Text type="BodySmall" style={{color: globalColors.black_40}}>
+        {formatTimeForPopup(timestamp)}
+      </Text>
       {senderDeviceRevokedAt &&
         <PopupHeaderText
           color={globalColors.white}

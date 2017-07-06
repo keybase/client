@@ -12,7 +12,7 @@ export type Props = {
 
 const AVATAR_SIZE = 24
 
-const UserNotice = ({bgColor, username, children, style}: Props) => (
+const UserNotice = ({bgColor, username, children, style}: Props) =>
   <Box style={{...styleBox, ...style, backgroundColor: bgColor}}>
     <Avatar
       size={AVATAR_SIZE}
@@ -21,7 +21,6 @@ const UserNotice = ({bgColor, username, children, style}: Props) => (
     />
     {children}
   </Box>
-)
 
 const styleBox = {
   ...globalStyles.flexBoxColumn,

@@ -72,7 +72,9 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFullname, rightFol
               minWidth: 15,
             }}
           />
-          <Text type="BodySmall">{rightFullname}</Text>
+          <Text type="BodySmall">
+            {rightFullname}
+          </Text>
         </Box>}
     </Box>
   )
@@ -88,7 +90,7 @@ const Right = ({showTrackerButton, onShowTracker}) => {
     : null
 }
 
-const Line = () => (
+const Line = () =>
   <Box
     style={{
       ...globalStyles.fillAbsolute,
@@ -99,7 +101,6 @@ const Line = () => (
       minHeight: hairlineWidth,
     }}
   />
-)
 
 const SearchResultRow = (props: Constants.RowProps) => {
   return (

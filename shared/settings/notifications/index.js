@@ -13,7 +13,7 @@ const SubscriptionCheckbox = (props: {
   name: string,
   onToggle: (groupName: string, name: string) => void,
   subscribed: boolean,
-}) => (
+}) =>
   <Checkbox
     style={{marginRight: globalMargins.medium, marginTop: globalMargins.tiny}}
     key={props.name}
@@ -22,7 +22,6 @@ const SubscriptionCheckbox = (props: {
     checked={props.subscribed}
     label={props.description}
   />
-)
 
 const Group = (props: {
   allowEdit: boolean,
@@ -33,12 +32,14 @@ const Group = (props: {
   title: string,
   unsub: string,
   unsubscribedFromAll: boolean,
-}) => (
+}) =>
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-    <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>{props.title}</Text>
+    <Text type="BodyBig" style={{marginTop: globalMargins.medium}}>
+      {props.title}
+    </Text>
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
       {props.settings &&
-        props.settings.map(s => (
+        props.settings.map(s =>
           <SubscriptionCheckbox
             allowEdit={props.allowEdit}
             description={s.description}
@@ -48,7 +49,7 @@ const Group = (props: {
             onToggle={props.onToggle}
             subscribed={s.subscribed}
           />
-        ))}
+        )}
     </Box>
     <Text type="BodyBig">Or:</Text>
     <Checkbox
@@ -59,7 +60,6 @@ const Group = (props: {
       label={`Unsubscribe me from all ${props.unsub} notifications.`}
     />
   </Box>
-)
 
 const Notifications = (props: Props) =>
   !props.groups.email || !props.groups.email.settings

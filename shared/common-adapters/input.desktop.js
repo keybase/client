@@ -266,11 +266,18 @@ class Input extends Component<void, Props, State> {
 
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
-        <style>{inputRealCSS}</style>
-        {!this.props.small && <Text type="BodySmallSemibold" style={_floatingStyle}>{floatingHintText}</Text>}
+        <style>
+          {inputRealCSS}
+        </style>
+        {!this.props.small &&
+          <Text type="BodySmallSemibold" style={_floatingStyle}>
+            {floatingHintText}
+          </Text>}
         {!!this.props.small &&
           !!this.props.smallLabel &&
-          <Text type="BodySmall" style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+          <Text type="BodySmall" style={smallLabelStyle}>
+            {this.props.smallLabel}
+          </Text>}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorText &&
           !this.props.small &&

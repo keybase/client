@@ -10,7 +10,8 @@ class ProvePgpImport extends Component<void, Props, void> {
       <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>
         <Icon style={styleHeaderIcon} type="icon-pgp-key-import-48" />
         <Text style={styleBody} type="Body">
-          Importing a PGP key is not supported on our mobile app. To continue, download the Keybase desktop app and follow the instructions there.
+          Importing a PGP key is not supported on our mobile app. To continue, download the Keybase desktop
+          app and follow the instructions there.
         </Text>
       </StandardScreen>
     )

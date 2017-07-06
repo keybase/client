@@ -44,9 +44,15 @@ class DumbSheetItem extends Component<void, Props<*>, void> {
 
     return (
       <Box id={this.props.id} style={{...styleBox, ...this.props.style}}>
-        <Text type="Body" style={{marginBottom: 5}}>{this.props.mockKey}</Text>
+        <Text type="Body" style={{marginBottom: 5}}>
+          {this.props.mockKey}
+        </Text>
         <Box {...parentProps}>
-          {mockStore ? <Provider store={this._mockStore}>{component}</Provider> : component}
+          {mockStore
+            ? <Provider store={this._mockStore}>
+                {component}
+              </Provider>
+            : component}
         </Box>
       </Box>
     )

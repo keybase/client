@@ -31,8 +31,10 @@ class MultiAvatar extends Component<void, Props, void> {
     const leftProps: AvatarProps = avatarProps[1]
     const rightProps: AvatarProps = avatarProps[0]
 
-    const backgroundColor = (this.props.style &&
-    this.props.style.backgroundColor && {backgroundColor: this.props.style.backgroundColor}) || {}
+    const backgroundColor =
+      (this.props.style &&
+      this.props.style.backgroundColor && {backgroundColor: this.props.style.backgroundColor}) ||
+      {}
     if (avatarProps.length === 1) {
       return <Avatar style={{...backgroundColor, ...rightProps.style}} {...rightProps} size={singleSize} />
     }

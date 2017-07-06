@@ -108,7 +108,8 @@ class Icon extends Component<void, Exact<Props>, void> {
 }
 
 const imgName = (type: IconType, ext: string, mult: number, prefix: ?string, postfix: ?string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix || ''} ${mult}x`
+  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
+    ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = shared.typeExtension(type)

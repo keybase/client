@@ -40,7 +40,9 @@ function User({
         >
           {user.username}
         </Text>
-        <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
+        <Text type={'BodySmall'}>
+          {fullName(user.extraInfo)}
+        </Text>
       </Box>
     )
   } else if (user.service === 'external') {
@@ -48,9 +50,13 @@ function User({
       <Box style={{...globalStyles.flexBoxColumn, width: '100%'}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon style={{marginRight: 5}} type={platformToLogo16(user.serviceName)} />
-          <Text type={'Body'}>{user.username}</Text>
+          <Text type={'Body'}>
+            {user.username}
+          </Text>
         </Box>
-        <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
+        <Text type={'BodySmall'}>
+          {fullName(user.extraInfo)}
+        </Text>
       </Box>
     )
   }
@@ -100,12 +106,13 @@ const GroupAction = ({
   icon: IconType,
   label: string,
   style?: ?Object,
-}) => (
+}) =>
   <Box style={groupActionStyle} onClick={onClick}>
     <Icon style={{marginRight: 9, ...style}} type={icon} />
-    <Text type="BodyPrimaryLink">{label}</Text>
+    <Text type="BodyPrimaryLink">
+      {label}
+    </Text>
   </Box>
-)
 
 export default function UserGroup({
   selectedUsers,
@@ -120,7 +127,7 @@ export default function UserGroup({
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {selectedUsers.map(u => (
+      {selectedUsers.map(u =>
         <User
           key={u.service + u.username}
           selected={!!userForInfoPane && u.username === userForInfoPane.username}
@@ -129,7 +136,7 @@ export default function UserGroup({
           onClickUser={onClickUserInGroup}
           insertSpacing={true}
         />
-      ))}
+      )}
       <GroupAction
         onClick={onOpenPrivateGroupFolder}
         icon="icon-folder-private-open-24"

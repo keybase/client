@@ -18,7 +18,9 @@ class LoadingLine extends Component<void, Props, void> {
 `
     return (
       <Box style={{position: 'relative'}}>
-        <style>{realCSS}</style>
+        <style>
+          {realCSS}
+        </style>
         <Box
           className="loading-line"
           style={{

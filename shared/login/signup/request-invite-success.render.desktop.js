@@ -10,9 +10,12 @@ class RequestInviteSuccessRender extends Component<void, Props, void> {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Icon style={stylesIcon} type="icon-invite-code-48" />
-        <Text style={stylesHeader} type="Header">Invite request sent</Text>
+        <Text style={stylesHeader} type="Header">
+          Invite request sent
+        </Text>
         <Text style={stylesBody} type="Body">
-          Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via email.
+          Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via
+          email.
         </Text>
       </Container>
     )

@@ -5,20 +5,23 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from '.'
 
-const Header = ({name, icon}) => (
+const Header = ({name, icon}) =>
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Icon type={icon} />
-    <Text type="BodySemibold" style={styleName}>{name}</Text>
+    <Text type="BodySemibold" style={styleName}>
+      {name}
+    </Text>
   </Box>
-)
 
-const Body = ({endangeredTLFs, name, currentDevice}) => (
+const Body = ({endangeredTLFs, name, currentDevice}) =>
   <Box>
     <Box style={styleHeader}>
       <Text type="BodySemibold">Are you sure you want to revoke </Text>
       {currentDevice
         ? <Text type="BodySemibold">your current device</Text>
-        : <Text type="BodySemiboldItalic">{name}</Text>}
+        : <Text type="BodySemiboldItalic">
+            {name}
+          </Text>}
       <Text type="BodySemibold">?</Text>
     </Box>
 
@@ -29,18 +32,21 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
         </Box>
 
         <Box style={styleDevicesContainer}>
-          {endangeredTLFs.map(tlf => (
+          {endangeredTLFs.map(tlf =>
             <Box key={tlf.name} style={styleTLF}>
-              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>•</Text>
-              <Text type="BodySemibold">{tlf.name}</Text>
+              <Text type="BodySemibold" style={{marginRight: globalMargins.tiny}}>
+                •
+              </Text>
+              <Text type="BodySemibold">
+                {tlf.name}
+              </Text>
             </Box>
-          ))}
+          )}
         </Box>
       </Box>}
   </Box>
-)
 
-const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) =>
   <Confirm
     body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}
@@ -50,7 +56,6 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
     submitLabel="Yes, delete it"
     theme="public"
   />
-)
 
 const styleHeader = {
   marginBottom: globalMargins.tiny,

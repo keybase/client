@@ -5,27 +5,31 @@ import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 
-const Splash = (props: Props) => (
+const Splash = (props: Props) =>
   <Box style={stylesLoginForm}>
     <Icon type="icon-keybase-logo-128" />
-    <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
-    <Text style={stylesHeaderSub} type="BodySmall">Loading…{props.retrying ? ' (still trying)' : ''}</Text>
+    <Text style={stylesHeader} type="HeaderBig">
+      Keybase
+    </Text>
+    <Text style={stylesHeaderSub} type="BodySmall">
+      Loading…{props.retrying ? ' (still trying)' : ''}
+    </Text>
   </Box>
-)
 
-const Failure = (props: Props) => (
+const Failure = (props: Props) =>
   <Box style={stylesLoginForm}>
     <Icon type="icon-keybase-logo-128" />
-    <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
+    <Text style={stylesHeader} type="HeaderBig">
+      Keybase
+    </Text>
     <Text style={stylesMessage} type="Body">
       Oops, we had a problem communicating with our services.<br />
       This might be because you lost connectivity.
     </Text>
     <Button type="Primary" label="Reload" onClick={props.onRetry} />
   </Box>
-)
 
-const Intro = (props: Props) => (
+const Intro = (props: Props) =>
   <Box
     style={{
       ...stylesLoginForm,
@@ -34,8 +38,12 @@ const Intro = (props: Props) => (
   >
     {!!props.justRevokedSelf &&
       <Box style={stylesRevoked}>
-        <Text type="BodySemibold" style={{color: globalColors.white}}>{props.justRevokedSelf}</Text>
-        <Text type="BodySemibold" style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
+        <Text type="BodySemibold" style={{color: globalColors.white}}>
+          {props.justRevokedSelf}
+        </Text>
+        <Text type="BodySemibold" style={{color: globalColors.white}}>
+          &nbsp;was revoked successfully
+        </Text>
       </Box>}
     {!!props.justDeletedSelf &&
       <Box style={stylesRevoked}>
@@ -50,15 +58,23 @@ const Intro = (props: Props) => (
         </Text>
       </Box>}
     <Icon type="icon-keybase-logo-128" />
-    <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
-    <Text style={stylesHeaderSub} type="BodySemibold">Public key crypto for everyone</Text>
+    <Text style={stylesHeader} type="HeaderBig">
+      Join Keybase
+    </Text>
+    <Text style={stylesHeaderSub} type="BodySemibold">
+      Public key crypto for everyone
+    </Text>
     <Button style={stylesButton} type="Primary" onClick={props.onSignup} label="Create an account" />
     <Box style={stylesFooter}>
-      <Text type="Body" onClick={props.onLogin}>Already on Keybase?</Text><br />
-      <Text type="BodyPrimaryLink" onClick={props.onLogin}>Log in</Text>
+      <Text type="Body" onClick={props.onLogin}>
+        Already on Keybase?
+      </Text>
+      <br />
+      <Text type="BodyPrimaryLink" onClick={props.onLogin}>
+        Log in
+      </Text>
     </Box>
   </Box>
-)
 
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,

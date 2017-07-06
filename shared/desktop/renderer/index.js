@@ -25,7 +25,7 @@ import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {reduxDevToolsEnable, resetEngineOnHMR} from '../../local-debug.desktop'
+import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -151,7 +151,7 @@ function setupApp(store) {
   store.dispatch(updateDebugConfig(require('../../local-debug-live')))
 }
 
-const FontLoader = () => (
+const FontLoader = () =>
   <div style={{height: 0, overflow: 'hidden', width: 0}}>
     <p style={{fontFamily: 'kb'}}>kb</p>
     <p style={{fontFamily: 'Source Code Pro', fontWeight: 400}}>source code pro 400</p>
@@ -162,16 +162,8 @@ const FontLoader = () => (
     <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 600}}>open sans 600 i</p>
     <p style={{fontFamily: 'OpenSans', fontWeight: 700}}>open sans 700</p>
   </div>
-)
 
 function render(store, MainComponent) {
-  let dt
-  if (__DEV__ && reduxDevToolsEnable) {
-    // eslint-disable-line no-undef
-    const DevTools = require('./redux-dev-tools').default
-    dt = <DevTools />
-  }
-
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
@@ -180,7 +172,6 @@ function render(store, MainComponent) {
             <RemoteManager />
             <FontLoader />
             <MainComponent />
-            {dt}
           </div>
         </GlobalEscapeHandler>
       </Root>

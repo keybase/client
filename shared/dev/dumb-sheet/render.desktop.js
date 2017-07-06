@@ -131,14 +131,24 @@ class DumbSheetRender extends Component<void, Props, any> {
           return (
             <Box key={key} style={styleBox}>
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
-                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
-                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>
+                  &lt;&nbsp;
+                </Text>
+                <Text type="Header" onClick={() => this._onFilterChange(`'${key}'`)}>
+                  {key}
+                </Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>
+                  &nbsp;&gt;
+                </Text>
               </Box>
               {items}
               <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
-                <Text type="Header" onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
-                <Text type="Header" onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+                <Text type="Header" onClick={() => this._onNext(key, -1)}>
+                  &lt;&nbsp;
+                </Text>
+                <Text type="Header" onClick={() => this._onNext(key, 1)}>
+                  &nbsp;&gt;
+                </Text>
               </Box>
             </Box>
           )

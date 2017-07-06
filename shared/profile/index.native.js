@@ -58,11 +58,10 @@ class Profile extends Component<void, Props, State> {
   _handleToggleMenu(idx: number) {
     const selectedProof = this.props.proofs[idx]
     this.setState({
-      activeMenuProof: this.state.activeMenuProof &&
-        selectedProof &&
-        this.state.activeMenuProof.id === selectedProof.id
-        ? undefined
-        : selectedProof,
+      activeMenuProof:
+        this.state.activeMenuProof && selectedProof && this.state.activeMenuProof.id === selectedProof.id
+          ? undefined
+          : selectedProof,
     })
   }
 
@@ -101,7 +100,8 @@ class Profile extends Component<void, Props, State> {
     if (proof.meta === metaUnreachable) {
       return {
         header: {
-          title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
+          title:
+            'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?',
           danger: true,
         },
         items: [
@@ -179,7 +179,7 @@ class Profile extends Component<void, Props, State> {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
-    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
+    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder =>
       <Box key={folder.path} style={styleFolderLine}>
         <Icon
           {...shared.folderIconProps(folder, styleFolderIcon)}
@@ -194,7 +194,7 @@ class Profile extends Component<void, Props, State> {
           {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
         </Text>
       </Box>
-    ))
+    )
 
     const missingProofs = !this.props.isYou
       ? []
@@ -221,7 +221,9 @@ class Profile extends Component<void, Props, State> {
           {featureFlags.searchv3Enabled &&
             <Box onClick={this.props.onSearch} style={styleSearchContainer}>
               <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
-              <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
+              <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">
+                Search people
+              </Text>
             </Box>}
         </Box>
         <NativeScrollView

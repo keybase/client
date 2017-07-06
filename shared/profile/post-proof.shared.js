@@ -36,9 +36,10 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
-            Please tweet the text below
-            {' '}
-            <Text type="BodySemiboldItalic" style={globalStyles.italic}>exactly as it appears.</Text>
+            Please tweet the text below{' '}
+            <Text type="BodySemiboldItalic" style={globalStyles.italic}>
+              exactly as it appears.
+            </Text>
           </Text>
         ),
         proofActionText: 'Tweet it now',
@@ -52,8 +53,7 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
-            Click the link below and post the form in the subreddit
-            {' '}
+            Click the link below and post the form in the subreddit{' '}
             <Text type="BodySemiboldItalic">KeybaseProofs</Text>
             .
           </Text>
@@ -78,13 +78,8 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
-            Login to GitHub and paste the text below into a
-            {' '}
-            <Text type="BodySemiboldItalic">public</Text>
-            {' '}
-            gist called
-            {' '}
-            <Text type="BodySemiboldItalic">keybase.md.</Text>
+            Login to GitHub and paste the text below into a <Text type="BodySemiboldItalic">public</Text> gist
+            called <Text type="BodySemiboldItalic">keybase.md.</Text>
           </Text>
         ),
         proofActionText: 'Create gist now',
@@ -98,10 +93,10 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
-            Please add the below text
-            {' '}
-            <Text type="BodySemibold" style={globalStyles.italic}>exactly as it appears</Text>
-            {' '}
+            Please add the below text{' '}
+            <Text type="BodySemibold" style={globalStyles.italic}>
+              exactly as it appears
+            </Text>{' '}
             to your profile.
           </Text>
         ),
@@ -116,8 +111,7 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Text type="BodySemibold" {...styleCentered}>
-            Enter the following as a TXT entry in your DNS zone,
-            {' '}
+            Enter the following as a TXT entry in your DNS zone,{' '}
             <Text type="BodySemibold">exactly as it appears</Text>
             . If you need a "name" for your entry, give it "@".
           </Text>
@@ -139,11 +133,8 @@ export function propsForPlatform(props: Props): MoreProps {
         descriptionView: (
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="BodySemibold" {...styleCentered}>
-              Please serve the text below
-              {' '}
-              <Text type="BodySemiboldItalic">exactly as it appears</Text>
-              {' '}
-              at one of these URL's.
+              Please serve the text below <Text type="BodySemiboldItalic">exactly as it appears</Text> at one
+              of these URL's.
             </Text>
             <Text
               type="BodyPrimaryLink"
@@ -161,7 +152,8 @@ export function propsForPlatform(props: Props): MoreProps {
             </Text>
           </Box>
         ),
-        noteText: 'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
+        noteText:
+          'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
         onCompleteText: 'OK posted! Check for it!',
       }
     default:

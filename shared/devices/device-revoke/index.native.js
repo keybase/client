@@ -5,14 +5,15 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from '.'
 
-const Header = ({name, icon}) => (
+const Header = ({name, icon}) =>
   <Box style={styleIcon}>
     <Icon type={icon} />
-    <Text type="BodyBig" style={styleName}>{name}</Text>
+    <Text type="BodyBig" style={styleName}>
+      {name}
+    </Text>
   </Box>
-)
 
-const Body = ({endangeredTLFs, name, currentDevice}) => (
+const Body = ({endangeredTLFs, name, currentDevice}) =>
   <Box>
     <Box style={styleHeader}>
       <Text type="Header" style={styleText}>
@@ -23,21 +24,24 @@ const Body = ({endangeredTLFs, name, currentDevice}) => (
     {endangeredTLFs.length > 0 &&
       <Box>
         <Box>
-          <Text type="Body" style={styleText}>You may lose access to these folders forever:</Text>
+          <Text type="Body" style={styleText}>
+            You may lose access to these folders forever:
+          </Text>
         </Box>
 
         <Box style={styleDevicesContainer}>
-          {endangeredTLFs.map(tlf => (
+          {endangeredTLFs.map(tlf =>
             <Box key={tlf.name} style={styleTLF}>
-              <Text type="BodySemibold" style={styleText}>• {tlf.name}</Text>
+              <Text type="BodySemibold" style={styleText}>
+                • {tlf.name}
+              </Text>
             </Box>
-          ))}
+          )}
         </Box>
       </Box>}
   </Box>
-)
 
-const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) => (
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs, icon}: Props) =>
   <Confirm
     body={<Body endangeredTLFs={endangeredTLFs} name={name} currentDevice={currentDevice} />}
     danger={true}
@@ -47,7 +51,6 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
     submitLabel="Yes, delete it"
     theme="public"
   />
-)
 
 const styleHeader = {
   marginBottom: globalMargins.tiny,

@@ -106,7 +106,8 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
               </Text>
               {proof.id &&
                 <Text className="no-underline" type="Body" style={styleProofType}>
-                  <wbr />@{proof.type}<wbr />
+                  <wbr />@{proof.type}
+                  <wbr />
                 </Text>}
             </Text>
             {proof.meta &&
@@ -204,7 +205,7 @@ class ProofsRender extends Component<void, Props, void> {
               </Box>
             : <Box key="non-loading">
                 {this.props.type === 'proofs' &&
-                  this.props.proofs.map((p, idx) => (
+                  this.props.proofs.map((p, idx) =>
                     <ProofRow
                       key={`${p.id || ''}${p.type}`}
                       ref={c => {
@@ -216,12 +217,15 @@ class ProofsRender extends Component<void, Props, void> {
                       hasMenu={!!onClickProofMenu}
                       showingMenu={idx === showingMenuIndex}
                     />
-                  ))}
+                  )}
                 {this.props.type === 'missingProofs' &&
-                  this.props.missingProofs.map((mp, idx) => (
+                  this.props.missingProofs.map((mp, idx) =>
                     <MissingProofRow key={mp.type} missingProof={mp} />
-                  ))}
-                {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
+                  )}
+                {this.props.type === 'missingProofs' &&
+                  <style>
+                    {missingProofsRealCSS}
+                  </style>}
               </Box>}
         </ReactCSSTransitionGroup>
       </Box>

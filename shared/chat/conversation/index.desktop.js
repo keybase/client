@@ -119,46 +119,46 @@ class Conversation extends Component<void, Props, State> {
         {this.props.showSearchPending
           ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
           : this.props.showSearchResults
-              ? <SearchResultsList
-                  items={this.props.searchResultIds}
-                  onClick={this.props.onClickSearchResult}
-                  onShowTracker={this.props.onShowTrackerInSearch}
-                  selectedId={this.props.selectedSearchId}
-                  style={{...globalStyles.scrollable, flexGrow: 1}}
+            ? <SearchResultsList
+                items={this.props.searchResultIds}
+                onClick={this.props.onClickSearchResult}
+                onShowTracker={this.props.onShowTrackerInSearch}
+                selectedId={this.props.selectedSearchId}
+                style={{...globalStyles.scrollable, flexGrow: 1}}
+              />
+            : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                <List
+                  focusInputCounter={this.props.focusInputCounter}
+                  listScrollDownCounter={this.props.listScrollDownCounter}
+                  onEditLastMessage={this.props.onEditLastMessage}
+                  onScrollDown={this.props.onScrollDown}
+                  onFocusInput={this.props.onFocusInput}
+                  editLastMessageCounter={this.props.editLastMessageCounter}
                 />
-              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  <List
-                    focusInputCounter={this.props.focusInputCounter}
-                    listScrollDownCounter={this.props.listScrollDownCounter}
-                    onEditLastMessage={this.props.onEditLastMessage}
-                    onScrollDown={this.props.onScrollDown}
-                    onFocusInput={this.props.onFocusInput}
-                    editLastMessageCounter={this.props.editLastMessageCounter}
-                  />
-                  <Banner />
-                  {this.props.showLoader && <LoadingLine />}
-                  {this.props.finalizeInfo
-                    ? <OldProfileResetNotice />
-                    : <Input
-                        focusInputCounter={this.props.focusInputCounter}
-                        onEditLastMessage={this.props.onEditLastMessage}
-                        onScrollDown={this.props.onScrollDown}
-                      />}
-                  {this.props.sidePanelOpen &&
-                    <div
-                      style={{
-                        ...globalStyles.flexBoxColumn,
-                        bottom: 0,
-                        position: 'absolute',
-                        right: 0,
-                        top: 35,
-                        width: 320,
-                      }}
-                    >
-                      <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
-                    </div>}
-                  {dropOverlay}
-                </div>}
+                <Banner />
+                {this.props.showLoader && <LoadingLine />}
+                {this.props.finalizeInfo
+                  ? <OldProfileResetNotice />
+                  : <Input
+                      focusInputCounter={this.props.focusInputCounter}
+                      onEditLastMessage={this.props.onEditLastMessage}
+                      onScrollDown={this.props.onScrollDown}
+                    />}
+                {this.props.sidePanelOpen &&
+                  <div
+                    style={{
+                      ...globalStyles.flexBoxColumn,
+                      bottom: 0,
+                      position: 'absolute',
+                      right: 0,
+                      top: 35,
+                      width: 320,
+                    }}
+                  >
+                    <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                  </div>}
+                {dropOverlay}
+              </div>}
       </Box>
     )
   }

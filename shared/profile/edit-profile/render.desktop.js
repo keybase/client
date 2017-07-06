@@ -5,7 +5,7 @@ import {StandardScreen, Box, Button, Input} from '../../common-adapters'
 
 import type {Props} from './render'
 
-const EditProfileRender = (props: Props) => (
+const EditProfileRender = (props: Props) =>
   <StandardScreen onBack={props.onBack}>
     <Box style={styleContainer}>
       <Input
@@ -43,7 +43,6 @@ const EditProfileRender = (props: Props) => (
       </Box>
     </Box>
   </StandardScreen>
-)
 
 const styleButtonContainer = {
   ...globalStyles.flexBoxRow,

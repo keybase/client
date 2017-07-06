@@ -30,7 +30,7 @@ class RemoteTracker extends Component<void, Props, void> {
       <div>
         {Object.keys(trackers)
           .filter(username => !trackers[username].closed)
-          .map(username => (
+          .map(username =>
             <RemoteComponent
               positionBottomRight={true}
               windowsOpts={windowsOpts}
@@ -47,7 +47,7 @@ class RemoteTracker extends Component<void, Props, void> {
               selectorParams={username}
               key={username}
             />
-          ))}
+          )}
       </div>
     )
   }
