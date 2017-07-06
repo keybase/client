@@ -611,8 +611,14 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}()
 
 		// Write out changes to local storage
-		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
-			update.Removed); err != nil {
+		var joined, removed []chat1.ConversationID
+		for _, cm := range update.Joined {
+			joined = append(joined, cm.ConvID)
+		}
+		for _, cm := range update.Removed {
+			removed = append(removed, cm.ConvID)
+		}
+		if err = g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, joined, removed); err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err
 		}
