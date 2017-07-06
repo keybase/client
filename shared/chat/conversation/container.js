@@ -6,10 +6,9 @@ import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import {connect} from 'react-redux'
-import {navigateAppend} from '../../actions/route-tree'
 import {getProfile} from '../../actions/tracker'
 import {hideKeyboard} from '../../actions/app'
-import {withState, withHandlers, compose, branch, renderNothing, lifecycle, renderComponent} from 'recompose'
+import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 
@@ -36,6 +35,7 @@ type DispatchProps = {|
     inputs: Array<Constants.AttachmentInput>
   ) => void,
   _hideKeyboard: () => void,
+  onOpenInfoPanelMobile: () => void,
   onBack: () => void,
   _clearSearchResults: () => void,
   _onClickSearchResult: (id: string) => void,
@@ -83,7 +83,10 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {setRouteState, navigateUp, navigateAppend}
+): DispatchProps => ({
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([
@@ -92,6 +95,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
     )
   },
   _hideKeyboard: () => dispatch(hideKeyboard()),
+  onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
@@ -119,32 +123,19 @@ export default compose(
     renderComponent(NoConversation)
   ),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
-  withState('infoPanelOpen', 'setInfoPanelOpen', false),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
   selectedSearchIdHoc,
   withHandlers({
-    onCloseInfoPanel: props => () => props.setInfoPanelOpen(false),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
-    onToggleInfoPanel: props => () => {
-      !props.infoPanelOpen && props._hideKeyboard()
-      props.setInfoPanelOpen(!props.infoPanelOpen)
-    },
     onClickSearchResult: props => id => {
       props.onChangeSearchText('')
       props._onClickSearchResult(id)
       props._clearSearchResults()
-    },
-  }),
-  lifecycle({
-    componentWillReceiveProps: function(nextProps: Props) {
-      if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-        this.props.onCloseInfoPanel()
-      }
     },
   })
 )(Conversation)

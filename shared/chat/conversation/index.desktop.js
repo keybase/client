@@ -15,15 +15,21 @@ import type {Props} from '.'
 
 type State = {
   showDropOverlay: boolean,
+  infoPanelOpen: boolean,
 }
 
 class Conversation extends Component<void, Props, State> {
   state = {
     showDropOverlay: false,
+    infoPanelOpen: false,
   }
 
   componentWillReceiveProps(nextProps: Props) {
     const convoChanged = this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+    if (convoChanged) {
+      this.setState({infoPanelOpen: false})
+    }
+
     const inSearchChanged = this.props.inSearch !== nextProps.inSearch
     if ((convoChanged || inSearchChanged) && !nextProps.inSearch) {
       this.props.onFocusInput()
@@ -75,6 +81,10 @@ class Conversation extends Component<void, Props, State> {
     })
   }
 
+  _onToggleInfoPanel = () => {
+    this.setState({infoPanelOpen: !this.state.infoPanelOpen})
+  }
+
   render() {
     const dropOverlay =
       this.state.showDropOverlay &&
@@ -107,8 +117,8 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <HeaderOrSearchHeader
           inSearch={this.props.inSearch}
-          infoPanelOpen={this.props.infoPanelOpen}
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          infoPanelOpen={this.state.infoPanelOpen}
+          onToggleInfoPanel={this._onToggleInfoPanel}
           onBack={this.props.onBack}
           onChangeSearchText={this.props.onChangeSearchText}
           searchText={this.props.searchText}
@@ -144,7 +154,7 @@ class Conversation extends Component<void, Props, State> {
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}
                       />}
-                  {this.props.infoPanelOpen &&
+                  {this.state.infoPanelOpen &&
                     <div
                       style={{
                         ...globalStyles.flexBoxColumn,
@@ -155,7 +165,7 @@ class Conversation extends Component<void, Props, State> {
                         width: 320,
                       }}
                     >
-                      <InfoPanel onToggleInfoPanel={this.props.onToggleInfoPanel} />
+                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
                     </div>}
                   {dropOverlay}
                 </div>}

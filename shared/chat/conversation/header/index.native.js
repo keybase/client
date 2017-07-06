@@ -12,7 +12,6 @@ const ConversationHeader = ({
   onOpenFolder,
   onShowProfile,
   onToggleInfoPanel,
-  infoPanelOpen,
   users,
 }: Props) => (
   <Box style={containerStyle}>
@@ -49,7 +48,7 @@ const ConversationHeader = ({
         />}
     </Box>
     <Icon
-      type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      type="iconfont-info"
       style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
       onClick={onToggleInfoPanel}
     />

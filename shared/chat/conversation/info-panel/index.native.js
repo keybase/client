@@ -6,7 +6,6 @@ import {
   Checkbox,
   Divider,
   Icon,
-  PopupDialog,
   HeaderHoc,
   NativeScrollView,
 } from '../../../common-adapters/index.native'
@@ -15,7 +14,7 @@ import Participants from './participants'
 
 import type {Props} from '.'
 
-const _Contents = (props: Props) => (
+const InfoPanelContents = (props: Props) => (
   <NativeScrollView style={{flex: 1, width: '100%'}}>
     <Divider style={{marginTop: 20}} />
     <Box style={{...globalStyles.flexBoxRow, width: '100%', alignItems: 'stretch'}}>
@@ -57,20 +56,6 @@ const _Contents = (props: Props) => (
   </NativeScrollView>
 )
 
-const Contents = HeaderHoc(_Contents)
-
-const InfoPanel = (props: Props) => (
-  <PopupDialog
-    onClose={props.onToggleInfoPanel}
-    styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
-    styleContainer={{borderRadius: 0}}
-  >
-    <Contents
-      {...props}
-      onBack={props.onToggleInfoPanel}
-      headerStyle={{borderBottomWidth: 0, marginTop: 0}}
-    />
-  </PopupDialog>
-)
+const InfoPanel = HeaderHoc(InfoPanelContents)
 
 export default InfoPanel

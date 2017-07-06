@@ -11,10 +11,6 @@ import {onUserClick} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
 
-type OwnProps = {
-  onToggleInfoPanel: () => void,
-}
-
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
@@ -42,7 +38,7 @@ const mapStateToProps = (state: TypedState) => ({
   selectedConversationIDKey: Constants.getSelectedConversation(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
   onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
@@ -58,7 +54,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel}: OwnProps) =
     )
   },
   onShowProfile: (username: string) => dispatch(onUserClick(username)),
-  onToggleInfoPanel,
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
