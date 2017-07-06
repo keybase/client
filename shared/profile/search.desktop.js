@@ -35,7 +35,7 @@ const Search = (props: Props) => (
         <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>}
-    {props.searchText === '' &&
+    {props.showSearchSuggestions &&
       <Box style={{padding: globalMargins.tiny}}>
         <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Recommendations</Text>
       </Box>}

@@ -25,6 +25,7 @@ type HocIntermediateProps = {
 const mapStateToProps = (state: TypedState) => ({
   searchResultIds: profileSearchResultArray(state),
   showSearchPending: state.profile.searchPending,
+  showSearchSuggestions: state.profile.searchShowingSuggestions,
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
   _clearSearchResults: () => dispatch(clearSearchResults()),

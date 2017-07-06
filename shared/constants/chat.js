@@ -381,6 +381,7 @@ export const StateRecord: KBRecord<T> = Record({
   previousConversation: null,
   searchPending: false,
   searchResults: null,
+  searchShowingSuggestions: false,
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
@@ -413,6 +414,7 @@ export type State = KBRecord<{
   previousConversation: ?ConversationIDKey,
   searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
 }>

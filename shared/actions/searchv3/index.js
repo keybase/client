@@ -218,7 +218,7 @@ function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constant
   const ids = rows.map(r => r.id)
 
   yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
-  yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase'))
+  yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase', true))
 }
 
 function* searchV3Saga(): SagaGenerator<any, any> {

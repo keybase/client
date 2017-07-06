@@ -24,6 +24,7 @@ export type Props = {|
   inSearch: boolean,
   showSearchPending: boolean,
   showSearchResults: boolean,
+  showSearchSuggestions: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   onClickSearchResult: (id: string) => void,
   onShowTrackerInSearch: (id: string) => void,

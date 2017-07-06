@@ -25,9 +25,10 @@ function finishedSearch<T>(
   actionTypeToFire: T,
   searchResults: Array<Constants.SearchResultId>,
   searchTerm: string,
-  service: Constants.Service = 'Keybase'
+  service: Constants.Service = 'Keybase',
+  searchShowingSuggestions: boolean = false
 ): Constants.FinishedSearch<T> {
-  return {type: actionTypeToFire, payload: {searchTerm, searchResults, service}}
+  return {type: actionTypeToFire, payload: {searchTerm, searchResults, service, searchShowingSuggestions}}
 }
 
 export {finishedSearch, pendingSearch, search, searchSuggestions}
