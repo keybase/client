@@ -2332,7 +2332,7 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed,
-  atmentions?: ?Array<gregor1.UID>
+  atMentions?: ?Array<gregor1.UID>
 }>
 
 export type remotePublishReadMessageRpcParam = Exact<{

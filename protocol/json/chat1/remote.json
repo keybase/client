@@ -548,7 +548,7 @@
           "type": "MessageBoxed"
         },
         {
-          "name": "atmentions",
+          "name": "atMentions",
           "type": {
             "type": "array",
             "items": "gregor1.UID"

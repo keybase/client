@@ -488,7 +488,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {
 		return chat1.OutboxID{}, nil, nil, err
 	}
-
 	return []byte{}, boxed, plres.RateLimit, nil
 }
 

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -386,6 +388,22 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	default:
 		return nil, nil
 	}
+}
+
+var atMentionRegExp = regexp.MustCompile(`\B@(([a-z][a-z0-9_]?)+)`)
+
+func ParseAtMentionsNames(body string) (res []string) {
+	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+	for _, m := range matches {
+		if len(m) >= 2 {
+			res = append(res, m[1])
+		}
+	}
+	return res
+}
+
+func ParseAtMentionedUIDs(body string, upak libkb.UPAKLoader) []gregor1.UID {
+	names := ParseAtMentionsNames(body)
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
