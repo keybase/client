@@ -9,6 +9,7 @@ export type Props = {
   onClick: (id: SearchResultId) => void,
   onShowTracker?: (id: SearchResultId) => void,
   selectedId: ?SearchResultId,
+  showSearchSuggestions: boolean,
 }
 
 export default class ResultsList extends Component<void, Props, void> {}

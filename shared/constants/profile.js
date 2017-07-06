@@ -39,6 +39,7 @@ export type State = {
   waiting: boolean,
   searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
 }
 
 export const addProof = 'profile:addProof'

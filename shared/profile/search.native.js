@@ -4,7 +4,7 @@ import ServiceFilter from '../searchv3/services-filter'
 import ResultsList from '../searchv3/results-list'
 import UserInput from '../searchv3/user-input'
 import {Box, ProgressIndicator, StandardScreen, Text} from '../common-adapters'
-import {globalStyles, globalMargins} from '../styles'
+import {globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './search'
 
@@ -38,6 +38,7 @@ const Search = (props: Props) => (
             items={props.searchResultIds}
             onClick={props.onClick}
             selectedId={props.selectedSearchId}
+            showSearchSuggestions={props.showSearchSuggestions}
           />}
     </Box>
   </StandardScreen>

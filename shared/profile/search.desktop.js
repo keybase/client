@@ -44,6 +44,7 @@ const Search = (props: Props) => (
             items={props.searchResultIds}
             onClick={props.onClick}
             selectedId={props.selectedSearchId}
+            showSearchSuggestions={props.showSearchSuggestions}
           />}
     </Box>
   </Box>

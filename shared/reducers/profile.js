@@ -29,6 +29,7 @@ const initialState: State = {
   waiting: false,
   searchPending: false,
   searchResults: null,
+  searchShowingSuggestions: false,
 }
 
 // A simple check, the server does a fuller check
@@ -178,10 +179,11 @@ export default function(state: State = initialState, action: Actions) {
         pgpPublicKey: action.payload.publicKey,
       }
     case 'profile:updateSearchResults': {
-      const {payload: {searchResults}} = action
+      const {payload: {searchResults, searchShowingSuggestions}} = action
       return {
         ...state,
         searchResults: List(searchResults),
+        searchShowingSuggestions,
       }
     }
     case 'profile:clearSearchResults': {

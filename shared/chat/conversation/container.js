@@ -28,6 +28,7 @@ type StateProps = {|
   searchResultIds: Array<SearchConstants.SearchResultId>,
   showSearchResults: boolean,
   showSearchPending: boolean,
+  showSearchSuggestions: boolean,
 |}
 
 type DispatchProps = {|
@@ -67,7 +68,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     }
   }
 
-  const {inSearch, searchPending, searchResults} = state.chat
+  const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
   return {
     finalizeInfo,
     rekeyInfo,
@@ -80,6 +81,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     searchResultIds: chatSearchResultArray(state),
     showSearchPending: searchPending,
     showSearchResults: !!searchResults,
+    showSearchSuggestions: searchShowingSuggestions,
   }
 }
 
