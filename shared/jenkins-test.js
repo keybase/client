@@ -28,7 +28,7 @@ function execAndLog(cmd, options, blankOnError = false) {
     temp = childProcess.execSync(cmd, Object.assign({}, defaultExecSyncOptions, options))
   } catch (err) {
     // ok, command just errored out
-    if (blankOnError && err.status === 1 && err.stderr === null) {
+    if (blankOnError && err.status === 1 && err.stderr === '') {
       return null
     }
     console.log('Error running: ' + cmd + err.output, err)
