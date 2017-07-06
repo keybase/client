@@ -27,7 +27,10 @@ const badgeNumbers = {
 
 const tabContent = (() => {
   // wrapped in a self-calling function to prevent React Hot Loader
-  const DummyContent = ({text}) => <Text type="Body">Filler: {text}</Text>
+  const DummyContent = ({text}) =>
+    <Text type="Body">
+      Filler: {text}
+    </Text>
 
   return {
     [profileTab]: <DummyContent text="profile" />,

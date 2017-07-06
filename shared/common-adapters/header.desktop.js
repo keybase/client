@@ -21,7 +21,9 @@ class Header extends Component<DefaultProps, Props, void> {
       >
         {this.props.children}
         {this.props.icon && <Icon type="icon-keybase-logo-24" />}
-        <Text type="Body" style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
+        <Text type="Body" style={{flex: 1, paddingLeft: 6}}>
+          {this.props.title}
+        </Text>
         {this.props.onClose &&
           <Icon style={styles.closeIcon} type="iconfont-close" onClick={this.props.onClose} />}
       </div>

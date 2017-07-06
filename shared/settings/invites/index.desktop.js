@@ -83,28 +83,32 @@ class Invites extends Component<void, Props, State> {
           </Box>
           {props.pendingInvites.length > 0 &&
             <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
-              <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
+              <SubHeading>
+                Pending invites ({props.pendingInvites.length})
+              </SubHeading>
               {intersperseDividers(
-                props.pendingInvites.map(invite => (
+                props.pendingInvites.map(invite =>
                   <PendingInviteItem
                     invite={invite}
                     key={invite.id}
                     onReclaimInvitation={id => props.onReclaimInvitation(id)}
                     onSelectPendingInvite={invite => props.onSelectPendingInvite(invite)}
                   />
-                ))
+                )
               )}
             </Box>}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
-            <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
+            <SubHeading>
+              Accepted invites ({props.acceptedInvites.length})
+            </SubHeading>
             {intersperseDividers(
-              props.acceptedInvites.map(invite => (
+              props.acceptedInvites.map(invite =>
                 <AcceptedInviteItem
                   key={invite.id}
                   invite={invite}
                   onClick={() => props.onSelectUser(invite.username)}
                 />
-              ))
+              )
             )}
           </Box>
         </Box>
@@ -177,7 +181,9 @@ function PendingURLContent({invite}: {invite: PendingInvite}) {
           marginTop: 3,
         }}
       />
-      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>{invite.url}</Text>
+      <Text type="Body" style={{...globalStyles.selectable, color: globalColors.blue}}>
+        {invite.url}
+      </Text>
     </Box>
   )
 }

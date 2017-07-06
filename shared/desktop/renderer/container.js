@@ -6,12 +6,11 @@ import materialTheme from '../../styles/material-theme.desktop'
 
 import '../renderer/style.css'
 
-const Root = ({store, children}: any) => (
+const Root = ({store, children}: any) =>
   <MuiThemeProvider muiTheme={materialTheme}>
     <Provider store={store}>
       {children}
     </Provider>
   </MuiThemeProvider>
-)
 
 export default Root

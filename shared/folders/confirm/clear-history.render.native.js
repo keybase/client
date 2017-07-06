@@ -16,7 +16,9 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           Clear history for {isPrivate ? 'private/' : 'public/'}
         </Text>
         {usernameText({type: 'Header', style: textColorThemed[theme], users})}
-        <Text type="Header" style={textColorThemed[theme]}>? ({folderSize})</Text>
+        <Text type="Header" style={textColorThemed[theme]}>
+          ? ({folderSize})
+        </Text>
       </Text>
       <Text type="Body" style={{...textColorThemed[theme], textAlign: 'center'}}>
         This folder will no longer show up on your computer and you won't receive alerts about it.

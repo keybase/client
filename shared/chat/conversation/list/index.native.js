@@ -28,18 +28,16 @@ class ConversationList extends Component<void, Props, void> {
     const isSelected = false
     return (
       // We ahve to invert transform the message or else it will look flipped
-      (
-        <Box style={verticallyInvertedStyle}>
-          {messageFactory(
-            messageKey,
-            prevMessageKey,
-            this._onAction,
-            this._onShowEditor,
-            isSelected,
-            this._measure
-          )}
-        </Box>
-      )
+      <Box style={verticallyInvertedStyle}>
+        {messageFactory(
+          messageKey,
+          prevMessageKey,
+          this._onAction,
+          this._onShowEditor,
+          isSelected,
+          this._measure
+        )}
+      </Box>
     )
   }
 
@@ -56,13 +54,12 @@ class ConversationList extends Component<void, Props, void> {
     }
   }
 
-  _renderScrollComponent = props => (
+  _renderScrollComponent = props =>
     <NativeScrollView
       {...props}
       ref={this._captureScrollRef}
       style={[verticallyInvertedStyle, props.style]}
     />
-  )
 
   _captureScrollRef = r => {
     this._scrollRef = r

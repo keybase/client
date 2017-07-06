@@ -135,7 +135,8 @@ class ProfileRender extends PureComponent<void, Props, State> {
               />
               {!!proof.mTime &&
                 <Text type="BodySmall" style={{textAlign: 'center', color: globalColors.black_40}}>
-                  Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}
+                  Posted on<br />
+                  {moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>}
             </Box>
           ),
@@ -215,7 +216,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       }
     }
 
-    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
+    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder =>
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
           <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
@@ -231,7 +232,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           />
         </Text>
       </Box>
-    ))
+    )
 
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)
@@ -273,7 +274,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
           {featureFlags.searchv3Enabled &&
             <Box onClick={this.props.onSearch} style={styleSearchContainer}>
               <Icon style={styleSearch} type="iconfont-search" />
-              <Text style={styleSearchText} type="Body">Search people</Text>
+              <Text style={styleSearchText} type="Body">
+                Search people
+              </Text>
             </Box>}
         </Box>
         <Box
@@ -315,7 +318,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
                 {proofNotice &&
-                  <Text type="BodySemibold" style={{color: globalColors.white}}>{proofNotice}</Text>}
+                  <Text type="BodySemibold" style={{color: globalColors.white}}>
+                    {proofNotice}
+                  </Text>}
               </Box>
               <Box style={styleProofs}>
                 {(loading || this.props.proofs.length > 0) &&

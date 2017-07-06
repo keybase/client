@@ -28,7 +28,9 @@ export function SettingsItem({
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
       <Box>
-        <Text type={'BodySmallSemibold'} style={itemTextStyle}>{text.toUpperCase()}</Text>
+        <Text type={'BodySmallSemibold'} style={itemTextStyle}>
+          {text.toUpperCase()}
+        </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
     </ClickableBox>

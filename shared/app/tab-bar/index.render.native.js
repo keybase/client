@@ -16,9 +16,9 @@ const _icons = {
 
 const _tabs = [Tabs.profileTab, Tabs.folderTab, Tabs.chatTab, Tabs.settingsTab].filter(Boolean)
 
-const TabBarRender = ({selectedTab, onTabClick, username, badgeNumbers}: Props) => (
+const TabBarRender = ({selectedTab, onTabClick, username, badgeNumbers}: Props) =>
   <Box style={stylesTabBar}>
-    {_tabs.map(tab => (
+    {_tabs.map(tab =>
       <TabBarButton
         badgeNumber={badgeNumbers[tab]}
         badgePosition="top-right"
@@ -29,9 +29,8 @@ const TabBarRender = ({selectedTab, onTabClick, username, badgeNumbers}: Props) 
         source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'icon'}}
         styleIcon={{opacity: selectedTab === tab ? 1 : 0.6}}
       />
-    ))}
+    )}
   </Box>
-)
 
 const tabBarHeight = 48
 

@@ -19,7 +19,9 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           Delete files and clear history for {isPrivate ? 'private/' : 'public/'}
         </Text>
         {usernameText({type: 'Header', style: textColorThemed[theme], users})}
-        <Text type="Header" style={textColorThemed[theme]}>? ({folderSize})</Text>
+        <Text type="Header" style={textColorThemed[theme]}>
+          ? ({folderSize})
+        </Text>
       </Text>
       <Text type="Body" style={{...textColorThemed[theme], textAlign: 'center'}}>
         Deletes everything in this folder, including the backup versions.

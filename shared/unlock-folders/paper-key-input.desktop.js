@@ -30,7 +30,9 @@ class PaperKeyInput extends Component<void, Props, State> {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <BackButton onClick={this.props.onBack} style={backStyle} />
-        <Text style={headerTextStyle} type="Body">Type in your paper key:</Text>
+        <Text style={headerTextStyle} type="Body">
+          Type in your paper key:
+        </Text>
         <Icon style={paperKeyIconStyle} type="icon-paper-key-48" />
         <Input
           multiline={true}

@@ -14,7 +14,9 @@ function EmptyResults({style}: {style?: Object}) {
   return (
     <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.flexBoxColumn, height: 256, ...style}}>
       <Text type="BodySmallSemibold">Sorry, no humans match this.</Text>
-      <Text type="BodySmallSemibold" style={owlStyle}>{owl}</Text>
+      <Text type="BodySmallSemibold" style={owlStyle}>
+        {owl}
+      </Text>
     </Box>
   )
 }

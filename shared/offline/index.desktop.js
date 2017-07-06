@@ -21,7 +21,9 @@ const Offline = ({reachability, appFocused}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySemibold" style={textStyle}>{message}</Text>
+        <Text type="BodySemibold" style={textStyle}>
+          {message}
+        </Text>
       </Box>
       <Box style={overlayFillStyle}>
         {appFocused && <Icon type="icon-loader-connecting-266" />}

@@ -117,9 +117,8 @@ class UserInput extends Component<void, Props, State> {
     const {isFocused} = this.state
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
-    const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
-      ? globalMargins.xtiny
-      : 0
+    const inputLeftPadding =
+      !!userItems.length && (!!usernameText.length || isFocused) ? globalMargins.xtiny : 0
     return (
       <Box style={{...globalStyles.flexBoxRow, minHeight: 48, alignItems: 'center'}}>
         <Box

@@ -19,7 +19,9 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
           suffix="?"
           containerStyle={{display: 'inline-flex', justifyContent: 'center'}}
         />
-        <Text type="Header" style={{...textColorThemed[theme], whiteSpace: 'pre'}}> ({folderSize})</Text>
+        <Text type="Header" style={{...textColorThemed[theme], whiteSpace: 'pre'}}>
+          {' '}({folderSize})
+        </Text>
       </Box>
       <Text type="Body" style={textColorThemed[theme]}>
         This folder will no longer show up on your computer and you won't receive alerts about it.

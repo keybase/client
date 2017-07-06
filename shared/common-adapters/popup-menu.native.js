@@ -15,7 +15,7 @@ type MenuItemProps = MenuItem & {
   onHidden: () => void,
 }
 
-const MenuRow = (props: MenuItemProps) => (
+const MenuRow = (props: MenuItemProps) =>
   <TouchableOpacity
     disabled={!props.onClick}
     onPress={() => {
@@ -24,9 +24,11 @@ const MenuRow = (props: MenuItemProps) => (
     }}
     style={{...styleRow(props), ...props.style}}
   >
-    {props.view || <Text type={'BodyBig'} style={styleRowText(props)}>{props.title}</Text>}
+    {props.view ||
+      <Text type={'BodyBig'} style={styleRowText(props)}>
+        {props.title}
+      </Text>}
   </TouchableOpacity>
-)
 
 const styleRow = ({
   isHeader,
@@ -92,7 +94,7 @@ class PopupMenu extends Component<void, Props, void> {
         <Box style={styleOverlay}>
           <Box style={{...styleMenu, ...this.props.style}}>
             <Box style={styleMenuGroup}>
-              {menuItemsWithHeader.map((mi, idx) => (
+              {menuItemsWithHeader.map((mi, idx) =>
                 <MenuRow
                   key={mi.title}
                   {...mi}
@@ -100,7 +102,7 @@ class PopupMenu extends Component<void, Props, void> {
                   numItems={menuItemsWithHeader.length}
                   onHidden={this.props.onHidden}
                 />
-              ))}
+              )}
             </Box>
             <Box style={{...styleMenuGroup, borderColor: globalColors.black_05, borderTopWidth: 1}}>
               <MenuRow title="Cancel" index={0} numItems={1} onHidden={this.props.onHidden} />
@@ -112,7 +114,7 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) =>
   <Text
     type="BodySemibold"
     style={{
@@ -128,7 +130,6 @@ const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextPr
   >
     {children}
   </Text>
-)
 
 const styleOverlayContainer = {
   position: 'absolute',

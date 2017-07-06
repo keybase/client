@@ -54,13 +54,21 @@ function previewCreateComponent(style) {
   return function(type, key, children, options) {
     switch (type) {
       case 'markup':
-        return <Text type="Body" key={key} lineClamp={1} style={style}>{children}</Text>
+        return (
+          <Text type="Body" key={key} lineClamp={1} style={style}>
+            {children}
+          </Text>
+        )
       case 'emoji':
         return <EmojiIfExists emojiName={String(children)} size={12} key={key} />
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
-        return <Text type="Body" key={key} style={[neutralStyle, style]}>{children}</Text>
+        return (
+          <Text type="Body" key={key} style={[neutralStyle, style]}>
+            {children}
+          </Text>
+        )
     }
   }
 }
@@ -83,7 +91,11 @@ function messageCreateComponent(style, allowFontScaling) {
   return function(type, key, children, options) {
     switch (type) {
       case 'markup':
-        return <Box key={key}>{children}</Box>
+        return (
+          <Box key={key}>
+            {children}
+          </Box>
+        )
       case 'inline-code':
         return (
           <Text type="Body" key={key} style={codeSnippetStyle} allowFontScaling={allowFontScaling}>
@@ -147,7 +159,11 @@ function messageCreateComponent(style, allowFontScaling) {
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={15} key={key} allowFontScaling={allowFontScaling} />
       case 'quote-block':
-        return <Box key={key} style={quoteBlockStyle}>{children}</Box>
+        return (
+          <Box key={key} style={quoteBlockStyle}>
+            {children}
+          </Box>
+        )
     }
   }
 }

@@ -9,7 +9,9 @@ class ProvePgpChoice extends Component<void, Props, void> {
     // PGP generation is disabled on native for now.
     return (
       <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
-        <Text style={styleTitle} type="Header">Add a PGP key</Text>
+        <Text style={styleTitle} type="Header">
+          Add a PGP key
+        </Text>
         <ChoiceList
           options={[
             {
@@ -33,7 +35,9 @@ class ProvePgpChoice extends Component<void, Props, void> {
   render() {
     return (
       <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
-        <Text style={styleTitle} type="Header">Add a PGP key</Text>
+        <Text style={styleTitle} type="Header">
+          Add a PGP key
+        </Text>
         <Text type="Body">For now, please use our desktop app to create PGP keys.</Text>
       </StandardScreen>
     )

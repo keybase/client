@@ -88,7 +88,9 @@ export default function routeTreeReducer(
       )
     } else {
       console.error(
-        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} raised exception: ${err}. Aborting.`
+        `Attempt to perform ${action.type} on ${pathToString(
+          getPath(routeState)
+        )} raised exception: ${err}. Aborting.`
       )
     }
     return state
@@ -99,7 +101,9 @@ export default function routeTreeReducer(
     const routeError = checkRouteState(newRouteDef, newRouteState)
     if (routeError) {
       console.error(
-        `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
+        `Attempt to perform ${action.type} on ${pathToString(
+          getPath(routeState)
+        )} would result in invalid routeTree state: "${routeError}". Aborting.`
       )
       return state
     }

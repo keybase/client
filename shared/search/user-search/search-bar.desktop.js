@@ -112,7 +112,7 @@ class SearchBar extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <Box style={stylesServicesContainer}>
-          {services.map(s => (
+          {services.map(s =>
             <ServiceIcon
               key={s}
               serviceName={s}
@@ -121,7 +121,7 @@ class SearchBar extends Component<void, Props, State> {
               selected={this.props.selectedService === s}
               onClickService={this._onClickService}
             />
-          ))}
+          )}
         </Box>
         <Box style={stylesInputContainer}>
           <Input

@@ -29,11 +29,8 @@ function InviteSection({
     return (
       <Box style={stylesLinkContainer}>
         <Text type="Body" style={{textAlign: 'center'}}>
-          Since you're out of invites,
-          {' '}
-          {`${username}@${serviceName}`}
-          {' '}
-          will need to request a signup on Keybase.io. Encourage them to join.
+          Since you're out of invites, {`${username}@${serviceName}`} will need to request a signup on
+          Keybase.io. Encourage them to join.
         </Text>
       </Box>
     )
@@ -69,7 +66,9 @@ function InviteSection({
   return (
     <Box style={styleInviteLink} onClick={onSendInvite}>
       <Icon type="icon-invite-link-16" />
-      <Text type="BodyPrimaryLink" style={styleInviteLinkText}>Send invite link</Text>
+      <Text type="BodyPrimaryLink" style={styleInviteLinkText}>
+        Send invite link
+      </Text>
     </Box>
   )
 }
@@ -97,19 +96,16 @@ export default class NonUserRender extends Component<void, Props, void> {
             </Text>
           </Box>
           {this.props.fullname &&
-            <Text type="BodySemibold" style={styleFullname}>{this.props.fullname}</Text>}
-          <Text type="BodySmall" style={styleServiceLabel}>{this.props.serviceName} user</Text>
+            <Text type="BodySemibold" style={styleFullname}>
+              {this.props.fullname}
+            </Text>}
+          <Text type="BodySmall" style={styleServiceLabel}>
+            {this.props.serviceName} user
+          </Text>
         </Box>
         <Text type="BodySmall" style={styleDetails}>
-          When
-          {' '}
-          {this.props.username}
-          {' '}
-          connects Keybase and their
-          {' '}
-          {capitalize(this.props.serviceName)}
-          {' '}
-          account, your computer will verify them and rekey the folder or conversation.
+          When {this.props.username} connects Keybase and their {capitalize(this.props.serviceName)} account,
+          your computer will verify them and rekey the folder or conversation.
         </Text>
         <InviteSection {...this.props} />
       </Box>

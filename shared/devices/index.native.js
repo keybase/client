@@ -17,11 +17,13 @@ import type {Props} from '.'
 
 type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
 
-const RevokedHeader = (props: RevokedHeaderProps) => (
+const RevokedHeader = (props: RevokedHeaderProps) =>
   <Box>
     <ClickableBox onClick={props.onToggleExpanded}>
       <Box style={stylesRevokedRow}>
-        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Revoked devices</Text>
+        <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+          Revoked devices
+        </Text>
         <Icon
           type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
           style={{color: globalColors.black_60, fontSize: 10, padding: 5}}
@@ -30,7 +32,6 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
     </ClickableBox>
     {props.expanded && props.children}
   </Box>
-)
 
 const textStyle = isRevoked =>
   isRevoked
@@ -43,17 +44,18 @@ const textStyle = isRevoked =>
     : {
         flex: 0,
       }
-const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) =>
   <ClickableBox onClick={showExistingDevicePage} style={{...stylesCommonRow, alignItems: 'center'}}>
     <Box key={name} style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
       <Icon type={icon} style={isRevoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'flex-start'}}>
-        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">{name}</Text>
+        <Text style={textStyle(isRevoked)} type="BodySemiboldItalic">
+          {name}
+        </Text>
         {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
       </Box>
     </Box>
   </ClickableBox>
-)
 
 const DeviceRow = RowConnector(_DeviceRow)
 
@@ -69,13 +71,15 @@ const DeviceHeader = ({onAddNew, waitingForServer}) => {
     <ClickableBox onClick={onAddNew}>
       <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
         <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 5}} />
-        <Text type="HeaderLink" style={{padding: 5}}>Add new...</Text>
+        <Text type="HeaderLink" style={{padding: 5}}>
+          Add new...
+        </Text>
       </Box>
     </ClickableBox>
   )
 }
 
-const RevokedDescription = () => (
+const RevokedDescription = () =>
   <Box style={stylesRevokedDescription}>
     <Text
       type="BodySmallSemibold"
@@ -89,7 +93,6 @@ const RevokedDescription = () => (
       Revoked devices will no longer be able to access your Keybase account.
     </Text>
   </Box>
-)
 
 const DevicesRender = ({
   deviceIDs,
@@ -100,7 +103,7 @@ const DevicesRender = ({
   showingMenu,
   setShowingMenu,
   waitingForServer,
-}: Props) => (
+}: Props) =>
   <Box style={stylesContainer}>
     <DeviceHeader onAddNew={() => setShowingMenu(true)} waitingForServer={waitingForServer} />
     <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
@@ -113,7 +116,6 @@ const DevicesRender = ({
     </NativeScrollView>
     {showingMenu && <PopupMenu items={menuItems} onHidden={() => setShowingMenu(false)} />}
   </Box>
-)
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

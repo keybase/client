@@ -181,30 +181,33 @@ const makeRenderThreadConfig = () => {
     // Visual dashboard to see what the hot server is doing
     const dashboardPlugin = flags.isShowingDashboard ? [new DashboardPlugin()] : []
     // Allow hot module reload when editing files
-    const hmrPlugin = flags.isHot && flags.isDev
-      ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
-      : []
+    const hmrPlugin =
+      flags.isHot && flags.isDev
+        ? [new webpack.HotModuleReplacementPlugin(), new webpack.NamedModulesPlugin()]
+        : []
     // Don't spit out errors while building
     const noEmitOnErrorsPlugin = flags.isDev ? [new webpack.NoEmitOnErrorsPlugin()] : []
     // Put common code between the entries into a sep. file
-    const commonChunksPlugin = flags.isDev && !flags.isVisDiff
-      ? [
-          new webpack.optimize.CommonsChunkPlugin({
-            filename: 'common-chunks.js',
-            minChunks: 2,
-            name: 'common-chunks',
-          }),
-        ]
-      : []
+    const commonChunksPlugin =
+      flags.isDev && !flags.isVisDiff
+        ? [
+            new webpack.optimize.CommonsChunkPlugin({
+              filename: 'common-chunks.js',
+              minChunks: 2,
+              name: 'common-chunks',
+            }),
+          ]
+        : []
 
     // Put our vendored stuff into its own thing
-    const dllPlugin = flags.isDev && !flags.isVisDiff
-      ? [
-          new webpack.DllReferencePlugin({
-            manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
-          }),
-        ]
-      : []
+    const dllPlugin =
+      flags.isDev && !flags.isVisDiff
+        ? [
+            new webpack.DllReferencePlugin({
+              manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
+            }),
+          ]
+        : []
 
     return [
       ...dashboardPlugin,
@@ -216,13 +219,14 @@ const makeRenderThreadConfig = () => {
   }
 
   // Have to inject some additional code if we're using HMR
-  const HMREntries = flags.isHot && flags.isDev
-    ? [
-        'react-hot-loader/patch',
-        'webpack-dev-server/client?http://localhost:4000',
-        'webpack/hot/only-dev-server',
-      ]
-    : []
+  const HMREntries =
+    flags.isHot && flags.isDev
+      ? [
+          'react-hot-loader/patch',
+          'webpack-dev-server/client?http://localhost:4000',
+          'webpack/hot/only-dev-server',
+        ]
+      : []
 
   const makeEntries = () => {
     if (flags.isVisDiff) {

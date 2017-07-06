@@ -25,8 +25,10 @@ const _DummySearchV3 = ({inboxSearch, setInboxFilter}) => {
         width: 300,
       }}
     >
-      <Text type="Header" style={{width: '100%'}}>Bubbles: {inboxSearch.join(', ') || '(none)'}</Text>
-      {[['cnojima4'], ['kbot', 'cctester102'], ['chris'], []].map(vals => (
+      <Text type="Header" style={{width: '100%'}}>
+        Bubbles: {inboxSearch.join(', ') || '(none)'}
+      </Text>
+      {[['cnojima4'], ['kbot', 'cctester102'], ['chris'], []].map(vals =>
         <Button
           key={vals.join(', ')}
           type="Primary"
@@ -34,7 +36,7 @@ const _DummySearchV3 = ({inboxSearch, setInboxFilter}) => {
           label={vals.join(', ') || '(none)'}
           style={{marginTop: 10, alignSelf: 'flex-start'}}
         />
-      ))}
+      )}
       <Button
         key="addrandom"
         type="Primary"

@@ -14,17 +14,17 @@ import {globalStyles, globalColors} from '../../styles'
 import type {Props} from './render'
 import type {SearchResult} from '../../constants/search'
 
-const KeybaseResultBody = ({username, searchText, isFollowing}) => (
+const KeybaseResultBody = ({username, searchText, isFollowing}) =>
   <Text type="BodySemibold" style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>
     {username}
   </Text>
-)
 
-const ExternalResultBody = ({username, searchText}) => (
-  <Text type="BodySemibold" style={{color: globalColors.black_75}}>{username}</Text>
-)
+const ExternalResultBody = ({username, searchText}) =>
+  <Text type="BodySemibold" style={{color: globalColors.black_75}}>
+    {username}
+  </Text>
 
-const KeybaseExtraInfo = ({username, fullName, isFollowing, searchText}) => (
+const KeybaseExtraInfo = ({username, fullName, isFollowing, searchText}) =>
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
@@ -32,21 +32,27 @@ const KeybaseExtraInfo = ({username, fullName, isFollowing, searchText}) => (
         {username}
       </Text>
     </Box>
-    {!!fullName && <Text type="BodySmall" style={{color: globalColors.black_40}}>{fullName}</Text>}
+    {!!fullName &&
+      <Text type="BodySmall" style={{color: globalColors.black_40}}>
+        {fullName}
+      </Text>}
   </Box>
-)
 
-const ExternalExtraInfo = ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) => (
+const ExternalExtraInfo = ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) =>
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
       {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-      {!!serviceUsername && <Text type="BodySmallSemibold">{serviceUsername}</Text>}
+      {!!serviceUsername &&
+        <Text type="BodySmallSemibold">
+          {serviceUsername}
+        </Text>}
     </Box>
     {!!fullNameOnService &&
-      <Text type="BodySmall" style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
+      <Text type="BodySmall" style={{color: globalColors.black_40}}>
+        {fullNameOnService}
+      </Text>}
   </Box>
-)
 
 function Result({
   result,
@@ -108,7 +114,12 @@ function Result({
     <ListItem
       type="Small"
       icon={icon}
-      body={<Box style={globalStyles.flexBoxRow}>{alignedBody}{extraInfo}</Box>}
+      body={
+        <Box style={globalStyles.flexBoxRow}>
+          {alignedBody}
+          {extraInfo}
+        </Box>
+      }
       action={<Box />}
       onClick={onClickResult}
       bodyContainerStyle={{marginBottom: 0, marginTop: 0, marginRight: 0}}
@@ -116,18 +127,17 @@ function Result({
   )
 }
 
-const UserSearchRender = ({results, onClickResult, searchText, waiting}: Props) => (
+const UserSearchRender = ({results, onClickResult, searchText, waiting}: Props) =>
   <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
     {!!waiting && <ProgressIndicator white={false} />}
-    {results.map(r => (
+    {results.map(r =>
       <Result
         key={r.service + (r.icon || '') + r.username}
         result={r}
         onClickResult={() => onClickResult(r)}
         searchText={searchText || ''}
       />
-    ))}
+    )}
   </NativeScrollView>
-)
 
 export default UserSearchRender

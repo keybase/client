@@ -30,7 +30,9 @@ class InviteCodeRender extends Component<void, Props, State> {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text style={stylesHeader} type="Header">Type in your invite code:</Text>
+        <Text style={stylesHeader} type="Header">
+          Type in your invite code:
+        </Text>
         <Icon style={stylesIcon} type="icon-invite-code-48" />
         <Input
           autoFocus={true}
@@ -49,7 +51,9 @@ class InviteCodeRender extends Component<void, Props, State> {
           disabled={!this.state.inviteCode}
         />
         <Text type="BodySmall">Not invited?</Text>
-        <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>Request an invite</Text>
+        <Text type="BodySmallSecondaryLink" onClick={this.props.onRequestInvite}>
+          Request an invite
+        </Text>
         <Box style={{flex: 1}} />
       </Container>
     )

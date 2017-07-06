@@ -35,9 +35,9 @@ const _tabs = [
   Tabs.settingsTab,
 ].filter(Boolean)
 
-const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
+const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) =>
   <Box style={stylesTabBar}>
-    {_tabs.map(tab => (
+    {_tabs.map(tab =>
       <TabBarButton
         className="keybase-nav"
         badgeNumber={badgeNumbers[tab]}
@@ -49,7 +49,7 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
         source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'nav'}}
         style={stylesTabButton}
       />
-    ))}
+    )}
     <Box style={{flex: 1}} />
     <TabBarButton
       label={username}
@@ -61,7 +61,6 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
       style={stylesTabButton}
     />
   </Box>
-)
 
 const stylesTabBar = {
   ...globalStyles.flexBoxColumn,

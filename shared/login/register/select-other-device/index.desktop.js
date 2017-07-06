@@ -26,21 +26,26 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <div style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </div>
-        <Text type="BodySemiboldItalic" onClick={onClick}>{name}</Text>
+        <Text type="BodySemiboldItalic" onClick={onClick}>
+          {name}
+        </Text>
       </div>
     </div>
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) =>
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={stylesHeader}>Which device would you like to connect with?</Text>
+    <Text type="Header" style={stylesHeader}>
+      Which device would you like to connect with?
+    </Text>
     <div style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </div>
-    <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>Log in with your passphrase</Text>
+    <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
+      Log in with your passphrase
+    </Text>
   </Container>
-)
 
 const stylesContainer = {}
 const stylesHeader = {

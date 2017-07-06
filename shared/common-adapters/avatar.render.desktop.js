@@ -84,7 +84,7 @@ class UserImage extends PureComponent<void, ImageProps, void> {
 const borderOffset = 1
 const borderSize = 2
 // Layer on top to extend outside of the image
-const Border = ({borderColor, size}) => (
+const Border = ({borderColor, size}) =>
   <div
     style={{
       background: globalColors.transparent,
@@ -99,7 +99,6 @@ const Border = ({borderColor, size}) => (
       maxWidth: size,
     }}
   />
-)
 
 const _alreadyLoaded: {[name: string]: ?true} = {}
 

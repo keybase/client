@@ -10,7 +10,11 @@ export type Props = {
 
 class PgpPurgeMessage extends Component<void, Props, void> {
   _toItalics(s: string) {
-    return <Text type="BodySemiboldItalic">{s}</Text>
+    return (
+      <Text type="BodySemiboldItalic">
+        {s}
+      </Text>
+    )
   }
 
   render() {
@@ -22,15 +26,15 @@ class PgpPurgeMessage extends Component<void, Props, void> {
         <Box
           style={{...globalStyles.flexBoxColumn, margin: globalMargins.medium, marginTop: globalMargins.tiny}}
         >
-          <Text style={{textAlign: 'center'}} type="Header">Policy change on passphrases</Text>
+          <Text style={{textAlign: 'center'}} type="Header">
+            Policy change on passphrases
+          </Text>
           <Text style={{marginTop: globalMargins.small}} type="Body">
             {`
               We've gotten lots of feedback that it's annoying as all hell to enter a Keybase passphrase
               after restarts and updates. The consensus is you can trust a device's storage to keep a secret
-              that's`}
-            {' '}
-            {this._toItalics('specific')}
-            {' '}
+              that's`}{' '}
+            {this._toItalics('specific')}{' '}
             {`to that device.  Passphrases stink, like passed gas, and are bloody painful, like passed stones.
             `}
           </Text>
@@ -38,15 +42,15 @@ class PgpPurgeMessage extends Component<void, Props, void> {
           <Text style={{marginTop: globalMargins.small}} type="Body">
             {`
               Note, however: on this device you've got a PGP private key in Keybase's local keychain.
-              Some people `}
-            {' '}
-            {this._toItalics('want')}
-            {' '}
+              Some people `}{' '}
+            {this._toItalics('want')}{' '}
             {` to type a passphrase to unlock their PGP key, and this new policy would bypass that.
               If you're such a person, you can run the following command to remove your PGP private key. If you do it, you'll have to use GPG for your PGP operations.
             `}
           </Text>
-          <Text style={{marginTop: globalMargins.small}} type="TerminalInline">keybase pgp purge</Text>
+          <Text style={{marginTop: globalMargins.small}} type="TerminalInline">
+            keybase pgp purge
+          </Text>
         </Box>
         <Button
           style={{

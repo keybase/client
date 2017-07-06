@@ -27,7 +27,11 @@ type State = {
 }
 
 function customError(error: string, code: ?number) {
-  return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
+  return (
+    <Text style={styleErrorBannerText} type="BodySemibold">
+      {error}
+    </Text>
+  )
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {
@@ -58,8 +62,12 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
       <Box style={styleContainer}>
         <Icon style={styleClose} type="iconfont-close" onClick={this.props.onCancel} />
         {this.props.errorText &&
-          <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
-        <Text type="Header" style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
+          <Box style={styleErrorBanner}>
+            {customError(this.props.errorText, this.props.errorCode)}
+          </Box>}
+        <Text type="Header" style={{marginBottom: globalMargins.medium}}>
+          {headerText}
+        </Text>
         <PlatformIcon
           platform={this.props.platform}
           overlay={'icon-proof-unfinished'}

@@ -9,8 +9,12 @@ class ErrorRender extends Component<void, Props, void> {
   render() {
     return (
       <Container onBack={this.props.restartSignup} style={container}>
-        <Text type="Header" style={topMargin}>Ah Shoot! Something went wrong, wanna try again?</Text>
-        <Text type="BodyError" style={topMargin}>{this.props.errorText.stringValue()}</Text>
+        <Text type="Header" style={topMargin}>
+          Ah Shoot! Something went wrong, wanna try again?
+        </Text>
+        <Text type="BodyError" style={topMargin}>
+          {this.props.errorText.stringValue()}
+        </Text>
         <Button
           style={topMargin}
           type="Secondary"

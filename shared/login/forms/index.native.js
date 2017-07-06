@@ -26,7 +26,9 @@ const Splash = HOCTimers(
       return (
         <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
           <Icon type="icon-keybase-logo-80" />
-          <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
+          <Text style={stylesHeader} type="HeaderBig">
+            Keybase
+          </Text>
           {this.state.showFeedback &&
             <Box style={globalStyles.flexBoxColumn}>
               <Text style={{marginTop: globalMargins.large}} type="BodySmall">
@@ -45,7 +47,7 @@ const Splash = HOCTimers(
   }
 )
 
-const Failure = (props: Props) => (
+const Failure = (props: Props) =>
   <Box style={{...stylesLoginForm, marginTop: 0}}>
     <Box style={stylesBannerRed}>
       <Text type="BodySemibold" style={stylesTextBanner}>
@@ -70,9 +72,8 @@ const Failure = (props: Props) => (
       </Box>
     </Box>
   </Box>
-)
 
-const Intro = (props: Props) => (
+const Intro = (props: Props) =>
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -84,16 +85,19 @@ const Intro = (props: Props) => (
     {!!props.justRevokedSelf &&
       <Box style={stylesBannerGreen}>
         <Text type="BodySemibold" style={stylesTextBanner}>
-          <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justRevokedSelf}</Text>
+          <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+            {props.justRevokedSelf}
+          </Text>
           &nbsp;was revoked successfully.
         </Text>
       </Box>}
     {!!props.justDeletedSelf &&
       <Box style={stylesBannerBlue}>
         <Text type="BodySemibold" style={stylesTextBanner}>
-          Your Keybase account
-          {' '}
-          <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justDeletedSelf}</Text>
+          Your Keybase account{' '}
+          <Text type="BodySemiboldItalic" style={stylesTextBanner}>
+            {props.justDeletedSelf}
+          </Text>
           &nbsp;has been deleted.
         </Text>
       </Box>}
@@ -113,18 +117,23 @@ const Intro = (props: Props) => (
       }}
     >
       <Icon type="icon-keybase-logo-80" />
-      <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
-      <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
+      <Text style={stylesHeader} type="HeaderBig">
+        Join Keybase
+      </Text>
+      <Text style={stylesHeaderSub} type="Body">
+        Folders for anyone in the world.
+      </Text>
       <Button style={stylesSignupButton} type="Primary" onClick={props.onSignup} label="Create an account" />
       <Box style={{flex: 1, width: 1}} />
-      <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
+      <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>
+        Already on Keybase?
+      </Text>
       <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
       <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
         Problems logging in?
       </Text>
     </Box>
   </Box>
-)
 
 const stylesFeedback = {
   alignSelf: 'flex-end',

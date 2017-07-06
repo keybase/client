@@ -16,19 +16,23 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
     title,
     theme = 'light',
     ...restProps
-  }: Props & P) => (
+  }: Props & P) =>
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
         <Box style={_titleStyle}>
-          <Text type="Header">{title}</Text>
+          <Text type="Header">
+            {title}
+          </Text>
         </Box>
-        {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
+        {onCancel &&
+          <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
+            Cancel
+          </Text>}
         {onBack &&
           <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />}
       </Box>
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
-  )
 
   return HeaderHocWrapper
 }

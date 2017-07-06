@@ -44,7 +44,9 @@ class UserEntry extends PureComponent<void, UserEntryProps, void> {
           followsYou={followsYou}
           following={following}
         />
-        <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+        <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>
+          {username}
+        </Text>
       </Box>
     )
   }
@@ -103,7 +105,9 @@ class FriendshipsRender extends Component<void, Props, void> {
             {followers === 0 &&
               isYou &&
               <Box style={friendshipEmptyStyle}>
-                <Text type="Body" style={{color: globalColors.black_40}}>You have no followers.</Text>
+                <Text type="Body" style={{color: globalColors.black_40}}>
+                  You have no followers.
+                </Text>
               </Box>}
             <ReactList
               useTranslate3d={true}
@@ -124,7 +128,9 @@ class FriendshipsRender extends Component<void, Props, void> {
             {following === 0 &&
               isYou &&
               <Box style={friendshipEmptyStyle}>
-                <Text type="Body" style={{color: globalColors.black_40}}>You are not following anyone.</Text>
+                <Text type="Body" style={{color: globalColors.black_40}}>
+                  You are not following anyone.
+                </Text>
               </Box>}
             <ReactList
               useTranslate3d={true}

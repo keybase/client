@@ -6,12 +6,11 @@ import {globalColors} from '../../../styles'
 
 import type {Props} from './unfollow-notice'
 
-const UnfollowNotice = ({username}: Props) => (
+const UnfollowNotice = ({username}: Props) =>
   <UserNotice username={username} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       You stopped following {username}.
     </Text>
   </UserNotice>
-)
 
 export default UnfollowNotice

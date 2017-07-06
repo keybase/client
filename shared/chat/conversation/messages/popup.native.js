@@ -13,16 +13,17 @@ import type {TypedState} from '../../../constants/reducer'
 import type {ServerMessage, TextMessage} from '../../../constants/chat'
 
 function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
-  const edit = message.author === you
-    ? [
-        {
-          onClick: () => {
-            onShowEditor(message)
+  const edit =
+    message.author === you
+      ? [
+          {
+            onClick: () => {
+              onShowEditor(message)
+            },
+            title: 'Edit',
           },
-          title: 'Edit',
-        },
-      ]
-    : []
+        ]
+      : []
 
   const copy = [
     {

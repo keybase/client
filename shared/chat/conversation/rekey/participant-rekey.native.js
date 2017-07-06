@@ -13,7 +13,7 @@ import {globalColors, globalStyles} from '../../../styles'
 
 import type {Props} from './participant-rekey'
 
-const Row = ({username, onUsernameClicked}) => (
+const Row = ({username, onUsernameClicked}) =>
   <ClickableBox onClick={() => onUsernameClicked(username)}>
     <Box style={rowStyle}>
       <Avatar username={username} size={40} style={{marginRight: 12, padding: 4}} />
@@ -29,9 +29,8 @@ const Row = ({username, onUsernameClicked}) => (
       </Box>
     </Box>
   </ClickableBox>
-)
 
-const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) => (
+const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) =>
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text
@@ -48,14 +47,13 @@ const ParticipantRekey = ({rekeyInfo, onShowProfile: onUsernameClicked}: Props) 
           {!!rekeyInfo &&
             rekeyInfo
               .get('rekeyParticipants')
-              .map(username => (
+              .map(username =>
                 <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
-              ))}
+              )}
         </Box>
       </Box>
     </NativeScrollView>
   </Box>
-)
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,

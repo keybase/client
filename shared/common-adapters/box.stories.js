@@ -7,7 +7,7 @@ import {globalMargins, globalStyles, globalColors} from '../styles'
 
 const load = () => {
   storiesOf('Box', module).add('Box', () =>
-    Object.keys(globalMargins).map(size => (
+    Object.keys(globalMargins).map(size =>
       <Box key={size} style={{...globalStyles.flexBoxRow, margin: 30, width: '100%'}}>
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', width: '50%'}}>
           <Box
@@ -22,11 +22,15 @@ const load = () => {
           />
         </Box>
         <Box style={{width: '50%'}}>
-          <Text type="BodySmall">{size}: </Text>
-          <Text type="BodySmall">{globalMargins[size]}px</Text>
+          <Text type="BodySmall">
+            {size}:{' '}
+          </Text>
+          <Text type="BodySmall">
+            {globalMargins[size]}px
+          </Text>
         </Box>
       </Box>
-    ))
+    )
   )
 }
 

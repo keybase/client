@@ -15,7 +15,7 @@ import Participants from './participants'
 
 import type {Props} from '.'
 
-const _Contents = (props: Props) => (
+const _Contents = (props: Props) =>
   <NativeScrollView style={{flex: 1, width: '100%'}}>
     <Divider style={{marginTop: 20}} />
     <Box style={{...globalStyles.flexBoxRow, width: '100%', alignItems: 'stretch'}}>
@@ -55,11 +55,10 @@ const _Contents = (props: Props) => (
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
   </NativeScrollView>
-)
 
 const Contents = HeaderHoc(_Contents)
 
-const SidePanel = (props: Props) => (
+const SidePanel = (props: Props) =>
   <PopupDialog
     onClose={props.onToggleSidePanel}
     styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
@@ -71,6 +70,5 @@ const SidePanel = (props: Props) => (
       headerStyle={{borderBottomWidth: 0, marginTop: 0}}
     />
   </PopupDialog>
-)
 
 export default SidePanel

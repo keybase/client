@@ -9,7 +9,9 @@ class ProvePgpImport extends Component<void, Props, void> {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>
         <Icon type="icon-pgp-key-import-48" />
-        <Text style={styleHeader} type="Header">Import a PGP key</Text>
+        <Text style={styleHeader} type="Header">
+          Import a PGP key
+        </Text>
         <Text style={styleBody} type="Body">
           To upload your existing PGP key to Keybase, please run the following command from your terminal:
         </Text>

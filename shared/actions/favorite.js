@@ -101,7 +101,9 @@ const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
 
         return {
           name: json.users[userID],
-          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
+          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last
+            ? ` or ${last}`
+            : ''}.`,
         }
       })
     }

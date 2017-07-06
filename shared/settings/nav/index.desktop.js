@@ -10,7 +10,9 @@ export function SettingsItem({text, selected, onClick, badgeNumber}: SettingsIte
   return (
     <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
       <Box style={globalStyles.flexBoxRow}>
-        <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>{text}</Text>
+        <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>
+          {text}
+        </Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
     </ClickableBox>

@@ -8,10 +8,12 @@ import type {Props} from './'
 
 type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
 
-const RevokedHeader = (props: RevokedHeaderProps) => (
+const RevokedHeader = (props: RevokedHeaderProps) =>
   <Box>
     <Box style={stylesRevokedRow} onClick={props.onToggleExpanded}>
-      <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Revoked devices</Text>
+      <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+        Revoked devices
+      </Text>
       <Icon
         type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
         style={{padding: globalMargins.xtiny}}
@@ -19,7 +21,6 @@ const RevokedHeader = (props: RevokedHeaderProps) => (
     </Box>
     {props.expanded && props.children}
   </Box>
-)
 
 const textStyle = isRevoked =>
   isRevoked
@@ -32,7 +33,7 @@ const textStyle = isRevoked =>
         fontStyle: 'italic',
       }
 
-const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) => (
+const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDevicePage}) =>
   <Box
     className="existing-device-container"
     key={name}
@@ -44,35 +45,36 @@ const _DeviceRow = ({isCurrentDevice, name, isRevoked, icon, showExistingDeviceP
     </Box>
     <Box style={{flex: 1, marginLeft: globalMargins.small}}>
       <Box style={globalStyles.flexBoxRow}>
-        <Text style={textStyle(isRevoked)} type="BodySemibold">{name}</Text>
+        <Text style={textStyle(isRevoked)} type="BodySemibold">
+          {name}
+        </Text>
       </Box>
       <Box style={globalStyles.flexBoxRow}>
         {isCurrentDevice && <Text type="BodySmall">Current device</Text>}
       </Box>
     </Box>
   </Box>
-)
 
 const DeviceRow = RowConnector(_DeviceRow)
 
-const RevokedDescription = () => (
+const RevokedDescription = () =>
   <Box style={stylesRevokedDescription}>
     <Text type="BodySmall" style={{color: globalColors.black_40}}>
       Revoked devices will no longer be able to access your Keybase account.
     </Text>
   </Box>
-)
 
-const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
+const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) =>
   <Box
     style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: 48}}
     onClick={addNewDevice}
   >
     <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-    <Text type="BodyBigLink" onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
+    <Text type="BodyBigLink" onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>
+      Add new...
+    </Text>
     {showingMenu && <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
   </Box>
-)
 
 const DevicesRender = ({
   deviceIDs,
@@ -82,7 +84,7 @@ const DevicesRender = ({
   menuItems,
   showingMenu,
   setShowingMenu,
-}: Props) => (
+}: Props) =>
   <Box style={stylesContainer}>
     <DeviceHeader
       menuItems={menuItems}
@@ -97,7 +99,6 @@ const DevicesRender = ({
         {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       </RevokedHeader>}
   </Box>
-)
 
 const stylesContainer = {
   ...globalStyles.scrollable,

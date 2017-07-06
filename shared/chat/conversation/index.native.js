@@ -12,7 +12,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
-const Conversation = (props: Props) => (
+const Conversation = (props: Props) =>
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     {props.threadLoadedOffline &&
       <Box
@@ -45,35 +45,34 @@ const Conversation = (props: Props) => (
     {props.showSearchPending
       ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
       : props.showSearchResults
-          ? <SearchResultsList
-              items={props.searchResultIds}
-              onClick={props.onClickSearchResult}
-              onShowTracker={props.onShowTrackerInSearch}
-              selectedId={props.selectedSearchId}
-              style={{flex: 1}}
+        ? <SearchResultsList
+            items={props.searchResultIds}
+            onClick={props.onClickSearchResult}
+            onShowTracker={props.onShowTrackerInSearch}
+            selectedId={props.selectedSearchId}
+            style={{flex: 1}}
+          />
+        : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+            <List
+              focusInputCounter={props.focusInputCounter}
+              listScrollDownCounter={props.listScrollDownCounter}
+              onEditLastMessage={props.onEditLastMessage}
+              onScrollDown={props.onScrollDown}
+              onFocusInput={props.onFocusInput}
+              editLastMessageCounter={props.editLastMessageCounter}
             />
-          : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <List
-                focusInputCounter={props.focusInputCounter}
-                listScrollDownCounter={props.listScrollDownCounter}
-                onEditLastMessage={props.onEditLastMessage}
-                onScrollDown={props.onScrollDown}
-                onFocusInput={props.onFocusInput}
-                editLastMessageCounter={props.editLastMessageCounter}
-              />
-              <Banner />
-              {props.showLoader && <LoadingLine />}
-              {props.finalizeInfo
-                ? <OldProfileResetNotice />
-                : <Input
-                    focusInputCounter={props.focusInputCounter}
-                    onEditLastMessage={props.onEditLastMessage}
-                    onScrollDown={props.onScrollDown}
-                  />}
+            <Banner />
+            {props.showLoader && <LoadingLine />}
+            {props.finalizeInfo
+              ? <OldProfileResetNotice />
+              : <Input
+                  focusInputCounter={props.focusInputCounter}
+                  onEditLastMessage={props.onEditLastMessage}
+                  onScrollDown={props.onScrollDown}
+                />}
 
-              {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
-            </Box>}
+            {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
+          </Box>}
   </Box>
-)
 
 export default Conversation

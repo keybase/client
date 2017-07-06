@@ -21,7 +21,9 @@ class SuccessRender extends Component<void, Props, State> {
   render() {
     const contents = this.props.paperkey
       ? <Box style={stylesPaperKeyContainer}>
-          <Text type="Header" style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
+          <Text type="Header" style={stylesPaperkey}>
+            {this.props.paperkey.stringValue()}
+          </Text>
           <Icon type="icon-paper-key-corner" style={stylesPaperCorner} />
         </Box>
       : <Box style={{stylesPaperKeyContainer}}>
@@ -35,7 +37,8 @@ class SuccessRender extends Component<void, Props, State> {
           {this.props.title || "Congratulations, you've just joined Keybase!"}
         </Text>
         <Text type="Body" style={stylesBody}>
-          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.
+          Here is your unique paper key, it will allow you to perform important Keybase tasks in the future.
+          This is the only time you'll see this so be sure to write it down.
         </Text>
         {contents}
         {this.props.onFinish &&

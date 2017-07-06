@@ -5,7 +5,7 @@ import {globalMargins} from '../../styles'
 
 import type {Props} from './render'
 
-const EditProfileRender = (props: Props) => (
+const EditProfileRender = (props: Props) =>
   <StandardScreen style={styleContainer} onCancel={props.onCancel}>
     <Input
       autoCorrect={true}
@@ -40,7 +40,6 @@ const EditProfileRender = (props: Props) => (
     />
     <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
   </StandardScreen>
-)
 
 const styleContainer = {
   marginTop: 0,

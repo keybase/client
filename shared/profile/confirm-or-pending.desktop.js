@@ -21,7 +21,9 @@ const Render = (props: Props) => {
           height: globalMargins.large,
         }}
       >
-        <Text backgroundMode="Success" type="BodySemibold">{title}</Text>
+        <Text backgroundMode="Success" type="BodySemibold">
+          {title}
+        </Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
         <PlatformIcon
@@ -29,13 +31,20 @@ const Render = (props: Props) => {
           overlay={platformIconOverlay}
           overlayColor={platformIconOverlayColor}
         />
-        <Text type="Header" style={{color: globalColors.blue}}>{username}</Text>
+        <Text type="Header" style={{color: globalColors.blue}}>
+          {username}
+        </Text>
         {!!usernameSubtitle &&
-          <Text type="Body" style={{color: globalColors.black_20}}>{usernameSubtitle}</Text>}
+          <Text type="Body" style={{color: globalColors.black_20}}>
+            {usernameSubtitle}
+          </Text>}
         <Text type="Body" style={{marginTop: globalMargins.large, textAlign: 'center', maxWidth: 560}}>
           {message}
         </Text>
-        {!!messageSubtitle && <Text type="BodySmall" style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
+        {!!messageSubtitle &&
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            {messageSubtitle}
+          </Text>}
         <Button
           type="Primary"
           onClick={onReloadProfile}

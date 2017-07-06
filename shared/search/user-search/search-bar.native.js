@@ -9,7 +9,7 @@ import {platformToLogo24} from '../../constants/search'
 import type {SearchPlatforms} from '../../constants/search'
 import type {Props} from './search-bar'
 
-const ServiceIcon = ({serviceName, iconType, selected, onClickService}) => (
+const ServiceIcon = ({serviceName, iconType, selected, onClickService}) =>
   <ClickableBox
     style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
     onClick={() => onClickService(serviceName)}
@@ -18,7 +18,6 @@ const ServiceIcon = ({serviceName, iconType, selected, onClickService}) => (
       <Icon type={iconType} style={{opacity: selected ? 1 : 0.6}} />
     </Box>
   </ClickableBox>
-)
 
 type State = {
   overridePlatform: ?SearchPlatforms,
@@ -72,7 +71,7 @@ class SearchBar extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <Box style={stylesServicesContainer}>
-          {services.map(s => (
+          {services.map(s =>
             <ServiceIcon
               key={s}
               serviceName={s}
@@ -81,7 +80,7 @@ class SearchBar extends Component<void, Props, State> {
               selected={this.props.selectedService === s}
               onClickService={this._onClickService}
             />
-          ))}
+          )}
         </Box>
         <Box style={stylesInputContainer}>
           <Input

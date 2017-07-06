@@ -189,14 +189,18 @@ class Engine {
 
     if (__DEV__) {
       localLog(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`
+        `${prefix} incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response
+          ? ': Sending back error'
+          : ''}`
       )
     }
     console.warn(`${prefix} incoming rpc: ${sessionID} ${method}`)
 
     if (__DEV__ && this._failOnError) {
       throw new Error(
-        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`
+        `${prefix} incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response
+          ? '. has response'
+          : ''}`
       )
     }
 

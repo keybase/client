@@ -462,15 +462,15 @@ function _unboxedToMessage(
   if (message && message.state === ChatTypes.LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.OutboxRecord = message.outbox
-    const messageState: Constants.MessageState = payload &&
-      payload.state &&
-      payload.state.state === ChatTypes.LocalOutboxStateType.error
-      ? 'failed'
-      : 'pending'
+    const messageState: Constants.MessageState =
+      payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error
+        ? 'failed'
+        : 'pending'
     const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
-    const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
-      ? _decodeFailureDescription(payload.state.error.typ)
-      : null
+    const failureDescription =
+      messageState === 'failed' // prettier-ignore $FlowIssue
+        ? _decodeFailureDescription(payload.state.error.typ)
+        : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
     const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
@@ -704,9 +704,10 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
-      ? publicFolderWithUsers
-      : privateFolderWithUsers
+    const helper =
+      inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
+        ? publicFolderWithUsers
+        : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
     yield put(openInKBFS(path))
   } else {

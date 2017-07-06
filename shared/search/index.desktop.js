@@ -11,7 +11,7 @@ import type {Props as UserSearchProps} from './user-search/render'
 import type {Props as UserGroupProps} from './user-search/user-group'
 import type {Props as SearchBarProps} from './user-search/search-bar'
 
-const ClearSearch = ({onReset, showUserGroup}) => (
+const ClearSearch = ({onReset, showUserGroup}) =>
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -22,9 +22,11 @@ const ClearSearch = ({onReset, showUserGroup}) => (
       flexShrink: 0,
     }}
   >
-    {showUserGroup && <Text type="BodySmallSecondaryLink" onClick={onReset}>Clear search</Text>}
+    {showUserGroup &&
+      <Text type="BodySmallSecondaryLink" onClick={onReset}>
+        Clear search
+      </Text>}
   </Box>
-)
 
 class SearchRender extends Component<void, Props, void> {
   render() {

@@ -17,7 +17,7 @@ class PeriodicLogger {
   _size: number
   _logIncoming: boolean
   _logToConsole: boolean
-  _logTransform: Array<any> => Array<any>
+  _logTransform: (Array<any>) => Array<any>
   _logAfterXActions: number
 
   constructor(

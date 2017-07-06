@@ -6,7 +6,7 @@ import {isMobile} from '../../../../constants/platform'
 
 import type {Props} from '.'
 
-const MessageLoadingMore = ({moreToLoad}: Props) => (
+const MessageLoadingMore = ({moreToLoad}: Props) =>
   <Box>
     <Box style={secureStyle}>
       {!moreToLoad && <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />}
@@ -16,7 +16,6 @@ const MessageLoadingMore = ({moreToLoad}: Props) => (
       <Text type="BodySmallSemibold">Digging ancient messages...</Text>
     </Box>
   </Box>
-)
 
 const secureStyle = {
   ...globalStyles.flexBoxCenter,

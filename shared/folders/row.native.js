@@ -45,7 +45,7 @@ const Avatars = ({styles, users, ignored, isPublic}) => {
 const Names = ({styles, users, nameColor, redColor, ignored, isPublic}) => {
   return (
     <Box style={stylesBodyNameContainer}>
-      {users.map((u, i) => (
+      {users.map((u, i) =>
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
@@ -58,9 +58,12 @@ const Names = ({styles, users, nameColor, redColor, ignored, isPublic}) => {
         >
           {u.username}
           {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-          {i !== users.length - 1 && <Text type="BodySemibold" style={{marginRight: 2}}>,</Text>}
+          {i !== users.length - 1 &&
+            <Text type="BodySemibold" style={{marginRight: 2}}>
+              ,
+            </Text>}
         </Text>
-      ))}
+      )}
     </Box>
   )
 }
@@ -74,8 +77,12 @@ const Modified = ({styles, modified}) => {
         style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, fontSize: 10, ...iconColor}}
         hint="Modified"
       />
-      <Text type="BodySmall">Modified {modified.when} by&nbsp;</Text>
-      <Text type="BodySmall">{modified.username}</Text>
+      <Text type="BodySmall">
+        Modified {modified.when} by&nbsp;
+      </Text>
+      <Text type="BodySmall">
+        {modified.username}
+      </Text>
     </Box>
   )
 }

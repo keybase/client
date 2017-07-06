@@ -120,7 +120,9 @@ class BioRender extends Component<void, Props, void> {
             >
               {username}
             </Text>
-            <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
+            <Text type="BodyBig" style={stylesFullname} {...nameTweaks}>
+              {userInfo.fullname}
+            </Text>
             {!userInfo.fullname &&
               editFns &&
               <Text
@@ -132,7 +134,9 @@ class BioRender extends Component<void, Props, void> {
               </Text>}
             {!editFns &&
               followLabel &&
-              <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>}
+              <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>
+                {followLabel}
+              </Text>}
             {userInfo.followersCount !== -1 &&
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
                 <Text

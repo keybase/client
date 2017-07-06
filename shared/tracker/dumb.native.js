@@ -185,7 +185,8 @@ const propsDefault: TrackerProps = {
     followersCount: 1871,
     followingCount: 356,
     location: 'San Francisco, California, USA, Earth, Milky Way',
-    bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
+    bio:
+      'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
     avatar: 'https://keybase.io/darksim905/picture',
     followsYou: false,
   },

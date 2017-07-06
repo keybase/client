@@ -51,7 +51,9 @@ function User({
         >
           {user.username}
         </Text>
-        <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
+        <Text type={'BodySmall'}>
+          {fullName(user.extraInfo)}
+        </Text>
       </Box>
     )
   } else if (user.service === 'external') {
@@ -59,9 +61,13 @@ function User({
       <Box style={globalStyles.flexBoxColumn}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon style={{marginRight: 5}} type={user.icon} />
-          <Text type={'BodySemibold'}>{user.username}</Text>
+          <Text type={'BodySemibold'}>
+            {user.username}
+          </Text>
         </Box>
-        <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
+        <Text type={'BodySmall'}>
+          {fullName(user.extraInfo)}
+        </Text>
       </Box>
     )
   }
@@ -99,14 +105,15 @@ const GroupAction = ({
   label: string,
   onClick: () => void,
   style?: ?Object,
-}) => (
+}) =>
   <ClickableBox onClick={onClick}>
     <Box style={rowButtonStyle}>
       <Icon type={icon} style={style} />
-      <Text type="Body" style={{color: globalColors.blue, marginLeft: 8}}>{label}</Text>
+      <Text type="Body" style={{color: globalColors.blue, marginLeft: 8}}>
+        {label}
+      </Text>
     </Box>
   </ClickableBox>
-)
 
 export default function UserGroup({
   selectedUsers,
@@ -121,7 +128,7 @@ export default function UserGroup({
     <NativeScrollView
       style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flex: 1}}
     >
-      {selectedUsers.map(u => (
+      {selectedUsers.map(u =>
         <User
           key={u.service + u.username}
           selected={!!userForInfoPane && u.username === userForInfoPane.username}
@@ -130,7 +137,7 @@ export default function UserGroup({
           onClickUser={onClickUserInGroup}
           insertSpacing={true}
         />
-      ))}
+      )}
       <GroupAction
         icon="icon-folder-private-open-32"
         label="Open private folder"

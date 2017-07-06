@@ -103,7 +103,7 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
   render() {
     return (
       <Box style={globalStyles.flexBoxRow}>
-        {servicesOrder.map((service: Constants.Service) => (
+        {servicesOrder.map((service: Constants.Service) =>
           <Service
             key={service}
             service={service}
@@ -112,7 +112,7 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
             onHover={this._hoverChanged}
             onSelect={this._selectService}
           />
-        ))}
+        )}
       </Box>
     )
   }

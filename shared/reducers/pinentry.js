@@ -10,9 +10,8 @@ const initialState: Constants.State = {
 }
 
 export default function(state: Constants.State = initialState, action: Constants.Actions): Constants.State {
-  const sessionID: ?number = action.payload && action.payload.sessionID != null
-    ? action.payload.sessionID
-    : null
+  const sessionID: ?number =
+    action.payload && action.payload.sessionID != null ? action.payload.sessionID : null
   switch (action.type) {
     case CommonConstants.resetStore:
       return {

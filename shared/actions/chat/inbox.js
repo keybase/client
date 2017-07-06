@@ -355,18 +355,21 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
 
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
-  const toShow = List(c.maxMessages || [])
-    .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
-    .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
-    .filter(m =>
-      [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(m.body.messageType)
-    )
-    .sort((a, b) => b.time - a.time)
-    .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
-      snippet: Constants.makeSnippet(message.body),
-      time: message.time,
-    }))
-    .first() || {}
+  const toShow =
+    List(c.maxMessages || [])
+      .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
+      .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
+      .filter(m =>
+        [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
+          m.body.messageType
+        )
+      )
+      .sort((a, b) => b.time - a.time)
+      .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
+        snippet: Constants.makeSnippet(message.body),
+        time: message.time,
+      }))
+      .first() || {}
 
   return new Constants.InboxStateRecord({
     conversationIDKey,

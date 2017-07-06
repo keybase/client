@@ -5,7 +5,7 @@ import {globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
-const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) => (
+const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndReport}: Props) =>
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -18,16 +18,24 @@ const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndR
       marginTop: 90,
     }}
   >
-    <Text type="Header">Block the conversation with {participants}?</Text>
-    <Text type="Body" style={{marginTop: globalMargins.large}}>You won't see this conversation anymore.</Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>To unblock it, run:</Text>
+    <Text type="Header">
+      Block the conversation with {participants}?
+    </Text>
+    <Text type="Body" style={{marginTop: globalMargins.large}}>
+      You won't see this conversation anymore.
+    </Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      To unblock it, run:
+    </Text>
     <Text
       type="Terminal"
       style={{...globalStyles.selectable, alignSelf: 'center', marginTop: globalMargins.small}}
     >
       keybase chat hide -u {participants}
     </Text>
-    <Text type="Body" style={{marginTop: globalMargins.small}}>in the terminal.</Text>
+    <Text type="Body" style={{marginTop: globalMargins.small}}>
+      in the terminal.
+    </Text>
     <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
       <Button type="Secondary" onClick={onBack} label="No, don't block them" />
       <Button
@@ -44,12 +52,10 @@ const Contents = ({conversationIDKey, onBack, participants, onBlock, onBlockAndR
       />
     </Box>
   </Box>
-)
 
-const RenderBlockConversationWarning = (props: Props) => (
+const RenderBlockConversationWarning = (props: Props) =>
   <PopupDialog onClose={props.onBack}>
     <Contents {...props} />
   </PopupDialog>
-)
 
 export default RenderBlockConversationWarning

@@ -34,7 +34,9 @@ const RenderNotImplemented = ({
 }) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-      <Text style={{textAlign: 'center'}} type="BodySmall">Mobile files coming soon!</Text>
+      <Text style={{textAlign: 'center'}} type="BodySmall">
+        Mobile files coming soon!
+      </Text>
       <Text style={{textAlign: 'center', marginBottom: globalMargins.large}} type="BodySmall">
         For now you can browse this folder on your computer.
       </Text>
@@ -49,11 +51,10 @@ const RenderNotImplemented = ({
   )
 }
 
-const Divider = () => (
+const Divider = () =>
   <Box style={{...globalStyles.flexBoxRow, height: 1}}>
     <Box style={{marginLeft: 48 + 8, backgroundColor: globalColors.black_05, flex: 1}} />
   </Box>
-)
 
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
@@ -71,7 +72,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
         >
           {intersperseFn(
             i => <Divider key={i} />,
-            waitingForParticipantUnlock.map(p => (
+            waitingForParticipantUnlock.map(p =>
               <ListItem
                 key={p.name}
                 type="Large"
@@ -79,12 +80,16 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 icon={<Avatar size={40} username={p.name} />}
                 body={
                   <Box style={globalStyles.flexBoxColumn}>
-                    <Text type="BodySemibold">{p.name}</Text>
-                    <Text type="BodySmall">{p.devices}</Text>
+                    <Text type="BodySemibold">
+                      {p.name}
+                    </Text>
+                    <Text type="BodySmall">
+                      {p.devices}
+                    </Text>
                   </Box>
                 }
               />
-            ))
+            )
           )}
         </Box>
       </NativeScrollView>
@@ -122,7 +127,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, onClickPaperkey, theme}) => {
       >
         {intersperseFn(
           i => <Divider key={i} />,
-          youCanUnlock.map(device => (
+          youCanUnlock.map(device =>
             <ListItem
               key={device.name}
               type="Large"
@@ -138,12 +143,14 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, onClickPaperkey, theme}) => {
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
                 <Box style={{...globalStyles.flexBoxColumn}}>
-                  <Text type="Body">{device.name}</Text>
+                  <Text type="Body">
+                    {device.name}
+                  </Text>
                   {device.type !== 'backup' && <Text type="BodySmall">Open the Keybase app</Text>}
                 </Box>
               }
             />
-          ))
+          )
         )}
       </NativeScrollView>
     </Box>
@@ -234,7 +241,9 @@ class FilesRender extends Component<void, Props, void> {
       )
     } else {
       return (
-        <NativeScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</NativeScrollView>
+        <NativeScrollView>
+          {this.props.recentFilesSection.map(s => this._renderSection(s))}
+        </NativeScrollView>
       )
     }
   }

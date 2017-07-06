@@ -79,7 +79,9 @@ class NewConversation extends PureComponent<void, {}, void> {
               }}
             />
           </div>
-          <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
+          <Text style={{color: globalColors.white}} type="BodySemibold">
+            New conversation
+          </Text>
         </div>
       </div>
     )
@@ -176,7 +178,9 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
           />
         </div>
       </div>
-      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: '17px'}}>{timestamp}</Text>
+      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: '17px'}}>
+        {timestamp}
+      </Text>
       {hasUnread && <div style={unreadDotStyle} />}
     </div>
   )

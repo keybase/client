@@ -130,7 +130,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r =>
-        r.update('component', child => (
+        r.update('component', child =>
           <RenderRouteNode
             isContainer={true}
             routeDef={routeDef}
@@ -142,7 +142,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
           >
             {child}
           </RenderRouteNode>
-        ))
+        )
       )
     }
   }

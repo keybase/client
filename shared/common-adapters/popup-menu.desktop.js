@@ -8,7 +8,8 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 class PopupMenu extends Component<void, Props, void> {
   render() {
     const realCSS = `
-    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
+    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) ||
+      globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
 
     .menu-hover .title { color: ${globalColors.black_75}; }
@@ -27,7 +28,9 @@ class PopupMenu extends Component<void, Props, void> {
             e.stopPropagation()
           }}
         >
-          <style>{realCSS}</style>
+          <style>
+            {realCSS}
+          </style>
           <Box style={{...stylesMenu, ...this.props.style}}>
             {this.props.header && this.props.header.view}
             <Box
@@ -87,11 +90,10 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-const Divider = () => (
+const Divider = () =>
   <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
-)
 
-const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
+const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) =>
   <Text
     type="BodySemibold"
     style={{
@@ -107,7 +109,6 @@ const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextPr
   >
     {children}
   </Text>
-)
 
 const stylesRow = {
   ...globalStyles.flexBoxColumn,

@@ -31,7 +31,11 @@ const AttachmentTitle = ({
       style = {backgroundColor: globalColors.white, color: globalColors.black_40}
       break
   }
-  return <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>{title || filename}</Text>
+  return (
+    <Text type="BodySemibold" style={style} onClick={onOpenInPopup}>
+      {title || filename}
+    </Text>
+  )
 }
 
 function PreviewImage({
@@ -55,9 +59,8 @@ function PreviewImage({
 
     const imgWidth = imgMaxWidth()
     // Don't exceed screen dimensions, keep it scaled
-    const previewRatio = previewSize && previewSize.width
-      ? Math.min(previewSize.width, imgWidth) / previewSize.width
-      : 1
+    const previewRatio =
+      previewSize && previewSize.width ? Math.min(previewSize.width, imgWidth) / previewSize.width : 1
 
     const imgStyle = {
       borderRadius: 4,
@@ -135,7 +138,9 @@ function ProgressBar({text, progress, style}: ProgressBarProps) {
 
   return (
     <Box style={containerStyle}>
-      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>{text}</Text>
+      <Text type={'BodySmall'} style={{marginRight: globalMargins.xtiny}}>
+        {text}
+      </Text>
       <Box
         style={{
           ...basicStyle,
@@ -170,9 +175,10 @@ function ImageIcon({type, style}: ImageIconProps) {
   )
 }
 
-const ShowInFileUi = ({onOpenInFileUI}) => (
-  <Text type="BodySmallSecondaryLink" onClick={onOpenInFileUI}>Show in {fileUIName}</Text>
-)
+const ShowInFileUi = ({onOpenInFileUI}) =>
+  <Text type="BodySmallSecondaryLink" onClick={onOpenInFileUI}>
+    Show in {fileUIName}
+  </Text>
 
 function PreviewImageWithInfo({
   message,

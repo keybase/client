@@ -23,17 +23,24 @@ function brokenSeparator(idx, item, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
-    return <BannerText key={idx} style={brokenStyle}>{arr.length === 1 ? '' : ','}&nbsp;and&nbsp;</BannerText>
+    return (
+      <BannerText key={idx} style={brokenStyle}>
+        {arr.length === 1 ? '' : ','}&nbsp;and&nbsp;
+      </BannerText>
+    )
   } else {
-    return <BannerText key={idx} style={brokenStyle}>,&nbsp;</BannerText>
+    return (
+      <BannerText key={idx} style={brokenStyle}>
+        ,&nbsp;
+      </BannerText>
+    )
   }
 }
 
-const Header = ({children, title = '', style = {}}: any) => (
+const Header = ({children, title = '', style = {}}: any) =>
   <CommonHeader windowDragging={false} style={{...commonHeaderStyle, ...style}} type="Strong" title={title}>
     {children}
   </CommonHeader>
-)
 
 const BannerText = props => <Text type="BodySemibold" backgroundMode="Announcements" {...props} />
 
@@ -49,38 +56,39 @@ const BrokenTrackerBanner = ({users, onClick}: BrokenTrackerProps) =>
     : <Header style={globalStyles.flexBoxRow}>
         {intersperseFn(
           brokenSeparator,
-          users.map((user, idx) => (
+          users.map((user, idx) =>
             <BannerText type="BodySemiboldLink" key={user} style={brokenStyle} onClick={() => onClick(user)}>
               {user}
             </BannerText>
-          ))
+          )
         )}
         <BannerText style={brokenStyle}>
           &nbsp;have changed their proofs since you last followed them.
         </BannerText>
       </Header>
 
-const ErrorBanner = ({text, textLink, textLinkOnClick}: ErrorProps) => (
+const ErrorBanner = ({text, textLink, textLinkOnClick}: ErrorProps) =>
   <Header>
-    <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>{text}</BannerText>
+    <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>
+      {text}
+    </BannerText>
     <BannerText type="BodySemiboldLink" onClick={textLinkOnClick} style={{textAlign: 'center'}}>
       {textLink}
     </BannerText>
   </Header>
-)
 
-const InviteBanner = ({users}: InviteProps) => (
+const InviteBanner = ({users}: InviteProps) =>
   <Header style={{backgroundColor: globalColors.blue}}>
     <BannerText style={{flex: 1, ...globalStyles.flexBoxCenter}}>
       Your messages to {users.join(' & ')} will unlock when they join Keybase.
     </BannerText>
   </Header>
-)
 
-const InfoBanner = ({text}: InfoProps) => (
+const InfoBanner = ({text}: InfoProps) =>
   <Header style={{backgroundColor: globalColors.blue}}>
-    <BannerText>{text}</BannerText>
+    <BannerText>
+      {text}
+    </BannerText>
   </Header>
-)
 
 export {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner}

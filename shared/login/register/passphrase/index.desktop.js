@@ -15,7 +15,9 @@ class Passphrase extends Component<void, Props, void> {
         onBack={() => this.props.onBack()}
       >
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type="HeaderBig" style={{color: globalColors.orange}}>{this.props.username}</Text>
+          <Text type="HeaderBig" style={{color: globalColors.orange}}>
+            {this.props.username}
+          </Text>
           <Input
             autoFocus={true}
             style={stylesInput}

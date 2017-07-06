@@ -22,8 +22,8 @@ const renderError = (error: RPCError) => {
         <Box style={styleContent}>
           <Box style={styleText}>
             <Text type="Body" style={centerText}>
-              You can't authorize by passphrase, since you have established device or paper keys. You can go back and pick a device or paper key, or
-              {' '}
+              You can't authorize by passphrase, since you have established device or paper keys. You can go
+              back and pick a device or paper key, or{' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account entirely
               </Text>
@@ -48,24 +48,18 @@ const renderError = (error: RPCError) => {
               </Text>
             </Box>
             <Box style={{...styleText, marginTop: 16}}>
-              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>
+                You have options:
+              </Text>
             </Box>
             <Box style={{styleList}}>
+              <Text type="Body"> - Go back and select a device or paper key</Text>
+              <Text type="Body"> - Install Keybase on a machine that has your PGP private key in it</Text>
               <Text type="Body">
-                {' '}- Go back and select a device or paper key
+                {' '}- Login to the website and host an encrypted copy of your PGP private key
               </Text>
               <Text type="Body">
-                {' '}
-                - Install Keybase on a machine that has your PGP private key in it
-              </Text>
-              <Text type="Body">
-                {' '}
-                - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text type="Body">
-                {' '}
-                - or,
-                {' '}
+                {' '}- or,{' '}
                 <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                   reset your account entirely
                 </Text>
@@ -83,34 +77,24 @@ const renderError = (error: RPCError) => {
               </Text>
             </Box>
             <Box style={{...styleText, marginTop: 16}}>
-              <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
+              <Text type="BodySemibold" style={{textAlign: 'left'}}>
+                You have options:
+              </Text>
             </Box>
             <Box style={styleList}>
               <Text type="Body">
-                {' '}
-                - Use
-                {' '}
-                <Text type="TerminalInline">keybase login</Text>
-                {' '}
-                on the command line to log in
+                {' '}- Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
               </Text>
               {!isMobile &&
                 <Text type="Body">
-                  {' '}
-                  - Install GPG on this machine and import your PGP private key into it
+                  {' '}- Install GPG on this machine and import your PGP private key into it
                 </Text>}
+              <Text type="Body"> - Install Keybase on a different machine that has your PGP key</Text>
               <Text type="Body">
-                {' '}
-                - Install Keybase on a different machine that has your PGP key
+                {' '}- Login to the website and host an encrypted copy of your PGP private key
               </Text>
               <Text type="Body">
-                {' '}
-                - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text type="Body">
-                {' '}
-                - Or,
-                {' '}
+                {' '}- Or,{' '}
                 <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                   reset your account entirely
                 </Text>
@@ -124,14 +108,14 @@ const renderError = (error: RPCError) => {
       return (
         <Box style={styleContent}>
           {error.desc
-            ? <Markdown>{error.desc}</Markdown>
+            ? <Markdown>
+                {error.desc}
+              </Markdown>
             : <Box style={styleText}>
                 <Text type="Body" style={centerText}>
-                  Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run
-                  {' '}
-                  <Text type="TerminalInline">keybase login</Text>
-                  {' '}
-                  on the command line to continue.
+                  Your PGP keychain has multiple keys installed, and we're not sure which one to use to
+                  provision your account. Please run <Text type="TerminalInline">keybase login</Text> on the
+                  command line to continue.
                 </Text>
               </Box>}
         </Box>
@@ -141,7 +125,8 @@ const renderError = (error: RPCError) => {
         <Box style={styleContent}>
           <Box style={styleText}>
             <Text type="Body" style={centerText}>
-              The username you provided doesn't exist on Keybase, please try logging in again with a different username.
+              The username you provided doesn't exist on Keybase, please try logging in again with a different
+              username.
             </Text>
           </Box>
         </Box>
@@ -168,33 +153,24 @@ const renderError = (error: RPCError) => {
         <Box style={styleContent}>
           <Box style={styleText}>
             <Text type="Body" style={centerText}>
-              Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.
+              Sorry, your account is already established with a PGP public key, but we can't access the
+              corresponding private key.
             </Text>
           </Box>
           <Box style={{...styleText, marginTop: 16}}>
-            <Text type="BodySemibold" style={{textAlign: 'left'}}>You have options:</Text>
+            <Text type="BodySemibold" style={{textAlign: 'left'}}>
+              You have options:
+            </Text>
           </Box>
           <Box style={styleList}>
             <Text type="Body">
-              {' '}
-              - Use
-              {' '}
-              <Text type="TerminalInline">keybase login</Text>
-              {' '}
-              on the command line to log in
+              {' '}- Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
             </Text>
             {!isMobile &&
-              <Text type="Body">
-                {' '}
-                - Install GPG, put your PGP private key on this machine and try again
-              </Text>}
+              <Text type="Body"> - Install GPG, put your PGP private key on this machine and try again</Text>}
+            <Text type="Body"> - Go back and provision with another device or paper key</Text>
             <Text type="Body">
-              {' '}- Go back and provision with another device or paper key
-            </Text>
-            <Text type="Body">
-              {' '}
-              - Or,
-              {' '}
+              {' '}- Or,{' '}
               <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/#account-reset')}>
                 reset your account and start fresh
               </Text>
@@ -211,13 +187,12 @@ const renderError = (error: RPCError) => {
     case ConstantsStatusCode.sckeycorrupted:
       return (
         <Box style={styleContent}>
-          <Text type="Body">{error.message}</Text>
           <Text type="Body">
-            {' '}
-            We were able to generate a PGP signature but it was rejected
-            by the server. This often means that this PGP key is expired
-            or unusable. You can update your key on
-            {' '}
+            {error.message}
+          </Text>
+          <Text type="Body">
+            {' '}We were able to generate a PGP signature but it was rejected by the server. This often means
+            that this PGP key is expired or unusable. You can update your key on{' '}
             <Text type="BodyPrimaryLink" onClick={() => openURL('https://keybase.io/')}>
               keybase.io
             </Text>
@@ -228,20 +203,21 @@ const renderError = (error: RPCError) => {
     default:
       return (
         <Box style={styleContent}>
-          <Text type="Body">Unknown error: {error.message}</Text>
+          <Text type="Body">
+            Unknown error: {error.message}
+          </Text>
         </Box>
       )
   }
 }
 
-const Render = ({onBack, error}: Props) => (
+const Render = ({onBack, error}: Props) =>
   <Container onBack={onBack}>
     <Text type="Header" style={styleHeader}>
       There was an error provisioning
     </Text>
     {renderError(error)}
   </Container>
-)
 
 const centerText = {
   textAlign: 'center',

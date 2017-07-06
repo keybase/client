@@ -76,7 +76,8 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
         floatingHintTextOverride: 'Paperkey',
         multiline: true,
         rowsMax: 2,
-        hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
+        hintText:
+          'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
       },
     }[this.props.type]
 
@@ -116,7 +117,9 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
       >
         <Header icon={true} title="" onClose={() => this.props.onCancel()} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type="Body" style={{textAlign: 'center'}}>{this.props.prompt}</Text>
+          <Text type="Body" style={{textAlign: 'center'}}>
+            {this.props.prompt}
+          </Text>
           {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             inputProps={inputProps}

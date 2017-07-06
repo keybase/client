@@ -442,7 +442,8 @@ const conversationsList = {
             info: null,
             status: 'unfiled',
             participants: List(['look down!']),
-            snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
+            snippet:
+              'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
             time: now,
             unreadCount: 3,
           }),

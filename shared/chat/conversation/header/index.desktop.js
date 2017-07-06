@@ -12,7 +12,7 @@ const ConversationHeader = ({
   onToggleSidePanel,
   sidePanelOpen,
   users,
-}: Props) => (
+}: Props) =>
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <Usernames
@@ -33,7 +33,6 @@ const ConversationHeader = ({
       onClick={onToggleSidePanel}
     />
   </Box>
-)
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,

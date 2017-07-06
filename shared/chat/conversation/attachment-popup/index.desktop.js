@@ -116,7 +116,9 @@ const AttachmentPopup = ({
           style={{position: 'absolute', top: 28, right: globalMargins.xtiny}}
         />}
       <Box style={styleHeaderFooter}>
-        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>{message.title}</Text>
+        <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+          {message.title}
+        </Text>
         <Icon
           type="iconfont-ellipsis"
           style={{color: globalColors.black_40, cursor: 'pointer'}}
