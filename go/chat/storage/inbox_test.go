@@ -768,16 +768,19 @@ func TestMembershipUpdate(t *testing.T) {
 	sort.Sort(utils.ConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
 	for i := 0; i < len(res); i++ {
+		sort.Sort(chat1.ByUID(res[i].Metadata.AllList))
+		sort.Sort(chat1.ByUID(expected[i].Metadata.AllList))
 		if res[i].GetConvID().Eq(otherJoinConvID) {
 			allUsers := []gregor1.UID{uid, uid2, uid3}
-			sort.Sort(chat1.ByUID(res[i].Metadata.AllList))
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Metadata.AllList)
 		} else if res[i].GetConvID().Eq(otherRemovedConvID) {
 			allUsers := []gregor1.UID{uid}
-			sort.Sort(chat1.ByUID(res[i].Metadata.AllList))
 			require.Equal(t, allUsers, res[i].Metadata.AllList)
 		} else {
+			allUsers := []gregor1.UID{uid, uid3}
+			sort.Sort(chat1.ByUID(allUsers))
+			require.Equal(t, allUsers, res[i].Metadata.AllList)
 			require.Equal(t, expected[i], res[i])
 		}
 	}
