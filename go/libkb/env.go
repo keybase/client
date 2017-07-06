@@ -149,9 +149,9 @@ type TestParameters struct {
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
 	// suffix.
-	DevelName         string
-	RuntimeDir        string
-	UpgradePerUserKey bool
+	DevelName                string
+	RuntimeDir               string
+	DisableUpgradePerUserKey bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -662,14 +662,8 @@ func (e *Env) GetSupportPerUserKey() bool {
 }
 
 // Upgrade sigchains to contain per-user-keys.
-// Implies SupportPerUserKey.
 func (e *Env) GetUpgradePerUserKey() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.Test.UpgradePerUserKey, e.Test.UpgradePerUserKey },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_UPGRADE_PER_USER_KEY") },
-		func() (bool, bool) { return e.config.GetUpgradePerUserKey() },
-		func() (bool, bool) { return e.cmd.GetUpgradePerUserKey() },
-	)
+	return !e.Test.DisableUpgradePerUserKey
 }
 
 func (e *Env) GetProxy() string {

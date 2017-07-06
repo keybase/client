@@ -69,7 +69,6 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	}
 	for i := 0; i < numUsers; i++ {
 		kbTc := externals.SetupTest(t, "chat_"+name, 0)
-		kbTc.Tp.UpgradePerUserKey = true
 		tc := ChatTestContext{
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},

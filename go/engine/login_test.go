@@ -206,13 +206,13 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool) {
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
 	t.Logf("setup Y")
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// provisioner needs to be logged in
 	t.Logf("provisioner login")
@@ -435,7 +435,7 @@ func TestProvisionPassphraseNoKeysSoloPUK(t *testing.T) {
 func testProvisionPassphraseNoKeysSolo(t *testing.T, upgradePerUserKey bool) {
 	tcWeb := SetupEngineTest(t, "web")
 	defer tcWeb.Cleanup()
-	tcWeb.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcWeb.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	username, passphrase := createFakeUserWithNoKeys(tcWeb)
 
@@ -445,7 +445,7 @@ func testProvisionPassphraseNoKeysSolo(t *testing.T, upgradePerUserKey bool) {
 
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -669,7 +669,7 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	// (PUK is on)
-	tc = SetupEngineTestPUK(t, "login")
+	tc = SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
 	ctx := &Context{
@@ -695,7 +695,7 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	// (PUK is on)
-	tc2 := SetupEngineTestPUK(t, "login")
+	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
 	ctx2 := &Context{
@@ -729,7 +729,7 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	Logout(tc)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTestPUK(t, "login")
+	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
 	// we need the gpg keyring that's in the first homedir
@@ -762,7 +762,7 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	ForcePUK(tc2)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc3 := SetupEngineTestPUK(t, "login")
+	tc3 := SetupEngineTest(t, "login")
 	defer tc3.Cleanup()
 
 	// we need the gpg keyring
@@ -2735,12 +2735,12 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUserPaper(tcX, "login")

@@ -19,8 +19,6 @@ func TestPerUserKeyBackgroundShutdownFirst(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = true
-
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
 		fakeClock.Advance(d)
@@ -60,8 +58,6 @@ func TestPerUserKeyBackgroundShutdownSoon(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-
-	tc.Tp.UpgradePerUserKey = true
 
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
@@ -104,8 +100,6 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-
-	tc.Tp.UpgradePerUserKey = true
 
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
@@ -171,8 +165,6 @@ func TestPerUserKeyBackgroundUnnecessary(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = true
-
 	_ = CreateAndSignupFakeUser(tc, "track")
 
 	t.Logf("user already has per-user-key")
@@ -220,11 +212,9 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = false
-
+	tc.Tp.DisableUpgradePerUserKey = true
 	_ = CreateAndSignupFakeUser(tc, "track")
-
-	tc.Tp.UpgradePerUserKey = true
+	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("user has no per-user-key")
 	checkPerUserKeyCount(&tc, 0)
@@ -290,8 +280,6 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = true
-
 	t.Logf("user has no per-user-key")
 
 	advance := func(d time.Duration) {
@@ -329,11 +317,11 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	expectMeta(t, metaCh, "loop-round-complete")
 
 	t.Logf("sign up and in")
-	tc.Tp.UpgradePerUserKey = false
+	tc.Tp.DisableUpgradePerUserKey = true
 	_ = CreateAndSignupFakeUser(tc, "track")
 	checkPerUserKeyCount(&tc, 0)
 
-	tc.Tp.UpgradePerUserKey = true
+	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("second run upgrades the user")
 	advance(arg.Settings.Interval + time.Second)
