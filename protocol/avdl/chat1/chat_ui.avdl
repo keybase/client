@@ -1,7 +1,7 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID, int nojima);
+  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
   void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
   void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentUploadDone(int sessionID);
