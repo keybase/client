@@ -15,7 +15,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
-	kbnmInstaller "github.com/keybase/client/go/kbnm/installer"
+	kbnminstaller "github.com/keybase/client/go/kbnm/installer"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
@@ -575,13 +575,13 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 	hostPath := filepath.Join(filepath.Dir(keybasePath), "kbnm")
 
 	log.Debug("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
-	return kbnmInstaller.InstallKBNM(hostPath)
+	return kbnminstaller.InstallKBNM(hostPath)
 }
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
 func UninstallKBNM(log Log) error {
 	log.Debug("Uninstalling KBNM NativeMessaging whitelists")
-	return kbnmInstaller.UninstallKBNM()
+	return kbnminstaller.UninstallKBNM()
 }
 
 // Uninstall uninstalls all keybase services
