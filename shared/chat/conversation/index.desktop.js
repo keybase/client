@@ -116,6 +116,11 @@ class Conversation extends Component<void, Props, State> {
           selectedSearchId={this.props.selectedSearchId}
           onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
         />
+        {this.props.showSearchResults &&
+          this.props.searchText === '' &&
+          <Box style={{padding: globalMargins.tiny}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>Recommendations</Text>
+          </Box>}
         {this.props.showSearchPending
           ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
           : this.props.showSearchResults
