@@ -490,6 +490,13 @@ func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 		panic("Must request permission for a non-negative number of bytes.")
 	}
 	c := make(chan struct{})
+
+	// No need to wait to write 0 bytes.
+	if estimatedDirtyBytes == 0 {
+		close(c)
+		return c, nil
+	}
+
 	now := d.clock.Now()
 	deadline, ok := ctx.Deadline()
 	defaultDeadline := now.Add(backgroundTaskTimeout / 2)

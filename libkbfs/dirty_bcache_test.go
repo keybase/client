@@ -164,6 +164,17 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	default:
 	}
 
+	// A 0-byte request should never fail.
+	c3, err := dirtyBcache.RequestPermissionToDirty(ctx, id, 0)
+	if err != nil {
+		t.Fatalf("Request permission error: %v", err)
+	}
+	select {
+	case <-c3:
+	default:
+		t.Fatalf("A 0-byte request was blocked")
+	}
+
 	// Let's say the actual number of unsynced bytes for c1 was double
 	dirtyBcache.UpdateUnsyncedBytes(id, 4*bufSize+2, false)
 	// Now release the previous bytes
