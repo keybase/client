@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './back-button'
-import {Text, Icon} from './index'
+import Text from './text'
+import Icon from './icon'
 import {globalStyles} from '../styles'
 
 class BackButton extends Component<void, Props, void> {
