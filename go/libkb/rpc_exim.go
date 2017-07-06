@@ -1271,6 +1271,7 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 		PastIncarnations: pastIncarnations,
 		Uvv:              u.ExportToVersionVector(),
 		SeqnoLinkIDs:     linkIDs,
+		MinorVersion:     UPK2MinorVersionCurrent,
 	}, nil
 }
 

@@ -549,6 +549,11 @@ export const UPKUPAKVersion = {
   v2: 2,
 }
 
+export const UPKUPK2MinorVersion = {
+  v0: 0,
+  v1: 1,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -6075,6 +6080,10 @@ export type UPAKVersioned =
     { v: 1, v1: ?UserPlusAllKeys }
   | { v: 2, v2: ?UserPlusKeysV2AllIncarnations }
 
+export type UPK2MinorVersion =
+    0 // V0_0
+  | 1 // V1_1
+
 export type UnboxAnyRes = {
   kid: KID,
   plaintext: Bytes32,
@@ -6149,6 +6158,7 @@ export type UserPlusKeysV2AllIncarnations = {
   pastIncarnations?: ?Array<UserPlusKeysV2>,
   uvv: UserVersionVector,
   seqnoLinkIDs: {[key: string]: LinkID},
+  minorVersion: UPK2MinorVersion,
 }
 
 export type UserResolution = {

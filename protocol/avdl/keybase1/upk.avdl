@@ -11,6 +11,11 @@ protocol UPK {
   @typedef("bytes")
   record HashMeta {}
 
+  enum UPK2MinorVersion {
+    V0_0,
+    V1_1
+  }
+
   record MerkleRootV2 {
       Seqno seqno;
       HashMeta hashMeta;
@@ -83,6 +88,8 @@ protocol UPK {
       array<UserPlusKeysV2> pastIncarnations;
       UserVersionVector uvv;
       map<Seqno, LinkID> seqnoLinkIDs;
+      // When we bump the minor version, bust the cache, and force a refresh
+      UPK2MinorVersion minorVersion;
   }
 
   enum UPAKVersion {
