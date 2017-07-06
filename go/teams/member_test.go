@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -87,7 +88,7 @@ func testMemberSetRole(t *testing.T, test setRoleTest) {
 	assertRole(tc, name, other.Username, test.afterRole)
 }
 
-func TestMemberAdd(t *testing.T) {
+func TestMemberAddOK(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -249,6 +250,88 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Error("Team secret did not change when member removed")
 	}
+}
+
+func TestMemberAddNotAUser(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	err := AddMember(context.TODO(), tc.G, name, "not_a_kb_user", keybase1.TeamRole_READER)
+	if err == nil {
+		t.Fatal("Added a non-keybase username to a team")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Errorf("error: %s (%T), expected libkb.NotFoundError", err, err)
+	}
+}
+
+func TestMemberAddSocial(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	if err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+
+	// invite links don't work in player yet, so can't do anything else:
+	/*
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+
+		// second AddMember should return err
+		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
+			t.Errorf("second AddMember succeeded, should have failed since user already a member")
+		}
+
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	*/
+}
+
+// add user without puk to a team, should create invite link
+func TestMemberAddNoPUK(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	if err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+
+	// invite links don't work in player yet, so can't do anything else:
+	/*
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+
+		// second AddMember should return err
+		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
+			t.Errorf("second AddMember succeeded, should have failed since user already a member")
+		}
+
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	*/
+}
+
+// add user without keys to a team, should create invite link
+func TestMemberAddNoKeys(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	if err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+
+	// invite links don't work in player yet, so can't do anything else:
+	/*
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+
+		// second AddMember should return err
+		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
+			t.Errorf("second AddMember succeeded, should have failed since user already a member")
+		}
+
+		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	*/
 }
 
 func TestLeave(t *testing.T) {

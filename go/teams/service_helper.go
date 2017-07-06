@@ -214,11 +214,18 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 	return t.ChangeMembership(ctx, req)
 }
 
+var inviteRequired = errors.New("invite required for username")
+
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	res := g.Resolver.ResolveWithBody(username)
 	if res.GetError() != nil {
+		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+			// couldn't find a keybase user for username assertion
+			return keybase1.UserVersion{}, inviteRequired
+		}
 		return keybase1.UserVersion{}, res.GetError()
 	}
+
 	return loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), username)
 }
 
@@ -233,6 +240,10 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 	}
 	if un != "" && !libkb.NormalizedUsername(un).Eq(libkb.NormalizedUsername(upak.Current.Username)) {
 		return keybase1.UserVersion{}, libkb.BadUsernameError{N: un}
+	}
+
+	if len(upak.Current.PerUserKeys) == 0 {
+		return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), inviteRequired
 	}
 
 	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
