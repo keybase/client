@@ -43,10 +43,10 @@ const makeCommonConfig = () => {
         babelrc: false,
         cacheDirectory: true,
         plugins: [
-          ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
+          ['transform-builtin-extend', {globals: ['Error']}],
           'transform-flow-strip-types',
           'transform-object-rest-spread', // not supported by electron yet
-          'babel-plugin-transform-class-properties', // not supported by electron yet
+          'transform-class-properties', // not supported by electron yet
           'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
         ],
         presets: [
@@ -62,7 +62,7 @@ const makeCommonConfig = () => {
               useBuiltIns: false,
             },
           ],
-          'babel-preset-react',
+          'react',
         ],
       },
     }
@@ -204,7 +204,8 @@ const makeRenderThreadConfig = () => {
       flags.isDev && !flags.isVisDiff
         ? [
             new webpack.DllReferencePlugin({
-              manifest: path.resolve(__dirname, 'dll/vendor-manifest.json'),
+              context: path.join(__dirname),
+              manifest: require(path.resolve(__dirname, 'dll/vendor-manifest.json')),
             }),
           ]
         : []
