@@ -984,8 +984,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 
 	// Update all lists with other people joining and leaving
 	convMap := make(map[string]*chat1.Conversation)
-	for _, c := range ibox.Conversations {
-		convMap[c.GetConvID().String()] = &c
+	for index, c := range ibox.Conversations {
+		convMap[c.GetConvID().String()] = &ibox.Conversations[index]
 	}
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
