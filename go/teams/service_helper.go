@@ -120,6 +120,9 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	}
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
+		if err == errInviteRequired {
+			return inviteMember(ctx, g, t, username, role, uv)
+		}
 		return err
 	}
 	if t.IsMember(ctx, uv) {
@@ -131,6 +134,10 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	}
 
 	return t.ChangeMembership(ctx, req)
+}
+
+func inviteMember(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+	return nil
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
@@ -214,14 +221,14 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 	return t.ChangeMembership(ctx, req)
 }
 
-var inviteRequired = errors.New("invite required for username")
+var errInviteRequired = errors.New("invite required for username")
 
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	res := g.Resolver.ResolveWithBody(username)
 	if res.GetError() != nil {
 		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
-			return keybase1.UserVersion{}, inviteRequired
+			return keybase1.UserVersion{}, errInviteRequired
 		}
 		return keybase1.UserVersion{}, res.GetError()
 	}
@@ -243,7 +250,7 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 	}
 
 	if len(upak.Current.PerUserKeys) == 0 {
-		return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), inviteRequired
+		return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), errInviteRequired
 	}
 
 	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
