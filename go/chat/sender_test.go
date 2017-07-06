@@ -111,6 +111,14 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
+func (n *chatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
+
+}
+
+func (n *chatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
+
+}
+
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username,
 		chat1.ConversationMembersType_KBFS, false)

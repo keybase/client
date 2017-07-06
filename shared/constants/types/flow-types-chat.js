@@ -186,6 +186,7 @@ export const NotifyChatChatActivityType = {
   newConversation: 3,
   setStatus: 4,
   failedMessage: 5,
+  membersUpdate: 6,
 }
 
 export const RemoteMessageBoxedVersion = {
@@ -1088,6 +1089,7 @@ export type ChatActivity =
   | { activityType: 3, newConversation: ?NewConversationInfo }
   | { activityType: 4, setStatus: ?SetStatusInfo }
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
+  | { activityType: 6, membersUpdate: ?MembersUpdateInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0
@@ -1096,6 +1098,7 @@ export type ChatActivityType =
   | 3 // NEW_CONVERSATION_3
   | 4 // SET_STATUS_4
   | 5 // FAILED_MESSAGE_5
+  | 6 // MEMBERS_UPDATE_6
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -1173,6 +1176,11 @@ export type ConversationLocal = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
+export type ConversationMember = {
+  uid: gregor1.UID,
+  convID: ConversationID,
+}
+
 export type ConversationMemberStatus =
     0 // ACTIVE_0
   | 1 // REMOVED_1
@@ -1193,6 +1201,7 @@ export type ConversationMetadata = {
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
+  allList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationReaderInfo = {
@@ -1498,6 +1507,12 @@ export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type MembersUpdateInfo = {
+  convID: ConversationID,
+  member: string,
+  joined: boolean,
+}
+
 export type MerkleRoot = {
   seqno: long,
   hash: bytes,
@@ -1719,6 +1734,16 @@ export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
 
 export type NotifyChatChatInboxStaleRpcParam = Exact<{
   uid: keybase1.UID
+}>
+
+export type NotifyChatChatJoinedConversationRpcParam = Exact<{
+  uid: keybase1.UID,
+  conv: ConversationLocal
+}>
+
+export type NotifyChatChatLeftConversationRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID
 }>
 
 export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
@@ -1993,8 +2018,8 @@ export type UnreadUpdateFull = {
 
 export type UpdateConversationMembership = {
   inboxVers: InboxVers,
-  joined?: ?Array<ConversationID>,
-  removed?: ?Array<ConversationID>,
+  joined?: ?Array<ConversationMember>,
+  removed?: ?Array<ConversationMember>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
@@ -2620,6 +2645,22 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatTypingUpdate'?: (
     params: Exact<{
       typingUpdates?: ?Array<ConvTypingUpdate>
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatJoinedConversation'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      conv: ConversationLocal
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatLeftConversation'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID
     }> /* ,
     response: {} // Notify call
     */

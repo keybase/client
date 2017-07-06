@@ -222,6 +222,18 @@ func (e ConversationStatus) String() string {
 	return ""
 }
 
+type ConversationMember struct {
+	Uid    gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o ConversationMember) DeepCopy() ConversationMember {
+	return ConversationMember{
+		Uid:    o.Uid.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type ConversationMemberStatus int
 
 const (
@@ -462,6 +474,7 @@ type ConversationMetadata struct {
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
+	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
 }
 
 func (o ConversationMetadata) DeepCopy() ConversationMetadata {
@@ -502,6 +515,14 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ActiveList),
+		AllList: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AllList),
 	}
 }
 

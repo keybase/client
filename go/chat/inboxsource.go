@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"strings"
 
@@ -386,8 +387,8 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.ConversationID, removed []chat1.ConversationID) error {
-	return nil
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
+	return res, err
 }
 
 type HybridInboxSource struct {
@@ -655,31 +656,50 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joinedConvIDs []chat1.ConversationID, removedConvIDs []chat1.ConversationID) (err error) {
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
-	// Load the joined conversations
-	var joinedConvs []chat1.Conversation
-	if len(joinedConvIDs) > 0 {
+	// Separate into joins and removed on uid, and then on other users
+	var userJoined []chat1.ConversationID
+	for _, j := range joined {
+		if j.Uid.Eq(uid) {
+			userJoined = append(userJoined, j.ConvID)
+		} else {
+			res.OthersJoinedConvs = append(res.OthersJoinedConvs, j)
+		}
+	}
+	for _, r := range removed {
+		if r.Uid.Eq(uid) {
+			res.UserRemovedConvs = append(res.UserRemovedConvs, r.ConvID)
+		} else {
+			res.OthersRemovedConvs = append(res.OthersRemovedConvs, r)
+		}
+	}
+
+	// Load the user joined conversations
+	var userJoinedConvs []chat1.Conversation
+	if len(userJoined) > 0 {
 		var ibox chat1.Inbox
-		ibox, _, err = s.ReadUnverified(ctx, uid, false, &chat1.GetInboxQuery{
-			ConvIDs: joinedConvIDs,
+		ibox, _, err = s.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
+			ConvIDs: userJoined,
 		}, nil)
 		if err != nil {
 			s.Debug(ctx, "MembershipUpdate: failed to read joined convs: %s", err.Error())
 			return
 		}
-		for _, c := range ibox.ConvsUnverified {
-			joinedConvs = append(joinedConvs, c)
-		}
+
+		userJoinedConvs = ibox.ConvsUnverified
+		res.UserJoinedConvs = ibox.Convs
 	}
 
-	if cerr := storage.NewInbox(s.G(), uid).MembershipUpdate(ctx, vers, joinedConvs, removedConvIDs); cerr != nil {
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.MembershipUpdate(ctx, vers, userJoinedConvs, res.UserRemovedConvs,
+		res.OthersJoinedConvs, res.OthersRemovedConvs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
-		return err
+		return res, err
 	}
 
-	return nil
+	return res, nil
 }
 
 func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
@@ -999,16 +1019,40 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		uloader = s.G().GetUPAKLoader()
 	}
 
-	var err error
-	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
-		ctx,
-		uloader,
-		conversationLocal.Info.TlfName,
-		conversationRemote.Metadata.ActiveList)
-	if err != nil {
-		errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
+	// Form the writers name list, either from the active list + TLF name, or from the
+	// channel information for a team chat
+	switch conversationRemote.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		for _, uid := range conversationRemote.Metadata.AllList {
+			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
+			if err != nil {
+				// If we are offline, we just won't know who is in the channel
+				continue
+			}
+			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
+				uname.String())
+		}
+		// Sort alphabetically
+		sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
+			return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
+		})
+	case chat1.ConversationMembersType_KBFS:
+		var err error
+		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+			ctx,
+			uloader,
+			conversationLocal.Info.TlfName,
+			conversationRemote.Metadata.ActiveList)
+		if err != nil {
+			errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+	default:
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			"unknown members type", conversationRemote, unverifiedTLFName,
+			chat1.ConversationErrorType_PERMANENT, nil)
 		return conversationLocal
 	}
 

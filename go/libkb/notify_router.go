@@ -49,6 +49,8 @@ type NotifyListener interface {
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
+	ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal)
+	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -668,6 +670,64 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 		n.listener.ChatTypingUpdate(updates)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatTypingUpdate notification")
+}
+
+func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
+	conv chat1.ConversationLocal) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatJoinedConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).ChatJoinedConversation(context.Background(), chat1.ChatJoinedConversationArg{
+					Uid:  uid,
+					Conv: conv,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatJoinedConversation(uid, conv)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatJoinedConversation notification")
+}
+
+func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatLeftConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).ChatLeftConversation(context.Background(), chat1.ChatLeftConversationArg{
+					Uid:    uid,
+					ConvID: convID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatLeftConversation(uid, convID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatLeftConversation notification")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

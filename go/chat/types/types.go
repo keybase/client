@@ -11,3 +11,10 @@ type NameInfo struct {
 	IdentifyFailures []keybase1.TLFIdentifyFailure
 	CryptKeys        []CryptKey
 }
+
+type MembershipUpdateRes struct {
+	UserJoinedConvs    []chat1.ConversationLocal
+	UserRemovedConvs   []chat1.ConversationID
+	OthersJoinedConvs  []chat1.ConversationMember
+	OthersRemovedConvs []chat1.ConversationMember
+}
