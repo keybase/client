@@ -715,9 +715,11 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
-  // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
     yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
+    for (const username of action.payload.existingParticipants) {
+      yield put(Creators.stageUserForSearch(username))
+    }
     yield put(Creators.selectConversation(null, false))
     yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
