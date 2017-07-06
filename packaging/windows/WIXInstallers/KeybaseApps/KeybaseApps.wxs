@@ -308,7 +308,7 @@
     <CustomAction Id="AddBrowserExtension"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; install"
-              Execute="immediate"
+              Execute="commit"
               Return="ignore"/>
   </Fragment>
   <Fragment>
