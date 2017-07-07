@@ -380,10 +380,19 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 		Name: name,
 		ID:   NewInviteID(),
 	}
+
 	return t.postInvite(ctx, invite, role)
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
+	existing, err := t.chain().HasActiveInvite(invite.Name, invite.Type)
+	if err != nil {
+		return err
+	}
+	if existing {
+		return errors.New("invite already exists")
+	}
+
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
