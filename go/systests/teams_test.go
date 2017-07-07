@@ -45,6 +45,12 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	}
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
+	// User1 sould get a gregor that the team he was just added to changed.
+	tt.users[1].waitForTeamChagnedGregor(team, keybase1.Seqno(2))
+	// User0 should get a (redundant) gregor notification that
+	// he just changed the team.
+	tt.users[0].waitForTeamChagnedGregor(team, keybase1.Seqno(2))
+
 	tt.users[1].revokePaperKey()
 	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
 
@@ -185,6 +191,23 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	return keybase1.DeviceID("")
 }
 
+func (u *userPlusDevice) waitForTeamChagnedGregor(team string, toSeqno keybase1.Seqno) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamName == team && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message")
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
 func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
@@ -195,10 +218,10 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 		case arg := <-u.notifications.rotateCh:
 			u.tc.T.Logf("rotate received: %+v", arg)
 			if arg.TeamName == team && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
-				u.tc.T.Logf("rotate matched: %+v", arg)
+				u.tc.T.Logf("rotate matched!")
 				return
 			}
-			u.tc.T.Logf("Ignoring message: %+v", arg)
+			u.tc.T.Logf("ignoring rotate message")
 		case <-time.After(1 * time.Second):
 		}
 	}
