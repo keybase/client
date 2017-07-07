@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -105,7 +106,8 @@ func mustBeDir(fi os.FileInfo) error {
 	return nil
 }
 
-func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
+func checkDirNoTestError(
+	t testing.TB, dir string, want map[string]fileInfoCheck) error {
 	// make a copy of want, to be safe
 	{
 		tmp := make(map[string]fileInfoCheck, len(want))
@@ -124,15 +126,24 @@ func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
 			delete(want, fi.Name())
 			if check != nil {
 				if err := check(fi); err != nil {
-					t.Errorf("check failed: %v: %v", fi.Name(), err)
+					return fmt.Errorf("check failed: %v: %v", fi.Name(), err)
 				}
 			}
 			continue
 		}
-		t.Errorf("unexpected direntry: %q size=%v mode=%v", fi.Name(), fi.Size(), fi.Mode())
+		return fmt.Errorf("unexpected direntry: %q size=%v mode=%v",
+			fi.Name(), fi.Size(), fi.Mode())
 	}
 	for filename := range want {
-		t.Errorf("never saw file: %v", filename)
+		return fmt.Errorf("never saw file: %v", filename)
+	}
+	return nil
+}
+
+func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
+	err := checkDirNoTestError(t, dir, want)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -1173,13 +1184,42 @@ func TestRemoveTLF(t *testing.T) {
 	}
 	syncAndClose(t, f1)
 
-	if err := syscall.Rmdir(p); err != nil {
-		t.Fatal(err)
+	privatePath := path.Join(mnt.Dir, PrivateName)
+	checks := map[string]fileInfoCheck{
+		"jdoe": nil,
 	}
 
-	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe": nil,
-	})
+	var lastErr error
+	for i := 0; i < 10; i++ {
+		if err := syscall.Rmdir(p); err != nil {
+			t.Fatal(err)
+		}
+
+		if runtime.GOOS != "darwin" {
+			checkDir(t, privatePath, checks)
+			return
+		}
+
+		// On OSX, the OS might decide to look up "f" at exactly the wrong
+		// time, and reinstate the "jdoe,pikachu".  Unfortunately there's
+		// no good way to prevent this, so for now we just allow it to
+		// happen and retry until we get what we want.  See KBFS-1370.
+		lastErr = checkDirNoTestError(t, privatePath, checks)
+		if lastErr == nil {
+			return
+		}
+
+		// Make sure the test should still be running.
+		select {
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		default:
+			t.Logf("Retrying TLF removal after error %+v", lastErr)
+		}
+	}
+	if lastErr != nil {
+		t.Error(lastErr)
+	}
 }
 
 func TestRemoveDir(t *testing.T) {
