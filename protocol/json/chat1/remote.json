@@ -546,6 +546,13 @@
         {
           "name": "messageBoxed",
           "type": "MessageBoxed"
+        },
+        {
+          "name": "atMentions",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
         }
       ],
       "response": "PostRemoteRes"

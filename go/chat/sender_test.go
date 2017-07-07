@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -273,7 +274,7 @@ func TestNonblockTimer(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -396,8 +397,8 @@ func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, error) {
-	return nil, nil, nil
+	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, error) {
+	return nil, nil, nil, nil
 }
 
 func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
@@ -648,7 +649,7 @@ func TestDeletionHeaders(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, _, err := blockingSender.Prepare(ctx, deletion,
+	preparedDeletion, _, _, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
@@ -669,6 +670,36 @@ func TestDeletionHeaders(t *testing.T) {
 	if !deletedIDs[editID2] {
 		t.Fatalf("expected message #%d to be deleted", editID2)
 	}
+}
+
+func TestAtMentions(t *testing.T) {
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 3)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	u1 := world.GetUsers()[1]
+	u2 := world.GetUsers()[2]
+	uid := u.User.GetUID().ToBytes()
+	uid1 := u1.User.GetUID().ToBytes()
+	uid2 := u2.User.GetUID().ToBytes()
+	tc := userTc(t, world, u)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+
+	text := fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
+	t.Logf("text: %s", text)
+	_, _, atMentions, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: text,
+		}),
+	}, chat1.ConversationMembersType_KBFS, &conv)
+	require.NoError(t, err)
+	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
 }
 
 func TestPrevPointerAddition(t *testing.T) {
@@ -704,7 +735,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	require.NoError(t, err)
 
 	// Prepare a message and make sure it gets prev pointers
-	boxed, pendingAssetDeletes, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	boxed, pendingAssetDeletes, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -809,7 +840,7 @@ func TestDeletionAssets(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, pendingAssetDeletes, err := blockingSender.Prepare(ctx, deletion,
+	preparedDeletion, pendingAssetDeletes, _, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
