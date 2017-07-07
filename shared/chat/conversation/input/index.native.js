@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import ImagePicker from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text, ClickableBox} from '../../../common-adapters'
+import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
