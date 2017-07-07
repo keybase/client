@@ -569,7 +569,22 @@ func (l *TeamLoader) OnLogout() {
 }
 
 func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {
-	l.G().Log.Warning("Using stubbed out VerifyTeamName - INSECURE -- please implement")
+	if name.IsRootTeam() {
+		if !name.ToTeamID().Eq(id) {
+			return NewResolveError(name, id)
+		}
+		return nil
+	}
+	teamData, err := l.Load(ctx, keybase1.LoadTeamArg{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	gotName := TeamSigChainState{inner: teamData.Chain}.GetName()
+	if !gotName.Eq(name) {
+		return NewResolveError(name, id)
+	}
 	return nil
 }
 

@@ -152,3 +152,16 @@ func NewInviteError(m string) InviteError {
 func (i InviteError) Error() string {
 	return fmt.Sprintf("Invite error: %s", i.msg)
 }
+
+type ResolveError struct {
+	name keybase1.TeamName
+	id   keybase1.TeamID
+}
+
+func (e ResolveError) Error() string {
+	return fmt.Sprintf("mismatched team name and id: %v <-/-> %v", e.name.String(), e.id.String())
+}
+
+func NewResolveError(name keybase1.TeamName, id keybase1.TeamID) ResolveError {
+	return ResolveError{name, id}
+}
