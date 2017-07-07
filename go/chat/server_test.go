@@ -1919,7 +1919,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 2, len(getTLFRes.Convs))
-		require.Equal(t, "#general", utils.GetTopicName(getTLFRes.Convs[0]))
+		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
 		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{

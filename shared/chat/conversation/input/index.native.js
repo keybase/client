@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import ImagePicker from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Icon, Input, Text, ClickableBox} from '../../../common-adapters'
+import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
 import {isIOS} from '../../../constants/platform'
 
@@ -13,16 +13,26 @@ import type {Props} from '.'
 // See if there's a better workaround later
 
 class ConversationInput extends Component<void, Props, void> {
+  _setEditing(props: Props) {
+    if (!props.editingMessage || props.editingMessage.type !== 'Text') {
+      return
+    }
+
+    this.props.setText(props.editingMessage.message.stringValue())
+    this.props.inputFocus()
+  }
+
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.editingMessage !== nextProps.editingMessage) {
-      if (nextProps.editingMessage && nextProps.editingMessage.type === 'Text') {
-        this.props.setText(nextProps.editingMessage.message.stringValue())
-        this.props.inputFocus()
-      }
+      this._setEditing(nextProps)
     }
     if (this.props.text !== nextProps.text) {
       this.props.onUpdateTyping(!!nextProps.text)
     }
+  }
+
+  componentDidMount() {
+    this._setEditing(this.props)
   }
 
   _onBlur = () => {
@@ -128,13 +138,15 @@ const Typing = ({typing}) => (
 
 const Action = ({text, onSubmit, editingMessage, openFilePicker, isLoading}) =>
   text
-    ? <ClickableBox feedback={false} onClick={onSubmit}>
-        <Box style={styleActionText}>
-          <Text type="BodyBigLink" style={{...(isLoading ? {color: globalColors.grey} : {})}}>
-            {editingMessage ? 'Save' : 'Send'}
-          </Text>
-        </Box>
-      </ClickableBox>
+    ? <Box style={styleActionText}>
+        <Text
+          type="BodyBigLink"
+          style={{...(isLoading ? {color: globalColors.grey} : {})}}
+          onClick={onSubmit}
+        >
+          {editingMessage ? 'Save' : 'Send'}
+        </Text>
+      </Box>
     : <Icon onClick={openFilePicker} type="iconfont-camera" style={styleActionButton} />
 
 const styleActionText = {
@@ -150,9 +162,9 @@ const styleActionText = {
 
 const styleActionButton = {
   alignSelf: isIOS ? 'flex-end' : 'center',
-  paddingBottom: 5,
+  paddingBottom: 2,
   paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.small,
+  paddingRight: globalMargins.tiny,
 }
 
 const styleInputText = {
