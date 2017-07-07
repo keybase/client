@@ -1,4 +1,5 @@
 // @flow
+import {is} from 'immutable'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
@@ -54,8 +55,7 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
       this.props.mode !== nextProps.mode ||
       this.props.renderRoute !== nextProps.renderRoute ||
       this.props.onNavigateBack !== nextProps.onNavigateBack ||
-      // $FlowIssue flow isn't accepting Stack.equals(Stack)
-      !this.props.stack.equals(nextProps.stack)
+      !is(this.props.stack, nextProps.stack)
     )
   }
 
