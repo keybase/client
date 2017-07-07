@@ -600,6 +600,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return nil
 	}
 
+	// XXX use LinkType constants
 	switch payload.Body.Type {
 	case "team.root":
 		err = libkb.PickFirstError(

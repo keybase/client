@@ -137,7 +137,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 }
 
 func inviteMember(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
-	return t.InviteMember(ctx, username, role, uv)
+	return team.InviteMember(ctx, username, role, uv)
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {

@@ -338,7 +338,91 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+	if role == keybase1.TeamRole_OWNER {
+		return errors.New("cannot invite a user to be an owner")
+	}
+
+	// if a user version was previously loaded, then there is a keybase user for username, but
+	// without a PUK or without any keys.
+	if uv.Uid.Exists() {
+		return t.inviteKeybaseMember(ctx, username, uv.Uid, role)
+	}
+
+	// XXX need to handle email somehow
+
+	return t.inviteSocialMember(ctx, username, role)
+}
+
+func (t *Team) inviteKeybaseMember(ctx context.Context, username string, uid keybase1.UID, role keybase1.TeamRole) error {
+	t.G().Log.Debug("team %s invite keybase member %s/%s", t.Name, username, uid)
 	return nil
+}
+
+func (t *Team) inviteSocialMember(ctx context.Context, username string, role keybase1.TeamRole) error {
+	// parse username to get social
+	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, true)
+	if err != nil {
+		return err
+	}
+	if !assertion.IsSocial() {
+		return fmt.Errorf("invalid user assertion %q, expected social assertion", username)
+	}
+	network, socialName := assertion.ToKeyValuePair()
+	t.G().Log.Debug("team %s invite social member %s/%s", t.Name, network, socialName)
+
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+	invite := []SCTeamInvite{
+		SCTeamInvite{
+			Type: network,
+			Name: socialName,
+			ID:   NewInviteID(),
+		},
+	}
+
+	var invites SCTeamInvites
+	switch role {
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invite
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invite
+	case keybase1.TeamRole_READER:
+		invites.Readers = &invite
+	default:
+		// should be caught further up, but just in case
+		return errors.New("invalid role for invitation")
+	}
+
+	teamSection := SCTeamSection{
+		ID:      SCTeamID(t.ID),
+		Admin:   admin,
+		Invites: &invites,
+	}
+
+	t.G().Log.Debug("*********************************************************************")
+	t.G().Log.Debug("*********************************************************************")
+	t.G().Log.Debug("teamSection:")
+	t.G().Log.Debug("%+v", teamSection)
+	t.G().Log.Debug("*********************************************************************")
+	t.G().Log.Debug("*********************************************************************")
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshness)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for team invite")
+	}
+
+	sigMultiItem, err := t.sigInviteItem(ctx, teamSection, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, nil, nil, make(libkb.JSONPayload))
+	return t.postMulti(payload)
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
@@ -380,7 +464,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 
 	logPoint := targetTeam.chain().GetAdminUserLogPoint(uv)
 	ret := SCTeamAdmin{
-		TeamID:  (SCTeamID)(targetTeam.ID),
+		TeamID:  SCTeamID(targetTeam.ID),
 		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
 		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
@@ -464,7 +548,6 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		return libkb.SigMultiItem{}, err
 	}
 	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
-
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -498,6 +581,7 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 		return libkb.SigMultiItem{}, err
 	}
 
+	// XXX not necessary
 	latestLinkID2, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -527,6 +611,54 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 			Signing:    signingKey.GetKID(),
 		}
 	}
+	return sigMultiItem, nil
+}
+
+// after this works, try to refactor to reuse code in sigChangeItem
+func (t *Team) sigInviteItem(ctx context.Context, section SCTeamSection, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	latestLinkID, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	linkType := libkb.LinkTypeInvite
+	// is linkType the only thing that changes between this and stuff in sigChangeItem?
+	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+
+	sigJSON, err := sig.Marshal()
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+	v2Sig, err := makeSigchainV2OuterSig(
+		deviceSigningKey,
+		linkType,
+		t.NextSeqno(),
+		sigJSON,
+		latestLinkID,
+		false, /* hasRevokes */
+	)
+	if err != nil {
+		return libkb.SigMultiItem{}, err
+	}
+
+	sigMultiItem := libkb.SigMultiItem{
+		Sig:        v2Sig,
+		SigningKID: deviceSigningKey.GetKID(),
+		Type:       string(linkType),
+		SigInner:   string(sigJSON),
+		TeamID:     t.ID,
+	}
+
 	return sigMultiItem, nil
 }
 

@@ -236,6 +236,7 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 	return ret, err
 }
 
+// XXX use LinkType constants
 func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	switch s {
 	case "team.root":

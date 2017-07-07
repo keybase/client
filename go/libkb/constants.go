@@ -115,6 +115,7 @@ const (
 	CriticalClockSkewLimit = time.Hour
 
 	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
+	TeamMerkleFreshness      = time.Duration(10) * time.Minute
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -281,6 +282,7 @@ const (
 	LinkTypeChangeMembership LinkType = "team.change_membership"
 	LinkTypeRotateKey        LinkType = "team.rotate_key"
 	LinkTypeLeave            LinkType = "team.leave"
+	LinkTypeInvite           LinkType = "team.invite"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
@@ -603,4 +605,5 @@ const (
 const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
+	InviteIDTag        = 0x27
 )

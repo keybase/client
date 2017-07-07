@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -82,7 +83,7 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 }
 
 func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, forcePoll bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid.String()), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid), func() error { return err })()
 
 	arg := libkb.NewLoadUserArgBase(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
 	if forcePoll {
@@ -94,7 +95,7 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
 
-	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv.String()), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv), func() error { return err })()
 
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
 
@@ -194,7 +195,7 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 
 func (m *memberSet) Section(teamID keybase1.TeamID, admin *SCTeamAdmin) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
-		ID:    (SCTeamID)(teamID),
+		ID:    SCTeamID(teamID),
 		Admin: admin,
 	}
 	if m.empty() {
