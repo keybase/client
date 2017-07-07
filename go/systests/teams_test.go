@@ -46,7 +46,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotate(team, keybase1.Seqno(2))
+	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
 
 	// check that key was rotated for team
 	after, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
