@@ -277,6 +277,8 @@ func TestMemberAddSocial(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
+
 	// invite links don't work in player yet, so can't do anything else:
 	/*
 		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
@@ -385,4 +387,16 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 	if role != expected {
 		tc.T.Fatalf("role: %s, expected %s", role, expected)
 	}
+}
+
+func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
+	invite, err := MemberInvite(context.TODO(), tc.G, name, username, typ)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	if invite == nil {
+		tc.T.Fatalf("no invite found for team %s %s/%s", name, username, typ)
+	}
+
+	// XXX check role
 }

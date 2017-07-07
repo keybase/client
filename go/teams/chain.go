@@ -363,6 +363,33 @@ func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keyba
 	return nil
 }
 
+func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
+	i, err := t.FindActiveInvite(name, typ)
+	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			return false, nil
+		}
+		return false, err
+	}
+	if i != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamInvite, error) {
+	ityp, err := keybase1.TeamInviteTypeFromString(typ)
+	if err != nil {
+		return nil, err
+	}
+	for _, invite := range t.inner.ActiveInvites {
+		if invite.Name == keybase1.TeamInviteName(name) && invite.Type == ityp {
+			return &invite, nil
+		}
+	}
+	return nil, libkb.NotFoundError{}
+}
+
 // Threadsafe handle to a local model of a team sigchain.
 type TeamSigChainPlayer struct {
 	libkb.Contextified

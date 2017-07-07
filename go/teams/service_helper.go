@@ -331,3 +331,11 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 	err = errors.New("could not identify team by ID or name")
 	return res, err
 }
+
+func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	if err != nil {
+		return nil, err
+	}
+	return t.chain().FindActiveInvite(username, typ)
+}
