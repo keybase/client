@@ -46,10 +46,10 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
-	tt.users[1].waitForTeamChagnedGregor(team, keybase1.Seqno(2))
+	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(2))
 	// User0 should get a (redundant) gregor notification that
 	// he just changed the team.
-	tt.users[0].waitForTeamChagnedGregor(team, keybase1.Seqno(2))
+	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
 	tt.users[1].revokePaperKey()
 	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
@@ -191,7 +191,7 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	return keybase1.DeviceID("")
 }
 
-func (u *userPlusDevice) waitForTeamChagnedGregor(team string, toSeqno keybase1.Seqno) {
+func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.Seqno) {
 	// process 10 team rotations or 10s worth of time
 	for i := 0; i < 10; i++ {
 		select {
