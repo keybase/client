@@ -25,7 +25,7 @@ import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
-import {reduxDevToolsEnable, resetEngineOnHMR} from '../../local-debug.desktop'
+import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -165,13 +165,6 @@ const FontLoader = () => (
 )
 
 function render(store, MainComponent) {
-  let dt
-  if (__DEV__ && reduxDevToolsEnable) {
-    // eslint-disable-line no-undef
-    const DevTools = require('./redux-dev-tools').default
-    dt = <DevTools />
-  }
-
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
@@ -180,7 +173,6 @@ function render(store, MainComponent) {
             <RemoteManager />
             <FontLoader />
             <MainComponent />
-            {dt}
           </div>
         </GlobalEscapeHandler>
       </Root>
