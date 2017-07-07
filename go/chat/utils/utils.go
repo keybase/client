@@ -390,7 +390,7 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
-var atMentionRegExp = regexp.MustCompile(`\B@(([a-z][a-z0-9_]?)+)`)
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
 
 func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)

@@ -26,7 +26,7 @@ func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{

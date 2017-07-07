@@ -104,7 +104,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
+	boxed, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),

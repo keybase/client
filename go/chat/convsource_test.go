@@ -32,7 +32,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -365,7 +365,7 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -478,7 +478,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		msg, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
 
