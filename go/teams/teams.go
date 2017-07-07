@@ -251,8 +251,11 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
-	// send notification that team key rotated
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.CurrentSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+	// send notification that team key rotated. The sequence number of team bumped by 1 as a
+	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
+	// to be getting this same notification a second time, since it will bounce off a gregor and
+	// back to us. But they are idempotent, so it should be fine to be double-notified.
+	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -320,7 +323,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 
 	// send notification that team key rotated
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.CurrentSeqno(), changes)
+	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.NextSeqno(), changes)
 	return nil
 }
 
