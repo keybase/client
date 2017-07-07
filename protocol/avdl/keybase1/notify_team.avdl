@@ -3,5 +3,16 @@
 protocol NotifyTeam {
   import idl "common.avdl";
 
-  void teamKeyRotated(TeamID teamID, string teamName) oneway;
+  record TeamChangeSet {
+    // Set to `true` if the membership of the team changed
+    boolean membershipChanged;
+    // Set to `true` if the key rotated. This might have happened if a user
+    // was kicked out, or left, or if a user revoked a device.
+    boolean keyRotated;
+    // Set to `true` if the team was renamed, either explicitly, or implicitly
+    // if one of its ancestors changed names
+    boolean renamed;
+  }
+
+  void teamChanged(TeamID teamID, string teamName, Seqno latestSeqno, TeamChangeSet changes) oneway;
 }

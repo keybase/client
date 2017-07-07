@@ -32,3 +32,20 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	g.Log.CDebugf(ctx, "sucess rotating team %s (%s)", team.Name, teamID)
 	return nil
 }
+
+func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+	change.KeyRotated = row.KeyRotated
+	change.MembershipChanged = row.MembershipChanged
+	g.NotifyRouter.HandleTeamChanged(ctx, row.Id, row.Name, row.LatestSeqno, change)
+	// TODO -- bust caches! -- See CORE-5608
+	return nil
+}
+
+func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) error {
+	for _, row := range rows {
+		if err := handleChangeSingle(ctx, g, row, changes); err != nil {
+			return err
+		}
+	}
+	return nil
+}

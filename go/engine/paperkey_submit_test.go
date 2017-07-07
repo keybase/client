@@ -115,4 +115,5 @@ func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Conversation
 func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate)                     {}
 func (n *nlistener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {}
 func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)    {}
-func (n *nlistener) TeamKeyRotated(teamID keybase1.TeamID, teamName string)                {}
+func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+}

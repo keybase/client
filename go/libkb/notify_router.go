@@ -54,7 +54,7 @@ type NotifyListener interface {
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
-	TeamKeyRotated(teamID keybase1.TeamID, teamName string)
+	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -889,25 +889,27 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 	n.G().Log.Debug("- Sent reachability")
 }
 
-func (n *NotifyRouter) HandleTeamKeyRotated(ctx context.Context, teamID keybase1.TeamID, teamName string) {
+func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 	if n == nil {
 		return
 	}
 
-	arg := keybase1.TeamKeyRotatedArg{
-		TeamID:   teamID,
-		TeamName: teamName,
+	arg := keybase1.TeamChangedArg{
+		TeamID:      teamID,
+		TeamName:    teamName,
+		Changes:     changes,
+		LatestSeqno: latestSeqno,
 	}
 
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamKeyRotated notification")
+	n.G().Log.CDebugf(ctx, "+ Sending TeamChanged notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			wg.Add(1)
 			go func() {
 				(keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
-				}).TeamKeyRotated(context.Background(), arg)
+				}).TeamChanged(context.Background(), arg)
 				wg.Done()
 			}()
 		}
@@ -915,7 +917,7 @@ func (n *NotifyRouter) HandleTeamKeyRotated(ctx context.Context, teamID keybase1
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.TeamKeyRotated(teamID, teamName)
+		n.listener.TeamChanged(teamID, teamName, latestSeqno, changes)
 	}
-	n.G().Log.CDebugf(ctx, "- Sent TeamKeyRotated notification")
+	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }

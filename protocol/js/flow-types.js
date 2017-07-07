@@ -5024,9 +5024,11 @@ export type NotifySessionLoggedInRpcParam = Exact<{
   username: string
 }>
 
-export type NotifyTeamTeamKeyRotatedRpcParam = Exact<{
+export type NotifyTeamTeamChangedRpcParam = Exact<{
   teamID: TeamID,
-  teamName: string
+  teamName: string,
+  latestSeqno: Seqno,
+  changes: TeamChangeSet
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -5922,6 +5924,20 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
+}
+
+export type TeamChangeRow = {
+  id: TeamID,
+  name: string,
+  keyRotated: boolean,
+  membershipChanged: boolean,
+  latestSeqno: Seqno,
+}
+
+export type TeamChangeSet = {
+  membershipChanged: boolean,
+  keyRotated: boolean,
+  renamed: boolean,
 }
 
 export type TeamData = {
@@ -8023,10 +8039,12 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.NotifyTeam.teamKeyRotated'?: (
+  'keybase.1.NotifyTeam.teamChanged'?: (
     params: Exact<{
       teamID: TeamID,
-      teamName: string
+      teamName: string,
+      latestSeqno: Seqno,
+      changes: TeamChangeSet
     }>,
     response: CommonResponseHandler
   ) => void,
