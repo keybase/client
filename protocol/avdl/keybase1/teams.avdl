@@ -225,6 +225,14 @@ protocol teams {
     int score;
   }
 
+  record TeamChangeRow {
+    TeamID id;
+    string name;
+    boolean rekey;
+    @jsonkey("latest_seqno")
+    Seqno latestSeqno;
+  }
+
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause

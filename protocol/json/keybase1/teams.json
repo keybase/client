@@ -599,6 +599,29 @@
     },
     {
       "type": "record",
+      "name": "TeamChangeRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "rekey"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqno",
+          "jsonkey": "latest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {

@@ -742,6 +742,22 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	}
 }
 
+type TeamChangeRow struct {
+	Id          TeamID `codec:"id" json:"id"`
+	Name        string `codec:"name" json:"name"`
+	Rekey       bool   `codec:"rekey" json:"rekey"`
+	LatestSeqno Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+}
+
+func (o TeamChangeRow) DeepCopy() TeamChangeRow {
+	return TeamChangeRow{
+		Id:          o.Id.DeepCopy(),
+		Name:        o.Name,
+		Rekey:       o.Rekey,
+		LatestSeqno: o.LatestSeqno.DeepCopy(),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cached.
 type TeamRefreshers struct {

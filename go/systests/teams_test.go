@@ -46,7 +46,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotate(team)
+	tt.users[0].waitForRotate(team, keybase1.Seqno(2))
 
 	// check that key was rotated for team
 	after, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
@@ -185,7 +185,7 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	return keybase1.DeviceID("")
 }
 
-func (u *userPlusDevice) waitForRotate(team string) {
+func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
 
@@ -194,10 +194,11 @@ func (u *userPlusDevice) waitForRotate(team string) {
 		select {
 		case arg := <-u.notifications.rotateCh:
 			u.tc.T.Logf("rotate received: %+v", arg)
-			if arg.TeamName == team {
-				u.tc.T.Logf("rotate matched: %q == %q", arg.TeamName, team)
+			if arg.TeamName == team && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("rotate matched: %+v", arg)
 				return
 			}
+			u.tc.T.Logf("Ignoring message: %+v", arg)
 		case <-time.After(1 * time.Second):
 		}
 	}
@@ -224,16 +225,16 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 }
 
 type teamNotifyHandler struct {
-	rotateCh chan keybase1.TeamKeyRotatedArg
+	rotateCh chan keybase1.TeamChangedArg
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		rotateCh: make(chan keybase1.TeamKeyRotatedArg, 1),
+		rotateCh: make(chan keybase1.TeamChangedArg, 1),
 	}
 }
 
-func (n *teamNotifyHandler) TeamKeyRotated(ctx context.Context, arg keybase1.TeamKeyRotatedArg) error {
+func (n *teamNotifyHandler) TeamChanged(ctx context.Context, arg keybase1.TeamChangedArg) error {
 	n.rotateCh <- arg
 	return nil
 }
