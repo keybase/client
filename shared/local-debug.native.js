@@ -43,7 +43,7 @@ if (__DEV__ && true) {
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = true
+  config.enableStoreLogging = false
   config.forwardLogs = true
   config.immediateStateLogging = true
   config.printOutstandingRPCs = true
@@ -51,7 +51,7 @@ if (__DEV__ && true) {
   config.printRoutes = true
   config.reactPerf = false
   config.redirectOnLogout = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.showAllTrackers = false
 }
