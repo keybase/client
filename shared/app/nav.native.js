@@ -18,11 +18,18 @@ import type {Props} from './nav'
 import type {TypedState} from '../constants/reducer'
 import type {Tab} from '../constants/tabs'
 import type {NavigationAction} from 'react-navigation'
-import type {RouteProps} from '../route-tree/render-route'
+import type {RouteProps, RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
-class CardStackShim extends Component {
+type CardStackShimProps = {
+  mode?: 'modal',
+  renderRoute: (route: RenderRouteResult) => React$Element<*>,
+  onNavigateBack: () => void,
+  stack: RouteRenderStack,
+}
+
+class CardStackShim extends Component<*, CardStackShimProps, *> {
   getScreenOptions = () => ({transitionInteractivityThreshold: 0.9})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -40,6 +47,16 @@ class CardStackShim extends Component {
     if (action.type === NavigationActions.BACK) {
       this.props.onNavigateBack()
     }
+  }
+
+  shouldComponentUpdate(nextProps: CardStackShimProps) {
+    return (
+      this.props.mode !== nextProps.mode ||
+      this.props.renderRoute !== nextProps.renderRoute ||
+      this.props.onNavigateBack !== nextProps.onNavigateBack ||
+      // $FlowIssue flow isn't accepting Stack.equals(Stack)
+      !this.props.stack.equals(nextProps.stack)
+    )
   }
 
   render() {
