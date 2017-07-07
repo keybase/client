@@ -121,7 +121,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		if err == errInviteRequired {
-			return inviteMember(ctx, g, t, username, role, uv)
+			return t.InviteMember(ctx, username, role, uv)
 		}
 		return err
 	}
@@ -136,8 +136,13 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	return t.ChangeMembership(ctx, req)
 }
 
-func inviteMember(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
-	return team.InviteMember(ctx, username, role, uv)
+func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	if err != nil {
+		return err
+	}
+
+	return t.InviteEmailMember(ctx, email, role)
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {

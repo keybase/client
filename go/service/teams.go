@@ -53,6 +53,9 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 }
 
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) error {
+	if arg.Email != "" {
+
+	}
 	if err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role); err != nil {
 		return err
 	}
@@ -60,6 +63,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return nil
 	}
 
+	// XXX fix this for invitations
 	body := fmt.Sprintf("Hi %s, I've invited you to a new team, %s.", arg.Username, arg.Name)
 	gregorCli := h.gregor.GetClient()
 	return chat.SendTextByName(ctx, h.G(), arg.Username, chat1.ConversationMembersType_KBFS,

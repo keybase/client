@@ -348,9 +348,17 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 		return t.inviteKeybaseMember(ctx, username, uv.Uid, role)
 	}
 
-	// XXX need to handle email somehow
-
 	return t.inviteSBSMember(ctx, username, role)
+}
+
+func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
+	t.G().Log.Debug("team %s invite email member %s", t.Name, email)
+	invite := SCTeamInvite{
+		Type: "email",
+		Name: email,
+		ID:   NewInviteID(),
+	}
+	return t.postInvite(ctx, invite, role)
 }
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, username string, uid keybase1.UID, role keybase1.TeamRole) error {

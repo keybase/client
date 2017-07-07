@@ -328,6 +328,26 @@ func TestMemberAddNoKeys(t *testing.T) {
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
 }
 
+func TestMemberAddEmail(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	address := "noone@keybase.io"
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+
+	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	// second InviteEmailMember should return err
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second InviteEmailMember succeeded, should have failed since user already invited")
+	}
+
+	// existing invite should be untouched
+	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+}
+
 func TestLeave(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
