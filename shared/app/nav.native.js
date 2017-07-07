@@ -4,7 +4,8 @@ import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
 import {compose, lifecycle} from 'recompose'
-import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
+import TabBar from './tab-bar/container'
+import {tabBarHeight} from './tab-bar/index.render.native'
 import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from '../common-adapters/index.native'
 import {Dimensions, StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
@@ -162,13 +163,7 @@ function MainNavStack(props: Props) {
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
-  const tabBar = (
-    <TabBar
-      onTabClick={props.switchTab}
-      selectedTab={props.routeSelected}
-      badgeNumbers={props.navBadges.toJS()}
-    />
-  )
+  const tabBar = <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />
   const Container = isAndroid ? forAndroid : forIOS
   return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
@@ -239,7 +234,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   hideKeyboard: state.config.hideKeyboard,
-  navBadges: state.notifications.get('navBadges'),
   reachable: state.gregor.reachability.reachable,
 })
 

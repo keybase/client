@@ -35,7 +35,7 @@ const _tabs = [
   Tabs.settingsTab,
 ].filter(Boolean)
 
-const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
+const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton
@@ -76,4 +76,4 @@ const stylesTabButton = {
   height: 56,
 }
 
-export default TabBar
+export default TabBarRender
