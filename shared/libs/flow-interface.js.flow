@@ -96,17 +96,6 @@ declare module './dll/vendor-manifest.json' {
 declare module 'invariant' {
   declare var exports: (callback: any) => any
 }
-declare module 'react-addons-perf' {
-  declare var exports: {
-    start: () => void,
-    stop: () => void,
-    getLastMeasurements: () => Object,
-    printInclusive: (measurements: Object) => void,
-    printExclusive: (measurements: Object) => void,
-    printWasted: (measurements: Object) => void,
-    printDOM: (measurements: Object) => void,
-  }
-}
 declare module 'resolveRoot' {
   declare var exports: {
     default: (paths: any) => string,
@@ -114,7 +103,7 @@ declare module 'resolveRoot' {
   }
 }
 declare class Notification {
-  constructor (...args: any): this;
+  constructor(...args: any): this,
 }
 
 declare var __STORYBOOK__: boolean
