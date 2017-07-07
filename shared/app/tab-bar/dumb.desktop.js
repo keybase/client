@@ -1,6 +1,7 @@
 // @flow
 
 import React from 'react'
+import * as I from 'immutable'
 
 import {Text} from '../../common-adapters'
 import TabBar from './index.render'
@@ -16,14 +17,14 @@ import {
   settingsTab,
 } from '../../constants/tabs'
 
-const badgeNumbers = {
+const badgeNumbers = I.fromJS({
   [profileTab]: 9,
   [peopleTab]: 9,
   [folderTab]: 9,
   [chatTab]: 9,
   [devicesTab]: 9,
   [settingsTab]: 9,
-}
+})
 
 const tabContent = (() => {
   // wrapped in a self-calling function to prevent React Hot Loader

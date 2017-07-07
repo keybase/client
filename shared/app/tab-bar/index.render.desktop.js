@@ -40,7 +40,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
     {_tabs.map(tab => (
       <TabBarButton
         className="keybase-nav"
-        badgeNumber={badgeNumbers[tab]}
+        badgeNumber={badgeNumbers.get(tab)}
         isNav={true}
         key={tab}
         label={_labels[tab]}
@@ -56,7 +56,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
       isNav={true}
       selected={selectedTab === Tabs.profileTab}
       onClick={() => onTabClick(Tabs.profileTab)}
-      badgeNumber={badgeNumbers[Tabs.profileTab]}
+      badgeNumber={badgeNumbers.get(Tabs.profileTab)}
       source={{type: 'avatar', username}}
       style={stylesTabButton}
     />
