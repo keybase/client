@@ -267,9 +267,10 @@ protocol teams {
 
     TeamRefreshers refreshers;
 
-    boolean forceFullReload; // Ignore local data and fetch from the server.
-    boolean forceRepoll;     // Force a sync with merkle.
-    boolean staleOK;         // If a very stale cache hit is OK.
+    boolean forceFullReload;      // Ignore local data and fetch from the server.
+    boolean forceRepoll;          // Force a sync with merkle.
+    boolean staleOK;              // If a very stale cache hit is OK.
+    boolean forceRepollRecursive; // On a team rename, have to reload all parent teams too
   }
 
   record ImplicitRole {

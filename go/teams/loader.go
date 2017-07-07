@@ -94,12 +94,13 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err = l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:         lArg.NeedAdmin,
-		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
-		wantMembers:       lArg.Refreshers.WantMembers,
-		forceFullReload:   lArg.ForceFullReload,
-		forceRepoll:       lArg.ForceRepoll,
-		staleOK:           lArg.StaleOK,
+		needAdmin:            lArg.NeedAdmin,
+		needKeyGeneration:    lArg.Refreshers.NeedKeyGeneration,
+		wantMembers:          lArg.Refreshers.WantMembers,
+		forceFullReload:      lArg.ForceFullReload,
+		forceRepoll:          lArg.ForceRepoll,
+		forceRepollRecursive: lArg.ForceRepollRecursive,
+		staleOK:              lArg.StaleOK,
 
 		needSeqnos: nil,
 
@@ -167,12 +168,13 @@ func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keyb
 type load2ArgT struct {
 	teamID keybase1.TeamID
 
-	needAdmin         bool
-	needKeyGeneration keybase1.PerTeamKeyGeneration
-	wantMembers       []keybase1.UserVersion
-	forceFullReload   bool
-	forceRepoll       bool
-	staleOK           bool
+	needAdmin            bool
+	needKeyGeneration    keybase1.PerTeamKeyGeneration
+	wantMembers          []keybase1.UserVersion
+	forceFullReload      bool
+	forceRepoll          bool
+	staleOK              bool
+	forceRepollRecursive bool
 
 	needSeqnos []keybase1.Seqno
 

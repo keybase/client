@@ -62,6 +62,14 @@ func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.
 	return getInternal(ctx, g, id)
 }
 
+func GetStale(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{ID: id, StaleOK: true})
+}
+
+func GetStaleByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{Name: name, StaleOK: true})
+}
+
 func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
@@ -80,4 +88,13 @@ func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name k
 
 func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
+}
+
+func ForceTeamRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, changes keybase1.TeamChangeSet) error {
+	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:                   id,
+		ForceRepoll:          true,
+		ForceRepollRecursive: changes.Renamed,
+	})
+	return err
 }

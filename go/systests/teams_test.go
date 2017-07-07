@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamCreate(t *testing.T) {
@@ -23,6 +24,40 @@ func TestTeamCreate(t *testing.T) {
 
 	team := tt.users[0].createTeam()
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
+}
+
+func TestTeamBustCache(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+	tt.addUser("adm")
+	tt.addUser("wtr")
+
+	team := tt.users[0].createTeam()
+	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_ADMIN)
+
+	before, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	require.NoError(t, err)
+	beforeSeqno := before.CurrentSeqno()
+	tt.users[1].addTeamMember(team, tt.users[2].username, keybase1.TeamRole_WRITER)
+
+	// Poll for an update, we should get it as soon as gregor tells us to bust our cache.
+	backoff := 100 * time.Millisecond
+	found := false
+	for i := 0; i < 10; i++ {
+		after, err := teams.GetStaleByStringName(context.TODO(), tt.users[0].tc.G, team)
+		require.NoError(t, err)
+		if after.CurrentSeqno() > beforeSeqno {
+			t.Logf("Found new seqno %d at poll loop iter %d", after.CurrentSeqno(), i)
+			found = true
+			break
+		}
+		t.Logf("Still at old generation %d at poll loop iter %d", beforeSeqno, i)
+		time.Sleep(backoff)
+		backoff += backoff / 2
+	}
+	require.True(t, found)
 }
 
 func TestTeamRotateOnRevoke(t *testing.T) {
