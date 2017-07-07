@@ -34,7 +34,8 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
-	change.KeyRotated = row.Rekey
+	change.KeyRotated = row.KeyRotated
+	change.MembershipChanged = row.MembershipChanged
 	g.NotifyRouter.HandleTeamChanged(ctx, row.Id, row.Name, row.LatestSeqno, change)
 	// TODO -- bust caches! -- See CORE-5608
 	return nil

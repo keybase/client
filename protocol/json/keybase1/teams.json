@@ -611,7 +611,13 @@
         },
         {
           "type": "boolean",
-          "name": "rekey"
+          "name": "keyRotated",
+          "jsonkey": "key_rotated"
+        },
+        {
+          "type": "boolean",
+          "name": "membershipChanged",
+          "jsonkey": "membership_changed"
         },
         {
           "type": "Seqno",

@@ -228,7 +228,10 @@ protocol teams {
   record TeamChangeRow {
     TeamID id;
     string name;
-    boolean rekey;
+    @jsonkey("key_rotated")
+    boolean keyRotated;
+    @jsonkey("membership_changed")
+    boolean membershipChanged;
     @jsonkey("latest_seqno")
     Seqno latestSeqno;
   }

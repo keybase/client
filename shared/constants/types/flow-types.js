@@ -5929,7 +5929,8 @@ export type TeamChangeReq = {
 export type TeamChangeRow = {
   id: TeamID,
   name: string,
-  rekey: boolean,
+  keyRotated: boolean,
+  membershipChanged: boolean,
   latestSeqno: Seqno,
 }
 

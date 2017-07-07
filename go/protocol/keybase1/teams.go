@@ -743,18 +743,20 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 }
 
 type TeamChangeRow struct {
-	Id          TeamID `codec:"id" json:"id"`
-	Name        string `codec:"name" json:"name"`
-	Rekey       bool   `codec:"rekey" json:"rekey"`
-	LatestSeqno Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+	Id                TeamID `codec:"id" json:"id"`
+	Name              string `codec:"name" json:"name"`
+	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
+	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
+	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
 }
 
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 	return TeamChangeRow{
-		Id:          o.Id.DeepCopy(),
-		Name:        o.Name,
-		Rekey:       o.Rekey,
-		LatestSeqno: o.LatestSeqno.DeepCopy(),
+		Id:                o.Id.DeepCopy(),
+		Name:              o.Name,
+		KeyRotated:        o.KeyRotated,
+		MembershipChanged: o.MembershipChanged,
+		LatestSeqno:       o.LatestSeqno.DeepCopy(),
 	}
 }
 

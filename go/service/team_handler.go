@@ -35,9 +35,9 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.sbs":
 		return true, r.sharingBeforeSignup(ctx, item)
 	case "team.change":
-		return true, r.changeTeam(ctx, item)
+		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{})
 	case "team.rename":
-		return true, r.renameTeam(ctx, item)
+		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{Renamed: true})
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
@@ -55,15 +55,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, item gregor.Item) error {
 	return teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation))
 }
 
-func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item) error {
-	return r.changeTeamGeneric(ctx, item, keybase1.TeamChangeSet{MembershipChanged: true})
-}
-
-func (r *teamHandler) renameTeam(ctx context.Context, item gregor.Item) error {
-	return r.changeTeamGeneric(ctx, item, keybase1.TeamChangeSet{Renamed: true})
-}
-
-func (r *teamHandler) changeTeamGeneric(ctx context.Context, item gregor.Item, changes keybase1.TeamChangeSet) error {
+func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
 		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
