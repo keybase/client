@@ -141,7 +141,7 @@ function MainNavStack(props: Props) {
       onNavigateBack={props.navigateUp}
     />,
     ![chatTab].includes(props.routeSelected) &&
-      <Offline key="offline" reachability={props.reachability} appFocused={true} />,
+      <Offline key="offline" reachable={props.reachable} appFocused={true} />,
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
@@ -224,7 +224,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
   hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
-  reachability: state.gregor.reachability,
+  reachable: state.gregor.reachability.reachable,
   username: state.config.username,
 })
 
