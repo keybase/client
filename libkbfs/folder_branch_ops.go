@@ -5950,6 +5950,7 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	default:
 	}
 
+	ctx = newLinkedContext(ctx)
 	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
 		fbo.bid)
 	return fbo.unstageLocked(ctx, lState)
