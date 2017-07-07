@@ -520,20 +520,20 @@ export const TeamsTeamApplication = {
   saltpack: 3,
 }
 
+export const TeamsTeamInviteCategory = {
+  none: 0,
+  unknown: 1,
+  keybase: 2,
+  email: 3,
+  sbs: 4,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   reader: 1,
   writer: 2,
   admin: 3,
   owner: 4,
-}
-
-export const TeamsTypeInviteCategory = {
-  none: 0,
-  unknown: 1,
-  keybase: 2,
-  email: 3,
-  sbs: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -5945,6 +5945,13 @@ export type TeamInvite = {
   name: TeamInviteName,
 }
 
+export type TeamInviteCategory =
+    0 // NONE_0
+  | 1 // UNKNOWN_1
+  | 2 // KEYBASE_2
+  | 3 // EMAIL_3
+  | 4 // SBS_4
+
 export type TeamInviteID = string
 
 export type TeamInviteName = string
@@ -6096,13 +6103,6 @@ export type Tracker = {
   status: int,
   mTime: Time,
 }
-
-export type TypeInviteCategory =
-    0 // NONE_0
-  | 1 // UNKNOWN_1
-  | 2 // KEYBASE_2
-  | 3 // EMAIL_3
-  | 4 // SBS_4
 
 export type UID = string
 

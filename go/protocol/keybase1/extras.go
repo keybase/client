@@ -1607,15 +1607,18 @@ func TeamInviteIDFromString(s string) (TeamInviteID, error) {
 	return TeamInviteID(s), nil
 }
 
-func TeamInviteTypeFromString(s string) (TeamInviteType, error) {
+func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 	switch s {
 	case "keybase":
-		return NewTeamInviteTypeDefault(TypeInviteCategory_KEYBASE), nil
+		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
 	case "email":
-		return NewTeamInviteTypeDefault(TypeInviteCategory_EMAIL), nil
+		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
 	case "twitter", "github", "facebook", "reddit", "hackernews":
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 	default:
+		if isDev && s == "rooter" {
+			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+		}
 		// Don't want to break existing clients if we see an unknown invite
 		// type.
 		return NewTeamInviteTypeWithUnknown(s), nil

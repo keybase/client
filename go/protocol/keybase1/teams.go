@@ -436,19 +436,19 @@ func (o TeamData) DeepCopy() TeamData {
 	}
 }
 
-type TypeInviteCategory int
+type TeamInviteCategory int
 
 const (
-	TypeInviteCategory_NONE    TypeInviteCategory = 0
-	TypeInviteCategory_UNKNOWN TypeInviteCategory = 1
-	TypeInviteCategory_KEYBASE TypeInviteCategory = 2
-	TypeInviteCategory_EMAIL   TypeInviteCategory = 3
-	TypeInviteCategory_SBS     TypeInviteCategory = 4
+	TeamInviteCategory_NONE    TeamInviteCategory = 0
+	TeamInviteCategory_UNKNOWN TeamInviteCategory = 1
+	TeamInviteCategory_KEYBASE TeamInviteCategory = 2
+	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
+	TeamInviteCategory_SBS     TeamInviteCategory = 4
 )
 
-func (o TypeInviteCategory) DeepCopy() TypeInviteCategory { return o }
+func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
 
-var TypeInviteCategoryMap = map[string]TypeInviteCategory{
+var TeamInviteCategoryMap = map[string]TeamInviteCategory{
 	"NONE":    0,
 	"UNKNOWN": 1,
 	"KEYBASE": 2,
@@ -456,7 +456,7 @@ var TypeInviteCategoryMap = map[string]TypeInviteCategory{
 	"SBS":     4,
 }
 
-var TypeInviteCategoryRevMap = map[TypeInviteCategory]string{
+var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	0: "NONE",
 	1: "UNKNOWN",
 	2: "KEYBASE",
@@ -464,27 +464,27 @@ var TypeInviteCategoryRevMap = map[TypeInviteCategory]string{
 	4: "SBS",
 }
 
-func (e TypeInviteCategory) String() string {
-	if v, ok := TypeInviteCategoryRevMap[e]; ok {
+func (e TeamInviteCategory) String() string {
+	if v, ok := TeamInviteCategoryRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
 type TeamInviteType struct {
-	C__       TypeInviteCategory       `codec:"c" json:"c"`
+	C__       TeamInviteCategory       `codec:"c" json:"c"`
 	Unknown__ *string                  `codec:"unknown,omitempty" json:"unknown,omitempty"`
 	Sbs__     *TeamInviteSocialNetwork `codec:"sbs,omitempty" json:"sbs,omitempty"`
 }
 
-func (o *TeamInviteType) C() (ret TypeInviteCategory, err error) {
+func (o *TeamInviteType) C() (ret TeamInviteCategory, err error) {
 	switch o.C__ {
-	case TypeInviteCategory_UNKNOWN:
+	case TeamInviteCategory_UNKNOWN:
 		if o.Unknown__ == nil {
 			err = errors.New("unexpected nil value for Unknown__")
 			return ret, err
 		}
-	case TypeInviteCategory_SBS:
+	case TeamInviteCategory_SBS:
 		if o.Sbs__ == nil {
 			err = errors.New("unexpected nil value for Sbs__")
 			return ret, err
@@ -494,7 +494,7 @@ func (o *TeamInviteType) C() (ret TypeInviteCategory, err error) {
 }
 
 func (o TeamInviteType) Unknown() (res string) {
-	if o.C__ != TypeInviteCategory_UNKNOWN {
+	if o.C__ != TeamInviteCategory_UNKNOWN {
 		panic("wrong case accessed")
 	}
 	if o.Unknown__ == nil {
@@ -504,7 +504,7 @@ func (o TeamInviteType) Unknown() (res string) {
 }
 
 func (o TeamInviteType) Sbs() (res TeamInviteSocialNetwork) {
-	if o.C__ != TypeInviteCategory_SBS {
+	if o.C__ != TeamInviteCategory_SBS {
 		panic("wrong case accessed")
 	}
 	if o.Sbs__ == nil {
@@ -515,19 +515,19 @@ func (o TeamInviteType) Sbs() (res TeamInviteSocialNetwork) {
 
 func NewTeamInviteTypeWithUnknown(v string) TeamInviteType {
 	return TeamInviteType{
-		C__:       TypeInviteCategory_UNKNOWN,
+		C__:       TeamInviteCategory_UNKNOWN,
 		Unknown__: &v,
 	}
 }
 
 func NewTeamInviteTypeWithSbs(v TeamInviteSocialNetwork) TeamInviteType {
 	return TeamInviteType{
-		C__:   TypeInviteCategory_SBS,
+		C__:   TeamInviteCategory_SBS,
 		Sbs__: &v,
 	}
 }
 
-func NewTeamInviteTypeDefault(c TypeInviteCategory) TeamInviteType {
+func NewTeamInviteTypeDefault(c TeamInviteCategory) TeamInviteType {
 	return TeamInviteType{
 		C__: c,
 	}
