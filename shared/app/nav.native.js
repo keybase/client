@@ -149,7 +149,6 @@ function MainNavStack(props: Props) {
     <TabBar
       onTabClick={props.switchTab}
       selectedTab={props.routeSelected}
-      username={props.username}
       badgeNumbers={props.navBadges.toJS()}
     />
   )
@@ -225,7 +224,6 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
   reachable: state.gregor.reachability.reachable,
-  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
