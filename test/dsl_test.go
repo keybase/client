@@ -334,6 +334,19 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 	}
 }
 
+func changeTeamName(oldName, newName string) optionOp {
+	return func(o *opt) {
+		o.teams[libkb.NormalizedUsername(newName)] =
+			o.teams[libkb.NormalizedUsername(oldName)]
+		delete(o.teams, libkb.NormalizedUsername(oldName))
+		o.tb.Logf("changeTeamName: %q -> %q", oldName, newName)
+		for _, u := range o.users {
+			err := o.engine.ChangeTeamName(u, oldName, newName)
+			o.expectSuccess("changeTeamName", err)
+		}
+	}
+}
+
 type fileOp struct {
 	operation   func(*ctx) error
 	flags       fileOpFlags

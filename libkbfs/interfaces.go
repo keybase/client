@@ -355,6 +355,10 @@ type KBFSOps interface {
 	// newest version.  It works asynchronously, so no error is
 	// returned.
 	ForceFastForward(ctx context.Context)
+	// TeamNameChanged indicates that a team has changed its name, and
+	// we should clean up any outstanding handle info associated with
+	// the team ID.
+	TeamNameChanged(ctx context.Context, tid keybase1.TeamID)
 }
 
 type merkleSeqNoGetter interface {

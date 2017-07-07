@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
@@ -752,6 +753,35 @@ func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
 	NodeMetadata, error) {
 	ops := fs.getOpsByNode(ctx, node)
 	return ops.GetNodeMetadata(ctx, node)
+}
+
+// TeamNameChanged implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) TeamNameChanged(
+	ctx context.Context, tid keybase1.TeamID) {
+	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	// We have to search for the tid since we don't know the old name
+	// of the team here.  TODO: add an index for this?
+	for fb, fbo := range fs.ops {
+		if fb.Tlf.Type() != tlf.SingleTeam {
+			continue
+		}
+
+		_, _, handle, err := fbo.getRootNode(ctx)
+		if err != nil {
+			fs.log.CDebugf(
+				ctx, "Error getting root node for %s: %+v", fb.Tlf, err)
+			continue
+		}
+
+		if handle.FirstResolvedWriter().AsTeamOrBust() != tid {
+			continue
+		}
+
+		fbo.TeamNameChanged(ctx, tid)
+		break
+	}
 }
 
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,

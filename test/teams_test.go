@@ -93,3 +93,31 @@ func TestTeamsTwoWritersJournal(t *testing.T) {
 		),
 	)
 }
+
+func TestTeamsNameChange(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		team("ab", "alice,bob", ""),
+		inSingleTeamTlf("ab"),
+		as(alice,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			read("a", "hello"),
+			mkfile("b", "world"),
+		),
+		as(alice,
+			read("b", "world"),
+		),
+		changeTeamName("ab", "ba"),
+		inSingleTeamTlf("ba"),
+		as(alice,
+			read("a", "hello"),
+			read("b", "world"),
+		),
+		as(bob,
+			read("a", "hello"),
+			read("b", "world"),
+		),
+	)
+}

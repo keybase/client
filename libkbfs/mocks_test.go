@@ -1003,6 +1003,14 @@ func (_mr *_MockKBFSOpsRecorder) ForceFastForward(arg0 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ForceFastForward", arg0)
 }
 
+func (_m *MockKBFSOps) TeamNameChanged(ctx context.Context, tid keybase1.TeamID) {
+	_m.ctrl.Call(_m, "TeamNameChanged", ctx, tid)
+}
+
+func (_mr *_MockKBFSOpsRecorder) TeamNameChanged(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TeamNameChanged", arg0, arg1)
+}
+
 // Mock of merkleSeqNoGetter interface
 type MockmerkleSeqNoGetter struct {
 	ctrl     *gomock.Controller

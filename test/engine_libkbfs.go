@@ -607,6 +607,12 @@ func (k *LibKBFS) AddNewAssertion(u User, oldAssertion, newAssertion string) err
 	return libkbfs.AddNewAssertionForTest(config, oldAssertion, newAssertion)
 }
 
+// ChangeTeamName implements the Engine interface.
+func (k *LibKBFS) ChangeTeamName(u User, oldName, newName string) error {
+	config := u.(*libkbfs.ConfigLocal)
+	return libkbfs.ChangeTeamNameForTest(config, oldName, newName)
+}
+
 // Rekey implements the Engine interface.
 func (k *LibKBFS) Rekey(u User, tlfName string, t tlf.Type) error {
 	config := u.(*libkbfs.ConfigLocal)

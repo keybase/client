@@ -364,6 +364,48 @@ func (k *KeybaseDaemonLocal) addNewAssertionForTestOrBust(
 	return uid
 }
 
+// changeTeamNameForTest updates the name of an existing team.
+func (k *KeybaseDaemonLocal) changeTeamNameForTest(
+	oldName, newName string) (keybase1.TeamID, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	oldAssert := oldName + "@team"
+	newAssert := newName + "@team"
+
+	id, ok := k.asserts[oldAssert]
+	if !ok {
+		return keybase1.TeamID(""),
+			fmt.Errorf("No such old team name: %s", oldName)
+	}
+	tid, err := id.AsTeam()
+	if err != nil {
+		return keybase1.TeamID(""), err
+	}
+
+	team, ok := k.localTeams[tid]
+	if !ok {
+		return keybase1.TeamID(""),
+			fmt.Errorf("No such old team name: %s/%s", oldName, tid)
+	}
+	team.Name = libkb.NormalizedUsername(newName)
+	k.localTeams[tid] = team
+
+	k.asserts[newAssert] = id
+	delete(k.asserts, oldAssert)
+	return tid, nil
+}
+
+// changeTeamNameForTestOrBust is like changeTeamNameForTest, but
+// panics if there's an error.
+func (k *KeybaseDaemonLocal) changeTeamNameForTestOrBust(
+	oldName, newName string) keybase1.TeamID {
+	tid, err := k.changeTeamNameForTest(oldName, newName)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
 func (k *KeybaseDaemonLocal) removeAssertionForTest(assertion string) {
 	k.lock.Lock()
 	defer k.lock.Unlock()

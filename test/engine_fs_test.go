@@ -326,6 +326,12 @@ func (e *fsEngine) AddNewAssertion(user User, oldAssertion, newAssertion string)
 	return libkbfs.AddNewAssertionForTest(u.config, oldAssertion, newAssertion)
 }
 
+// ChangeTeamName implements the Engine interface.
+func (e *fsEngine) ChangeTeamName(user User, oldName, newName string) error {
+	u := user.(*fsUser)
+	return libkbfs.ChangeTeamNameForTest(u.config, oldName, newName)
+}
+
 // Rekey implements the Engine interface.
 func (*fsEngine) Rekey(user User, tlfName string, t tlf.Type) error {
 	u := user.(*fsUser)

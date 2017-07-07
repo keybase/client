@@ -776,8 +776,15 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) TeamChanged(
 	ctx context.Context, arg keybase1.TeamChangedArg) error {
-	k.log.CDebugf(ctx, "Flushing cache for team %s", arg.TeamID)
+	k.log.CDebugf(ctx, "Flushing cache for team %s/%s "+
+		"(membershipChange=%t, keyRotated=%t, renamed=%t)",
+		arg.TeamName, arg.TeamID, arg.Changes.MembershipChanged,
+		arg.Changes.KeyRotated, arg.Changes.Renamed)
 	k.setCachedTeamInfo(arg.TeamID, TeamInfo{})
+
+	if arg.Changes.Renamed {
+		k.config.KBFSOps().TeamNameChanged(ctx, arg.TeamID)
+	}
 	return nil
 }
 

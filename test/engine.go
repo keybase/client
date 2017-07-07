@@ -126,6 +126,8 @@ type Engine interface {
 	// arbitrary assertion that does already resolve to something.
 	// It only applies to the given user.
 	AddNewAssertion(u User, oldAssertion, newAssertion string) (err error)
+	// ChangeTeamName renames a team.
+	ChangeTeamName(u User, oldName, newName string) (err error)
 	// Rekey rekeys the given TLF under the given user.
 	Rekey(u User, tlfName string, t tlf.Type) (err error)
 	// EnableJournal is called by the test harness as the given
