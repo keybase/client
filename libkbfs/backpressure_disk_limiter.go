@@ -494,14 +494,14 @@ func (jt journalTracker) getDelayScale(
 }
 
 func (jt journalTracker) updateFree(
-	freeBytes, otherUsedBytes, freeFiles int64) {
+	freeBytes, overallUsedBytes, freeFiles int64) {
 	// We calculate the total free bytes by adding up the reported
 	// free bytes, the journal used bytes, *and* any other used
 	// bytes (e.g., the disk cache). For now, we hack this by
 	// lumping the other used bytes with the reported free bytes.
 	//
 	// TODO: Keep track of other used bytes separately.
-	jt.byte.updateFree(freeBytes + otherUsedBytes)
+	jt.byte.updateFree(freeBytes + overallUsedBytes - jt.byte.used)
 	jt.file.updateFree(freeFiles)
 }
 
@@ -921,8 +921,8 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 			return 0, err
 		}
 
-		bdl.journalTracker.updateFree(
-			freeBytes, bdl.diskCacheByteTracker.used, freeFiles)
+		bdl.journalTracker.updateFree(freeBytes, bdl.overallByteTracker.used,
+			freeFiles)
 
 		remoteUsedBytes, quotaBytes := bdl.quotaFn(ctx, chargedTo)
 		bdl.journalTracker.updateRemote(remoteUsedBytes, quotaBytes, chargedTo)
@@ -1008,9 +1008,8 @@ func (bdl *backpressureDiskLimiter) beforeDiskBlockCachePut(
 	// free bytes, the disk cache used bytes, *and* any other used
 	// bytes (e.g., the journal cache). For now, we hack this by
 	// lumping the other used bytes with the reported free bytes.
-	bdl.diskCacheByteTracker.updateFree(
-		freeBytes + bdl.overallByteTracker.used -
-			bdl.diskCacheByteTracker.used)
+	bdl.diskCacheByteTracker.updateFree(freeBytes +
+		bdl.overallByteTracker.used - bdl.diskCacheByteTracker.used)
 
 	count = bdl.diskCacheByteTracker.tryReserve(blockBytes)
 	if count < 0 {

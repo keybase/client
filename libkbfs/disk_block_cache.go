@@ -577,6 +577,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			if bytesAvailable >= 0 {
 				break
 			}
+			cache.log.CDebugf(ctx, "Need more bytes. Available: %d", bytesAvailable)
 			numRemoved, _, err := cache.evictLocked(ctx,
 				defaultNumBlocksToEvict)
 			if err != nil {
