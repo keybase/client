@@ -279,17 +279,13 @@ func TestMemberAddSocial(t *testing.T) {
 
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
-	// invite links don't work in player yet, so can't do anything else:
-	/*
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	// second AddMember should return err
+	if err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
 
-		// second AddMember should return err
-		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
-			t.Errorf("second AddMember succeeded, should have failed since user already a member")
-		}
-
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
-	*/
+	// existing invite should be untouched
+	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 }
 
 // add user without puk to a team, should create invite link
@@ -301,17 +297,15 @@ func TestMemberAddNoPUK(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// invite links don't work in player yet, so can't do anything else:
-	/*
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
 
-		// second AddMember should return err
-		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
-			t.Errorf("second AddMember succeeded, should have failed since user already a member")
-		}
+	// second AddMember should return err
+	if err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
 
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
-	*/
+	// existing invite should be untouched
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
 }
 
 // add user without keys to a team, should create invite link
@@ -323,17 +317,15 @@ func TestMemberAddNoKeys(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// invite links don't work in player yet, so can't do anything else:
-	/*
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
 
-		// second AddMember should return err
-		if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
-			t.Errorf("second AddMember succeeded, should have failed since user already a member")
-		}
+	// second AddMember should return err
+	if err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
 
-		assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
-	*/
+	// existing invite should be untouched
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
 }
 
 func TestLeave(t *testing.T) {
@@ -397,6 +389,7 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 	if invite == nil {
 		tc.T.Fatalf("no invite found for team %s %s/%s", name, username, typ)
 	}
-
-	// XXX check role
+	if invite.Role != role {
+		tc.T.Fatalf("invite role: %s, expected %s", invite.Role, role)
+	}
 }

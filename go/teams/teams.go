@@ -350,46 +350,53 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 
 	// XXX need to handle email somehow
 
-	return t.inviteSocialMember(ctx, username, role)
+	return t.inviteSBSMember(ctx, username, role)
 }
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, username string, uid keybase1.UID, role keybase1.TeamRole) error {
 	t.G().Log.Debug("team %s invite keybase member %s/%s", t.Name, username, uid)
-	return nil
+	invite := SCTeamInvite{
+		Type: "keybase",
+		Name: uid.String(),
+		ID:   NewInviteID(),
+	}
+	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteSocialMember(ctx context.Context, username string, role keybase1.TeamRole) error {
+func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) error {
 	// parse username to get social
 	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, true)
 	if err != nil {
 		return err
 	}
-	if !assertion.IsSocial() {
-		return fmt.Errorf("invalid user assertion %q, expected social assertion", username)
+	if assertion.IsKeybase() {
+		return fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
 	}
-	network, socialName := assertion.ToKeyValuePair()
-	t.G().Log.Debug("team %s invite social member %s/%s", t.Name, network, socialName)
+	typ, name := assertion.ToKeyValuePair()
+	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name, typ, name)
 
+	invite := SCTeamInvite{
+		Type: typ,
+		Name: name,
+		ID:   NewInviteID(),
+	}
+	return t.postInvite(ctx, invite, role)
+}
+
+func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
 	}
-	invite := []SCTeamInvite{
-		SCTeamInvite{
-			Type: network,
-			Name: socialName,
-			ID:   NewInviteID(),
-		},
-	}
-
+	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
 	case keybase1.TeamRole_ADMIN:
-		invites.Admins = &invite
+		invites.Admins = &invList
 	case keybase1.TeamRole_WRITER:
-		invites.Writers = &invite
+		invites.Writers = &invList
 	case keybase1.TeamRole_READER:
-		invites.Readers = &invite
+		invites.Readers = &invList
 	default:
 		// should be caught further up, but just in case
 		return errors.New("invalid role for invitation")
@@ -400,13 +407,6 @@ func (t *Team) inviteSocialMember(ctx context.Context, username string, role key
 		Admin:   admin,
 		Invites: &invites,
 	}
-
-	t.G().Log.Debug("*********************************************************************")
-	t.G().Log.Debug("*********************************************************************")
-	t.G().Log.Debug("teamSection:")
-	t.G().Log.Debug("%+v", teamSection)
-	t.G().Log.Debug("*********************************************************************")
-	t.G().Log.Debug("*********************************************************************")
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshness)
 	if err != nil {
