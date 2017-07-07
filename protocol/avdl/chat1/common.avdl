@@ -39,6 +39,18 @@ protocol common {
     DEV_2
   }
 
+  @go("nostring")
+  enum NotificationAppType {
+    DESKTOP_0,
+    MOBILE_1
+  }
+
+  @go("nostring")
+  enum NotificationKind {
+    GENERIC_0,
+    ATMENTION_1
+  }
+
   enum ConversationStatus {
     // Default status of the conversation
     UNFILED_0,
@@ -161,6 +173,11 @@ protocol common {
     array<gregor1.UID> allList;
   }
 
+  record ConversationNotificationInfo {
+    boolean channelWide;
+    map<NotificationAppType, map<NotificationKind, boolean>> settings;
+  }
+
   record ConversationReaderInfo {
     gregor1.Time mtime; // The last time the convo was modified from the user perspective
     MessageID readMsgid; // The message ID the user has read up to in the convo
@@ -170,6 +187,7 @@ protocol common {
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
+    union { null, ConversationNotificationInfo } notifications; // user notification settings for the convo, will be null if it is just the default. Otherwise contains entries to modify default setting.
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;

@@ -93,6 +93,16 @@ export const CommonMessageType = {
   attachmentuploaded: 8,
 }
 
+export const CommonNotificationAppType = {
+  desktop: 0,
+  mobile: 1,
+}
+
+export const CommonNotificationKind = {
+  generic: 0,
+  atmention: 1,
+}
+
 export const CommonTLFVisibility = {
   any: 0,
   public: 1,
@@ -1108,6 +1118,7 @@ export type ConvTypingUpdate = {
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
 }
@@ -1202,6 +1213,11 @@ export type ConversationMetadata = {
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
   allList?: ?Array<gregor1.UID>,
+}
+
+export type ConversationNotificationInfo = {
+  channelWide: boolean,
+  settings: {[key: string]: {[key: string]: boolean}},
 }
 
 export type ConversationReaderInfo = {
@@ -1727,6 +1743,14 @@ export type NonblockFetchRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
+
+export type NotificationAppType =
+    0 // DESKTOP_0
+  | 1 // MOBILE_1
+
+export type NotificationKind =
+    0 // GENERIC_0
+  | 1 // ATMENTION_1
 
 export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
   update: keybase1.CanonicalTLFNameAndIDWithBreaks
