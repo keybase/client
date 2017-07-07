@@ -42,6 +42,10 @@ type KeybaseServiceBase struct {
 	userCache               map[keybase1.UID]UserInfo
 	userCacheUnverifiedKeys map[keybase1.UID][]keybase1.PublicKey
 
+	teamCacheLock sync.RWMutex
+	// Map entries are removed when invalidated.
+	teamCache map[keybase1.TeamID]TeamInfo
+
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
 	lastSyncNotificationPath     string
@@ -55,6 +59,7 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 		log:                     log,
 		userCache:               make(map[keybase1.UID]UserInfo),
 		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
+		teamCache:               make(map[keybase1.TeamID]TeamInfo),
 	}
 	return &k
 }
@@ -234,12 +239,34 @@ func (k *KeybaseServiceBase) clearCachedUnverifiedKeys(uid keybase1.UID) {
 	delete(k.userCacheUnverifiedKeys, uid)
 }
 
+func (k *KeybaseServiceBase) getCachedTeamInfo(tid keybase1.TeamID) TeamInfo {
+	k.teamCacheLock.RLock()
+	defer k.teamCacheLock.RUnlock()
+	return k.teamCache[tid]
+}
+
+func (k *KeybaseServiceBase) setCachedTeamInfo(
+	tid keybase1.TeamID, info TeamInfo) {
+	k.teamCacheLock.Lock()
+	defer k.teamCacheLock.Unlock()
+	if info.Name == libkb.NormalizedUsername("") {
+		delete(k.teamCache, tid)
+	} else {
+		k.teamCache[tid] = info
+	}
+}
+
 func (k *KeybaseServiceBase) clearCaches() {
 	k.setCachedCurrentSession(SessionInfo{})
-	k.userCacheLock.Lock()
-	defer k.userCacheLock.Unlock()
-	k.userCache = make(map[keybase1.UID]UserInfo)
-	k.userCacheUnverifiedKeys = make(map[keybase1.UID][]keybase1.PublicKey)
+	func() {
+		k.userCacheLock.Lock()
+		defer k.userCacheLock.Unlock()
+		k.userCache = make(map[keybase1.UID]UserInfo)
+		k.userCacheUnverifiedKeys = make(map[keybase1.UID][]keybase1.PublicKey)
+	}()
+	k.teamCacheLock.Lock()
+	defer k.teamCacheLock.Unlock()
+	k.teamCache = make(map[keybase1.TeamID]TeamInfo)
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
@@ -414,7 +441,10 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID) (TeamInfo, error) {
-	// No caching until the invalidations are ready.
+	cachedTeamInfo := k.getCachedTeamInfo(tid)
+	if cachedTeamInfo.Name != libkb.NormalizedUsername("") {
+		return cachedTeamInfo, nil
+	}
 
 	arg := keybase1.LoadTeamPlusApplicationKeysArg{
 		Id:          tid,
@@ -452,6 +482,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	for _, user := range res.OnlyReaders {
 		info.Readers[user.Uid] = true
 	}
+	k.setCachedTeamInfo(tid, info)
 	return info, nil
 }
 
@@ -739,6 +770,15 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 	}
 
 	return k.kbfsClient.FSSyncStatus(ctx, resp)
+}
+
+// TeamChanged implements keybase1.NotifyTeamInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) TeamChanged(
+	ctx context.Context, arg keybase1.TeamChangedArg) error {
+	k.log.CDebugf(ctx, "Flushing cache for team %s", arg.TeamID)
+	k.setCachedTeamInfo(arg.TeamID, TeamInfo{})
+	return nil
 }
 
 // GetTLFCryptKeys implements the TlfKeysInterface interface for

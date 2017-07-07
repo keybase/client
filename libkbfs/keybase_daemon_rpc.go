@@ -40,6 +40,10 @@ var _ keybase1.NotifyKeyfamilyInterface = (*KeybaseDaemonRPC)(nil)
 
 var _ keybase1.NotifyPaperKeyInterface = (*KeybaseDaemonRPC)(nil)
 
+var _ keybase1.NotifyFSRequestInterface = (*KeybaseDaemonRPC)(nil)
+
+var _ keybase1.NotifyTeamInterface = (*KeybaseDaemonRPC)(nil)
+
 var _ rpc.ConnectionHandler = (*KeybaseDaemonRPC)(nil)
 
 var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
@@ -251,6 +255,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifyKeyfamilyProtocol(k),
 		keybase1.NotifyPaperKeyProtocol(k),
 		keybase1.NotifyFSRequestProtocol(k),
+		keybase1.NotifyTeamProtocol(k),
 		keybase1.TlfKeysProtocol(k),
 		keybase1.ReachabilityProtocol(k),
 	}
@@ -282,6 +287,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		Keyfamily:    true,
 		Kbfsrequest:  true,
 		Reachability: true,
+		Team:         true,
 	})
 	if err != nil {
 		return err
