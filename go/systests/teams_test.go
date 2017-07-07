@@ -45,7 +45,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	}
 	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
 
-	// User1 sould get a gregor that the team he was just added to changed.
+	// User1 should get a gregor that the team he was just added to changed.
 	tt.users[1].waitForTeamChagnedGregor(team, keybase1.Seqno(2))
 	// User0 should get a (redundant) gregor notification that
 	// he just changed the team.
