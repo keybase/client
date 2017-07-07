@@ -8,38 +8,56 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type TeamKeyRotatedArg struct {
-	TeamID   TeamID `codec:"teamID" json:"teamID"`
-	TeamName string `codec:"teamName" json:"teamName"`
+type TeamChangeSet struct {
+	MembershipChanged bool `codec:"membershipChanged" json:"membershipChanged"`
+	KeyRotated        bool `codec:"keyRotated" json:"keyRotated"`
+	Renamed           bool `codec:"renamed" json:"renamed"`
 }
 
-func (o TeamKeyRotatedArg) DeepCopy() TeamKeyRotatedArg {
-	return TeamKeyRotatedArg{
-		TeamID:   o.TeamID.DeepCopy(),
-		TeamName: o.TeamName,
+func (o TeamChangeSet) DeepCopy() TeamChangeSet {
+	return TeamChangeSet{
+		MembershipChanged: o.MembershipChanged,
+		KeyRotated:        o.KeyRotated,
+		Renamed:           o.Renamed,
+	}
+}
+
+type TeamChangedArg struct {
+	TeamID      TeamID        `codec:"teamID" json:"teamID"`
+	TeamName    string        `codec:"teamName" json:"teamName"`
+	LatestSeqno Seqno         `codec:"latestSeqno" json:"latestSeqno"`
+	Changes     TeamChangeSet `codec:"changes" json:"changes"`
+}
+
+func (o TeamChangedArg) DeepCopy() TeamChangedArg {
+	return TeamChangedArg{
+		TeamID:      o.TeamID.DeepCopy(),
+		TeamName:    o.TeamName,
+		LatestSeqno: o.LatestSeqno.DeepCopy(),
+		Changes:     o.Changes.DeepCopy(),
 	}
 }
 
 type NotifyTeamInterface interface {
-	TeamKeyRotated(context.Context, TeamKeyRotatedArg) error
+	TeamChanged(context.Context, TeamChangedArg) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.NotifyTeam",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"teamKeyRotated": {
+			"teamChanged": {
 				MakeArg: func() interface{} {
-					ret := make([]TeamKeyRotatedArg, 1)
+					ret := make([]TeamChangedArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TeamKeyRotatedArg)
+					typedArgs, ok := args.(*[]TeamChangedArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TeamKeyRotatedArg)(nil), args)
+						err = rpc.NewTypeError((*[]TeamChangedArg)(nil), args)
 						return
 					}
-					err = i.TeamKeyRotated(ctx, (*typedArgs)[0])
+					err = i.TeamChanged(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -52,7 +70,7 @@ type NotifyTeamClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyTeamClient) TeamKeyRotated(ctx context.Context, __arg TeamKeyRotatedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamKeyRotated", []interface{}{__arg})
+func (c NotifyTeamClient) TeamChanged(ctx context.Context, __arg TeamChangedArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChanged", []interface{}{__arg})
 	return
 }

@@ -29,6 +29,10 @@ type ResolveResult struct {
 	mutable            bool
 }
 
+func (res ResolveResult) HasPrimaryKey() bool {
+	return res.uid.Exists() || res.teamID.Exists()
+}
+
 func (res ResolveResult) String() string {
 	return fmt.Sprintf("{uid:%s teamID:%s err:%s mutable:%v}", res.uid, res.teamID, ErrToOk(res.err), res.mutable)
 }
@@ -286,11 +290,14 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 	ha.Add("fields", S{fields})
 	ares, res.err = r.G().API.Get(APIArg{
-		Endpoint:       "user/lookup",
-		SessionType:    APISessionTypeNONE,
-		Args:           ha,
-		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
-		NetContext:     ctx,
+		Endpoint:        "user/lookup",
+		SessionType:     APISessionTypeNONE,
+		Args:            ha,
+		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
+		NetContext:      ctx,
+		RetryCount:      3,
+		InitialTimeout:  4 * time.Second,
+		RetryMultiplier: 1.5,
 	})
 
 	if res.err != nil {
@@ -435,8 +442,8 @@ func (r *Resolver) getFromMemCache(ctx context.Context, key string, au Assertion
 		return nil
 	}
 	// Should never happen, but don't corrupt application state if it does
-	if rres.uid.IsNil() {
-		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID in cache")
+	if !rres.HasPrimaryKey() {
+		r.G().Log.CInfof(ctx, "Resolver#getFromMemCache: nil UID/teamID in cache")
 		return nil
 	}
 	now := r.NowFunc()
@@ -500,7 +507,7 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	if res.err != nil {
 		return
 	}
-	if res.uid.IsNil() {
+	if !res.HasPrimaryKey() {
 		r.G().Log.Warning("Mistaken UID put to mem cache")
 		if r.G().Env.GetDebug() {
 			debug.PrintStack()

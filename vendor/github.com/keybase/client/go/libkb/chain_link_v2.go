@@ -37,6 +37,8 @@ const (
 	SigchainV2TypeTeamLeave            SigchainV2Type = 37
 	SigchainV2TypeTeamSubteamHead      SigchainV2Type = 38
 	SigchainV2TypeTeamRenameSubteam    SigchainV2Type = 39
+	SigchainV2TypeTeamInvite           SigchainV2Type = 40
+	SigchainV2TypeTeamRenameUpPointer  SigchainV2Type = 41
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -56,10 +58,32 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamRotateKey,
 		SigchainV2TypeTeamLeave,
 		SigchainV2TypeTeamSubteamHead,
-		SigchainV2TypeTeamRenameSubteam:
+		SigchainV2TypeTeamRenameSubteam,
+		SigchainV2TypeTeamInvite,
+		SigchainV2TypeTeamRenameUpPointer:
 		return true
 	default:
 		return false
+	}
+}
+
+func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
+	role := keybase1.TeamRole_READER
+	if isAdmin {
+		role = keybase1.TeamRole_ADMIN
+	}
+	return t.TeamAllowStub(role)
+}
+
+func (t SigchainV2Type) RequiresAdminPermission() bool {
+	if !t.IsTeamType() {
+		return false
+	}
+	switch t {
+	case SigchainV2TypeTeamLeave, SigchainV2TypeTeamRotateKey, SigchainV2TypeTeamRoot:
+		return false
+	default:
+		return true
 	}
 }
 
@@ -72,7 +96,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 		return false
 	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam:
+		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamInvite:
 			return true
 		default:
 			// disallow stubbing of other including unknown links
@@ -97,7 +121,8 @@ type OuterLinkV2WithMetadata struct {
 	OuterLinkV2
 	raw   []byte
 	sigID keybase1.SigID
-	kid   keybase1.KID
+	sig   string
+	KID   keybase1.KID
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -125,6 +150,22 @@ func (o OuterLinkV2WithMetadata) LinkID() LinkID {
 	return ComputeLinkID(o.raw)
 }
 
+func (o OuterLinkV2WithMetadata) Raw() []byte {
+	return o.raw
+}
+
+func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, err error) {
+	key, err := ImportKeypairFromKID(o.KID)
+	if err != nil {
+		return kid, err
+	}
+	_, err = key.VerifyString(ctx, o.sig, o.raw)
+	if err != nil {
+		return kid, err
+	}
+	return o.KID, nil
+}
+
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
@@ -139,7 +180,8 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		OuterLinkV2: ol,
 		sigID:       sigID,
 		raw:         payload,
-		kid:         kid,
+		KID:         kid,
+		sig:         armored,
 	}
 	return &ret, nil
 }
@@ -210,6 +252,8 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamSubteamHead
 	case "team.rename_subteam":
 		ret = SigchainV2TypeTeamRenameSubteam
+	case "team.invite":
+		ret = SigchainV2TypeTeamInvite
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

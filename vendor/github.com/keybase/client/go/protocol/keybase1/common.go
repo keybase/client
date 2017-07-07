@@ -228,14 +228,14 @@ func (o PublicKey) DeepCopy() PublicKey {
 }
 
 type KeybaseTime struct {
-	Unix  Time `codec:"unix" json:"unix"`
-	Chain int  `codec:"chain" json:"chain"`
+	Unix  Time  `codec:"unix" json:"unix"`
+	Chain Seqno `codec:"chain" json:"chain"`
 }
 
 func (o KeybaseTime) DeepCopy() KeybaseTime {
 	return KeybaseTime{
 		Unix:  o.Unix.DeepCopy(),
-		Chain: o.Chain,
+		Chain: o.Chain.DeepCopy(),
 	}
 }
 
@@ -400,20 +400,18 @@ var ClientTypeRevMap = map[ClientType]string{
 }
 
 type UserVersionVector struct {
-	Id               int64 `codec:"id" json:"id"`
-	SigHints         int   `codec:"sigHints" json:"sigHints"`
-	SigChain         int64 `codec:"sigChain" json:"sigChain"`
-	CachedAt         Time  `codec:"cachedAt" json:"cachedAt"`
-	LastIdentifiedAt Time  `codec:"lastIdentifiedAt" json:"lastIdentifiedAt"`
+	Id       int64 `codec:"id" json:"id"`
+	SigHints int   `codec:"sigHints" json:"sigHints"`
+	SigChain int64 `codec:"sigChain" json:"sigChain"`
+	CachedAt Time  `codec:"cachedAt" json:"cachedAt"`
 }
 
 func (o UserVersionVector) DeepCopy() UserVersionVector {
 	return UserVersionVector{
-		Id:               o.Id,
-		SigHints:         o.SigHints,
-		SigChain:         o.SigChain,
-		CachedAt:         o.CachedAt.DeepCopy(),
-		LastIdentifiedAt: o.LastIdentifiedAt.DeepCopy(),
+		Id:       o.Id,
+		SigHints: o.SigHints,
+		SigChain: o.SigChain,
+		CachedAt: o.CachedAt.DeepCopy(),
 	}
 }
 

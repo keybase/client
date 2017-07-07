@@ -15,29 +15,29 @@ import (
 
 type streamfn func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)
 
-func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool, saltpackVersion saltpack.Version) error {
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignStream(CurrentSaltpackVersion(), w, k)
+			return saltpack.NewSignStream(saltpackVersion, w, k)
 		}
 	} else {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
-			return saltpack.NewSignArmor62Stream(CurrentSaltpackVersion(), w, k, brand)
+			return saltpack.NewSignArmor62Stream(saltpackVersion, w, k, brand)
 		}
 	}
 	return saltpackSign(g, source, sink, key, s)
 }
 
-func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool, saltpackVersion saltpack.Version) error {
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignDetachedStream(CurrentSaltpackVersion(), w, k)
+			return saltpack.NewSignDetachedStream(saltpackVersion, w, k)
 		}
 	} else {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
-			return saltpack.NewSignDetachedArmor62Stream(CurrentSaltpackVersion(), w, k, brand)
+			return saltpack.NewSignDetachedArmor62Stream(saltpackVersion, w, k, brand)
 		}
 	}
 	return saltpackSign(g, source, sink, key, s)

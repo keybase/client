@@ -6,6 +6,7 @@ package keybase1
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -110,6 +111,10 @@ func KIDFromStringChecked(s string) (KID, error) {
 }
 
 func HashMetaFromString(s string) (ret HashMeta, err error) {
+	// TODO: Should we add similar handling to other types?
+	if s == "null" {
+		return nil, nil
+	}
 	b, err := hex.DecodeString(s)
 	if err != nil {
 		return ret, err
@@ -119,6 +124,10 @@ func HashMetaFromString(s string) (ret HashMeta, err error) {
 
 func (h HashMeta) String() string {
 	return hex.EncodeToString(h)
+}
+
+func (h HashMeta) Eq(h2 HashMeta) bool {
+	return hmac.Equal(h[:], h2[:])
 }
 
 func (h *HashMeta) UnmarshalJSON(b []byte) error {
@@ -139,7 +148,7 @@ func (l *LeaseID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (h *HashMeta) MarshalJSON() ([]byte, error) {
+func (h HashMeta) MarshalJSON() ([]byte, error) {
 	return Quote(h.String()), nil
 }
 
@@ -228,6 +237,32 @@ func (k KID) IsIn(list []KID) bool {
 		}
 	}
 	return false
+}
+
+func PGPFingerprintFromString(s string) (ret PGPFingerprint, err error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return
+	}
+	copy(ret[:], b[:])
+	return
+}
+
+func (p *PGPFingerprint) String() string {
+	return hex.EncodeToString(p[:])
+}
+
+func (p PGPFingerprint) MarshalJSON() ([]byte, error) {
+	return Quote(p.String()), nil
+}
+
+func (p *PGPFingerprint) UnmarshalJSON(b []byte) error {
+	tmp, err := PGPFingerprintFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*p = tmp
+	return nil
 }
 
 func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
@@ -1066,9 +1101,45 @@ func (u UserPlusAllKeys) FindDevice(d DeviceID) *PublicKey {
 	return nil
 }
 
+func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
+	for _, k := range u.Current.DeviceKeys {
+		if k.DeviceID.Eq(d) {
+			return &k
+		}
+	}
+	return nil
+}
+
 func (u UserPlusKeys) FindKID(needle KID) *PublicKey {
 	for _, k := range u.DeviceKeys {
 		if k.KID.Equal(needle) {
+			return &k
+		}
+	}
+	return nil
+}
+
+// FindKID finds the Key and user incarnation that most recently used this KID.
+// It is possible for users to use the same KID across incarnations (though definitely
+// not condoned or encouraged). In that case, we'll give the most recent use.
+func (u UserPlusKeysV2AllIncarnations) FindKID(kid KID) (*UserPlusKeysV2, *PublicKeyV2NaCl) {
+	ret, ok := u.Current.DeviceKeys[kid]
+	if ok {
+		return &u.Current, &ret
+	}
+	for i := len(u.PastIncarnations) - 1; i >= 0; i-- {
+		prev := u.PastIncarnations[i]
+		ret, ok = prev.DeviceKeys[kid]
+		if ok {
+			return &prev, &ret
+		}
+	}
+	return nil, nil
+}
+
+func (u UserPlusKeysV2) FindDeviceKey(needle KID) *PublicKeyV2NaCl {
+	for _, k := range u.DeviceKeys {
+		if k.Base.Kid.Equal(needle) {
 			return &k
 		}
 	}
@@ -1085,6 +1156,17 @@ func (u UserPlusAllKeys) IsOlderThan(v UserPlusAllKeys) bool {
 		return true
 	}
 	if u.Base.Uvv.Id < v.Base.Uvv.Id {
+		return true
+	}
+	return false
+}
+
+// IsOlderThan returns true if any of the versions of u are older than v
+func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnations) bool {
+	if u.Uvv.SigChain < v.Uvv.SigChain {
+		return true
+	}
+	if u.Uvv.Id < v.Uvv.Id {
 		return true
 	}
 	return false
@@ -1150,6 +1232,10 @@ func (ut UserOrTeamID) AsTeamOrBust() TeamID {
 		panic(err)
 	}
 	return tid
+}
+
+func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
+	return strings.Compare(string(ut), string(ut2))
 }
 
 func (ut UserOrTeamID) IsUser() bool {
@@ -1243,7 +1329,7 @@ func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
 		Key: PublicKeyV1FromDeviceKeyV2(keyV2),
 		Time: KeybaseTime{
 			Unix:  keyV2.Base.Revocation.Time,
-			Chain: int(keyV2.Base.Revocation.PrevMerkleRootSigned.Seqno),
+			Chain: keyV2.Base.Revocation.PrevMerkleRootSigned.Seqno,
 		},
 		By: keyV2.Base.Revocation.SigningKID,
 	}
@@ -1268,6 +1354,8 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			deviceKeysV1 = append(deviceKeysV1, PublicKeyV1FromDeviceKeyV2(keyV2))
 		}
 	}
+	sort.Slice(deviceKeysV1, func(i, j int) bool { return deviceKeysV1[i].KID < deviceKeysV1[j].KID })
+	sort.Slice(revokedDeviceKeysV1, func(i, j int) bool { return revokedDeviceKeysV1[i].Key.KID < revokedDeviceKeysV1[j].Key.KID })
 
 	// Assemble the deleted device keys from past incarnations.
 	var deletedDeviceKeysV1 []PublicKey
@@ -1276,6 +1364,14 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			deletedDeviceKeysV1 = append(deletedDeviceKeysV1, PublicKeyV1FromDeviceKeyV2(keyV2))
 		}
 	}
+	sort.Slice(deletedDeviceKeysV1, func(i, j int) bool { return deletedDeviceKeysV1[i].KID < deletedDeviceKeysV1[j].KID })
+
+	// List and sort the remote tracks. Note that they *must* be sorted.
+	var remoteTracks []RemoteTrack
+	for _, track := range uV2.Current.RemoteTracks {
+		remoteTracks = append(remoteTracks, track)
+	}
+	sort.Slice(remoteTracks, func(i, j int) bool { return remoteTracks[i].Username < remoteTracks[j].Username })
 
 	// Apart from all the key mangling above, everything else is just naming
 	// and layout changes. Assemble the final UPAK.
@@ -1288,11 +1384,11 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			RevokedDeviceKeys: revokedDeviceKeysV1,
 			DeletedDeviceKeys: deletedDeviceKeysV1,
 			PGPKeyCount:       len(pgpKeysV1),
-			Uvv:               uV2.Current.Uvv,
+			Uvv:               uV2.Uvv,
 			PerUserKeys:       uV2.Current.PerUserKeys,
 		},
 		PGPKeys:      pgpKeysV1,
-		RemoteTracks: uV2.Current.RemoteTracks,
+		RemoteTracks: remoteTracks,
 	}
 }
 
@@ -1301,7 +1397,15 @@ func (u UserVersion) PercentForm() string {
 	if u.EldestSeqno == 1 {
 		return string(u.Uid)
 	}
+	return u.String()
+}
+
+func (u UserVersion) String() string {
 	return fmt.Sprintf("%s%%%d", u.Uid, u.EldestSeqno)
+}
+
+func (u UserVersion) Eq(v UserVersion) bool {
+	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
 }
 
 func (k CryptKey) Material() Bytes32 {
@@ -1317,7 +1421,7 @@ func (k TeamApplicationKey) Material() Bytes32 {
 }
 
 func (k TeamApplicationKey) Generation() int {
-	return k.KeyGeneration
+	return int(k.KeyGeneration)
 }
 
 func (t TeamMembers) AllUIDs() []UID {
@@ -1341,10 +1445,32 @@ func (t TeamMembers) AllUIDs() []UID {
 	return all
 }
 
+func (t TeamMembers) AllUserVersions() []UserVersion {
+	m := make(map[UID]UserVersion)
+	for _, u := range t.Owners {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Admins {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Writers {
+		m[u.Uid] = u
+	}
+	for _, u := range t.Readers {
+		m[u.Uid] = u
+	}
+	var all []UserVersion
+	for _, uv := range m {
+		all = append(all, uv)
+	}
+	return all
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
 
+// underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
 
 func TeamNameFromString(s string) (ret TeamName, err error) {
@@ -1354,6 +1480,9 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	}
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
+		if !(len(part) >= 2 && len(part) <= 16) {
+			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
 		}
@@ -1376,4 +1505,122 @@ func (t TeamName) Eq(t2 TeamName) bool {
 
 func (t TeamName) IsRootTeam() bool {
 	return len(t.Parts) == 1
+}
+
+// Get the top level team id for this team name.
+// Only makes sense for non-sub teams.
+func (t TeamName) ToTeamID() TeamID {
+	low := strings.ToLower(t.String())
+	sum := sha256.Sum256([]byte(low))
+	bs := append(sum[:15], TEAMID_SUFFIX)
+	res, err := TeamIDFromString(hex.EncodeToString(bs))
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// Return a new team name with the part added to the end.
+// For example {foo.bar}.Append(baz) -> {foo.bar.baz}
+func (t TeamName) Append(part string) (t3 TeamName, err error) {
+	t2 := t.DeepCopy()
+	t2.Parts = append(t2.Parts, TeamNamePart(part))
+	t3, err = TeamNameFromString(t2.String())
+	return t3, err
+}
+
+func (t TeamName) LastPart() TeamNamePart {
+	return t.Parts[len(t.Parts)-1]
+}
+
+func (u UserPlusKeys) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
+}
+
+func (u UserPlusKeysV2) ToUserVersion() UserVersion {
+	return UserVersion{
+		Uid:         u.Uid,
+		EldestSeqno: u.EldestSeqno,
+	}
+}
+
+func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
+
+func (s PerTeamKeySeed) IsZero() bool {
+	var tmp PerTeamKeySeed
+	return hmac.Equal(s[:], tmp[:])
+}
+
+func PerTeamKeySeedFromBytes(b []byte) (PerTeamKeySeed, error) {
+	var ret PerTeamKeySeed
+	if len(b) != len(ret) {
+		return PerTeamKeySeed{}, fmt.Errorf("decrypt yielded a bad-sized team secret: %d != %d", len(b), len(ret))
+	}
+	copy(ret[:], b)
+	return ret, nil
+}
+
+func (s SigChainLocation) Eq(s2 SigChainLocation) bool {
+	return s.Seqno == s2.Seqno && s.SeqType == s2.SeqType
+}
+
+func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
+	return s.SeqType == s2.SeqType && s.Seqno <= s2.Seqno
+}
+
+func (r TeamRole) IsAdminOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER
+}
+
+func (r TeamRole) IsReaderOrAbove() bool {
+	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
+}
+
+type idDesc struct {
+	byteLen int
+	suffix  byte
+	typ     string
+}
+
+func (i idDesc) check(s string) error {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	if len(b) != i.byteLen {
+		return fmt.Errorf("%s: wrong ID len (got %d)", i.typ, len(b))
+	}
+	sffx := b[len(b)-1]
+	if sffx != i.suffix {
+		return fmt.Errorf("%s: wrong suffix byte (got 0x%x)", i.typ, sffx)
+	}
+	return nil
+}
+
+func TeamInviteIDFromString(s string) (TeamInviteID, error) {
+	if err := (idDesc{16, 0x27, "team invite ID"}).check(s); err != nil {
+		return TeamInviteID(""), err
+	}
+	return TeamInviteID(s), nil
+}
+
+func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
+	switch s {
+	case "keybase":
+		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
+	case "email":
+		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
+	case "twitter", "github", "facebook", "reddit", "hackernews":
+		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+	default:
+		if isDev && s == "rooter" {
+			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
+		}
+		// Don't want to break existing clients if we see an unknown invite
+		// type.
+		return NewTeamInviteTypeWithUnknown(s), nil
+	}
 }

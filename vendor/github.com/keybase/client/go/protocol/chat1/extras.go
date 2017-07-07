@@ -12,6 +12,14 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+type ByUID []gregor1.UID
+
+func (b ByUID) Len() int      { return len(b) }
+func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByUID) Less(i, j int) bool {
+	return bytes.Compare(b[i].Bytes(), b[j].Bytes()) < 0
+}
+
 // Eq compares two TLFIDs
 func (id TLFID) Eq(other TLFID) bool {
 	return bytes.Equal([]byte(id), []byte(other))
@@ -25,6 +33,10 @@ func (id TLFID) EqString(other fmt.Stringer) bool {
 
 func (id TLFID) String() string {
 	return hex.EncodeToString(id)
+}
+
+func (id TLFID) Bytes() []byte {
+	return []byte(id)
 }
 
 func MakeConvID(val string) (ConversationID, error) {
@@ -133,6 +145,9 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageID
 		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return m.Placeholder().MessageID
+		}
 	}
 	return 0
 }
@@ -147,6 +162,11 @@ func (m MessageUnboxed) GetMessageType() MessageType {
 		}
 		if state == MessageUnboxedState_OUTBOX {
 			return m.Outbox().Msg.ClientHeader.MessageType
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			// All we know about a place holder is the ID, so just
+			// call it type NONE
+			return MessageType_NONE
 		}
 	}
 	return MessageType_NONE
@@ -212,6 +232,9 @@ func (t ConversationIDTriple) ToConversationID(shardID [2]byte) ConversationID {
 
 func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	h := t.Hash()
+	if len(h) <= 2 || len(cid) <= 2 {
+		return false
+	}
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
@@ -224,6 +247,10 @@ func (o *OutboxID) Eq(r *OutboxID) bool {
 
 func (o OutboxID) String() string {
 	return hex.EncodeToString(o)
+}
+
+func (o OutboxID) Bytes() []byte {
+	return []byte(o)
 }
 
 func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
@@ -349,12 +376,45 @@ func (c ConversationLocal) GetConvID() ConversationID {
 	return c.Info.Id
 }
 
+func (c ConversationLocal) GetTopicType() TopicType {
+	return c.Info.Triple.TopicType
+}
+
+func (c ConversationLocal) GetMembersType() ConversationMembersType {
+	return c.Info.MembersType
+}
+
+func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
+	return c.Info.FinalizeInfo
+}
+
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+	for _, msg := range c.MaxMessages {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
 
 func (c Conversation) GetConvID() ConversationID {
 	return c.Metadata.ConversationID
+}
+
+func (c Conversation) GetTopicType() TopicType {
+	return c.Metadata.IdTriple.TopicType
+}
+
+func (c Conversation) GetMembersType() ConversationMembersType {
+	return c.Metadata.MembersType
+}
+
+func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
+	return c.Metadata.FinalizeInfo
 }
 
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
@@ -514,6 +574,22 @@ func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *JoinLeaveConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetTLFConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+}
+
+func (o TLFConvOrdinal) Int() int {
+	return int(o)
+}
+
+func (o TLFConvOrdinal) IsFirst() bool {
+	return o.Int() == 1
 }
