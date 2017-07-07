@@ -7165,6 +7165,7 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
 
 export type teamsTeamAddMemberRpcParam = Exact<{
   name: string,
+  email: string,
   username: string,
   role: TeamRole,
   sendChatNotification: boolean

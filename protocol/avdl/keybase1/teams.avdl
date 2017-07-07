@@ -297,7 +297,8 @@ protocol teams {
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
-  void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
+  // specify email or username
+  void teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);

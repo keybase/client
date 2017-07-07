@@ -818,6 +818,10 @@
           "type": "string"
         },
         {
+          "name": "email",
+          "type": "string"
+        },
+        {
           "name": "username",
           "type": "string"
         },

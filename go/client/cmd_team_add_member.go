@@ -16,6 +16,7 @@ import (
 type CmdTeamAddMember struct {
 	libkb.Contextified
 	Team                 string
+	Email                string
 	Username             string
 	Role                 keybase1.TeamRole
 	SkipChatNotification bool
@@ -58,8 +59,12 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	if len(ctx.String("email")) > 0 {
-		return errors.New("add-member via email address not yet supported")
+	c.Email = ctx.String("email")
+	if len(c.Email) > 0 {
+		if !libkb.CheckEmail.F(c.Email) {
+			return errors.New("invalid email address")
+		}
+		return nil
 	}
 
 	c.Username, c.Role, err = ParseUserAndRole(ctx)
@@ -78,6 +83,7 @@ func (c *CmdTeamAddMember) Run() error {
 
 	arg := keybase1.TeamAddMemberArg{
 		Name:                 c.Team,
+		Email:                c.Email,
 		Username:             c.Username,
 		Role:                 c.Role,
 		SendChatNotification: !c.SkipChatNotification,
