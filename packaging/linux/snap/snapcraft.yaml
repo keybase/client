@@ -21,4 +21,4 @@ parts:
     go-buildtags: [production]
     after: [go]
   go:
-    source-tag: go1.7.5
+    source-tag: go1.8.3
