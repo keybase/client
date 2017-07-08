@@ -17,6 +17,8 @@ import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
 
+import com.reactnativenavigation.controllers.SplashActivity;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
@@ -30,7 +32,7 @@ import static go.keybase.Keybase.logSend;
 
 import io.keybase.ossifrage.util.DNSNSFetcher;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends SplashActivity {
     private static final String TAG = MainActivity.class.getName();
 
 

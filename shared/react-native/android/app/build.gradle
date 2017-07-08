@@ -85,8 +85,8 @@ def Integer timestamp() {
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.1"
 
     defaultConfig {
         applicationId "io.keybase.ossifrage"
@@ -167,4 +167,5 @@ dependencies {
     compile project(':react-native-camera')
     compile project(':react-native-image-picker')
     compile project(':react-native-fetch-blob')
+    compile project(':react-native-navigation')
 }
