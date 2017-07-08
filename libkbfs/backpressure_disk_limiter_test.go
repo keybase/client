@@ -472,8 +472,8 @@ func TestBackpressureDiskLimiterBeforeBlockPut(t *testing.T) {
 	require.NoError(t, err)
 
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	availBytes, availFiles, err := bdl.beforeBlockPut(
-		context.Background(), 10, 2, chargedTo)
+	availBytes, availFiles, err := bdl.reserveWithBackpressure(
+		context.Background(), journalLimitTracker, 10, 2, chargedTo)
 	require.NoError(t, err)
 	// (byteLimit=88) * (journalFrac=0.25) - 10 = 12.
 	require.Equal(t, int64(12), availBytes)
@@ -497,7 +497,8 @@ func TestBackpressureDiskLimiterBeforeBlockPutByteError(t *testing.T) {
 	cancel()
 
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	availBytes, availFiles, err := bdl.beforeBlockPut(ctx, 11, 1, chargedTo)
+	availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker, 11, 1,
+		chargedTo)
 	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
@@ -525,7 +526,8 @@ func TestBackpressureDiskLimiterBeforeBlockPutFileError(t *testing.T) {
 	cancel()
 
 	chargedTo := keybase1.MakeTestUID(1).AsUserOrTeam()
-	availBytes, availFiles, err := bdl.beforeBlockPut(ctx, 10, 2, chargedTo)
+	availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker, 10, 2,
+		chargedTo)
 	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)
 	require.Equal(t, int64(1), availFiles)
@@ -770,13 +772,14 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 	// The first two puts shouldn't encounter any backpressure...
 
 	for i := 0; i < 2; i++ {
-		availBytes, availFiles, err :=
-			bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker,
+			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay)
 		checkCountersAfterBeforeBlockPut(i, availBytes, availFiles)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		filesPut += blockFiles
 		checkCountersAfterBlockPut(i)
@@ -786,14 +789,15 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 	// backpressure...
 
 	for i := 1; i < 9; i++ {
-		availBytes, availFiles, err :=
-			bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker,
+			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
 			0.01, "i=%d", i)
 		checkCountersAfterBeforeBlockPut(i, availBytes, availFiles)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		filesPut += blockFiles
 		checkCountersAfterBlockPut(i)
@@ -804,8 +808,8 @@ func testBackpressureDiskLimiterLargeDiskDelay(
 
 	ctx2, cancel2 := context.WithCancel(ctx)
 	cancel2()
-	availBytes, availFiles, err := bdl.beforeBlockPut(
-		ctx2, blockBytes, blockFiles, chargedTo)
+	availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx2, journalLimitTracker,
+		blockBytes, blockFiles, chargedTo)
 	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
@@ -925,19 +929,21 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		// Ensure the disk block cache doesn't interfere with the journal
 		// limits.
-		availBytes, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		availBytes, err := bdl.reserve(ctx, diskCacheLimitTracker, blockBytes)
 		require.NoError(t, err)
 		require.Equal(t, diskCacheByteLimit-(int64(i)+1)*blockBytes, availBytes)
-		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		bdl.commitOrRollback(ctx, diskCacheLimitTracker, blockBytes, 0, true,
+			"")
 		diskCacheBytesPut += blockBytes
 
-		availBytes, _, err =
-			bdl.beforeBlockPut(ctx, blockBytes, 1, chargedTo)
+		availBytes, _, err = bdl.reserveWithBackpressure(ctx,
+			journalLimitTracker, blockBytes, 1, chargedTo)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay)
 		checkCountersAfterBeforeBlockPut(i, availBytes)
 
-		bdl.afterBlockPut(ctx, blockBytes, 1, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, 1, true,
+			chargedTo)
 		journalBytesPut += blockBytes
 		checkCountersAfterBlockPut(i)
 
@@ -950,19 +956,21 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 	for i := 1; i < 9; i++ {
 		// Ensure the disk block cache doesn't interfere with the journal
 		// limits.
-		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		_, err := bdl.reserve(ctx, diskCacheLimitTracker, blockBytes)
 		require.NoError(t, err)
-		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
+		bdl.commitOrRollback(ctx, diskCacheLimitTracker, blockBytes, 0, true,
+			"")
 		diskCacheBytesPut += blockBytes
 
-		availBytes, _, err :=
-			bdl.beforeBlockPut(ctx, blockBytes, 1, chargedTo)
+		availBytes, _, err := bdl.reserveWithBackpressure(ctx,
+			journalLimitTracker, blockBytes, 1, chargedTo)
 		require.NoError(t, err)
 		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
 			0.01, "i=%d", i)
 		checkCountersAfterBeforeBlockPut(i, availBytes)
 
-		bdl.afterBlockPut(ctx, blockBytes, 1, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, 1, true,
+			chargedTo)
 		journalBytesPut += blockBytes
 		checkCountersAfterBlockPut(i)
 	}
@@ -972,8 +980,8 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 
 	ctx2, cancel2 := context.WithCancel(ctx)
 	cancel2()
-	availBytes, _, err := bdl.beforeBlockPut(
-		ctx2, blockBytes, 1, chargedTo)
+	availBytes, _, err := bdl.reserveWithBackpressure(ctx2, journalLimitTracker, blockBytes, 1,
+		chargedTo)
 	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
@@ -1125,13 +1133,14 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 	// The first two puts shouldn't encounter any backpressure...
 
 	for i := 0; i < 2; i++ {
-		availBytes, availFiles, err :=
-			bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker,
+			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay)
 		checkCountersAfterBeforeBlockPut(i, availBytes, availFiles)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		filesPut += blockFiles
 		checkCountersAfterBlockPut(i)
@@ -1141,14 +1150,15 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 	// backpressure...
 
 	for i := 1; i < 9; i++ {
-		availBytes, availFiles, err :=
-			bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker,
+			blockBytes, blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
 			0.01, "i=%d", i)
 		checkCountersAfterBeforeBlockPut(i, availBytes, availFiles)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		filesPut += blockFiles
 		checkCountersAfterBlockPut(i)
@@ -1159,8 +1169,8 @@ func testBackpressureDiskLimiterSmallDiskDelay(
 
 	ctx2, cancel2 := context.WithCancel(ctx)
 	cancel2()
-	availBytes, availFiles, err :=
-		bdl.beforeBlockPut(ctx2, blockBytes, blockFiles, chargedTo)
+	availBytes, availFiles, err := bdl.reserveWithBackpressure(ctx2, journalLimitTracker,
+		blockBytes, blockFiles, chargedTo)
 	require.Equal(t, context.Canceled, errors.Cause(err))
 	require.Equal(t, 8*time.Second, lastDelay)
 
@@ -1247,12 +1257,14 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 	// The first seven puts shouldn't encounter any backpressure...
 
 	for i := 0; i < 7; i++ {
-		_, _, err := bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		_, _, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker, blockBytes,
+			blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay, "i=%d", i)
 		checkCounters(i)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		checkCounters(i)
 	}
@@ -1261,20 +1273,23 @@ func TestBackpressureDiskLimiterNearQuota(t *testing.T) {
 	// backpressure...
 
 	for i := 1; i <= 2; i++ {
-		_, _, err := bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+		_, _, err := bdl.reserveWithBackpressure(ctx, journalLimitTracker, blockBytes,
+			blockFiles, chargedTo)
 		require.NoError(t, err)
 		require.InEpsilon(t, float64(i), lastDelay.Seconds(),
 			0.01, "i=%d", i)
 		checkCounters(i)
 
-		bdl.afterBlockPut(ctx, blockBytes, blockFiles, true, chargedTo)
+		bdl.commitOrRollback(ctx, journalLimitTracker, blockBytes, blockFiles,
+			true, chargedTo)
 		bytesPut += blockBytes
 		checkCounters(i)
 	}
 
 	// ...and the last one should encounter the max backpressure.
 
-	_, _, err = bdl.beforeBlockPut(ctx, blockBytes, blockFiles, chargedTo)
+	_, _, err = bdl.reserveWithBackpressure(ctx, journalLimitTracker, blockBytes, blockFiles,
+		chargedTo)
 	require.NoError(t, err)
 	require.Equal(t, 2*time.Second, lastDelay)
 	checkCounters(0)

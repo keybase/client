@@ -1242,7 +1242,7 @@ func (j *tlfJournal) doOnMDFlushAndRemoveFlushedMDEntry(ctx context.Context,
 			return err
 		}
 
-		j.diskLimiter.onBlocksDelete(ctx, journalLimitTracker, removedBytes,
+		j.diskLimiter.releaseAndCommit(ctx, journalLimitTracker, removedBytes,
 			removedFiles)
 	}
 
@@ -1803,8 +1803,8 @@ func (j *tlfJournal) putBlockData(
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, availableFiles, err := j.diskLimiter.beforeBlockPut(
-		acquireCtx, bufLen, filesPerBlockMax, j.chargedTo)
+	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
+		acquireCtx, journalLimitTracker, bufLen, filesPerBlockMax, j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.
@@ -1827,8 +1827,8 @@ func (j *tlfJournal) putBlockData(
 
 	var putData bool
 	defer func() {
-		j.diskLimiter.afterBlockPut(
-			ctx, bufLen, filesPerBlockMax, putData, j.chargedTo)
+		j.diskLimiter.commitOrRollback(ctx, journalLimitTracker, bufLen,
+			filesPerBlockMax, putData, j.chargedTo)
 	}()
 
 	j.journalLock.Lock()

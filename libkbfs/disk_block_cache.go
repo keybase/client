@@ -226,7 +226,7 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 			// determined it.
 			ctx := context.Background()
 			cache.config.DiskLimiter().onByteTrackerEnable(ctx,
-				int64(cache.currBytes))
+				diskCacheLimitTracker, int64(cache.currBytes))
 		}
 		close(startedCh)
 	}()
@@ -566,9 +566,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				return ctx.Err()
 			default:
 			}
-			bytesAvailable, err :=
-				cache.config.DiskLimiter().beforeDiskBlockCachePut(ctx,
-					encodedLen)
+			bytesAvailable, err := cache.config.DiskLimiter().reserve(
+				ctx, diskCacheLimitTracker, encodedLen)
 			if err != nil {
 				cache.log.CWarningf(ctx, "Error obtaining space for the disk "+
 					"block cache: %+v", err)
@@ -577,7 +576,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			if bytesAvailable >= 0 {
 				break
 			}
-			cache.log.CDebugf(ctx, "Need more bytes. Available: %d", bytesAvailable)
+			cache.log.CDebugf(ctx, "Need more bytes. Available: %d",
+				bytesAvailable)
 			numRemoved, _, err := cache.evictLocked(ctx,
 				defaultNumBlocksToEvict)
 			if err != nil {
@@ -593,11 +593,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
-			cache.config.DiskLimiter().afterDiskBlockCachePut(ctx, encodedLen,
-				false)
+			cache.config.DiskLimiter().commitOrRollback(ctx,
+				diskCacheLimitTracker, encodedLen, 0, false, "")
 			return err
 		}
-		cache.config.DiskLimiter().afterDiskBlockCachePut(ctx, encodedLen, true)
+		cache.config.DiskLimiter().commitOrRollback(ctx, diskCacheLimitTracker,
+			encodedLen, 0, true, "")
 		cache.tlfCounts[tlfID]++
 		cache.numBlocks++
 		encodedLenUint := uint64(encodedLen)
@@ -732,7 +733,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
 	}
-	cache.config.DiskLimiter().onBlocksDelete(ctx, diskCacheLimitTracker,
+	cache.config.DiskLimiter().releaseAndCommit(ctx, diskCacheLimitTracker,
 		sizeRemoved, 0)
 
 	return numRemoved, sizeRemoved, nil
@@ -966,5 +967,5 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	}
 	cache.tlfDb = nil
 	cache.config.DiskLimiter().onByteTrackerDisable(ctx,
-		int64(cache.currBytes))
+		diskCacheLimitTracker, int64(cache.currBytes))
 }

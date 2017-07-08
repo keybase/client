@@ -1,11 +1,21 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
 type diskLimitTrackerType int
+
+type unknownTrackerTypeError struct {
+	typ diskLimitTrackerType
+}
+
+func (e unknownTrackerTypeError) Error() string {
+	return fmt.Sprintf("Unknown tracker type: %d", e.typ)
+}
 
 const (
 	unknownLimitTracker diskLimitTrackerType = iota
@@ -18,6 +28,7 @@ type diskLimitByteTracker interface {
 	onEnable(usedResources int64) int64
 	onDisable(usedResources int64)
 	updateFree(freeResources int64)
+	usedBytes() int64
 	reserve(ctx context.Context, resources int64) (available int64, err error)
 	tryReserve(resources int64) (available int64)
 	commit(resources int64)
@@ -26,29 +37,17 @@ type diskLimitByteTracker interface {
 	releaseAndCommit(resources int64)
 }
 
-type diskBlockCacheLimiter interface {
-	// beforeDiskBlockCachePut is called by the disk block cache before putting
-	// a block into the cache. It returns the total number of available bytes.
-	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (
-		availableBytes int64, err error)
-
-	// afterDiskBlockCachePut is called by the disk block cache after putting
-	// a block into the cache. It returns how many bytes it acquired.
-	afterDiskBlockCachePut(ctx context.Context, blockBytes int64,
-		putData bool)
-}
-
 // DiskLimiter is an interface for limiting disk usage.
 type DiskLimiter interface {
-	diskBlockCacheLimiter
-
 	// onByteTrackerEnable is called when a byte tracker is enabled to begin
 	// accounting.
-	onByteTrackerEnable(ctx context.Context, cacheBytes int64)
+	onByteTrackerEnable(ctx context.Context, typ diskLimitTrackerType,
+		cacheBytes int64)
 
-	// onByteTrackerDisable is called when a byte tracker is disable to stop
+	// onByteTrackerDisable is called when a byte tracker is disabled to stop
 	// accounting.
-	onByteTrackerDisable(ctx context.Context, cacheBytes int64)
+	onByteTrackerDisable(ctx context.Context, typ diskLimitTrackerType,
+		cacheBytes int64)
 
 	// onJournalEnable is called when initializing a TLF journal
 	// with that journal's current disk usage. Both journalBytes
@@ -66,24 +65,32 @@ type DiskLimiter interface {
 		journalStoredBytes, journalUnflushedBytes, journalFiles int64,
 		chargedTo keybase1.UserOrTeamID)
 
-	// beforeBlockPut is called before putting a block of the
-	// given byte and file count, both of which must be > 0. It
-	// may block, but must return immediately with a
-	// (possibly-wrapped) ctx.Err() if ctx is cancelled. The
-	// updated available byte and file count must be returned,
+	// reserveWithBackpressure is called before using disk storage of the given
+	// byte and file count, both of which must be > 0. It may block, but must
+	// return immediately with a (possibly-wrapped) ctx.Err() if ctx is
+	// cancelled. The updated available byte and file count must be returned,
 	// even if err is non-nil.
-	beforeBlockPut(ctx context.Context,
+	reserveWithBackpressure(ctx context.Context, typ diskLimitTrackerType,
 		blockBytes, blockFiles int64, chargedTo keybase1.UserOrTeamID) (
 		availableBytes, availableFiles int64, err error)
 
-	// afterBlockPut is called after putting a block of the given
-	// byte and file count, which must match the corresponding call to
-	// beforeBlockPut. putData reflects whether or not the data
-	// was actually put; if it's false, it's either because of an
-	// error or because the block already existed.
-	afterBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64, putData bool,
-		chargedTo keybase1.UserOrTeamID)
+	// reserve is called by the disk block cache before using disk storage with
+	// the given byte count. It returns the total number of available bytes.
+	reserve(ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
+		availableBytes int64, err error)
+
+	// commitOrRollback is called after using disk storage of the given byte
+	// and file count, which must match the corresponding call to
+	// beforeBlockPut. putData reflects whether or not the data was actually
+	// put; if it's false, it's either because of an error or because the block
+	// already existed.
+	commitOrRollback(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+		blockFiles int64, shouldCommit bool, chargedTo keybase1.UserOrTeamID)
+
+	// releaseAndCommit is called after deleting blocks for a given tracker of
+	// the given byte and file count, both of which must be >= 0.
+	releaseAndCommit(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+		blockFiles int64)
 
 	// onBlocksFlush is called after flushing blocks of the given
 	// byte count, which must be >= 0. (Flushing a block with a
@@ -91,11 +98,6 @@ type DiskLimiter interface {
 	// through.)
 	onBlocksFlush(ctx context.Context, blockBytes int64,
 		chargedTo keybase1.UserOrTeamID)
-
-	// onBlocksDelete is called after deleting blocks for a given tracker of
-	// the given byte and file count, both of which must be >= 0.
-	onBlocksDelete(ctx context.Context, typ diskLimitTrackerType, blockBytes,
-		blockFiles int64)
 
 	// getQuotaInfo returns the quota info as known by the disk
 	// limiter.
