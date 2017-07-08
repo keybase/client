@@ -514,7 +514,7 @@ func (jt journalTracker) getSemaphoreCounts() (byteCount, fileCount int64) {
 	return jt.byte.semaphore.Count(), jt.file.semaphore.Count()
 }
 
-func (jt journalTracker) beforeBlockPut(
+func (jt journalTracker) reserve(
 	ctx context.Context, blockBytes, blockFiles int64) (
 	availableBytes, availableFiles int64, err error) {
 	availableBytes, err = jt.byte.reserve(ctx, blockBytes)
@@ -536,7 +536,7 @@ func (jt journalTracker) beforeBlockPut(
 	return availableBytes, availableFiles, nil
 }
 
-func (jt journalTracker) afterBlockPut(
+func (jt journalTracker) commitOrRollback(
 	blockBytes, blockFiles int64, putData bool,
 	chargedTo keybase1.UserOrTeamID) {
 	jt.byte.commitOrRollback(blockBytes, putData)
@@ -921,6 +921,7 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 			return 0, err
 		}
 
+		bdl.overallByteTracker.updateFree(freeBytes)
 		bdl.journalTracker.updateFree(freeBytes, bdl.overallByteTracker.used,
 			freeFiles)
 
@@ -947,7 +948,8 @@ func (bdl *backpressureDiskLimiter) beforeBlockPut(
 		return bdl.onBeforeBlockPutError(err)
 	}
 
-	return bdl.journalTracker.beforeBlockPut(ctx, blockBytes, blockFiles)
+	bdl.overallByteTracker.reserve(ctx, blockBytes)
+	return bdl.journalTracker.reserve(ctx, blockBytes, blockFiles)
 }
 
 func (bdl *backpressureDiskLimiter) afterBlockPut(
@@ -955,7 +957,7 @@ func (bdl *backpressureDiskLimiter) afterBlockPut(
 	chargedTo keybase1.UserOrTeamID) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
-	bdl.journalTracker.afterBlockPut(blockBytes, blockFiles, putData, chargedTo)
+	bdl.journalTracker.commitOrRollback(blockBytes, blockFiles, putData, chargedTo)
 	bdl.overallByteTracker.commitOrRollback(blockBytes, putData)
 }
 
@@ -1022,6 +1024,7 @@ func (bdl *backpressureDiskLimiter) afterDiskBlockCachePut(
 	ctx context.Context, blockBytes int64, putData bool) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
+	bdl.overallByteTracker.commitOrRollback(blockBytes, putData)
 	bdl.diskCacheByteTracker.commitOrRollback(blockBytes, putData)
 }
 

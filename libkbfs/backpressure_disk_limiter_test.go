@@ -295,7 +295,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	// Update free resources.
 
-	jt.updateFree(200, 40, 100)
+	jt.updateFree(200, 41, 100)
 
 	expectedByteSnapshot = jtSnapshot{
 		used:  1,
@@ -325,7 +325,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	// Put a block successfully.
 
-	availBytes, availFiles, err = jt.beforeBlockPut(
+	availBytes, availFiles, err = jt.reserve(
 		context.Background(), 10, 5)
 	require.NoError(t, err)
 	require.Equal(t, int64(25), availBytes)
@@ -336,7 +336,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	checkSnapshots()
 
-	jt.afterBlockPut(10, 5, true, chargedTo)
+	jt.commitOrRollback(10, 5, true, chargedTo)
 
 	// max = min(k(U+F), L) = min(0.15(11+240), 400) = 37.
 	expectedByteSnapshot = jtSnapshot{
@@ -363,7 +363,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	// Then try to put a block but fail it.
 
-	availBytes, availFiles, err = jt.beforeBlockPut(
+	availBytes, availFiles, err = jt.reserve(
 		context.Background(), 10, 5)
 	require.NoError(t, err)
 	require.Equal(t, int64(16), availBytes)
@@ -374,7 +374,7 @@ func TestJournalTrackerCounters(t *testing.T) {
 
 	checkSnapshots()
 
-	jt.afterBlockPut(10, 5, false, chargedTo)
+	jt.commitOrRollback(10, 5, false, chargedTo)
 
 	expectedByteSnapshot.count += 10
 	expectedFileSnapshot.count += 5
@@ -917,17 +917,21 @@ func TestBackpressureDiskLimiterJournalAndDiskCache(t *testing.T) {
 		}, byteSnapshot, "i=%d", i)
 	}
 
+	diskCacheByteLimit := int64(float64(params.byteLimit) *
+		params.diskCacheFrac)
+
 	// The first two puts shouldn't encounter any backpressure...
 
 	for i := 0; i < 2; i++ {
 		// Ensure the disk block cache doesn't interfere with the journal
 		// limits.
-		_, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
+		availBytes, err := bdl.beforeDiskBlockCachePut(ctx, blockBytes)
 		require.NoError(t, err)
+		require.Equal(t, diskCacheByteLimit-(int64(i)+1)*blockBytes, availBytes)
 		bdl.afterDiskBlockCachePut(ctx, blockBytes, true)
 		diskCacheBytesPut += blockBytes
 
-		availBytes, _, err :=
+		availBytes, _, err =
 			bdl.beforeBlockPut(ctx, blockBytes, 1, chargedTo)
 		require.NoError(t, err)
 		require.Equal(t, 0*time.Second, lastDelay)
