@@ -432,7 +432,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		Invites: &invites,
 	}
 
-	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshness)
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
 	if err != nil {
 		return err
 	}
