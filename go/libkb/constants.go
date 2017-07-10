@@ -114,8 +114,8 @@ const (
 
 	CriticalClockSkewLimit = time.Hour
 
-	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
-	TeamMerkleFreshness      = time.Duration(10) * time.Minute
+	ChatBoxerMerkleFreshness    = 10 * time.Minute
+	TeamMerkleFreshnessForAdmin = 30 * time.Second
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
