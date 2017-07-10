@@ -440,7 +440,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return errors.New("No merkle root available for team invite")
 	}
 
-	sigMultiItem, err := t.sigInviteItem(ctx, teamSection, mr)
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeInvite, mr)
 	if err != nil {
 		return err
 	}
@@ -530,7 +530,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 
 func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, prepayload libkb.JSONPayload) error {
 	// create the change item
-	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
+	sigMultiItem, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -555,10 +555,17 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 }
 
 func usesPerTeamKeys(linkType libkb.LinkType) bool {
-	return linkType != libkb.LinkTypeLeave
+	switch linkType {
+	case libkb.LinkTypeLeave:
+		return false
+	case libkb.LinkTypeInvite:
+		return false
+	}
+
+	return true
 }
 
-func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -567,11 +574,11 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	latestLinkID1, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
+	latestLinkID, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
+	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -604,18 +611,12 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-
-	// XXX not necessary
-	latestLinkID2, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
 	v2Sig, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
 		linkType,
 		t.NextSeqno(),
 		sigJSON,
-		latestLinkID2,
+		latestLinkID,
 		false, /* hasRevokes */
 	)
 	if err != nil {
@@ -635,54 +636,6 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 			Signing:    signingKey.GetKID(),
 		}
 	}
-	return sigMultiItem, nil
-}
-
-// after this works, try to refactor to reuse code in sigChangeItem
-func (t *Team) sigInviteItem(ctx context.Context, section SCTeamSection, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
-	me, err := t.loadMe(ctx)
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	deviceSigningKey, err := t.G().ActiveDevice.SigningKey()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	latestLinkID, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	linkType := libkb.LinkTypeInvite
-	// is linkType the only thing that changes between this and stuff in sigChangeItem?
-	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-
-	sigJSON, err := sig.Marshal()
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-	v2Sig, err := makeSigchainV2OuterSig(
-		deviceSigningKey,
-		linkType,
-		t.NextSeqno(),
-		sigJSON,
-		latestLinkID,
-		false, /* hasRevokes */
-	)
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
-
-	sigMultiItem := libkb.SigMultiItem{
-		Sig:        v2Sig,
-		SigningKID: deviceSigningKey.GetKID(),
-		Type:       string(linkType),
-		SigInner:   string(sigJSON),
-		TeamID:     t.ID,
-	}
-
 	return sigMultiItem, nil
 }
 
