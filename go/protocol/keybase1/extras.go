@@ -1269,6 +1269,11 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	// TODO -- fix this and all other UserOrTeam#foo's that don't check
+	// the size of the input.
+	if len(bytes) < 4 {
+		return 0, fmt.Errorf("bad ID, isn't 4 bytes at least")
+	}
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
 }
