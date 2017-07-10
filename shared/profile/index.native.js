@@ -203,7 +203,7 @@ class Profile extends Component<void, Props, State> {
     const activeMenuProof = this.state.activeMenuProof
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
         <Box
           style={{
             ...styleHeader,
@@ -225,7 +225,7 @@ class Profile extends Component<void, Props, State> {
             </Box>}
         </Box>
         <NativeScrollView
-          style={{flex: 1, backgroundColor: trackerStateColors.header.background}}
+          style={{flexGrow: 1, backgroundColor: trackerStateColors.header.background}}
           contentContainerStyle={{
             height: this.props.loading ? '100%' : undefined,
             backgroundColor: globalColors.white,

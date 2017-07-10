@@ -27,7 +27,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
 }
 
 const MIN_BANNER_HEIGHT = 40

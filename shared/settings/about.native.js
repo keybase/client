@@ -7,7 +7,7 @@ import {Box, Icon, Text} from '../common-adapters/index.native'
 import type {Props} from './about'
 
 const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, alignItems: 'center', justifyContent: 'center'}}>
     <Icon type="icon-keybase-logo-64" />
     <Text
       style={{textAlign: 'center', paddingTop: globalMargins.large, marginBottom: globalMargins.large}}

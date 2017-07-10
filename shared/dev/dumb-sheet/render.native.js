@@ -169,9 +169,9 @@ class DumbSheetRender extends Component<void, Props, any> {
 
     if (this.props.dumbFullscreen) {
       return (
-        <Box style={{flex: 1}}>
+        <Box style={{flexGrow: 1}}>
           <Box style={{position: 'absolute', top: 0, bottom: 20, right: 0, left: 0}}>
-            <Box style={{flex: 1}} {...mock.parentProps}>
+            <Box style={{flexGrow: 1}} {...mock.parentProps}>
               {this._makeStoreWrapper(component)}
             </Box>
           </Box>
@@ -308,7 +308,7 @@ const styleSmallScreen = {
   ...globalStyles.flexBoxColumn,
   borderColor: 'black',
   borderWidth: 1,
-  flex: 1,
+  flexGrow: 1,
   maxHeight: 528, // Wrap in max height, so we'll know if things get clipped on iPhone SE
 }
 const stylesButton = {

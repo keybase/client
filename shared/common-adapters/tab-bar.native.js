@@ -127,13 +127,13 @@ class TabBar extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
 }
 
 const stylesTab = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  flex: 1,
+  flexGrow: 1,
   justifyContent: 'flex-end',
 }
 

@@ -44,7 +44,7 @@ const _backButtonIconStyleThemed = {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
 }
 
 const _buttonStyle = {

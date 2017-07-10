@@ -786,7 +786,9 @@ const listItemMap: DumbComponentMap<ListItem> = {
 }
 
 const popupCommon = {
-  parentProps: isMobile ? {} : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  parentProps: isMobile
+    ? {style: {height: 300}}
+    : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
 }

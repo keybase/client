@@ -67,7 +67,7 @@ const Render = ({
   icon,
   revokeName,
 }: Props) => (
-  <StandardScreen style={{...globalStyles.flexBoxColumn, alignItems: 'center'}} onBack={onBack}>
+  <StandardScreen style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1}} onBack={onBack}>
     {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
     <Icon type={icon} style={{marginTop: 32, opacity: revokedAt ? 0.4 : 1}} />
     <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />

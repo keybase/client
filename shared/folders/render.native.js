@@ -84,7 +84,7 @@ class FoldersRender extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
 }
 
 const styleBadge = {
