@@ -67,6 +67,7 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
 	r.G().Log.Debug("team.sbs (sharing before signup) not yet implemented")
+	r.G().Log.Warning("item body: %s", string(item.Body().Bytes()))
 	return nil
 }
 
