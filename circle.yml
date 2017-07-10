@@ -1,8 +1,8 @@
 machine:
   xcode:
-    version: 7.2
+    version: 8.3.3
   node:
-    version: 5.7.0
+    version: latest
   java:
     version: oraclejdk8
   environment:
