@@ -89,6 +89,6 @@ func TestCreateSubteam(t *testing.T) {
 		Name: subteamFQName.String(),
 	})
 	require.NoError(t, err)
-	require.Equal(t, subteamFQName, subteam.Name)
+	require.Equal(t, subteamFQName, subteam.Name())
 	require.Equal(t, keybase1.Seqno(1), subteam.chain().GetLatestSeqno())
 }

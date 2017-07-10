@@ -27,12 +27,23 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
 
-	team, err := teams.GetForChatByStringName(ctx, t.G().ExternalG(), name, keybase1.TeamRefreshers{})
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
+		ForceRepoll: true,
+	})
 	if err != nil {
 		return res, err
 	}
-	res.CanonicalName = name
-	res.ID = chat1.TLFID(team.ID.ToBytes())
+	return teamToNameInfo(ctx, team, vis)
+}
+
+func teamToNameInfo(ctx context.Context, team *teams.Team, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
+	res.ID, err = teamIDToTLFID(team.ID)
+	if err != nil {
+		return res, err
+	}
+	res.CanonicalName = team.Name().String()
+
 	if vis == chat1.TLFVisibility_PRIVATE {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {
