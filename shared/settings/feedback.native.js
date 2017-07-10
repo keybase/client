@@ -12,6 +12,7 @@ import {
   NativeScrollView,
   NativeKeyboard,
 } from '../common-adapters/index.native'
+import {isIOS} from '../constants/platform'
 
 import type {Props} from './feedback'
 
@@ -92,7 +93,9 @@ class Feedback extends Component<void, Props, void> {
               </Text>
             </Box>
           </Box>
-          <Box style={{alignSelf: 'center', marginTop: globalMargins.small}}>
+          {/* Including padding to avoid keyboard on login screens which
+              aren't in nav, and we don't want to nest avoiding views. */}
+          <Box style={{alignSelf: 'center', marginTop: globalMargins.small, paddingBottom: isIOS ? 260 : 0}}>
             <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
           </Box>
         </Box>
