@@ -1,5 +1,5 @@
 // @flow
-import Push from '../push/push.native'
+import Push from './push/push.native'
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
