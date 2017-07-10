@@ -238,7 +238,6 @@ const flexOne = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
-  hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
   reachable: state.gregor.reachability.reachable,
 })
@@ -265,8 +264,6 @@ export default compose(
       const curPath = this.props.routeStack.last().path
       const curTags = this.props.routeStack.last().tags
       if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
-        NativeKeyboard.dismiss()
-      } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
         NativeKeyboard.dismiss()
       }
     },

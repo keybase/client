@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import SidePanel from '.'
+import InfoPanel from '.'
 import {Map} from 'immutable'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
@@ -10,10 +10,6 @@ import {navigateAppend} from '../../../actions/route-tree'
 import {onUserClick} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
-
-type OwnProps = {
-  onToggleSidePanel: () => void,
-}
 
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
@@ -42,7 +38,7 @@ const mapStateToProps = (state: TypedState) => ({
   selectedConversationIDKey: Constants.getSelectedConversation(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
   onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
@@ -58,7 +54,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleSidePanel}: OwnProps) =
     )
   },
   onShowProfile: (username: string) => dispatch(onUserClick(username)),
-  onToggleSidePanel,
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -76,4 +72,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
     ),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(SidePanel)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(InfoPanel)
