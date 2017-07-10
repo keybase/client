@@ -12,7 +12,7 @@ import {compose, withState, defaultProps, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {globalMargins, globalStyles} from '../styles'
 import {chatSearchPending, chatSearchResultArray, chatSearchShowingSuggestions} from '../constants/selectors'
-import {onChangeSelectedSearchResultHoc, showServiceLogicHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc, selectedSearchIdHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
 const mapStateToProps = createSelector(
@@ -89,6 +89,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
   withState('searchText', 'onChangeSearchText', ''),
+  selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
   showServiceLogicHoc,
   withHandlers({
