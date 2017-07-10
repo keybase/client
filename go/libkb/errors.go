@@ -1494,9 +1494,18 @@ func (e UnmetAssertionError) Error() string {
 
 //=============================================================================
 
+type ResolutionErrorKind int
+
+const (
+	ResolutionErrorGeneral ResolutionErrorKind = iota
+	ResolutionErrorNotFound
+	ResolutionErrorAmbiguous
+)
+
 type ResolutionError struct {
 	Input string
 	Msg   string
+	Kind  ResolutionErrorKind
 }
 
 func (e ResolutionError) Error() string {

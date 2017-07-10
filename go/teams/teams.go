@@ -337,6 +337,118 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
 }
 
+func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
+	if role == keybase1.TeamRole_OWNER {
+		return keybase1.TeamAddMemberResult{}, errors.New("cannot invite a user to be an owner")
+	}
+
+	// if a user version was previously loaded, then there is a keybase user for username, but
+	// without a PUK or without any keys.
+	if uv.Uid.Exists() {
+		return t.inviteKeybaseMember(ctx, uv.Uid, role, resolvedUsername)
+	}
+
+	return t.inviteSBSMember(ctx, username, role)
+}
+
+func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
+	t.G().Log.Debug("team %s invite email member %s", t.Name, email)
+	invite := SCTeamInvite{
+		Type: "email",
+		Name: email,
+		ID:   NewInviteID(),
+	}
+	return t.postInvite(ctx, invite, role)
+}
+
+func (t *Team) inviteKeybaseMember(ctx context.Context, uid keybase1.UID, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
+	t.G().Log.Debug("team %s invite keybase member %s", t.Name, uid)
+	invite := SCTeamInvite{
+		Type: "keybase",
+		Name: uid.String(),
+		ID:   NewInviteID(),
+	}
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uid, Username: resolvedUsername.String()}}, nil
+}
+
+func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
+	// parse username to get social
+	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
+	if err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	if assertion.IsKeybase() {
+		return keybase1.TeamAddMemberResult{}, fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
+	}
+	typ, name := assertion.ToKeyValuePair()
+	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name, typ, name)
+
+	invite := SCTeamInvite{
+		Type: typ,
+		Name: name,
+		ID:   NewInviteID(),
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+
+	return keybase1.TeamAddMemberResult{Invited: true}, nil
+}
+
+func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
+	existing, err := t.chain().HasActiveInvite(invite.Name, invite.Type)
+	if err != nil {
+		return err
+	}
+	if existing {
+		return libkb.ExistsError{Msg: "invite already exists"}
+	}
+
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+	invList := []SCTeamInvite{invite}
+	var invites SCTeamInvites
+	switch role {
+	case keybase1.TeamRole_ADMIN:
+		invites.Admins = &invList
+	case keybase1.TeamRole_WRITER:
+		invites.Writers = &invList
+	case keybase1.TeamRole_READER:
+		invites.Readers = &invList
+	default:
+		// should be caught further up, but just in case
+		return errors.New("invalid role for invitation")
+	}
+
+	teamSection := SCTeamSection{
+		ID:      SCTeamID(t.ID),
+		Admin:   admin,
+		Invites: &invites,
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for team invite")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeInvite, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, nil, nil, make(libkb.JSONPayload))
+	return t.postMulti(payload)
+}
+
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
 	targetTeam = t
 	for {
@@ -376,7 +488,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 
 	logPoint := targetTeam.chain().GetAdminUserLogPoint(uv)
 	ret := SCTeamAdmin{
-		TeamID:  (SCTeamID)(targetTeam.ID),
+		TeamID:  SCTeamID(targetTeam.ID),
 		Seqno:   logPoint.SigMeta.SigChainLocation.Seqno,
 		SeqType: logPoint.SigMeta.SigChainLocation.SeqType,
 	}
@@ -418,7 +530,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 
 func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, prepayload libkb.JSONPayload) error {
 	// create the change item
-	sigMultiItem, err := t.sigChangeItem(ctx, section, linkType, merkleRoot)
+	sigMultiItem, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -443,10 +555,17 @@ func (t *Team) loadMe(ctx context.Context) (*libkb.User, error) {
 }
 
 func usesPerTeamKeys(linkType libkb.LinkType) bool {
-	return linkType != libkb.LinkTypeLeave
+	switch linkType {
+	case libkb.LinkTypeLeave:
+		return false
+	case libkb.LinkTypeInvite:
+		return false
+	}
+
+	return true
 }
 
-func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
+func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, error) {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -455,12 +574,11 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	latestLinkID1, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
+	latestLinkID, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-	sig, err := ChangeSig(me, latestLinkID1, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
-
+	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
@@ -493,17 +611,12 @@ func (t *Team) sigChangeItem(ctx context.Context, section SCTeamSection, linkTyp
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
-
-	latestLinkID2, err := libkb.ImportLinkID(t.chain().GetLatestLinkID())
-	if err != nil {
-		return libkb.SigMultiItem{}, err
-	}
 	v2Sig, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
 		linkType,
 		t.NextSeqno(),
 		sigJSON,
-		latestLinkID2,
+		latestLinkID,
 		false, /* hasRevokes */
 	)
 	if err != nil {

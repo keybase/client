@@ -52,18 +52,32 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
-func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) error {
-	if err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role); err != nil {
-		return err
+func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (keybase1.TeamAddMemberResult, error) {
+	if arg.Email != "" {
+		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.Role); err != nil {
+			return keybase1.TeamAddMemberResult{}, err
+		}
+		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
+	}
+	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+	if err != nil {
+		return keybase1.TeamAddMemberResult{}, err
 	}
 	if !arg.SendChatNotification {
-		return nil
+		return result, nil
 	}
 
-	body := fmt.Sprintf("Hi %s, I've invited you to a new team, %s.", arg.Username, arg.Name)
+	if result.Invited {
+		return result, nil
+	}
+
+	body := fmt.Sprintf("Hi %s, I've added you to a new team, %s.", result.User.Username, arg.Name)
 	gregorCli := h.gregor.GetClient()
-	return chat.SendTextByName(ctx, h.G(), arg.Username, chat1.ConversationMembersType_KBFS,
-		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli)
+	err = chat.SendTextByName(ctx, h.G(), result.User.Username, chat1.ConversationMembersType_KBFS, keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli)
+	if err == nil {
+		result.ChatSent = true
+	}
+	return result, err
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) error {

@@ -293,11 +293,18 @@ protocol teams {
     array<MemberInfo> teams;
   }
 
+  record TeamAddMemberResult {
+    boolean invited;
+    union{null, User} user;
+    boolean emailSent;
+    boolean chatSent;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
-  void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
+  TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);

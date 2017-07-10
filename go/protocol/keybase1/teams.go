@@ -860,6 +860,28 @@ func (o TeamList) DeepCopy() TeamList {
 	}
 }
 
+type TeamAddMemberResult struct {
+	Invited   bool  `codec:"invited" json:"invited"`
+	User      *User `codec:"user,omitempty" json:"user,omitempty"`
+	EmailSent bool  `codec:"emailSent" json:"emailSent"`
+	ChatSent  bool  `codec:"chatSent" json:"chatSent"`
+}
+
+func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
+	return TeamAddMemberResult{
+		Invited: o.Invited,
+		User: (func(x *User) *User {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.User),
+		EmailSent: o.EmailSent,
+		ChatSent:  o.ChatSent,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -915,6 +937,7 @@ func (o TeamChangeMembershipArg) DeepCopy() TeamChangeMembershipArg {
 type TeamAddMemberArg struct {
 	SessionID            int      `codec:"sessionID" json:"sessionID"`
 	Name                 string   `codec:"name" json:"name"`
+	Email                string   `codec:"email" json:"email"`
 	Username             string   `codec:"username" json:"username"`
 	Role                 TeamRole `codec:"role" json:"role"`
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
@@ -924,6 +947,7 @@ func (o TeamAddMemberArg) DeepCopy() TeamAddMemberArg {
 	return TeamAddMemberArg{
 		SessionID:            o.SessionID,
 		Name:                 o.Name,
+		Email:                o.Email,
 		Username:             o.Username,
 		Role:                 o.Role.DeepCopy(),
 		SendChatNotification: o.SendChatNotification,
@@ -995,7 +1019,7 @@ type TeamsInterface interface {
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (TeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
-	TeamAddMember(context.Context, TeamAddMemberArg) error
+	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -1084,7 +1108,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamAddMemberArg)(nil), args)
 						return
 					}
-					err = i.TeamAddMember(ctx, (*typedArgs)[0])
+					ret, err = i.TeamAddMember(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1181,8 +1205,8 @@ func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeM
 	return
 }
 
-func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res)
 	return
 }
 

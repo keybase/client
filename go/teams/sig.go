@@ -121,12 +121,19 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 
 // 15 random bytes, followed by the byte 0x25, encoded as hex
 func NewSubteamID() keybase1.TeamID {
-	idBytes, err := libkb.RandBytes(16)
+	idBytes, err := libkb.RandBytesWithSuffix(16, libkb.SubteamIDTag)
 	if err != nil {
 		panic("RandBytes failed: " + err.Error())
 	}
-	idBytes[15] = libkb.SubteamIDTag
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
+}
+
+func NewInviteID() SCTeamInviteID {
+	b, err := libkb.RandBytesWithSuffix(16, libkb.InviteIDTag)
+	if err != nil {
+		panic("RandBytes failed: " + err.Error())
+	}
+	return SCTeamInviteID(hex.EncodeToString(b))
 }
 
 func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
