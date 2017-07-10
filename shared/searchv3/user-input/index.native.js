@@ -124,6 +124,10 @@ class UserInput extends Component<void, Props, State> {
     this.focus()
   }
 
+  _onSubmitEditing = () => {
+    this.props.onAddSelectedUser()
+  }
+
   render() {
     const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
 
@@ -157,6 +161,8 @@ class UserInput extends Component<void, Props, State> {
               placeholder={userItems.length ? '' : placeholder}
               value={usernameText}
               onChangeText={onChangeText}
+              onSubmitEditing={this._onSubmitEditing}
+              returnKeyType="next"
             />
             {showAddButton &&
               onClickAddButton &&
