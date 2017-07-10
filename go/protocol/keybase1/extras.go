@@ -1613,7 +1613,7 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
 	case "email":
 		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
-	case "twitter", "github", "facebook", "reddit", "hackernews":
+	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 	default:
 		if isDev && s == "rooter" {
