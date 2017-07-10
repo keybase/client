@@ -236,24 +236,23 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 	return ret, err
 }
 
-// XXX use LinkType constants
 func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
-	switch s {
-	case "team.root":
+	switch LinkType(s) {
+	case LinkTypeTeamRoot:
 		ret = SigchainV2TypeTeamRoot
-	case "team.new_subteam":
+	case LinkTypeNewSubteam:
 		ret = SigchainV2TypeTeamNewSubteam
-	case "team.change_membership":
+	case LinkTypeChangeMembership:
 		ret = SigchainV2TypeTeamChangeMembership
-	case "team.rotate_key":
+	case LinkTypeRotateKey:
 		ret = SigchainV2TypeTeamRotateKey
-	case "team.leave":
+	case LinkTypeLeave:
 		ret = SigchainV2TypeTeamLeave
-	case "team.subteam_head":
+	case LinkTypeSubteamHead:
 		ret = SigchainV2TypeTeamSubteamHead
-	case "team.rename_subteam":
+	case LinkTypeSubteamRename:
 		ret = SigchainV2TypeTeamRenameSubteam
-	case "team.invite":
+	case LinkTypeInvite:
 		ret = SigchainV2TypeTeamInvite
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
