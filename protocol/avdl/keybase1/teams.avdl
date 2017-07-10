@@ -113,6 +113,9 @@ protocol teams {
 
   // Snapshot of a loaded team.
   record TeamData {
+    // Whether this snapshot is entirely missing secrets.
+    boolean secretless;
+
     TeamSigChainState chain;
     // generation -> seed
     map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;

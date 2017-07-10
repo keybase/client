@@ -397,6 +397,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
+	Secretless      bool                                                 `codec:"secretless" json:"secretless"`
 	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
 	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
@@ -405,7 +406,8 @@ type TeamData struct {
 
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
-		Chain: o.Chain.DeepCopy(),
+		Secretless: o.Secretless,
+		Chain:      o.Chain.DeepCopy(),
 		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
 			ret := make(map[PerTeamKeyGeneration]PerTeamKeySeedItem)
 			for k, v := range x {

@@ -101,7 +101,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceRepoll:       lArg.ForceRepoll,
 		staleOK:           lArg.StaleOK,
 
-		needSeqnos: nil,
+		needSeqnos:    nil,
+		readSubteamID: nil,
 
 		me: me,
 	})
@@ -110,6 +111,12 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	}
 	if ret == nil {
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
+	}
+
+	// Sanity check that secretless teams never escape.
+	// They are meant only to be returned by recursively called load2's.
+	if ret.Secretless {
+		return nil, fmt.Errorf("team loader fault: got secretless team")
 	}
 
 	// Check team name on the way out
@@ -175,6 +182,12 @@ type load2ArgT struct {
 	staleOK           bool
 
 	needSeqnos []keybase1.Seqno
+	// Non-nil if we are loading an ancestor for the greater purpose of
+	// loading a subteam. This parameter helps the server figure out whether
+	// to give us a subteam-reader version of the team.
+	// If and only if this is set, load2 is allowed to return a secret-less TeamData.
+	// Load1 should never ever return a secret-less TeamData.
+	readSubteamID *keybase1.TeamID
 
 	me keybase1.UserVersion
 }
@@ -200,6 +213,11 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if !arg.forceFullReload {
 		// Load from cache
 		ret = l.storage.Get(ctx, arg.teamID)
+	}
+
+	// Throw out the cache result if it is secretless and this is not a recursive load
+	if ret != nil && arg.readSubteamID == nil && ret.Secretless {
+		ret = nil
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -231,13 +249,20 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		lastLinkID = ret.Chain.LastLinkID
 	}
 
+	// For child calls to load2, the subteam reader ID is carried up
+	// or if it doesn't exist, start at this team.
+	readSubteamID := arg.teamID
+	if arg.readSubteamID != nil {
+		readSubteamID = *arg.readSubteamID
+	}
+
 	proofSet := newProofSet()
 	var parentChildOperations []*parentChildOperation
 
 	// Backfill stubbed links that need to be filled now.
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, proofSet, parentChildOperations)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations)
 		if err != nil {
 			return nil, err
 		}
@@ -254,7 +279,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (lowSeqno:%v, lowGen:%v)",
 			lowSeqno, lowGen)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen)
+		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -284,7 +309,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		var signer *keybase1.UserVersion
-		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
+		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -313,7 +338,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, readSubteamID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}
@@ -324,9 +349,19 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 
 	if teamUpdate != nil {
-		ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
-		if err != nil {
-			return nil, fmt.Errorf("loading team secrets: %v", err)
+		if teamUpdate.SubteamReader {
+			// Only allow subteam-reader results if we are in a recursive load.
+			if arg.readSubteamID == nil {
+				return nil, fmt.Errorf("unexpected subteam reader result")
+			}
+			// This is now a secretless team. This TeamData will never again contain up to date secrets.
+			// A full reload is required to get secrets back into sync.
+			ret.Secretless = true
+		} else {
+			ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+			if err != nil {
+				return nil, fmt.Errorf("loading team secrets: %v", err)
+			}
 		}
 	}
 
