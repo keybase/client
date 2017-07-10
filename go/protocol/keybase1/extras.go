@@ -1624,3 +1624,22 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeWithUnknown(s), nil
 	}
 }
+
+func (t TeamInviteType) String() (string, error) {
+	c, err := t.C()
+	if err != nil {
+		return "", err
+	}
+	switch c {
+	case TeamInviteCategory_KEYBASE:
+		return "keybase", nil
+	case TeamInviteCategory_EMAIL:
+		return "email", nil
+	case TeamInviteCategory_SBS:
+		return string(t.Sbs()), nil
+	case TeamInviteCategory_UNKNOWN:
+		return t.Unknown(), nil
+	}
+
+	return "", nil
+}

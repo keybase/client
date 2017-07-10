@@ -3,7 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -379,12 +378,12 @@ func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 }
 
 func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamInvite, error) {
-	ityp, err := keybase1.TeamInviteTypeFromString(typ, false)
-	if err != nil {
-		return nil, err
-	}
 	for _, invite := range t.inner.ActiveInvites {
-		if invite.Name == keybase1.TeamInviteName(name) && reflect.DeepEqual(invite.Type, ityp) {
+		styp, err := invite.Type.String()
+		if err != nil {
+			return nil, err
+		}
+		if invite.Name == keybase1.TeamInviteName(name) && styp == typ {
 			return &invite, nil
 		}
 	}
