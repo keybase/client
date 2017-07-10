@@ -7,11 +7,12 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, Icon, ProgressIndicator} from '../common-adapters'
-import {compose, withState, defaultProps, withHandlers} from 'recompose'
+import {Box, Icon, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {branch, compose, withState, defaultProps, withHandlers, withPropsOnChange} from 'recompose'
 import {connect} from 'react-redux'
 import {globalMargins, globalStyles} from '../styles'
 import {chatSearchPending, chatSearchResultArray, chatSearchShowingSuggestions} from '../constants/selectors'
+import {isMobile} from '../constants/platform'
 import {onChangeSelectedSearchResultHoc, showServiceLogicHoc, selectedSearchIdHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
@@ -103,6 +104,16 @@ export default compose(
       props.clearSearchResults()
     },
   }),
+  branch(
+    () => isMobile,
+    compose(
+      withPropsOnChange(['exitSearch'], props => ({
+        onCancel: () => props.exitSearch(),
+        title: 'New Chat',
+      })),
+      HeaderHoc
+    )
+  ),
   defaultProps({
     placeholder: 'Search for someone',
     showAddButton: false,
