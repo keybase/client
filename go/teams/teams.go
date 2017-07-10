@@ -405,7 +405,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return err
 	}
 	if existing {
-		return errors.New("invite already exists")
+		return libkb.ExistsError{Msg: "invite already exists"}
 	}
 
 	admin, err := t.getAdminPermission(ctx, true)

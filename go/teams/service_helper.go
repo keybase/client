@@ -126,7 +126,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	if t.IsMember(ctx, uv) {
-		return keybase1.TeamAddMemberResult{}, fmt.Errorf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)
+		return keybase1.TeamAddMemberResult{}, libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
 	}
 	req, err := reqFromRole(uv, role)
 	if err != nil {
