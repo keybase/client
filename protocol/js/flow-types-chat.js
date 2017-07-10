@@ -197,6 +197,7 @@ export const NotifyChatChatActivityType = {
   setStatus: 4,
   failedMessage: 5,
   membersUpdate: 6,
+  setAppNotificationSettings: 7,
 }
 
 export const RemoteMessageBoxedVersion = {
@@ -906,6 +907,21 @@ export function remoteS3SignRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.s3Sign', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteSetAppNotificationSettingsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetAppNotificationSettingsResult) => void} & {param: remoteSetAppNotificationSettingsRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.setAppNotificationSettings', request)
+}
+
+export function remoteSetAppNotificationSettingsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetAppNotificationSettingsResult) => void} & {param: remoteSetAppNotificationSettingsRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setAppNotificationSettings', request)
+}
+export function remoteSetAppNotificationSettingsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetAppNotificationSettingsResult) => void} & {param: remoteSetAppNotificationSettingsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.remote.setAppNotificationSettings', request, callback, incomingCallMap) })
+}
+
+export function remoteSetAppNotificationSettingsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetAppNotificationSettingsResult) => void} & {param: remoteSetAppNotificationSettingsRpcParam}>): Promise<remoteSetAppNotificationSettingsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.setAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteSetConversationStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.SetConversationStatus', request)
 }
@@ -1109,6 +1125,7 @@ export type ChatActivityType =
   | 4 // SET_STATUS_4
   | 5 // FAILED_MESSAGE_5
   | 6 // MEMBERS_UPDATE_6
+  | 7 // SET_APP_NOTIFICATION_SETTINGS_7
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -1906,6 +1923,22 @@ export type ServerCacheVers = {
   bodiesVers: int,
 }
 
+export type SetAppNotificationSettingsInfo = {
+  convID: ConversationID,
+  settings: ConversationNotificationInfo,
+}
+
+export type SetAppNotificationSettingsPayload = {
+  Action: string,
+  convID: ConversationID,
+  inboxVers: InboxVers,
+  settings: ConversationNotificationInfo,
+}
+
+export type SetAppNotificationSettingsRes = {
+  rateLimit?: ?RateLimit,
+}
+
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
@@ -2376,6 +2409,11 @@ export type remoteS3SignRpcParam = Exact<{
   payload: bytes
 }>
 
+export type remoteSetAppNotificationSettingsRpcParam = Exact<{
+  convID: ConversationID,
+  settings: ConversationNotificationInfo
+}>
+
 export type remoteSetConversationStatusRpcParam = Exact<{
   conversationID: ConversationID,
   status: ConversationStatus
@@ -2459,6 +2497,7 @@ type remoteNewConversationRemote2Result = NewConversationRemoteRes
 type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 type remoteS3SignResult = bytes
+type remoteSetAppNotificationSettingsResult = SetAppNotificationSettingsRes
 type remoteSetConversationStatusResult = SetConversationStatusRes
 type remoteSyncAllResult = SyncAllResult
 type remoteSyncChatResult = SyncChatRes
@@ -2511,6 +2550,7 @@ export type rpc =
   | remotePublishReadMessageRpc
   | remotePublishSetConversationStatusRpc
   | remoteS3SignRpc
+  | remoteSetAppNotificationSettingsRpc
   | remoteSetConversationStatusRpc
   | remoteSyncAllRpc
   | remoteSyncChatRpc

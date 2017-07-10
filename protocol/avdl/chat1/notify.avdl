@@ -11,7 +11,8 @@ protocol NotifyChat {
     NEW_CONVERSATION_3,
     SET_STATUS_4,
     FAILED_MESSAGE_5,
-    MEMBERS_UPDATE_6
+    MEMBERS_UPDATE_6,
+    SET_APP_NOTIFICATION_SETTINGS_7
   } 
 
   record IncomingMessage {
@@ -35,6 +36,11 @@ protocol NotifyChat {
     ConversationID convID;
     ConversationStatus status;
     union { null, ConversationLocal } conv;
+  }
+
+  record SetAppNotificationSettingsInfo {
+    ConversationID convID;
+    ConversationNotificationInfo settings;
   }
 
   record FailedMessageInfo {

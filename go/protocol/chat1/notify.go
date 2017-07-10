@@ -13,25 +13,27 @@ import (
 type ChatActivityType int
 
 const (
-	ChatActivityType_RESERVED         ChatActivityType = 0
-	ChatActivityType_INCOMING_MESSAGE ChatActivityType = 1
-	ChatActivityType_READ_MESSAGE     ChatActivityType = 2
-	ChatActivityType_NEW_CONVERSATION ChatActivityType = 3
-	ChatActivityType_SET_STATUS       ChatActivityType = 4
-	ChatActivityType_FAILED_MESSAGE   ChatActivityType = 5
-	ChatActivityType_MEMBERS_UPDATE   ChatActivityType = 6
+	ChatActivityType_RESERVED                      ChatActivityType = 0
+	ChatActivityType_INCOMING_MESSAGE              ChatActivityType = 1
+	ChatActivityType_READ_MESSAGE                  ChatActivityType = 2
+	ChatActivityType_NEW_CONVERSATION              ChatActivityType = 3
+	ChatActivityType_SET_STATUS                    ChatActivityType = 4
+	ChatActivityType_FAILED_MESSAGE                ChatActivityType = 5
+	ChatActivityType_MEMBERS_UPDATE                ChatActivityType = 6
+	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
 
 var ChatActivityTypeMap = map[string]ChatActivityType{
-	"RESERVED":         0,
-	"INCOMING_MESSAGE": 1,
-	"READ_MESSAGE":     2,
-	"NEW_CONVERSATION": 3,
-	"SET_STATUS":       4,
-	"FAILED_MESSAGE":   5,
-	"MEMBERS_UPDATE":   6,
+	"RESERVED":                      0,
+	"INCOMING_MESSAGE":              1,
+	"READ_MESSAGE":                  2,
+	"NEW_CONVERSATION":              3,
+	"SET_STATUS":                    4,
+	"FAILED_MESSAGE":                5,
+	"MEMBERS_UPDATE":                6,
+	"SET_APP_NOTIFICATION_SETTINGS": 7,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -42,6 +44,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	4: "SET_STATUS",
 	5: "FAILED_MESSAGE",
 	6: "MEMBERS_UPDATE",
+	7: "SET_APP_NOTIFICATION_SETTINGS",
 }
 
 func (e ChatActivityType) String() string {
@@ -126,6 +129,18 @@ func (o SetStatusInfo) DeepCopy() SetStatusInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Conv),
+	}
+}
+
+type SetAppNotificationSettingsInfo struct {
+	ConvID   ConversationID               `codec:"convID" json:"convID"`
+	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsInfo) DeepCopy() SetAppNotificationSettingsInfo {
+	return SetAppNotificationSettingsInfo{
+		ConvID:   o.ConvID.DeepCopy(),
+		Settings: o.Settings.DeepCopy(),
 	}
 }
 
