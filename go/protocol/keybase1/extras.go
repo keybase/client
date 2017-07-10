@@ -1239,27 +1239,34 @@ func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
 }
 
 func (ut UserOrTeamID) IsUser() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX
+	i := idSchema{
+		length:        UID_LEN,
+		magicSuffixes: map[byte]bool{UID_SUFFIX: true, UID_SUFFIX_2: true},
+		typeHint:      "user id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsTeam() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == TEAMID_SUFFIX_HEX
+	i := idSchema{
+		length:        TEAMID_LEN,
+		magicSuffixes: map[byte]bool{TEAMID_SUFFIX: true},
+		typeHint:      "team id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsSubteam() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == SUB_TEAMID_SUFFIX_HEX
+	i := idSchema{
+		length:        TEAMID_LEN,
+		magicSuffixes: map[byte]bool{SUB_TEAMID_SUFFIX: true},
+		typeHint:      "subteam id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
-	suffixLen := 2
-	if ut.IsNil() || len(ut) < suffixLen {
-		return false
-	}
-	suffix := ut[len(ut)-suffixLen:]
-	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
+	return ut.isTeam() || ut.isSubteam()
 }
 
 // Returns a number in [0, shardCount) which can be treated as roughly
@@ -1584,29 +1591,29 @@ func (r TeamRole) IsReaderOrAbove() bool {
 	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
 }
 
-type idDesc struct {
-	byteLen int
-	suffix  byte
-	typ     string
+type idSchema struct {
+	length        int
+	magicSuffixes map[byte]bool
+	typeHint      string
 }
 
-func (i idDesc) check(s string) error {
-	b, err := hex.DecodeString(s)
+func (i idSchema) check(s string) error {
+	xs, err := hex.DecodeString(s)
 	if err != nil {
 		return err
 	}
-	if len(b) != i.byteLen {
-		return fmt.Errorf("%s: wrong ID len (got %d)", i.typ, len(b))
+	if len(xs) != i.length {
+		return fmt.Errorf("%s: Wrong ID length (got %d)", i.typeHint, len(xs))
 	}
-	sffx := b[len(b)-1]
-	if sffx != i.suffix {
-		return fmt.Errorf("%s: wrong suffix byte (got 0x%x)", i.typ, sffx)
+	suffix := xs[len(xs)-1]
+	if !i.magicSuffixes[suffix] {
+		return fmt.Errorf("%s: Incorrect suffix byte (got 0x%x)", i.typeHint, suffix)
 	}
 	return nil
 }
 
 func TeamInviteIDFromString(s string) (TeamInviteID, error) {
-	if err := (idDesc{16, 0x27, "team invite ID"}).check(s); err != nil {
+	if err := (idSchema{16, map[byte]bool{0x27: true}, "team invite ID"}).check(s); err != nil {
 		return TeamInviteID(""), err
 	}
 	return TeamInviteID(s), nil
