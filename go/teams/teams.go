@@ -337,15 +337,15 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
 }
 
-func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
 	if role == keybase1.TeamRole_OWNER {
-		return errors.New("cannot invite a user to be an owner")
+		return keybase1.TeamAddMemberResult{}, errors.New("cannot invite a user to be an owner")
 	}
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
 	// without a PUK or without any keys.
 	if uv.Uid.Exists() {
-		return t.inviteKeybaseMember(ctx, username, uv.Uid, role)
+		return t.inviteKeybaseMember(ctx, uv.Uid, role, resolvedUsername)
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
@@ -361,24 +361,27 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteKeybaseMember(ctx context.Context, username string, uid keybase1.UID, role keybase1.TeamRole) error {
-	t.G().Log.Debug("team %s invite keybase member %s/%s", t.Name, username, uid)
+func (t *Team) inviteKeybaseMember(ctx context.Context, uid keybase1.UID, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
+	t.G().Log.Debug("team %s invite keybase member %s", t.Name, uid)
 	invite := SCTeamInvite{
 		Type: "keybase",
 		Name: uid.String(),
 		ID:   NewInviteID(),
 	}
-	return t.postInvite(ctx, invite, role)
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uid, Username: resolvedUsername.String()}}, nil
 }
 
-func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) error {
+func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	// parse username to get social
-	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, true)
+	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
 	if err != nil {
-		return err
+		return keybase1.TeamAddMemberResult{}, err
 	}
 	if assertion.IsKeybase() {
-		return fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
+		return keybase1.TeamAddMemberResult{}, fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
 	}
 	typ, name := assertion.ToKeyValuePair()
 	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name, typ, name)
@@ -389,7 +392,11 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 		ID:   NewInviteID(),
 	}
 
-	return t.postInvite(ctx, invite, role)
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+
+	return keybase1.TeamAddMemberResult{Invited: true}, nil
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {

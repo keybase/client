@@ -94,7 +94,6 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 }
 
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
-
 	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv), func() error { return err })()
 
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)

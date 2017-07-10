@@ -94,14 +94,14 @@ func TestMemberAddOK(t *testing.T) {
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER); err != nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already a member")
 	}
 
@@ -112,7 +112,7 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888)); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888)); err == nil {
 		t.Errorf("AddMember worked with invalid role")
 	}
 
@@ -258,7 +258,7 @@ func TestMemberAddNotAUser(t *testing.T) {
 
 	tc.G.SetServices(externals.GetServices())
 
-	err := AddMember(context.TODO(), tc.G, name, "not_a_kb_user", keybase1.TeamRole_READER)
+	_, err := AddMember(context.TODO(), tc.G, name, "not_a_kb_user", keybase1.TeamRole_READER)
 	if err == nil {
 		t.Fatal("Added a non-keybase username to a team")
 	}
@@ -273,14 +273,18 @@ func TestMemberAddSocial(t *testing.T) {
 
 	tc.G.SetServices(externals.GetServices())
 
-	if err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER); err != nil {
+	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
 	}
 
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already invited")
 	}
 
@@ -293,14 +297,18 @@ func TestMemberAddNoPUK(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	if err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_READER); err != nil {
+	res, err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_READER)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
 	}
 
 	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already invited")
 	}
 
@@ -313,14 +321,18 @@ func TestMemberAddNoKeys(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	if err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_READER); err != nil {
+	res, err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_READER)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
 	}
 
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already invited")
 	}
 
@@ -394,6 +406,9 @@ func TestLeave(t *testing.T) {
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {
+		if err == errInviteRequired && expected == keybase1.TeamRole_NONE {
+			return
+		}
 		tc.T.Fatal(err)
 	}
 	if role != expected {

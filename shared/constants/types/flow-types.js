@@ -3538,18 +3538,18 @@ export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: $Exact<requ
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
+export function teamsTeamAddMemberRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
 }
 
-export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
+export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
 }
-export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
+export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAddMember', request, callback, incomingCallMap) })
 }
 
-export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): Promise<void> {
+export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): Promise<teamsTeamAddMemberResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -5901,6 +5901,13 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamAddMemberResult = {
+  invited: boolean,
+  user?: ?User,
+  emailSent: boolean,
+  chatSent: boolean,
+}
+
 export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
@@ -7447,6 +7454,7 @@ type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
+type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListResult = TeamList
 type testTestCallbackResult = string
