@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash'
+import capitalize from 'lodash/capitalize'
 import {
   KbfsCommonFSErrorType,
   KbfsCommonFSNotificationType,
@@ -58,7 +58,7 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
 
     case KbfsCommonFSErrorType.timeout:
       return {
-        title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
+        title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
         body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
       }
 
@@ -134,11 +134,17 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
 
 export function kbfsNotification(notification: FSNotification, notify: any, getState: any) {
   const action = {
-    [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
-    [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
-    [KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
-    [KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
+    // For now, disable file notifications because they're really annoying and
+    // we now have the syncing indicator.
+    // [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
+    // [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
+    // [KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
+    // [KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
     [KbfsCommonFSNotificationType.rekeying]: 'Rekeying',
+    // The following notifications just need to be enabled, they get handled
+    // independently.
+    [KbfsCommonFSNotificationType.initialized]: '',
+    [KbfsCommonFSNotificationType.connection]: '',
   }[notification.notificationType]
 
   if (action === undefined) {

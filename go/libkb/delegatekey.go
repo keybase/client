@@ -100,7 +100,7 @@ func (d *Delegator) CheckArgs() (err error) {
 
 	if d.EldestKID.Exists() || d.IsEldest() {
 	} else if kid := d.Me.GetEldestKID(); kid.IsNil() {
-		err = NoEldestKeyError{}
+		err = NoSigChainError{}
 		return err
 	} else {
 		d.EldestKID = kid

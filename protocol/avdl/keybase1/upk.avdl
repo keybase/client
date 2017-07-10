@@ -11,9 +11,24 @@ protocol UPK {
   @typedef("bytes")
   record HashMeta {}
 
+  enum UPK2MinorVersion {
+    V0_0,
+    V1_1
+  }
+
   record MerkleRootV2 {
       Seqno seqno;
       HashMeta hashMeta;
+  }
+
+  record SigChainLocation {
+      Seqno seqno;
+      SeqType seqType;
+  }
+
+  record MerkleTreeLocation {
+    UserOrTeamID leaf;
+    SigChainLocation loc;
   }
 
   record SignatureMetadata {
@@ -21,6 +36,7 @@ protocol UPK {
       MerkleRootV2 prevMerkleRootSigned;
       Seqno firstAppearedUnverified;
       Time time;
+      SigChainLocation sigChainLocation; // Where this appeared in the user's sigchain
   }
 
   record PublicKeyV2Base {
@@ -59,21 +75,21 @@ protocol UPK {
       UID uid;
       string username;
       Seqno eldestSeqno;
-      UserVersionVector uvv;
       // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2NaCl> deviceKeys;
-      // Sorted by KID ascending
-      array<PublicKeyV2PGPSummary> pgpKeys;
-      // Sorted by UID ascending
-      array<RemoteTrack> remoteTracks;
+      map<KID, PublicKeyV2NaCl> deviceKeys;
+      map<KID, PublicKeyV2PGPSummary> pgpKeys;
+      map<UID, RemoteTrack> remoteTracks;
   }
 
   record UserPlusKeysV2AllIncarnations {
       UserPlusKeysV2 current;
       // Sorted by account version ascending, could be empty.
       array<UserPlusKeysV2> pastIncarnations;
+      UserVersionVector uvv;
+      map<Seqno, LinkID> seqnoLinkIDs;
+      // When we bump the minor version, bust the cache, and force a refresh
+      UPK2MinorVersion minorVersion;
   }
 
   enum UPAKVersion {

@@ -294,7 +294,10 @@ class Engine {
 
     // Make a new session and start the request
     const session = this.createSession(incomingCallMap, waitingHandler)
-    session.start(method, param, callback)
+    // Dont make outgoing calls immediately since components can do this when they mount
+    setImmediate(() => {
+      session.start(method, param, callback)
+    })
     return session.id
   }
 
@@ -444,11 +447,16 @@ class FakeEngine {
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  listenOnConnect() {}
-  listenOnDisconnect() {}
+  listenOnConnect(key: string, f: () => void) {}
+  listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
-  setIncomingHandler() {}
-  createSession() {
+  setIncomingHandler(name: string, callback: Function) {}
+  createSession(
+    incomingCallMap: ?incomingCallMapType,
+    waitingHandler: ?WaitingHandlerType,
+    cancelHandler: ?CancelHandlerType,
+    dangling?: boolean = false
+  ) {
     return new Session(0, {}, null, () => {}, () => {})
   }
   _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {

@@ -57,7 +57,7 @@ func RootTeamIDFromNameString(name string) keybase1.TeamID {
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
-func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
+func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		ID: (SCTeamID)(parentTeam.GetID()),
 		Subteam: &SCSubteam{
 			ID:   (SCTeamID)(subteamID),
-			Name: (SCTeamName)(subteamName),
+			Name: (SCTeamName)(subteamName.String()),
 		},
 		Admin: admin,
 	}
@@ -130,7 +130,6 @@ func NewSubteamID() keybase1.TeamID {
 }
 
 func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
-
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")

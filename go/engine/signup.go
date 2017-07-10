@@ -84,12 +84,10 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		if s.G().Env.GetSupportPerUserKey() {
-			var err error
-			s.perUserKeyring, err = libkb.NewPerUserKeyring(s.G(), s.uid)
-			if err != nil {
-				return err
-			}
+		var err error
+		s.perUserKeyring, err = libkb.NewPerUserKeyring(s.G(), s.uid)
+		if err != nil {
+			return err
 		}
 
 		if err := s.registerDevice(a, ctx, s.arg.DeviceName); err != nil {

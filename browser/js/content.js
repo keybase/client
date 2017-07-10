@@ -73,7 +73,7 @@ function renderChatContact(el, user) {
         </a> on Keybase
       </small>
     `;
-    iconSrc = bel`<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture" />`;
+    iconSrc = bel`<img class="keybase-icon" src="https://keybase.io/${keybaseUsername}/picture?serve_placeholder=1" />`;
   } else {
     queryStatus = bel`<small>Searching...</small>`;
     if (keybaseUsername === null) {
@@ -293,7 +293,7 @@ function renderSuccess(el, closeCallback, extraHTML) {
                />
         </p>
         <p>
-          Chat sent! You can continue the coversation in your Keybase app.
+          Chat sent! You can continue the conversation in your Keybase app.
         </p>
         ${extraHTML}
         <p>

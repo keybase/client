@@ -19,8 +19,6 @@ func TestPerUserKeyBackgroundShutdownFirst(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = true
-
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
 		fakeClock.Advance(d)
@@ -60,8 +58,6 @@ func TestPerUserKeyBackgroundShutdownSoon(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-
-	tc.Tp.UpgradePerUserKey = true
 
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
@@ -105,8 +101,6 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = true
-
 	advance := func(d time.Duration) {
 		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
 		fakeClock.Advance(d)
@@ -140,6 +134,7 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			require.FailNow(t, "channel timed out")
 		}
+		expectMeta(t, metaCh, "loop-round-complete")
 		if i < n-1 {
 			advance(arg.Settings.Interval + time.Second)
 			expectMeta(t, metaCh, "woke-interval")
@@ -169,8 +164,6 @@ func TestPerUserKeyBackgroundUnnecessary(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-
-	tc.Tp.UpgradePerUserKey = true
 
 	_ = CreateAndSignupFakeUser(tc, "track")
 
@@ -219,11 +212,9 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	tc.Tp.UpgradePerUserKey = false
-
+	tc.Tp.DisableUpgradePerUserKey = true
 	_ = CreateAndSignupFakeUser(tc, "track")
-
-	tc.Tp.UpgradePerUserKey = true
+	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("user has no per-user-key")
 	checkPerUserKeyCount(&tc, 0)
@@ -259,6 +250,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	// second run that doesn't do anything
 	advance(arg.Settings.Interval + time.Second)
@@ -271,6 +263,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	checkPerUserKeyCount(&tc, 1)
 	checkPerUserKeyCountLocal(&tc, 1)
@@ -286,8 +279,6 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	defer tc.Cleanup()
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
-
-	tc.Tp.UpgradePerUserKey = true
 
 	t.Logf("user has no per-user-key")
 
@@ -323,13 +314,14 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	t.Logf("sign up and in")
-	tc.Tp.UpgradePerUserKey = false
+	tc.Tp.DisableUpgradePerUserKey = true
 	_ = CreateAndSignupFakeUser(tc, "track")
 	checkPerUserKeyCount(&tc, 0)
 
-	tc.Tp.UpgradePerUserKey = true
+	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("second run upgrades the user")
 	advance(arg.Settings.Interval + time.Second)
@@ -342,6 +334,7 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	checkPerUserKeyCount(&tc, 1)
 	checkPerUserKeyCountLocal(&tc, 1)

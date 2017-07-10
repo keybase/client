@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import _ from 'lodash'
+import keyBy from 'lodash/keyBy'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
@@ -413,7 +413,7 @@ const IconHolder = ({iconFont}) => {
       }}
     >
       {Object.keys(sizes).map(size => (
-        <Box key={size} style={{...globalStyles.flexBoxColumn}}>
+        <Box key={size} style={globalStyles.flexBoxColumn}>
           <Text type="HeaderLink">Grid: {size}</Text>
           <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
             {sizes[size].map((i: IconType) => (
@@ -831,10 +831,10 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
 
 const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
 const mockAvatarSizes = (title, modifiers) =>
-  _.chain(avatarSizes)
-    .map(size => ({size, username: 'awendland', ...modifiers}))
-    .keyBy(props => `${title} x${props.size}`)
-    .value()
+  keyBy(
+    avatarSizes.map(size => ({size, username: 'awendland', ...modifiers})),
+    props => `${title} x${props.size}`
+  )
 
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,

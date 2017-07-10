@@ -18,6 +18,7 @@ import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -147,11 +148,19 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
-    const initialConversation = yield select(state => state.chat.get('initialConversation'))
+    const {
+      initialConversation,
+      launchedViaPush,
+    } = yield select(({chat: {initialConversation}, config: {launchedViaPush}}: TypedState) => ({
+      initialConversation,
+      launchedViaPush,
+    }))
     if (initialConversation) {
       yield put(Creators.setInitialConversation(null))
-      yield put(navigateTo([initialConversation], [chatTab]))
-      yield put(Creators.selectConversation(initialConversation, false))
+      if (!launchedViaPush) {
+        yield put(navigateTo([initialConversation], [chatTab]))
+        yield put(Creators.selectConversation(initialConversation, false))
+      }
     }
   } finally {
     if (yield cancelled()) {

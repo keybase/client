@@ -99,9 +99,6 @@ func (p CommandLine) GetDebug() (bool, bool) {
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
-func (p CommandLine) GetSupportPerUserKey() (bool, bool) {
-	return p.GetBool("support-per-user-key", true)
-}
 func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
 	return p.GetBool("upgrade-per-user-key", true)
 }

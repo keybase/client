@@ -36,27 +36,35 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
 
 	// get the before state of the team
-	before, err := teams.Get(context.TODO(), tt.users[0].tc.G, team)
+	before, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if before.Generation() != 1 {
 		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
 	}
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+
+	// User1 should get a gregor that the team he was just added to changed.
+	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(2))
+	// User0 should get a (redundant) gregor notification that
+	// he just changed the team.
+	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(2))
 
 	tt.users[1].revokePaperKey()
-	tt.users[0].waitForRotate(team)
+	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
 
 	// check that key was rotated for team
-	after, err := teams.Get(context.TODO(), tt.users[0].tc.G, team)
+	after, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if after.Generation() != 2 {
 		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
 	}
-	if after.Box.Ctext == before.Box.Ctext {
-		t.Errorf("team box ctext did not change with rotation")
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Fatal("team secret did not change when rotated")
 	}
 }
 
@@ -71,7 +79,6 @@ func newTeamTester(t *testing.T) *teamTester {
 
 func (tt *teamTester) addUser(pre string) {
 	tctx := setupTest(tt.t, pre)
-	tctx.Tp.UpgradePerUserKey = true
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
 	u.device.start(0)
@@ -184,7 +191,24 @@ func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	return keybase1.DeviceID("")
 }
 
-func (u *userPlusDevice) waitForRotate(team string) {
+func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.Seqno) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamName == team && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message")
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
 
@@ -193,10 +217,11 @@ func (u *userPlusDevice) waitForRotate(team string) {
 		select {
 		case arg := <-u.notifications.rotateCh:
 			u.tc.T.Logf("rotate received: %+v", arg)
-			if arg.TeamName == team {
-				u.tc.T.Logf("rotate matched: %q == %q", arg.TeamName, team)
+			if arg.TeamName == team && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("rotate matched!")
 				return
 			}
+			u.tc.T.Logf("ignoring rotate message")
 		case <-time.After(1 * time.Second):
 		}
 	}
@@ -204,6 +229,10 @@ func (u *userPlusDevice) waitForRotate(team string) {
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {
+	kickTeamRekeyd(u.tc.G, u.tc.T)
+}
+
+func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
 		Endpoint: "test/accelerate_team_rekeyd",
 		Args: libkb.HTTPArgs{
@@ -212,23 +241,23 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
-	_, err := u.tc.G.API.Post(apiArg)
+	_, err := g.API.Post(apiArg)
 	if err != nil {
-		u.tc.T.Fatalf("Failed to accelerate team rekeyd: %s", err)
+		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
 	}
 }
 
 type teamNotifyHandler struct {
-	rotateCh chan keybase1.TeamKeyRotatedArg
+	rotateCh chan keybase1.TeamChangedArg
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		rotateCh: make(chan keybase1.TeamKeyRotatedArg, 1),
+		rotateCh: make(chan keybase1.TeamChangedArg, 1),
 	}
 }
 
-func (n *teamNotifyHandler) TeamKeyRotated(ctx context.Context, arg keybase1.TeamKeyRotatedArg) error {
+func (n *teamNotifyHandler) TeamChanged(ctx context.Context, arg keybase1.TeamChangedArg) error {
 	n.rotateCh <- arg
 	return nil
 }

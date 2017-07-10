@@ -95,7 +95,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  _renderLabelAndCaret(): Array<React$Element<*>> {
+  _renderLabelAndCaret(): Array<React$Element<any>> {
     return [
       <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}

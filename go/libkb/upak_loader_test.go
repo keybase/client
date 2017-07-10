@@ -6,6 +6,7 @@
 package libkb
 
 import (
+	context "golang.org/x/net/context"
 	"testing"
 	"time"
 
@@ -26,15 +27,15 @@ func TestCachedUserLoad(t *testing.T) {
 	var info CachedUserLoadInfo
 	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 
-	checkLoad := func(upk *keybase1.UserPlusAllKeys, err error) {
+	checkLoad := func(upk *keybase1.UserPlusKeysV2AllIncarnations, err error) {
 		if err != nil {
 			t.Fatal(err)
 		}
 		if upk == nil {
 			t.Fatal("expected a UPK back")
 		}
-		if upk.GetName() != "t_alice" {
-			t.Fatalf("expected %s but got %s", "t_alice", upk.GetName())
+		if upk.Current.Username != "t_alice" {
+			t.Fatalf("expected %s but got %s", "t_alice", upk.Current.Username)
 		}
 	}
 	if info.InCache || info.TimedOut || info.StaleVersion || info.LoadedLeaf || !info.LoadedUser {
@@ -112,7 +113,7 @@ func TestCacheFallbacks(t *testing.T) {
 		arg.UID = uid
 		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil, false)
 		require.NoError(t, err)
-		require.Equal(t, upk.Base.Username, "t_tracy", "tracy was right")
+		require.Equal(t, upk.Current.Username, "t_tracy", "tracy was right")
 		return &ret
 	}
 	i := test()
@@ -159,6 +160,31 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 	}
 }
 
+func TestLookupUID(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClock()
+	tc.G.SetClock(fakeClock)
+
+	test := func() {
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		un := NewNormalizedUsername("t_tracy")
+		uid2, err := tc.G.GetUPAKLoader().LookupUID(nil, un)
+		require.NoError(t, err)
+		require.Equal(t, uid, uid2)
+	}
+
+	for i := 0; i < 2; i++ {
+		test()
+		test()
+		fakeClock.Advance(10 * time.Hour)
+		test()
+		test()
+		tc.G.GetUPAKLoader().ClearMemory()
+	}
+}
+
 func TestLookupUsername(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()
@@ -169,4 +195,23 @@ func TestLookupUsername(t *testing.T) {
 	badUID := keybase1.UID("eb72f49f2dde6429e5d78003dae0b919")
 	_, err = tc.G.GetUPAKLoader().LookupUsername(nil, badUID)
 	require.Error(t, err)
+}
+
+func TestLoadUPAK2(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+
+	load := func() {
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		upak, _, err := tc.G.GetUPAKLoader().LoadV2(NewLoadUserByUIDArg(context.TODO(), tc.G, uid))
+		require.NoError(t, err)
+		key, ok := upak.Current.DeviceKeys[keybase1.KID("01204fbb0a8ee105c2732155bffd927a6f612b6a36c63c484e6290f6a7ac560a1a780a")]
+		require.True(t, ok)
+		require.Equal(t, key.Base.Provisioning.SigChainLocation.Seqno, keybase1.Seqno(3))
+		require.Equal(t, key.Base.Provisioning.SigChainLocation.SeqType, keybase1.SeqType_PUBLIC)
+		require.Nil(t, key.Base.Revocation)
+	}
+
+	load()
+	load()
 }

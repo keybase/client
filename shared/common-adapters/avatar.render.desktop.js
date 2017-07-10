@@ -2,6 +2,7 @@
 import Icon from './icon'
 import React, {PureComponent} from 'react'
 import {globalStyles, globalColors} from '../styles'
+import glamorous from 'glamorous'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -20,6 +21,7 @@ type Props = {
   loadingColor: ?string,
   onClick?: ?() => void,
   opacity: ?number,
+  skipBackground?: boolean,
   size: AvatarSize,
   style?: ?Object,
   url: ?string,
@@ -33,45 +35,49 @@ type State = {
 const backgroundOffset = 1
 class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
   render() {
-    const {loaded, loadingColor} = this.props
-    return (
-      <div
-        style={{
-          backgroundColor: loaded ? globalColors.white : loadingColor || globalColors.lightGrey,
-          borderRadius: '50%',
-          bottom: backgroundOffset,
-          left: backgroundOffset,
-          position: 'absolute',
-          right: backgroundOffset,
-          top: backgroundOffset,
-        }}
-      />
+    const Div = glamorous.div(
+      {
+        borderRadius: '50%',
+        bottom: backgroundOffset,
+        left: backgroundOffset,
+        position: 'absolute',
+        right: backgroundOffset,
+        top: backgroundOffset,
+      },
+      props => ({
+        backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
+      })
     )
+    return <Div loaded={this.props.loaded} loadingColor={this.props.loadingColor} />
   }
 }
 
 // The actual image
 class UserImage extends PureComponent<void, ImageProps, void> {
   render() {
-    const {url, size, opacity = 1} = this.props
-
-    return (
-      <div
-        style={{
-          backgroundImage: url,
-          backgroundSize: 'cover',
-          borderRadius: '50%',
-          bottom: 0,
-          height: size,
-          left: 0,
+    const Div = glamorous.div(
+      {
+        backgroundSize: 'cover',
+        borderRadius: '50%',
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      props => {
+        const {opacity = 1} = props
+        return {
+          backgroundImage: props.url,
+          height: props.size,
+          maxWidth: props.size,
+          minWidth: props.size,
           opacity,
-          position: 'absolute',
-          right: 0,
-          top: 0,
-          width: size,
-        }}
-      />
+        }
+      }
     )
+
+    return <Div opacity={this.props.opacity} size={this.props.size} url={this.props.url} />
   }
 }
 
@@ -89,6 +95,8 @@ const Border = ({borderColor, size}) => (
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
+      minWidth: size,
+      maxWidth: size,
     }}
   />
 )
@@ -171,6 +179,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
       followIconType,
       followIconStyle,
       children,
+      skipBackground,
     } = this.props
 
     return (
@@ -180,13 +189,14 @@ class AvatarRender extends PureComponent<void, Props, State> {
           ...globalStyles.noSelect,
           height: size,
           position: 'relative',
-          width: size,
+          minWidth: size,
+          maxWidth: size,
           ...style,
         }}
       >
-        <Background loaded={this.state.loaded} loadingColor={loadingColor} />
+        {!skipBackground && <Background loaded={this.state.loaded} loadingColor={loadingColor} />}
         {url && <UserImage opacity={opacity} size={size} url={url} />}
-        {!!borderColor && <Border borderColor={borderColor} />}
+        {!!borderColor && <Border borderColor={borderColor} size={size} />}
         {followIconType && <Icon type={followIconType} style={followIconStyle} />}
         {children}
       </div>

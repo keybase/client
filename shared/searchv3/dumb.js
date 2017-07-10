@@ -219,6 +219,10 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
   }
 })
 
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+})
+
 const servicesResultsListMapCommon = {
   mockStore: {
     config: {
@@ -226,7 +230,7 @@ const servicesResultsListMapCommon = {
       following: {},
     },
     entities: new EntitiesStateRecord({
-      searchv3Chat: Map(servicesResultsListMapCommonRows),
+      searchResults: Map(servicesResultsListMapCommonRows),
     }),
   },
   parentProps: {
@@ -235,6 +239,7 @@ const servicesResultsListMapCommon = {
     },
   },
   selectedId: null,
+  showSearchSuggestions: false,
 }
 
 const servicesResultsListMap: DumbComponentMap<ResultsList> = {
@@ -278,7 +283,8 @@ const commonUserInputMapProps = {
   onClickAddButton: () => console.log('username input add button clicked'),
   onMoveSelectUp: () => console.log('username input moveSelectUp'),
   onMoveSelectDown: () => console.log('username input moveSelectDown'),
-  onEnter: () => console.log('username input on enter'),
+  onCancel: () => console.log('username cancel'),
+  onAddSelectedUser: () => console.log('on add selected user'),
 }
 
 const maxUsers = [
@@ -350,6 +356,12 @@ const userInputMap: DumbComponentMap<UserInput> = {
       ...commonUserInputMapProps,
       userItems: maxUsers,
       usernameText: 'ma',
+    },
+    'Users + Text + Clear Search': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: 'ma',
+      onClearSearch: () => console.log('on clear search'),
     },
     'Users (Wrap)': {
       ...commonUserInputMapProps,
@@ -429,16 +441,10 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
   },
 }
 
-const desktopOnly = !isMobile
-  ? {
-      'SearchV3 resultsList': servicesResultsListMap,
-    }
-  : {}
-
 export default {
+  'SearchV3 resultsList': servicesResultsListMap,
   'SearchV3 filter': servicesFilterMap,
   'SearchV3 user input': userInputMap,
   'SearchV3 user input (editable)': userInputEditableMap,
   'SearchV3 result': servicesResultMap,
-  ...desktopOnly,
 }

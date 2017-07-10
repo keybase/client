@@ -79,7 +79,7 @@ func (e *PaperKeyGen) EncKey() libkb.NaclDHKeyPair {
 
 // Run starts the engine.
 func (e *PaperKeyGen) Run(ctx *Context) error {
-	if e.G().Env.GetSupportPerUserKey() && !e.arg.SkipPush {
+	if !e.arg.SkipPush {
 		err := e.syncPUK(ctx)
 		if err != nil {
 			return err
@@ -127,7 +127,7 @@ func (e *PaperKeyGen) syncPUK(ctx *Context) error {
 	}
 	var upak *keybase1.UserPlusAllKeys
 	if e.arg.Me != nil {
-		tmp := e.arg.Me.ExportToUserPlusAllKeys(keybase1.Time(0))
+		tmp := e.arg.Me.ExportToUserPlusAllKeys()
 		upak = &tmp
 	}
 	err = pukring.SyncWithExtras(ctx.NetContext, e.arg.LoginContext, upak)
@@ -298,13 +298,9 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	var pukBoxes = []keybase1.PerUserKeyBox{}
-	if e.G().Env.GetSupportPerUserKey() {
-		boxes, err := e.makePerUserKeyBoxes(ctx)
-		if err != nil {
-			return err
-		}
-		pukBoxes = boxes
+	pukBoxes, err := e.makePerUserKeyBoxes(ctx)
+	if err != nil {
+		return err
 	}
 
 	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#push running delegators")
@@ -312,34 +308,30 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 }
 
 func (e *PaperKeyGen) makePerUserKeyBoxes(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
-	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes(enabled:%v)", e.G().Env.GetSupportPerUserKey())
+	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes")
+
 	var pukBoxes []keybase1.PerUserKeyBox
-	if e.G().Env.GetSupportPerUserKey() {
-		pukring, err := e.getPerUserKeyring()
+	pukring, err := e.getPerUserKeyring()
+	if err != nil {
+		return nil, err
+	}
+	if pukring.HasAnyKeys() {
+		if e.arg.EncryptionKey.IsNil() {
+			return nil, errors.New("missing encryption key for creating paper key")
+		}
+		pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
+			e.encKey,            // receiver key: new paper key enc
+			e.arg.EncryptionKey) // sender key: this device enc
 		if err != nil {
 			return nil, err
 		}
-		if pukring.HasAnyKeys() {
-			if e.arg.EncryptionKey.IsNil() {
-				return nil, errors.New("missing encryption key for creating paper key")
-			}
-			pukBox, err := pukring.PrepareBoxForNewDevice(ctx.NetContext,
-				e.encKey,            // receiver key: new paper key enc
-				e.arg.EncryptionKey) // sender key: this device enc
-			if err != nil {
-				return nil, err
-			}
-			pukBoxes = append(pukBoxes, pukBox)
-		}
+		pukBoxes = append(pukBoxes, pukBox)
 	}
 	e.G().Log.CDebugf(ctx.NetContext, "PaperKeyGen#makePerUserKeyBoxes -> %v", len(pukBoxes))
 	return pukBoxes, nil
 }
 
 func (e *PaperKeyGen) getPerUserKeyring() (ret *libkb.PerUserKeyring, err error) {
-	if !e.G().Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-key support disabled")
-	}
 	ret = e.arg.PerUserKeyring
 	if ret != nil {
 		return

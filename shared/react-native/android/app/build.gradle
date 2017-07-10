@@ -93,7 +93,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode timestamp()
-        versionName "1.0.3"
+        versionName "1.0.4"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -157,11 +157,6 @@ dependencies {
     compile "com.facebook.react:react-native:+"  // From node_modules
     compile project(':react-native-push-notification')
     compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'com.github.tony19:logback-android-core:1.1.1-5'
-    compile('com.github.tony19:logback-android-classic:1.1.1-5') {
-        // workaround issue https://github.com/tony19/logback-android/issues/73
-        exclude group: 'com.google.android', module: 'android'
-    }
     // Manually include GIF support for Fresco b/c it was removed from
     // core library and RN doesn't auto add it back yet (RN 0.30.0)
     // @see DESKTOP-1703

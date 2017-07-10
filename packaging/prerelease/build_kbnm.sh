@@ -17,7 +17,7 @@ tags=${TAGS:-"prerelease production"}
 ldflags="-X main.Version=$kbnm_build"
 pkg="github.com/keybase/client/go/kbnm"
 
-echo "Building $build_dir/kbnm ($kbnm_build)"
+echo "Building $build_dir/kbnm ($kbnm_build) with $(go version)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbnm" "$pkg"
 
 if [ "$PLATFORM" = "darwin" ]; then

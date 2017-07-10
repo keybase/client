@@ -23,6 +23,13 @@
     },
     {
       "type": "record",
+      "name": "TLFConvOrdinal",
+      "fields": [],
+      "typedef": "uint",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TopicID",
       "fields": [],
       "typedef": "bytes"
@@ -106,11 +113,26 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ConversationMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [
         "ACTIVE_0",
-        "REMOVED_1"
+        "REMOVED_1",
+        "LEFT_2"
       ]
     },
     {
@@ -353,6 +375,13 @@
             "items": "gregor1.UID"
           },
           "name": "activeList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "allList"
         }
       ]
     },

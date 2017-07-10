@@ -5,7 +5,25 @@ import {LeafTags, pathToString} from './'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 
 import type {Action} from '../constants/types/flux'
-import type {RouteDefNode, RouteStateNode} from './'
+import type {RouteDefNode, RouteStateNode, Path} from './'
+
+type _RenderRouteResultParams = {
+  path: I.List<string>,
+  tags: LeafTags,
+  component: React$Element<any>,
+  leafComponent: React$Element<any>,
+}
+
+export const RenderRouteResult: (
+  spec?: _RenderRouteResultParams
+) => _RenderRouteResultParams & I.Record<_RenderRouteResultParams> = I.Record({
+  path: I.List(),
+  tags: LeafTags(),
+  component: null,
+  leafComponent: null,
+})
+
+export type RouteRenderStack = I.Stack<RenderRouteResult>
 
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
@@ -25,7 +43,7 @@ export type RouteProps<P, S> = {
   routeLeafTags: LeafTags,
 
   // Stack of child views from this component.
-  routeStack: I.List<React$Element<any>>,
+  routeStack: RouteRenderStack,
 
   // Call to update the state of the route node that rendered this component.
   setRouteState: (partialState: $Shape<S>) => void,
@@ -39,10 +57,10 @@ type RenderRouteNodeProps<S> = {
   isContainer: boolean,
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
-  setRouteState: (partialState: $Shape<S>) => void,
+  setRouteState: (path: Path, partialState: $Shape<S>) => void,
   path: I.List<string>,
   leafTags?: LeafTags,
-  stack?: I.List<React$Element<any>>,
+  stack?: RouteRenderStack,
   children?: React$Element<*>,
 }
 
@@ -76,24 +94,6 @@ type _RenderRouteProps<S> = {
   routeState: ?RouteStateNode,
   setRouteState: (partialState: $Shape<S>) => void,
 }
-
-type _RenderRouteResultParams = {
-  path: I.List<string>,
-  tags: LeafTags,
-  component: React$Element<any>,
-  leafComponent: React$Element<any>,
-}
-
-const _RenderRouteResult: (
-  spec?: _RenderRouteResultParams
-) => _RenderRouteResultParams & I.Record<_RenderRouteResultParams> = I.Record({
-  path: I.List(),
-  tags: LeafTags(),
-  component: null,
-  leafComponent: null,
-})
-
-export type RouteRenderStack = I.Stack<_RenderRouteResult>
 
 // Render a route tree recursively. Returns a stack of rendered components from
 // the bottom (the currently visible view) up through each parent path.
@@ -158,7 +158,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
         setRouteState={setRouteState}
       />
     )
-    const result = new _RenderRouteResult({
+    const result = new RenderRouteResult({
       path,
       component: routeComponent,
       leafComponent: routeComponent,

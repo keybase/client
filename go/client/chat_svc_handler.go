@@ -721,10 +721,12 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		}
 
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:       arg.channel.Name,
-			TlfVisibility: visibility,
-			TopicName:     &arg.channel.TopicName,
-			TopicType:     tt,
+			TlfName:          arg.channel.Name,
+			TlfVisibility:    visibility,
+			TopicName:        &arg.channel.TopicName,
+			TopicType:        tt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			MembersType:      arg.channel.GetMembersType(),
 		})
 		if err != nil {
 			return nil, err

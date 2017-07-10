@@ -15,7 +15,7 @@ class PgpPurgeMessage extends Component<void, Props, void> {
 
   render() {
     return (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={globalStyles.flexBoxColumn}>
         <Box>
           <Header icon={true} type="Default" title="" onClose={this.props.onClose || (() => {})} />
         </Box>

@@ -2,9 +2,10 @@
 import List from './list'
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, TabBar} from '../common-adapters'
+import {Box, TabBar, HeaderHoc} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors, statusBarHeight} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
+import {compose, defaultProps} from 'recompose'
 
 class FoldersRender extends Component<void, Props, void> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
@@ -14,17 +15,16 @@ class FoldersRender extends Component<void, Props, void> {
         source={{type: 'icon', icon}}
         style={{
           ...styleItem,
+          opacity: isSelected ? 1 : 0.6,
           borderBottomWidth: 2,
           borderBottomColor: isSelected
-            ? isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
+            ? isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue2
             : globalColors.transparent,
         }}
         styleBadge={styleBadge}
         styleIcon={styleIcon}
         styleLabel={{
-          color: isPublic
-            ? isSelected ? globalColors.black_75 : globalColors.white_75
-            : isSelected ? globalColors.white : globalColors.black_60,
+          color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
         }}
         styleBadgeNumber={styleBadgeNumber}
         selected={isSelected}
@@ -39,19 +39,21 @@ class FoldersRender extends Component<void, Props, void> {
       <Box
         style={{
           ...stylesContainer,
-          backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey,
+          backgroundColor: globalColors.white,
         }}
       >
         <Box
           style={{
-            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
-            height: statusBarHeight,
+            backgroundColor: globalColors.white,
           }}
         />
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white,
+            backgroundColor: globalColors.white,
+            borderBottomWidth: 1,
+            borderBottomColor: globalColors.black_05,
+            marginBottom: globalMargins.xtiny,
           }}
         >
           {[false, true].map(isPublic => (
@@ -70,7 +72,7 @@ class FoldersRender extends Component<void, Props, void> {
                 onClick={this.props.onClick}
                 isPublic={isPublic}
                 showIgnored={this.props.showingIgnored}
-                onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)}
+                onToggleShowIgnored={this.props.onToggleShowIgnored}
               />
             </TabBarItem>
           ))}
@@ -98,7 +100,7 @@ const styleBadge = {
 }
 
 const styleIcon = {
-  marginRight: 8,
+  marginRight: globalMargins.xtiny,
 }
 
 const styleItem = {
@@ -121,4 +123,6 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-export default FoldersRender
+export default compose(defaultProps({title: 'FOLDERS', headerStyle: {borderBottomWidth: 0}}), HeaderHoc)(
+  FoldersRender
+)

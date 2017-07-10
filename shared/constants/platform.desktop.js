@@ -17,7 +17,7 @@ const fileUIName = isDarwin ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer
 
 const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
-if (__DEV__) {
+if (__DEV__ && !__STORYBOOK__) {
   console.log(`Run mode: ${runMode}`)
 }
 
@@ -78,56 +78,67 @@ const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[run
 const darwinSandboxCacheRoot = `${getenv('HOME', '')}/Library/Group Containers/keybase/Library/Caches/${envedPathOSX[runMode]}/`
 const darwinSandboxSocketPath = path.join(darwinSandboxCacheRoot, socketName)
 
-function findSocketDialPath(): Array<string> {
-  const paths = {
-    darwin: darwinSandboxSocketPath,
-    linux: linuxSocketDialPath(),
-    win32: win32SocketDialPath(),
+function findSocketDialPath(): string {
+  switch (process.platform) {
+    case 'darwin':
+      return darwinSandboxSocketPath
+    case 'linux':
+      return linuxSocketDialPath()
+    case 'win32':
+      return win32SocketDialPath()
   }
-  return paths[process.platform]
+  throw new Error(`Unknown platform ${process.platform}`)
 }
 
 function findDataRoot(): string {
-  const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-  const paths = {
-    darwin: `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
-    linux: `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
-    win32: `${getenv('LOCALAPPDATA', '')}\\Keybase\\`,
+  switch (process.platform) {
+    case 'darwin':
+      return `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`
+    case 'linux':
+      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`
+    case 'win32':
+      return `${getenv('LOCALAPPDATA', '')}\\Keybase\\`
   }
-
-  return paths[process.platform]
+  throw new Error(`Unknown platform ${process.platform}`)
 }
 
 function findCacheRoot(): string {
-  const linuxDefaultRoot = `${getenv('HOME', '')}/.cache`
-  const paths = {
-    darwin: darwinCacheRoot,
-    linux: `${getenv('XDG_CACHE_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
-    win32: `${getenv('APPDATA', '')}\\Keybase\\`,
+  switch (process.platform) {
+    case 'darwin':
+      return darwinCacheRoot
+    case 'linux':
+      const linuxDefaultRoot = `${getenv('HOME', '')}/.cache`
+      return `${getenv('XDG_CACHE_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`
+    case 'win32':
+      return `${getenv('APPDATA', '')}\\Keybase\\`
   }
-
-  return paths[process.platform]
+  throw new Error(`Unknown platform ${process.platform}`)
 }
 
-function logFileName(): string {
-  const paths = {
-    darwin: `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
-    linux: null, // linux is null because we can redirect stdout
-    win32: `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`,
+function logFileName(): ?string {
+  switch (process.platform) {
+    case 'darwin':
+      return `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`
+    case 'linux':
+      return null // linux is null because we can redirect stdout
+    case 'win32':
+      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`
   }
-
-  return paths[process.platform]
+  throw new Error(`Unknown platform ${process.platform}`)
 }
 
 const jsonDebugFileName = (function() {
-  const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
-  const paths = {
-    darwin: `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.debug`,
-    linux: `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/keybase.app.debug`,
-    win32: `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.debug`,
+  switch (process.platform) {
+    case 'darwin':
+      return `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.debug`
+    case 'linux':
+      const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+      return `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/keybase.app.debug`
+    case 'win32':
+      return `${getenv('LOCALAPPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.debug`
   }
-
-  return paths[process.platform]
+  throw new Error(`Unknown platform ${process.platform}`)
 })()
 
 const socketPath = findSocketDialPath()

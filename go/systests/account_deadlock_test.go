@@ -22,11 +22,6 @@ func TestAccountDeadlock(t *testing.T) {
 
 	libkb.G.LocalDb = nil
 
-	libkb.CITimeMultiplier = 2
-	defer func() {
-		libkb.CITimeMultiplier = 1
-	}()
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)
@@ -98,7 +93,9 @@ func currentStatusLoop(t *testing.T, g *libkb.GlobalContext, stopCh chan struct{
 		case <-time.After(50 * time.Millisecond):
 			_, err := cli.CurrentSession(context.TODO(), 0)
 			if err != nil {
-				t.Fatal(err)
+				if _, ok := err.(libkb.NoSessionError); !ok {
+					t.Fatal(err)
+				}
 			}
 		}
 	}

@@ -10,7 +10,8 @@ protocol NotifyChat {
     READ_MESSAGE_2,
     NEW_CONVERSATION_3,
     SET_STATUS_4,
-    FAILED_MESSAGE_5
+    FAILED_MESSAGE_5,
+    MEMBERS_UPDATE_6
   } 
 
   record IncomingMessage {
@@ -40,12 +41,19 @@ protocol NotifyChat {
     array<OutboxRecord> outboxRecords;
   }
 
+  record MembersUpdateInfo {
+    ConversationID convID;
+    string member;
+    boolean joined;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
     case READ_MESSAGE: ReadMessageInfo;
     case NEW_CONVERSATION: NewConversationInfo;
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
+    case MEMBERS_UPDATE: MembersUpdateInfo;
   }
 
   record TyperInfo {
@@ -89,4 +97,13 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
+
+  @notify("")
+  @lint("ignore")
+  void ChatJoinedConversation(keybase1.UID uid, ConversationLocal conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatLeftConversation(keybase1.UID uid, ConversationID convID); 
+
 }

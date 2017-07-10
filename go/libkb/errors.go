@@ -194,6 +194,10 @@ func (w WrongKidError) Error() string {
 	return fmt.Sprintf("Wanted KID=%s; but got KID=%s", w.wanted, w.got)
 }
 
+func NewWrongKidError(w keybase1.KID, g keybase1.KID) WrongKidError {
+	return WrongKidError{w, g}
+}
+
 //=============================================================================
 
 type WrongKeyError struct {
@@ -292,21 +296,6 @@ func (u NoKeyError) Error() string {
 		return u.Msg
 	}
 	return "No public key found"
-}
-
-type NoEldestKeyError struct {
-}
-
-func (e NoEldestKeyError) Error() string {
-	return "No Eldest key found"
-}
-
-type NoActiveKeyError struct {
-	Username string
-}
-
-func (e NoActiveKeyError) Error() string {
-	return fmt.Sprintf("user %s has no active keys", e.Username)
 }
 
 type NoSyncedPGPKeyError struct{}
@@ -1101,6 +1090,7 @@ const (
 	merkleErrorSkipHashMismatch
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
+	merkleErrorHashMeta
 )
 
 type MerkleClientError struct {
@@ -1444,6 +1434,12 @@ func (e PassphraseProvisionImpossibleError) Error() string {
 	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
 }
 
+type ProvisionViaDeviceRequiredError struct{}
+
+func (e ProvisionViaDeviceRequiredError) Error() string {
+	return "You must select an existing device to provision a new device"
+}
+
 type ProvisionUnavailableError struct{}
 
 func (e ProvisionUnavailableError) Error() string {
@@ -1754,6 +1750,16 @@ func (e ChatNotInConvError) Error() string {
 
 //=============================================================================
 
+type ChatNotInTeamError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInTeamError) Error() string {
+	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+}
+
+//=============================================================================
+
 type ChatBadMsgError struct {
 	Msg string
 }
@@ -1811,6 +1817,26 @@ type ChatTLFFinalizedError struct {
 
 func (e ChatTLFFinalizedError) Error() string {
 	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
+}
+
+//=============================================================================
+
+type ChatDuplicateMessageError struct {
+	OutboxID chat1.OutboxID
+}
+
+func (e ChatDuplicateMessageError) Error() string {
+	return fmt.Sprintf("duplicate message send: outboxID: %s", e.OutboxID)
+}
+
+//=============================================================================
+
+type ChatClientError struct {
+	Msg string
+}
+
+func (e ChatClientError) Error() string {
+	return fmt.Sprintf("error communicating with chat server: %s", e.Msg)
 }
 
 //=============================================================================
@@ -1951,4 +1977,22 @@ type EldestSeqnoMissingError struct{}
 
 func (e EldestSeqnoMissingError) Error() string {
 	return "user's eldest seqno has not been loaded"
+}
+
+//=============================================================================
+
+type AccountResetError struct {
+	expected keybase1.UserVersion
+	received keybase1.Seqno
+}
+
+func NewAccountResetError(uv keybase1.UserVersion, r keybase1.Seqno) AccountResetError {
+	return AccountResetError{expected: uv, received: r}
+}
+
+func (e AccountResetError) Error() string {
+	if e.received == keybase1.Seqno(0) {
+		return fmt.Sprintf("Account reset, and not reestablished (for user %s)", e.expected.String())
+	}
+	return fmt.Sprintf("Account reset, reestablished at %d (for user %s)", e.received, e.expected.String())
 }

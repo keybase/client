@@ -23,7 +23,6 @@ type SigsList struct {
 
 type SigsListArgs struct {
 	Username string
-	AllKeys  bool
 	Types    map[string]bool
 	Filterx  string
 	Verbose  bool
@@ -60,7 +59,7 @@ func (e *SigsList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *SigsList) Run(ctx *Context) error {
-	arg := libkb.LoadUserArg{AllKeys: e.AllKeys, Contextified: libkb.NewContextified(e.G())}
+	arg := libkb.LoadUserArg{Contextified: libkb.NewContextified(e.G())}
 	arg.SetGlobalContext(e.G())
 	if len(e.Username) > 0 {
 		arg.Name = e.Username
@@ -199,6 +198,5 @@ func (e *SigsList) isActiveKey(link libkb.TypedChainLink) bool {
 }
 
 func (e *SigsList) skipLink(link libkb.TypedChainLink) bool {
-	return ((!e.Revoked && (link.IsRevoked() || link.IsRevocationIsh())) ||
-		(!e.AllKeys && !e.isActiveKey(link)))
+	return (!e.Revoked && (link.IsRevoked() || link.IsRevocationIsh()))
 }

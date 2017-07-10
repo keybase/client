@@ -2,52 +2,63 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, NativeImage, ClickableBox} from '../common-adapters/index.native'
+import {Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors} from '../styles'
-import {iconMeta} from '../common-adapters/icon.constants'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const Avatars = ({styles, users, isPublic, ignored}) => {
-  // TODO (MM) fix type
-  const groupIcon: any = styles.groupIcon
-  const contents = users.length === 1 || users.length === 2
-    ? <Avatar
-        size={32}
-        username={users[users.length - 1].username}
-        opacity={ignored ? 0.5 : 1.0}
-        backgroundColor={styles.rowContainer.backgroundColor}
-      />
-    : <Icon type={groupIcon} />
-
-  if (isPublic) {
-    return <Box style={styles.avatarContainer}>{contents}</Box>
+const Avatars = ({styles, users, ignored, isPublic}) => {
+  if (!isPublic && users.length > 1) {
+    users = users.filter(({you}) => !you)
   }
-
-  const source =
-    iconMeta[ignored ? 'icon-damier-pattern-ignored-locked-48-1000' : 'icon-damier-pattern-good-open-48-1000']
-      .require
+  const avatarCount = Math.min(2, users.length)
+  const opacity = ignored ? 0.5 : 1
+  const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+    borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
+    loadingColor: globalColors.lightGrey,
+    size: 32,
+    username,
+  }))
 
   return (
-    <Box style={{width: 48, height: 1}}>
-      <NativeImage style={stylesAvatarContainerPrivate} source={source} resizeMode="contain">
-        {contents}
-      </NativeImage>
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
+        maxWidth: 56,
+        minWidth: 56,
+        paddingLeft: globalMargins.xtiny,
+      }}
+    >
+      <Box style={{position: 'relative'}}>
+        <MultiAvatar
+          singleSize={40}
+          multiSize={32}
+          avatarProps={avatarProps}
+          style={{alignSelf: 'center', opacity}}
+        />
+      </Box>
     </Box>
   )
 }
 
-const Names = ({styles, users, nameColor, redColor}) => {
+const Names = ({styles, users, nameColor, redColor, ignored, isPublic}) => {
   return (
     <Box style={stylesBodyNameContainer}>
       {users.map((u, i) => (
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{color: u.broken ? redColor : nameColor}}
+          style={{
+            ...(u.broken
+              ? {color: redColor}
+              : {color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue}),
+            opacity: ignored ? 0.6 : 1,
+          }}
         >
           {u.username}
-          {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type="BodySemibold" style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
+          {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
+          {i !== users.length - 1 && <Text type="BodySemibold" style={{marginRight: 2}}>,</Text>}
         </Text>
       ))}
     </Box>
@@ -63,13 +74,17 @@ const Modified = ({styles, modified}) => {
         style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, fontSize: 10, ...iconColor}}
         hint="Modified"
       />
-      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type="BodySmall" backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type="BodySmall">Modified {modified.when} by&nbsp;</Text>
+      <Text type="BodySmall">{modified.username}</Text>
     </Box>
   )
 }
 
-const RowMeta = ({ignored, meta, styles}) => {
+const RowMeta = ({meta, styles}) => {
+  if (meta === 'ignored') {
+    return
+  }
+
   const metaColors = {
     new: globalColors.white,
     rekey: globalColors.white,
@@ -80,12 +95,10 @@ const RowMeta = ({ignored, meta, styles}) => {
     rekey: globalColors.red,
   }
 
-  const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: {...styles.ignored, marginTop: 3}}
-    : {
-        title: meta || '',
-        style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {},
-      }
+  const metaProps = {
+    title: meta || '',
+    style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {},
+  }
 
   return <Meta {...metaProps} />
 }
@@ -102,19 +115,15 @@ const Row = ({
 }: Folder & {onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
-  let backgroundColor = styles.rowContainer.backgroundColor
-  let nameColor = styles.nameColor
   let redColor = globalColors.red
 
   if (ignored) {
-    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
-    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
     redColor = globalColors.red_75
   }
 
   const containerStyle = {
     ...styles.rowContainer,
-    backgroundColor,
+    backgroundColor: globalColors.white,
   }
 
   const icon: IconType = styles.hasStuffIcon
@@ -123,7 +132,7 @@ const Row = ({
   return (
     <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names
@@ -131,29 +140,20 @@ const Row = ({
               styles={styles}
               meta={meta}
               modified={modified}
-              nameColor={nameColor}
               redColor={redColor}
+              ignored={ignored}
+              isPublic={isPublic}
             />
-            {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            {meta && !ignored && <RowMeta meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
           <Box style={stylesActionContainer}>
             {hasData && <Icon type={icon} style={{width: 32}} />}
           </Box>
         </Box>
-        <Box style={stylesLine} />
       </Box>
     </ClickableBox>
   )
-}
-
-const stylesLine = {
-  backgroundColor: globalColors.black_05,
-  height: 1,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
 }
 
 const rowContainer = {
@@ -164,20 +164,10 @@ const rowContainer = {
 
 const stylesAvatarContainer = {
   width: 48,
-  padding: 8,
   paddingLeft: 8,
   paddingRight: 8,
-  paddingTop: 16,
-  paddingBottom: 16,
-}
-
-const stylesAvatarContainerPrivate = {
-  width: 48,
-  overflow: 'hidden',
-  paddingLeft: 8,
-  paddingRight: 8,
-  paddingTop: 16,
-  paddingBottom: 16,
+  paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.small,
 }
 
 const stylesPrivate = {
@@ -190,7 +180,6 @@ const stylesPrivate = {
     color: globalColors.white_40,
     backgroundColor: 'rgba(0, 26, 51, 0.4)',
   },
-  groupIcon: 'icon-folder-private-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.darkBlue3,
@@ -209,7 +198,6 @@ const stylesPublic = {
     color: globalColors.white_75,
     backgroundColor: globalColors.yellowGreen,
   },
-  groupIcon: 'icon-folder-public-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.yellowGreen,
@@ -222,8 +210,7 @@ const stylesBodyContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
-  padding: 8,
-  marginRight: 16,
+  paddingRight: globalMargins.tiny,
 }
 
 const stylesBodyNameContainer = {

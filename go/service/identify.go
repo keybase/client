@@ -125,8 +125,8 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	if resp != nil {
 		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
 		res.Ul.Name = resp.Upk.Username
+		res.TrackBreaks = resp.TrackBreaks
 	}
-	res.TrackBreaks = resp.TrackBreaks
 	return res, err
 }
 
@@ -145,7 +145,10 @@ func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.
 	if err != nil {
 		return keybase1.User{}, err
 	}
-
+	ret := res.User()
+	if ret.Uid.IsNil() {
+		return keybase1.User{}, libkb.UserNotFoundError{Msg: "resolve2 does not work with teams"}
+	}
 	return res.User(), nil
 }
 

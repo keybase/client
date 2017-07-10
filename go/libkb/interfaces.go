@@ -38,7 +38,6 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetSupportPerUserKey() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string

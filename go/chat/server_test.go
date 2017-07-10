@@ -372,7 +372,6 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 			name = tn
 		}
 	}
-
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
 		chat1.NewConversationLocalArg{
@@ -384,6 +383,16 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
 	}
+
+	// Set initial active list
+	conv := ctc.world.GetConversationByID(ncres.Conv.GetConvID())
+	if conv != nil {
+		conv.Metadata.ActiveList = append(conv.Metadata.ActiveList, creator.GetUID().ToBytes())
+		for _, o := range others {
+			conv.Metadata.ActiveList = append(conv.Metadata.ActiveList, o.GetUID().ToBytes())
+		}
+	}
+
 	return ncres.Conv.Info
 }
 
@@ -413,9 +422,7 @@ func postLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUse
 
 func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	_, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
-	if err != nil {
-		t.Fatalf("PostLocal error: %v", err)
-	}
+	require.NoError(t, err)
 }
 
 func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
@@ -1297,9 +1304,12 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
-	newMessage   chan chat1.MessageUnboxed
-	threadsStale chan []chat1.ConversationID
-	inboxStale   chan struct{}
+	newMessage    chan chat1.MessageUnboxed
+	threadsStale  chan []chat1.ConversationID
+	inboxStale    chan struct{}
+	joinedConv    chan chat1.ConversationLocal
+	leftConv      chan chat1.ConversationID
+	membersUpdate chan chat1.MembersUpdateInfo
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1319,7 +1329,8 @@ func (n *serverChatListener) PGPKeyInSecretStoreFile()                          
 func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)  {}
-func (n *serverChatListener) TeamKeyRotated(teamID keybase1.TeamID, teamName string)              {}
+func (n *serverChatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+}
 func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
 func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
@@ -1332,18 +1343,30 @@ func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.Con
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
-	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+	switch typ {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
 		n.newMessage <- activity.IncomingMessage().Message
+	case chat1.ChatActivityType_MEMBERS_UPDATE:
+		n.membersUpdate <- activity.MembersUpdate()
 	}
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
+func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
+	n.joinedConv <- conv
+}
+func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
+	n.leftConv <- convID
+}
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
-		newMessage:   make(chan chat1.MessageUnboxed, 100),
-		threadsStale: make(chan []chat1.ConversationID, 100),
-		inboxStale:   make(chan struct{}, 100),
+		newMessage:    make(chan chat1.MessageUnboxed, 100),
+		threadsStale:  make(chan []chat1.ConversationID, 100),
+		inboxStale:    make(chan struct{}, 100),
+		joinedConv:    make(chan chat1.ConversationLocal, 100),
+		leftConv:      make(chan chat1.ConversationID, 100),
+		membersUpdate: make(chan chat1.MembersUpdateInfo, 100),
 	}
 }
 
@@ -1839,4 +1862,117 @@ func TestChatSrvMakePreview(t *testing.T) {
 	if res.MimeType != "application/pdf" {
 		t.Fatalf("mime type: %q, expected application/pdf", res.MimeType)
 	}
+}
+
+func TestChatSrvTeamChannels(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatTeamChannels", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+		_, err := postLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.NoError(t, err)
+
+		topicName := "MIKETIME"
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: chat1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.Error(t, err)
+
+		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
+			chat1.GetTLFConversationsLocalArg{
+				TlfName:     conv.TlfName,
+				TopicType:   chat1.TopicType_CHAT,
+				MembersType: chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(getTLFRes.Convs))
+		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
+		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
+			TlfName:    conv.TlfName,
+			TopicType:  chat1.TopicType_CHAT,
+			Visibility: chat1.TLFVisibility_PRIVATE,
+			TopicName:  topicName,
+		})
+		require.NoError(t, err)
+
+		select {
+		case conv := <-listener1.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.NoError(t, err)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+
+		select {
+		case convID := <-listener1.leftConv:
+			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.False(t, act.Joined)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.Error(t, err)
+	})
 }

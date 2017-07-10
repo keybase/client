@@ -2,7 +2,11 @@
 import * as Constants from '../constants/favorite'
 import {folderTab} from '../constants/tabs'
 import {defaultKBFSPath, defaultPublicPrefix} from '../constants/config'
-import _ from 'lodash'
+import flatten from 'lodash/flatten'
+import partition from 'lodash/partition'
+import difference from 'lodash/difference'
+import debounce from 'lodash/debounce'
+import findKey from 'lodash/findKey'
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {
@@ -106,7 +110,7 @@ const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
   }
 
   folderSets.forEach(folders => folders.forEach(fillFolder))
-  return _.flatten(folderSets)
+  return flatten(folderSets)
 }
 
 function _folderSort(username, a, b) {
@@ -134,9 +138,9 @@ function _folderToState(txt: string = '', username: string, loggedIn: boolean): 
   const privateBadge = newFolders.reduce((acc, f) => (!f.isPublic ? acc + 1 : acc), 0)
   const publicBadge = newFolders.reduce((acc, f) => (f.isPublic ? acc + 1 : acc), 0)
 
-  const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
-  const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
-  const [pubIgnored, pub] = _.partition(pubFolders, {ignored: true})
+  const [priFolders, pubFolders] = partition(converted, {isPublic: false})
+  const [privIgnored, priv] = partition(priFolders, {ignored: true})
+  const [pubIgnored, pub] = partition(pubFolders, {ignored: true})
   return {
     privateBadge,
     publicBadge,
@@ -166,7 +170,7 @@ function _getFavoritesRPCToFolders(
     return []
   }
 
-  const myKID = _.findKey(json.users, name => name === username)
+  const myKID = findKey(json.users, name => name === username)
 
   // inject our meta tag
   json.favorites && json.favorites.forEach(injectMeta(null))
@@ -300,7 +304,7 @@ function _notify(state) {
     .filter(t => t.meta === 'new')
     .map(t => t.path)
 
-  if (_.difference(newNotifyState, previousNotifyState).length) {
+  if (difference(newNotifyState, previousNotifyState).length) {
     let body
     if (total <= 3) {
       body = newNotifyState.join('\n')
@@ -318,7 +322,7 @@ function _notify(state) {
 let _kbfsUploadingState = false
 function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
-    const debouncedKBFSStopped = _.debounce(() => {
+    const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
         _kbfsUploadingState = false
         const badgeAction: Action = badgeApp('kbfsUploading', false)

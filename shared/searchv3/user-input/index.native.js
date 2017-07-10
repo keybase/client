@@ -107,8 +107,8 @@ class UserInput extends Component<void, Props, State> {
     isFocused: false,
   }
 
-  _focusInput = () => {
-    this._textInput.focus()
+  focus = () => {
+    this._textInput && this._textInput.focus()
   }
 
   _onFocus = () => {
@@ -121,15 +121,15 @@ class UserInput extends Component<void, Props, State> {
 
   _onRemoveUser = (username: string) => {
     this.props.onRemoveUser(username)
-    this._focusInput()
+    this.focus()
   }
 
   render() {
     const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
 
-    const showAddButton = !!userItems.length && !usernameText.length
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
-      <ClickableBox feedback={false} onClick={this._focusInput}>
+      <ClickableBox feedback={false} onClick={this.focus}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}>
           {userItems.map(item => <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />)}
           <Box
@@ -143,6 +143,8 @@ class UserInput extends Component<void, Props, State> {
           >
             <TextInput
               autoFocus={autoFocus}
+              autoCorrect={false}
+              autoCapitalize={'none'}
               ref={el => {
                 this._textInput = el
               }}
@@ -157,6 +159,7 @@ class UserInput extends Component<void, Props, State> {
               onChangeText={onChangeText}
             />
             {showAddButton &&
+              onClickAddButton &&
               <Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"

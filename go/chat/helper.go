@@ -3,11 +3,19 @@ package chat
 import (
 	"context"
 	"fmt"
+	"math"
+	"time"
+
+	"encoding/hex"
+
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -131,7 +139,7 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 
 	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, err := sender.Prepare(ctx, first, s.membersType, nil)
+	mbox, _, _, err := sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}
@@ -180,4 +188,60 @@ func CurrentUID(g *globals.Context) (keybase1.UID, error) {
 		return "", libkb.LoginRequiredError{}
 	}
 	return uid, nil
+}
+
+type recentConversationParticipants struct {
+	globals.Contextified
+	utils.DebugLabeler
+}
+
+func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
+	return &recentConversationParticipants{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "recentConversationParticipants", false),
+	}
+}
+
+func (r *recentConversationParticipants) getActiveScore(ctx context.Context, conv chat1.Conversation) float64 {
+	mtime := conv.GetMtime()
+	diff := time.Now().Sub(mtime.Time())
+	weeksAgo := diff.Seconds() / (time.Hour.Seconds() * 24 * 7)
+	val := 10.0 - math.Pow(1.6, weeksAgo)
+	if val < 1.0 {
+		val = 1.0
+	}
+	return val
+}
+
+func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
+	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Debug(ctx, "get: convs: %d", len(convs))
+	m := make(map[string]float64)
+	for _, conv := range convs {
+		for _, uid := range conv.Metadata.ActiveList {
+			if uid.Eq(myUID) {
+				continue
+			}
+			m[uid.String()] += r.getActiveScore(ctx, conv)
+		}
+	}
+	for suid := range m {
+		uid, _ := hex.DecodeString(suid)
+		res = append(res, gregor1.UID(uid))
+	}
+
+	// Sort by the most appearances in the active lists
+	sort.Slice(res, func(i, j int) bool {
+		return m[res[i].String()] > m[res[j].String()]
+	})
+	return res, nil
+}
+
+func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
+	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
+	return newRecentConversationParticipants(g).get(ctx, myUID)
 }

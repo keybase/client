@@ -34,8 +34,6 @@ func (s *Storage) Put(ctx context.Context, state *keybase1.TeamData) {
 	s.Lock()
 	defer s.Unlock()
 
-	state.CachedAt = keybase1.ToTime(s.G().Clock().Now())
-
 	s.mem.Put(ctx, state)
 
 	err := s.disk.Put(ctx, state)

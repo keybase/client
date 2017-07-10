@@ -37,7 +37,9 @@ export type State = {
   username: string,
   usernameValid: boolean,
   waiting: boolean,
-  searchResults: List<SearchConstants.SearchResultId>,
+  searchPending: boolean,
+  searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
 }
 
 export const addProof = 'profile:addProof'
@@ -46,6 +48,7 @@ export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
+export const clearSearchResults = 'profile:clearSearchResults'
 export const dropPgp = 'profile:dropPgp'
 export const editProfile = 'profile:editProfile'
 export const finishRevokeProof = 'profile:revoke:finish'
@@ -78,6 +81,7 @@ export type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
 export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
 export type CheckProof = NoErrorTypedAction<'profile:checkProof', void>
 export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
+export type ClearSearchResults = NoErrorTypedAction<'profile:clearSearchResults', void>
 export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
 export type EditProfile = NoErrorTypedAction<
   'profile:editProfile',
@@ -127,11 +131,13 @@ export type UpdateUsername = TypedAction<'profile:updateUsername', {username: st
 export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
 export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
+export type PendingSearch = SearchConstants.PendingSearchGeneric<'profile:searchPending'>
 export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'profile:updateSearchResults'>
 
 export type Actions =
   | CleanupUsername
   | FinishRevokeProof
+  | PendingSearch
   | UpdateErrorText
   | UpdatePlatform
   | UpdateProofStatus

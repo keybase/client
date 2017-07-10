@@ -1,0 +1,12 @@
+// @flow
+import React, {Component} from 'react'
+import type {Tab} from '../../constants/tabs'
+
+export type Props = {
+  onTabClick: (tab: Tab) => void,
+  selectedTab: Tab,
+  username?: string,
+  badgeNumbers: {[key: Tab]: number},
+}
+
+export default class TabBar extends Component<void, Props, void> {}

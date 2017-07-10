@@ -1,13 +1,12 @@
 // @flow
-import {onUserClick} from '../actions/profile'
-import * as Creators from '../actions/chat/creators'
+import {clearSearchResults, onUserClick} from '../actions/profile'
 import * as SearchCreators from '../actions/searchv3/creators'
 import * as SearchConstants from '../constants/searchv3'
-import {debounce} from 'lodash'
 import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
+import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -17,34 +16,58 @@ type HocIntermediateProps = {
   _onClick: (id: string) => void,
   _onChangeText: (nextText: string) => void,
   _onSelectService: () => void,
-  _search: (term: string, service: SearchConstants.Service) => void,
+  _onSelectService: (nextService: string) => void,
+  search: (term: string, service: SearchConstants.Service) => void,
+  selectedSearchId: ?SearchConstants.SearchResultId,
+  onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  ids: profileSearchResultArray(state),
+  searchResultIds: profileSearchResultArray(state),
+  showSearchPending: state.profile.searchPending,
+  showSearchSuggestions: state.profile.searchShowingSuggestions,
 })
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
-  _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
+  _clearSearchResults: () => dispatch(clearSearchResults()),
+  search: (term: string, service) => {
+    if (term) {
+      dispatch(
+        SearchCreators.search(term, 'profile:pendingSearchResults', 'profile:updateSearchResults', service)
+      )
+    } else {
+      dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
+    }
+  },
+  onAddSelectedUser: username => {
+    dispatch(navigateUp())
+    dispatch(onUserClick(username))
+  },
   _onClick: username => {
     dispatch(navigateUp())
     dispatch(onUserClick(username))
   },
-  _search: debounce(
-    (term: string, service) => dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service)),
-    1e3
-  ),
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => {
+    dispatch(clearSearchResults())
+    dispatch(navigateUp())
+  },
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('usernameText', '_onChangeText', ''),
+  defaultProps({
+    placeholder: 'Type someone',
+    showAddButton: false,
+    userItems: [],
+  }),
+  withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  withState('searchText', 'onChangeSearchText', ''),
+  selectedSearchIdHoc,
+  onChangeSelectedSearchResultHoc,
+  showServiceLogicHoc,
   withHandlers({
     onChangeText: (props: Props & HocIntermediateProps) => nextText => {
-      props.onChangeSearchText(nextText)
-      props._search(nextText, props.selectedService)
+      props._onChangeText(nextText)
+      props.search(nextText, props.selectedService)
     },
     onClick: (props: Props & HocIntermediateProps) => id => {
       props._onClick(id)
@@ -53,12 +76,7 @@ export default compose(
     },
     onSelectService: (props: Props & HocIntermediateProps) => nextService => {
       props._onSelectService(nextService)
-      props._search(props.searchText, nextService)
+      props.search(props.searchText, nextService)
     },
-  }),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
-    userItems: [],
   })
 )(Search)

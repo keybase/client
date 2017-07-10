@@ -1,6 +1,9 @@
 package teams
 
 import (
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha512"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -9,16 +12,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
+	"golang.org/x/net/context"
 )
 
-type PerTeamSecretGeneration int
-
 type PerTeamSharedSecretBoxes struct {
-	Generation    PerTeamSecretGeneration `json:"generation"`
-	EncryptingKid keybase1.KID            `json:"encrypting_kid"`
-	Nonce         string                  `json:"nonce"`
-	PrevKey       *string                 `json:"prev"`
-	Boxes         map[keybase1.UID]string `json:"boxes"`
+	Generation    keybase1.PerTeamKeyGeneration `json:"generation"`
+	EncryptingKid keybase1.KID                  `json:"encrypting_kid"`
+	Nonce         string                        `json:"nonce"`
+	PrevKey       *prevKeySealedEncoded         `json:"prev"`
+	Boxes         map[keybase1.UID]string       `json:"boxes"`
 }
 
 type PerTeamSharedSecretBox struct {
@@ -32,11 +34,16 @@ type PerTeamSharedSecretBox struct {
 type TeamKeyManager struct {
 	libkb.Contextified
 
-	sharedSecret []byte
-	generation   PerTeamSecretGeneration
+	sharedSecret keybase1.PerTeamKeySeed
+	generation   keybase1.PerTeamKeyGeneration
 
 	encryptionKey *libkb.NaclDHKeyPair
 	signingKey    *libkb.NaclSigningKeyPair
+}
+
+type SharedSecretAllGenerations struct {
+	currentGeneration keybase1.PerTeamKeyGeneration
+	secrets           map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed
 }
 
 func NewTeamKeyManager(g *libkb.GlobalContext) (*TeamKeyManager, error) {
@@ -47,10 +54,7 @@ func NewTeamKeyManager(g *libkb.GlobalContext) (*TeamKeyManager, error) {
 	return NewTeamKeyManagerWithSecret(g, sharedSecret, 1)
 }
 
-func NewTeamKeyManagerWithSecret(g *libkb.GlobalContext, secret []byte, generation PerTeamSecretGeneration) (*TeamKeyManager, error) {
-	if len(secret) != sharedSecretLen {
-		return nil, errors.New("invalid shared secret length")
-	}
+func NewTeamKeyManagerWithSecret(g *libkb.GlobalContext, secret keybase1.PerTeamKeySeed, generation keybase1.PerTeamKeyGeneration) (*TeamKeyManager, error) {
 	return &TeamKeyManager{
 		Contextified: libkb.NewContextified(g),
 		sharedSecret: secret,
@@ -59,7 +63,7 @@ func NewTeamKeyManagerWithSecret(g *libkb.GlobalContext, secret []byte, generati
 }
 
 // SharedSecret returns the team's shared secret.
-func (t *TeamKeyManager) SharedSecret() []byte {
+func (t *TeamKeyManager) SharedSecret() keybase1.PerTeamKeySeed {
 	return t.sharedSecret
 }
 
@@ -89,8 +93,8 @@ func (t *TeamKeyManager) EncryptionKey() (libkb.NaclDHKeyPair, error) {
 
 // SharedSecretBoxes creates the PerTeamSharedSecretBoxes for recipients with the
 // existing team shared secret.
-func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
-	defer t.G().Trace("SharedSecretBoxes", func() error { return err })()
+func (t *TeamKeyManager) SharedSecretBoxes(ctx context.Context, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, err error) {
+	defer t.G().CTrace(ctx, "SharedSecretBoxes", func() error { return err })()
 
 	// make the nonce prefix, skipping the zero counter
 	// (0 used for previous key encryption nonce)
@@ -105,8 +109,8 @@ func (t *TeamKeyManager) SharedSecretBoxes(senderKey libkb.GenericKey, recipient
 
 // RotateSharedSecretBoxes creates a new shared secret for the team and the
 // required PerTeamKey section.
-func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
-	defer t.G().Trace("RotateSharedSecretBoxes", func() error { return err })()
+func (t *TeamKeyManager) RotateSharedSecretBoxes(ctx context.Context, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (boxes *PerTeamSharedSecretBoxes, keySection *SCPerTeamKey, err error) {
+	defer t.G().CTrace(ctx, "RotateSharedSecretBoxes", func() error { return err })()
 
 	// make a new secret
 	nextSecret, err := newSharedSecret()
@@ -129,16 +133,16 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 		// this should never happen, but might as well make sure it is zero
 		return nil, nil, errors.New("nonce counter not 0 for first use")
 	}
-	sealed := secretbox.Seal(nil, t.sharedSecret, &nonceBytes, &keyb)
+	sealed := secretbox.Seal(nil, t.sharedSecret.ToBytes(), &nonceBytes, &keyb)
 
 	// encode encrypted prev key
-	prevKeyEncoded, err := t.prevKeyEncoded(nonceBytes, sealed)
+	prevKeyEncoded, err := encodeSealedPrevKey(nonceBytes, sealed)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// make the recipient boxes with the new secret and the incrementing nonce24
-	t.setNextSharedSecret(nextSecret)
+	t.setNextSharedSecret(ctx, nextSecret)
 	boxes, err = t.sharedBoxes(t.sharedSecret, t.generation, nonce, senderKey, recipients)
 	if err != nil {
 		return nil, nil, err
@@ -156,7 +160,7 @@ func (t *TeamKeyManager) RotateSharedSecretBoxes(senderKey libkb.GenericKey, rec
 	return boxes, keySection, nil
 }
 
-func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[keybase1.UID]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
+func (t *TeamKeyManager) sharedBoxes(secret keybase1.PerTeamKeySeed, generation keybase1.PerTeamKeyGeneration, nonce *nonce24, senderKey libkb.GenericKey, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (*PerTeamSharedSecretBoxes, error) {
 	senderNaclDHKey, ok := senderKey.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("got an unexpected key type for device encryption key: %T", senderKey)
@@ -175,9 +179,9 @@ func (t *TeamKeyManager) sharedBoxes(secret []byte, generation PerTeamSecretGene
 	}, nil
 }
 
-func (t *TeamKeyManager) recipientBoxes(secret []byte, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipients map[keybase1.UID]keybase1.PerUserKey) (map[keybase1.UID]string, error) {
+func (t *TeamKeyManager) recipientBoxes(secret keybase1.PerTeamKeySeed, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipients map[keybase1.UserVersion]keybase1.PerUserKey) (map[keybase1.UID]string, error) {
 	boxes := make(map[keybase1.UID]string)
-	for uid, recipientPerUserKey := range recipients {
+	for uv, recipientPerUserKey := range recipients {
 		boxStruct, err := t.recipientBox(secret, nonce, senderKey, recipientPerUserKey)
 		if err != nil {
 			return nil, err
@@ -188,13 +192,13 @@ func (t *TeamKeyManager) recipientBoxes(secret []byte, nonce *nonce24, senderKey
 			return nil, err
 		}
 
-		boxes[uid] = base64.StdEncoding.EncodeToString(encodedArray)
+		boxes[uv.Uid] = base64.StdEncoding.EncodeToString(encodedArray)
 	}
 
 	return boxes, nil
 }
 
-func (t *TeamKeyManager) recipientBox(secret []byte, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipient keybase1.PerUserKey) (*PerTeamSharedSecretBox, error) {
+func (t *TeamKeyManager) recipientBox(secret keybase1.PerTeamKeySeed, nonce *nonce24, senderKey libkb.NaclDHKeyPair, recipient keybase1.PerUserKey) (*PerTeamSharedSecretBox, error) {
 	recipientPerUserGenericKeypair, err := libkb.ImportKeypairFromKID(recipient.EncKID)
 	if err != nil {
 		return nil, err
@@ -205,7 +209,7 @@ func (t *TeamKeyManager) recipientBox(secret []byte, nonce *nonce24, senderKey l
 	}
 
 	nonceBytes, nonceCounter := nonce.Nonce()
-	ctext := box.Seal(nil, secret, &nonceBytes, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderKey.Private)))
+	ctext := box.Seal(nil, secret[:], &nonceBytes, ((*[32]byte)(&recipientPerUserNaclKeypair.Public)), ((*[32]byte)(senderKey.Private)))
 
 	boxStruct := PerTeamSharedSecretBox{
 		Version:         libkb.SharedTeamKeyBoxVersion1,
@@ -227,13 +231,13 @@ func (t *TeamKeyManager) perTeamKeySection() (*SCPerTeamKey, error) {
 		return nil, err
 	}
 	return &SCPerTeamKey{
-		Generation: int(t.generation),
+		Generation: keybase1.PerTeamKeyGeneration(t.generation),
 		SigKID:     sigKey.GetKID(),
 		EncKID:     encKey.GetKID(),
 	}, nil
 }
 
-func (t *TeamKeyManager) setNextSharedSecret(secret []byte) {
+func (t *TeamKeyManager) setNextSharedSecret(ctx context.Context, secret keybase1.PerTeamKeySeed) {
 	t.sharedSecret = secret
 
 	// bump generation number
@@ -243,16 +247,20 @@ func (t *TeamKeyManager) setNextSharedSecret(secret []byte) {
 	t.signingKey = nil
 	t.encryptionKey = nil
 
-	t.G().Log.Debug("TeamKeyManager: set next shared secret, generation %d", t.generation)
+	t.G().Log.CDebugf(ctx, "TeamKeyManager: set next shared secret, generation %d", t.generation)
 }
 
-func (t *TeamKeyManager) prevKeyEncoded(nonceBytes [24]byte, key []byte) (string, error) {
-	prevKey := struct {
-		_struct bool `codec:",toarray"`
-		Version int
-		Nonce   [24]byte
-		Key     []byte
-	}{
+type prevKeySealedDecoded struct {
+	_struct bool `codec:",toarray"`
+	Version int
+	Nonce   [24]byte
+	Key     []byte
+}
+
+type prevKeySealedEncoded string
+
+func encodeSealedPrevKey(nonceBytes [24]byte, key []byte) (prevKeySealedEncoded, error) {
+	prevKey := prevKeySealedDecoded{
 		Version: 1,
 		Nonce:   nonceBytes,
 		Key:     key,
@@ -262,11 +270,109 @@ func (t *TeamKeyManager) prevKeyEncoded(nonceBytes [24]byte, key []byte) (string
 		return "", err
 	}
 	encoded := base64.StdEncoding.EncodeToString(packed)
-	return encoded, nil
+	return prevKeySealedEncoded(encoded), nil
 }
 
-const sharedSecretLen = 32
+func decodeSealedPrevKey(e prevKeySealedEncoded) (nonce [24]byte, ctext []byte, err error) {
+	decoded, err := base64.StdEncoding.DecodeString(string(e))
+	if err != nil {
+		return nonce, nil, err
+	}
+	var tmp prevKeySealedDecoded
+	err = libkb.MsgpackDecode(&tmp, decoded)
+	if err != nil {
+		return nonce, nil, err
+	}
+	if tmp.Version != 1 {
+		return nonce, nil, fmt.Errorf("can only handle V1 encrypted prevs")
+	}
+	return tmp.Nonce, tmp.Key, nil
+}
 
-func newSharedSecret() ([]byte, error) {
-	return libkb.RandBytes(sharedSecretLen)
+func newSharedSecret() (ret keybase1.PerTeamKeySeed, err error) {
+	n, err := rand.Read(ret[:])
+	if err != nil {
+		return ret, err
+	}
+	if n != len(ret) {
+		return ret, errors.New("short random read in newSharedSecret")
+	}
+	return ret, nil
+}
+
+func newSharedSecretAllGenerations(ctx context.Context, currentGeneration keybase1.PerTeamKeyGeneration,
+	curr keybase1.PerTeamKeySeed, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (*SharedSecretAllGenerations, error) {
+
+	ret := &SharedSecretAllGenerations{
+		currentGeneration: currentGeneration,
+		secrets:           make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
+	}
+	ret.secrets[ret.currentGeneration] = curr
+	return ret.decryptPrevs(ctx, prevs)
+}
+
+func (s *SharedSecretAllGenerations) decryptPrevs(ctx context.Context, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (*SharedSecretAllGenerations, error) {
+	for g := s.currentGeneration - 1; g >= 1; g-- {
+		if err := s.decryptPrev(ctx, g, prevs); err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
+}
+
+func (s *SharedSecretAllGenerations) decryptPrev(ctx context.Context, g keybase1.PerTeamKeyGeneration, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (err error) {
+	key, ok := s.secrets[g+1]
+	if !ok {
+		return fmt.Errorf("in decyrpting prevs, couldn't find decrypted key @ %d", g+1)
+	}
+	encoded := prevs[g+1]
+	if len(encoded) == 0 {
+		return fmt.Errorf("can't find encrypted prev key at generation %d", g)
+	}
+	ret, err := decryptPrevSingle(ctx, encoded, key)
+	if err != nil {
+		return fmt.Errorf("at generation %d: %v", g, err)
+	}
+	s.secrets[g] = *ret
+	return nil
+}
+
+func (s *SharedSecretAllGenerations) At(k keybase1.PerTeamKeyGeneration) keybase1.PerTeamKeySeed {
+	return s.secrets[k]
+}
+
+func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {
+	if secret.IsZero() {
+		panic("Should never be using a zero key in derivedSecret; something went terribly wrong")
+	}
+	digest := hmac.New(sha512.New, secret[:])
+	digest.Write([]byte(context))
+	return digest.Sum(nil)[:32]
+}
+
+// Decrypt a single prev secretbox.
+// Takes a prev to decrypt and the seed of the successor generation.
+// For example (prev[3], seed[4]) -> seed[3]
+func decryptPrevSingle(ctx context.Context,
+	prevToDecrypt prevKeySealedEncoded, successor keybase1.PerTeamKeySeed) (*keybase1.PerTeamKeySeed, error) {
+	if successor.IsZero() {
+		return nil, fmt.Errorf("Got 0 key, which can't be right")
+	}
+	if len(prevToDecrypt) == 0 {
+		return nil, fmt.Errorf("zero-length encoded prev")
+	}
+	nonce, ctext, err := decodeSealedPrevKey(prevToDecrypt)
+	if err != nil {
+		return nil, err
+	}
+	var keyFixed [32]byte
+	// prev key to decrypt with
+	key := derivedSecret(successor, libkb.TeamPrevKeySecretBoxDerivationString)
+	copy(keyFixed[:], key)
+	opened, ok := secretbox.Open(nil, ctext, &nonce, &keyFixed)
+	if !ok {
+		return nil, fmt.Errorf("prev decryption failed")
+	}
+	ret, err := keybase1.PerTeamKeySeedFromBytes(opened)
+	return &ret, err
 }

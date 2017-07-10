@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
+import trim from 'lodash/trim'
 import {
   CommonDeviceType,
   signupGetInvitationCodeRpc,
@@ -263,8 +263,8 @@ function checkPassphrase(
         passphraseError = new HiddenString('Fields cannot be blank')
       } else if (passphrase1 !== passphrase2) {
         passphraseError = new HiddenString('Passphrases must match')
-      } else if (passphrase1.length < 12) {
-        passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
+      } else if (passphrase1.length < 6) {
+        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
       }
 
       if (passphraseError) {
@@ -296,7 +296,7 @@ function submitDeviceName(
     new Promise((resolve, reject) => {
       // TODO do some checking on the device name - ideally this is done on the service side
       let deviceNameError = null
-      if (_.trim(deviceName).length === 0) {
+      if (trim(deviceName).length === 0) {
         deviceNameError = 'Device name must not be empty.'
       }
 
@@ -326,7 +326,7 @@ function submitDeviceName(
                   type: Constants.submitDeviceName,
                 }: SubmitDeviceName)
               )
-              reject(err)
+              resolve()
             } else {
               if (deviceName) {
                 dispatch(
@@ -467,15 +467,28 @@ function showSuccess(): ShowSuccess {
   }
 }
 
+function setDeviceNameError(deviceNameError: string): Constants.SetDeviceNameError {
+  return {
+    payload: {deviceNameError},
+    type: Constants.setDeviceNameError,
+  }
+}
+
+function clearDeviceNameError(): Constants.ClearDeviceNameError {
+  return {payload: {}, type: Constants.clearDeviceNameError}
+}
+
 export {
   checkInviteCode,
   checkPassphrase,
   checkUsernameEmail,
+  clearDeviceNameError,
   requestAutoInvite,
   requestInvite,
   resetSignup,
   restartSignup,
   sawPaperKey,
+  setDeviceNameError,
   showSuccess,
   startRequestInvite,
   submitDeviceName,

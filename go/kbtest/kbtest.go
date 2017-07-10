@@ -18,10 +18,11 @@ import (
 const testInviteCode = "202020202020202020202020"
 
 type FakeUser struct {
-	Username   string
-	Email      string
-	Passphrase string
-	User       *libkb.User
+	Username    string
+	Email       string
+	Passphrase  string
+	User        *libkb.User
+	EldestSeqno keybase1.Seqno
 }
 
 func NewFakeUser(prefix string) (*FakeUser, error) {
@@ -36,7 +37,7 @@ func NewFakeUser(prefix string) (*FakeUser, error) {
 		return nil, err
 	}
 	passphrase := hex.EncodeToString(buf)
-	return &FakeUser{username, email, passphrase, nil}, nil
+	return &FakeUser{username, email, passphrase, nil, keybase1.Seqno(1)}, nil
 }
 
 func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
@@ -45,6 +46,13 @@ func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 
 func (fu *FakeUser) GetUID() keybase1.UID {
 	return libkb.UsernameToUID(fu.Username)
+}
+
+func (fu *FakeUser) GetUserVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{
+		Uid:         fu.GetUID(),
+		EldestSeqno: fu.EldestSeqno,
+	}
 }
 
 func (fu *FakeUser) Login(g *libkb.GlobalContext) error {

@@ -43,9 +43,8 @@ type SigChain struct {
 
 	uid               keybase1.UID
 	username          NormalizedUsername
-	chainLinks        ChainLinks // the current subchain
+	chainLinks        ChainLinks // all the links we know about, starting with seqno 1
 	idVerified        bool
-	allKeys           bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
 
@@ -105,7 +104,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau)
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau, keybase1.SigChainLocation{})
 	}
 
 	return
@@ -154,6 +153,18 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 		}
 	}
 	return
+}
+
+func (sc SigChain) GetComputedKeyInfosWithVersionBust() (cki *ComputedKeyInfos) {
+	ret := sc.GetComputedKeyInfos()
+	if ret == nil {
+		return ret
+	}
+	if ret.IsStaleVersion() {
+		sc.G().Log.Debug("Threw out CKI due to stale version (%d)", ret.Version)
+		ret = nil
+	}
+	return ret
 }
 
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
@@ -528,9 +539,13 @@ func (sc *SigChain) verifySubchain(ctx context.Context, kf KeyFamily, links Chai
 
 	last := links[len(links)-1]
 	if cki = last.GetSigCheckCache(); cki != nil {
-		cached = true
-		sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
-		return cached, cki, err
+		if cki.IsStaleVersion() {
+			sc.G().Log.CDebugf(ctx, "Ignoring cached CKI, since the version is old (%d < %d)", cki.Version, ComputedKeyInfosVersionCurrent)
+		} else {
+			cached = true
+			sc.G().Log.CDebugf(ctx, "Skipped verification (cached): %s", last.id)
+			return cached, cki, err
+		}
 	}
 
 	cki = NewComputedKeyInfos(sc.G())
@@ -646,11 +661,10 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(ctx context.Context, eldest 
 		return cached, 0, err
 	}
 
-	if sc.allKeys || sc.loadedFromLinkOne {
-		if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
-			err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
-			return cached, 0, err
-		}
+	// AllKeys mode is now the default.
+	if first := sc.getFirstSeqno(); first > keybase1.Seqno(1) {
+		err = ChainLinkWrongSeqnoError{fmt.Sprintf("Wanted a chain from seqno=1, but got seqno=%d", first)}
+		return cached, 0, err
 	}
 
 	// There are 3 cases that we have to think about here for recording the
@@ -718,10 +732,10 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
 // multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false othewise.
-func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily, loadAllSubchains bool) (bool, error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(ctx context.Context, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
 	// First consume the currently active sigchain.
 	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(ctx, eldest, ckf)
-	if !loadAllSubchains || err != nil || ckf.kf == nil {
+	if err != nil || ckf.kf == nil {
 		return cached, err
 	}
 
@@ -838,8 +852,6 @@ var PublicChain = &ChainType{
 type SigChainLoader struct {
 	user                 *User
 	self                 bool
-	allKeys              bool
-	allSubchains         bool
 	leaf                 *MerkleUserLeaf
 	chain                *SigChain
 	chainType            *ChainType
@@ -874,8 +886,8 @@ func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err erro
 }
 
 func (l *SigChainLoader) AccessPreload() bool {
-	if l.preload == nil || (l.preload.allKeys != l.allKeys) {
-		l.G().Log.Debug("| Preload failed")
+	if l.preload == nil {
+		l.G().Log.Debug("| Preload not provided")
 		return false
 	}
 	l.G().Log.Debug("| Preload successful")
@@ -915,15 +927,15 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	}
 	links := ChainLinks{currentLink}
 
-	// Walk the links we have stored locally to load the current subchain and
-	// record the start of it. We might find out later when we check freshness
-	// that a reset has happened, so this result only gets used if the local
-	// chain turns out to be fresh. Note that unless the current subchain goes
-	// all the way back to seqno 1, we will also load one chain link before it.
-	// (That's necessary to detect some resets.)
+	// Load all the links we have locally, and record the start of the current
+	// subchain as we go. We might find out later when we check freshness that
+	// a reset has happened, so this result only gets used if the local chain
+	// turns out to be fresh.
 	for {
 		if currentLink.GetSeqno() == 1 {
-			l.currentSubchainStart = 1
+			if l.currentSubchainStart == 0 {
+				l.currentSubchainStart = 1
+			}
 			break
 		}
 		prevLink, err := ImportLinkFromStorage(currentLink.GetPrev(), l.selfUID(), l.G())
@@ -935,9 +947,8 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 			return nil
 		}
 		links = append(links, prevLink)
-		if isSubchainStart(currentLink, prevLink) {
+		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
 			l.currentSubchainStart = currentLink.GetSeqno()
-			break
 		}
 		currentLink = prevLink
 	}
@@ -956,7 +967,6 @@ func (l *SigChainLoader) MakeSigChain() error {
 		uid:                  l.user.GetUID(),
 		username:             l.user.GetNormalizedName(),
 		chainLinks:           l.links,
-		allKeys:              l.allKeys,
 		currentSubchainStart: l.currentSubchainStart,
 		Contextified:         l.Contextified,
 	}
@@ -1081,7 +1091,7 @@ func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	if l.ckf.kf == nil {
 		return nil
 	}
-	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf, l.allSubchains)
+	_, err = l.chain.VerifySigsAndComputeKeys(l.ctx, l.leaf.eldest, &l.ckf)
 	if err != nil {
 		return err
 	}
@@ -1176,7 +1186,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 		if err = l.LoadFromServer(); err != nil {
 			return
 		}
-	} else if l.chain.GetComputedKeyInfos() == nil {
+	} else if l.chain.GetComputedKeyInfosWithVersionBust() == nil {
 		// The chain tip doesn't have a cached cki, probably because new
 		// signatures have shown up since the last time we loaded it.
 		l.G().Log.CDebugf(l.ctx, "| Need to reverify chain since we don't have ComputedKeyInfos")

@@ -438,6 +438,39 @@
           "name": "badge"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "JoinLeaveConversationRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFConversationsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -513,6 +546,13 @@
         {
           "name": "messageBoxed",
           "type": "MessageBoxed"
+        },
+        {
+          "name": "atMentions",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
         }
       ],
       "response": "PostRemoteRes"
@@ -777,6 +817,45 @@
         }
       ],
       "response": null
+    },
+    "joinConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationRemoteRes"
+    },
+    "leaveConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationRemoteRes"
+    },
+    "getTLFConversations": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
+        }
+      ],
+      "response": "GetTLFConversationsRes"
     }
   },
   "namespace": "chat.1"

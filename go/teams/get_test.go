@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamGet(t *testing.T) {
@@ -20,7 +21,7 @@ func TestTeamGet(t *testing.T) {
 
 	name := createTeam(tc)
 
-	_, err := Get(context.TODO(), tc.G, name)
+	_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +35,7 @@ func TestTeamApplicationKey(t *testing.T) {
 
 	name := createTeam(tc)
 
-	team, err := Get(context.TODO(), tc.G, name)
+	team, err := GetForApplicationByStringName(context.TODO(), tc.G, name, keybase1.TeamApplication_CHAT, keybase1.TeamRefreshers{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func TestTeamGetRepeat(t *testing.T) {
 
 		name := createTeam(tc)
 
-		_, err := Get(context.TODO(), tc.G, name)
+		_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +88,7 @@ func TestTeamGetWhileCreate(t *testing.T) {
 	}
 
 	for i := 0; i < 100; i++ {
-		_, err := Get(context.TODO(), tc.G, name)
+		_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +121,7 @@ func teamGet(t *testing.T) {
 
 	name := createTeam(tc)
 
-	_, err := Get(context.TODO(), tc.G, name)
+	_, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,4 +138,11 @@ func createTeam(tc libkb.TestContext) string {
 		tc.T.Fatal(err)
 	}
 	return name
+}
+
+func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
+	teamNameS := createTeam(tc)
+	teamName, err := keybase1.TeamNameFromString(teamNameS)
+	require.NoError(tc.T, err)
+	return teamName, teamName.ToTeamID()
 }

@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
@@ -212,4 +213,26 @@ func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 func checkSaltpackBrand(b string) error {
 	// Everything is awesome!
 	return nil
+}
+
+func SaltpackVersionFromArg(saltpackVersionArg int) (saltpack.Version, error) {
+	if saltpackVersionArg == 0 {
+		return CurrentSaltpackVersion(), nil
+	}
+
+	// The arg specifies the major version we want, and the minor version is
+	// assumed to be the latest available. Make a map to accomplish that.
+	majorVersionMap := map[int]saltpack.Version{}
+	for _, v := range saltpack.KnownVersions() {
+		latestPair, found := majorVersionMap[v.Major]
+		if !found || (v.Minor > latestPair.Minor) {
+			majorVersionMap[v.Major] = v
+		}
+	}
+
+	ret, found := majorVersionMap[saltpackVersionArg]
+	if !found {
+		return saltpack.Version{}, fmt.Errorf("failed to find saltpack major version %d", saltpackVersionArg)
+	}
+	return ret, nil
 }

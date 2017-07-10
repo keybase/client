@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import _ from 'lodash'
+import range from 'lodash/range'
 import * as Immutable from 'immutable'
 import * as ChatConstants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
@@ -38,10 +38,10 @@ const mockTextMessage = (
 })
 
 const mockMetaData = (authorSeeds: Array<number>) => {
-  return new Immutable.Map(
+  return Immutable.Map(
     authorSeeds.map(s => [
       nameGen(s),
-      new ChatConstants.MetaDataRecord({
+      ChatConstants.MetaDataRecord({
         fullname: nameGen(s),
         brokenTracker: false,
       }),
@@ -50,7 +50,7 @@ const mockMetaData = (authorSeeds: Array<number>) => {
 }
 
 const mockFollowingMap = (authorSeeds: Array<number>, seedToBool) => {
-  return new Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
+  return Immutable.Map(authorSeeds.map(s => [nameGen(s), seedToBool(s)]))
 }
 
 const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => ({
@@ -60,7 +60,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   metaDataMap,
   muted: false,
   you,
-  followingMap: mockFollowingMap(authorSeeds, () => true),
+  followingMap: mockFollowingMap(authorSeeds, _ => true),
   moreToLoad,
   onDeleteMessage: (message: ChatConstants.Message) => console.log('on delete message'),
   onEditMessage: (message: ChatConstants.Message, body: string) => console.log('on edit message'),
@@ -84,7 +84,7 @@ class Main extends React.Component {
   constructor() {
     super()
     this.state = {
-      messages: _.range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
+      messages: range(0, 100).map(i => mockTextMessage(i % 2, i, Date.now(), i, you, 'sent')),
     }
   }
 
@@ -92,7 +92,7 @@ class Main extends React.Component {
     console.log('prepending message')
     const i = this.state.messages.length
     this.setState({
-      messages: _.range(i, i + 10)
+      messages: range(i, i + 10)
         .map(i => mockTextMessage(Math.floor(Math.random() * 2), i, Date.now(), i, you, 'sent'))
         .concat(this.state.messages),
     })

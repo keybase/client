@@ -1,5 +1,6 @@
 // @flow
-import {last} from 'lodash'
+import last from 'lodash/last'
+import trim from 'lodash/trim'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
@@ -59,7 +60,7 @@ class UserInput extends Component<void, Props, State> {
     isFocused: false,
   }
 
-  _focusInput = () => {
+  focus = () => {
     this._textInput.focus()
   }
 
@@ -85,8 +86,17 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
-    } else if (ev.key === 'Enter') {
-      this.props.onEnter()
+    } else if (
+      (ev.key === 'Enter' || ev.key === 'Tab') &&
+      !trim(this.props.usernameText) &&
+      this.props.onEnterEmptyText
+    ) {
+      this.props.onEnterEmptyText()
+    } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
+      this.props.onAddSelectedUser()
+      ev.preventDefault()
+    } else if (ev.key === 'Escape') {
+      this.props.onCancel && this.props.onCancel()
       ev.preventDefault()
     }
   }
@@ -100,52 +110,62 @@ class UserInput extends Component<void, Props, State> {
   render() {
     const {
       autoFocus,
+      onChangeText,
+      onClearSearch,
+      onClickAddButton,
+      onRemoveUser,
       placeholder,
       userItems,
       usernameText,
-      onChangeText,
-      onClickAddButton,
-      onRemoveUser,
     } = this.props
     const {isFocused} = this.state
 
-    const showAddButton = !!userItems.length && !usernameText.length
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
       ? globalMargins.xtiny
       : 0
     return (
-      <Box
-        style={{...globalStyles.flexBoxRow, alignItems: 'center', flexWrap: 'wrap'}}
-        onClick={this._focusInput}
-        onMouseDown={this._preventInputDefocus}
-      >
-        {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
-        <Box style={_inputLineStyle}>
-          <AutosizeInput
-            autoFocus={autoFocus}
-            ref={el => {
-              this._textInput = el
-            }}
-            inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
-            placeholder={userItems.length ? '' : placeholder}
-            value={usernameText}
-            onChange={onChangeText}
-            onKeyDown={this._onInputKeyDown}
-            onFocus={this._onFocus}
-            onBlur={this._onBlur}
-          />
-          {showAddButton &&
-            <Icon
-              onClick={onClickAddButton}
-              type="iconfont-add"
-              style={{
-                fontSize: 12,
-                color: globalColors.blue,
-                marginLeft: globalMargins.xtiny,
-                cursor: 'pointer',
+      <Box style={{...globalStyles.flexBoxRow, minHeight: 48, alignItems: 'center'}}>
+        <Box
+          style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center', flexWrap: 'wrap'}}
+          onClick={this.focus}
+          onMouseDown={this._preventInputDefocus}
+        >
+          {userItems.map(item => <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />)}
+          <Box style={_inputLineStyle}>
+            <AutosizeInput
+              autoFocus={autoFocus}
+              ref={el => {
+                this._textInput = el
               }}
-            />}
+              inputStyle={{..._inputStyle, paddingLeft: inputLeftPadding}}
+              placeholder={userItems.length ? '' : placeholder}
+              value={usernameText}
+              onChange={onChangeText}
+              onKeyDown={this._onInputKeyDown}
+              onFocus={this._onFocus}
+              onBlur={this._onBlur}
+            />
+            {showAddButton &&
+              onClickAddButton &&
+              <Icon
+                onClick={onClickAddButton}
+                type="iconfont-add"
+                style={{
+                  fontSize: 12,
+                  color: globalColors.blue,
+                  marginLeft: globalMargins.xtiny,
+                  cursor: 'pointer',
+                }}
+              />}
+          </Box>
         </Box>
+        {onClearSearch &&
+          <Icon
+            type="iconfont-close"
+            style={{height: 16, width: 16, marginRight: 10}}
+            onClick={onClearSearch}
+          />}
       </Box>
     )
   }

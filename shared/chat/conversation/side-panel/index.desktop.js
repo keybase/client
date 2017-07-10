@@ -28,13 +28,13 @@ const SidePanel = (props: Props) => (
     <Box
       style={{...globalStyles.flexBoxColumn, alignItems: 'center', borderLeft: border, borderRight: border}}
     >
-      <Box style={{...globalStyles.flexBoxRow}}>
+      <Box style={globalStyles.flexBoxRow}>
         <Checkbox
           checked={props.muted}
           onCheck={checked => props.onMuteConversation(checked)}
           label="Mute notifications"
         />
-        <Icon type="icon-shh-active-16" style={{marginLeft: globalMargins.tiny}} />
+        <Icon type="iconfont-shh" style={{marginLeft: globalMargins.tiny}} />
       </Box>
     </Box>
 

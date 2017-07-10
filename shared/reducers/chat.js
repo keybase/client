@@ -179,6 +179,19 @@ function updateStateWithMessageOutboxIDChanged(
   return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
 }
 
+function updateLocalMessageState(
+  state: Constants.State,
+  messageKey: Constants.MessageKey,
+  toMerge: $Shape<Constants.LocalMessageStateProps>
+) {
+  // $FlowIssue updateIn
+  return state.updateIn(
+    ['localMessageStates', messageKey],
+    Constants.defaultLocalMessageState,
+    localMessageState => localMessageState.merge(toMerge)
+  )
+}
+
 function sortInbox(inbox: List<Constants.InboxState>): List<Constants.InboxState> {
   return inbox.sort((a, b) => {
     return b.get('time') - a.get('time')
@@ -195,7 +208,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state
         .update('conversationStates', conversationStates =>
           updateConversation(conversationStates, conversationIDKey, conversation =>
-            // $FlowIssue
             conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
           )
         )
@@ -347,11 +359,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
       return state.update('conversationStates', conversationStates =>
-        updateConversation(
-          conversationStates,
-          conversationIDKey,
-          // $FlowIssue
-          conversation => conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
+        updateConversation(conversationStates, conversationIDKey, conversation =>
+          conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
         )
       )
     }
@@ -372,40 +381,46 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
     }
     case 'chat:attachmentLoaded': {
-      const {conversationIDKey, messageID, path, isPreview} = action.payload
+      const {messageKey, path, isPreview} = action.payload
       let toMerge
       if (isPreview) {
         toMerge = {previewPath: path, previewProgress: null}
       } else {
         toMerge = {downloadedPath: path, downloadProgress: null}
       }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      return updateLocalMessageState(state, messageKey, toMerge)
+    }
+    case 'chat:attachmentSaveStart': {
+      const {messageKey} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: false})
     }
     case 'chat:attachmentSaved': {
-      const {conversationIDKey, messageID, path} = action.payload
-      const toMerge = {savedPath: path}
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      const {messageKey, path} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: path})
+    }
+    case 'chat:attachmentSaveFailed': {
+      const {messageKey} = action.payload
+      return updateLocalMessageState(state, messageKey, {savedPath: null})
     }
     case 'chat:downloadProgress': {
-      const {conversationIDKey, messageID, isPreview, bytesComplete, bytesTotal} = action.payload
-      let progress = 0
-      if (bytesTotal) {
-        progress = bytesComplete / bytesTotal
-      }
+      const {messageKey, isPreview, progress} = action.payload
       const progressField = isPreview ? 'previewProgress' : 'downloadProgress'
       const toMerge = {
         [progressField]: progress,
       }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      return updateLocalMessageState(state, messageKey, toMerge)
     }
     case 'chat:uploadProgress': {
-      const {conversationIDKey, messageID, bytesComplete, bytesTotal} = action.payload
-      const uploadProgress = bytesComplete / bytesTotal
-      const toMerge = {
-        messageState: 'uploading',
-        uploadProgress,
-      }
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, toMerge)
+      const {messageKey, progress} = action.payload
+      return updateLocalMessageState(state, messageKey, {uploadProgress: progress})
+    }
+    case 'chat:outboxMessageBecameReal': {
+      const {oldMessageKey, newMessageKey} = action.payload
+      const localMessageState = state.getIn(['localMessageStates', oldMessageKey])
+      // $FlowIssue deleteIn
+      return state
+        .deleteIn(['localMessageStates', oldMessageKey])
+        .setIn(['localMessageStates', newMessageKey], localMessageState)
     }
     case 'chat:markThreadsStale': {
       const {convIDs} = action.payload
@@ -546,6 +561,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           tempPendingConversations.filter(v => v).set(conversationIDKey, temporary)
         )
     }
+    case 'chat:removeTempPendingConversations': {
+      const tempPendingConvIDs = state.tempPendingConversations.filter(v => v).keySeq().toArray()
+      return state
+        .update('tempPendingConversations', tempPendingConversations => tempPendingConversations.clear())
+        .update('pendingConversations', pendingConversations =>
+          pendingConversations.filterNot((v, k) => tempPendingConvIDs.includes(k))
+        )
+    }
     case 'chat:pendingToRealConversation': {
       const {oldKey} = action.payload
       const oldPending = state.get('pendingConversations')
@@ -584,6 +607,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setInitialConversation': {
       return state.set('initialConversation', action.payload.conversationIDKey)
     }
+    case 'chat:setPreviousConversation': {
+      return state.set('previousConversation', action.payload.conversationIDKey)
+    }
     case 'chat:stageUserForSearch': {
       const {payload: {user}} = action
       if (state.selectedUsersInSearch.includes(user)) {
@@ -620,8 +646,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('inboxSearch', List(action.payload.search))
     }
     case 'chat:updateSearchResults': {
-      const {payload: {searchResults}} = action
-      return state.set('searchResults', List(searchResults))
+      const {payload: {searchResults, searchShowingSuggestions}} = action
+      return state
+        .set('searchResults', List(searchResults))
+        .set('searchShowingSuggestions', searchShowingSuggestions)
     }
     case 'chat:unstageUserForSearch': {
       const {payload: {user}} = action
@@ -635,6 +663,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
+    }
+    case 'chat:pendingSearchResults': {
+      const {payload: {pending}} = action
+      return state.set('searchPending', pending)
     }
   }
 

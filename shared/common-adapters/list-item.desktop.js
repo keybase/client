@@ -12,7 +12,7 @@ class ListItem extends Component<void, Props, void> {
       <Box
         style={{
           ...globalStyles.flexBoxRow,
-          ...containerStyle(this.props.type, clickable),
+          ...containerStyle(clickable),
           minHeight,
           ...this.props.containerStyle,
         }}

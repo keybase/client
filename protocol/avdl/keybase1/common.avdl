@@ -2,6 +2,7 @@
 @namespace("keybase.1")
 protocol Common {
 
+  // Time in milliseconds
   @typedef("long")
   record Time {}
 
@@ -96,7 +97,7 @@ protocol Common {
 
   record KeybaseTime {
     Time unix;
-    int chain;
+    Seqno chain;
   }
 
   record RevokedKey {
@@ -156,7 +157,6 @@ protocol Common {
       int sigHints;
       long sigChain;
       Time cachedAt;
-      Time lastIdentifiedAt;
   }
 
   @lint("ignore")

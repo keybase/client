@@ -13,7 +13,8 @@
     },
     "globals": {
         "__DEV__": false,
-        "__SCREENSHOT__": false
+        "__SCREENSHOT__": false,
+        "__STORYBOOK__": false
     },
     "plugins": [
         "filenames", "babel", "import", "flowtype", "prettier"
@@ -33,7 +34,7 @@
         "flowtype/define-flow-type": "error",
         "flowtype/delimiter-dangle": ["error", "always-multiline"],
         "flowtype/generic-spacing": "off",
-        "flowtype/no-dupe-keys": "error",
+        "flowtype/no-dupe-keys": "off",
         "flowtype/object-type-delimiter": ["error", "comma"],
         "flowtype/require-valid-file-annotation": ["error", "always", {"annotationStyle": "line"}],
         "flowtype/semi": ["error", "never"],
@@ -76,6 +77,7 @@
         "react/jsx-pascal-case": "error",
         "react/jsx-uses-react": "error",
         "react/jsx-uses-vars": "error",
+        "react/jsx-space-before-closing": "off",
         "react/no-danger": "error",
         "react/no-did-mount-set-state": "error",
         "react/no-did-update-set-state": "error",

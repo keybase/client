@@ -49,10 +49,12 @@ type NotifyListener interface {
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
+	ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal)
+	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
-	TeamKeyRotated(teamID keybase1.TeamID, teamName string)
+	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -670,6 +672,64 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 	n.G().Log.CDebugf(ctx, "- Sent ChatTypingUpdate notification")
 }
 
+func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
+	conv chat1.ConversationLocal) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatJoinedConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).ChatJoinedConversation(context.Background(), chat1.ChatJoinedConversationArg{
+					Uid:  uid,
+					Conv: conv,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatJoinedConversation(uid, conv)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatJoinedConversation notification")
+}
+
+func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatLeftConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).ChatLeftConversation(context.Background(), chat1.ChatLeftConversationArg{
+					Uid:    uid,
+					ConvID: convID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatLeftConversation(uid, convID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatLeftConversation notification")
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -829,25 +889,27 @@ func (n *NotifyRouter) HandleReachability(r keybase1.Reachability) {
 	n.G().Log.Debug("- Sent reachability")
 }
 
-func (n *NotifyRouter) HandleTeamKeyRotated(ctx context.Context, teamID keybase1.TeamID, teamName string) {
+func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 	if n == nil {
 		return
 	}
 
-	arg := keybase1.TeamKeyRotatedArg{
-		TeamID:   teamID,
-		TeamName: teamName,
+	arg := keybase1.TeamChangedArg{
+		TeamID:      teamID,
+		TeamName:    teamName,
+		Changes:     changes,
+		LatestSeqno: latestSeqno,
 	}
 
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending TeamKeyRotated notification")
+	n.G().Log.CDebugf(ctx, "+ Sending TeamChanged notification")
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		if n.getNotificationChannels(id).Team {
 			wg.Add(1)
 			go func() {
 				(keybase1.NotifyTeamClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
-				}).TeamKeyRotated(context.Background(), arg)
+				}).TeamChanged(context.Background(), arg)
 				wg.Done()
 			}()
 		}
@@ -855,7 +917,7 @@ func (n *NotifyRouter) HandleTeamKeyRotated(ctx context.Context, teamID keybase1
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.TeamKeyRotated(teamID, teamName)
+		n.listener.TeamChanged(teamID, teamName, latestSeqno, changes)
 	}
-	n.G().Log.CDebugf(ctx, "- Sent TeamKeyRotated notification")
+	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
 }

@@ -2,7 +2,7 @@
 import * as Constants from '../constants/tracker'
 import * as RPCTypes from '../constants/types/flow-types'
 import Session from '../engine/session'
-import _ from 'lodash'
+import get from 'lodash/get'
 import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
@@ -17,6 +17,8 @@ import type {TypedState} from '../constants/reducer'
 
 const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
+
+const profileFromUI = '@@UI-PROFILE'
 
 function startTimer(): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -89,7 +91,7 @@ function getProfile(
     }
 
     dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true), forceDisplay))
+    dispatch(triggerIdentify('', username, forceDisplay))
     dispatch(_fillFolders(username))
   }
 }
@@ -106,7 +108,6 @@ function getMyProfile(ignoreCache?: boolean): TrackerActionCreator {
 function triggerIdentify(
   uid: string = '',
   userAssertion: string = '',
-  incomingCallMap: Object = {},
   forceDisplay: boolean = false
 ): TrackerActionCreator {
   return (dispatch, getState) =>
@@ -120,17 +121,17 @@ function triggerIdentify(
           noErrorOnTrackFailure: true,
           forceRemoteCheck: false,
           forceDisplay,
-          useDelegateUI: false,
+          useDelegateUI: true,
           needProofSet: true,
           reason: {
             type: RPCTypes.IdentifyCommonIdentifyReasonType.id,
-            reason: 'Profile',
+            reason: profileFromUI,
             resource: '',
           },
           allowEmptySelfID: true,
           noSkipSelf: true,
         },
-        incomingCallMap,
+        incomingCallMap: {},
         callback: (error, response) => {
           if (error) {
             dispatch({
@@ -198,7 +199,7 @@ function registerIdentifyUi(): TrackerActionCreator {
         }
 
         const session: Session = engine().createSession(
-          _serverCallMap(dispatch, getState, false, onStart, onFinish),
+          _serverCallMap(dispatch, getState, onStart, onFinish),
           null,
           cancelHandler
         )
@@ -433,7 +434,6 @@ const sessionIDToUsername: {[key: number]: string} = {}
 function _serverCallMap(
   dispatch: Dispatch,
   getState: Function,
-  isGetProfile: boolean = false,
   onStart: ?(username: string) => void,
   onFinish: ?() => void
 ): RPCTypes.incomingCallMapType {
@@ -441,6 +441,7 @@ function _serverCallMap(
   let username
   let clearPendingTimeout
   let alreadyPending = false
+  let isGetProfile = false
 
   const requestIdle = f => {
     if (!alreadyPending) {
@@ -480,6 +481,7 @@ function _serverCallMap(
       {username: currentUsername, sessionID, reason, forceDisplay},
       response
     ) => {
+      isGetProfile = reason.reason === profileFromUI
       response.result()
       username = currentUsername
       sessionIDToUsername[sessionID] = username
@@ -688,37 +690,34 @@ function _serverCallMap(
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
       response.result()
 
-      addToIdleResponseQueue(
-        () => {
-          // Check if there were any errors in the proofs
-          dispatch({type: Constants.updateProofState, payload: {username}})
+      addToIdleResponseQueue(() => {
+        // Check if there were any errors in the proofs
+        dispatch({type: Constants.updateProofState, payload: {username}})
 
-          dispatch({type: Constants.identifyFinished, payload: {username}})
+        dispatch({type: Constants.identifyFinished, payload: {username}})
 
-          if (showAllTrackers && !isGetProfile) {
-            console.log('showAllTrackers is on, so showing tracker')
-            dispatch({type: Constants.showTracker, payload: {username}})
-          }
+        if (showAllTrackers && !isGetProfile) {
+          console.log('showAllTrackers is on, so showing tracker')
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
 
-          dispatch({
-            type: Constants.markActiveIdentifyUi,
-            payload: {username, active: false},
-          })
+        dispatch({
+          type: Constants.markActiveIdentifyUi,
+          payload: {username, active: false},
+        })
 
-          // Doing a non-tracker so explicitly cleanup instead of using the timeout
-          if (isGetProfile) {
-            dispatch(pendingIdentify(username, false))
-            clearTimeout(clearPendingTimeout)
-          }
+        // Doing a non-tracker so explicitly cleanup instead of using the timeout
+        if (isGetProfile) {
+          dispatch(pendingIdentify(username, false))
+          clearTimeout(clearPendingTimeout)
+        }
 
-          onFinish && onFinish()
+        onFinish && onFinish()
 
-          // cleanup bookkeeping
-          delete sessionIDToUsername[sessionID]
-          engine().cancelSession(sessionID)
-        },
-        {timeout: 1e3}
-      )
+        // cleanup bookkeeping
+        delete sessionIDToUsername[sessionID]
+        engine().cancelSession(sessionID)
+      })
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {
@@ -803,10 +802,10 @@ function _fillFolders(username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const state: TypedState = getState()
     const root = state.favorite
-    const pubIg = _.get(root, 'public.ignored', [])
-    const pubTlf = _.get(root, 'public.tlfs', [])
-    const privIg = _.get(root, 'private.ignored', [])
-    const privTlf = _.get(root, 'private.tlfs', [])
+    const pubIg = get(root, 'public.ignored', [])
+    const pubTlf = get(root, 'public.tlfs', [])
+    const privIg = get(root, 'private.ignored', [])
+    const privTlf = get(root, 'private.tlfs', [])
 
     const tlfs = []
       .concat(pubIg, pubTlf, privIg, privTlf)

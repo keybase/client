@@ -25,6 +25,7 @@ protocol constants {
     SCDecryptionError_280,
     SCInvalidAddress_281,
     SCNoSession_283,
+    SCAccountReset_290,
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
@@ -56,6 +57,7 @@ protocol constants {
     SCDeviceRequired_1411,
     SCDevicePrevProvisioned_1413,
     SCDeviceNoProvision_1414,
+    SCDeviceProvisionViaDevice_1415,
     SCStreamExists_1501,
     SCStreamNotFound_1502,
     SCStreamWrongKind_1503,
@@ -89,7 +91,11 @@ protocol constants {
     SCIdentifySummaryError_2511,
     SCNeedSelfRekey_2512,
     SCNeedOtherRekey_2513,
-    SCChatMessageCollision_2514
+    SCChatMessageCollision_2514,
+    SCChatDuplicateMessage_2515,
+    SCChatClientError_2516,
+    SCChatNotInTeam_2517,
+    SCTeamReadError_2623
   }
 
 }

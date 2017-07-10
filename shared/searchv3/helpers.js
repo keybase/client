@@ -2,7 +2,7 @@
 
 import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
 import * as Constants from '../constants/searchv3'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 
 type OwnProps = {
   onChangeSearchText: (s: string) => void,
@@ -12,7 +12,7 @@ type OwnProps = {
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onStageUserForSearch: (id: Constants.SearchResultId) => void,
+  onAddSelectedUser: (id: Constants.SearchResultId) => void,
 }
 
 // Which search result is highlighted
@@ -21,24 +21,39 @@ const selectedSearchIdHoc = compose(
   lifecycle({
     componentWillReceiveProps: function(nextProps: OwnProps) {
       if (this.props.searchResultIds !== nextProps.searchResultIds) {
-        nextProps.onUpdateSelectedSearchResult(nextProps.searchResultIds[0] || null)
+        nextProps.onUpdateSelectedSearchResult(
+          (nextProps.searchResultIds && nextProps.searchResultIds[0]) || null
+        )
       }
     },
   })
 )
 
+// TODO hook up this type
+/*
+type InProps = {
+  onRemoveUser: (id: Constants.SearchResultId) => void,
+  onExitSearch: () => void,
+  userItems: Array<{id: Constants.SearchResultId}>,
+  searchText: string,
+  onChangeSearchText: (nextText: string) => void,
+  clearSearchResults: () => void,
+  search: (search: string, service: Constants.Service) => void,
+}
+
+type OutProps = {
+  onClearSearch: () => void,
+}
+*/
+const clearSearchHoc = withHandlers({
+  onClearSearch: ({onExitSearch}) => () => onExitSearch(),
+})
+
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onEnter: ({
-      selectedSearchId,
-      onStageUserForSearch,
-      onChangeSearchText,
-      selectedService,
-      search,
-    }: OwnProps) => () => {
-      selectedSearchId && onStageUserForSearch(selectedSearchId)
+    onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
+      selectedSearchId && onAddSelectedUser(selectedSearchId)
       onChangeSearchText('')
-      search('', selectedService)
     },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
@@ -71,4 +86,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc}
+const showServiceLogicHoc = withPropsOnChange(['searchText', 'userItems'], ({searchText, userItems}) => ({
+  showServiceFilter: !!searchText || userItems.length === 0,
+}))
+
+export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc, clearSearchHoc}

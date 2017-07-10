@@ -27,6 +27,8 @@ type StateProps = {|
   inSearch: boolean,
   searchResultIds: Array<SearchConstants.SearchResultId>,
   showSearchResults: boolean,
+  showSearchPending: boolean,
+  showSearchSuggestions: boolean,
 |}
 
 type DispatchProps = {|
@@ -66,8 +68,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     }
   }
 
-  const searchResults = state.chat.searchResults
-
+  const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
   return {
     finalizeInfo,
     rekeyInfo,
@@ -76,9 +77,11 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     supersededBy,
     supersedes,
     threadLoadedOffline,
-    inSearch: state.chat.inSearch,
+    inSearch,
     searchResultIds: chatSearchResultArray(state),
+    showSearchPending: searchPending,
     showSearchResults: !!searchResults,
+    showSearchSuggestions: searchShowingSuggestions,
   }
 }
 
@@ -95,7 +98,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState, navigateUp}): Di
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
     dispatch(Creators.stageUserForSearch(id))
-    dispatch(Creators.clearSearchResults(id))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
 })

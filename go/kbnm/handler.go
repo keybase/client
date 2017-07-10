@@ -59,8 +59,10 @@ func checkUsernameQuery(s string) (string, error) {
 // Handler returns a request handler.
 func Handler() *handler {
 	return &handler{
-		Run:               execRunner,
-		FindKeybaseBinary: findKeybaseBinary,
+		Run: execRunner,
+		FindKeybaseBinary: func() (string, error) {
+			return findKeybaseBinary(keybaseBinary)
+		},
 	}
 }
 

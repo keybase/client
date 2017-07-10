@@ -1,6 +1,7 @@
 package kbtest
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -68,7 +69,6 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	}
 	for i := 0; i < numUsers; i++ {
 		kbTc := externals.SetupTest(t, "chat_"+name, 0)
-		kbTc.Tp.UpgradePerUserKey = true
 		tc := ChatTestContext{
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},
@@ -429,6 +429,20 @@ func (m *ChatRemoteMock) headerToVerifiedForTesting(h chat1.MessageClientHeader)
 	}
 }
 
+func (m *ChatRemoteMock) promoteWriter(ctx context.Context, sender gregor1.UID, writers []gregor1.UID) []gregor1.UID {
+	res := make([]gregor1.UID, len(writers))
+	copy(res, writers)
+	for index, w := range writers {
+		if bytes.Equal(w.Bytes(), sender.Bytes()) {
+			res = append(res[:index], res[index+1:]...)
+			res = append([]gregor1.UID{sender}, res...)
+			return res
+		}
+	}
+	res = append([]gregor1.UID{sender}, res...)
+	return res
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -437,6 +451,8 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	if ri.ReadMsgid == ri.MaxMsgid {
 		m.readMsgid[arg.ConversationID.String()] = inserted.ServerHeader.MessageID
 	}
+	conv.Metadata.ActiveList = m.promoteWriter(ctx, arg.MessageBoxed.ClientHeader.Sender,
+		conv.Metadata.ActiveList)
 	conv.MaxMsgs = m.getMaxMsgs(arg.ConversationID)
 	conv.MaxMsgSummaries = nil
 	for _, m := range conv.MaxMsgs {
@@ -601,6 +617,18 @@ func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res
 
 func (m *ChatRemoteMock) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateTypingRemoteArg) error {
 	return nil
+}
+
+func (m *ChatRemoteMock) GetTLFConversations(ctx context.Context, arg chat1.GetTLFConversationsArg) (chat1.GetTLFConversationsRes, error) {
+	return chat1.GetTLFConversationsRes{}, nil
+}
+
+func (m *ChatRemoteMock) JoinConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
 
 type convByNewlyUpdated struct {

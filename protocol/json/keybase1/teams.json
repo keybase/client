@@ -7,10 +7,10 @@
       "name": "TeamRole",
       "symbols": [
         "NONE_0",
-        "OWNER_1",
-        "ADMIN_2",
-        "WRITER_3",
-        "READER_4"
+        "READER_1",
+        "WRITER_2",
+        "ADMIN_3",
+        "OWNER_4"
       ]
     },
     {
@@ -24,6 +24,12 @@
     },
     {
       "type": "record",
+      "name": "PerTeamKeyGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "TeamApplicationKey",
       "fields": [
         {
@@ -31,7 +37,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "keyGeneration"
         },
         {
@@ -48,6 +54,12 @@
     },
     {
       "type": "record",
+      "name": "TeamInviteID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "ReaderKeyMask",
       "fields": [
         {
@@ -55,7 +67,7 @@
           "name": "application"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -69,7 +81,7 @@
       "name": "PerTeamKey",
       "fields": [
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "gen"
         },
         {
@@ -101,7 +113,7 @@
           "name": "seed"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -164,35 +176,67 @@
     },
     {
       "type": "record",
-      "name": "TeamMembersUsernames",
+      "name": "TeamMemberDetails",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "boolean",
+          "name": "active"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersDetails",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberDetails"
           },
           "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDetails",
+      "fields": [
+        {
+          "type": "TeamMembersDetails",
+          "name": "members"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
         }
       ]
     },
@@ -203,35 +247,35 @@
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "owners"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "admins"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "writers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "readers"
         },
         {
           "type": {
             "type": "array",
-            "items": "UID"
+            "items": "UserVersion"
           },
           "name": "none"
         }
@@ -300,21 +344,102 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "PerTeamKeySeedItem"
+            "type": "map",
+            "values": "PerTeamKeySeedItem",
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeySeeds"
         },
         {
           "type": {
-            "type": "array",
-            "items": "ReaderKeyMask"
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
           },
           "name": "readerKeyMasks"
         },
         {
           "type": "Time",
           "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamInviteCategory",
+      "symbols": [
+        "NONE_0",
+        "UNKNOWN_1",
+        "KEYBASE_2",
+        "EMAIL_3",
+        "SBS_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamInviteType",
+      "switch": {
+        "type": "TeamInviteCategory",
+        "name": "c"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SBS",
+            "def": false
+          },
+          "body": "TeamInviteSocialNetwork"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteSocialNetwork",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
         }
       ]
     },
@@ -331,7 +456,7 @@
           "name": "id"
         },
         {
-          "type": "string",
+          "type": "TeamName",
           "name": "name"
         },
         {
@@ -363,18 +488,45 @@
         {
           "type": {
             "type": "map",
+            "values": {
+              "type": "array",
+              "items": "SubteamLogPoint"
+            },
+            "keys": "TeamID"
+          },
+          "name": "subteamLog"
+        },
+        {
+          "type": {
+            "type": "map",
             "values": "PerTeamKey",
-            "keys": "int"
+            "keys": "PerTeamKeyGeneration"
           },
           "name": "perTeamKeys"
         },
         {
           "type": {
             "type": "map",
-            "values": "boolean",
-            "keys": "int"
+            "values": "LinkID",
+            "keys": "Seqno"
           },
-          "name": "stubbedTypes"
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "Seqno"
+          },
+          "name": "stubbedLinks"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "activeInvites"
         }
       ]
     },
@@ -385,6 +537,20 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamLogPoint",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
         },
         {
           "type": "Seqno",
@@ -421,7 +587,7 @@
           "jsonkey": "team_id"
         },
         {
-          "type": "int",
+          "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
         {
@@ -430,6 +596,53 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamChangeRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated",
+          "jsonkey": "key_rotated"
+        },
+        {
+          "type": "boolean",
+          "name": "membershipChanged",
+          "jsonkey": "membership_changed"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqno",
+          "jsonkey": "latest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRefreshers",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "wantMembers"
+        }
+      ],
+      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
     },
     {
       "type": "record",
@@ -449,15 +662,8 @@
           "name": "needAdmin"
         },
         {
-          "type": "int",
-          "name": "needKeyGeneration"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "UserVersion"
-          },
-          "name": "needMembers"
+          "type": "TeamRefreshers",
+          "name": "refreshers"
         },
         {
           "type": "boolean",
@@ -470,6 +676,72 @@
         {
           "type": "boolean",
           "name": "staleOK"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitRole",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamID",
+          "name": "ancestor"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberInfo",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "string",
+          "name": "fqName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamList",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MemberInfo"
+          },
+          "name": "teams"
         }
       ]
     }
@@ -497,9 +769,26 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
         }
       ],
-      "response": "TeamMembersUsernames"
+      "response": "TeamDetails"
+    },
+    "teamList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
+        }
+      ],
+      "response": "TeamList"
     },
     "teamChangeMembership": {
       "request": [
@@ -560,6 +849,23 @@
       ],
       "response": null
     },
+    "teamLeave": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "teamEditMember": {
       "request": [
         {
@@ -594,9 +900,14 @@
         {
           "name": "application",
           "type": "TeamApplication"
+        },
+        {
+          "name": "refreshers",
+          "type": "TeamRefreshers"
         }
       ],
-      "response": "TeamPlusApplicationKeys"
+      "response": "TeamPlusApplicationKeys",
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
     }
   },
   "namespace": "keybase.1"

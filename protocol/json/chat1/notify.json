@@ -17,7 +17,8 @@
         "READ_MESSAGE_2",
         "NEW_CONVERSATION_3",
         "SET_STATUS_4",
-        "FAILED_MESSAGE_5"
+        "FAILED_MESSAGE_5",
+        "MEMBERS_UPDATE_6"
       ]
     },
     {
@@ -114,6 +115,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MembersUpdateInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "member"
+        },
+        {
+          "type": "boolean",
+          "name": "joined"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -155,6 +174,13 @@
             "def": false
           },
           "body": "FailedMessageInfo"
+        },
+        {
+          "label": {
+            "name": "MEMBERS_UPDATE",
+            "def": false
+          },
+          "body": "MembersUpdateInfo"
         }
       ]
     },
@@ -311,6 +337,36 @@
             "type": "array",
             "items": "ConvTypingUpdate"
           }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatJoinedConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "conv",
+          "type": "ConversationLocal"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatLeftConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": null,

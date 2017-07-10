@@ -123,8 +123,6 @@ const baseFolder = {
   ignored: false,
   isPublic: true,
   hasData: true,
-  groupAvatar: true,
-  userAvatar: null,
   recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],

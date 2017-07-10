@@ -3,7 +3,7 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
-import Main from '../../main.desktop'
+import Main from '../../app/main.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -14,7 +14,7 @@ import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
-import routeDefs from '../../routes'
+import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
@@ -23,8 +23,9 @@ import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
-import {merge, throttle} from 'lodash'
-import {reduxDevToolsEnable, resetEngineOnHMR} from '../../local-debug.desktop'
+import merge from 'lodash/merge'
+import throttle from 'lodash/throttle'
+import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -164,13 +165,6 @@ const FontLoader = () => (
 )
 
 function render(store, MainComponent) {
-  let dt
-  if (__DEV__ && reduxDevToolsEnable) {
-    // eslint-disable-line no-undef
-    const DevTools = require('./redux-dev-tools').default
-    dt = <DevTools />
-  }
-
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
@@ -179,7 +173,6 @@ function render(store, MainComponent) {
             <RemoteManager />
             <FontLoader />
             <MainComponent />
-            {dt}
           </div>
         </GlobalEscapeHandler>
       </Root>
@@ -198,11 +191,11 @@ function setupHMR(store) {
   }
 
   module.hot &&
-    module.hot.accept(['../../main.desktop', '../../routes'], () => {
-      store.dispatch(setRouteDef(require('../../routes').default))
+    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
+      store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
         store.dispatch({type: updateReloading, payload: {reloading: true}})
-        const NewMain = require('../../main.desktop').default
+        const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
         if (resetEngineOnHMR) {
           engine().reset()

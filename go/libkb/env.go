@@ -28,7 +28,6 @@ func (n NullConfiguration) GetChatDbFilename() string                           
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
-func (n NullConfiguration) GetSupportPerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
@@ -149,9 +148,9 @@ type TestParameters struct {
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
 	// suffix.
-	DevelName         string
-	RuntimeDir        string
-	UpgradePerUserKey bool
+	DevelName                string
+	RuntimeDir               string
+	DisableUpgradePerUserKey bool
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -653,23 +652,9 @@ func (e *Env) GetEmail() string {
 	)
 }
 
-// Whether to support per-user-keys in anyones sigchain.
-// Implied by UpgradePerUserKey.
-// Does not add per-user-keys to sigchains unless they are already there.
-// It is unwise to have this off and interact with sigchains that have per-user-keys.
-func (e *Env) GetSupportPerUserKey() bool {
-	return true
-}
-
 // Upgrade sigchains to contain per-user-keys.
-// Implies SupportPerUserKey.
 func (e *Env) GetUpgradePerUserKey() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.Test.UpgradePerUserKey, e.Test.UpgradePerUserKey },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_UPGRADE_PER_USER_KEY") },
-		func() (bool, bool) { return e.config.GetUpgradePerUserKey() },
-		func() (bool, bool) { return e.cmd.GetUpgradePerUserKey() },
-	)
+	return !e.Test.DisableUpgradePerUserKey
 }
 
 func (e *Env) GetProxy() string {
@@ -1204,6 +1189,12 @@ func (e *Env) GetKBFSInfoPath() string {
 
 func (e *Env) GetUpdateDefaultInstructions() (string, error) {
 	return PlatformSpecificUpgradeInstructionsString()
+}
+
+func (e *Env) RunningInCI() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_RUN_CI") },
+	)
 }
 
 func GetPlatformString() string {

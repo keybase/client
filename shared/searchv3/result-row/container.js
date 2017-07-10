@@ -11,7 +11,6 @@ const mapStateToProps = (
   state: TypedState,
   {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
 ) => {
-  // $FlowIssue doesn't understand getIn
   const result = state.entities.getIn(['searchResults', id], Map()).toObject()
 
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)

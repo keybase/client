@@ -82,12 +82,15 @@ export type PropsOf<C> = _PropsOf<*, C>
 export type DumbComponentMap<C: Component<*, *, *>> = {
   component: Class<C>,
   mocks: {
-    [key: string]: PropsOf<C>,
+    [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},
   },
 }
 
-export type LooseRecord<T> = T & {
-  get<A>(key: $Keys<T>): A,
-  set<A>(key: $Keys<T>, value: A): LooseRecord<T>,
-  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): LooseRecord<T>,
+// TODO when ElementType<T, string> is added to flow type get/getin
+export type KBRecord<T> = T & {
+  get<A>(key: $Keys<T>, fallbackVal?: A): A,
+  set<A>(key: $Keys<T>, value: A): KBRecord<T>,
+  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): KBRecord<T>,
+  getIn<A>(keys: Array<any>, fallbackVal?: A): A,
+  toObject(): T,
 }

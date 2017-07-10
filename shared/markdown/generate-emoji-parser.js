@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import peg from 'pegjs'
 import emojiData from 'emoji-datasource'
-import {invert} from 'lodash'
+import invert from 'lodash/invert'
 
 // from https://github.com/twitter/twemoji/blob/gh-pages/twemoji-generator.js
 function UTF162JSON(text) {
@@ -58,7 +58,7 @@ function buildParser() {
     )
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
-  // $FlowIssue flow doesn't accept this tagged template literal
+  // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
     const linkExp = /^(:?\/\/)?(?:www\.)?[-a-zA-Z0-9@%._\+~#=]{2,256}(?::[0-9]{1,6})?\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/i
     const dotDotExp = /[^/]\.\.[^/]/
@@ -67,9 +67,18 @@ function buildParser() {
     const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
   `
 
-  const appendJS = `
+  // $FlowIssue Unclear why flow isn't accepting String.raw here
+  const appendJS = String.raw`
     module.exports.emojiIndexByChar = emojiIndexByChar
     module.exports.emojiIndexByName = emojiIndexByName
+
+    // quick check to avoid markdown parsing overhead
+    // only chars, numbers, whitespace, some common punctuation and periods
+    // that end sentences (not domains)
+    const plaintextExp = /^([A-Za-z0-9!?=+@#$%^&()[\],'"\s]|\.\B)*$/
+    module.exports.isPlainText = function isPlainText(markdown) {
+      return markdown && markdown.match(plaintextExp) ? markdown.trim() : null
+    }
   `
 
   const parserJS = peg.generate(generatedSource, {output: 'source', format: 'commonjs'})

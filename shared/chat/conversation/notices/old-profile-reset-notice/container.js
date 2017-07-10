@@ -12,6 +12,7 @@ import type {StateProps, DispatchProps} from './container'
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   if (!selectedConversationIDKey) {
+    // $FlowIssue this isn't typesafe
     return {}
   }
   const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)

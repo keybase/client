@@ -10,6 +10,7 @@ protocol saltpack {
     boolean encryptionOnlyMode;
     boolean noSelfEncrypt;
     boolean binary;
+    int saltpackVersion;
   }
 
   record SaltpackDecryptOptions {
@@ -21,6 +22,7 @@ protocol saltpack {
   record SaltpackSignOptions {
     boolean detached;
     boolean binary;
+    int saltpackVersion;
   }
 
   record SaltpackVerifyOptions {

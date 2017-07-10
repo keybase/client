@@ -4,8 +4,11 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -17,13 +20,15 @@ import (
 type UserHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	globals.ChatContextified
 }
 
 // NewUserHandler creates a UserHandler for the xp transport.
-func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserHandler {
+func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.ChatContext) *UserHandler {
 	return &UserHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
+		BaseHandler:      NewBaseHandler(xp),
+		Contextified:     libkb.NewContextified(g),
+		ChatContextified: globals.NewChatContextified(chatG),
 	}
 }
 
@@ -209,8 +214,92 @@ func (h *UserHandler) ListTrackers2(_ context.Context, arg keybase1.ListTrackers
 	return res, err
 }
 
+func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return errors.New("can only reset user via service RPC in dev mode")
+	}
+	err := h.G().LoginState().ResetAccount(h.G().Env.GetUsername().String())
+	if err != nil {
+		return err
+	}
+	err = h.G().Logout()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
 	eng := engine.NewProfileEdit(h.G(), arg)
 	ctx := &engine.Context{NetContext: nctx}
 	return engine.RunEngine(eng, ctx)
+}
+
+func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {
+	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid)
+	arg.PublicKeyOptional = true
+	arg.StaleOK = true
+	arg.CachedOnly = true
+	upak, _, err := h.G().GetUPAKLoader().Load(arg)
+	if err != nil {
+		return "", err
+	}
+	return upak.GetName(), nil
+}
+
+func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
+
+	// Chat source
+	chatFn := func(uid keybase1.UID) (kuids []keybase1.UID, err error) {
+		g := globals.NewContext(h.G(), h.ChatG())
+		list, err := chat.RecentConversationParticipants(ctx, g, uid.ToBytes())
+		if err != nil {
+			return nil, err
+		}
+		for _, guid := range list {
+			kuids = append(kuids, keybase1.UID(guid.String()))
+		}
+		return kuids, nil
+	}
+
+	// Follower source
+	followerFn := func(uid keybase1.UID) (res []keybase1.UID, err error) {
+		var found bool
+		var tmp keybase1.UserSummary2Set
+		found, err = h.G().LocalDb.GetInto(&tmp, libkb.DbKeyUID(libkb.DBTrackers2Reverse, uid))
+		if err != nil {
+			return nil, err
+		}
+		if !found {
+			return nil, nil
+		}
+		for _, u := range tmp.Users {
+			res = append(res, u.Uid)
+		}
+		return res, nil
+	}
+
+	ip := newInterestingPeople(h.G())
+
+	// Add sources of interesting people
+	ip.AddSource(chatFn, 0.9)
+	ip.AddSource(followerFn, 0.1)
+
+	uids, err := ip.Get(ctx, maxUsers)
+	if err != nil {
+		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
+		return nil, err
+	}
+	for _, u := range uids {
+		name, err := h.loadUsername(ctx, u)
+		if err != nil {
+			h.G().Log.Debug("InterestingPeople: failed to get username for: %s msg: %s", u, err.Error())
+			continue
+		}
+		res = append(res, keybase1.InterestingPerson{
+			Uid:      u,
+			Username: name,
+		})
+	}
+	return res, nil
 }

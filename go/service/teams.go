@@ -36,8 +36,16 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name)
 }
 
-func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamMembersUsernames, error) {
-	return teams.Members(ctx, h.G().ExternalG(), arg.Name)
+func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {
+	return teams.Details(ctx, h.G().ExternalG(), arg.Name, arg.ForceRepoll)
+}
+
+func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (keybase1.TeamList, error) {
+	x, err := teams.List(ctx, h.G().ExternalG(), arg)
+	if err != nil {
+		return keybase1.TeamList{}, err
+	}
+	return *x, nil
 }
 
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
@@ -66,8 +74,12 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
 }
 
+func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) error {
+	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
+}
+
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)
-	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application)
+	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
 }

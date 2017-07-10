@@ -91,7 +91,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.55-darwin.tgz"
+installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.57-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-darwin.tgz"
 
@@ -237,6 +237,7 @@ sign() {(
 # Create dmg from Keybase.app
 package_dmg() {(
   cd "$out_dir"
+  echo "Packaging dmg in $out_dir"
   appdmg="appdmg.json"
 
   osx_scripts="$client_dir/osx/Scripts"
@@ -264,7 +265,8 @@ create_zip() {(
 kbsign() {(
   cd "$out_dir"
   echo "Signing (via keybase)"
-  keybase sign -d -i "$zip_name" -o "$sig_name"
+  # Use saltpack v1 because keybase/go-updater supports that version
+  keybase sign -d --saltpack-version=1 -i "$zip_name" -o "$sig_name"
 )}
 
 update_json() {(

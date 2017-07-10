@@ -22,8 +22,8 @@ import (
 // The issue is that we're not uniformly signing Merkle roots into signatures,
 // especially those generated on the Web site.
 type KeybaseTime struct {
-	Unix  int64 // UTC wallclock time
-	Chain int   // Merkle root chain time
+	Unix  int64          // UTC wallclock time
+	Chain keybase1.Seqno // Merkle root chain time
 }
 
 // Struct for the DelegationsList
@@ -31,6 +31,13 @@ type Delegation struct {
 	KID   keybase1.KID
 	SigID keybase1.SigID
 }
+
+type ComputedKeyInfosVersion int
+
+const (
+	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV1
+)
 
 // refers to exactly one ServerKeyInfo.
 type ComputedKeyInfo struct {
@@ -64,14 +71,16 @@ type ComputedKeyInfo struct {
 
 	// Merkle Timestamps and Friends for delegation. Suboptimal grouping of concerns
 	// due to backwards compatibility and sensitivity to preexisting ondisk representations.
-	DelegatedAt             *KeybaseTime      // The Seqno/Ctime signed into the link, so jus before the actual delegation!
-	DelegatedAtHashMeta     keybase1.HashMeta // The HashMeta at the time of the delegation
-	FirstAppearedUnverified keybase1.Seqno    // What the server claims was the first merkle appearance of this seqno
+	DelegatedAt                 *KeybaseTime              // The Seqno/Ctime signed into the link, so jus before the actual delegation!
+	DelegatedAtHashMeta         keybase1.HashMeta         // The HashMeta at the time of the delegation
+	FirstAppearedUnverified     keybase1.Seqno            // What the server claims was the first merkle appearance of this seqno
+	DelegatedAtSigChainLocation keybase1.SigChainLocation // Where the delegation was in our sigchain
 
 	// Merkle Timestamps and Friends for revocation.
-	RevokedAt         *KeybaseTime // The Seqno/Ctime signed into the signature
-	RevokedBy         keybase1.KID
-	RevokedAtHashMeta keybase1.HashMeta // The hash_meta signed in at the time of the revocation
+	RevokedAt                 *KeybaseTime // The Seqno/Ctime signed into the signature
+	RevokedBy                 keybase1.KID
+	RevokedAtHashMeta         keybase1.HashMeta          // The hash_meta signed in at the time of the revocation
+	RevokedAtSigChainLocation *keybase1.SigChainLocation // Where the revocation was in our sigchain
 
 	// For PGP keys, the active version of the key. If unspecified, use the
 	// legacy behavior of combining every instance of this key that we got from
@@ -92,6 +101,9 @@ func (cki ComputedKeyInfo) GetETime() time.Time {
 // former.  We should rewrite CKIs every time we (re)check a user's SigChain
 type ComputedKeyInfos struct {
 	Contextified
+
+	// Now set to 1. Everything before that is thrown away on sigchain load.
+	Version ComputedKeyInfosVersion
 
 	dirty bool // whether it needs to be written to disk or not
 
@@ -224,6 +236,7 @@ func (cki *ComputedKeyInfos) PaperDevices() []*Device {
 func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
 		dirty:         cki.dirty,
+		Version:       cki.Version,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo, len(cki.Infos)),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo, len(cki.Sigs)),
 		Devices:       make(map[keybase1.DeviceID]*Device, len(cki.Devices)),
@@ -302,6 +315,7 @@ func (ckf ComputedKeyFamily) ShallowCopy() *ComputedKeyFamily {
 func NewComputedKeyInfos(g *GlobalContext) *ComputedKeyInfos {
 	return &ComputedKeyInfos{
 		Contextified:  NewContextified(g),
+		Version:       ComputedKeyInfosVersionCurrent,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo),
 		Sigs:          make(map[keybase1.SigID]*ComputedKeyInfo),
 		Devices:       make(map[keybase1.DeviceID]*Device),
@@ -544,7 +558,7 @@ func (ckf ComputedKeyFamily) FindKIDFromFingerprint(fp PGPFingerprint) (kid keyb
 func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  tcl.GetCTime().Unix(),
-		Chain: int(tcl.GetMerkleSeqno()),
+		Chain: tcl.GetMerkleSeqno(),
 	}
 }
 
@@ -553,7 +567,7 @@ func TclToKeybaseTime(tcl TypedChainLink) *KeybaseTime {
 func NowAsKeybaseTime(seqno keybase1.Seqno) *KeybaseTime {
 	return &KeybaseTime{
 		Unix:  time.Now().Unix(),
-		Chain: int(seqno),
+		Chain: seqno,
 	}
 }
 
@@ -581,7 +595,7 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 
 	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(),
 		tcl.GetPGPFullHash(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime(),
-		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified())
+		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified(), tcl.ToSigChainLocation())
 	return
 }
 
@@ -592,9 +606,11 @@ func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey)
 // Delegate marks the given ComputedKeyInfos object that the given kid is now
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
 // fau = "FirstAppearedUnverified", a hint from the server that we're going to persist.
+// dascl = "DelegatedAtSigChainLocation"
 func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
 	pgpHash string, isSibkey bool, ctime, etime time.Time,
-	merkleHashMeta keybase1.HashMeta, fau keybase1.Seqno) (err error) {
+	merkleHashMeta keybase1.HashMeta, fau keybase1.Seqno,
+	dascl keybase1.SigChainLocation) (err error) {
 
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
@@ -612,6 +628,7 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 	info.DelegationsList = append(info.DelegationsList, Delegation{signingKid, sigid})
 	info.Sibkey = isSibkey
 	info.DelegatedAtHashMeta = merkleHashMeta.DeepCopy()
+	info.DelegatedAtSigChainLocation = dascl.DeepCopy()
 	info.FirstAppearedUnverified = fau
 
 	cki.Sigs[sigid] = info
@@ -625,6 +642,10 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 		}
 	}
 	return
+}
+
+func (cki *ComputedKeyInfos) IsStaleVersion() bool {
+	return cki.Version < ComputedKeyInfosVersionCurrent
 }
 
 // DelegatePerUserKey inserts the new per-user key into the list of known per-user keys.
@@ -715,6 +736,8 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+		tmp := tcl.ToSigChainLocation()
+		info.RevokedAtSigChainLocation = &tmp
 		mhm, err := tcl.GetMerkleHashMeta()
 		if err != nil {
 			return err

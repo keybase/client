@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -274,12 +273,9 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	if e.G().Env.GetSupportPerUserKey() {
-		pukBox, err := e.makePukBox(key)
-		if err != nil {
-			return output, err
-		}
-		output.PukBox = pukBox
+	output.PukBox, err = e.makePukBox(key)
+	if err != nil {
+		return output, err
 	}
 
 	return output, err
@@ -384,9 +380,6 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 
 // Returns nil box if there are no per-user-keys.
 func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
-	if !e.G().Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-key support disabled")
-	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("Unexpected receiver key type")

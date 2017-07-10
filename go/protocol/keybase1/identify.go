@@ -47,13 +47,15 @@ func (o IdentifyTrackBreaks) DeepCopy() IdentifyTrackBreaks {
 }
 
 type Identify2Res struct {
-	Upk         UserPlusKeys         `codec:"upk" json:"upk"`
-	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
+	Upk          UserPlusKeys         `codec:"upk" json:"upk"`
+	IdentifiedAt Time                 `codec:"identifiedAt" json:"identifiedAt"`
+	TrackBreaks  *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
 }
 
 func (o Identify2Res) DeepCopy() Identify2Res {
 	return Identify2Res{
-		Upk: o.Upk.DeepCopy(),
+		Upk:          o.Upk.DeepCopy(),
+		IdentifiedAt: o.IdentifiedAt.DeepCopy(),
 		TrackBreaks: (func(x *IdentifyTrackBreaks) *IdentifyTrackBreaks {
 			if x == nil {
 				return nil
@@ -208,7 +210,7 @@ type IdentifyInterface interface {
 	// Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
 	// an error.
 	Resolve(context.Context, string) (UID, error)
-	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+	// Resolve an assertion to a (UID,username). On failure, returns an error. Doesn't work for teams.
 	Resolve2(context.Context, string) (User, error)
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 	Resolve3(context.Context, string) (UserOrTeamLite, error)
@@ -337,7 +339,7 @@ func (c IdentifyClient) Resolve(ctx context.Context, assertion string) (res UID,
 	return
 }
 
-// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
+// Resolve an assertion to a (UID,username). On failure, returns an error. Doesn't work for teams.
 func (c IdentifyClient) Resolve2(ctx context.Context, assertion string) (res User, err error) {
 	__arg := Resolve2Arg{Assertion: assertion}
 	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve2", []interface{}{__arg}, &res)

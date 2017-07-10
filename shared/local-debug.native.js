@@ -5,8 +5,12 @@
 
 import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
+import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine
+
+// Set this to true if you want to turn off most console logging so you can profile easier
+const PERF = false
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
@@ -50,6 +54,43 @@ if (__DEV__ && true) {
   config.reduxSagaLogger = true
   config.reduxSagaLoggerMasked = false
   config.showAllTrackers = false
+}
+
+if (PERF) {
+  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
+
+  window.console._log = window.console.log
+  window.console._warn = window.console.warn
+  window.console._error = window.console.error
+
+  window.console.log = noop
+  window.console.warn = noop
+  window.console.error = noop
+
+  config = {
+    actionStatFrequency: 0,
+    clickableVisible: false,
+    dumbChatOnly: false,
+    dumbSheetOnly: false,
+    enableActionLogging: false,
+    enableStoreLogging: false,
+    featureFlagsOverride: null,
+    forceImmediateLogging: false,
+    forwardLogs: false,
+    isDevApplePushToken: false,
+    isTesting: false,
+    immediateStateLogging: false,
+    logStatFrequency: 0,
+    overrideLoggedInTab: null,
+    printOutstandingRPCs: false,
+    printRPC: false,
+    printRoutes: false,
+    reactPerf: false,
+    reduxSagaLogger: false,
+    reduxSagaLoggerMasked: false,
+    redirectOnLogout: false,
+    showAllTrackers: false,
+  }
 }
 
 export const {
