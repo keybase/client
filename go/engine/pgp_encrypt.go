@@ -190,6 +190,11 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
 }
 
 func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn bool) ([]string, error) {
+	// Get current user for tracking. Ignore errors, but look out for
+	// me == nil, e.g. when user is not logged in (pgp encrypt can be
+	// used without Keybase account).
+	me, _ := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+
 	var names []string
 	for _, userAssert := range assertions {
 		arg := keybase1.Identify2Arg{
@@ -199,10 +204,29 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			},
 			AlwaysBlock: true,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
+		topts := keybase1.TrackOptions{
+			LocalOnly: me == nil,
+		}
+		eng := NewResolveThenIdentify2WithTrack(e.G(), &arg, topts)
 		if err := RunEngine(eng, ctx); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
+
+		confirmResult := eng.ConfirmResult()
+		if !confirmResult.IdentityConfirmed {
+			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Follow not confirmed by the user."}
+		}
+
+		if me != nil && confirmResult.RemoteConfirmed {
+			targ := &TrackTokenArg{
+				Token:   eng.TrackToken(),
+				Me:      me,
+				Options: keybase1.TrackOptions{},
+			}
+			teng := NewTrackToken(targ, e.G())
+			RunEngine(teng, ctx)
+		}
+
 		res := eng.Result()
 		names = append(names, res.Upk.Username)
 	}
