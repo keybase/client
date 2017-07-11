@@ -762,6 +762,43 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 	}
 }
 
+type TeamInvitee struct {
+	InviteID    string   `codec:"inviteID" json:"invite_id"`
+	Uid         UID      `codec:"uid" json:"uid"`
+	EldestSeqno Seqno    `codec:"eldestSeqno" json:"eldest_seqno"`
+	Role        TeamRole `codec:"role" json:"role"`
+}
+
+func (o TeamInvitee) DeepCopy() TeamInvitee {
+	return TeamInvitee{
+		InviteID:    o.InviteID,
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+	}
+}
+
+type TeamSBSMsg struct {
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	Score    int           `codec:"score" json:"score"`
+	Invitees []TeamInvitee `codec:"invitees" json:"invitees"`
+}
+
+func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
+	return TeamSBSMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Score:  o.Score,
+		Invitees: (func(x []TeamInvitee) []TeamInvitee {
+			var ret []TeamInvitee
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Invitees),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cached.
 type TeamRefreshers struct {

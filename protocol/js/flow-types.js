@@ -5987,6 +5987,13 @@ export type TeamInviteType =
   | { c: 4, sbs: ?TeamInviteSocialNetwork }
   | { c: any }
 
+export type TeamInvitee = {
+  inviteID: string,
+  uid: UID,
+  eldestSeqno: Seqno,
+  role: TeamRole,
+}
+
 export type TeamList = {
   uid: UID,
   username: string,
@@ -6046,6 +6053,12 @@ export type TeamRole =
   | 2 // WRITER_2
   | 3 // ADMIN_3
   | 4 // OWNER_4
+
+export type TeamSBSMsg = {
+  teamID: TeamID,
+  score: int,
+  invitees?: ?Array<TeamInvitee>,
+}
 
 export type TeamSigChainState = {
   reader: UserVersion,

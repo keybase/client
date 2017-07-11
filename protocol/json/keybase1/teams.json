@@ -632,6 +632,53 @@
     },
     {
       "type": "record",
+      "name": "TeamInvitee",
+      "fields": [
+        {
+          "type": "string",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSBSMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamInvitee"
+          },
+          "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {

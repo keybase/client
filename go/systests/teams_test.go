@@ -266,6 +266,13 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
+func (u *userPlusDevice) prooveRooter() {
+	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
+	if err := cmd.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }

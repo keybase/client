@@ -242,6 +242,23 @@ protocol teams {
     Seqno latestSeqno;
   }
 
+  record TeamInvitee {
+    @jsonkey("invite_id")
+    string inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    TeamRole role;
+  }
+
+  // team.sbs gregor message body
+  @lint("ignore")
+  record TeamSBSMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int score;
+    array<TeamInvitee> invitees;
+  }
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause

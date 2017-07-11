@@ -70,3 +70,7 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	}
 	return nil
 }
+
+func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) error {
+	return nil
+}
