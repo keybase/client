@@ -12,7 +12,7 @@ const Search = (props: Props) => (
   <Box style={styleSearchContainer}>
     <Box style={styleSearchRow}>
       <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Box style={{flexGrow: 1, padding: globalMargins.small}}>
+        <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
           <UserInput
             autoFocus={true}
             onChangeText={props.onChangeText}
@@ -31,7 +31,7 @@ const Search = (props: Props) => (
       </Box>
     </Box>
     {props.showServiceFilter &&
-      <Box style={{...styleSearchRow, justifyContent: 'center'}}>
+      <Box style={styleServiceRow}>
         <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
       </Box>}
@@ -71,6 +71,12 @@ const styleSearchIcon = {
 const styleSearchRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+}
+
+const styleServiceRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleSpinner = {
