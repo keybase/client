@@ -144,21 +144,34 @@ func (id *ID) UnmarshalText(buf []byte) error {
 	return id.UnmarshalBinary(bytes)
 }
 
+// SafeType returns the type of TLF represented by this ID.  If the ID
+// isn't valid, it returns tlf.Unknown along with an error.
+func (id ID) SafeType() (Type, error) {
+	if len(id.id) == 0 {
+		return Unknown, errors.New("Invalid empty TLF ID")
+	}
+	switch id.id[idByteLen-1] {
+	case idSuffix:
+		return Private, nil
+	case pubIDSuffix:
+		return Public, nil
+	case singleTeamIDSuffix:
+		return SingleTeam, nil
+	default:
+		return Unknown, fmt.Errorf("Unknown ID suffix  %x", id.id[idByteLen-1])
+	}
+}
+
 // Type returns the type of TLF represented by this ID.
 //
 // Note that this function panics if the ID suffix is unknown, rather than
-// returning tlf.Unkonwn.
+// returning tlf.Unknown.
 func (id ID) Type() Type {
-	switch id.id[idByteLen-1] {
-	case idSuffix:
-		return Private
-	case pubIDSuffix:
-		return Public
-	case singleTeamIDSuffix:
-		return SingleTeam
-	default:
-		panic(fmt.Sprintf("Unknown ID suffix  %x", id.id[idByteLen-1]))
+	t, err := id.SafeType()
+	if err != nil {
+		panic(err)
 	}
+	return t
 }
 
 // ParseID parses a hex encoded ID. Returns NullID and an
