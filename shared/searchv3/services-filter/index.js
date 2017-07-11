@@ -102,7 +102,7 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
 
   render() {
     return (
-      <Box style={globalStyles.flexBoxRow}>
+      <Box style={styleServices}>
         {servicesOrder.map((service: Constants.Service) => (
           <Service
             key={service}
@@ -116,6 +116,13 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
       </Box>
     )
   }
+}
+
+const styleServices = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 48,
+  justifyContent: 'center',
 }
 
 export default Filter
