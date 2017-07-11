@@ -12,7 +12,7 @@ import '../desktop/renderer/style.css'
 const load = () => {
   // Load common-adapter stories
   // $FlowIssue
-  const req = require.context('../common-adapters', true, /\.stories\.js$/)
+  const req = require.context('..', true, /\.stories\.js$/)
 
   // Add material-ui dependency
   addDecorator(story => (
