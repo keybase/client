@@ -38,9 +38,15 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 
 func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
 	if change.Renamed {
-		return notifyTeamRename(ctx, g, row.Id, row.Name)
+		// This force reloads the team as a side effect
+		return g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
 	}
-	return forceTeamRefresh(ctx, g, row.Id)
+
+	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          row.Id,
+		ForceRepoll: true,
+	})
+	return err
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {

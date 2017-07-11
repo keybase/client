@@ -1538,6 +1538,26 @@ func (t TeamName) LastPart() TeamNamePart {
 	return t.Parts[len(t.Parts)-1]
 }
 
+func (t TeamName) RootAncestorName() TeamName {
+	if len(t.Parts) == 0 {
+		// this should never happen
+		return TeamName{}
+	}
+	return TeamName{
+		Parts: t.Parts[:1],
+	}
+}
+
+// The number of parts in a team name.
+// Root teams have 1.
+func (t TeamName) Depth() int {
+	return len(t.Parts)
+}
+
+func (t TeamNamePart) Eq(t2 TeamNamePart) bool {
+	return string(t) == string(t2)
+}
+
 func (u UserPlusKeys) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,

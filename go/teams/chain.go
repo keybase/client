@@ -848,15 +848,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		if err != nil {
 			return res, fmt.Errorf("invalid subteam team name '%s': %v", team.Subteam.Name, err)
 		}
-		// Assert the team name is direct child of this team's name.
-		// (TODO: this can't work, there's work on this in miles/teamloader-names)
-		expectedSubteamName, err := prevState.GetName().Append(string(subteamName.LastPart()))
+		err = t.assertSubteamName(prevState, subteamName)
 		if err != nil {
-			return res, fmt.Errorf("malformed subteam name: %v", err)
-		}
-		if !expectedSubteamName.Eq(subteamName) {
-			return res, fmt.Errorf("subteam name '%s' does not extend parent name '%s'",
-				subteamName, prevState.GetName())
+			return res, err
 		}
 
 		res.newState = prevState.DeepCopy()
@@ -894,7 +888,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("invalid parent id: %v", err)
 		}
 
-		// Check the subteam name
+		// Check the initial subteam name
 		teamName, err := keybase1.TeamNameFromString(string(*team.Name))
 		if err != nil {
 			return res, err
@@ -1251,4 +1245,35 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	for _, cancelation := range cancelations {
 		stateToUpdate.informCanceledInvite(cancelation)
 	}
+}
+
+func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, subteamName keybase1.TeamName) error {
+	// Ideally, we would assert the team name is a direct child of this team's name.
+	// But the middle parts of the names might be out of date.
+	// Instead assert:
+	// - The root team name is same.
+	// - The subteam is 1 level deeper.
+	// - The last part of this parent team's name matches.
+	//   (If the subteam is a.b.c.d then c should be the same.)
+
+	if !parent.GetName().RootAncestorName().Eq(subteamName.RootAncestorName()) {
+		return fmt.Errorf("subteam is of a different root team: %v != %v",
+			subteamName.RootAncestorName().String(),
+			parent.GetName().RootAncestorName().String())
+	}
+
+	expectedDepth := parent.GetName().Depth() + 1
+	if subteamName.Depth() != expectedDepth {
+		return fmt.Errorf("subteam name has depth %v but expected %v",
+			subteamName.Depth(), expectedDepth)
+	}
+
+	subteamSecondToLastPart := subteamName.Parts[len(subteamName.Parts)-2]
+	parentLastPart := parent.GetName().LastPart()
+	if !subteamSecondToLastPart.Eq(parentLastPart) {
+		return fmt.Errorf("subteam name has wrong name for us: %v != %v",
+			subteamSecondToLastPart, parentLastPart)
+	}
+
+	return nil
 }

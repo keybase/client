@@ -161,6 +161,9 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
+    // The last part of this name tracks LatestSeqno.
+    // But the middle parts (b in a.b.c) do not track.
+    // They are kept up fairly up to date, but the guarantees are fuzzy.
     TeamName name;
     // The last link procesed
     Seqno lastSeqno;
