@@ -199,27 +199,26 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 	for _, userAssert := range assertions {
 		arg := keybase1.Identify2Arg{
 			UserAssertion: userAssert,
-			Reason: keybase1.IdentifyReason{
-				Type: keybase1.IdentifyReasonType_ENCRYPT,
-			},
-			AlwaysBlock: true,
+			AlwaysBlock:   true,
+			NeedProofSet:  true,
 		}
 		topts := keybase1.TrackOptions{
 			LocalOnly: me == nil,
 		}
-		eng := NewResolveThenIdentify2WithTrack(e.G(), &arg, topts)
-		if err := RunEngine(eng, ctx); err != nil {
+		ieng := NewResolveThenIdentify2WithTrack(e.G(), &arg, topts)
+		if err := RunEngine(ieng, ctx); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
 
-		confirmResult := eng.ConfirmResult()
+		res := ieng.Result()
+		confirmResult := ieng.ConfirmResult()
 		if !confirmResult.IdentityConfirmed {
-			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Follow not confirmed by the user."}
+			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Not confirmed by user."}
 		}
 
 		if me != nil && confirmResult.RemoteConfirmed {
 			targ := &TrackTokenArg{
-				Token:   eng.TrackToken(),
+				Token:   ieng.TrackToken(),
 				Me:      me,
 				Options: keybase1.TrackOptions{},
 			}
@@ -227,7 +226,6 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			RunEngine(teng, ctx)
 		}
 
-		res := eng.Result()
 		names = append(names, res.Upk.Username)
 	}
 	return names, nil
