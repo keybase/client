@@ -33,7 +33,7 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, name)
+	t, err := GetMaybeAdminByStringName(ctx, g, name)
 	if err != nil {
 		return res, err
 	}
@@ -114,7 +114,7 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -140,7 +140,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 }
 
 func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, em
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
@@ -189,7 +189,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,8 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	// Don't needAdmin because we might be leaving, and this needs no information from stubbable links.
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
 	if err != nil {
 		return err
 	}
@@ -358,7 +359,7 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 }
 
 func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return nil, err
 	}

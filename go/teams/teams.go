@@ -742,11 +742,16 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
-func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {
-	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
-	teamByID, err := GetForApplication(ctx, g, id, application, refreshers)
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		ForceRepoll: true, // TODO CORE-5607 remove this ForceRepoll after KBFS says it's ok.
+		Refreshers:  refreshers,
+	})
 	if err != nil {
-		return teamPlusApplicationKeys, err
+		return res, err
 	}
-	return teamByID.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }

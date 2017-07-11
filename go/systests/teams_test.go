@@ -37,7 +37,7 @@ func TestTeamBustCache(t *testing.T) {
 	team := tt.users[0].createTeam()
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_ADMIN)
 
-	before, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	before, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, team)
 	require.NoError(t, err)
 	beforeSeqno := before.CurrentSeqno()
 	tt.users[1].addTeamMember(team, tt.users[2].username, keybase1.TeamRole_WRITER)
@@ -46,7 +46,10 @@ func TestTeamBustCache(t *testing.T) {
 	backoff := 100 * time.Millisecond
 	found := false
 	for i := 0; i < 10; i++ {
-		after, err := teams.GetStaleByStringName(context.TODO(), tt.users[0].tc.G, team)
+		after, err := teams.Load(context.TODO(), tt.users[0].tc.G, keybase1.LoadTeamArg{
+			Name:    team,
+			StaleOK: true,
+		})
 		require.NoError(t, err)
 		if after.CurrentSeqno() > beforeSeqno {
 			t.Logf("Found new seqno %d at poll loop iter %d", after.CurrentSeqno(), i)
@@ -71,7 +74,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
 
 	// get the before state of the team
-	before, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	before, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +93,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	tt.users[0].waitForRotate(team, keybase1.Seqno(3))
 
 	// check that key was rotated for team
-	after, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	after, err := GetTeamForTestByStringName(context.TODO(), tt.users[0].tc.G, team)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,6 +283,13 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	if err != nil {
 		t.Fatalf("Failed to accelerate team rekeyd: %s", err)
 	}
+}
+
+func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
+	return teams.Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
 }
 
 type teamNotifyHandler struct {
