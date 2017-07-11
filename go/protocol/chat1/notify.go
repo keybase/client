@@ -55,16 +55,18 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message    MessageUnboxed     `codec:"message" json:"message"`
-	ConvID     ConversationID     `codec:"convID" json:"convID"`
-	Conv       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
-	Pagination *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Message                    MessageUnboxed     `codec:"message" json:"message"`
+	ConvID                     ConversationID     `codec:"convID" json:"convID"`
+	DisplayDesktopNotification bool               `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
+	Conv                       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination                 *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
 	return IncomingMessage{
 		Message: o.Message.DeepCopy(),
 		ConvID:  o.ConvID.DeepCopy(),
+		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		Conv: (func(x *ConversationLocal) *ConversationLocal {
 			if x == nil {
 				return nil

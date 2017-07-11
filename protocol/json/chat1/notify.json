@@ -35,6 +35,10 @@
           "name": "convID"
         },
         {
+          "type": "boolean",
+          "name": "displayDesktopNotification"
+        },
+        {
           "type": [
             null,
             "ConversationLocal"

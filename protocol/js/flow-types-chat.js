@@ -1518,6 +1518,7 @@ export type InboxViewFull = {
 export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
+  displayDesktopNotification: boolean,
   conv?: ?ConversationLocal,
   pagination?: ?Pagination,
 }

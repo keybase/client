@@ -18,6 +18,7 @@ protocol NotifyChat {
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
+    boolean displayDesktopNotification;
     union { null, ConversationLocal } conv;
     union { null, Pagination } pagination;
   }
