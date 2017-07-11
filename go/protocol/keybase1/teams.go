@@ -782,26 +782,24 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 }
 
 type LoadTeamArg struct {
-	ID                   TeamID         `codec:"ID" json:"ID"`
-	Name                 string         `codec:"name" json:"name"`
-	NeedAdmin            bool           `codec:"needAdmin" json:"needAdmin"`
-	Refreshers           TeamRefreshers `codec:"refreshers" json:"refreshers"`
-	ForceFullReload      bool           `codec:"forceFullReload" json:"forceFullReload"`
-	ForceRepoll          bool           `codec:"forceRepoll" json:"forceRepoll"`
-	StaleOK              bool           `codec:"staleOK" json:"staleOK"`
-	ForceRepollRecursive bool           `codec:"forceRepollRecursive" json:"forceRepollRecursive"`
+	ID              TeamID         `codec:"ID" json:"ID"`
+	Name            string         `codec:"name" json:"name"`
+	NeedAdmin       bool           `codec:"needAdmin" json:"needAdmin"`
+	Refreshers      TeamRefreshers `codec:"refreshers" json:"refreshers"`
+	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
+	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
+	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	return LoadTeamArg{
-		ID:                   o.ID.DeepCopy(),
-		Name:                 o.Name,
-		NeedAdmin:            o.NeedAdmin,
-		Refreshers:           o.Refreshers.DeepCopy(),
-		ForceFullReload:      o.ForceFullReload,
-		ForceRepoll:          o.ForceRepoll,
-		StaleOK:              o.StaleOK,
-		ForceRepollRecursive: o.ForceRepollRecursive,
+		ID:              o.ID.DeepCopy(),
+		Name:            o.Name,
+		NeedAdmin:       o.NeedAdmin,
+		Refreshers:      o.Refreshers.DeepCopy(),
+		ForceFullReload: o.ForceFullReload,
+		ForceRepoll:     o.ForceRepoll,
+		StaleOK:         o.StaleOK,
 	}
 }
 

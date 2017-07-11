@@ -89,12 +89,3 @@ func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name k
 func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
 }
-
-func ForceTeamRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, changes keybase1.TeamChangeSet) error {
-	_, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:                   id,
-		ForceRepoll:          true,
-		ForceRepollRecursive: changes.Renamed,
-	})
-	return err
-}

@@ -676,10 +676,6 @@
         {
           "type": "boolean",
           "name": "staleOK"
-        },
-        {
-          "type": "boolean",
-          "name": "forceRepollRecursive"
         }
       ]
     },

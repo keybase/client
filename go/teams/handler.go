@@ -33,13 +33,20 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	return nil
 }
 
+func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+	if change.Renamed {
+		return notifyTeamRename(ctx, g, row.Id, row.Name)
+	}
+	return forceTeamRefresh(ctx, g, row.Id)
+}
+
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	if err = ForceTeamRefresh(ctx, g, row.Id, change); err != nil {
+	if err = reloadLocal(ctx, g, row, change); err != nil {
 		return err
 	}
 	g.NotifyRouter.HandleTeamChanged(ctx, row.Id, row.Name, row.LatestSeqno, change)

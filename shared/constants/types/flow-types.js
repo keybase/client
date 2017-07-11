@@ -4879,7 +4879,6 @@ export type LoadTeamArg = {
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
-  forceRepollRecursive: boolean,
 }
 
 export type LogLevel =

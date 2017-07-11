@@ -94,13 +94,12 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	ret, err = l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
-		needAdmin:            lArg.NeedAdmin,
-		needKeyGeneration:    lArg.Refreshers.NeedKeyGeneration,
-		wantMembers:          lArg.Refreshers.WantMembers,
-		forceFullReload:      lArg.ForceFullReload,
-		forceRepoll:          lArg.ForceRepoll,
-		forceRepollRecursive: lArg.ForceRepollRecursive,
-		staleOK:              lArg.StaleOK,
+		needAdmin:         lArg.NeedAdmin,
+		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
+		wantMembers:       lArg.Refreshers.WantMembers,
+		forceFullReload:   lArg.ForceFullReload,
+		forceRepoll:       lArg.ForceRepoll,
+		staleOK:           lArg.StaleOK,
 
 		needSeqnos: nil,
 
@@ -168,13 +167,12 @@ func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keyb
 type load2ArgT struct {
 	teamID keybase1.TeamID
 
-	needAdmin            bool
-	needKeyGeneration    keybase1.PerTeamKeyGeneration
-	wantMembers          []keybase1.UserVersion
-	forceFullReload      bool
-	forceRepoll          bool
-	staleOK              bool
-	forceRepollRecursive bool
+	needAdmin         bool
+	needKeyGeneration keybase1.PerTeamKeyGeneration
+	wantMembers       []keybase1.UserVersion
+	forceFullReload   bool
+	forceRepoll       bool
+	staleOK           bool
 
 	needSeqnos []keybase1.Seqno
 
@@ -592,4 +590,17 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 
 func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
 	return keybase1.TeamName{}, nil
+}
+
+func notifyTeamRename(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, newName string) error {
+	// TODO -- implement me!
+	return nil
+}
+
+func forceTeamRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) error {
+	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		ForceRepoll: true,
+	})
+	return err
 }
