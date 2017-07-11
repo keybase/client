@@ -321,6 +321,16 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	return nil
 }
 
+func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
+	uid gregor1.UID, conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) bool {
+	if conv == nil {
+		return false
+	}
+	atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
+		g.G().GetUPAKLoader(), &g.DebugLabeler)
+	return false
+}
+
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -399,11 +409,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if err != nil {
 					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 				}
+				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:    decmsg,
-					ConvID:     nm.ConvID,
-					Conv:       conv,
-					Pagination: page,
+					Message: decmsg,
+					ConvID:  nm.ConvID,
+					Conv:    conv,
+					DisplayDesktopNotification: desktopNotification,
+					Pagination:                 page,
 				})
 			}
 
