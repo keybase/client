@@ -1131,6 +1131,7 @@ export type ChatActivity =
   | { activityType: 4, setStatus: ?SetStatusInfo }
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
   | { activityType: 6, membersUpdate: ?MembersUpdateInfo }
+  | { activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0

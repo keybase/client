@@ -473,6 +473,26 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
+		case "setAppNotificationSettings":
+			var nm chat1.SetAppNotificationSettingsPayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: setAppNotificationSettings: convID: %s num settings: %d",
+				nm.ConvID, len(nm.Settings.Settings))
+
+			uid := m.UID().Bytes()
+			if _, err = g.G().InboxSource.SetAppNotificationSettings(ctx, uid, nm.InboxVers,
+				nm.ConvID, nm.Settings); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			}
+			info := chat1.SetAppNotificationSettingsInfo{
+				ConvID:   nm.ConvID,
+				Settings: nm.Settings,
+			}
+			activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
 		case "newConversation":
 			var nm chat1.NewConversationPayload
 			err = dec.Decode(&nm)
@@ -512,7 +532,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}
-
 		g.notifyNewChatActivity(ctx, m.UID(), convID, conv, &activity)
 	}(bctx)
 	return nil

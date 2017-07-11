@@ -60,6 +60,7 @@ protocol NotifyChat {
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
     case MEMBERS_UPDATE: MembersUpdateInfo;
+    case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
   }
 
   record TyperInfo {

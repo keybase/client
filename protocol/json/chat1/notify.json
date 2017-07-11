@@ -196,6 +196,13 @@
             "def": false
           },
           "body": "MembersUpdateInfo"
+        },
+        {
+          "label": {
+            "name": "SET_APP_NOTIFICATION_SETTINGS",
+            "def": false
+          },
+          "body": "SetAppNotificationSettingsInfo"
         }
       ]
     },
