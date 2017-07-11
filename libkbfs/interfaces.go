@@ -414,9 +414,12 @@ type KeybaseService interface {
 	// specified TeamID.  The caller can specify `desiredKeyGen` to
 	// force a server check if that particular key gen isn't yet
 	// known; it may be set to UnspecifiedKeyGen if no server check is
-	// required.
+	// required.  The caller can specify `desiredUID` to force a
+	// server check if that particular UID isn't a member of the team
+	// yet according to local caches; it may be set to "" if no server
+	// check is required.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen KeyGen) (TeamInfo, error)
+		desiredKeyGen KeyGen, desiredUID keybase1.UID) (TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.

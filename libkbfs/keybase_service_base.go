@@ -440,8 +440,8 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 // LoadTeamPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
-	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen) (
-	TeamInfo, error) {
+	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
+	desiredUID keybase1.UID) (TeamInfo, error) {
 	cachedTeamInfo := k.getCachedTeamInfo(tid)
 	if cachedTeamInfo.Name != libkb.NormalizedUsername("") {
 		return cachedTeamInfo, nil
@@ -455,6 +455,11 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	if desiredKeyGen >= FirstValidKeyGen {
 		arg.Refreshers.NeedKeyGeneration =
 			keybase1.PerTeamKeyGeneration(desiredKeyGen)
+	}
+
+	if desiredUID.Exists() {
+		arg.Refreshers.WantMembers = append(arg.Refreshers.WantMembers,
+			keybase1.UserVersion{Uid: desiredUID})
 	}
 
 	res, err := k.teamsClient.LoadTeamPlusApplicationKeys(ctx, arg)

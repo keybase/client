@@ -202,7 +202,7 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen) (
 	map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, desiredKeyGen)
+		ctx, tid, desiredKeyGen, keybase1.UID(""))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -219,7 +219,7 @@ func (k *KBPKIClient) GetCurrentMerkleSeqNo(ctx context.Context) (
 func (k *KBPKIClient) IsTeamWriter(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, UnspecifiedKeyGen)
+		ctx, tid, UnspecifiedKeyGen, uid)
 	if err != nil {
 		return false, err
 	}
@@ -230,7 +230,7 @@ func (k *KBPKIClient) IsTeamWriter(
 func (k *KBPKIClient) IsTeamReader(
 	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, UnspecifiedKeyGen)
+		ctx, tid, UnspecifiedKeyGen, uid)
 	if err != nil {
 		return false, err
 	}
