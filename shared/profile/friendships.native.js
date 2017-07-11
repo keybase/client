@@ -1,4 +1,6 @@
 // @flow
+// TODO cecile wants this to be one big scrollview. We still need followers/following tab to be clickable so
+// we'd have to make that a section header etc
 import React, {Component} from 'react'
 import chunk from 'lodash/chunk'
 import {
