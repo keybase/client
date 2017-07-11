@@ -1,14 +1,17 @@
 // @flow
 import React from 'react'
-import {Box} from '../common-adapters'
-import {storiesOf, action} from '../stories/storybook'
-import {isMobile} from '../constants/platform'
-import {compose, withHandlers, withState} from 'recompose'
-
+import ResultRow from './result-row'
+import ResultsList from './results-list'
 import ServicesFilter from './services-filter'
-// import ResultRow from './result-row'
-// import ResultsList from './results-list'
 import UserInput from './user-input'
+import {Box, Text} from '../common-adapters'
+import {Map} from 'immutable'
+import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {compose, withHandlers, withState} from 'recompose'
+import {isMobile} from '../constants/platform'
+import {storiesOf, action} from '../stories/storybook'
+import {Provider} from 'react-redux'
+import {createStore} from 'redux'
 
 const inputCommon = {
   onAddSelectedUser: action('Add selected user'),
@@ -97,6 +100,43 @@ const chrisUsers = [
     username: 'KeyserSosa',
   },
 ]
+
+const commonRow = {
+  id: 'result',
+  onClick: action('On click'),
+  onShowTracker: action('Show tracker'),
+  selected: false,
+  showTrackerButton: false,
+}
+const kbRow = {
+  ...commonRow,
+  leftFollowingState: 'NoState',
+  leftIcon: null,
+  leftService: 'Keybase',
+  leftUsername: 'jzila',
+  rightFollowingState: 'NoState',
+  rightFullname: 'John Zila',
+  // $FlowIssue flow is getting confused by the jsx spread
+  rightIcon: null,
+  // $FlowIssue flow is getting confused by the jsx spread
+  rightService: null,
+  // $FlowIssue flow is getting confused by the jsx spread
+  rightUsername: null,
+}
+
+const serviceRow = {
+  ...commonRow,
+  leftFollowingState: 'NoState',
+  leftUsername: 'jzila',
+  rightFollowingState: 'NoState',
+  rightFullname: 'John Zila',
+  rightIcon: null,
+  // $FlowIssue flow is getting confused by the jsx spread
+  rightService: null,
+  // $FlowIssue flow is getting confused by the jsx spread
+  rightUsername: null,
+}
+
 const load = () => {
   storiesOf('SearchV3', module)
     .add('Filter', () => {
@@ -168,6 +208,142 @@ const load = () => {
           <UserInputEditable {...inputCommon} userItems={[]} />
           <UserInputEditable {...inputCommon} userItems={chrisUsers} />
         </Box>
+      )
+    })
+    .add('Result', () => {
+      return (
+        <Box style={isMobile ? {} : {width: 480}}>
+          <ResultRow {...kbRow} />
+          <ResultRow {...kbRow} selected={true} />
+          <ResultRow {...kbRow} leftFollowingState="Following" />
+          <ResultRow {...kbRow} leftFollowingState="NotFollowing" />
+          <ResultRow {...kbRow} leftFollowingState="You" />
+          <ResultRow {...kbRow} showTrackerButton={true} />
+          <ResultRow
+            {...kbRow}
+            rightFullname="John Zila on GitHub"
+            rightIcon="iconfont-identity-github"
+            rightService="GitHub"
+            rightUsername="jzilagithub"
+          />
+          <ResultRow
+            {...kbRow}
+            rightIcon="iconfont-identity-github"
+            rightService="GitHub"
+            rightUsername="jzilagithub"
+          />
+          <ResultRow {...serviceRow} leftIcon="icon-twitter-logo-24" leftService="Twitter" />
+          <ResultRow
+            {...serviceRow}
+            leftIcon="icon-twitter-logo-24"
+            leftService="Twitter"
+            rightService="Keybase"
+            rightUsername="jzila"
+          />
+          <ResultRow
+            {...serviceRow}
+            leftIcon="icon-twitter-logo-24"
+            leftService="Twitter"
+            rightFollowingState="Following"
+            rightService="Keybase"
+            rightUsername="jzila"
+          />
+          <ResultRow
+            {...serviceRow}
+            leftIcon="icon-twitter-logo-24"
+            leftService="Twitter"
+            rightFollowingState="NotFollowing"
+            rightService="Keybase"
+            rightUsername="jzila"
+          />
+          <ResultRow
+            {...serviceRow}
+            leftIcon="icon-twitter-logo-24"
+            leftService="Twitter"
+            rightFollowingState="You"
+            rightService="Keybase"
+            rightUsername="jzila"
+          />
+          <ResultRow {...serviceRow} leftIcon="icon-facebook-logo-24" leftService="Facebook" />
+          <ResultRow {...serviceRow} leftIcon="icon-github-logo-24" leftService="GitHub" />
+          <ResultRow {...serviceRow} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
+          <ResultRow {...serviceRow} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
+        </Box>
+      )
+    })
+    .add('Results List', () => {
+      const common = {
+        items: ['chris'],
+        keyPath: ['searchv3Chat'],
+        onClick: action('On click'),
+        onShowTracker: action('Show tracker'),
+        selectedId: null,
+        showSearchSuggestions: false,
+      }
+      const servicesResultsListMapCommonRows = {
+        chris: {
+          ...kbRow,
+          leftFollowingState: 'Following',
+          leftUsername: 'chris',
+          rightFullname: 'chris on GitHub',
+          rightIcon: 'iconfont-identity-github',
+          rightService: 'GitHub',
+          rightUsername: 'chrisname',
+        },
+        cjb: {
+          ...kbRow,
+          leftFollowingState: 'NotFollowing',
+          leftUsername: 'cjb',
+          rightFullname: 'cjb on facebook',
+          rightIcon: 'iconfont-identity-facebook',
+          rightService: 'Facebook',
+          rightUsername: 'cjbname',
+        },
+        jzila: {
+          ...kbRow,
+          leftFollowingState: 'NoState',
+          leftUsername: 'jzila',
+          rightFullname: 'jzila on twitter',
+          rightIcon: 'iconfont-identity-twitter',
+          rightService: 'Twitter',
+          rightUsername: 'jzilatwit',
+        },
+      }
+
+      Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+        servicesResultsListMapCommonRows[name + '-fb'] = {
+          ...servicesResultsListMapCommonRows[name],
+          leftFollowingState: 'NoState',
+          leftIcon: 'icon-facebook-logo-24',
+          leftService: 'Facebook',
+        }
+      })
+
+      Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+        servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+      })
+      const store = {
+        config: {
+          following: {},
+          username: 'tester',
+        },
+        entities: new EntitiesStateRecord({
+          searchResults: Map(servicesResultsListMapCommonRows),
+        }),
+      }
+      return (
+        <Provider store={createStore(ignore => store, store)}>
+          <Box style={{width: 420}}>
+            <Text type="Header">3 items</Text>
+            <ResultsList {...common} items={['chris', 'cjb', 'jzila']} />
+            <Text type="Header">1 item</Text>
+            <ResultsList {...common} items={['chris']} />
+            <Text type="Header">3 fb items</Text>
+            <ResultsList {...common} items={['chris-fb', 'cjb-fb', 'jzila-fb']} />
+            <Text type="Header">No items</Text>
+            <ResultsList {...common} items={[]} />
+          </Box>
+        </Provider>
       )
     })
 }
