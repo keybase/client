@@ -37,7 +37,7 @@ function Nav(props: Props) {
       </Box>
       <div id="popupContainer" />
       {![chatTab, loginTab].includes(props.routeSelected) &&
-        <Offline reachability={props.reachability} appFocused={props.appFocused} />}
+        <Offline reachable={props.reachable} appFocused={props.appFocused} />}
       <GlobalError />
     </Box>
   )
@@ -51,7 +51,7 @@ const stylesTabsContainer = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   appFocused: state.config.appFocused,
   navBadges: state.notifications.get('navBadges'),
-  reachability: state.gregor.reachability,
+  reachable: state.gregor.reachability.reachable,
   username: state.config.username,
 })
 

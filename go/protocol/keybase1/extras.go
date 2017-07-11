@@ -1269,6 +1269,11 @@ func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	// TODO -- fix this and all other UserOrTeam#foo's that don't check
+	// the size of the input.
+	if len(bytes) < 4 {
+		return 0, fmt.Errorf("bad ID, isn't 4 bytes at least")
+	}
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
 }
@@ -1613,7 +1618,7 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		return NewTeamInviteTypeDefault(TeamInviteCategory_KEYBASE), nil
 	case "email":
 		return NewTeamInviteTypeDefault(TeamInviteCategory_EMAIL), nil
-	case "twitter", "github", "facebook", "reddit", "hackernews":
+	case "twitter", "github", "facebook", "reddit", "hackernews", "pgp", "http", "https", "dns":
 		return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 	default:
 		if isDev && s == "rooter" {
@@ -1623,4 +1628,23 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		// type.
 		return NewTeamInviteTypeWithUnknown(s), nil
 	}
+}
+
+func (t TeamInviteType) String() (string, error) {
+	c, err := t.C()
+	if err != nil {
+		return "", err
+	}
+	switch c {
+	case TeamInviteCategory_KEYBASE:
+		return "keybase", nil
+	case TeamInviteCategory_EMAIL:
+		return "email", nil
+	case TeamInviteCategory_SBS:
+		return string(t.Sbs()), nil
+	case TeamInviteCategory_UNKNOWN:
+		return t.Unknown(), nil
+	}
+
+	return "", nil
 }

@@ -7,7 +7,7 @@ import Participants from './participants'
 import type {Props} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
-const SidePanel = (props: Props) => (
+const InfoPanel = (props: Props) => (
   <Box
     style={{
       flex: 1,
@@ -52,4 +52,4 @@ const SidePanel = (props: Props) => (
   </Box>
 )
 
-export default SidePanel
+export default InfoPanel

@@ -9,10 +9,6 @@
 
 # Add any project specific keep options here:
 
-# @see DESKTOP-1703
--keep class com.facebook.imagepipeline.animated.factory.AnimatedFactoryImpl {
-  public AnimatedFactoryImpl(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.imagepipeline.core.ExecutorSupplier);
-
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:
@@ -30,11 +26,14 @@
 # See http://sourceforge.net/p/proguard/bugs/466/
 -keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip
 -keep,allowobfuscation @interface com.facebook.proguard.annotations.KeepGettersAndSetters
+-keep,allowobfuscation @interface com.facebook.common.internal.DoNotStrip
 
 # Do not strip any method/class that is annotated with @DoNotStrip
 -keep @com.facebook.proguard.annotations.DoNotStrip class *
+-keep @com.facebook.common.internal.DoNotStrip class *
 -keepclassmembers class * {
     @com.facebook.proguard.annotations.DoNotStrip *;
+    @com.facebook.common.internal.DoNotStrip *;
 }
 
 -keepclassmembers @com.facebook.proguard.annotations.KeepGettersAndSetters class * {
@@ -59,9 +58,9 @@
 
 -keepattributes Signature
 -keepattributes *Annotation*
--keep class com.squareup.okhttp.** { *; }
--keep interface com.squareup.okhttp.** { *; }
--dontwarn com.squareup.okhttp.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+-dontwarn okhttp3.**
 
 # okio
 
@@ -69,7 +68,3 @@
 -dontwarn java.nio.file.*
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 -dontwarn okio.**
-
-# stetho
-
--dontwarn com.facebook.stetho.**

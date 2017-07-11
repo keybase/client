@@ -16,7 +16,7 @@ const _icons = {
 
 const _tabs = [Tabs.profileTab, Tabs.folderTab, Tabs.chatTab, Tabs.settingsTab].filter(Boolean)
 
-const TabBarRender = ({selectedTab, onTabClick, username, badgeNumbers}: Props) => (
+const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton

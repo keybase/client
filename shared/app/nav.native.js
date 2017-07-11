@@ -1,4 +1,5 @@
 // @flow
+import {is} from 'immutable'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
@@ -18,11 +19,18 @@ import type {Props} from './nav'
 import type {TypedState} from '../constants/reducer'
 import type {Tab} from '../constants/tabs'
 import type {NavigationAction} from 'react-navigation'
-import type {RouteProps} from '../route-tree/render-route'
+import type {RouteProps, RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
-class CardStackShim extends Component {
+type CardStackShimProps = {
+  mode?: 'modal',
+  renderRoute: (route: RenderRouteResult) => React$Element<*>,
+  onNavigateBack: () => void,
+  stack: RouteRenderStack,
+}
+
+class CardStackShim extends Component<*, CardStackShimProps, *> {
   getScreenOptions = () => ({transitionInteractivityThreshold: 0.9})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -40,6 +48,15 @@ class CardStackShim extends Component {
     if (action.type === NavigationActions.BACK) {
       this.props.onNavigateBack()
     }
+  }
+
+  shouldComponentUpdate(nextProps: CardStackShimProps) {
+    return (
+      this.props.mode !== nextProps.mode ||
+      this.props.renderRoute !== nextProps.renderRoute ||
+      this.props.onNavigateBack !== nextProps.onNavigateBack ||
+      !is(this.props.stack, nextProps.stack)
+    )
   }
 
   render() {
@@ -136,7 +153,7 @@ function MainNavStack(props: Props) {
       onNavigateBack={props.navigateUp}
     />,
     ![chatTab].includes(props.routeSelected) &&
-      <Offline key="offline" reachability={props.reachability} appFocused={true} />,
+      <Offline key="offline" reachable={props.reachable} appFocused={true} />,
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
@@ -144,7 +161,6 @@ function MainNavStack(props: Props) {
     <TabBar
       onTabClick={props.switchTab}
       selectedTab={props.routeSelected}
-      username={props.username}
       badgeNumbers={props.navBadges.toJS()}
     />
   )
@@ -206,10 +222,8 @@ const styleCollapsibleNavAndroid = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
-  hideKeyboard: state.config.hideKeyboard,
   navBadges: state.notifications.get('navBadges'),
-  reachability: state.gregor.reachability,
-  username: state.config.username,
+  reachable: state.gregor.reachability.reachable,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
@@ -234,8 +248,6 @@ export default compose(
       const curPath = this.props.routeStack.last().path
       const curTags = this.props.routeStack.last().tags
       if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
-        NativeKeyboard.dismiss()
-      } else if (this.props.hideKeyboard !== nextProps.hideKeyboard) {
         NativeKeyboard.dismiss()
       }
     },

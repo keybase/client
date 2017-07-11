@@ -6,7 +6,7 @@ import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React, {Component} from 'react'
-import SidePanel from './side-panel/container'
+import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
@@ -15,15 +15,21 @@ import type {Props} from '.'
 
 type State = {
   showDropOverlay: boolean,
+  infoPanelOpen: boolean,
 }
 
 class Conversation extends Component<void, Props, State> {
   state = {
     showDropOverlay: false,
+    infoPanelOpen: false,
   }
 
   componentWillReceiveProps(nextProps: Props) {
     const convoChanged = this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+    if (convoChanged) {
+      this.setState({infoPanelOpen: false})
+    }
+
     const inSearchChanged = this.props.inSearch !== nextProps.inSearch
     if ((convoChanged || inSearchChanged) && !nextProps.inSearch) {
       this.props.onFocusInput()
@@ -75,6 +81,10 @@ class Conversation extends Component<void, Props, State> {
     })
   }
 
+  _onToggleInfoPanel = () => {
+    this.setState({infoPanelOpen: !this.state.infoPanelOpen})
+  }
+
   render() {
     const dropOverlay =
       this.state.showDropOverlay &&
@@ -107,8 +117,8 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <HeaderOrSearchHeader
           inSearch={this.props.inSearch}
-          sidePanelOpen={this.props.sidePanelOpen}
-          onToggleSidePanel={this.props.onToggleSidePanel}
+          infoPanelOpen={this.state.infoPanelOpen}
+          onToggleInfoPanel={this._onToggleInfoPanel}
           onBack={this.props.onBack}
           onChangeSearchText={this.props.onChangeSearchText}
           searchText={this.props.searchText}
@@ -145,7 +155,7 @@ class Conversation extends Component<void, Props, State> {
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}
                       />}
-                  {this.props.sidePanelOpen &&
+                  {this.state.infoPanelOpen &&
                     <div
                       style={{
                         ...globalStyles.flexBoxColumn,
@@ -156,7 +166,7 @@ class Conversation extends Component<void, Props, State> {
                         width: 320,
                       }}
                     >
-                      <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
                     </div>}
                   {dropOverlay}
                 </div>}

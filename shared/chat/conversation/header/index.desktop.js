@@ -9,8 +9,8 @@ const ConversationHeader = ({
   muted,
   onOpenFolder,
   onShowProfile,
-  onToggleSidePanel,
-  sidePanelOpen,
+  onToggleInfoPanel,
+  infoPanelOpen,
   users,
 }: Props) => (
   <Box style={containerStyle}>
@@ -28,9 +28,9 @@ const ConversationHeader = ({
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
-      type={sidePanelOpen ? 'iconfont-close' : 'iconfont-info'}
+      type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
       style={styleLeft}
-      onClick={onToggleSidePanel}
+      onClick={onToggleInfoPanel}
     />
   </Box>
 )

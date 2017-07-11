@@ -5,7 +5,6 @@ import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../searchv3/results-list'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React from 'react'
-import SidePanel from './side-panel/container'
 import Banner from './banner/container'
 import {Box, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
@@ -33,8 +32,8 @@ const Conversation = (props: Props) => (
       </Box>}
     <HeaderOrSearchHeader
       inSearch={props.inSearch}
-      sidePanelOpen={props.sidePanelOpen}
-      onToggleSidePanel={props.onToggleSidePanel}
+      onToggleInfoPanel={props.onOpenInfoPanelMobile}
+      infoPanelOpen={false} // unused on mobile
       onBack={props.onBack}
       onChangeSearchText={props.onChangeSearchText}
       searchText={props.searchText}
@@ -71,8 +70,6 @@ const Conversation = (props: Props) => (
                     onEditLastMessage={props.onEditLastMessage}
                     onScrollDown={props.onScrollDown}
                   />}
-
-              {props.sidePanelOpen && <SidePanel onToggleSidePanel={props.onToggleSidePanel} />}
             </Box>}
   </Box>
 )

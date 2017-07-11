@@ -74,7 +74,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
   onRetryMessage: (outboxID: string) => console.log('on retry message'),
   selectedConversation: null,
   validated: true,
-  sidePanelOpen: false,
+  infoPanelOpen: false,
   editLastMessageCounter: 0,
 })
 

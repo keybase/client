@@ -307,6 +307,7 @@ const styleHeader = {
   ...globalStyles.flexBoxRow,
   height: HEADER_TOP_SPACE,
   alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleProofNotice = {
@@ -356,7 +357,6 @@ const styleSearchContainer = {
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 64,
   minHeight: 24,
   minWidth: 273,
   position: 'absolute',

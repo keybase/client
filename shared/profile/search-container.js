@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState) => ({
   showSearchPending: state.profile.searchPending,
   showSearchSuggestions: state.profile.searchShowingSuggestions,
 })
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInfoPanel}: Props) => ({
   _clearSearchResults: () => dispatch(clearSearchResults()),
   search: (term: string, service) => {
     if (term) {

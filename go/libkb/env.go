@@ -28,7 +28,6 @@ func (n NullConfiguration) GetChatDbFilename() string                           
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
-func (n NullConfiguration) GetSupportPerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetProxy() string                                               { return "" }
 func (n NullConfiguration) GetGpgHome() string                                             { return "" }
@@ -651,14 +650,6 @@ func (e *Env) GetEmail() string {
 	return e.GetString(
 		func() string { return os.Getenv("KEYBASE_EMAIL") },
 	)
-}
-
-// Whether to support per-user-keys in anyones sigchain.
-// Implied by UpgradePerUserKey.
-// Does not add per-user-keys to sigchains unless they are already there.
-// It is unwise to have this off and interact with sigchains that have per-user-keys.
-func (e *Env) GetSupportPerUserKey() bool {
-	return true
 }
 
 // Upgrade sigchains to contain per-user-keys.

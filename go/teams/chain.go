@@ -363,6 +363,33 @@ func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keyba
 	return nil
 }
 
+func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
+	i, err := t.FindActiveInvite(name, typ)
+	if err != nil {
+		if _, ok := err.(libkb.NotFoundError); ok {
+			return false, nil
+		}
+		return false, err
+	}
+	if i != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
+func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamInvite, error) {
+	for _, invite := range t.inner.ActiveInvites {
+		styp, err := invite.Type.String()
+		if err != nil {
+			return nil, err
+		}
+		if invite.Name == keybase1.TeamInviteName(name) && styp == typ {
+			return &invite, nil
+		}
+	}
+	return nil, libkb.NotFoundError{}
+}
+
 // Threadsafe handle to a local model of a team sigchain.
 type TeamSigChainPlayer struct {
 	libkb.Contextified
@@ -600,8 +627,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return nil
 	}
 
-	switch payload.Body.Type {
-	case "team.root":
+	switch libkb.LinkType(payload.Body.Type) {
+	case libkb.LinkTypeTeamRoot:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(false),
@@ -671,7 +698,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		return res, nil
-	case "team.change_membership":
+	case libkb.LinkTypeChangeMembership:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(true),
@@ -720,7 +747,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		return res, nil
-	case "team.rotate_key":
+	case libkb.LinkTypeRotateKey:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(true),
@@ -758,7 +785,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 
 		return res, nil
-	case "team.leave":
+	case libkb.LinkTypeLeave:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(true),
@@ -793,7 +820,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState.inform(signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
 
 		return res, nil
-	case "team.new_subteam":
+	case libkb.LinkTypeNewSubteam:
 		err = libkb.PickFirstError(
 			allowInflate(true),
 			hasPrevState(true),
@@ -842,7 +869,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		return res, nil
-	case "team.subteam_head":
+	case libkb.LinkTypeSubteamHead:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(false),
@@ -907,9 +934,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		return res, nil
-	case "team.subteam_rename":
+	case libkb.LinkTypeSubteamRename:
 		return res, fmt.Errorf("subteam renaming not yet supported: %s", payload.Body.Type)
-	case "team.invite":
+	case libkb.LinkTypeInvite:
 		err = libkb.PickFirstError(
 			allowInflate(false),
 			hasPrevState(true),

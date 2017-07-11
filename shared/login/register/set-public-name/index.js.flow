@@ -6,6 +6,7 @@ export type Props = {|
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
+  clearDeviceNameError?: () => void,
   deviceName: ?string,
   deviceNameError?: ?string,
   submitEnabled: boolean,

@@ -464,10 +464,8 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, per
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
 
 	// Post the per-user-secret encrypted for the provisionee device by the provisioner.
-	if e.G().Env.GetSupportPerUserKey() {
-		if perUserKeyBox != nil {
-			libkb.AddPerUserKeyServerArg(payload, perUserKeyBox.Generation, []keybase1.PerUserKeyBox{*perUserKeyBox}, nil)
-		}
+	if perUserKeyBox != nil {
+		libkb.AddPerUserKeyServerArg(payload, perUserKeyBox.Generation, []keybase1.PerUserKeyBox{*perUserKeyBox}, nil)
 	}
 
 	arg := libkb.APIArg{

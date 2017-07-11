@@ -326,7 +326,7 @@ function submitDeviceName(
                   type: Constants.submitDeviceName,
                 }: SubmitDeviceName)
               )
-              reject(err)
+              resolve()
             } else {
               if (deviceName) {
                 dispatch(
@@ -467,15 +467,28 @@ function showSuccess(): ShowSuccess {
   }
 }
 
+function setDeviceNameError(deviceNameError: string): Constants.SetDeviceNameError {
+  return {
+    payload: {deviceNameError},
+    type: Constants.setDeviceNameError,
+  }
+}
+
+function clearDeviceNameError(): Constants.ClearDeviceNameError {
+  return {payload: {}, type: Constants.clearDeviceNameError}
+}
+
 export {
   checkInviteCode,
   checkPassphrase,
   checkUsernameEmail,
+  clearDeviceNameError,
   requestAutoInvite,
   requestInvite,
   resetSignup,
   restartSignup,
   sawPaperKey,
+  setDeviceNameError,
   showSuccess,
   startRequestInvite,
   submitDeviceName,

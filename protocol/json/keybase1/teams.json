@@ -339,6 +339,10 @@
       "name": "TeamData",
       "fields": [
         {
+          "type": "boolean",
+          "name": "secretless"
+        },
+        {
           "type": "TeamSigChainState",
           "name": "chain"
         },
@@ -744,6 +748,31 @@
           "name": "teams"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAddMemberResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "invited"
+        },
+        {
+          "type": [
+            null,
+            "User"
+          ],
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "name": "emailSent"
+        },
+        {
+          "type": "boolean",
+          "name": "chatSent"
+        }
+      ]
     }
   ],
   "messages": {
@@ -818,6 +847,10 @@
           "type": "string"
         },
         {
+          "name": "email",
+          "type": "string"
+        },
+        {
           "name": "username",
           "type": "string"
         },
@@ -830,7 +863,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMemberResult"
     },
     "teamRemoveMember": {
       "request": [

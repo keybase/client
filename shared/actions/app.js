@@ -14,10 +14,6 @@ function appLink(link: string): Constants.AppLink {
   return {payload: {link}, type: 'app:link'}
 }
 
-function hideKeyboard(): Constants.HideKeyboard {
-  return {payload: undefined, type: 'app:hideKeyboard'}
-}
-
 function mobileAppStateChanged(nextAppState: string): Constants.MobileAppState {
   return {payload: {nextAppState}, type: 'app:mobileAppState'}
 }
@@ -47,6 +43,6 @@ function* appStateSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('app:mobileAppState', _onMobileAppStateChanged)
 }
 
-export {appLink, changedFocus, hideKeyboard, mobileAppStateChanged, appStateSaga}
+export {appLink, changedFocus, mobileAppStateChanged, appStateSaga}
 
 export default appStateSaga
