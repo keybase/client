@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, Button, Input, HeaderHoc, PlatformIcon, StandardScreen} from '../common-adapters'
+import {Box, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {platformText} from './prove-enter-username.shared'
 
@@ -31,13 +31,8 @@ function customError(error: string, code: ?number) {
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      username: '',
-    }
+  state = {
+    username: '',
   }
 
   handleUsernameChange(username: string) {
@@ -57,7 +52,7 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
       ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}}
       : {}
     return (
-      <StandardScreen {...notification}>
+      <StandardScreen {...notification} onCancel={this.props.onCancel}>
         <PlatformIcon
           style={styleIcon}
           platform={this.props.platform}
@@ -115,6 +110,7 @@ const styleInfoBanner = {
 
 const styleButton = {
   marginTop: globalMargins.large,
+  marginBottom: globalMargins.large,
 }
 
-export default HeaderHoc(PrivateEnterUsernameRender)
+export default PrivateEnterUsernameRender

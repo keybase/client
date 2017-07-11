@@ -26,7 +26,11 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
         {onBack &&
           <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />}
       </Box>
-      <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
+      <Box style={_wrapperStyle}>
+        <Box style={_wrapper2Style}>
+          <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
+        </Box>
+      </Box>
     </Box>
   )
 
@@ -44,6 +48,14 @@ const _backButtonIconStyleThemed = {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
+  height: '100%',
+}
+
+const _wrapper2Style = {
+  ...globalStyles.fillAbsolute,
+}
+
+const _wrapperStyle = {
   flexGrow: 1,
 }
 

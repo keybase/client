@@ -117,7 +117,7 @@ const DevicesRender = ({
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
+  ...globalStyles.fullHeight,
 }
 
 const stylesCommonCore = {

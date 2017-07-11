@@ -63,7 +63,7 @@ const styleContentContainer = (isBannerShowing: boolean) => ({
   flex: 1,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  ...(isBannerShowing ? {} : {marginTop: MIN_BANNER_HEIGHT}),
+  ...(isBannerShowing ? {marginTop: MIN_BANNER_HEIGHT} : {}),
 })
 
 export default HeaderHoc(StandardScreen)

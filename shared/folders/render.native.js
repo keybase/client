@@ -42,11 +42,6 @@ class FoldersRender extends Component<void, Props, void> {
           backgroundColor: globalColors.white,
         }}
       >
-        <Box
-          style={{
-            backgroundColor: globalColors.white,
-          }}
-        />
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
@@ -84,7 +79,7 @@ class FoldersRender extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
+  ...globalStyles.fullHeight,
 }
 
 const styleBadge = {

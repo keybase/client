@@ -45,14 +45,9 @@ type State = {
 }
 
 class Profile extends Component<void, Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      currentFriendshipsTab: 'Followers',
-      activeMenuProof: null,
-    }
+  state = {
+    currentFriendshipsTab: 'Followers',
+    activeMenuProof: null,
   }
 
   _handleToggleMenu(idx: number) {
@@ -203,7 +198,7 @@ class Profile extends Component<void, Props, State> {
     const activeMenuProof = this.state.activeMenuProof
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, height: '100%'}}>
         <Box
           style={{
             ...styleHeader,
@@ -328,8 +323,8 @@ const styleActions = {
 
 const styleProofsAndFolders = {
   flex: 1,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   paddingBottom: globalMargins.medium,
 }
 

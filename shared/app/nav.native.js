@@ -110,19 +110,14 @@ function renderStackRoute(route) {
   )
 }
 
-const forIOS = ({hideNav, shim, tabBar}) => (
-  <Box style={flexOne}>
-    <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
-      {shim}
-    </NativeKeyboardAvoidingView>
-    {!hideNav && tabBar}
-  </Box>
-)
-
-const forAndroid = ({hideNav, shim, tabBar}) => (
-  <Box style={flexOne}>
-    <Box style={!hideNav ? styleScreenSpaceAndroid : flexOne}>
-      {shim}
+const Container = ({hideNav, shim, tabBar}) => (
+  <Box style={globalStyles.fullHeight}>
+    <Box style={globalStyles.flexGrowOne}>
+      <Box style={globalStyles.fillAbsolute}>
+        <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
+          {shim}
+        </NativeKeyboardAvoidingView>
+      </Box>
     </Box>
     {!hideNav &&
       <Box style={styleCollapsibleNavAndroid}>
@@ -153,7 +148,6 @@ function MainNavStack(props: Props) {
       badgeNumbers={props.navBadges.toJS()}
     />
   )
-  const Container = isAndroid ? forAndroid : forIOS
   return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
@@ -197,26 +191,16 @@ function Nav(props: Props) {
 
 const sceneWrapStyleUnder = {
   backgroundColor: globalColors.white,
-  flex: 1,
+  ...globalStyles.fullHeight,
 }
 
 const sceneWrapStyleOver = {
-  backgroundColor: globalColors.white,
-  flex: 1,
+  ...sceneWrapStyleUnder,
   paddingTop: statusBarHeight,
-}
-
-const styleScreenSpaceAndroid = {
-  flex: -1,
-  height: Dimensions.get('window').height - tabBarHeight,
 }
 
 const styleCollapsibleNavAndroid = {
   flexShrink: 999999,
-}
-
-const flexOne = {
-  flex: 1,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
