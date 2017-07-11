@@ -38,10 +38,12 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 	return links, nil
 }
 
-func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+// needAdmin must be set when interacting with links that have a possibility of being stubbed.
+func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string, needAdmin bool) (*Team, error) {
 	return Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
+		NeedAdmin:   needAdmin,
 	})
 }
 
@@ -79,4 +81,37 @@ func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name k
 
 func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
+}
+
+// Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
+// know whether you are an admin. This always causes roundtrips.
+func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	// Find out our up-to-date role.
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	me, err := loadUserVersionByUID(ctx, g, g.Env.GetUID())
+	if err != nil {
+		return nil, err
+	}
+	role, err := team.MemberRole(ctx, me)
+	if err != nil {
+		return nil, err
+	}
+	if role.IsAdminOrAbove() {
+		// Will hit the cache _unless_ we had a cached non-admin team
+		// and are now an admin.
+		team, err = Load(ctx, g, keybase1.LoadTeamArg{
+			Name:      name,
+			NeedAdmin: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return team, nil
 }
