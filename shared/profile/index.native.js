@@ -327,7 +327,6 @@ const styleActions = {
 const styleProofsAndFolders = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  paddingBottom: globalMargins.medium,
 }
 
 const styleFolderLine = {
