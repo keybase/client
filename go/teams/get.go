@@ -65,6 +65,14 @@ func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.
 	return getInternal(ctx, g, id)
 }
 
+func GetStale(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{ID: id, StaleOK: true})
+}
+
+func GetStaleByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{Name: name, StaleOK: true})
+}
+
 func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {

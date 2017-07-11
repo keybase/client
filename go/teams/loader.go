@@ -626,3 +626,16 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
 	return keybase1.TeamName{}, nil
 }
+
+func notifyTeamRename(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, newName string) error {
+	// TODO -- implement me!
+	return nil
+}
+
+func forceTeamRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) error {
+	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		ForceRepoll: true,
+	})
+	return err
+}
