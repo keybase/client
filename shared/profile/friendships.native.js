@@ -150,7 +150,7 @@ class FriendshipsRender extends Component<void, Props, State> {
                 this.props.onSwitchTab && this.props.onSwitchTab(tab)
               }}
             >
-              <Box style={globalStyles.flexGrowOne}>
+              <Box style={globalStyles.flexGrow}>
                 <Box style={globalStyles.fillAbsolute}>
                   <Box style={{...tabItemContainerStyle, width: '100%'}}>
                     <Box style={tabItemContainerTopBorder} />

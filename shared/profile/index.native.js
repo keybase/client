@@ -219,7 +219,7 @@ class Profile extends Component<void, Props, State> {
               <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
             </Box>}
         </Box>
-        <Box style={globalStyles.flexGrowOne}>
+        <Box style={globalStyles.flexGrow}>
           <Box style={globalStyles.fillAbsolute}>
             <NativeScrollView
               style={{backgroundColor: trackerStateColors.header.background}}

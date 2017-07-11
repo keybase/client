@@ -129,7 +129,7 @@ function renderStackRoute(route) {
 
 const Container = ({hideNav, shim, tabBar}) => (
   <Box style={globalStyles.fullHeight}>
-    <Box style={globalStyles.flexGrowOne}>
+    <Box style={globalStyles.flexGrow}>
       <Box style={globalStyles.fillAbsolute}>
         <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
           {shim}

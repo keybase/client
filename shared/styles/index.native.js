@@ -92,7 +92,7 @@ const util = {
     backgroundColor: globalColors.lightGrey,
     height: 16,
   },
-  flexGrowOne: {
+  flexGrow: {
     flexGrow: 1,
   },
   fullHeight: {
