@@ -73,29 +73,31 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) error {
 	for _, invitee := range msg.Invitees {
-		if err := handleSingleSBSRequest(ctx, g, msg.TeamID, invitee); err != nil {
-
+		if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
+			return err
 		}
 	}
-
 	return nil
-
 }
 
-func handleSingleSBSRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, invitee keybase1.TeamInvitee) error {
+func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, invitee keybase1.TeamInvitee) error {
+	g.Log.Warning("handleSBSSingle")
 	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
 	req, err := reqFromRole(uv, invitee.Role)
 	if err != nil {
 		return err
 	}
+	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UID)
+	req.CompletedInvites[invitee.InviteID] = invitee.Uid
 
 	team, err := GetForTeamManagement(ctx, g, teamID)
 	if err != nil {
 		return err
 	}
 
-	_ = team
-	_ = req
+	// XXX find invite link
+	// XXX resolve assertion in link
+	// XXX check resolved assertion uid with invitee.Uid
 
-	return nil
+	return team.ChangeMembership(ctx, req)
 }

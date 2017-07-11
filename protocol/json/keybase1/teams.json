@@ -278,6 +278,14 @@
             "items": "UserVersion"
           },
           "name": "none"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "UID",
+            "keys": "TeamInviteID"
+          },
+          "name": "completedInvites"
         }
       ]
     },
@@ -635,7 +643,7 @@
       "name": "TeamInvitee",
       "fields": [
         {
-          "type": "string",
+          "type": "TeamInviteID",
           "name": "inviteID",
           "jsonkey": "invite_id"
         },

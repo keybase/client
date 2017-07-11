@@ -5931,6 +5931,7 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
+  completedInvites: {[key: string]: UID},
 }
 
 export type TeamChangeRow = {
@@ -5988,7 +5989,7 @@ export type TeamInviteType =
   | { c: any }
 
 export type TeamInvitee = {
-  inviteID: string,
+  inviteID: TeamInviteID,
   uid: UID,
   eldestSeqno: Seqno,
   role: TeamRole,

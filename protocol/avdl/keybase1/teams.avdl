@@ -93,6 +93,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
+    map<TeamInviteID,UID> completedInvites;
   }
 
   record UserVersion {
@@ -244,7 +245,7 @@ protocol teams {
 
   record TeamInvitee {
     @jsonkey("invite_id")
-    string inviteID;
+    TeamInviteID inviteID;
     UID uid;
     @jsonkey("eldest_seqno")
     Seqno eldestSeqno;

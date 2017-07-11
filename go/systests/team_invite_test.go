@@ -30,10 +30,10 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[0].kickTeamRekeyd()
 
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(2))
+	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// user 1 should also get gregor notification that the team changed
-	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(2))
+	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
 	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)

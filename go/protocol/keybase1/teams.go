@@ -291,11 +291,12 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 }
 
 type TeamChangeReq struct {
-	Owners  []UserVersion `codec:"owners" json:"owners"`
-	Admins  []UserVersion `codec:"admins" json:"admins"`
-	Writers []UserVersion `codec:"writers" json:"writers"`
-	Readers []UserVersion `codec:"readers" json:"readers"`
-	None    []UserVersion `codec:"none" json:"none"`
+	Owners           []UserVersion        `codec:"owners" json:"owners"`
+	Admins           []UserVersion        `codec:"admins" json:"admins"`
+	Writers          []UserVersion        `codec:"writers" json:"writers"`
+	Readers          []UserVersion        `codec:"readers" json:"readers"`
+	None             []UserVersion        `codec:"none" json:"none"`
+	CompletedInvites map[TeamInviteID]UID `codec:"completedInvites" json:"completedInvites"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
@@ -340,6 +341,15 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.None),
+		CompletedInvites: (func(x map[TeamInviteID]UID) map[TeamInviteID]UID {
+			ret := make(map[TeamInviteID]UID)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.CompletedInvites),
 	}
 }
 
@@ -763,15 +773,15 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 }
 
 type TeamInvitee struct {
-	InviteID    string   `codec:"inviteID" json:"invite_id"`
-	Uid         UID      `codec:"uid" json:"uid"`
-	EldestSeqno Seqno    `codec:"eldestSeqno" json:"eldest_seqno"`
-	Role        TeamRole `codec:"role" json:"role"`
+	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	EldestSeqno Seqno        `codec:"eldestSeqno" json:"eldest_seqno"`
+	Role        TeamRole     `codec:"role" json:"role"`
 }
 
 func (o TeamInvitee) DeepCopy() TeamInvitee {
 	return TeamInvitee{
-		InviteID:    o.InviteID,
+		InviteID:    o.InviteID.DeepCopy(),
 		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 		Role:        o.Role.DeepCopy(),

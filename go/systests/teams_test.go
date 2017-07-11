@@ -239,7 +239,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.
 				u.tc.T.Logf("change matched!")
 				return
 			}
-			u.tc.T.Logf("ignoring change message")
+			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
 		case <-time.After(1 * time.Second):
 		}
 	}
