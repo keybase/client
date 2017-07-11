@@ -135,19 +135,18 @@ class FriendshipsRender extends Component<void, Props, State> {
       Following: this.props.following.length,
     }
     return (
-      <TabBar>
+      <TabBar style={{maxHeight: height - 160}}>
         {['Followers', 'Following'].map(tab => {
           return (
             <TabBarItem
               key={tab}
               selected={this.props.currentTab === tab}
               label={`${tab.toUpperCase()} (${counts[tab]})`}
-              styleContainer={{flex: 1}}
               onClick={() => {
                 this.props.onSwitchTab && this.props.onSwitchTab(tab)
               }}
             >
-              <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
+              <Box style={{...tabItemContainerStyle, width: '100%'}}>
                 <Box style={tabItemContainerTopBorder} />
                 {counts[tab] === 0 &&
                   <Box style={tabItemEmptyStyle}>
@@ -175,16 +174,13 @@ class FriendshipsRender extends Component<void, Props, State> {
 
 const tabItemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  flexBasis: 1,
-  flexGrow: 1,
-  flexShrink: 0,
 }
 
 const tabItemContainerTopBorder = {
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_10,
-  flexGrow: 1,
-  height: 1,
+  width: '100%',
+  maxHeight: 1,
 }
 
 const tabItemContainerUsers = {
