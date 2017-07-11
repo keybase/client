@@ -147,6 +147,7 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 	iarg := keybase1.Identify2Arg{
 		UserAssertion:    u,
 		ForceRemoteCheck: true,
+		AlwaysBlock:      true,
 	}
 	topts := keybase1.TrackOptions{
 		LocalOnly: true,
