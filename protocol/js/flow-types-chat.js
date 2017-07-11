@@ -622,6 +622,21 @@ export function localRetryPostRpcPromise (request: $Exact<requestCommon & reques
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.RetryPost', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localSetAppNotificationSettingsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetAppNotificationSettingsLocalResult) => void} & {param: localSetAppNotificationSettingsLocalRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request)
+}
+
+export function localSetAppNotificationSettingsLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetAppNotificationSettingsLocalResult) => void} & {param: localSetAppNotificationSettingsLocalRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setAppNotificationSettingsLocal', request)
+}
+export function localSetAppNotificationSettingsLocalRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetAppNotificationSettingsLocalResult) => void} & {param: localSetAppNotificationSettingsLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, callback, incomingCallMap) })
+}
+
+export function localSetAppNotificationSettingsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetAppNotificationSettingsLocalResult) => void} & {param: localSetAppNotificationSettingsLocalRpcParam}>): Promise<localSetAppNotificationSettingsLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.setAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localSetConversationStatusLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>) {
   engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request)
 }
@@ -1928,6 +1943,11 @@ export type SetAppNotificationSettingsInfo = {
   settings: ConversationNotificationInfo,
 }
 
+export type SetAppNotificationSettingsLocalRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type SetAppNotificationSettingsPayload = {
   Action: string,
   convID: ConversationID,
@@ -2310,6 +2330,11 @@ export type localRetryPostRpcParam = Exact<{
   outboxID: OutboxID
 }>
 
+export type localSetAppNotificationSettingsLocalRpcParam = Exact<{
+  convID: ConversationID,
+  settings: ConversationNotificationInfo
+}>
+
 export type localSetConversationStatusLocalRpcParam = Exact<{
   conversationID: ConversationID,
   status: ConversationStatus,
@@ -2481,6 +2506,7 @@ type localPostFileAttachmentLocalResult = PostLocalRes
 type localPostLocalNonblockResult = PostLocalNonblockRes
 type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes
+type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers
@@ -2531,6 +2557,7 @@ export type rpc =
   | localPostLocalRpc
   | localPostTextNonblockRpc
   | localRetryPostRpc
+  | localSetAppNotificationSettingsLocalRpc
   | localSetConversationStatusLocalRpc
   | localUpdateTypingRpc
   | remoteGetInboxRemoteRpc

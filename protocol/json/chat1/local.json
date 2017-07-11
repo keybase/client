@@ -1847,6 +1847,23 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SetAppNotificationSettingsLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2524,6 +2541,19 @@
         }
       ],
       "response": "GetTLFConversationsLocalRes"
+    },
+    "setAppNotificationSettingsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "settings",
+          "type": "ConversationNotificationInfo"
+        }
+      ],
+      "response": "SetAppNotificationSettingsLocalRes"
     }
   },
   "namespace": "chat.1"
