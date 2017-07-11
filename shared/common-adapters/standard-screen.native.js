@@ -60,7 +60,6 @@ const styleBannerText = {
 const styleContentContainer = (isBannerShowing: boolean) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  flex: 1,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   ...(isBannerShowing ? {marginTop: MIN_BANNER_HEIGHT} : {}),
