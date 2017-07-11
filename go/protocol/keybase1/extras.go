@@ -1266,21 +1266,29 @@ func (ut UserOrTeamID) IsSubteam() bool {
 }
 
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
-	return ut.isTeam() || ut.isSubteam()
+	return ut.IsTeam() || ut.IsSubteam()
 }
 
+func (ut UserOrTeamID) IsValidID() bool {
+	return ut.IsUser() || ut.IsTeamOrSubteam()
+}
+
+// Preconditions:
+// 	-first four bits (in Little Endian) of UserOrTeamID are
+// 	 	independent and uniformly distributed
+//	-UserOrTeamID must have an even number of bits, or this will always
+//   	return 0
 // Returns a number in [0, shardCount) which can be treated as roughly
 // uniformly distributed. Used for things that need to shard by user.
 func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
+	if !ut.IsValidID() {
+		return 0, fmt.Errorf("Bad ID, does not match any known valid type")
+	}
 	bytes, err := hex.DecodeString(string(ut))
 	if err != nil {
 		return 0, err
 	}
-	// TODO -- fix this and all other UserOrTeam#foo's that don't check
-	// the size of the input.
-	if len(bytes) < 4 {
-		return 0, fmt.Errorf("bad ID, isn't 4 bytes at least")
-	}
+	// LittleEndian.Uint32 truncates to obtain 4 bytes from the buffer
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
 }
