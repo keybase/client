@@ -1538,6 +1538,10 @@ func (t TeamName) LastPart() TeamNamePart {
 	return t.Parts[len(t.Parts)-1]
 }
 
+func (t TeamName) NParts() int {
+	return len(t.Parts)
+}
+
 func (u UserPlusKeys) ToUserVersion() UserVersion {
 	return UserVersion{
 		Uid:         u.Uid,

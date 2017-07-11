@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"golang.org/x/net/context"
@@ -34,6 +35,8 @@ type TeamLoader struct {
 	// Single-flight locks per team ID.
 	locktab libkb.LockTable
 }
+
+var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
 func NewTeamLoader(g *libkb.GlobalContext, storage *Storage) *TeamLoader {
 	return &TeamLoader{
@@ -215,15 +218,20 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		ret = l.storage.Get(ctx, arg.teamID)
 	}
 
-	// Throw out the cache result if it is secretless and this is not a recursive load
-	if ret != nil && arg.readSubteamID == nil && ret.Secretless {
-		ret = nil
-	}
-
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
 		// Check that we are the same person as when this team was last loaded as a courtesy.
 		// This should never happen. We shouldn't be able to decrypt someone else's snapshot.
 		l.G().Log.CWarningf(ctx, "team loader got someone else's snapshot, discarding.")
+		ret = nil
+	}
+
+	var cachedName *keybase1.TeamName
+	if ret != nil {
+		cachedName = &ret.Chain.Name
+	}
+
+	// Throw out the cache result if it is secretless and this is not a recursive load
+	if ret != nil && arg.readSubteamID == nil && ret.Secretless {
 		ret = nil
 	}
 
@@ -370,13 +378,33 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		return nil, fmt.Errorf("team id mismatch: %v != %v", ret.Chain.Id.String(), arg.teamID.String())
 	}
 
-	// TODO check that the name matches the subteam-ness
+	// Recalculate the team name. This is only dealing with ancestor renames, chain.go has already
+	// handled on-chain renames
+	newName, err := l.recalculateName(ctx, ret, arg.me, arg.staleOK)
+	if !ret.Chain.Name.Eq(newName) {
+		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
+		ret := ret.DeepCopy()
+		ret.Chain.Name = newName
+	}
+	// Check that the name matches the subteam-ness
+	chain := TeamSigChainState{inner: ret.Chain}
+	if chain.IsSubteam() == chain.inner.Name.IsRootTeam() {
+		return nil, fmt.Errorf("team name subteam-ness is wrong: %v", chain.inner.Name.String())
+	}
 
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
 	// while holding the single-flight lock reads or writes this field.
 	ret.CachedAt = keybase1.ToTime(l.G().Clock().Now())
 	l.storage.Put(ctx, ret)
+
+	if cachedName != nil && !cachedName.Eq(newName) {
+		// Send a notification if we used to have the name cached and it has changed at all.
+		go l.G().NotifyRouter.HandleTeamChanged(context.Background(), chain.GetID(), newName.String(), chain.GetLatestSeqno(),
+			keybase1.TeamChangeSet{
+				Renamed: true,
+			})
+	}
 
 	// Check request constraints
 	err = l.load2CheckReturn(ctx, arg, ret)
@@ -627,15 +655,47 @@ func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keyba
 	return keybase1.TeamName{}, nil
 }
 
-func notifyTeamRename(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, newName string) error {
-	// TODO -- implement me!
-	return nil
-}
+func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {
+	// ignore newName from the server
 
-func forceTeamRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) error {
-	_, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          id,
-		ForceRepoll: true,
-	})
-	return err
+	// Load up the ancestor chain with ForceRepoll.
+	// Then load down the ancestor chain without it (expect cache hits).
+	// Not the most elegant way, but it will get the job done.
+	// Each load on the way down will recalculate that team's name.
+
+	var ancestorIDs []keybase1.TeamID
+
+	loopID := &id
+	if loopID != nil {
+		team, err := l.load2(ctx, load2ArgT{
+			teamID:        *loopID,
+			forceRepoll:   true,
+			readSubteamID: &id,
+		})
+		if err != nil {
+			return err
+		}
+		ancestorIDs = append(ancestorIDs, *loopID)
+		chain := TeamSigChainState{inner: team.Chain}
+		if chain.IsSubteam() {
+			loopID = chain.GetParentID()
+		} else {
+			loopID = nil
+		}
+	}
+
+	// reverse ancestorIDs so the root team appears first
+	sort.SliceStable(ancestorIDs, func(i, j int) bool { return i > j })
+
+	for _, loopID := range ancestorIDs {
+		_, err := l.load2(ctx, load2ArgT{
+			teamID:        loopID,
+			readSubteamID: &id,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
