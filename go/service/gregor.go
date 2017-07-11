@@ -1138,7 +1138,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	status, err := g.G().LoginState().APIServerSession()
+	status, err := g.G().LoginState().APIServerSession(true /* force check */)
 	if err != nil {
 		switch err.(type) {
 		case libkb.LoginRequiredError:
