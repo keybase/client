@@ -95,9 +95,39 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		return err
 	}
 
-	// XXX find invite link
-	// XXX resolve assertion in link
-	// XXX check resolved assertion uid with invitee.Uid
+	// verify the invite info:
+
+	// find the invite in the team chain
+	invite, found := team.chain().FindActiveInviteByID(invitee.InviteID)
+	if !found {
+		return libkb.NotFoundError{}
+	}
+	category, err := invite.Type.C()
+	if err != nil {
+		return err
+	}
+	if category == keybase1.TeamInviteCategory_SBS {
+		//  resolve assertion in link
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
+		assertion := string(invite.Name) + "@" + ityp
+
+		res := g.Resolver.ResolveWithBody(assertion)
+		if res.GetError() != nil {
+			return res.GetError()
+		}
+		uid, err := g.GetUPAKLoader().LookupUID(ctx, res.GetNormalizedUsername())
+		if err != nil {
+			return err
+		}
+
+		// check resolved assertion uid with invitee.Uid
+		if uid != invitee.Uid {
+			return fmt.Errorf("resolved %s to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
+		}
+	}
 
 	return team.ChangeMembership(ctx, req)
 }

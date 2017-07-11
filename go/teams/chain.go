@@ -390,6 +390,11 @@ func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamIn
 	return nil, libkb.NotFoundError{}
 }
 
+func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
+	invite, found := t.inner.ActiveInvites[id]
+	return invite, found
+}
+
 // Threadsafe handle to a local model of a team sigchain.
 type TeamSigChainPlayer struct {
 	libkb.Contextified
