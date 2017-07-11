@@ -109,10 +109,6 @@ const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
 
 function renderStackRoute(route) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
-  // Skip extra view if no statusbar
-  if (hideStatusBar) {
-    return route.component
-  }
 
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>

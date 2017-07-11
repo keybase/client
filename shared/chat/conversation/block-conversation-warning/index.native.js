@@ -52,7 +52,7 @@ const RenderBlockConversationWarning = (props: Props) => (
   <PopupDialog
     onClose={props.onBack}
     styleCover={{paddingLeft: 0, paddingRight: 0, paddingTop: 0, paddingBottom: 0}}
-    styleContainer={{borderRadius: 0}}
+    styleContainer={{borderRadius: 0, width: '100%'}}
   >
     <Contents {...props} />
   </PopupDialog>
