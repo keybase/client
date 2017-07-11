@@ -147,8 +147,8 @@ func (id *ID) UnmarshalText(buf []byte) error {
 // SafeType returns the type of TLF represented by this ID.  If the ID
 // isn't valid, it returns tlf.Unknown along with an error.
 func (id ID) SafeType() (Type, error) {
-	if len(id.id) == 0 {
-		return Unknown, errors.New("Invalid empty TLF ID")
+	if len(id.id) != idByteLen {
+		return Unknown, fmt.Errorf("Invalid ID length: %d", len(id.id))
 	}
 	switch id.id[idByteLen-1] {
 	case idSuffix:
