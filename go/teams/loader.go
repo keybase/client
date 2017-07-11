@@ -241,7 +241,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	if (ret == nil) || repoll {
-		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf")
+		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
 		lastSeqno, lastLinkID, err = l.lookupMerkle(ctx, arg.teamID)
 	} else {

@@ -9,20 +9,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func getInternalByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{
-		Name:        name,
-		ForceRepoll: true,
-	})
-}
-
-func getInternal(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          id,
-		ForceRepoll: true,
-	})
-}
-
 type rawTeam struct {
 	ID             keybase1.TeamID                                        `json:"id"`
 	Name           keybase1.TeamName                                      `json:"name"`
@@ -53,16 +39,18 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 }
 
 func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return getInternalByStringName(ctx, g, name)
-}
-
-func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return getInternal(ctx, g, id)
+	return Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
 }
 
 func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
 	// TODO -- use the `application` and `refreshers` arguments
-	return getInternal(ctx, g, id)
+	return Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		ForceRepoll: true,
+	})
 }
 
 func GetStale(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
