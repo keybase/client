@@ -31,6 +31,9 @@ type rawTeam struct {
 	Box            *TeamBox                                               `json:"box"`
 	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded `json:"prevs"`
 	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
+	// Whether the user is only being allowed to view the chain
+	// because they are a member of a descendent team.
+	SubteamReader bool `json:"subteam_reader"`
 }
 
 func (r *rawTeam) GetAppStatus() *libkb.AppStatus {

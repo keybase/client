@@ -138,7 +138,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
 	t.Logf("add B to the team so they can load it")
-	err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")
@@ -156,7 +156,7 @@ func TestLoaderKeyGen(t *testing.T) {
 		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
-		err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
 		require.NoError(t, err)
 	}
 
@@ -206,7 +206,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and caches")
@@ -217,7 +217,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	requireSeqno(team, 2)
 
 	t.Logf("U0 bumps the sigchain (add U3) (3)")
-	err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and hits the cache")
@@ -245,7 +245,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	requireSeqno(team, 3, "seqno should advance because wantmembers pre-check fails")
 
 	t.Logf("U0 adds U2 (4)")
-	err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads with WantMembers=U2 and it works")
@@ -348,7 +348,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("add U1 to the parent")
-	err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
 
 	// Hack to get around stale merkle root when creating subteam
 	// Michal's gonna fix this soon, then this line can go away.
@@ -364,7 +364,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	t.Logf("add U1 to the subteam")
 	subteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
-	err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
@@ -377,8 +377,6 @@ func TestLoaderFillStubbed(t *testing.T) {
 // Test loading a team and when not a member of the parent.
 // User loads a team T1.T2 but has never been a member of T1.
 func TestLoaderNotInParent(t *testing.T) {
-	t.Skip("TODO: awaiting non-member parent read")
-
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -392,7 +390,7 @@ func TestLoaderNotInParent(t *testing.T) {
 	t.Logf("add U1 to the subteam")
 	subteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
-	err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
@@ -402,11 +400,9 @@ func TestLoaderNotInParent(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Test loading a sub-sub-team.
-// When not a member of the ancestors.
+// Test loading a sub-sub-team: a.b.c.
+// When not a member of the ancestors: a, a.b.
 func TestLoaderMultilevel(t *testing.T) {
-	t.Skip("TODO: awaiting non-member parent read")
-
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -414,20 +410,20 @@ func TestLoaderMultilevel(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[0])
 
 	t.Logf("create a subteam")
-	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", parentName)
 	require.NoError(t, err)
 
 	t.Logf("create a sub-subteam")
-	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", parentName)
+	subTeamName, err := parentName.Append("abc")
+	require.NoError(t, err)
+	subsubteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "def", subTeamName)
 	require.NoError(t, err)
 
-	expectedSubsubTeamName, err := parentName.Append("abc")
-	require.NoError(t, err)
-	expectedSubsubTeamName, err = parentName.Append("def")
+	expectedSubsubTeamName, err := subTeamName.Append("def")
 	require.NoError(t, err)
 
 	t.Logf("add the other user to the subsubteam")
-	err = AddMember(context.TODO(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
@@ -435,7 +431,6 @@ func TestLoaderMultilevel(t *testing.T) {
 		ID: *subsubteamID,
 	})
 	require.NoError(t, err)
-	require.Equal(t, team.Chain.Id, *subteamID)
+	require.Equal(t, *subsubteamID, team.Chain.Id)
 	require.Equal(t, expectedSubsubTeamName, TeamSigChainState{inner: team.Chain}.GetName())
-	require.Equal(t, subteamID, *team.Chain.ParentID)
 }

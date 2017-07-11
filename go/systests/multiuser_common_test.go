@@ -312,7 +312,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		u.ctx.t.Fatal(err)
 	}
 	for _, w := range writers {
-		err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 			Name:     name,
 			Username: w.username,
 			Role:     keybase1.TeamRole_WRITER,
@@ -326,7 +326,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
 	cli := u.getTeamsClient()
-	err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 		Name:     team.name,
 		Username: w.username,
 		Role:     keybase1.TeamRole_WRITER,

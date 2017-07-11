@@ -125,7 +125,15 @@ class UserInput extends Component<void, Props, State> {
   }
 
   render() {
-    const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
+    const {
+      autoFocus,
+      placeholder,
+      userItems,
+      usernameText,
+      onChangeText,
+      onClickAddButton,
+      onAddSelectedUser,
+    } = this.props
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
@@ -157,6 +165,8 @@ class UserInput extends Component<void, Props, State> {
               placeholder={userItems.length ? '' : placeholder}
               value={usernameText}
               onChangeText={onChangeText}
+              onSubmitEditing={onAddSelectedUser}
+              returnKeyType="next"
             />
             {showAddButton &&
               onClickAddButton &&

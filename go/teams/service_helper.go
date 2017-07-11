@@ -113,24 +113,39 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
-func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
+func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	if err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	if err != nil {
+		if err == errInviteRequired {
+			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
+		}
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	if t.IsMember(ctx, uv) {
+		return keybase1.TeamAddMemberResult{}, libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
+	}
+	req, err := reqFromRole(uv, role)
+	if err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+
+	if err := t.ChangeMembership(ctx, req); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
+	return keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
+}
+
+func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
 	if err != nil {
 		return err
 	}
-	uv, err := loadUserVersionByUsername(ctx, g, username)
-	if err != nil {
-		return err
-	}
-	if t.IsMember(ctx, uv) {
-		return fmt.Errorf("user %q is already a member of team %q", username, teamname)
-	}
-	req, err := reqFromRole(uv, role)
-	if err != nil {
-		return err
-	}
 
-	return t.ChangeMembership(ctx, req)
+	return t.InviteEmailMember(ctx, email, role)
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
@@ -214,12 +229,36 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 	return t.ChangeMembership(ctx, req)
 }
 
+var errInviteRequired = errors.New("invite required for username")
+
+func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
+	res := g.Resolver.ResolveWithBody(username)
+	if res.GetError() != nil {
+		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+			// couldn't find a keybase user for username assertion
+			return "", keybase1.UserVersion{}, errInviteRequired
+		}
+		return "", keybase1.UserVersion{}, res.GetError()
+	}
+
+	uv, err := loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
+	if err != nil {
+		return res.GetNormalizedUsername(), uv, err
+	}
+	return res.GetNormalizedUsername(), uv, nil
+}
+
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
 	res := g.Resolver.ResolveWithBody(username)
 	if res.GetError() != nil {
+		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+			// couldn't find a keybase user for username assertion
+			return keybase1.UserVersion{}, errInviteRequired
+		}
 		return keybase1.UserVersion{}, res.GetError()
 	}
-	return loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), username)
+
+	return loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
 }
 
 func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (keybase1.UserVersion, error) {
@@ -233,6 +272,10 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 	}
 	if un != "" && !libkb.NormalizedUsername(un).Eq(libkb.NormalizedUsername(upak.Current.Username)) {
 		return keybase1.UserVersion{}, libkb.BadUsernameError{N: un}
+	}
+
+	if len(upak.Current.PerUserKeys) == 0 {
+		return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), errInviteRequired
 	}
 
 	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
@@ -312,4 +355,12 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 	}
 	err = errors.New("could not identify team by ID or name")
 	return res, err
+}
+
+func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname)
+	if err != nil {
+		return nil, err
+	}
+	return t.chain().FindActiveInvite(username, typ)
 }
