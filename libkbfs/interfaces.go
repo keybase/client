@@ -411,8 +411,12 @@ type KeybaseService interface {
 		[]keybase1.PublicKey, error)
 
 	// LoadTeamPlusKeys returns a TeamInfo struct for a team with the
-	// specified TeamID.
-	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID) (TeamInfo, error)
+	// specified TeamID.  The caller can specify `desiredKeyGen` to
+	// force a server check if that particular key gen isn't yet
+	// known; it may be set to UnspecifiedKeyGen if no server check is
+	// required.
+	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
+		desiredKeyGen KeyGen) (TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
@@ -527,8 +531,11 @@ type TeamMembershipChecker interface {
 type teamKeysGetter interface {
 	// GetTeamTLFCryptKeys gets all of a team's secret crypt keys, by
 	// generation, as well as the latest key generation number for the
-	// team.
-	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID) (
+	// team.  The caller can specify `desiredKeyGen` to force a server
+	// check if that particular key gen isn't yet known; it may be set
+	// to UnspecifiedKeyGen if no server check is required.
+	GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamID,
+		desiredKeyGen KeyGen) (
 		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
 }
 

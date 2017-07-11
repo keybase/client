@@ -1443,7 +1443,8 @@ func (fbo *folderBranchOps) initMDLocked(
 		if err != nil {
 			return err
 		}
-		keys, keyGen, err := fbo.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid)
+		keys, keyGen, err := fbo.config.KBPKI().GetTeamTLFCryptKeys(
+			ctx, tid, UnspecifiedKeyGen)
 		if err != nil {
 			return err
 		}

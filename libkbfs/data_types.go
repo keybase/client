@@ -155,6 +155,10 @@ const (
 	// PublicKeyGen is the value used for public TLFs. Note that
 	// it is not considered a valid key generation.
 	PublicKeyGen KeyGen = -1
+	// UnspecifiedKeyGen indicates that the application doesn't have a
+	// particular keygen in mind when requesting keys; any keygen will
+	// do.
+	UnspecifiedKeyGen KeyGen = 0
 	// FirstValidKeyGen is the first value that is considered a
 	// valid key generation. Note that the nil value is not
 	// considered valid.

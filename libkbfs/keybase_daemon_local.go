@@ -258,7 +258,7 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context,
 
 // LoadTeamPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadTeamPlusKeys(
-	ctx context.Context, tid keybase1.TeamID) (TeamInfo, error) {
+	ctx context.Context, tid keybase1.TeamID, _ KeyGen) (TeamInfo, error) {
 	if err := checkContext(ctx); err != nil {
 		return TeamInfo{}, err
 	}

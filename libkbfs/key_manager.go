@@ -125,7 +125,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
 		}
-		keys, _, err := km.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid)
+		keys, _, err := km.config.KBPKI().GetTeamTLFCryptKeys(ctx, tid, keyGen)
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
 		}

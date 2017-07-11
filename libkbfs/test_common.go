@@ -471,7 +471,8 @@ func AddTeamKeyForTest(config Config, tid keybase1.TeamID) error {
 		return errors.New("Bad keybase daemon")
 	}
 
-	ti, err := kbd.LoadTeamPlusKeys(context.Background(), tid)
+	ti, err := kbd.LoadTeamPlusKeys(
+		context.Background(), tid, UnspecifiedKeyGen)
 	if err != nil {
 		return err
 	}

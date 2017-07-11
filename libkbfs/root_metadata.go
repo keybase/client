@@ -279,7 +279,8 @@ func (md *RootMetadata) MakeSuccessor(
 			if err != nil {
 				return nil, err
 			}
-			_, keyGen, err := teamKeyer.GetTeamTLFCryptKeys(ctx, tid)
+			_, keyGen, err := teamKeyer.GetTeamTLFCryptKeys(
+				ctx, tid, UnspecifiedKeyGen)
 			if err != nil {
 				return nil, err
 			}
