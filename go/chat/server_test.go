@@ -1304,12 +1304,13 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
-	newMessage    chan chat1.MessageUnboxed
-	threadsStale  chan []chat1.ConversationID
-	inboxStale    chan struct{}
-	joinedConv    chan chat1.ConversationLocal
-	leftConv      chan chat1.ConversationID
-	membersUpdate chan chat1.MembersUpdateInfo
+	newMessage              chan chat1.MessageUnboxed
+	threadsStale            chan []chat1.ConversationID
+	inboxStale              chan struct{}
+	joinedConv              chan chat1.ConversationLocal
+	leftConv                chan chat1.ConversationID
+	membersUpdate           chan chat1.MembersUpdateInfo
+	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1348,6 +1349,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.newMessage <- activity.IncomingMessage().Message
 	case chat1.ChatActivityType_MEMBERS_UPDATE:
 		n.membersUpdate <- activity.MembersUpdate()
+	case chat1.ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
+		n.appNotificationSettings <- activity.SetAppNotificationSettings()
 	}
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -1361,12 +1364,13 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
-		newMessage:    make(chan chat1.MessageUnboxed, 100),
-		threadsStale:  make(chan []chat1.ConversationID, 100),
-		inboxStale:    make(chan struct{}, 100),
-		joinedConv:    make(chan chat1.ConversationLocal, 100),
-		leftConv:      make(chan chat1.ConversationID, 100),
-		membersUpdate: make(chan chat1.MembersUpdateInfo, 100),
+		newMessage:              make(chan chat1.MessageUnboxed, 100),
+		threadsStale:            make(chan []chat1.ConversationID, 100),
+		inboxStale:              make(chan struct{}, 100),
+		joinedConv:              make(chan chat1.ConversationLocal, 100),
+		leftConv:                make(chan chat1.ConversationID, 100),
+		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
+		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
 	}
 }
 
@@ -1975,4 +1979,71 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.Error(t, err)
 	})
+}
+
+func TestChatSrvSetAppNotificationSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvSetAppNotificationSettings", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		ctx := ctc.as(t, users[0]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gilres.Conversations))
+		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
+		gconv := gilres.Conversations[0]
+		require.True(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.Equal(t, 2, len(gconv.Notifications.Settings))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+
+		var settings chat1.ConversationNotificationInfo
+		utils.NotificationInfoSet(&settings, chat1.NotificationAppType_DESKTOP,
+			chat1.NotificationKind_GENERIC, false)
+		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
+			chat1.SetAppNotificationSettingsLocalArg{
+				ConvID:   conv.Id,
+				Settings: settings,
+			})
+		require.NoError(t, err)
+		select {
+		case rsettings := <-listener0.appNotificationSettings:
+			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
+			require.Equal(t, 1, len(rsettings.Settings.Settings))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no app notification received")
+		}
+
+		gilres, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gilres.Conversations))
+		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
+		gconv = gilres.Conversations[0]
+		require.False(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.Equal(t, 2, len(gconv.Notifications.Settings))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+	})
+
 }

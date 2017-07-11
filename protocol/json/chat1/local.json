@@ -1114,6 +1114,10 @@
           "name": "readerInfo"
         },
         {
+          "type": "ConversationNotificationInfo",
+          "name": "notifications"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationMetadata"

@@ -2107,6 +2107,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	Notifications    ConversationNotificationInfo  `codec:"notifications" json:"notifications"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
@@ -2123,8 +2124,9 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Error),
-		Info:       o.Info.DeepCopy(),
-		ReaderInfo: o.ReaderInfo.DeepCopy(),
+		Info:          o.Info.DeepCopy(),
+		ReaderInfo:    o.ReaderInfo.DeepCopy(),
+		Notifications: o.Notifications.DeepCopy(),
 		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
 			var ret []ConversationMetadata
 			for _, v := range x {

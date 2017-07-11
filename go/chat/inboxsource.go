@@ -890,6 +890,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
+	if conversationRemote.Notifications == nil {
+		errMsg := "empty Notifications from server?"
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+		return conversationLocal
+	}
+	conversationLocal.Notifications = *conversationRemote.Notifications
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

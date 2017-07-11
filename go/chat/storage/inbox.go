@@ -867,7 +867,11 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 		i.Debug(ctx, "SetAppNotificationSettings: no conversation found: convID: %s, clearing", convID)
 		return i.Clear(ctx)
 	}
-	conv.Notifications = &settings
+	for apptype, kindMap := range settings.Settings {
+		for kind, enabled := range kindMap {
+			conv.Notifications.Settings[apptype][kind] = enabled
+		}
+	}
 
 	// Write out to disk
 	ibox.InboxVersion = vers
