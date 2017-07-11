@@ -762,7 +762,7 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	// We have to search for the tid since we don't know the old name
-	// of the team here.  TODO: add an index for this?
+	// of the team here.  Should we add an index for this?
 	for fb, fbo := range fs.ops {
 		if fb.Tlf.Type() != tlf.SingleTeam {
 			continue
@@ -779,7 +779,8 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 			continue
 		}
 
-		fbo.TeamNameChanged(ctx, tid)
+		fs.log.CDebugf(ctx, "Team name changed for team %s", tid)
+		go fbo.TeamNameChanged(ctx, tid)
 		break
 	}
 }

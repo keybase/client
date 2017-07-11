@@ -6090,68 +6090,64 @@ func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev kbfsmd.Revision) {
 // TeamNameChanged implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) TeamNameChanged(
 	ctx context.Context, tid keybase1.TeamID) {
-	fbo.log.CDebugf(ctx, "Team name changed for team %s", tid)
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+	fbo.log.CDebugf(ctx, "Starting name change for team %s", tid)
 
-	go func() {
-		ctx, cancelFunc := fbo.newCtxWithFBOID()
-		defer cancelFunc()
-		fbo.log.CDebugf(ctx, "Starting name change for team %s", tid)
+	newName, err := fbo.config.KBPKI().GetNormalizedUsername(
+		ctx, tid.AsUserOrTeam())
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
+		return
+	}
 
-		newName, err := fbo.config.KBPKI().GetNormalizedUsername(
-			ctx, tid.AsUserOrTeam())
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Error getting new team name: %+v", err)
-			return
-		}
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
 
-		lState := makeFBOLockState()
-		fbo.mdWriterLock.Lock(lState)
-		defer fbo.mdWriterLock.Unlock(lState)
-		fbo.headLock.Lock(lState)
-		defer fbo.headLock.Unlock(lState)
+	if fbo.head == (ImmutableRootMetadata{}) {
+		fbo.log.CWarningf(ctx, "No head to update")
+		return
+	}
 
-		if fbo.head == (ImmutableRootMetadata{}) {
-			fbo.log.CWarningf(ctx, "No head to update")
-			return
-		}
+	oldHandle := fbo.head.GetTlfHandle()
 
-		oldHandle := fbo.head.GetTlfHandle()
+	if string(oldHandle.GetCanonicalName()) == string(newName) {
+		fbo.log.CDebugf(ctx, "Name didn't change: %s", newName)
+		return
+	}
 
-		if string(oldHandle.GetCanonicalName()) == string(newName) {
-			fbo.log.CDebugf(ctx, "Name didn't change: %s", newName)
-			return
-		}
+	if oldHandle.FirstResolvedWriter() != tid.AsUserOrTeam() {
+		fbo.log.CWarningf(ctx,
+			"Old handle doesn't include changed team ID: %s",
+			oldHandle.FirstResolvedWriter())
+		return
+	}
 
-		if oldHandle.FirstResolvedWriter() != tid.AsUserOrTeam() {
-			fbo.log.CWarningf(ctx,
-				"Old handle doesn't include changed team ID: %s",
-				oldHandle.FirstResolvedWriter())
-			return
-		}
+	// Make a copy of `head` with the new handle.
+	newHandle := oldHandle.deepCopy()
+	newHandle.name = CanonicalTlfName(newName)
+	newHandle.resolvedWriters[tid.AsUserOrTeam()] = newName
+	newHead, err := fbo.head.deepCopy(fbo.config.Codec())
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Error copying head: %+v", err)
+		return
+	}
+	newHead.tlfHandle = newHandle
 
-		// Make a copy of `head` with the new handle.
-		newHandle := oldHandle.deepCopy()
-		newHandle.name = CanonicalTlfName(newName)
-		newHandle.resolvedWriters[tid.AsUserOrTeam()] = newName
-		newHead, err := fbo.head.deepCopy(fbo.config.Codec())
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Error copying head: %+v", err)
-			return
-		}
-		newHead.tlfHandle = newHandle
+	fbo.log.CDebugf(ctx, "Team name changed from %s to %s",
+		oldHandle.GetCanonicalName(), newHandle.GetCanonicalName())
+	fbo.head = MakeImmutableRootMetadata(
+		newHead, fbo.head.lastWriterVerifyingKey, fbo.head.mdID,
+		fbo.head.localTimestamp)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Error setting head: %+v", err)
+		return
+	}
 
-		fbo.log.CDebugf(ctx, "Team name changed from %s to %s",
-			oldHandle.GetCanonicalName(), newHandle.GetCanonicalName())
-		fbo.head = MakeImmutableRootMetadata(
-			newHead, fbo.head.lastWriterVerifyingKey, fbo.head.mdID,
-			fbo.head.localTimestamp)
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Error setting head: %+v", err)
-			return
-		}
-
-		fbo.observers.tlfHandleChange(ctx, newHandle)
-	}()
+	fbo.observers.tlfHandleChange(ctx, newHandle)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
