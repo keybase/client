@@ -72,5 +72,30 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 }
 
 func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) error {
+	for _, invitee := range msg.Invitees {
+		if err := handleSingleSBSRequest(ctx, g, msg.TeamID, invitee); err != nil {
+
+		}
+	}
+
+	return nil
+
+}
+
+func handleSingleSBSRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, invitee keybase1.TeamInvitee) error {
+	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
+	req, err := reqFromRole(uv, invitee.Role)
+	if err != nil {
+		return err
+	}
+
+	team, err := GetForTeamManagement(ctx, g, teamID)
+	if err != nil {
+		return err
+	}
+
+	_ = team
+	_ = req
+
 	return nil
 }
