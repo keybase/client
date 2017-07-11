@@ -115,6 +115,56 @@ func TestTeamGetConcurrent(t *testing.T) {
 	}
 }
 
+// Test loading when you have become an admin after
+// having already cached the team as a non-admin.
+func TestGetMaybeAdminByStringName(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates a team")
+	teamName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 creates a subteam")
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "abc", teamName)
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 as a reader")
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads and is a reader")
+	team, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		Name: teamName.String(),
+	})
+	require.NoError(t, err)
+	role, err := team.MemberRole(context.TODO(), fus[1].GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, role, "still a reader")
+	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "doesn't know about any subteams")
+
+	t.Logf("U0 makes U1 an admin")
+	err = SetRoleAdmin(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads from the cache, and doesn't realize they're an admin")
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		Name: teamName.String(),
+	})
+	require.NoError(t, err)
+	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, role, "cached as a reader")
+	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "still doesn't know about any subteams")
+
+	t.Logf("U1 loads and realizes they're an admin")
+	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String())
+	require.NoError(t, err)
+	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_ADMIN, role, "still an admin")
+	require.Equal(t, 1, len(team.chain().inner.SubteamLog), "has loaded previously-stubbed admin links")
+}
+
 func teamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()

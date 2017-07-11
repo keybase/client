@@ -232,10 +232,7 @@ func TestLoaderWantMembers(t *testing.T) {
 		team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
-				WantMembers: []keybase1.UserVersion{{
-					Uid:         fus[2].GetUID(),
-					EldestSeqno: keybase1.Seqno(1),
-				}},
+				WantMembers: []keybase1.UserVersion{fus[2].GetUserVersion()},
 			},
 		})
 		require.NoError(t, err)
@@ -251,10 +248,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	t.Logf("U1 loads with WantMembers=U2 and it works")
 	team = loadAsU1WantU2()
 	requireSeqno(team, 4, "seqno should advance to pick up the new link")
-	role, err := TeamSigChainState{inner: team.Chain}.GetUserRole(keybase1.UserVersion{
-		Uid:         fus[2].GetUID(),
-		EldestSeqno: keybase1.Seqno(1),
-	})
+	role, err := TeamSigChainState{inner: team.Chain}.GetUserRole(fus[2].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
