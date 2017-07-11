@@ -18,7 +18,9 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 	defer tc.Cleanup()
 
 	name := createTeam(tc)
-	team, err := GetForApplicationByStringName(context.TODO(), tc.G, name, keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{})
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name: name,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

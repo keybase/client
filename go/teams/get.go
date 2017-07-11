@@ -47,42 +47,6 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 	})
 }
 
-func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	// TODO -- use the `application` and `refreshers` arguments
-	return Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          id,
-		ForceRepoll: true,
-	})
-}
-
-func GetStale(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{ID: id, StaleOK: true})
-}
-
-func GetStaleByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{Name: name, StaleOK: true})
-}
-
-func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	teamName, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		return nil, err
-	}
-	return GetForApplicationByName(ctx, g, teamName, app, refreshers)
-}
-
-func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	id, err := ResolveNameToID(ctx, g, name)
-	if err != nil {
-		return nil, err
-	}
-	return GetForApplication(ctx, g, id, app, refreshers)
-}
-
-func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
-}
-
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
 // know whether you are an admin. This always causes roundtrips.
 func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {

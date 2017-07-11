@@ -35,7 +35,9 @@ func TestTeamApplicationKey(t *testing.T) {
 
 	name := createTeam(tc)
 
-	team, err := GetForApplicationByStringName(context.TODO(), tc.G, name, keybase1.TeamApplication_CHAT, keybase1.TeamRefreshers{})
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name: name,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
