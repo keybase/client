@@ -31,6 +31,8 @@ export type Props = {|
   search: Function,
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
+  onAddNewParticipant: (clicked: boolean) => void,
+  addNewParticipant: boolean,
 |}
 
 export default class Conversation extends Component<void, Props, void> {}

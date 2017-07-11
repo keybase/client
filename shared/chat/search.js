@@ -105,7 +105,5 @@ export default compose(
   }),
   defaultProps({
     placeholder: 'Search for someone',
-    showAddButton: false,
-    onClickAddButton: () => console.log('todo'),
   })
 )(SearchHeader)

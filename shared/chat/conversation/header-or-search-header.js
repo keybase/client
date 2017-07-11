@@ -15,6 +15,8 @@ type Props = {
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
   onBack: () => void,
+  onAddNewParticipant: (clicked: boolean) => void,
+  addNewParticipant: boolean,
 }
 
 export default (props: Props) =>
@@ -25,6 +27,8 @@ export default (props: Props) =>
         selectedConversationIDKey={props.selectedConversationIDKey}
         selectedSearchId={props.selectedSearchId}
         onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
+        onAddNewParticipant={props.onAddNewParticipant}
+        addNewParticipant={props.addNewParticipant}
       />
     : <Header
         infoPanelOpen={props.infoPanelOpen}
