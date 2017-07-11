@@ -15,6 +15,7 @@ const PERF = false
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   clickableVisible: false,
+  colorBoxes: false, // set to true to color boxes to help debug layout and perf
   dumbChatOnly: false,
   dumbSheetOnly: false,
   enableActionLogging: true,
@@ -96,6 +97,7 @@ if (PERF) {
 export const {
   actionStatFrequency,
   clickableVisible,
+  colorBoxes,
   dumbChatOnly,
   dumbSheetOnly,
   enableActionLogging,
