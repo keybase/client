@@ -20,7 +20,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
       <TabBarButton
-        badgeNumber={badgeNumbers.get(tab)}
+        badgeNumber={badgeNumbers[tab]}
         badgePosition="top-right"
         key={tab}
         isNav={true}
