@@ -816,8 +816,8 @@ func (l *TeamLoader) recalculateName(ctx context.Context,
 		return newName, fmt.Errorf("invalid new subteam name: %v", err)
 	}
 
-	if newName.NParts() != prevName.NParts() {
-		return newName, fmt.Errorf("team changed level: %v -> %v", prevName.NParts(), newName.NParts())
+	if newName.Depth() != prevName.Depth() {
+		return newName, fmt.Errorf("team changed level: %v -> %v", prevName.Depth(), newName.Depth())
 	}
 
 	return newName, nil
