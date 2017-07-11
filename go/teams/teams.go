@@ -532,6 +532,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	}
 	section.PerTeamKey = perTeamKeySection
 
+	section.CompletedInvites = req.CompletedInvites
+
 	return section, secretBoxes, memSet, nil
 }
 
