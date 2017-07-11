@@ -5,8 +5,14 @@ release: clean bundle
 	git archive HEAD . | tar x -C build/
 	cp js/bundle.js build/js/bundle.js
 	cp ../LICENSE build/LICENSE
-	sed -i "" '/"key"\:/d' build/manifest.json  # Strip hardcoded dev key
-	cd build && zip -r ../keybase-extension-$(shell grep '"version":' manifest.json | cut -d '"' -f4).zip .
+	jq 'del(.key)' build/manifest.json > build/manifest.firefox.json
+	jq 'del(.key,.applications)' build/manifest.json > build/manifest.chrome.json
+	@echo "Packaging Chrome..."
+	cp build/manifest.chrome.json build/manifest.json
+	cd build && zip -q -r ../keybase-firefox-$(shell jq -r ".version" manifest.json).zip .
+	@echo "Packaging Firefox..."
+	cp build/manifest.firefox.json build/manifest.json
+	cd build && zip -q -r ../keybase-chrome-$(shell jq -r ".version" manifest.json).zip .
 
 clean:
 	rm -rf build/
