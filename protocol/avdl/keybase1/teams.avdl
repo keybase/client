@@ -255,6 +255,8 @@ protocol teams {
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
     // Does not work on implicit admins.
+    // If the EldestSeqno of an item is zero, the latest EldestSeqno for that UID will be looked
+    // up and used. But the used EldestSeqno may come from a cache.
     array<UserVersion> wantMembers;
     // The minimum role each of wantMembers must have in order to avoid a refresh.
     // The default value is WRITER. So if the role is NONE, it will act like WRITER.
