@@ -179,8 +179,9 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (chat1.MessageUnboxed, UnboxingError) {
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
-	tlfPublic := boxed.ClientHeader.TlfPublic
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, conv.GetMembersType(), tlfPublic)
+	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
+		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
+		boxed.ClientHeader.TlfPublic, boxed.KeyGeneration)
 	if err != nil {
 		// Check to see if this is a permanent error from the server
 		if b.detectKBFSPermanentServerError(err) {
@@ -896,7 +897,8 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, membersType,
+	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
+		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
 
 	if err != nil {

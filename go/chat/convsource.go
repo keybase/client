@@ -392,6 +392,13 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				return nil
 			}
 
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+				// early out of team convs
+				return nil
+			default:
+			}
+
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, conv.GetConvID())

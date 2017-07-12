@@ -78,6 +78,8 @@ type InboxSource interface {
 		msgID chat1.MessageID) (*chat1.ConversationLocal, error)
 	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
+	SetAppNotificationSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,

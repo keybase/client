@@ -13,7 +13,10 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
 
-	team, err := GetForTeamManagement(ctx, g, teamID)
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
 	if err != nil {
 		return err
 	}
@@ -23,21 +26,39 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		return nil
 	}
 
-	g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name, teamID)
+	g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
 	if err := team.Rotate(ctx); err != nil {
-		g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name, teamID, err)
+		g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "sucess rotating team %s (%s)", team.Name, teamID)
+	g.Log.CDebugf(ctx, "sucess rotating team %s (%s)", team.Name(), teamID)
 	return nil
 }
 
-func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+	if change.Renamed {
+		// This force reloads the team as a side effect
+		return g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
+	}
+
+	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          row.Id,
+		ForceRepoll: true,
+	})
+	return err
+}
+
+func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
+
+	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
+
+	if err = reloadLocal(ctx, g, row, change); err != nil {
+		return err
+	}
 	g.NotifyRouter.HandleTeamChanged(ctx, row.Id, row.Name, row.LatestSeqno, change)
-	// TODO -- bust caches! -- See CORE-5608
 	return nil
 }
 

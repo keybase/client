@@ -183,6 +183,10 @@ func (f failingRemote) SetConversationStatus(context.Context, chat1.SetConversat
 	require.Fail(f.t, "SetConversationStatus call")
 	return chat1.SetConversationStatusRes{}, nil
 }
+func (f failingRemote) SetAppNotificationSettings(context.Context, chat1.SetAppNotificationSettingsArg) (chat1.SetAppNotificationSettingsRes, error) {
+	require.Fail(f.t, "SetAppNotificationSettings call")
+	return chat1.SetAppNotificationSettingsRes{}, nil
+}
 func (f failingRemote) GetUnreadUpdateFull(context.Context, chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 
 	require.Fail(f.t, "GetUnreadUpdateFull call")

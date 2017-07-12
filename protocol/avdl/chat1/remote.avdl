@@ -225,4 +225,12 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, ConversationMembersType membersType, boolean summarizeMaxMsgs);
+
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
+  // currently configured settings.
+  record SetAppNotificationSettingsRes {
+    union { null, RateLimit } rateLimit; 
+  }
+  SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
+
 }

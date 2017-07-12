@@ -116,6 +116,22 @@ func (o SetStatusPayload) DeepCopy() SetStatusPayload {
 	}
 }
 
+type SetAppNotificationSettingsPayload struct {
+	Action    string                       `codec:"Action" json:"Action"`
+	ConvID    ConversationID               `codec:"convID" json:"convID"`
+	InboxVers InboxVers                    `codec:"inboxVers" json:"inboxVers"`
+	Settings  ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettingsPayload {
+	return SetAppNotificationSettingsPayload{
+		Action:    o.Action,
+		ConvID:    o.ConvID.DeepCopy(),
+		InboxVers: o.InboxVers.DeepCopy(),
+		Settings:  o.Settings.DeepCopy(),
+	}
+}
+
 type UnreadUpdate struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
 	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`

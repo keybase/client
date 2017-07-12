@@ -5948,6 +5948,7 @@ export type TeamChangeSet = {
 }
 
 export type TeamData = {
+  secretless: boolean,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
@@ -6037,6 +6038,7 @@ export type TeamPlusApplicationKeys = {
 export type TeamRefreshers = {
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
+  wantMembersRole: TeamRole,
 }
 
 export type TeamRole =

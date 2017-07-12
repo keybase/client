@@ -13,7 +13,7 @@ import (
 )
 
 // internalVersion is the logical version of this code (rather than build).
-const internalVersion = "1.3"
+const internalVersion = "1.4"
 
 // Version is the build version of kbnm, overwritten during build with metadata.
 var Version = "dev"

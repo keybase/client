@@ -22,18 +22,18 @@ const getUsers = createSelector(
     )
 )
 
-const mapStateToProps = (state: TypedState, {sidePanelOpen}: OwnProps) => ({
+const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
   badgeNumber: state.notifications.get('navBadges').get(chatTab),
   muted: Constants.getMuted(state),
-  sidePanelOpen,
+  infoPanelOpen,
   users: getUsers(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleSidePanel}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
   onBack,
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onShowProfile: (username: string) => dispatch(onUserClick(username)),
-  onToggleSidePanel,
+  onToggleInfoPanel,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Header)
