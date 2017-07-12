@@ -330,6 +330,10 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		return false
 	}
 	if msg.IsValid() {
+		// No notifications for our own messages
+		if msg.Valid().ClientHeader.Sender.Eq(uid) {
+			return false
+		}
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
