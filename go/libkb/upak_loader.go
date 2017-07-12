@@ -84,7 +84,7 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	u.m = make(map[string]*keybase1.UserPlusKeysV2AllIncarnations)
 }
 
-const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V1
+const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V2
 
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
