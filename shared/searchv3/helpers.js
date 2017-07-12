@@ -49,12 +49,13 @@ const clearSearchHoc = withHandlers({
   onClearSearch: ({onExitSearch}) => () => onExitSearch(),
 })
 
+type OwnPropsWithSearchDebounced = OwnProps & {
+  _searchDebounced: $PropertyType<OwnProps, 'search'>,
+  _lastSearchTime: Number,
+}
+
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
-      selectedSearchId && onAddSelectedUser(selectedSearchId)
-      onChangeSearchText('')
-    },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
     ) => {
@@ -69,18 +70,28 @@ const onChangeSelectedSearchResultHoc = compose(
   }),
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, 1e3),
+    _lastSearchTime: 0,
   })),
   withHandlers({
     onMoveSelectUp: ({onMove}) => () => onMove('up'),
     onMoveSelectDown: ({onMove}) => () => onMove('down'),
-    onChangeText: (props: OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}) => nextText => {
+    onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
       props.onChangeSearchText(nextText)
+      props._lastSearchTime = Date.now()
       if (nextText === '') {
         // In case we have a search that would fire after our other search
         props._searchDebounced.cancel()
         props.search(nextText, props.selectedService)
       } else {
         props._searchDebounced(nextText, props.selectedService)
+      }
+    },
+    onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
+      if (Date.now() <= props._lastSearchTime + 1e3) {
+        props._searchDebounced.flush()
+      } else {
+        props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
+        props.onChangeSearchText('')
       }
     },
   })
