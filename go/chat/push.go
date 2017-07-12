@@ -326,8 +326,27 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	if conv == nil {
 		return false
 	}
-	atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
-		g.G().GetUPAKLoader(), &g.DebugLabeler)
+	if msg.IsValid() {
+		body := msg.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
+			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %s", err.Error())
+			return false
+		}
+		if typ == chat1.MessageType_TEXT {
+			atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
+				g.G().GetUPAKLoader(), &g.DebugLabeler)
+			kind := chat1.NotificationKind_GENERIC
+			for _, at := range atMentions {
+				if at.Eq(uid) {
+					kind = chat1.NotificationKind_ATMENTION
+					break
+				}
+			}
+			apptype := chat1.NotificationAppType_DESKTOP
+			return conv.Notifications.Settings[apptype][kind]
+		}
+	}
 	return false
 }
 
