@@ -1,8 +1,9 @@
 package systests
 
 import (
-	"context"
 	"testing"
+
+	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -36,7 +37,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +94,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team)
+	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
 	if err != nil {
 		t.Fatal(err)
 	}

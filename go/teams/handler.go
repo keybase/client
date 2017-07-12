@@ -89,7 +89,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UID)
 	req.CompletedInvites[invitee.InviteID] = invitee.Uid
 
-	team, err := GetForTeamManagement(ctx, g, teamID)
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
 	if err != nil {
 		return err
 	}
