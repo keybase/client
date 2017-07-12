@@ -491,6 +491,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		needAdmin:         false,
 		needKeyGeneration: 0,
 		wantMembers:       nil,
+		wantMembersRole:   keybase1.TeamRole_NONE,
 		forceFullReload:   false,
 		forceRepoll:       false,
 		staleOK:           true, // stale is fine, as long as get those seqnos.

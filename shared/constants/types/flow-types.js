@@ -6038,6 +6038,7 @@ export type TeamPlusApplicationKeys = {
 export type TeamRefreshers = {
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
+  wantMembersRole: TeamRole,
 }
 
 export type TeamRole =
