@@ -425,7 +425,15 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 	uid keybase1.UID, pollForKID keybase1.KID) (UserInfo, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
 	if cachedUserInfo.Name != libkb.NormalizedUsername("") {
-		return cachedUserInfo, nil
+		if pollForKID == keybase1.KID("") {
+			return cachedUserInfo, nil
+		}
+		// Skip the cache if pollForKID isn't present.
+		for _, key := range cachedUserInfo.VerifyingKeys {
+			if key.KID().Equal(pollForKID) {
+				return cachedUserInfo, nil
+			}
+		}
 	}
 
 	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, PollForKID: pollForKID}
@@ -443,9 +451,37 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
 	desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (
 	TeamInfo, error) {
+	if desiredRole != keybase1.TeamRole_NONE &&
+		desiredRole != keybase1.TeamRole_WRITER &&
+		desiredRole != keybase1.TeamRole_READER {
+		panic("KBFS shouldn't care about non-writer/reader roles")
+	}
+
 	cachedTeamInfo := k.getCachedTeamInfo(tid)
 	if cachedTeamInfo.Name != libkb.NormalizedUsername("") {
-		return cachedTeamInfo, nil
+		// If the cached team info doesn't satisfy our desires, don't
+		// use it.
+		satisfiesDesires := true
+		if desiredKeyGen >= FirstValidKeyGen {
+			satisfiesDesires = desiredKeyGen <= cachedTeamInfo.LatestKeyGen
+		}
+
+		if satisfiesDesires && desiredUser.Uid.Exists() {
+			// If the user is in the writer map, that satisfies none, reader
+			// or writer desires.
+			satisfiesDesires = cachedTeamInfo.Writers[desiredUser.Uid]
+			// If not, and the desire role is a reader, we need to
+			// check the reader map explicitly.
+			if !satisfiesDesires &&
+				(desiredRole == keybase1.TeamRole_NONE ||
+					desiredRole == keybase1.TeamRole_READER) {
+				satisfiesDesires = cachedTeamInfo.Readers[desiredUser.Uid]
+			}
+		}
+
+		if satisfiesDesires {
+			return cachedTeamInfo, nil
+		}
 	}
 
 	arg := keybase1.LoadTeamPlusApplicationKeysArg{
