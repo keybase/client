@@ -755,7 +755,8 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
   // Don't send sharing before signup values
   const metaData = yield select(Shared.metaDataSelector)
   const usernames = action.payload.users.filter(
-    name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1
+    name =>
+      metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1 && name.indexOf('#') === -1
   )
   if (!usernames.length) {
     return
