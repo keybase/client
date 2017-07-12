@@ -3,9 +3,14 @@ import {is} from 'immutable'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
-import {compose, lifecycle} from 'recompose'
-import TabBar from './tab-bar/index.render.native'
-import {Box, NativeKeyboard, NativeKeyboardAvoidingView} from '../common-adapters/index.native'
+import {compose} from 'recompose'
+import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
+import {
+  Box,
+  NativeKeyboard,
+  NativeKeyboardAvoidingView,
+  NativeAnimated,
+} from '../common-adapters/index.native'
 import {StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
@@ -123,22 +128,6 @@ function renderStackRoute(route) {
   )
 }
 
-const Container = ({hideNav, shim, tabBar}) => (
-  <Box style={globalStyles.fullHeight}>
-    <Box style={globalStyles.flexGrow}>
-      <Box style={globalStyles.fillAbsolute}>
-        <NativeKeyboardAvoidingView behavior="padding" style={sceneWrapStyleUnder}>
-          {shim}
-        </NativeKeyboardAvoidingView>
-      </Box>
-    </Box>
-    {!hideNav &&
-      <Box style={styleCollapsibleNavAndroid}>
-        {tabBar}
-      </Box>}
-  </Box>
-)
-
 function MainNavStack(props: Props) {
   const screens = props.routeStack
   const shim = [
@@ -153,51 +142,143 @@ function MainNavStack(props: Props) {
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
-  const tabBar = (
-    <TabBar
-      onTabClick={props.switchTab}
-      selectedTab={props.routeSelected}
-      badgeNumbers={props.navBadges.toJS()}
-    />
+  return (
+    <Box style={globalStyles.fullHeight}>
+      <NativeKeyboardAvoidingView
+        style={{...globalStyles.fillAbsolute, backgroundColor: globalColors.white}}
+        behavior={isIOS ? 'padding' : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <Box style={globalStyles.flexGrow}>
+          {shim}
+        </Box>
+        <AnimatedTabBar show={!props.hideNav}>
+          <TabBar
+            onTabClick={props.switchTab}
+            selectedTab={props.routeSelected}
+            badgeNumbers={props.navBadges.toJS()}
+          />
+        </AnimatedTabBar>
+      </NativeKeyboardAvoidingView>
+    </Box>
   )
-  return <Container hideNav={props.hideNav} shim={shim} tabBar={tabBar} />
 }
 
-function Nav(props: Props) {
-  const baseScreens = props.routeStack.filter(r => !r.tags.layerOnTop)
-  if (!baseScreens.size) {
-    throw new Error('no route component to render without layerOnTop tag')
+type AnimatedTabBarProps = {
+  show: boolean,
+  children: any,
+}
+class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}> {
+  state: {offset: any}
+
+  constructor(props: AnimatedTabBarProps) {
+    super(props)
+
+    this.state = {
+      offset: new NativeAnimated.Value(props.show ? tabBarHeight : 0),
+    }
   }
 
-  const fullscreenPred = r => r.tags.fullscreen
-  const mainScreens = baseScreens.takeUntil(fullscreenPred)
-  const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
-    path: ['main'],
-    component: <MainNavStack {...props} routeStack={mainScreens} />,
-    tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
-  })
+  componentWillReceiveProps(nextProps: AnimatedTabBarProps) {
+    if (this.props.show !== nextProps.show) {
+      NativeAnimated.timing(this.state.offset, {
+        duration: 200,
+        toValue: nextProps.show ? tabBarHeight : 0,
+      }).start()
+    }
+  }
 
-  const shim = (
-    <CardStackShim
-      stack={fullScreens}
-      renderRoute={renderStackRoute}
-      onNavigateBack={props.navigateUp}
-      mode="modal"
-    />
-  )
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-  const layers = layerScreens.map(r => r.leafComponent)
-
-  // If we have layers, lets add an extra box, else lets just pass through
-  if (layers.count()) {
+  render() {
     return (
-      <Box style={globalStyles.fillAbsolute}>
-        {shim}
-        {layers}
-      </Box>
+      <NativeAnimated.View
+        style={{
+          maxHeight: this.state.offset,
+        }}
+      >
+        {this.props.children}
+      </NativeAnimated.View>
     )
-  } else {
-    return shim
+  }
+}
+
+class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
+  state = {
+    keyboardShowing: false,
+  }
+
+  _keyboardShowListener = null
+  _keyboardHideListener = null
+
+  componentWillMount() {
+    this._keyboardShowListener = NativeKeyboard.addListener(
+      isIOS ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => this.setState({keyboardShowing: true})
+    )
+    this._keyboardHideListener = NativeKeyboard.addListener(
+      isIOS ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => this.setState({keyboardShowing: false})
+    )
+  }
+
+  componentWillUnmount() {
+    this._keyboardShowListener && this._keyboardShowListener.remove()
+    this._keyboardHideListener && this._keyboardHideListener.remove()
+
+    this._keyboardShowListener = null
+    this._keyboardHideListener = null
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    const nextPath = nextProps.routeStack.last().path
+    const curPath = this.props.routeStack.last().path
+    const curTags = this.props.routeStack.last().tags
+    if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
+      NativeKeyboard.dismiss()
+    }
+  }
+
+  render() {
+    const baseScreens = this.props.routeStack.filter(r => !r.tags.layerOnTop)
+    if (!baseScreens.size) {
+      throw new Error('no route component to render without layerOnTop tag')
+    }
+
+    const fullscreenPred = r => r.tags.fullscreen
+    const mainScreens = baseScreens.takeUntil(fullscreenPred)
+    const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
+      path: ['main'],
+      component: (
+        <MainNavStack
+          {...this.props}
+          hideNav={this.props.hideNav || this.state.keyboardShowing}
+          routeStack={mainScreens}
+        />
+      ),
+      tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
+    })
+
+    const shim = (
+      <CardStackShim
+        stack={fullScreens}
+        renderRoute={renderStackRoute}
+        onNavigateBack={this.props.navigateUp}
+        mode="modal"
+      />
+    )
+    const layerScreens = this.props.routeStack.filter(r => r.tags.layerOnTop)
+    const layers = layerScreens.map(r => r.leafComponent)
+
+    // If we have layers, lets add an extra box, else lets just pass through
+    if (layers.count()) {
+      return (
+        <Box style={globalStyles.fillAbsolute}>
+          {shim}
+          {layers}
+        </Box>
+      )
+    } else {
+      return shim
+    }
   }
 }
 
@@ -209,10 +290,6 @@ const sceneWrapStyleUnder = {
 const sceneWrapStyleOver = {
   ...sceneWrapStyleUnder,
   paddingTop: statusBarHeight,
-}
-
-const styleCollapsibleNavAndroid = {
-  flexShrink: 999999,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
@@ -236,16 +313,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  lifecycle({
-    componentWillReceiveProps(nextProps) {
-      const nextPath = nextProps.routeStack.last().path
-      const curPath = this.props.routeStack.last().path
-      const curTags = this.props.routeStack.last().tags
-      if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
-        NativeKeyboard.dismiss()
-      }
-    },
-  })
-)(Nav)
+export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)

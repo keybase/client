@@ -2,7 +2,7 @@
 import {
   ActivityIndicator as NativeActivityIndicator,
   Animated as NativeAnimated,
-  BackAndroid as NativeBackAndroid,
+  BackHandler as NativeBackHandler,
   Clipboard as NativeClipboard,
   Dimensions as NativeDimensions,
   DrawerLayoutAndroid as NativeDrawerLayoutAndroid,
@@ -31,8 +31,8 @@ import ScrollView from './scroll-view.native'
 export {
   NativeActivityIndicator,
   NativeAnimated,
-  NativeBackAndroid,
   NativeClipboard,
+  NativeBackHandler,
   NativeDimensions,
   NativeDrawerLayoutAndroid,
   NativeEasing,

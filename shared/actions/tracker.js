@@ -7,6 +7,7 @@ import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {showAllTrackers} from '../local-debug'
+import {isMobile} from '../constants/platform'
 
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CancelHandlerType} from '../engine/session'
@@ -184,6 +185,10 @@ function registerIdentifyUi(): TrackerActionCreator {
         let trackerTimeoutError = 0
 
         const onStart = username => {
+          // Don't do this on mobile
+          if (isMobile) {
+            return
+          }
           trackerTimeoutError = setTimeout(() => {
             dispatch({
               type: Constants.identifyFinished,
