@@ -141,6 +141,14 @@ func (v *CmdInstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
+	if result.Fatal {
+		os.Exit(1)
+	}
+	for _, r := range result.ComponentResults {
+		if r.Status.Code != 0 {
+			os.Exit(2)
+		}
+	}
 	return nil
 }
 
