@@ -4,6 +4,8 @@ import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 're
 import * as Constants from '../constants/searchv3'
 import debounce from 'lodash/debounce'
 
+const debounceTimeout = 1e3
+
 type OwnProps = {
   onChangeSearchText: (s: string) => void,
   search: (term: string, service: Constants.Service) => void,
@@ -49,10 +51,7 @@ const clearSearchHoc = withHandlers({
   onClearSearch: ({onExitSearch}) => () => onExitSearch(),
 })
 
-type OwnPropsWithSearchDebounced = OwnProps & {
-  _searchDebounced: $PropertyType<OwnProps, 'search'>,
-  _lastSearchTime: Number,
-}
+type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
@@ -69,31 +68,38 @@ const onChangeSelectedSearchResultHoc = compose(
     },
   }),
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
-    _searchDebounced: debounce(search, 1e3),
-    _lastSearchTime: 0,
+    _searchDebounced: debounce(search, debounceTimeout),
   })),
-  withHandlers({
-    onMoveSelectUp: ({onMove}) => () => onMove('up'),
-    onMoveSelectDown: ({onMove}) => () => onMove('down'),
-    onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
-      props.onChangeSearchText(nextText)
-      props._lastSearchTime = Date.now()
-      if (nextText === '') {
-        // In case we have a search that would fire after our other search
-        props._searchDebounced.cancel()
-        props.search(nextText, props.selectedService)
-      } else {
-        props._searchDebounced(nextText, props.selectedService)
-      }
-    },
-    onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
-      if (Date.now() <= props._lastSearchTime + 1e3) {
-        props._searchDebounced.flush()
-      } else {
-        props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
-        props.onChangeSearchText('')
-      }
-    },
+  withHandlers(() => {
+    // lastSearchTime keeps track of debounce timing, which is not
+    // available in lodash/debounce
+    let lastSearchTime
+    return {
+      onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
+        if (Date.now() <= lastSearchTime + debounceTimeout) {
+          // Flush the pending debounce timout
+          props._searchDebounced.flush()
+        } else {
+          // otherwise it's safe to pick the user from the list
+          props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
+          props.onChangeSearchText('')
+        }
+      },
+      onMoveSelectUp: ({onMove}) => () => onMove('up'),
+      onMoveSelectDown: ({onMove}) => () => onMove('down'),
+      onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
+        props.onChangeSearchText(nextText)
+        if (nextText === '') {
+          // In case we have a search that would fire after our other search
+          lastSearchTime = 0
+          props._searchDebounced.cancel()
+          props.search(nextText, props.selectedService)
+        } else {
+          lastSearchTime = Date.now()
+          props._searchDebounced(nextText, props.selectedService)
+        }
+      },
+    }
   })
 )
 
