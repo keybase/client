@@ -88,12 +88,13 @@ export default compose(
         input = el
       },
       onFocusInput: () => () => {
-        input.focus()
+        input && input.focus()
       },
       onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
         props._onSelectService(nextService)
         props.clearSearchResults()
         props.search(props.searchText, nextService)
+        input && input.focus()
       },
       onClickAddButton: (props: OwnProps) => () => {
         props.onAddNewParticipant(true)
