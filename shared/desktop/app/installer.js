@@ -23,7 +23,12 @@ export default (components: string, callback: (err: any) => void): void => {
   if (!keybaseBin) {
     callback(new Error('No keybase bin path'))
   }
-  let timeout = timeoutForExec()
+  let timeout = 30
+  // If the app was opened at login, there might be contention for lots
+  // of resources, so let's bump the install timeout to something large.
+  if (app.getLoginItemSettings().wasOpenedAtLogin) {
+    timeout = 90
+  }
   const args = ['--debug', 'install', '--timeout=' + timeout + 's', `--components=${components}`]
 
   exec(keybaseBin, args, 'darwin', 'prod', true, function(err) {
@@ -42,10 +47,4 @@ export default (components: string, callback: (err: any) => void): void => {
     }
     callback(err)
   })
-}
-
-// If the app was opened at login, there might be contention for lots
-// of resources, so we use a larger timeout in that case.
-const timeoutForExec = (): number => {
-  return app.getLoginItemSettings().wasOpenedAtLogin ? 90 : 30
 }
