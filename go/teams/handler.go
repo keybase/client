@@ -111,12 +111,12 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	}
 	switch category {
 	case keybase1.TeamInviteCategory_SBS:
-		//  resolve assertion in link
+		//  resolve assertion in link (with uid in invite msg)
 		ityp, err := invite.Type.String()
 		if err != nil {
 			return err
 		}
-		assertion := string(invite.Name) + "@" + ityp
+		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, invitee.Uid)
 
 		arg := keybase1.Identify2Arg{
 			UserAssertion:    assertion,
@@ -131,13 +131,6 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		eng := engine.NewResolveThenIdentify2(g, &arg)
 		if err := engine.RunEngine(eng, ectx); err != nil {
 			return err
-		}
-		resp := eng.Result()
-		uid := resp.Upk.Uid
-
-		// check identified assertion uid with invitee.Uid
-		if uid != invitee.Uid {
-			return fmt.Errorf("chain sbs assertion %s resolved to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
 		}
 	case keybase1.TeamInviteCategory_EMAIL:
 		// nothing to verify, need to trust the server
