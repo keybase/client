@@ -746,9 +746,8 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          id,
-		ForceRepoll: true, // TODO CORE-5607 remove this ForceRepoll after KBFS says it's ok.
-		Refreshers:  refreshers,
+		ID:         id,
+		Refreshers: refreshers,
 	})
 	if err != nil {
 		return res, err
