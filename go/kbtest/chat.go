@@ -324,6 +324,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 		}
 		convToAppend := *conv
 		convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
+		convToAppend.Notifications = new(chat1.ConversationNotificationInfo)
 
 		ibfull.Conversations = append(ibfull.Conversations, convToAppend)
 		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(ibfull.Conversations) {
