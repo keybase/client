@@ -12,6 +12,7 @@ const Search = (props: Props) => (
   <StandardScreen style={globalStyles.flexBoxColumn} onCancel={props.onClose} title="Search people">
     <Box style={{flexGrow: 1}}>
       <UserInput
+        ref={props.setInputRef}
         autoFocus={true}
         onAddSelectedUser={props.onAddSelectedUser}
         onChangeText={props.onChangeText}

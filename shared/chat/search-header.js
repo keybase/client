@@ -94,6 +94,7 @@ export default compose(
         props._onSelectService(nextService)
         props.clearSearchResults()
         props.search(props.searchText, nextService)
+        input.focus()
       },
     }
   }),
