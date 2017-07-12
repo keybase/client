@@ -13,6 +13,8 @@ import {isWindows} from '../../constants/platform'
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
 // to a place where keybase bin is bundled, for example:
 //   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
+//
+// Reminder: hot-server doesn't reload code in here (/desktop)
 export default (components: string, callback: (err: any) => void): void => {
   if (isWindows) {
     console.log('Skipping installer on win32')
