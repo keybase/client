@@ -25,6 +25,8 @@ type OwnProps = {
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
   showServiceFilter: boolean,
+  onAddNewParticipant: (clicked: boolean) => void,
+  addNewParticipant: boolean,
 }
 
 const mapStateToProps = createSelector(
@@ -49,32 +51,30 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
-const SearchHeader = props => {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
-      <UserInput
-        ref={props.setInputRef}
-        autoFocus={true}
-        userItems={props.userItems}
-        onRemoveUser={props.onRemoveUser}
-        onClickAddButton={props.onClickAddButton}
-        placeholder={props.placeholder}
-        usernameText={props.searchText}
-        onChangeText={props.onChangeText}
-        onMoveSelectUp={props.onMoveSelectUp}
-        onMoveSelectDown={props.onMoveSelectDown}
-        onClearSearch={props.onClearSearch}
-        onAddSelectedUser={props.onAddSelectedUser}
-        onEnterEmptyText={props.onExitSearch}
-        onCancel={props.onExitSearch}
-      />
-      <Box style={{alignSelf: 'center'}}>
-        {props.showServiceFilter &&
-          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
-      </Box>
+const SearchHeader = props => (
+  <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
+    <UserInput
+      ref={props.setInputRef}
+      autoFocus={true}
+      userItems={props.userItems}
+      onRemoveUser={props.onRemoveUser}
+      onClickAddButton={props.onClickAddButton}
+      placeholder={props.placeholder}
+      usernameText={props.searchText}
+      onChangeText={props.onChangeText}
+      onMoveSelectUp={props.onMoveSelectUp}
+      onMoveSelectDown={props.onMoveSelectDown}
+      onClearSearch={props.onClearSearch}
+      onAddSelectedUser={props.onAddSelectedUser}
+      onEnterEmptyText={props.onExitSearch}
+      onCancel={props.onExitSearch}
+    />
+    <Box style={{alignSelf: 'center'}}>
+      {props.showServiceFilter &&
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
-  )
-}
+  </Box>
+)
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
@@ -94,6 +94,10 @@ export default compose(
         props._onSelectService(nextService)
         props.clearSearchResults()
         props.search(props.searchText, nextService)
+      },
+      onClickAddButton: (props: OwnProps) => () => {
+        props.onAddNewParticipant(true)
+        props.search('', props.selectedService)
       },
     }
   }),
