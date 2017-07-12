@@ -441,7 +441,7 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
-	desiredUID keybase1.UID) (TeamInfo, error) {
+	desiredUID keybase1.UID, desiredRole keybase1.TeamRole) (TeamInfo, error) {
 	cachedTeamInfo := k.getCachedTeamInfo(tid)
 	if cachedTeamInfo.Name != libkb.NormalizedUsername("") {
 		return cachedTeamInfo, nil
@@ -460,6 +460,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	if desiredUID.Exists() {
 		arg.Refreshers.WantMembers = append(arg.Refreshers.WantMembers,
 			keybase1.UserVersion{Uid: desiredUID})
+		arg.Refreshers.WantMembersRole = desiredRole
 	}
 
 	res, err := k.teamsClient.LoadTeamPlusApplicationKeys(ctx, arg)

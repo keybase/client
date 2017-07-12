@@ -1121,15 +1121,15 @@ func (_mr *_MockKeybaseServiceRecorder) LoadUnverifiedKeys(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUnverifiedKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen, desiredUID keybase1.UID) (TeamInfo, error) {
-	ret := _m.ctrl.Call(_m, "LoadTeamPlusKeys", ctx, tid, desiredKeyGen, desiredUID)
+func (_m *MockKeybaseService) LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen, desiredUID keybase1.UID, desiredRole keybase1.TeamRole) (TeamInfo, error) {
+	ret := _m.ctrl.Call(_m, "LoadTeamPlusKeys", ctx, tid, desiredKeyGen, desiredUID, desiredRole)
 	ret0, _ := ret[0].(TeamInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseServiceRecorder) LoadTeamPlusKeys(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadTeamPlusKeys", arg0, arg1, arg2, arg3)
+func (_mr *_MockKeybaseServiceRecorder) LoadTeamPlusKeys(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadTeamPlusKeys", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
