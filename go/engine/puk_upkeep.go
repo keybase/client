@@ -25,9 +25,7 @@ type PerUserKeyUpkeep struct {
 	DidRollKey bool
 }
 
-type PerUserKeyUpkeepArgs struct {
-	LoginContext libkb.LoginContext // optional
-}
+type PerUserKeyUpkeepArgs struct{}
 
 // NewPerUserKeyUpkeep creates a PerUserKeyUpkeep engine.
 func NewPerUserKeyUpkeep(g *libkb.GlobalContext, args *PerUserKeyUpkeepArgs) *PerUserKeyUpkeep {
@@ -78,7 +76,6 @@ func (e *PerUserKeyUpkeep) inner(ctx *Context) error {
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	loadArg.LoginContext = e.args.LoginContext
 	upak, me, err := e.G().GetUPAKLoader().LoadV2(*loadArg)
 	if err != nil {
 		return err
@@ -98,8 +95,7 @@ func (e *PerUserKeyUpkeep) inner(ctx *Context) error {
 	// Roll the key
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpkeep rolling key")
 	arg := &PerUserKeyRollArgs{
-		LoginContext: e.args.LoginContext,
-		Me:           me,
+		Me: me,
 	}
 	eng := NewPerUserKeyRoll(e.G(), arg)
 	err = RunEngine(eng, ctx)
