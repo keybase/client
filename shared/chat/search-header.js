@@ -105,8 +105,8 @@ export default compose(
   branch(
     () => isMobile,
     compose(
-      withPropsOnChange(['exitSearch'], props => ({
-        onCancel: () => props.exitSearch(),
+      withPropsOnChange(['onExitSearch'], props => ({
+        onCancel: () => props.onExitSearch(),
         title: 'New Chat',
       })),
       HeaderHoc

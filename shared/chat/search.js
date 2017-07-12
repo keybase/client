@@ -28,7 +28,7 @@ const mapStateToProps = createSelector(
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
-  exitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch()),
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
@@ -59,14 +59,14 @@ const SearchHeader = props => (
           onChangeText={props.onChangeText}
           onMoveSelectUp={props.onMoveSelectUp}
           onMoveSelectDown={props.onMoveSelectDown}
-          onCancel={props.exitSearch}
+          onCancel={props.onExitSearch}
           onAddSelectedUser={props.onAddSelectedUser}
         />
       </Box>
       <Icon
         type="iconfont-close"
         style={{height: 16, width: 16, marginRight: 10}}
-        onClick={props.exitSearch}
+        onClick={props.onExitSearch}
       />
     </Box>
     <Box style={{alignSelf: 'center'}}>
@@ -107,8 +107,8 @@ export default compose(
   branch(
     () => isMobile,
     compose(
-      withPropsOnChange(['exitSearch'], props => ({
-        onCancel: () => props.exitSearch(),
+      withPropsOnChange(['onExitSearch'], props => ({
+        onCancel: () => props.onExitSearch(),
         title: 'New Chat',
       })),
       HeaderHoc
