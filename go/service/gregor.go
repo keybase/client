@@ -1147,6 +1147,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
+	g.G().Log.Debug("gregorHandler forceSessionCheck: %v", g.forceSessionCheck)
 	status, err := g.G().LoginState().APIServerSession(g.forceSessionCheck)
 	if err != nil {
 		switch err.(type) {
