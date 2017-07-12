@@ -143,10 +143,11 @@ type gregorHandler struct {
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
 
-	cli          rpc.GenericClient
-	pingCli      rpc.GenericClient
-	sessionID    gregor1.SessionID
-	firstConnect bool
+	cli               rpc.GenericClient
+	pingCli           rpc.GenericClient
+	sessionID         gregor1.SessionID
+	firstConnect      bool
+	forceSessionCheck bool
 
 	// Function for determining if a new BroadcastMessage should trigger
 	// a pushState call to firehose handlers
@@ -188,12 +189,13 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
-		Contextified:    globals.NewContextified(g),
-		chatLog:         utils.NewDebugLabeler(g, "PushHandler", false),
-		firstConnect:    true,
-		pushStateFilter: func(m gregor.Message) bool { return true },
-		badger:          nil,
-		broadcastCh:     make(chan gregor1.Message, 10000),
+		Contextified:      globals.NewContextified(g),
+		chatLog:           utils.NewDebugLabeler(g, "PushHandler", false),
+		firstConnect:      true,
+		pushStateFilter:   func(m gregor.Message) bool { return true },
+		badger:            nil,
+		broadcastCh:       make(chan gregor1.Message, 10000),
+		forceSessionCheck: false,
 	}
 	return gh
 }
@@ -623,6 +625,11 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		Fresh:     g.firstConnect,
 	})
 	if err != nil {
+		// This will cause us to try and refresh session on the next attempt
+		if _, ok := err.(libkb.BadSessionError); ok {
+			g.chatLog.Debug(ctx, "bad session from SyncAll(): forcing session check on next attempt")
+			g.forceSessionCheck = true
+		}
 		return fmt.Errorf("error running SyncAll: %s", err.Error())
 	}
 
@@ -669,6 +676,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// No longer first connect if we are now connected
 	g.firstConnect = false
+	// On successful login we can reset this guy to not force a check
+	g.forceSessionCheck = false
 
 	return nil
 }
@@ -1138,7 +1147,7 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 	}
 
 	// Continue on and authenticate
-	status, err := g.G().LoginState().APIServerSession(true /* force check */)
+	status, err := g.G().LoginState().APIServerSession(g.forceSessionCheck)
 	if err != nil {
 		switch err.(type) {
 		case libkb.LoginRequiredError:
@@ -1147,7 +1156,6 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 			return uid, token, loggedInNo
 		default:
 			g.G().Log.Debug("gregorHandler APIServerSessionStatus error (%T): %s", err, err)
-
 		}
 		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
 		return uid, token, loggedInMaybe
@@ -1172,6 +1180,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient, auth *g
 		*auth, err = ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 		if err != nil {
 			g.chatLog.Debug(ctx, "auth error: %s", err)
+			g.forceSessionCheck = true
 			return err
 		}
 	} else {
