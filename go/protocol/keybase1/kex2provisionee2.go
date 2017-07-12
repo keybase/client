@@ -20,12 +20,6 @@ func (o Hello2Res) DeepCopy() Hello2Res {
 	}
 }
 
-type PerUserKeyGeneration int
-
-func (o PerUserKeyGeneration) DeepCopy() PerUserKeyGeneration {
-	return o
-}
-
 type PerUserKeyBox struct {
 	Generation  PerUserKeyGeneration `codec:"generation" json:"generation"`
 	Box         string               `codec:"box" json:"box"`

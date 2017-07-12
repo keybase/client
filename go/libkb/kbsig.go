@@ -681,10 +681,11 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	// Update the user locally
 	me.SigChainBump(linkID, sigID)
 	me.localDelegatePerUserKey(keybase1.PerUserKey{
-		Gen:    int(generation),
-		Seqno:  me.GetSigChainLastKnownSeqno(),
-		SigKID: pukSigKey.GetKID(),
-		EncKID: pukEncKey.GetKID(),
+		Gen:         int(generation),
+		Seqno:       me.GetSigChainLastKnownSeqno(),
+		SigKID:      pukSigKey.GetKID(),
+		EncKID:      pukEncKey.GetKID(),
+		SignedByKID: signer.GetKID(),
 	})
 
 	publicKeysEntry := make(JSONPayload)

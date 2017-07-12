@@ -5183,6 +5183,7 @@ export type PerUserKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+  signedByKID: KID,
 }
 
 export type PerUserKeyBox = {
