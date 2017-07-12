@@ -6,7 +6,8 @@ import SearchResultsList from '../../searchv3/results-list'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React from 'react'
 import Banner from './banner/container'
-import {Box, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
+import {withPropsOnChange, compose} from 'recompose'
+import {Box, LoadingLine, ProgressIndicator, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
@@ -76,4 +77,10 @@ const Conversation = (props: Props) => (
   </Box>
 )
 
-export default Conversation
+export default compose(
+  withPropsOnChange(['onExitSearch'], props => ({
+    onCancel: () => props.onExitSearch(),
+    title: 'New Chat',
+  })),
+  HeaderHoc
+)(Conversation)

@@ -6,13 +6,12 @@ import * as SearchConstants from '../constants/searchv3'
 import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, HeaderHoc} from '../common-adapters'
-import {branch, compose, withState, defaultProps, withHandlers, lifecycle, withPropsOnChange} from 'recompose'
+import {Box} from '../common-adapters'
+import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
 import * as HocHelpers from '../searchv3/helpers'
-import {isMobile} from '../constants/platform'
 import {createSelector} from 'reselect'
 
 type OwnProps = {
@@ -107,16 +106,6 @@ export default compose(
   defaultProps({
     placeholder: 'Search for someone',
   }),
-  branch(
-    () => isMobile,
-    compose(
-      withPropsOnChange(['onExitSearch'], props => ({
-        onCancel: () => props.onExitSearch(),
-        title: 'New Chat',
-      })),
-      HeaderHoc
-    )
-  ),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
