@@ -767,6 +767,7 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 type TeamRefreshers struct {
 	NeedKeyGeneration PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
 	WantMembers       []UserVersion        `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole   TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
@@ -780,6 +781,7 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 			}
 			return ret
 		})(o.WantMembers),
+		WantMembersRole: o.WantMembersRole.DeepCopy(),
 	}
 }
 
