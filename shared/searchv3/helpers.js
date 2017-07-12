@@ -98,9 +98,9 @@ const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedS
 }))
 
 export {
+  clearSearchHoc,
   onChangeSelectedSearchResultHoc,
   placeholderServiceHoc,
   selectedSearchIdHoc,
   showServiceLogicHoc,
-  clearSearchHoc,
 }
