@@ -71,7 +71,7 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := install.InstallKBFS(g, "", false, defaultLaunchdWait, g.Log); err != nil {
+		if err := install.InstallKBFS(g, "", false, false, defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}
