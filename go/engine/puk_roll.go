@@ -105,10 +105,20 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 
 	// Generation of the new key
 	gen := pukring.CurrentGeneration() + keybase1.PerUserKeyGeneration(1)
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll creating gen: %v", gen)
 
 	pukSeed, err := libkb.GeneratePerUserKeySeed()
 	if err != nil {
 		return err
+	}
+
+	var pukPrev *libkb.PerUserKeyPrev
+	if gen > 1 {
+		pukPrevInner, err := pukring.PreparePrev(ctx.GetNetContext(), pukSeed, gen)
+		if err != nil {
+			return err
+		}
+		pukPrev = &pukPrevInner
 	}
 
 	pukReceivers, err := e.getPukReceivers(ctx, &meUPAK)
@@ -140,7 +150,9 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = sigsList
 
-	libkb.AddPerUserKeyServerArg(payload, gen, pukBoxes, nil)
+	e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyRoll pukBoxes:%v pukPrev:%v for generation %v",
+		len(pukBoxes), pukPrev != nil, gen)
+	libkb.AddPerUserKeyServerArg(payload, gen, pukBoxes, pukPrev)
 
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll post")
 	_, err = e.G().API.PostJSON(libkb.APIArg{
