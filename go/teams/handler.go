@@ -125,10 +125,18 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		// check resolved assertion uid with invitee.Uid
 		if uid != invitee.Uid {
-			return fmt.Errorf("resolved %s to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
+			return fmt.Errorf("chain sbs assertion %s resolved to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
 		}
 	case keybase1.TeamInviteCategory_EMAIL:
 		// nothing to verify, need to trust the server
+	case keybase1.TeamInviteCategory_KEYBASE:
+		uid, err := keybase1.UIDFromString(string(invite.Name))
+		if err != nil {
+			return err
+		}
+		if uid != invitee.Uid {
+			return fmt.Errorf("chain keybase invite link uid %s does not match uid %s in team.sbs message", uid, invitee.Uid)
+		}
 	default:
 		return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 	}
