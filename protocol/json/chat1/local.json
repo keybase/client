@@ -1114,7 +1114,10 @@
           "name": "readerInfo"
         },
         {
-          "type": "ConversationNotificationInfo",
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
           "name": "notifications"
         },
         {

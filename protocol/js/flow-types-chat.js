@@ -1213,7 +1213,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  notifications: ConversationNotificationInfo,
+  notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
   maxMessages?: ?Array<MessageUnboxed>,

@@ -323,7 +323,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	uid gregor1.UID, conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) bool {
-	if conv == nil {
+	if conv == nil || conv.Notifications == nil {
 		return false
 	}
 	if !utils.GetConversationStatusBehavior(conv.Info.Status).DesktopNotifications {
