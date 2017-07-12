@@ -10,12 +10,13 @@ import com.facebook.soloader.SoLoader;
 import com.lwansbrough.RCTCamera.RCTCameraPackage;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
+import com.reactnativenavigation.NavigationApplication;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainApplication extends Application implements ReactApplication {
+public class MainApplication extends Application implements NavigationApplication {
   private File logFile;
 
   @Override
@@ -26,29 +27,23 @@ public class MainApplication extends Application implements ReactApplication {
     logFile = this.getFileStreamPath("android.log");
   }
 
-  private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+  @Override
+  public boolean isDebug() {
+    return BuildConfig.DEBUG;
+  }
 
-    @Override
-    public boolean getUseDeveloperSupport() {
-      return BuildConfig.DEBUG;
-    }
-
-    @Override
-    protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(
-              new MainReactPackage(),
-              new KBReactPackage(logFile.getAbsolutePath()),
-              new ReactNativePushNotificationPackage(),
-              new RCTCameraPackage(),
-              new ImagePickerPackage(),
-              new RNFetchBlobPackage()
-      );
-    }
-
-  };
+  protected List<ReactPackage> getPackages() {
+    return Arrays.<ReactPackage>asList(
+      new KBReactPackage(logFile.getAbsolutePath()),
+      new ReactNativePushNotificationPackage(),
+      new RCTCameraPackage(),
+      new ImagePickerPackage(),
+      new RNFetchBlobPackage()
+    );
+  }
 
   @Override
-  public ReactNativeHost getReactNativeHost() {
-      return mReactNativeHost;
+  public List<ReactPackage> createAdditionalReactPackages() {
+    return getPackages();
   }
 }

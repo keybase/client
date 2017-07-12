@@ -78,8 +78,8 @@ class Main extends Component<void, any, void> {
 
     return (
       <RenderRoute
-        routeDef={this.props.routeDef}
-        routeState={this.props.routeState}
+        routeDef={this.props.routeDef.children[this.props.part]}
+        routeState={this.props.routeState[this.props.part]}
         setRouteState={this.props.setRouteState}
       />
     )

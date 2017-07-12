@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import routeDefs from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
+import {Navigation} from 'react-native-navigation';
 import {Box} from '../common-adapters'
 import {Provider} from 'react-redux'
 import {appLink, mobileAppStateChanged} from '../actions/app'
@@ -11,6 +12,7 @@ import {makeEngine} from '../engine'
 import {setRouteDef} from '../actions/route-tree'
 import {setup as setupLocalDebug, dumbSheetOnly, dumbChatOnly} from '../local-debug'
 import {setupSource} from '../util/forward-logs'
+import {chatTab, loginTab, profileTab, folderTab, devicesTab, searchTab, settingsTab} from '../constants/tabs'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
@@ -79,7 +81,7 @@ class Keybase extends Component {
       const DumbChatOnly = require('../dev/chat-only.native').default
       child = <DumbChatOnly />
     } else {
-      child = <Main />
+      child = <Main part={this.props.part} />
     }
 
     return (
@@ -91,7 +93,39 @@ class Keybase extends Component {
 }
 
 function load() {
-  AppRegistry.registerComponent('Keybase', () => Keybase)
+  [chatTab, folderTab, profileTab, settingsTab]
+    .forEach(tab => {
+      Navigation.registerComponent(`keybase.${tab}`, () => <Main part={tab} />)
+    })
+
+  Navigation.startTabBasedApp({
+    tabs: [
+      {
+        screen: `keybase.${chatTab}`,
+        icon: require('../images/icons/icon-nav-chat-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-selected-40.png'),
+        title: 'Chat'
+      },
+      {
+        screen: `keybase.${folderTab}`,
+        icon: require('../images/icons/icon-nav-folders-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-folders-40.png'),
+        title: 'Folders'
+      },
+      {
+        screen: `keybase.${peopleTab}`,
+        icon: require('../images/icons/icon-nav-people-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-people-40.png'),
+        title: 'People'
+      },
+      {
+        screen: `keybase.${settingsTab}`,
+        icon: require('../images/icons/icon-nav-settings-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-settings-40.png'),
+        title: 'Settings'
+      },
+    ]
+  })
 }
 
 export {load}
