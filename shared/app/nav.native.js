@@ -84,7 +84,13 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
     }
 
     return (
-      <CardStackTransitioner navigation={navigation} router={this} headerMode="none" mode={this.props.mode} />
+      <CardStackTransitioner
+        navigation={navigation}
+        router={this}
+        headerMode="none"
+        mode={this.props.mode}
+        style={{position: 'relative'}}
+      />
     )
   }
 }
@@ -142,23 +148,25 @@ function MainNavStack(props: Props) {
     <GlobalError key="globalError" />,
   ].filter(Boolean)
 
+  const content = (
+    <Box style={{...globalStyles.flexGrow}}>
+      {shim}
+      <AnimatedTabBar show={!props.hideNav}>
+        <TabBar
+          onTabClick={props.switchTab}
+          selectedTab={props.routeSelected}
+          badgeNumbers={props.navBadges.toJS()}
+        />
+      </AnimatedTabBar>
+    </Box>
+  )
   return (
     <Box style={globalStyles.fullHeight}>
       <NativeKeyboardAvoidingView
         style={{...globalStyles.fillAbsolute, backgroundColor: globalColors.white}}
         behavior={isIOS ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
       >
-        <Box style={globalStyles.flexGrow}>
-          {shim}
-        </Box>
-        <AnimatedTabBar show={!props.hideNav}>
-          <TabBar
-            onTabClick={props.switchTab}
-            selectedTab={props.routeSelected}
-            badgeNumbers={props.navBadges.toJS()}
-          />
-        </AnimatedTabBar>
+        {content}
       </NativeKeyboardAvoidingView>
     </Box>
   )
@@ -180,6 +188,7 @@ class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}>
   }
 
   componentWillReceiveProps(nextProps: AnimatedTabBarProps) {
+    if (!isIOS) return
     if (this.props.show !== nextProps.show) {
       NativeAnimated.timing(this.state.offset, {
         duration: 200,
@@ -189,15 +198,23 @@ class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}>
   }
 
   render() {
-    return (
-      <NativeAnimated.View
-        style={{
-          maxHeight: this.state.offset,
-        }}
-      >
-        {this.props.children}
-      </NativeAnimated.View>
-    )
+    if (isIOS) {
+      return (
+        <NativeAnimated.View
+          style={{
+            maxHeight: this.state.offset,
+          }}
+        >
+          {this.props.children}
+        </NativeAnimated.View>
+      )
+    } else {
+      return (
+        <Box style={{height: this.props.show ? tabBarHeight : 0}}>
+          {this.props.children}
+        </Box>
+      )
+    }
   }
 }
 
@@ -283,8 +300,8 @@ class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
 }
 
 const sceneWrapStyleUnder = {
-  backgroundColor: globalColors.white,
   ...globalStyles.fullHeight,
+  backgroundColor: globalColors.white,
 }
 
 const sceneWrapStyleOver = {

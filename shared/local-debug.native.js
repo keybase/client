@@ -71,6 +71,7 @@ if (PERF) {
   config = {
     actionStatFrequency: 0,
     clickableVisible: false,
+    colorBoxes: config.colorBoxes,
     dumbChatOnly: false,
     dumbSheetOnly: false,
     enableActionLogging: false,

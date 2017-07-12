@@ -12,13 +12,13 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from './index'
 
 const Conversation = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+  <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.fullHeight}}>
     {props.threadLoadedOffline &&
       <Box
         style={{
           ...globalStyles.flexBoxCenter,
           backgroundColor: globalColors.grey,
-          flex: 1,
+          width: '100%',
           maxHeight: 48,
           paddingBottom: globalMargins.tiny,
           paddingLeft: globalMargins.medium,
@@ -52,15 +52,23 @@ const Conversation = (props: Props) => (
               showSearchSuggestions={props.showSearchSuggestions}
               style={{flex: 1}}
             />
-          : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <List
-                focusInputCounter={props.focusInputCounter}
-                listScrollDownCounter={props.listScrollDownCounter}
-                onEditLastMessage={props.onEditLastMessage}
-                onScrollDown={props.onScrollDown}
-                onFocusInput={props.onFocusInput}
-                editLastMessageCounter={props.editLastMessageCounter}
-              />
+          : <Box
+              style={{
+                ...globalStyles.flexBoxColumn,
+                ...globalStyles.flexGrow,
+                position: 'relative',
+              }}
+            >
+              <Box style={globalStyles.flexGrow}>
+                <List
+                  focusInputCounter={props.focusInputCounter}
+                  listScrollDownCounter={props.listScrollDownCounter}
+                  onEditLastMessage={props.onEditLastMessage}
+                  onScrollDown={props.onScrollDown}
+                  onFocusInput={props.onFocusInput}
+                  editLastMessageCounter={props.editLastMessageCounter}
+                />
+              </Box>
               <Banner />
               {props.showLoader && <LoadingLine />}
               {props.finalizeInfo
