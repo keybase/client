@@ -23,7 +23,7 @@
 
 - (void)validate:(NSString *)sourcePath completion:(KBCompletion)completion {
   // Check bundle security/requirement (for source path)
-  CFURLRef fileRef = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, [sourcePath UTF8String], [sourcePath length], YES);
+  CFURLRef fileRef = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (const UInt8 *)[sourcePath UTF8String], [sourcePath length], YES);
   SecStaticCodeRef staticCodeRef = NULL;
   if (SecStaticCodeCreateWithPath(fileRef, kSecCSDefaultFlags, &staticCodeRef) != errSecSuccess) {
     completion(KBMakeError(-1, @"Failed to validate bundle signature: Create code"));

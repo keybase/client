@@ -1,20 +1,58 @@
 // @flow
-import {app} from 'electron'
+import {app, dialog} from 'electron'
 import exec from './exec'
-import {appInstallerPath, appBundlePath} from './paths'
+import {appInstallerPath, appBundlePath, keybaseBinPath} from './paths'
 import {quit} from './ctl'
 import {runMode} from '../../constants/platform.desktop'
 import {isWindows} from '../../constants/platform'
 
-// Runs the installer (on MacOS).
+// Install user components such as service,updater,cli,kbnm (not requiring privileges)
+//
+// To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
+// to a place where keybase bin is bundled, for example:
+//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
+export default (callback: (err: any) => void): void => {
+  if (isWindows) {
+    console.log('Skipping installer on win32')
+    callback(null)
+    return
+  }
+  const keybaseBin = keybaseBinPath()
+  if (!keybaseBin) {
+    callback(new Error('No keybase bin path'))
+  }
+  let timeout = timeoutForExec()
+  const args = ['--debug', 'install', '--timeout=' + timeout + 's', '--components=updater,service,cli,kbnm']
+
+  exec(keybaseBin, args, 'darwin', 'prod', true, function(err) {
+    if (err) {
+      dialog.showMessageBox(
+        {message: 'There was an error trying to install Keybase', title: 'Install Error'},
+        resp => {
+          quit()
+        }
+      )
+      return
+    }
+    callback(err)
+  })
+}
+
+// If the app was opened at login, there might be contention for lots
+// of resources, so we use a larger timeout in that case.
+const timeoutForExec = (): number => {
+  return app.getLoginItemSettings().wasOpenedAtLogin ? 90 : 30
+}
+
+// Install KBFS components (requiring privileges).
 // For other platforms, this immediately returns that there is no installer.
 //
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
 // to a place where the installer is bundled, for example:
-//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start-hot
-export default (callback: (err: any) => void): void => {
+//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
+export const installKBFSComponents = (callback: (err: any) => void): void => {
   if (isWindows) {
-    console.log('skipping installer on win32')
+    console.log('Skipping installer on win32')
     callback(null)
     return
   }
@@ -28,13 +66,14 @@ export default (callback: (err: any) => void): void => {
     callback(new Error('No bundle path for installer'))
     return
   }
-  let timeout = 30
-  // If the app was opened at login, there might be contention for lots
-  // of resources, so let's bump the install timeout to something large.
-  if (app.getLoginItemSettings().wasOpenedAtLogin) {
-    timeout = 90
-  }
-  const args = ['--debug', '--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
+  let timeout = timeoutForExec()
+  const args = [
+    '--debug',
+    '--app-path=' + bundlePath,
+    '--run-mode=' + runMode,
+    '--timeout=' + timeout,
+    '--install-helper',
+  ]
 
   exec(installerPath, args, 'darwin', 'prod', true, function(err) {
     if (err && err.code === 1) {

@@ -15,6 +15,4 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool;
 
-- (void)copy:(NSString *)sourcePath completion:(KBCompletion)completion;
-
 @end

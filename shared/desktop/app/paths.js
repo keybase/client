@@ -42,7 +42,7 @@ export function keybaseBinPath() {
     var kbPath = app.getPath('appData').replace('Roaming', 'Local')
     if (kbPath === null) kbPath = process.env.LOCALAPPDATA
     if (kbPath === null) {
-      console.log('No keybaseBinPath')
+      console.log('No keybase bin path')
       return null
     }
     return path.resolve(String(kbPath), 'Keybase', 'keybase.exe')
