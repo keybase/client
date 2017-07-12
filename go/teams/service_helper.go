@@ -221,6 +221,15 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	return t.Leave(ctx, permanent)
 }
 
+func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
+	arg := libkb.NewAPIArg("team/token")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("token", libkb.S{Val: token})
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	_, err := g.API.Post(arg)
+	return err
+}
+
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
 	// Don't needAdmin because we might be leaving, and this needs no information from stubbable links.
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)

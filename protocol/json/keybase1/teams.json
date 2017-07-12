@@ -975,6 +975,19 @@
       ],
       "response": null
     },
+    "teamAcceptInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "loadTeamPlusApplicationKeys": {
       "request": [
         {

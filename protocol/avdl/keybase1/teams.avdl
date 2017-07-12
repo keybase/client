@@ -332,6 +332,7 @@ protocol teams {
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamAcceptInvite(int sessionID, string token);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

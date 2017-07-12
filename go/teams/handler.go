@@ -81,7 +81,6 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 }
 
 func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, invitee keybase1.TeamInvitee) error {
-	g.Log.Warning("handleSBSSingle")
 	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
 	req, err := reqFromRole(uv, invitee.Role)
 	if err != nil {
@@ -106,7 +105,8 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	if err != nil {
 		return err
 	}
-	if category == keybase1.TeamInviteCategory_SBS {
+	switch category {
+	case keybase1.TeamInviteCategory_SBS:
 		//  resolve assertion in link
 		ityp, err := invite.Type.String()
 		if err != nil {
@@ -127,6 +127,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if uid != invitee.Uid {
 			return fmt.Errorf("resolved %s to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
 		}
+	case keybase1.TeamInviteCategory_EMAIL:
+		// nothing to verify, need to trust the server
+	default:
+		return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 	}
 
 	return team.ChangeMembership(ctx, req)

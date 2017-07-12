@@ -339,6 +339,10 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
 }
 
+func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
+	return t.chain().HasActiveInvite(name, typ)
+}
+
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
 	if role == keybase1.TeamRole_OWNER {
 		return keybase1.TeamAddMemberResult{}, errors.New("cannot invite a user to be an owner")
@@ -402,7 +406,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
-	existing, err := t.chain().HasActiveInvite(invite.Name, invite.Type)
+	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
 	if err != nil {
 		return err
 	}

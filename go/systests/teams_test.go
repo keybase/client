@@ -201,6 +201,54 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
+	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
+	add.Team = team
+	add.Email = email
+	add.Role = role
+	add.SkipChatNotification = true // kbfs client currently required to do this...
+	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) readInviteEmails(email string) []string {
+	arg := libkb.NewAPIArg("test/team/get_tokens")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("email", libkb.S{Val: email})
+	res, err := u.tc.G.API.Get(arg)
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	tokens := res.Body.AtKey("tokens")
+	n, err := tokens.Len()
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	if n == 0 {
+		u.tc.T.Fatalf("no invite tokens for %s", email)
+	}
+
+	exp := make([]string, n)
+	for i := 0; i < n; i++ {
+		token, err := tokens.AtIndex(i).GetString()
+		if err != nil {
+			u.tc.T.Fatal(err)
+		}
+		exp[i] = token
+	}
+
+	return exp
+}
+
+func (u *userPlusDevice) acceptEmailInvite(token string) {
+	c := client.NewCmdTeamAcceptInviteRunner(u.tc.G)
+	c.Token = token
+	if err := c.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) revokePaperKey() {
 	id := u.paperKeyID()
 
