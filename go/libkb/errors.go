@@ -2006,8 +2006,10 @@ func (e AccountResetError) Error() string {
 	return fmt.Sprintf("Account reset, reestablished at %d (for user %s)", e.received, e.expected.String())
 }
 
-type BadSessionError struct{}
+type BadSessionError struct {
+	Desc string
+}
 
 func (e BadSessionError) Error() string {
-	return "bad session"
+	return fmt.Sprintf("bad session: %s", e.Desc)
 }
