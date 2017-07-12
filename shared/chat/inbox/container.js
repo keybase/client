@@ -5,9 +5,10 @@ import Inbox from './index'
 import {connect} from 'react-redux'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 
+import type {Props} from './index'
 import type {TypedState} from '../../constants/reducer'
 
 const getInbox = (state: TypedState) => state.chat.get('inbox')
@@ -45,6 +46,7 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
 
 const mapStateToProps = (state: TypedState) => ({
   isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+  inSearch: state.chat.inSearch,
   showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
   rows: getRows(state),
 })
@@ -67,6 +69,11 @@ export default compose(
       throttleHelper(() => {
         this.props.loadInbox()
       })
+    },
+  }),
+  withHandlers({
+    onNewChat: (props: Props) => () => {
+      !props.inSearch && props.onNewChat()
     },
   })
 )(Inbox)
