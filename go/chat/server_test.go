@@ -1254,7 +1254,7 @@ func TestChatSrvGap(t *testing.T) {
 		ooMsg.ServerHeader.MessageID = 4
 
 		payload := chat1.NewMessagePayload{
-			Action:  "newMessage",
+			Action:  types.ActionNewMessage,
 			ConvID:  created.Id,
 			Message: ooMsg,
 		}
@@ -1270,7 +1270,7 @@ func TestChatSrvGap(t *testing.T) {
 		ph := NewPushHandler(tc.Context())
 		require.NoError(t, ph.Activity(ctx, &gregor1.OutOfBandMessage{
 			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
+			System_: gregor1.System(types.PushActivity),
 			Body_:   data,
 		}))
 
@@ -1283,7 +1283,7 @@ func TestChatSrvGap(t *testing.T) {
 
 		ooMsg.ServerHeader.MessageID = 5
 		payload = chat1.NewMessagePayload{
-			Action:  "newMessage",
+			Action:  types.ActionNewMessage,
 			ConvID:  created.Id,
 			Message: ooMsg,
 		}
@@ -1291,7 +1291,7 @@ func TestChatSrvGap(t *testing.T) {
 		require.NoError(t, enc.Encode(payload))
 		require.NoError(t, ph.Activity(ctx, &gregor1.OutOfBandMessage{
 			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
+			System_: gregor1.System(types.PushActivity),
 			Body_:   data,
 		}))
 

@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -395,7 +396,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
 		switch action {
-		case "newMessage":
+		case types.ActionNewConversation:
 			var nm chat1.NewMessagePayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -464,7 +465,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "readMessage":
+		case types.ActionReadMessage:
 			var nm chat1.ReadMessagePayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -488,7 +489,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "setStatus":
+		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -511,7 +512,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "setAppNotificationSettings":
+		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -531,7 +532,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				Settings: nm.Settings,
 			}
 			activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
-		case "newConversation":
+		case types.ActionNewConversation:
 			var nm chat1.NewConversationPayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -743,15 +744,15 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 	}
 
 	switch obm.System().String() {
-	case "chat.activity":
+	case types.PushActivity:
 		return g.Activity(ctx, obm)
-	case "chat.tlffinalize":
+	case types.PushTLFFinalize:
 		return g.TlfFinalize(ctx, obm)
-	case "chat.tlfresolve":
+	case types.PushTLFResolve:
 		return g.TlfResolve(ctx, obm)
-	case "chat.typing":
+	case types.PushTyping:
 		return g.Typing(ctx, obm)
-	case "chat.membershipUpdate":
+	case types.PushMembershipUpdate:
 		return g.MembershipUpdate(ctx, obm)
 	}
 
