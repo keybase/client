@@ -5950,6 +5950,20 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	default:
 	}
 
+	// We don't want context cancellation after this point, so use a linked
+	// context. There is no race since the linked context has an independent
+	// Done channel.
+	//
+	// Generally we don't want to have any errors in unstageLocked since and
+	// this solution is chosen because:
+	// * If the error is caused by a cancelled context then the recovery (archiving)
+	//   would need to use a separate context anyways.
+	// * In such cases we would have to be very careful where the error occurs
+	//   and what to archive, making that solution much more complicated.
+	// * The other "common" error case is losing server connection and after
+	//   detecting that we won't have much luck archiving things anyways.
+
+	ctx = newLinkedContext(ctx)
 	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
 		fbo.bid)
 	return fbo.unstageLocked(ctx, lState)
