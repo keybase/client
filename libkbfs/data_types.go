@@ -41,6 +41,7 @@ type UserInfo struct {
 	VerifyingKeys   []kbfscrypto.VerifyingKey
 	CryptPublicKeys []kbfscrypto.CryptPublicKey
 	KIDNames        map[keybase1.KID]string
+	EldestSeqno     keybase1.Seqno
 
 	// Revoked keys, and the time at which they were revoked.
 	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime

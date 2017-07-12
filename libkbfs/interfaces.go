@@ -419,7 +419,7 @@ type KeybaseService interface {
 	// yet according to local caches; it may be set to "" if no server
 	// check is required.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
-		desiredKeyGen KeyGen, desiredUID keybase1.UID,
+		desiredKeyGen KeyGen, desiredUser keybase1.UserVersion,
 		desiredRole keybase1.TeamRole) (TeamInfo, error)
 
 	// CurrentSession returns a SessionInfo struct with all the

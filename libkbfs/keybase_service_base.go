@@ -441,7 +441,8 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
-	desiredUID keybase1.UID, desiredRole keybase1.TeamRole) (TeamInfo, error) {
+	desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (
+	TeamInfo, error) {
 	cachedTeamInfo := k.getCachedTeamInfo(tid)
 	if cachedTeamInfo.Name != libkb.NormalizedUsername("") {
 		return cachedTeamInfo, nil
@@ -457,9 +458,9 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 			keybase1.PerTeamKeyGeneration(desiredKeyGen)
 	}
 
-	if desiredUID.Exists() {
-		arg.Refreshers.WantMembers = append(arg.Refreshers.WantMembers,
-			keybase1.UserVersion{Uid: desiredUID})
+	if desiredUser.Uid.Exists() {
+		arg.Refreshers.WantMembers = append(
+			arg.Refreshers.WantMembers, desiredUser)
 		arg.Refreshers.WantMembersRole = desiredRole
 	}
 
@@ -544,6 +545,7 @@ func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 		VerifyingKeys:          verifyingKeys,
 		CryptPublicKeys:        cryptPublicKeys,
 		KIDNames:               kidNames,
+		EldestSeqno:            upk.EldestSeqno,
 		RevokedVerifyingKeys:   revokedVerifyingKeys,
 		RevokedCryptPublicKeys: revokedCryptPublicKeys,
 	}
