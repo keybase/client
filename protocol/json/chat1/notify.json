@@ -18,7 +18,8 @@
         "NEW_CONVERSATION_3",
         "SET_STATUS_4",
         "FAILED_MESSAGE_5",
-        "MEMBERS_UPDATE_6"
+        "MEMBERS_UPDATE_6",
+        "SET_APP_NOTIFICATION_SETTINGS_7"
       ]
     },
     {
@@ -32,6 +33,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "displayDesktopNotification"
         },
         {
           "type": [
@@ -98,6 +103,20 @@
             "ConversationLocal"
           ],
           "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetAppNotificationSettingsInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationNotificationInfo",
+          "name": "settings"
         }
       ]
     },
@@ -181,6 +200,13 @@
             "def": false
           },
           "body": "MembersUpdateInfo"
+        },
+        {
+          "label": {
+            "name": "SET_APP_NOTIFICATION_SETTINGS",
+            "def": false
+          },
+          "body": "SetAppNotificationSettingsInfo"
         }
       ]
     },

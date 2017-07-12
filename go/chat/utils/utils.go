@@ -491,3 +491,15 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 	}
 	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
 }
+
+func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
+	apptype chat1.NotificationAppType,
+	kind chat1.NotificationKind, enabled bool) {
+	if settings.Settings == nil {
+		settings.Settings = make(map[chat1.NotificationAppType]map[chat1.NotificationKind]bool)
+	}
+	if settings.Settings[apptype] == nil {
+		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
+	}
+	settings.Settings[apptype][kind] = enabled
+}

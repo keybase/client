@@ -44,6 +44,14 @@ protocol gregor {
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
     }
+
+    record SetAppNotificationSettingsPayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+        ConversationNotificationInfo settings;
+    }
     
     record UnreadUpdate {
         ConversationID convID;

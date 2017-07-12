@@ -64,19 +64,26 @@ export default compose(
   selectedSearchIdHoc,
   onChangeSelectedSearchResultHoc,
   showServiceLogicHoc,
-  withHandlers({
-    onChangeText: (props: Props & HocIntermediateProps) => nextText => {
-      props._onChangeText(nextText)
-      props.search(nextText, props.selectedService)
-    },
-    onClick: (props: Props & HocIntermediateProps) => id => {
-      props._onClick(id)
-      props._onChangeText('')
-      props._clearSearchResults()
-    },
-    onSelectService: (props: Props & HocIntermediateProps) => nextService => {
-      props._onSelectService(nextService)
-      props.search(props.searchText, nextService)
-    },
+  withHandlers(() => {
+    let input
+    return {
+      setInputRef: () => el => {
+        input = el
+      },
+      onChangeText: (props: Props & HocIntermediateProps) => nextText => {
+        props._onChangeText(nextText)
+        props.search(nextText, props.selectedService)
+      },
+      onClick: (props: Props & HocIntermediateProps) => id => {
+        props._onClick(id)
+        props._onChangeText('')
+        props._clearSearchResults()
+      },
+      onSelectService: (props: Props & HocIntermediateProps) => nextService => {
+        props._onSelectService(nextService)
+        props.search(props.searchText, nextService)
+        input && input.focus()
+      },
+    }
   })
 )(Search)

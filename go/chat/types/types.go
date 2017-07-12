@@ -5,6 +5,18 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+var ActionNewConversation = "newConversation"
+var ActionNewMessage = "newMessage"
+var ActionReadMessage = "readMessage"
+var ActionSetStatus = "setStatus"
+var ActionSetAppNotificationSettings = "setAppNotificationSettings"
+
+var PushActivity = "chat.activity"
+var PushTyping = "chat.typing"
+var PushMembershipUpdate = "chat.membershipUpdate"
+var PushTLFFinalize = "chat.tlffinalize"
+var PushTLFResolve = "chat.tlfresolve"
+
 type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string

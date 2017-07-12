@@ -395,6 +395,7 @@ protocol local {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
+    union { null, ConversationNotificationInfo } notifications;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
@@ -660,4 +661,11 @@ protocol local {
   }
   GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
+  // currently configured settings. 
+  record SetAppNotificationSettingsLocalRes {
+    boolean offline;
+    array<RateLimit> rateLimits; 
+  } 
+  SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, ConversationNotificationInfo settings); 
 }

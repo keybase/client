@@ -28,7 +28,7 @@ func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	return cli.Command{
 		Name:         "list-members",
 		Usage:        "List members of a chat channel (must be a member of that channel)",
-		ArgumentHelp: "<channel name>",
+		ArgumentHelp: "[conversation [channel name]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListMembersRunner(g), "list-members", c)
 		},

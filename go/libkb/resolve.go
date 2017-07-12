@@ -350,6 +350,8 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 }
 
 func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	r.G().Log.CDebugf(ctx, "resolveTeamViaServerLookup")
+
 	res.queriedByTeamID = au.IsTeamID()
 	key, val, err := au.ToLookup()
 	if err != nil {

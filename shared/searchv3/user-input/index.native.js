@@ -145,7 +145,15 @@ class UserInput extends Component<void, Props, State> {
   }
 
   render() {
-    const {autoFocus, placeholder, userItems, usernameText, onClickAddButton, onAddSelectedUser} = this.props
+    const {
+      autoFocus,
+      placeholder,
+      userItems,
+      usernameText,
+      onClickAddButton,
+      onAddSelectedUser,
+      onClearSearch,
+    } = this.props
 
     const {isFocused, selectionStart, selectionEnd} = this.state
 
@@ -205,6 +213,12 @@ class UserInput extends Component<void, Props, State> {
                 }}
               />}
           </Box>
+          {onClearSearch &&
+            <Icon
+              type="iconfont-remove"
+              style={{height: 16, width: 16, marginRight: 16}}
+              onClick={onClearSearch}
+            />}
         </Box>
       </ClickableBox>
     )
