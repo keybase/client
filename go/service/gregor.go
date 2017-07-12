@@ -731,6 +731,10 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		g.chatLog.Debug(ctx, "duplicate connection error, not retrying")
 		return false
 	}
+	if _, ok := err.(libkb.BadSessionError); ok {
+		g.chatLog.Debug(ctx, "bad session error, not retrying")
+		return false
+	}
 	if cerr, ok := err.(connectionAuthError); ok && !cerr.ShouldRetry() {
 		g.chatLog.Debug(ctx, "should retry on connect, non-retry error, ending: %s", err.Error())
 		return false
