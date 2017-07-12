@@ -292,16 +292,11 @@ func UninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
 	return libkb.CombineErrors(err1, err2)
 }
 
-func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
-	mountDir, err := context.GetMountDir()
-	if err != nil {
-		return
-	}
+func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool) (launchd.Plist, error) {
 	logFile := filepath.Join(context.GetLogDir(), libkb.KBFSLogFileName)
 	startLogFile := filepath.Join(context.GetLogDir(), libkb.StartLogFileName)
-	err = libkb.MakeParentDirs(startLogFile)
-	if err != nil {
-		return
+	if err := libkb.MakeParentDirs(startLogFile); err != nil {
+		return launchd.Plist{}, err
 	}
 	// TODO: Remove debug flag when doing real release
 	plistArgs := []string{
@@ -314,18 +309,16 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 		plistArgs = append(plistArgs, fmt.Sprintf("-server-root=%s", context.GetRuntimeDir()))
 	}
 
+	if skipMount {
+		plistArgs = append(plistArgs, "-mount-type=none")
+	}
+
 	plistArgs = append(plistArgs, mountDir)
 
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
-	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, startLogFile, defaultPlistComment)
-
-	_, err = os.Stat(mountDir)
-	if err != nil {
-		return
-	}
-
-	return
+	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, startLogFile, defaultPlistComment)
+	return plist, nil
 }
 
 func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
@@ -452,7 +445,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(context, binPath, force, timeout, log)
+		err = InstallKBFS(context, binPath, force, true, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
 			log.Errorf("Error installing KBFS: %s", err)
@@ -482,7 +475,7 @@ func installCommandLine(context Context, binPath string, force bool, log Log) er
 	if linkPath == bp {
 		return fmt.Errorf("We can't symlink to ourselves: %s", bp)
 	}
-	log.Debug("Checking %s (%s)", linkPath, bp)
+	log.Info("Checking %s (%s)", linkPath, bp)
 	err = installCommandLineForBinPath(bp, linkPath, force, log)
 	if err != nil {
 		log.Errorf("Command line not installed properly (%s)", err)
@@ -542,7 +535,7 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 }
 
 // InstallKBFS installs the KBFS launchd service
-func InstallKBFS(context Context, binPath string, force bool, timeout time.Duration, log Log) error {
+func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvailable bool, timeout time.Duration, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -550,7 +543,22 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	if err != nil {
 		return err
 	}
-	plist, err := kbfsPlist(context, kbfsBinPath, label)
+	mountDir, err := context.GetMountDir()
+	if err != nil {
+		return err
+	}
+
+	skipMount := false
+	_, err = os.Stat(mountDir)
+	if err != nil {
+		if skipMountIfNotAvailable {
+			skipMount = true
+		} else {
+			return err
+		}
+	}
+
+	plist, err := kbfsPlist(context, kbfsBinPath, label, mountDir, skipMount)
 	if err != nil {
 		return err
 	}
@@ -558,7 +566,6 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	UninstallKBFSServices(context.GetRunMode(), log)
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
-		log.Errorf("Error installing KBFS: %s", err)
 		return err
 	}
 	return nil
@@ -574,13 +581,13 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 	// kbnm binary is next to the keybase binary, same dir
 	hostPath := filepath.Join(filepath.Dir(keybasePath), "kbnm")
 
-	log.Debug("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
+	log.Info("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
 	return kbnminstaller.InstallKBNM(hostPath)
 }
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
 func UninstallKBNM(log Log) error {
-	log.Debug("Uninstalling KBNM NativeMessaging whitelists")
+	log.Info("Uninstalling KBNM NativeMessaging whitelists")
 	return kbnminstaller.UninstallKBNM()
 }
 

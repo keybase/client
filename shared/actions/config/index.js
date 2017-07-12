@@ -151,7 +151,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus())])
+    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS())])
       .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
