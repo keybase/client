@@ -309,7 +309,8 @@ func (md *BareRootMetadataV2) IsFinal() bool {
 // IsWriter implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsWriter(
 	_ context.Context, user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey,
-	_ TeamMembershipChecker, _ ExtraMetadata) (bool, error) {
+	_ kbfscrypto.VerifyingKey, _ TeamMembershipChecker, _ ExtraMetadata) (
+	bool, error) {
 	if md.ID.Type() != tlf.Private {
 		for _, w := range md.Writers {
 			if w == user.AsUserOrTeam() {
@@ -765,7 +766,8 @@ func (md *BareRootMetadataV2) GetTLFCryptKeyParams(
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsValidAndSigned(
 	_ context.Context, codec kbfscodec.Codec, crypto cryptoPure,
-	_ TeamMembershipChecker, extra ExtraMetadata) error {
+	_ TeamMembershipChecker, extra ExtraMetadata,
+	_ kbfscrypto.VerifyingKey) error {
 	// Optimization -- if the WriterMetadata signature is nil, it
 	// will fail verification.
 	if md.WriterMetadataSigInfo.IsNil() {

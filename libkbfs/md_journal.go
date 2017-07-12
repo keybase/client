@@ -474,7 +474,8 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 		return nil, nil, time.Time{}, err
 	}
 
-	err = rmd.IsValidAndSigned(ctx, j.codec, j.crypto, j.teamMemChecker, extra)
+	err = rmd.IsValidAndSigned(
+		ctx, j.codec, j.crypto, j.teamMemChecker, extra, j.key)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -1293,7 +1294,7 @@ func (j *mdJournal) put(
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
 		ok, err := isWriterOrValidRekey(
-			ctx, j.teamMemChecker, j.codec, j.uid, head.BareRootMetadata,
+			ctx, j.teamMemChecker, j.codec, j.uid, j.key, head.BareRootMetadata,
 			rmd.bareMd, head.extra, rmd.extra)
 		if err != nil {
 			return kbfsmd.ID{}, err
@@ -1340,7 +1341,7 @@ func (j *mdJournal) put(
 	}
 
 	err = rmd.bareMd.IsValidAndSigned(
-		ctx, j.codec, j.crypto, j.teamMemChecker, rmd.extra)
+		ctx, j.codec, j.crypto, j.teamMemChecker, rmd.extra, j.key)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}

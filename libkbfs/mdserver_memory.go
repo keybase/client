@@ -441,7 +441,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		}
 		ok, err := isWriterOrValidRekey(
 			ctx, md.config.teamMembershipChecker(), md.config.Codec(),
-			session.UID, mergedMasterHead.MD, rmds.MD, prevExtra, extra)
+			session.UID, session.VerifyingKey, mergedMasterHead.MD,
+			rmds.MD, prevExtra, extra)
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
 		}

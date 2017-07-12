@@ -217,8 +217,34 @@ func (k *KBPKIClient) GetCurrentMerkleSeqNo(ctx context.Context) (
 
 // IsTeamWriter implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) IsTeamWriter(
-	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (bool, error) {
-	desiredUser := keybase1.UserVersion{Uid: uid}
+	ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
+	// Use the verifying key to find out the eldest seqno of the user.
+	userInfo, err := k.loadUserPlusKeys(ctx, uid, verifyingKey.KID())
+	if err != nil {
+		return false, err
+	}
+
+	found := false
+	for _, key := range userInfo.VerifyingKeys {
+		if verifyingKey.KID().Equal(key.KID()) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		// The user doesn't currently have this KID, therefore they
+		// shouldn't be treated as a writer.  The caller should check
+		// historical device records and team membership.
+		k.log.CDebugf(ctx, "User %s doesn't currently have verifying key %s",
+			uid, verifyingKey.KID())
+		return false, nil
+	}
+
+	desiredUser := keybase1.UserVersion{
+		Uid:         uid,
+		EldestSeqno: userInfo.EldestSeqno,
+	}
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
 		ctx, tid, UnspecifiedKeyGen, desiredUser, keybase1.TeamRole_WRITER)
 	if err != nil {

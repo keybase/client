@@ -374,11 +374,9 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 	return &extraV3.wkb, &extraV3.rkb, nil
 }
 
-// IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsWriter(
+func (md *BareRootMetadataV3) isNonTeamWriter(
 	ctx context.Context, user keybase1.UID,
-	deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
-	extra ExtraMetadata) (bool, error) {
+	cryptKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) (bool, error) {
 	switch md.TlfID().Type() {
 	case tlf.Public:
 		err := md.checkNonPrivateExtra(extra)
@@ -397,7 +395,18 @@ func (md *BareRootMetadataV3) IsWriter(
 		if err != nil {
 			return false, err
 		}
-		return wkb.IsWriter(user, deviceKey), nil
+		return wkb.IsWriter(user, cryptKey), nil
+	default:
+		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
+	}
+}
+
+// IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) IsWriter(
+	ctx context.Context, user keybase1.UID,
+	cryptKey kbfscrypto.CryptPublicKey, verifyingKey kbfscrypto.VerifyingKey,
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
+	switch md.TlfID().Type() {
 	case tlf.SingleTeam:
 		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
@@ -411,30 +420,22 @@ func (md *BareRootMetadataV3) IsWriter(
 
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
-		isWriter, err := teamMemChecker.IsTeamWriter(ctx, tid, user)
+		isWriter, err := teamMemChecker.IsTeamWriter(
+			ctx, tid, user, verifyingKey)
 		if err != nil {
 			return false, err
 		}
 		return isWriter, nil
 	default:
-		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
+		return md.isNonTeamWriter(ctx, user, cryptKey, extra)
 	}
 }
 
 // IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsReader(
 	ctx context.Context, user keybase1.UID,
-	deviceKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
+	cryptKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
 	extra ExtraMetadata) (bool, error) {
-	// Writers are also readers.
-	isWriter, err := md.IsWriter(ctx, user, deviceKey, teamMemChecker, extra)
-	if err != nil {
-		return false, err
-	}
-	if isWriter {
-		return true, nil
-	}
-
 	switch md.TlfID().Type() {
 	case tlf.Public:
 		err := md.checkNonPrivateExtra(extra)
@@ -443,11 +444,20 @@ func (md *BareRootMetadataV3) IsReader(
 		}
 		return true, nil
 	case tlf.Private:
+		// Writers are also readers.
+		isWriter, err := md.isNonTeamWriter(ctx, user, cryptKey, extra)
+		if err != nil {
+			return false, err
+		}
+		if isWriter {
+			return true, nil
+		}
+
 		_, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
 			return false, err
 		}
-		return rkb.IsReader(user, deviceKey), nil
+		return rkb.IsReader(user, cryptKey), nil
 	case tlf.SingleTeam:
 		err := md.checkNonPrivateExtra(extra)
 		if err != nil {
@@ -830,7 +840,8 @@ func checkRKBID(crypto cryptoPure,
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
-	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
+	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
+	writerVerifyingKey kbfscrypto.VerifyingKey) error {
 	if md.TlfID().Type() == tlf.Private {
 		wkb, rkb, err := md.getTLFKeyBundles(extra)
 		if err != nil {
@@ -909,7 +920,8 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 
 		// TODO: Eventually this will have to use a Merkle sequence
 		// number to check historic versions.
-		isWriter, err = teamMemChecker.IsTeamWriter(ctx, tid, writer)
+		isWriter, err = teamMemChecker.IsTeamWriter(
+			ctx, tid, writer, writerVerifyingKey)
 		if err != nil {
 			return err
 		}

@@ -354,7 +354,8 @@ func (f *Folder) isWriter(ctx context.Context) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		isWriter, err := f.fs.config.KBPKI().IsTeamWriter(ctx, tid, session.UID)
+		isWriter, err := f.fs.config.KBPKI().IsTeamWriter(
+			ctx, tid, session.UID, session.VerifyingKey)
 		if err != nil {
 			return false, err
 		}

@@ -435,7 +435,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 			return false, kbfsmd.ServerError{Err: err}
 		}
 		ok, err := isWriterOrValidRekey(
-			ctx, s.teamMemChecker, s.codec, currentUID,
+			ctx, s.teamMemChecker, s.codec, currentUID, currentVerifyingKey,
 			mergedMasterHead.MD, rmds.MD,
 			prevExtra, extra)
 		if err != nil {

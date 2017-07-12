@@ -173,8 +173,8 @@ func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
 }
 
 func (kmd emptyKeyMetadata) IsWriter(
-	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
-	bool, error) {
+	_ context.Context, _ TeamMembershipChecker, _ keybase1.UID,
+	_ kbfscrypto.VerifyingKey) (bool, error) {
 	return false, nil
 }
 

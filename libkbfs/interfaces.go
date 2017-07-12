@@ -517,10 +517,10 @@ type CurrentSessionGetter interface {
 // TeamMembershipChecker is an interface for objects that can check
 // the writer/reader membership of teams.
 type TeamMembershipChecker interface {
-	// IsTeamWriter checks whether the given user is a writer of the
-	// given team right now.
-	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
-		bool, error)
+	// IsTeamWriter checks whether the given user (with the given
+	// verifying key) is a writer of the given team right now.
+	IsTeamWriter(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey) (bool, error)
 	// IsTeamReader checks whether the given user is a reader of the
 	// given team right now.
 	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
@@ -615,7 +615,8 @@ type KeyMetadata interface {
 	// IsWriter checks that the given user is a valid writer of the TLF
 	// right now.
 	IsWriter(
-		ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
+		ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID,
+		verifyingKey kbfscrypto.VerifyingKey) (
 		bool, error)
 
 	// HasKeyForUser returns whether or not the given user has
@@ -1904,7 +1905,8 @@ type BareRootMetadata interface {
 	IsFinal() bool
 	// IsWriter returns whether or not the user+device is an authorized writer.
 	IsWriter(ctx context.Context, user keybase1.UID,
-		deviceKey kbfscrypto.CryptPublicKey,
+		cryptKey kbfscrypto.CryptPublicKey,
+		verifyingKey kbfscrypto.VerifyingKey,
 		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
 	// IsReader returns whether or not the user+device is an authorized reader.
 	IsReader(ctx context.Context, user keybase1.UID,
@@ -1957,7 +1959,7 @@ type BareRootMetadata interface {
 	// checking with KBPKI.
 	IsValidAndSigned(ctx context.Context, codec kbfscodec.Codec,
 		crypto cryptoPure, teamMemChecker TeamMembershipChecker,
-		extra ExtraMetadata) error
+		extra ExtraMetadata, writerVerifyingKey kbfscrypto.VerifyingKey) error
 	// IsLastModifiedBy verifies that the BareRootMetadata is
 	// written by the given user and device (identified by the
 	// device verifying key), and returns an error if not.

@@ -661,20 +661,26 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
 	require.NoError(t, err)
 
-	getUID := func(name string) keybase1.UID {
+	getUser := func(name string) (keybase1.UID, kbfscrypto.VerifyingKey) {
 		_, id, err := config.KBPKI().Resolve(context.Background(), name)
 		require.NoError(t, err)
 		uid, err := id.AsUser()
 		require.NoError(t, err)
-		return uid
+
+		userInfo, err := config.KeybaseService().LoadUserPlusKeys(
+			context.Background(), uid, keybase1.KID(""))
+		require.NoError(t, err)
+
+		return uid, userInfo.VerifyingKeys[0]
 	}
-	aliceUID := getUID("alice")
-	bobUID := getUID("bob")
-	charlieUID := getUID("charlie")
+	aliceUID, aliceKey := getUser("alice")
+	bobUID, bobKey := getUser("bob")
+	charlieUID, charlieKey := getUser("charlie")
 
 	// No user should be able to read this yet.
-	checkWriter := func(uid keybase1.UID, expectedIsWriter bool) {
-		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), uid)
+	checkWriter := func(uid keybase1.UID, key kbfscrypto.VerifyingKey,
+		expectedIsWriter bool) {
+		isWriter, err := rmd.IsWriter(ctx, config.KBPKI(), uid, key)
 		require.NoError(t, err)
 		require.Equal(t, expectedIsWriter, isWriter)
 	}
@@ -683,18 +689,18 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, expectedIsReader, isReader)
 	}
-	checkWriter(aliceUID, false)
-	checkWriter(bobUID, false)
-	checkWriter(charlieUID, false)
+	checkWriter(aliceUID, aliceKey, false)
+	checkWriter(bobUID, bobKey, false)
+	checkWriter(charlieUID, charlieKey, false)
 	checkReader(aliceUID, false)
 	checkReader(bobUID, false)
 	checkReader(charlieUID, false)
 
 	// Make bob a writer.
 	AddTeamWriterForTestOrBust(t, config, tid, bobUID)
-	checkWriter(aliceUID, false)
-	checkWriter(bobUID, true)
-	checkWriter(charlieUID, false)
+	checkWriter(aliceUID, aliceKey, false)
+	checkWriter(bobUID, bobKey, true)
+	checkWriter(charlieUID, charlieKey, false)
 	checkReader(aliceUID, false)
 	checkReader(bobUID, true)
 	checkReader(charlieUID, false)
@@ -702,18 +708,18 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	// Make alice a writer, and charlie a reader.
 	AddTeamWriterForTestOrBust(t, config, tid, aliceUID)
 	AddTeamReaderForTestOrBust(t, config, tid, charlieUID)
-	checkWriter(aliceUID, true)
-	checkWriter(bobUID, true)
-	checkWriter(charlieUID, false)
+	checkWriter(aliceUID, aliceKey, true)
+	checkWriter(bobUID, bobKey, true)
+	checkWriter(charlieUID, charlieKey, false)
 	checkReader(aliceUID, true)
 	checkReader(bobUID, true)
 	checkReader(charlieUID, true)
 
 	// Promote charlie to writer.
 	AddTeamWriterForTestOrBust(t, config, tid, charlieUID)
-	checkWriter(aliceUID, true)
-	checkWriter(bobUID, true)
-	checkWriter(charlieUID, true)
+	checkWriter(aliceUID, aliceKey, true)
+	checkWriter(bobUID, bobKey, true)
+	checkWriter(charlieUID, charlieKey, true)
 	checkReader(aliceUID, true)
 	checkReader(bobUID, true)
 	checkReader(charlieUID, true)

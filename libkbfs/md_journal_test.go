@@ -162,7 +162,7 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	require.Equal(t, expectedPrevRoot, brmd.GetPrevRoot())
 	require.Equal(t, expectedMergeStatus, brmd.MergedStatus())
 	err := brmd.IsValidAndSigned(
-		context.Background(), codec, crypto, nil, extra)
+		context.Background(), codec, crypto, nil, extra, key)
 	require.NoError(t, err)
 	err = brmd.IsLastModifiedBy(uid, key)
 	require.NoError(t, err)

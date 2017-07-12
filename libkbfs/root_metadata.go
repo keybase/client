@@ -871,8 +871,8 @@ func (md *RootMetadata) GetHistoricTLFCryptKey(
 // IsWriter checks that the given user is a valid writer of the TLF
 // right now.  Implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) IsWriter(
-	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID) (
-	bool, error) {
+	ctx context.Context, checker TeamMembershipChecker, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	h := md.GetTlfHandle()
 	if h.Type() != tlf.SingleTeam {
 		return h.IsWriter(uid), nil
@@ -885,7 +885,7 @@ func (md *RootMetadata) IsWriter(
 	if err != nil {
 		return false, err
 	}
-	return checker.IsTeamWriter(ctx, tid, uid)
+	return checker.IsTeamWriter(ctx, tid, uid, verifyingKey)
 }
 
 // IsReader checks that the given user is a valid reader of the TLF
@@ -1174,7 +1174,9 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return errors.New("Missing WriterMetadata signature")
 	}
 
-	err := rmds.MD.IsValidAndSigned(ctx, codec, crypto, teamMemChecker, extra)
+	err := rmds.MD.IsValidAndSigned(
+		ctx, codec, crypto, teamMemChecker, extra,
+		rmds.WriterSigInfo.VerifyingKey)
 	if err != nil {
 		return err
 	}

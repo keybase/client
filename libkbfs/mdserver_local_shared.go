@@ -46,8 +46,8 @@ func isReader(ctx context.Context, teamMemChecker TeamMembershipChecker,
 // true is returned.
 func isWriterOrValidRekey(ctx context.Context,
 	teamMemChecker TeamMembershipChecker, codec kbfscodec.Codec,
-	currentUID keybase1.UID, mergedMasterHead, newMd BareRootMetadata,
-	prevExtra, extra ExtraMetadata) (
+	currentUID keybase1.UID, verifyingKey kbfscrypto.VerifyingKey,
+	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra ExtraMetadata) (
 	bool, error) {
 	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
@@ -56,7 +56,7 @@ func isWriterOrValidRekey(ctx context.Context,
 
 	if h.Type() == tlf.SingleTeam {
 		isWriter, err := teamMemChecker.IsTeamWriter(
-			ctx, h.Writers[0].AsTeamOrBust(), currentUID)
+			ctx, h.Writers[0].AsTeamOrBust(), currentUID, verifyingKey)
 		if err != nil {
 			return false, kbfsmd.ServerError{Err: err}
 		}

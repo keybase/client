@@ -1233,7 +1233,8 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	isWriter, err := md.IsWriter(ctx, fbo.config.KBPKI(), session.UID)
+	isWriter, err := md.IsWriter(
+		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1410,7 +1411,8 @@ func (fbo *folderBranchOps) initMDLocked(
 	handle := md.GetTlfHandle()
 
 	// make sure we're a writer before rekeying or putting any blocks.
-	isWriter, err := md.IsWriter(ctx, fbo.config.KBPKI(), session.UID)
+	isWriter, err := md.IsWriter(
+		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
 	if err != nil {
 		return err
 	}
