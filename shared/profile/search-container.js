@@ -82,7 +82,7 @@ export default compose(
       onSelectService: (props: Props & HocIntermediateProps) => nextService => {
         props._onSelectService(nextService)
         props.search(props.searchText, nextService)
-        input.focus()
+        input && input.focus()
       },
     }
   })
