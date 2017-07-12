@@ -92,6 +92,10 @@ func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg)
 	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
 }
 
+func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) error {
+	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
+}
+
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)

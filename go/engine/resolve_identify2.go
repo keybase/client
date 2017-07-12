@@ -57,7 +57,9 @@ func (e *ResolveThenIdentify2) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *ResolveThenIdentify2) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&Identify2WithUID{},
+		&Identify2WithUID{
+			arg: e.arg,
+		},
 	}
 }
 

@@ -94,6 +94,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
+    map<TeamInviteID,UID> completedInvites;
   }
 
   record UserVersion {
@@ -243,6 +244,23 @@ protocol teams {
     Seqno latestSeqno;
   }
 
+  record TeamInvitee {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    TeamRole role;
+  }
+
+  // team.sbs gregor message body
+  @lint("ignore")
+  record TeamSBSMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int score;
+    array<TeamInvitee> invitees;
+  }
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
@@ -318,6 +336,7 @@ protocol teams {
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamAcceptInvite(int sessionID, string token);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
