@@ -326,6 +326,9 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	if conv == nil {
 		return false
 	}
+	if !utils.GetConversationStatusBehavior(conv.Info.Status).DesktopNotifications {
+		return false
+	}
 	if msg.IsValid() {
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
