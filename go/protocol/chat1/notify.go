@@ -13,25 +13,27 @@ import (
 type ChatActivityType int
 
 const (
-	ChatActivityType_RESERVED         ChatActivityType = 0
-	ChatActivityType_INCOMING_MESSAGE ChatActivityType = 1
-	ChatActivityType_READ_MESSAGE     ChatActivityType = 2
-	ChatActivityType_NEW_CONVERSATION ChatActivityType = 3
-	ChatActivityType_SET_STATUS       ChatActivityType = 4
-	ChatActivityType_FAILED_MESSAGE   ChatActivityType = 5
-	ChatActivityType_MEMBERS_UPDATE   ChatActivityType = 6
+	ChatActivityType_RESERVED                      ChatActivityType = 0
+	ChatActivityType_INCOMING_MESSAGE              ChatActivityType = 1
+	ChatActivityType_READ_MESSAGE                  ChatActivityType = 2
+	ChatActivityType_NEW_CONVERSATION              ChatActivityType = 3
+	ChatActivityType_SET_STATUS                    ChatActivityType = 4
+	ChatActivityType_FAILED_MESSAGE                ChatActivityType = 5
+	ChatActivityType_MEMBERS_UPDATE                ChatActivityType = 6
+	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
 
 var ChatActivityTypeMap = map[string]ChatActivityType{
-	"RESERVED":         0,
-	"INCOMING_MESSAGE": 1,
-	"READ_MESSAGE":     2,
-	"NEW_CONVERSATION": 3,
-	"SET_STATUS":       4,
-	"FAILED_MESSAGE":   5,
-	"MEMBERS_UPDATE":   6,
+	"RESERVED":                      0,
+	"INCOMING_MESSAGE":              1,
+	"READ_MESSAGE":                  2,
+	"NEW_CONVERSATION":              3,
+	"SET_STATUS":                    4,
+	"FAILED_MESSAGE":                5,
+	"MEMBERS_UPDATE":                6,
+	"SET_APP_NOTIFICATION_SETTINGS": 7,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -42,6 +44,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	4: "SET_STATUS",
 	5: "FAILED_MESSAGE",
 	6: "MEMBERS_UPDATE",
+	7: "SET_APP_NOTIFICATION_SETTINGS",
 }
 
 func (e ChatActivityType) String() string {
@@ -52,16 +55,18 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message    MessageUnboxed     `codec:"message" json:"message"`
-	ConvID     ConversationID     `codec:"convID" json:"convID"`
-	Conv       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
-	Pagination *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Message                    MessageUnboxed     `codec:"message" json:"message"`
+	ConvID                     ConversationID     `codec:"convID" json:"convID"`
+	DisplayDesktopNotification bool               `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
+	Conv                       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination                 *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
 	return IncomingMessage{
 		Message: o.Message.DeepCopy(),
 		ConvID:  o.ConvID.DeepCopy(),
+		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		Conv: (func(x *ConversationLocal) *ConversationLocal {
 			if x == nil {
 				return nil
@@ -129,6 +134,18 @@ func (o SetStatusInfo) DeepCopy() SetStatusInfo {
 	}
 }
 
+type SetAppNotificationSettingsInfo struct {
+	ConvID   ConversationID               `codec:"convID" json:"convID"`
+	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsInfo) DeepCopy() SetAppNotificationSettingsInfo {
+	return SetAppNotificationSettingsInfo{
+		ConvID:   o.ConvID.DeepCopy(),
+		Settings: o.Settings.DeepCopy(),
+	}
+}
+
 type FailedMessageInfo struct {
 	OutboxRecords []OutboxRecord `codec:"outboxRecords" json:"outboxRecords"`
 }
@@ -161,13 +178,14 @@ func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 }
 
 type ChatActivity struct {
-	ActivityType__    ChatActivityType     `codec:"activityType" json:"activityType"`
-	IncomingMessage__ *IncomingMessage     `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
-	ReadMessage__     *ReadMessageInfo     `codec:"readMessage,omitempty" json:"readMessage,omitempty"`
-	NewConversation__ *NewConversationInfo `codec:"newConversation,omitempty" json:"newConversation,omitempty"`
-	SetStatus__       *SetStatusInfo       `codec:"setStatus,omitempty" json:"setStatus,omitempty"`
-	FailedMessage__   *FailedMessageInfo   `codec:"failedMessage,omitempty" json:"failedMessage,omitempty"`
-	MembersUpdate__   *MembersUpdateInfo   `codec:"membersUpdate,omitempty" json:"membersUpdate,omitempty"`
+	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
+	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
+	ReadMessage__                *ReadMessageInfo                `codec:"readMessage,omitempty" json:"readMessage,omitempty"`
+	NewConversation__            *NewConversationInfo            `codec:"newConversation,omitempty" json:"newConversation,omitempty"`
+	SetStatus__                  *SetStatusInfo                  `codec:"setStatus,omitempty" json:"setStatus,omitempty"`
+	FailedMessage__              *FailedMessageInfo              `codec:"failedMessage,omitempty" json:"failedMessage,omitempty"`
+	MembersUpdate__              *MembersUpdateInfo              `codec:"membersUpdate,omitempty" json:"membersUpdate,omitempty"`
+	SetAppNotificationSettings__ *SetAppNotificationSettingsInfo `codec:"setAppNotificationSettings,omitempty" json:"setAppNotificationSettings,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -200,6 +218,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_MEMBERS_UPDATE:
 		if o.MembersUpdate__ == nil {
 			err = errors.New("unexpected nil value for MembersUpdate__")
+			return ret, err
+		}
+	case ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
+		if o.SetAppNotificationSettings__ == nil {
+			err = errors.New("unexpected nil value for SetAppNotificationSettings__")
 			return ret, err
 		}
 	}
@@ -266,6 +289,16 @@ func (o ChatActivity) MembersUpdate() (res MembersUpdateInfo) {
 	return *o.MembersUpdate__
 }
 
+func (o ChatActivity) SetAppNotificationSettings() (res SetAppNotificationSettingsInfo) {
+	if o.ActivityType__ != ChatActivityType_SET_APP_NOTIFICATION_SETTINGS {
+		panic("wrong case accessed")
+	}
+	if o.SetAppNotificationSettings__ == nil {
+		return
+	}
+	return *o.SetAppNotificationSettings__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -305,6 +338,13 @@ func NewChatActivityWithMembersUpdate(v MembersUpdateInfo) ChatActivity {
 	return ChatActivity{
 		ActivityType__:  ChatActivityType_MEMBERS_UPDATE,
 		MembersUpdate__: &v,
+	}
+}
+
+func NewChatActivityWithSetAppNotificationSettings(v SetAppNotificationSettingsInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__:               ChatActivityType_SET_APP_NOTIFICATION_SETTINGS,
+		SetAppNotificationSettings__: &v,
 	}
 }
 
@@ -353,6 +393,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.MembersUpdate__),
+		SetAppNotificationSettings__: (func(x *SetAppNotificationSettingsInfo) *SetAppNotificationSettingsInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SetAppNotificationSettings__),
 	}
 }
 

@@ -11,12 +11,14 @@ protocol NotifyChat {
     NEW_CONVERSATION_3,
     SET_STATUS_4,
     FAILED_MESSAGE_5,
-    MEMBERS_UPDATE_6
+    MEMBERS_UPDATE_6,
+    SET_APP_NOTIFICATION_SETTINGS_7
   } 
 
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
+    boolean displayDesktopNotification;
     union { null, ConversationLocal } conv;
     union { null, Pagination } pagination;
   }
@@ -37,6 +39,11 @@ protocol NotifyChat {
     union { null, ConversationLocal } conv;
   }
 
+  record SetAppNotificationSettingsInfo {
+    ConversationID convID;
+    ConversationNotificationInfo settings;
+  }
+
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
   }
@@ -54,6 +61,7 @@ protocol NotifyChat {
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
     case MEMBERS_UPDATE: MembersUpdateInfo;
+    case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
   }
 
   record TyperInfo {
