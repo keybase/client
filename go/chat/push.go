@@ -396,7 +396,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
 		switch action {
-		case types.ActionNewConversation:
+		case types.ActionNewMessage:
 			var nm chat1.NewMessagePayload
 			err = dec.Decode(&nm)
 			if err != nil {
