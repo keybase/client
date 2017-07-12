@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -117,16 +118,24 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 		assertion := string(invite.Name) + "@" + ityp
 
-		res := g.Resolver.ResolveWithBody(assertion)
-		if res.GetError() != nil {
-			return res.GetError()
+		arg := keybase1.Identify2Arg{
+			UserAssertion:    assertion,
+			UseDelegateUI:    false,
+			Reason:           keybase1.IdentifyReason{Reason: "process team invite"},
+			CanSuppressUI:    true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		}
-		uid, err := g.GetUPAKLoader().LookupUID(ctx, res.GetNormalizedUsername())
-		if err != nil {
+		ectx := &engine.Context{
+			NetContext: ctx,
+		}
+		eng := engine.NewResolveThenIdentify2(g, &arg)
+		if err := engine.RunEngine(eng, ectx); err != nil {
 			return err
 		}
+		resp := eng.Result()
+		uid := resp.Upk.Uid
 
-		// check resolved assertion uid with invitee.Uid
+		// check identified assertion uid with invitee.Uid
 		if uid != invitee.Uid {
 			return fmt.Errorf("chain sbs assertion %s resolved to uid %s, which doesn't match uid %s in team.sbs message", assertion, uid, invitee.Uid)
 		}
