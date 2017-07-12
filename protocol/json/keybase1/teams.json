@@ -644,6 +644,10 @@
             "items": "UserVersion"
           },
           "name": "wantMembers"
+        },
+        {
+          "type": "TeamRole",
+          "name": "wantMembersRole"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."

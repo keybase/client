@@ -100,6 +100,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		needAdmin:         lArg.NeedAdmin,
 		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
 		wantMembers:       lArg.Refreshers.WantMembers,
+		wantMembersRole:   lArg.Refreshers.WantMembersRole,
 		forceFullReload:   lArg.ForceFullReload,
 		forceRepoll:       lArg.ForceRepoll,
 		staleOK:           lArg.StaleOK,
@@ -180,6 +181,7 @@ type load2ArgT struct {
 	needAdmin         bool
 	needKeyGeneration keybase1.PerTeamKeyGeneration
 	wantMembers       []keybase1.UserVersion
+	wantMembersRole   keybase1.TeamRole
 	forceFullReload   bool
 	forceRepoll       bool
 	staleOK           bool
@@ -452,7 +454,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
-		if l.satisfiesWantMembers(ctx, arg.wantMembers, fromCache) != nil {
+		if l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache) != nil {
 			repoll = true
 		}
 	}
@@ -556,7 +558,12 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 
 // Whether the snapshot has all of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, state *keybase1.TeamData) error {
+	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state *keybase1.TeamData) error {
+
+	if wantMembersRole == keybase1.TeamRole_NONE {
+		// Default to writer.
+		wantMembersRole = keybase1.TeamRole_WRITER
+	}
 	if len(wantMembers) == 0 {
 		return nil
 	}
@@ -568,11 +575,8 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("could not get wanted user role: %v", err)
 		}
-		switch role {
-		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-			// pass
-		default:
-			return fmt.Errorf("wanted user %v is not a priveleged member", uv)
+		if !role.IsOrAbove(wantMembersRole) {
+			return fmt.Errorf("wanted user %v is a %v which is not at least %v", uv, role, wantMembersRole)
 		}
 	}
 	return nil

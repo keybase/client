@@ -1597,11 +1597,15 @@ func (s SigChainLocation) LessThanOrEqualTo(s2 SigChainLocation) bool {
 }
 
 func (r TeamRole) IsAdminOrAbove() bool {
-	return r == TeamRole_ADMIN || r == TeamRole_OWNER
+	return r.IsOrAbove(TeamRole_ADMIN)
 }
 
 func (r TeamRole) IsReaderOrAbove() bool {
-	return r == TeamRole_ADMIN || r == TeamRole_OWNER || r == TeamRole_READER || r == TeamRole_WRITER
+	return r.IsOrAbove(TeamRole_READER)
+}
+
+func (r TeamRole) IsOrAbove(min TeamRole) bool {
+	return int(r) >= int(min)
 }
 
 type idDesc struct {
