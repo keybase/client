@@ -312,6 +312,10 @@ func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
 }
 
+func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
+	delete(t.inner.ActiveInvites, i)
+}
+
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
 	if len(t.inner.SubteamLog[id]) > 0 {
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
@@ -736,6 +740,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState = prevState.DeepCopy()
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+
+		t.completeInvites(&res.newState, team.CompletedInvites)
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -1249,6 +1255,12 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 	for _, cancelation := range cancelations {
 		stateToUpdate.informCanceledInvite(cancelation)
+	}
+}
+
+func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UID) {
+	for id := range completed {
+		stateToUpdate.informCompletedInvite(id)
 	}
 }
 
