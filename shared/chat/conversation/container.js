@@ -138,5 +138,8 @@ export default compose(
       props._onClickSearchResult(id)
       props._clearSearchResults()
     },
+    onMouseOverSearchResult: props => id => {
+      props.onUpdateSelectedSearchResult(id)
+    },
   })
 )(Conversation)

@@ -11,12 +11,13 @@ import type {Props} from '.'
 class SearchResultsList extends Component<void, Props, void> {
   _itemRenderer = index => {
     const id = this.props.items[index]
-    const {onClick, onShowTracker} = this.props
+    const {onClick, onMouseOver, onShowTracker} = this.props
     return (
       <Row
         id={id}
         key={id}
         onClick={() => onClick(id)}
+        onMouseOver={() => onMouseOver && onMouseOver(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
         selected={this.props.selectedId === id}
       />
