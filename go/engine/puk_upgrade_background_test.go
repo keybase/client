@@ -162,9 +162,9 @@ func TestPerUserKeyUpgradeBackgroundUnnecessary(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
 
-	_ = CreateAndSignupFakeUser(tc, "track")
+	_ = CreateAndSignupFakeUser(tc, "pukup")
 
-	t.Logf("user already has per-user-key")
+	t.Logf("user has a per-user-key")
 	checkPerUserKeyCount(&tc, 1)
 
 	advance := func(d time.Duration) {
@@ -174,31 +174,37 @@ func TestPerUserKeyUpgradeBackgroundUnnecessary(t *testing.T) {
 	}
 
 	metaCh := make(chan string, 100)
+	roundResCh := make(chan error, 100)
 	arg := &PerUserKeyUpgradeBackgroundArgs{
-		testingMetaCh: metaCh,
+		testingMetaCh:     metaCh,
+		testingRoundResCh: roundResCh,
 	}
 	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
 	ctx := &Context{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
 
-	// shut down before starting
-	eng.Shutdown()
-
 	err := RunEngine(eng, ctx)
 	require.NoError(t, err)
 
-	expectMeta(t, metaCh, "early-shutdown")
+	expectMeta(t, metaCh, "loop-start")
+	advance(PerUserKeyUpgradeBackgroundSettings.Start + time.Second)
+	expectMeta(t, metaCh, "woke-start")
 
-	advance(PerUserKeyUpgradeBackgroundSettings.Start)
-	advance(PerUserKeyUpgradeBackgroundSettings.Interval)
-	advance(PerUserKeyUpgradeBackgroundSettings.Interval)
-	advance(PerUserKeyUpgradeBackgroundSettings.Interval)
-	advance(PerUserKeyUpgradeBackgroundSettings.Interval)
-
-	expectMeta(t, metaCh, "")
+	// first run doesn't do anything
+	select {
+	case x := <-roundResCh:
+		require.Equal(t, nil, x, "round result")
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "channel timed out")
+	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	checkPerUserKeyCount(&tc, 1)
+
+	eng.Shutdown()
+	expectMeta(t, metaCh, "loop-exit")
+	expectMeta(t, metaCh, "")
 }
 
 // The normal case of upgrading a user
@@ -209,7 +215,7 @@ func TestPerUserKeyUpgradeBackgroundWork(t *testing.T) {
 	tc.G.SetClock(fakeClock)
 
 	tc.Tp.DisableUpgradePerUserKey = true
-	_ = CreateAndSignupFakeUser(tc, "track")
+	_ = CreateAndSignupFakeUser(tc, "pukup")
 	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("user has no per-user-key")
@@ -312,7 +318,7 @@ func TestPerUserKeyUpgradeBackgroundLoginLate(t *testing.T) {
 
 	t.Logf("sign up and in")
 	tc.Tp.DisableUpgradePerUserKey = true
-	_ = CreateAndSignupFakeUser(tc, "track")
+	_ = CreateAndSignupFakeUser(tc, "pukup")
 	checkPerUserKeyCount(&tc, 0)
 
 	tc.Tp.DisableUpgradePerUserKey = false
