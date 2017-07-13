@@ -13,11 +13,8 @@ const kbnmAppName = "io.keybase.kbnm"
 // environment variables:
 // * KBNM_INSTALL_ROOT != "" will force the user paths to be root
 // * KBNM_INSTALL_OVERLAY will prefix the paths
-func CurrentUser() (hostmanifest.User, error) {
-	u, err := hostmanifest.CurrentUser()
-	if err != nil {
-		return nil, err
-	}
+func CurrentUser() hostmanifest.User {
+	u := hostmanifest.CurrentUser()
 	if os.Getenv("KBNM_INSTALL_ROOT") != "" {
 		u.Admin = true
 		u.Path = ""
@@ -26,15 +23,12 @@ func CurrentUser() (hostmanifest.User, error) {
 	if overlay != "" {
 		u.Path = filepath.Join(overlay, u.Path)
 	}
-	return u, err
+	return u
 }
 
 // UninstallKBNM removes NativeMessaging whitelisting for KBNM.
 func UninstallKBNM() error {
-	u, err := CurrentUser()
-	if err != nil {
-		return err
-	}
+	u := CurrentUser()
 
 	app := hostmanifest.App{
 		Name: kbnmAppName,
@@ -51,10 +45,7 @@ func UninstallKBNM() error {
 
 // UninstallKBNM writes NativeMessaging whitelisting for KBNM.
 func InstallKBNM(path string) error {
-	u, err := CurrentUser()
-	if err != nil {
-		return err
-	}
+	u := CurrentUser()
 
 	app := hostmanifest.App{
 		Name:        kbnmAppName,
