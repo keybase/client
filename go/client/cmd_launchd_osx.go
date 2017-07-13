@@ -92,7 +92,7 @@ func NewCmdLaunchdList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "f, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -154,7 +154,7 @@ func NewCmdLaunchdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			},
 			cli.StringFlag{
 				Name:  "f, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 			cli.DurationFlag{
 				Name:  "t, timeout",
