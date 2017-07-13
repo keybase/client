@@ -2,6 +2,7 @@
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
 import {chatTab, folderTab} from '../constants/tabs'
+import * as RPCTypes from '../constants/types/flow-types'
 
 const initialState: Constants.State = new Constants.StateRecord()
 
@@ -25,7 +26,8 @@ export default function(state: Constants.State = initialState, action: Constants
       const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
 
       const navBadges = state.get('navBadges').withMutations(n => {
-        const totalMessages = (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+        const totalMessages = (conversations || []).reduce((total, c) => c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.CommonDeviceType.desktop}`] : total, 0)
+        console.log("TOTAL: " + totalMessages)
         n.set(chatTab, totalMessages)
         n.set(folderTab, newTlfs + rekeysNeeded)
       })
