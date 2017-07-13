@@ -112,11 +112,8 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
-  # Whitelist for NativeMessaging
-  kbnm_bin="/usr/bin/kbnm"
-
   # Write whitelists into the overlay
-  KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" $(kbnm_bin) install
+  KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
