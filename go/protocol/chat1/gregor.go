@@ -5,6 +5,7 @@ package chat1
 
 import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -133,16 +134,24 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 }
 
 type UnreadUpdate struct {
-	ConvID                  ConversationID `codec:"convID" json:"convID"`
-	UnreadMessages          int            `codec:"UnreadMessages" json:"UnreadMessages"`
-	UnreadNotifyingMessages int            `codec:"UnreadNotifyingMessages" json:"UnreadNotifyingMessages"`
+	ConvID                  ConversationID              `codec:"convID" json:"convID"`
+	UnreadMessages          int                         `codec:"unreadMessages" json:"unreadMessages"`
+	UnreadNotifyingMessages map[keybase1.DeviceType]int `codec:"unreadNotifyingMessages" json:"unreadNotifyingMessages"`
 }
 
 func (o UnreadUpdate) DeepCopy() UnreadUpdate {
 	return UnreadUpdate{
-		ConvID:                  o.ConvID.DeepCopy(),
-		UnreadMessages:          o.UnreadMessages,
-		UnreadNotifyingMessages: o.UnreadNotifyingMessages,
+		ConvID:         o.ConvID.DeepCopy(),
+		UnreadMessages: o.UnreadMessages,
+		UnreadNotifyingMessages: (func(x map[keybase1.DeviceType]int) map[keybase1.DeviceType]int {
+			ret := make(map[keybase1.DeviceType]int)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UnreadNotifyingMessages),
 	}
 }
 

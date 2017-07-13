@@ -2,6 +2,7 @@
 protocol gregor {
 
     import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+    import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
     record GenericPayload {
         @lint("ignore")
@@ -57,10 +58,8 @@ protocol gregor {
         ConversationID convID;
         // The count of unread messages to display
         // Counts only visible types of messages deserving of a badge, no EDITs
-        @lint("ignore")
-        int UnreadMessages;
-        @lint("ignore")
-        int UnreadNotifyingMessages;
+        int unreadMessages;
+        map<keybase1.DeviceType, int> unreadNotifyingMessages;
     }
 
     record TLFFinalizeUpdate {

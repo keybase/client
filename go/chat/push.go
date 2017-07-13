@@ -351,7 +351,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 					break
 				}
 			}
-			apptype := chat1.NotificationAppType_DESKTOP
+			apptype := keybase1.DeviceType_DESKTOP
 			return conv.Notifications.Settings[apptype][kind]
 		}
 	}

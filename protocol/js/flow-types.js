@@ -4183,7 +4183,8 @@ export type BTCRegisterBTCRpcParam = Exact<{
 
 export type BadgeConversationInfo = {
   convID: ChatConversationID,
-  UnreadMessages: int,
+  badgeCounts: {[key: string]: int},
+  hasUnreadMessages: boolean,
 }
 
 export type BadgeState = {

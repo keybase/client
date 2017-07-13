@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -97,15 +102,6 @@
         "NONE_0",
         "CHAT_1",
         "DEV_2"
-      ],
-      "go": "nostring"
-    },
-    {
-      "type": "enum",
-      "name": "NotificationAppType",
-      "symbols": [
-        "DESKTOP_0",
-        "MOBILE_1"
       ],
       "go": "nostring"
     },
@@ -419,7 +415,7 @@
               "values": "boolean",
               "keys": "NotificationKind"
             },
-            "keys": "NotificationAppType"
+            "keys": "keybase1.DeviceType"
           },
           "name": "settings"
         }

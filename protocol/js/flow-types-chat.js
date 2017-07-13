@@ -93,11 +93,6 @@ export const CommonMessageType = {
   attachmentuploaded: 8,
 }
 
-export const CommonNotificationAppType = {
-  desktop: 0,
-  mobile: 1,
-}
-
 export const CommonNotificationKind = {
   generic: 0,
   atmention: 1,
@@ -1779,10 +1774,6 @@ export type NonblockFetchRes = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
-export type NotificationAppType =
-    0 // DESKTOP_0
-  | 1 // MOBILE_1
-
 export type NotificationKind =
     0 // GENERIC_0
   | 1 // ATMENTION_1
@@ -2087,8 +2078,8 @@ export type UnreadFirstNumLimit = {
 
 export type UnreadUpdate = {
   convID: ConversationID,
-  UnreadMessages: int,
-  UnreadNotifyingMessages: int,
+  unreadMessages: int,
+  unreadNotifyingMessages: {[key: string]: int},
 }
 
 export type UnreadUpdateFull = {
