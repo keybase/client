@@ -13,17 +13,9 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
 )
 
-type PerUserKeyBackgroundSettings struct {
-	Start    time.Duration
-	WakeUp   time.Duration
-	Interval time.Duration
-	Limit    time.Duration
-}
-
-var PerUserKeyBackgroundDefaultSettings = PerUserKeyBackgroundSettings{
+var PerUserKeyBackgroundSettings = BackgroundTaskSettings{
 	// Wait after starting the app
 	Start: 30 * time.Second,
 	// When waking up on mobile lots of timers will go off at once. We wait an additional
@@ -41,16 +33,10 @@ type PerUserKeyBackground struct {
 	sync.Mutex
 
 	args *PerUserKeyBackgroundArgs
-
-	shutdown bool
-	// Function to cancel the background context.
-	// Can be nil before RunEngine exits
-	shutdownFunc context.CancelFunc
+	task *BackgroundTask
 }
 
 type PerUserKeyBackgroundArgs struct {
-	Settings PerUserKeyBackgroundSettings
-
 	// Channels used for testing. Normally nil.
 	testingMetaCh     chan<- string
 	testingRoundResCh chan<- error
@@ -58,10 +44,19 @@ type PerUserKeyBackgroundArgs struct {
 
 // NewPerUserKeyBackground creates a PerUserKeyBackground engine.
 func NewPerUserKeyBackground(g *libkb.GlobalContext, args *PerUserKeyBackgroundArgs) *PerUserKeyBackground {
+	task := NewBackgroundTask(g, &BackgroundTaskArgs{
+		Name:     "PerUserKeyBackground",
+		F:        PerUserKeyBackgroundRound,
+		Settings: PerUserKeyBackgroundSettings,
+
+		testingMetaCh:     args.testingMetaCh,
+		testingRoundResCh: args.testingRoundResCh,
+	})
 	return &PerUserKeyBackground{
 		Contextified: libkb.NewContextified(g),
 		args:         args,
-		shutdownFunc: nil,
+		// Install the task early so that Shutdown can be called before RunEngine.
+		task: task,
 	}
 }
 
@@ -87,113 +82,36 @@ func (e *PerUserKeyBackground) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
-func (e *PerUserKeyBackground) Run(ectx *Context) (err error) {
-	ctx := ectx.NetContext
-	defer e.G().CTrace(ctx, "PerUserKeyBackground", func() error { return err })()
-
-	// use a new background context with a saved cancel function
-	ctx, cancel := context.WithCancel(context.Background())
-
-	e.Lock()
-	defer e.Unlock()
-
-	e.shutdownFunc = cancel
-	if e.shutdown {
-		// Shutdown before started
-		cancel()
-		e.meta("early-shutdown")
-		return nil
-	}
-
-	// start the loop and return
-	go func() {
-		err := e.loop(ctx, ectx)
-		if err != nil {
-			e.G().Log.CDebugf(ctx, "PerUserKeyBackground loop error: %s", err)
-		}
-		cancel()
-		e.meta("loop-exit")
-	}()
-
-	return nil
+func (e *PerUserKeyBackground) Run(ctx *Context) (err error) {
+	return RunEngine(e.task, ctx)
 }
 
 func (e *PerUserKeyBackground) Shutdown() {
-	e.Lock()
-	defer e.Unlock()
-	e.shutdown = true
-	if e.shutdownFunc != nil {
-		e.shutdownFunc()
-	}
+	e.task.Shutdown()
 }
 
-func (e *PerUserKeyBackground) loop(ctx context.Context, ectx *Context) error {
-	// wakeAt times are calculated before a meta before their corresponding sleep.
-	// To avoid the race where the testing goroutine calls advance before
-	// this routine decides when to wake up. That led to this routine never waking.
-	wakeAt := e.G().Clock().Now().Add(e.args.Settings.Start)
-	e.meta("loop-start")
-	if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
-		return err
-	}
-	e.meta("woke-start")
-	var i int
-	for {
-		i++
-		err := e.round(ctx, ectx)
-		if err != nil {
-			e.G().Log.CDebugf(ctx, "PerUserKeyBackground round(%v) error: %s", i, err)
-		} else {
-			e.G().Log.CDebugf(ctx, "PerUserKeyBackground round(%v) complete", i)
-		}
-		if e.args.testingRoundResCh != nil {
-			e.args.testingRoundResCh <- err
-		}
-		wakeAt = e.G().Clock().Now().Add(e.args.Settings.Interval)
-		e.meta("loop-round-complete")
-		if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
-			return err
-		}
-		wakeAt = e.G().Clock().Now().Add(e.args.Settings.WakeUp)
-		e.meta("woke-interval")
-		if err := libkb.SleepUntilWithContext(ctx, e.G().Clock(), wakeAt); err != nil {
-			return err
-		}
-		e.meta("woke-wakeup")
-	}
-}
-
-func (e *PerUserKeyBackground) round(ctx context.Context, ectx *Context) error {
-	ctx, cancel := context.WithTimeout(ctx, e.args.Settings.Limit)
-	defer cancel()
-
-	if !e.G().Env.GetUpgradePerUserKey() {
-		e.G().Log.CDebugf(ctx, "CheckUpgradePerUserKey disabled")
+func PerUserKeyBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
+	if !g.Env.GetUpgradePerUserKey() {
+		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey disabled")
 		return nil
 	}
 
-	if e.G().ConnectivityMonitor.IsConnected(ctx) == libkb.ConnectivityMonitorNo {
-		e.G().Log.CDebugf(ctx, "CheckUpgradePerUserKey giving up offline")
+	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
+		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey giving up offline")
 		return nil
 	}
 
 	// Do a fast local check to see if our work is done.
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := g.GetPerUserKeyring()
 	if err == nil {
 		if pukring.HasAnyKeys() {
-			e.G().Log.CDebugf(ctx, "CheckUpgradePerUserKey already has keys")
+			g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey already has keys")
 			return nil
 		}
 	}
 
 	arg := &PerUserKeyUpgradeArgs{}
-	eng := NewPerUserKeyUpgrade(e.G(), arg)
-	err = RunEngine(eng, ectx.WithNetContext(ctx))
+	eng := NewPerUserKeyUpgrade(g, arg)
+	err = RunEngine(eng, ectx)
 	return err
-}
-
-func (e *PerUserKeyBackground) meta(s string) {
-	if e.args.testingMetaCh != nil {
-		e.args.testingMetaCh <- s
-	}
 }
