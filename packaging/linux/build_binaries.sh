@@ -113,7 +113,7 @@ build_one_architecture() {
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
   # Whitelist for NativeMessaging
-  kbnm_bin="/usr/bin/kbnm"
+  kbnm_bin="$layout_dir/usr/bin/kbnm"
 
   # Write whitelists into the overlay
   KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" $(kbnm_bin) install
