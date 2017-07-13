@@ -37,7 +37,7 @@ func (e *PerUserKeyUpgrade) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *PerUserKeyUpgrade) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 

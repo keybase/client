@@ -130,7 +130,7 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 		t.Logf("check %v", i)
 		select {
 		case x := <-roundResCh:
-			require.Equal(t, libkb.LoginRequiredError{}, x, "round result")
+			require.Equal(t, libkb.DeviceRequiredError{}, x, "round result")
 		case <-time.After(5 * time.Second):
 			require.FailNow(t, "channel timed out")
 		}
@@ -310,7 +310,7 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	t.Logf("run once while not logged in")
 	select {
 	case x := <-roundResCh:
-		require.Equal(t, libkb.LoginRequiredError{}, x, "round result")
+		require.Equal(t, libkb.DeviceRequiredError{}, x, "round result")
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
