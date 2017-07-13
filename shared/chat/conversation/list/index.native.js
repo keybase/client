@@ -69,7 +69,7 @@ class ConversationList extends Component<void, Props, void> {
 
   render() {
     return (
-      <Box style={{...globalStyles.fillAbsolute}}>
+      <Box style={globalStyles.fillAbsolute}>
         <NativeFlatList
           data={this.props.messageKeys.toArray()}
           renderItem={this._renderItem}

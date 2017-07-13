@@ -84,13 +84,7 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
     }
 
     return (
-      <CardStackTransitioner
-        navigation={navigation}
-        router={this}
-        headerMode="none"
-        mode={this.props.mode}
-        style={{position: 'relative'}}
-      />
+      <CardStackTransitioner navigation={navigation} router={this} headerMode="none" mode={this.props.mode} />
     )
   }
 }
@@ -98,7 +92,7 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
 const nop = () => {}
 const emptyObj = () => ({})
 
-const barStyle = ({showStatusBarDarkContent, underStatusBar}) => {
+const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   // android always uses light-content
   if (!isIOS) {
     return 'light-content'
@@ -127,7 +121,7 @@ function renderStackRoute(route) {
         hidden={hideStatusBar}
         translucent={true}
         backgroundColor="rgba(0, 26, 51, 0.25)"
-        barStyle={barStyle({showStatusBarDarkContent, underStatusBar})}
+        barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
       />
       {route.component}
     </Box>
@@ -149,7 +143,7 @@ function MainNavStack(props: Props) {
   ].filter(Boolean)
 
   const content = (
-    <Box style={{...globalStyles.flexGrow}}>
+    <Box style={globalStyles.flexGrow}>
       {shim}
       <AnimatedTabBar show={!props.hideNav}>
         <TabBar
@@ -162,14 +156,17 @@ function MainNavStack(props: Props) {
   )
   return (
     <Box style={globalStyles.fullHeight}>
-      <NativeKeyboardAvoidingView
-        style={{...globalStyles.fillAbsolute, backgroundColor: globalColors.white}}
-        behavior={isIOS ? 'padding' : undefined}
-      >
+      <NativeKeyboardAvoidingView style={_keyboardStyle} behavior={isIOS ? 'padding' : undefined}>
         {content}
       </NativeKeyboardAvoidingView>
     </Box>
   )
+}
+
+// TODO glamour
+const _keyboardStyle = {
+  ...globalStyles.fillAbsolute,
+  backgroundColor: globalColors.white,
 }
 
 type AnimatedTabBarProps = {
@@ -210,12 +207,19 @@ class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}>
       )
     } else {
       return (
-        <Box style={{height: this.props.show ? tabBarHeight : 0}}>
+        <Box style={this.props.show ? _tabBarHeightBar : _tabBarHeightZero}>
           {this.props.children}
         </Box>
       )
     }
   }
+}
+
+const _tabBarHeightBar = {
+  height: tabBarHeight,
+}
+const _tabBarHeightZero = {
+  height: 0,
 }
 
 class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
