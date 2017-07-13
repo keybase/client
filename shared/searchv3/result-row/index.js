@@ -6,6 +6,7 @@ import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../st
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {isMobile} from '../../constants/platform'
+import {hover} from 'glamor'
 
 const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
   return (
@@ -106,6 +107,7 @@ const Line = () => (
 const SearchResultRow = (props: Constants.RowProps) => {
   return (
     <ClickableBox
+      {...hover({backgroundColor: globalColors.blue3_40})}
       style={_clickableBoxStyle[(!!props.selected).toString()]}
       underlayColor={globalColors.blue4}
       onClick={props.onClick}
