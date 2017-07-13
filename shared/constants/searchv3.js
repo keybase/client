@@ -75,7 +75,7 @@ export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending:
 
 export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
   TypeToFire,
-  {searchResults: Array<SearchResultId>, searchTerm: string, service: Service}
+  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service}
 >
 
 // Generic so others can make their own version

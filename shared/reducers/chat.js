@@ -646,11 +646,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('inboxSearch', List(action.payload.search))
     }
     case 'chat:updateSearchResults': {
-      const {payload: {searchTerm, searchResults, searchShowingSuggestions}} = action
+      const {payload: {searchResultTerm, searchResults, searchShowingSuggestions}} = action
       return state
         .set('searchResults', List(searchResults))
         .set('searchShowingSuggestions', searchShowingSuggestions)
-        .set('searchResultTerm', searchTerm)
+        .set('searchResultTerm', searchResultTerm)
     }
     case 'chat:unstageUserForSearch': {
       const {payload: {user}} = action
