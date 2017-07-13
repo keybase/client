@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import routeDefs from './routes'
 import {AppRegistry, AppState, Linking, Text} from 'react-native'
-import {Navigation} from 'react-native-navigation';
+import {Navigation} from 'react-native-navigation'
 import {Box} from '../common-adapters'
 import {Provider} from 'react-redux'
 import {appLink, mobileAppStateChanged} from '../actions/app'
@@ -109,19 +109,19 @@ function load() {
       {
         screen: `keybase.${folderTab}`,
         icon: require('../images/icons/icon-nav-folders-40.png'),
-        selectedIcon: require('../images/icons/icon-nav-chat-folders-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-selected-40.png'),
         title: 'Folders'
       },
       {
-        screen: `keybase.${peopleTab}`,
+        screen: `keybase.${profileTab}`,
         icon: require('../images/icons/icon-nav-people-40.png'),
-        selectedIcon: require('../images/icons/icon-nav-chat-people-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-people-selected-40.png'),
         title: 'People'
       },
       {
         screen: `keybase.${settingsTab}`,
         icon: require('../images/icons/icon-nav-settings-40.png'),
-        selectedIcon: require('../images/icons/icon-nav-chat-settings-40.png'),
+        selectedIcon: require('../images/icons/icon-nav-chat-selected-40.png'),
         title: 'Settings'
       },
     ]

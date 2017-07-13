@@ -88,6 +88,10 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.1"
 
+    dexOptions {
+        jumboMode = true
+    }
+
     defaultConfig {
         applicationId "io.keybase.ossifrage"
         minSdkVersion 16
