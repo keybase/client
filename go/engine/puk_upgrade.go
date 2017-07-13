@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PerUserKeyUpgrade is an engine.
@@ -51,7 +50,7 @@ func (e *PerUserKeyUpgrade) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PerUserKeyUpgrade) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{&PaperKeyGen{}}
+	return []libkb.UIConsumer{&PerUserKeyRoll{}}
 }
 
 // Run starts the engine.
@@ -92,99 +91,13 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	}
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade has no per-user-key")
 
-	if me == nil {
-		me, err = libkb.LoadUser(*loadArg)
-		if err != nil {
-			return err
-		}
+	// Make the key
+	arg := &PerUserKeyRollArgs{
+		LoginContext: e.args.LoginContext,
+		Me:           me,
 	}
-
-	sigKey, err := e.G().ActiveDevice.SigningKey()
-	if err != nil {
-		return fmt.Errorf("signing key not found: (%v)", err)
-	}
-	encKey, err := e.G().ActiveDevice.EncryptionKey()
-	if err != nil {
-		return fmt.Errorf("encryption key not found: (%v)", err)
-	}
-
-	pukring, err := e.G().GetPerUserKeyring()
-	if err != nil {
-		return err
-	}
-	err = pukring.Sync(ctx.GetNetContext())
-	if err != nil {
-		return err
-	}
-
-	gen1 := keybase1.PerUserKeyGeneration(1)
-
-	pukSeed, err := libkb.GeneratePerUserKeySeed()
-	if err != nil {
-		return err
-	}
-
-	pukReceivers, err := e.getPukReceivers(ctx, upak)
-	if err != nil {
-		return err
-	}
-	if len(pukReceivers) == 0 {
-		return fmt.Errorf("no receivers")
-	}
-
-	// Create boxes of the new per-user-key
-	pukBoxes, err := pukring.PrepareBoxesForDevices(ctx.GetNetContext(),
-		pukSeed, gen1, pukReceivers, encKey)
-	if err != nil {
-		return err
-	}
-
-	sig1, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen1, sigKey)
-	if err != nil {
-		return err
-	}
-	// Seqno when the per-user-key will be signed in.
-	pukSeqno := me.GetSigChainLastKnownSeqno()
-
-	var sigsList []libkb.JSONPayload
-	sigsList = append(sigsList, sig1)
-
-	payload := make(libkb.JSONPayload)
-	payload["sigs"] = sigsList
-
-	libkb.AddPerUserKeyServerArg(payload, gen1, pukBoxes, nil)
-
-	_, err = e.G().API.PostJSON(libkb.APIArg{
-		Endpoint:    "key/multi",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
-	})
-	if err != nil {
-		return err
-	}
-	e.DidNewKey = true
-
-	// Add the per-user-key locally
-	err = pukring.AddKey(ctx.GetNetContext(), gen1, pukSeqno, pukSeed)
-	if err != nil {
-		return err
-	}
-
-	e.G().UserChanged(uid)
-	return nil
-}
-
-// Get the receivers of the new per-user-key boxes.
-// Includes all the user's device subkeys.
-func (e *PerUserKeyUpgrade) getPukReceivers(ctx *Context, meUPAK *keybase1.UserPlusAllKeys) (res []libkb.NaclDHKeyPair, err error) {
-	for _, dk := range meUPAK.Base.DeviceKeys {
-		if dk.IsSibkey == false && !dk.IsRevoked {
-			receiver, err := libkb.ImportNaclDHKeyPairFromHex(dk.KID.String())
-			if err != nil {
-				return res, err
-			}
-			res = append(res, receiver)
-		}
-	}
-	return res, nil
+	eng := NewPerUserKeyRoll(e.G(), arg)
+	err = RunEngine(eng, ctx)
+	e.DidNewKey = eng.DidNewKey
+	return err
 }
