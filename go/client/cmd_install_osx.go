@@ -30,7 +30,7 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 			cli.StringFlag{
 				Name:  "o, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 			cli.StringFlag{
 				Name:  "b, bin-path",
@@ -169,7 +169,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "o, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 			cli.StringFlag{
 				Name:  "c, components",
