@@ -2100,6 +2100,7 @@ export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{

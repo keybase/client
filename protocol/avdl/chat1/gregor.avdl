@@ -83,5 +83,6 @@ protocol gregor {
         InboxVers inboxVers;
         array<ConversationMember> joined;
         array<ConversationMember> removed;
+        union { null, UnreadUpdate } unreadUpdate;
     }
 }

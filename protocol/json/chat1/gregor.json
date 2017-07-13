@@ -259,6 +259,13 @@
             "items": "ConversationMember"
           },
           "name": "removed"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     }

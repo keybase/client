@@ -194,9 +194,10 @@ func (o RemoteUserTypingUpdate) DeepCopy() RemoteUserTypingUpdate {
 }
 
 type UpdateConversationMembership struct {
-	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Joined    []ConversationMember `codec:"joined" json:"joined"`
-	Removed   []ConversationMember `codec:"removed" json:"removed"`
+	InboxVers    InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Joined       []ConversationMember `codec:"joined" json:"joined"`
+	Removed      []ConversationMember `codec:"removed" json:"removed"`
+	UnreadUpdate *UnreadUpdate        `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
@@ -218,6 +219,13 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 			}
 			return ret
 		})(o.Removed),
+		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadUpdate),
 	}
 }
 
