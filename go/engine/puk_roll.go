@@ -20,8 +20,7 @@ type PerUserKeyRoll struct {
 }
 
 type PerUserKeyRollArgs struct {
-	LoginContext libkb.LoginContext // optional
-	Me           *libkb.User        // optional
+	Me *libkb.User // optional
 }
 
 // NewPerUserKeyRoll creates a PerUserKeyRoll engine.
@@ -77,7 +76,6 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 			WithUID(uid).
 			WithSelf(true).
 			WithPublicKeyOptional()
-		loadArg.LoginContext = e.args.LoginContext
 		me, err = libkb.LoadUser(*loadArg)
 		if err != nil {
 			return err
