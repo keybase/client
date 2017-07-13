@@ -32,7 +32,6 @@ const maxUsers = [
     service: 'Keybase',
     username: 'chromakode',
   },
-
   {
     followingState: 'Following',
     icon: null,
