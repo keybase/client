@@ -415,19 +415,27 @@ func (o UserVersionVector) DeepCopy() UserVersionVector {
 	}
 }
 
+type PerUserKeyGeneration int
+
+func (o PerUserKeyGeneration) DeepCopy() PerUserKeyGeneration {
+	return o
+}
+
 type PerUserKey struct {
-	Gen    int   `codec:"gen" json:"gen"`
-	Seqno  Seqno `codec:"seqno" json:"seqno"`
-	SigKID KID   `codec:"sigKID" json:"sigKID"`
-	EncKID KID   `codec:"encKID" json:"encKID"`
+	Gen         int   `codec:"gen" json:"gen"`
+	Seqno       Seqno `codec:"seqno" json:"seqno"`
+	SigKID      KID   `codec:"sigKID" json:"sigKID"`
+	EncKID      KID   `codec:"encKID" json:"encKID"`
+	SignedByKID KID   `codec:"signedByKID" json:"signedByKID"`
 }
 
 func (o PerUserKey) DeepCopy() PerUserKey {
 	return PerUserKey{
-		Gen:    o.Gen,
-		Seqno:  o.Seqno.DeepCopy(),
-		SigKID: o.SigKID.DeepCopy(),
-		EncKID: o.EncKID.DeepCopy(),
+		Gen:         o.Gen,
+		Seqno:       o.Seqno.DeepCopy(),
+		SigKID:      o.SigKID.DeepCopy(),
+		EncKID:      o.EncKID.DeepCopy(),
+		SignedByKID: o.SignedByKID.DeepCopy(),
 	}
 }
 

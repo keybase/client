@@ -560,6 +560,7 @@ export const UPKUPAKVersion = {
 export const UPKUPK2MinorVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const UiPromptDefault = {
@@ -5183,6 +5184,7 @@ export type PerUserKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+  signedByKID: KID,
 }
 
 export type PerUserKeyBox = {
@@ -6171,6 +6173,7 @@ export type UPAKVersioned =
 export type UPK2MinorVersion =
     0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type UnboxAnyRes = {
   kid: KID,

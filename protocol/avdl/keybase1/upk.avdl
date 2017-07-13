@@ -13,7 +13,8 @@ protocol UPK {
 
   enum UPK2MinorVersion {
     V0_0,
-    V1_1
+    V1_1,
+    V2_2
   }
 
   record MerkleRootV2 {

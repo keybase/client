@@ -19,9 +19,7 @@ type PerUserKeyUpgrade struct {
 	DidNewKey bool
 }
 
-type PerUserKeyUpgradeArgs struct {
-	LoginContext libkb.LoginContext // optional
-}
+type PerUserKeyUpgradeArgs struct{}
 
 // NewPerUserKeyUpgrade creates a PerUserKeyUpgrade engine.
 func NewPerUserKeyUpgrade(g *libkb.GlobalContext, args *PerUserKeyUpgradeArgs) *PerUserKeyUpgrade {
@@ -76,7 +74,6 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	loadArg.LoginContext = e.args.LoginContext
 	upak, me, err := e.G().GetUPAKLoader().Load(*loadArg)
 	if err != nil {
 		return err
@@ -93,8 +90,7 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 	// Make the key
 	arg := &PerUserKeyRollArgs{
-		LoginContext: e.args.LoginContext,
-		Me:           me,
+		Me: me,
 	}
 	eng := NewPerUserKeyRoll(e.G(), arg)
 	err = RunEngine(eng, ctx)
