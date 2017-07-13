@@ -7,39 +7,6 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 )
 
-// MeterSnapshot is a read-only copy of another Meter.
-type MeterSnapshot struct {
-	count                          int64
-	rate1, rate5, rate15, rateMean float64
-}
-
-// Count returns the count of events at the time the snapshot was taken.
-func (m *MeterSnapshot) Count() int64 { return m.count }
-
-// Mark panics.
-func (*MeterSnapshot) Mark(n int64) {
-	panic("Mark called on a MeterSnapshot")
-}
-
-// Rate1 returns the one-minute moving average rate of events per second at the
-// time the snapshot was taken.
-func (m *MeterSnapshot) Rate1() float64 { return m.rate1 }
-
-// Rate5 returns the five-minute moving average rate of events per second at
-// the time the snapshot was taken.
-func (m *MeterSnapshot) Rate5() float64 { return m.rate5 }
-
-// Rate15 returns the fifteen-minute moving average rate of events per second
-// at the time the snapshot was taken.
-func (m *MeterSnapshot) Rate15() float64 { return m.rate15 }
-
-// RateMean returns the meter's mean rate of events per second at the time the
-// snapshot was taken.
-func (m *MeterSnapshot) RateMean() float64 { return m.rateMean }
-
-// Snapshot returns the snapshot.
-func (m *MeterSnapshot) Snapshot() metrics.Meter { return m }
-
 // CountMeter counts ticks with a sliding window into the past.
 type CountMeter struct {
 	mtx      sync.RWMutex
@@ -48,6 +15,8 @@ type CountMeter struct {
 
 	shutdownCh chan struct{}
 }
+
+var _ metrics.Meter = (*CountMeter)(nil)
 
 func (m *CountMeter) tick() {
 	m.mtx.Lock()
@@ -141,7 +110,7 @@ func (m *CountMeter) Rate15() float64 {
 	return m.rate15()
 }
 
-// RateMean returns the overall mean rate of ticks.
+// RateMean returns the overall count of ticks.
 func (m *CountMeter) RateMean() float64 {
 	m.mtx.RLock()
 	defer m.mtx.RUnlock()

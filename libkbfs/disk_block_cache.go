@@ -92,7 +92,7 @@ type MeterStatus struct {
 	Minutes1  float64
 	Minutes5  float64
 	Minutes15 float64
-	Mean      float64
+	Count     int64
 }
 
 func rateMeterToStatus(m metrics.Meter) MeterStatus {
@@ -101,7 +101,7 @@ func rateMeterToStatus(m metrics.Meter) MeterStatus {
 		s.Rate1(),
 		s.Rate5(),
 		s.Rate15(),
-		s.RateMean(),
+		s.Count(),
 	}
 }
 
