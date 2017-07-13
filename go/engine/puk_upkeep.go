@@ -43,7 +43,7 @@ func (e *PerUserKeyUpkeep) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *PerUserKeyUpkeep) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
