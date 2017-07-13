@@ -21,7 +21,7 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 
 	u := keybase1.UserOrTeamID("")
 	availBytes, availFiles, err := sdl.reserveWithBackpressure(ctx,
-		journalLimitTracker, 9, 1, u)
+		journalLimitTrackerType, 9, 1, u)
 	require.NoError(t, err)
 	require.Equal(t, int64(1), availBytes)
 	require.Equal(t, int64(1), availFiles)
@@ -33,7 +33,7 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
-	sdl.commitOrRollback(ctx, journalLimitTracker, 9, 1, true, u)
+	sdl.commitOrRollback(ctx, journalLimitTrackerType, 9, 1, true, u)
 
 	require.Equal(t, int64(1), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(1), sdl.fileSemaphore.Count())
@@ -51,7 +51,7 @@ func TestSemaphoreDiskLimiterBlockBasic(t *testing.T) {
 	require.Equal(t, int64(0), usedQuotaBytes)
 	require.Equal(t, int64(12), quotaBytes)
 
-	sdl.releaseAndCommit(ctx, unknownLimitTracker, 9, 1)
+	sdl.release(ctx, unknownLimitTrackerType, 9, 1)
 
 	require.Equal(t, int64(10), sdl.byteSemaphore.Count())
 	require.Equal(t, int64(2), sdl.fileSemaphore.Count())
@@ -72,7 +72,7 @@ func TestSemaphoreDiskLimiterBeforeBlockPutError(t *testing.T) {
 		context.Background(), 3*time.Millisecond)
 	defer cancel()
 
-	availBytes, availFiles, err := sdl.reserveWithBackpressure(ctx, journalLimitTracker, 10, 2,
+	availBytes, availFiles, err := sdl.reserveWithBackpressure(ctx, journalLimitTrackerType, 10, 2,
 		keybase1.UserOrTeamID(""))
 	require.Equal(t, context.DeadlineExceeded, errors.Cause(err))
 	require.Equal(t, int64(10), availBytes)

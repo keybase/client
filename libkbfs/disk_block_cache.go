@@ -225,8 +225,8 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 			// Notify the disk limiter of the disk cache's size once we've
 			// determined it.
 			ctx := context.Background()
-			cache.config.DiskLimiter().onByteTrackerEnable(ctx,
-				diskCacheLimitTracker, int64(cache.currBytes))
+			cache.config.DiskLimiter().onSimpleByteTrackerEnable(ctx,
+				workingSetCacheLimitTrackerType, int64(cache.currBytes))
 		}
 		close(startedCh)
 	}()
@@ -566,8 +566,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				return ctx.Err()
 			default:
 			}
-			bytesAvailable, err := cache.config.DiskLimiter().reserve(
-				ctx, diskCacheLimitTracker, encodedLen)
+			bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
+				ctx, workingSetCacheLimitTrackerType, encodedLen)
 			if err != nil {
 				cache.log.CWarningf(ctx, "Error obtaining space for the disk "+
 					"block cache: %+v", err)
@@ -594,10 +594,10 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
 			cache.config.DiskLimiter().commitOrRollback(ctx,
-				diskCacheLimitTracker, encodedLen, 0, false, "")
+				workingSetCacheLimitTrackerType, encodedLen, 0, false, "")
 			return err
 		}
-		cache.config.DiskLimiter().commitOrRollback(ctx, diskCacheLimitTracker,
+		cache.config.DiskLimiter().commitOrRollback(ctx, workingSetCacheLimitTrackerType,
 			encodedLen, 0, true, "")
 		cache.tlfCounts[tlfID]++
 		cache.numBlocks++
@@ -733,7 +733,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
 	}
-	cache.config.DiskLimiter().releaseAndCommit(ctx, diskCacheLimitTracker,
+	cache.config.DiskLimiter().release(ctx, workingSetCacheLimitTrackerType,
 		sizeRemoved, 0)
 
 	return numRemoved, sizeRemoved, nil
@@ -966,6 +966,6 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 		cache.log.CWarningf(ctx, "Error closing tlfDb: %+v", err)
 	}
 	cache.tlfDb = nil
-	cache.config.DiskLimiter().onByteTrackerDisable(ctx,
-		diskCacheLimitTracker, int64(cache.currBytes))
+	cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
+		workingSetCacheLimitTrackerType, int64(cache.currBytes))
 }

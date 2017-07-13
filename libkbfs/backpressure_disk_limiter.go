@@ -107,8 +107,8 @@ func (bt backpressureTracker) currLimit() float64 {
 	freeFloat := float64(bt.free)
 	limit := bt.limitFrac * (usedFloat + freeFloat)
 	minLimit := math.Min(limit, float64(bt.limit))
-	// The magic number of 512 gets us past overflow issues at the limit due to
-	// floating point precision.
+	// Based on local tests, the magic number of 512 gets us past overflow
+	// issues at the limit due to floating point precision.
 	maxFloatForInt64 := float64(math.MaxInt64 - 512)
 	if minLimit > maxFloatForInt64 {
 		minLimit = maxFloatForInt64
@@ -200,7 +200,7 @@ func (bt *backpressureTracker) commitOrRollback(
 	}
 }
 
-func (bt *backpressureTracker) releaseAndCommit(blockResources int64) {
+func (bt *backpressureTracker) release(blockResources int64) {
 	if blockResources == 0 {
 		return
 	}
@@ -499,12 +499,8 @@ func (jt journalTracker) getDelayScale(
 
 func (jt journalTracker) updateFree(
 	freeBytes, overallUsedBytes, freeFiles int64) {
-	// We calculate the total free bytes by adding up the reported
-	// free bytes, the journal used bytes, *and* any other used
-	// bytes (e.g., the disk cache). For now, we hack this by
-	// lumping the other used bytes with the reported free bytes.
-	//
-	// TODO: Keep track of other used bytes separately.
+	// We calculate the total free bytes by adding the reported free bytes and
+	// the non-journal used bytes.
 	jt.byte.updateFree(freeBytes + overallUsedBytes - jt.byte.used)
 	jt.file.updateFree(freeFiles)
 }
@@ -553,9 +549,9 @@ func (jt journalTracker) onBlocksFlush(
 	jt.getQuotaTracker(chargedTo).onBlocksFlush(blockBytes)
 }
 
-func (jt journalTracker) releaseAndCommit(blockBytes, blockFiles int64) {
-	jt.byte.releaseAndCommit(blockBytes)
-	jt.file.releaseAndCommit(blockFiles)
+func (jt journalTracker) release(blockBytes, blockFiles int64) {
+	jt.byte.release(blockBytes)
+	jt.file.release(blockFiles)
 }
 
 func (jt journalTracker) getUsedBytes() int64 {
@@ -814,12 +810,12 @@ func defaultGetFreeBytesAndFiles(path string) (int64, int64, error) {
 	return int64(freeBytes), int64(freeFiles), nil
 }
 
-func (bdl *backpressureDiskLimiter) trackerFromType(typ diskLimitTrackerType) (
-	tracker diskLimitByteTracker, err error) {
+func (bdl *backpressureDiskLimiter) simpleByteTrackerFromType(typ diskLimitTrackerType) (
+	tracker simpleResourceTracker, err error) {
 	switch typ {
-	case diskCacheLimitTracker:
+	case workingSetCacheLimitTrackerType:
 		return bdl.diskCacheByteTracker, nil
-	case syncCacheLimitTracker:
+	case syncCacheLimitTrackerType:
 		return bdl.syncCacheByteTracker, nil
 	default:
 		return nil, unknownTrackerTypeError{typ}
@@ -857,9 +853,9 @@ func (bdl *backpressureDiskLimiter) onJournalDisable(
 	bdl.overallByteTracker.onDisable(journalStoredBytes)
 }
 
-func (bdl *backpressureDiskLimiter) onByteTrackerEnable(ctx context.Context,
+func (bdl *backpressureDiskLimiter) onSimpleByteTrackerEnable(ctx context.Context,
 	typ diskLimitTrackerType, diskCacheBytes int64) {
-	tracker, err := bdl.trackerFromType(typ)
+	tracker, err := bdl.simpleByteTrackerFromType(typ)
 	if err != nil {
 		panic("Invalid tracker type passed to onByteTrackerEnable")
 	}
@@ -869,9 +865,9 @@ func (bdl *backpressureDiskLimiter) onByteTrackerEnable(ctx context.Context,
 	tracker.onEnable(diskCacheBytes)
 }
 
-func (bdl *backpressureDiskLimiter) onByteTrackerDisable(ctx context.Context,
+func (bdl *backpressureDiskLimiter) onSimpleByteTrackerDisable(ctx context.Context,
 	typ diskLimitTrackerType, diskCacheBytes int64) {
-	tracker, err := bdl.trackerFromType(typ)
+	tracker, err := bdl.simpleByteTrackerFromType(typ)
 	if err != nil {
 		panic("Invalid tracker type passed to onByteTrackerDisable")
 	}
@@ -901,8 +897,10 @@ func (bdl *backpressureDiskLimiter) getDelayLocked(
 
 func (bdl *backpressureDiskLimiter) reserveError(err error) (
 	availableBytes, availableFiles int64, _ error) {
+	bdl.lock.RLock()
 	availableBytes, availableFiles =
 		bdl.journalTracker.getSemaphoreCounts()
+	bdl.lock.RUnlock()
 	return availableBytes, availableFiles, err
 }
 
@@ -911,7 +909,7 @@ func (bdl *backpressureDiskLimiter) reserveWithBackpressure(
 	chargedTo keybase1.UserOrTeamID) (availableBytes, availableFiles int64,
 	err error) {
 	// TODO: if other backpressure consumers are introduced, remove this check.
-	if typ != journalLimitTracker {
+	if typ != journalLimitTrackerType {
 		return bdl.reserveError(errors.New(
 			"reserveWithBackpressure called with " +
 				"non-journal tracker type."))
@@ -977,11 +975,11 @@ func (bdl *backpressureDiskLimiter) commitOrRollback(ctx context.Context,
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	switch typ {
-	case journalLimitTracker:
+	case journalLimitTrackerType:
 		bdl.journalTracker.commitOrRollback(blockBytes, blockFiles,
 			shouldCommit, chargedTo)
 	default:
-		tracker, err := bdl.trackerFromType(typ)
+		tracker, err := bdl.simpleByteTrackerFromType(typ)
 		if err != nil {
 			panic("Bad tracker type for commitOrRollback")
 		}
@@ -997,31 +995,33 @@ func (bdl *backpressureDiskLimiter) onBlocksFlush(
 	bdl.journalTracker.onBlocksFlush(blockBytes, chargedTo)
 }
 
-func (bdl *backpressureDiskLimiter) releaseAndCommit(ctx context.Context,
+func (bdl *backpressureDiskLimiter) release(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
 	switch typ {
-	case journalLimitTracker:
-		bdl.journalTracker.releaseAndCommit(blockBytes, blockFiles)
-	case diskCacheLimitTracker:
-		bdl.diskCacheByteTracker.releaseAndCommit(blockBytes)
-	case syncCacheLimitTracker:
-		bdl.syncCacheByteTracker.releaseAndCommit(blockBytes)
+	case journalLimitTrackerType:
+		bdl.journalTracker.release(blockBytes, blockFiles)
+	default:
+		tracker, err := bdl.simpleByteTrackerFromType(typ)
+		if err != nil {
+			panic("Bad tracker type for commitOrRollback")
+		}
+		tracker.release(blockBytes)
 	}
-	bdl.overallByteTracker.releaseAndCommit(blockBytes)
+	bdl.overallByteTracker.release(blockBytes)
 }
 
-func (bdl *backpressureDiskLimiter) reserve(
+func (bdl *backpressureDiskLimiter) reserveBytes(
 	ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
 	availableBytes int64, err error) {
 	if blockBytes == 0 {
 		// Better to return an error than to panic in ForceAcquire.
 		return 0, errors.New("reserve called with 0 blockBytes")
 	}
-	tracker, err := bdl.trackerFromType(typ)
+	tracker, err := bdl.simpleByteTrackerFromType(typ)
 	if err != nil {
-		return 0, errors.New("reserve called with invalid tracker type")
+		return 0, err
 	}
 	bdl.lock.Lock()
 	defer bdl.lock.Unlock()
@@ -1038,10 +1038,8 @@ func (bdl *backpressureDiskLimiter) reserve(
 	if count < 0 {
 		return count, nil
 	}
-	// We calculate the total free bytes by adding up the reported
-	// free bytes, the disk cache used bytes, *and* any other used
-	// bytes (e.g., the journal cache). For now, we hack this by
-	// lumping the other used bytes with the reported free bytes.
+	// We calculate the total free bytes by adding the reported free bytes and
+	// the non-`tracker` used bytes.
 	tracker.updateFree(freeBytes + bdl.overallByteTracker.used -
 		tracker.usedBytes())
 

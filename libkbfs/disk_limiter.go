@@ -18,13 +18,15 @@ func (e unknownTrackerTypeError) Error() string {
 }
 
 const (
-	unknownLimitTracker diskLimitTrackerType = iota
-	journalLimitTracker
-	diskCacheLimitTracker
-	syncCacheLimitTracker
+	unknownLimitTrackerType diskLimitTrackerType = iota
+	journalLimitTrackerType
+	workingSetCacheLimitTrackerType
+	syncCacheLimitTrackerType
 )
 
-type diskLimitByteTracker interface {
+// simpleResourceTracker is an interface for limiting a single resource type.
+// It is mostly used to limit bytes.
+type simpleResourceTracker interface {
 	onEnable(usedResources int64) int64
 	onDisable(usedResources int64)
 	updateFree(freeResources int64)
@@ -34,19 +36,21 @@ type diskLimitByteTracker interface {
 	commit(resources int64)
 	rollback(resources int64)
 	commitOrRollback(resources int64, shouldCommit bool)
-	releaseAndCommit(resources int64)
+	release(resources int64)
 }
 
 // DiskLimiter is an interface for limiting disk usage.
 type DiskLimiter interface {
-	// onByteTrackerEnable is called when a byte tracker is enabled to begin
-	// accounting.
-	onByteTrackerEnable(ctx context.Context, typ diskLimitTrackerType,
+	// onSimpleByteTrackerEnable is called when a byte tracker is enabled to
+	// begin accounting. This should be called by consumers of disk space that
+	// only track bytes (i.e. not the journal tracker).
+	onSimpleByteTrackerEnable(ctx context.Context, typ diskLimitTrackerType,
 		cacheBytes int64)
 
-	// onByteTrackerDisable is called when a byte tracker is disabled to stop
-	// accounting.
-	onByteTrackerDisable(ctx context.Context, typ diskLimitTrackerType,
+	// onSimpleByteTrackerDisable is called when a byte tracker is disabled to
+	// stop accounting. This should be called by consumers of disk space that
+	// only track bytes (i.e. not the journal tracker).
+	onSimpleByteTrackerDisable(ctx context.Context, typ diskLimitTrackerType,
 		cacheBytes int64)
 
 	// onJournalEnable is called when initializing a TLF journal
@@ -74,22 +78,27 @@ type DiskLimiter interface {
 		blockBytes, blockFiles int64, chargedTo keybase1.UserOrTeamID) (
 		availableBytes, availableFiles int64, err error)
 
-	// reserve is called by the disk block cache before using disk storage with
-	// the given byte count. It returns the total number of available bytes.
-	reserve(ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
+	// reserveBytes is called a number of bytes equal to `blockBytes` by a
+	// consumer of disk space that only tracks bytes, before actually using
+	// that disk space. It returns the total number of available bytes.
+	// reserveBytes() should not block. If there aren't enough bytes available,
+	// no reservation is made, and a negative number is returned indicating how
+	// much space must be freed to make the requested reservation possible.
+	reserveBytes(ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
 		availableBytes int64, err error)
 
 	// commitOrRollback is called after using disk storage of the given byte
 	// and file count, which must match the corresponding call to
-	// beforeBlockPut. putData reflects whether or not the data was actually
-	// put; if it's false, it's either because of an error or because the block
-	// already existed.
+	// beforeBlockPut. `shouldCommit` reflects whether we should commit. A
+	// false value will cause a rollback instead. If the `typ` is a type that
+	// only tracks bytes, `blockFiles` is ignored.
 	commitOrRollback(ctx context.Context, typ diskLimitTrackerType, blockBytes,
 		blockFiles int64, shouldCommit bool, chargedTo keybase1.UserOrTeamID)
 
-	// releaseAndCommit is called after deleting blocks for a given tracker of
-	// the given byte and file count, both of which must be >= 0.
-	releaseAndCommit(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+	// release is called after releasing byte and/or file usage, both of which
+	// must be >= 0. Unlike reserve and commitOrRollback, this is a one-step
+	// operation.
+	release(ctx context.Context, typ diskLimitTrackerType, blockBytes,
 		blockFiles int64)
 
 	// onBlocksFlush is called after flushing blocks of the given

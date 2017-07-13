@@ -102,9 +102,10 @@ func (s *Semaphore) ForceAcquire(n int64) int64 {
 // TryAcquire atomically subtracts n (which must be positive) from the resource
 // count without waking up any waiting acquirers, as long as it wouldn't go
 // negative. If the count would go negative, it doesn't update the count but
-// still returns the difference between the count and n. If the count would
-// underflow, it panics. In the successful case, TryAcquire returns the updated
-// resource count.
+// still returns the difference between the count and n. TryAcquire is
+// successful if the return value is non-negative, and unsuccessful if the
+// return value is negative. If the count would underflow, it panics.
+// Otherwise, TryAcquire returns the updated resource count.
 func (s *Semaphore) TryAcquire(n int64) int64 {
 	if n <= 0 {
 		panic(fmt.Sprintf("n=%d must be positive", n))

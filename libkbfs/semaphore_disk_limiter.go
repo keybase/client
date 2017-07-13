@@ -117,14 +117,14 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 	sdl.quotaTracker.onJournalDisable(journalUnflushedBytes)
 }
 
-func (sdl semaphoreDiskLimiter) onByteTrackerEnable(
+func (sdl semaphoreDiskLimiter) onSimpleByteTrackerEnable(
 	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
 	}
 }
 
-func (sdl semaphoreDiskLimiter) onByteTrackerDisable(
+func (sdl semaphoreDiskLimiter) onSimpleByteTrackerDisable(
 	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.Release(diskCacheBytes)
@@ -174,7 +174,7 @@ func (sdl semaphoreDiskLimiter) onBlocksFlush(
 	sdl.quotaTracker.onBlocksFlush(blockBytes)
 }
 
-func (sdl semaphoreDiskLimiter) releaseAndCommit(ctx context.Context,
+func (sdl semaphoreDiskLimiter) release(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
 	if blockBytes != 0 {
 		sdl.byteSemaphore.Release(blockBytes)
@@ -184,7 +184,7 @@ func (sdl semaphoreDiskLimiter) releaseAndCommit(ctx context.Context,
 	}
 }
 
-func (sdl semaphoreDiskLimiter) reserve(ctx context.Context,
+func (sdl semaphoreDiskLimiter) reserveBytes(ctx context.Context,
 	typ diskLimitTrackerType, blockBytes int64) (availableBytes int64,
 	err error) {
 	if blockBytes == 0 {
