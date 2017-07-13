@@ -84,7 +84,7 @@ class Keybase extends Component {
       const DumbChatOnly = require('../dev/chat-only.native').default
       child = <DumbChatOnly />
     } else {
-      child = <Main part={this.props.part} />
+      child = <Main part={this.props.part} navigator={this.props.navigator} store={this.store} />
     }
 
     return (
@@ -98,8 +98,8 @@ class Keybase extends Component {
 function load() {
   [chatTab, folderTab, profileTab, settingsTab]
     .forEach(tab => {
-      function Tab() {
-        return <Keybase part={tab} />
+      function Tab({navigator}) {
+        return <Keybase part={tab} navigator={navigator} />
       }
       Navigation.registerComponent(`keybase.${tab}`, () => Tab)
     })

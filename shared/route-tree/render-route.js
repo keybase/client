@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import React, {PureComponent} from 'react'
+import {Box} from '../common-adapters'
 import {LeafTags, pathToString} from './'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 
@@ -21,6 +22,7 @@ export const RenderRouteResult: (
   tags: LeafTags(),
   component: null,
   leafComponent: null,
+  routeDef: null,
 })
 
 export type RouteRenderStack = I.Stack<RenderRouteResult>
@@ -66,24 +68,26 @@ type RenderRouteNodeProps<S> = {
 
 // Helper to render a component based on route state and use
 // shouldComponentUpdate (via PureComponent).
-class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
+export class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
   render() {
     const {isContainer, routeDef, routeState, setRouteState, path, leafTags, stack, children} = this.props
     const RouteComponent = isContainer ? routeDef.containerComponent : routeDef.component
     return (
-      <RouteComponent
-        routeProps={routeState.props.toObject()}
-        routeState={routeDef.initialState.merge(routeState.state).toObject()}
-        routeSelected={routeState.selected}
-        navigateUp={() => putActionIfOnPath(path, navigateUp())}
-        navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
-        routePath={path}
-        routeLeafTags={leafTags || LeafTags()}
-        routeStack={stack || I.Stack()}
-        setRouteState={partialState => setRouteState(path, partialState)}
-      >
-        {children}
-      </RouteComponent>
+      <Box style={{height: '100%', backgroundColor: 'white'}}>
+        <RouteComponent
+          routeProps={routeState.props.toObject()}
+          routeState={routeDef.initialState.merge(routeState.state).toObject()}
+          routeSelected={routeState.selected}
+          navigateUp={() => putActionIfOnPath(path, navigateUp())}
+          navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
+          routePath={path}
+          routeLeafTags={leafTags || LeafTags()}
+          routeStack={stack || I.Stack()}
+          setRouteState={partialState => setRouteState(path, partialState)}
+        >
+          {children}
+        </RouteComponent>
+      </Box>
     )
   }
 }
@@ -160,6 +164,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
     )
     const result = new RenderRouteResult({
       path,
+      routeDef: routeDef,
       component: routeComponent,
       leafComponent: routeComponent,
       tags: routeDef.tags,
@@ -181,6 +186,7 @@ export default class RenderRoute extends PureComponent<*, RenderRouteProps<*>, *
     // _RenderRoute gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.
     var viewStack = _RenderRoute({...this.props, path: I.List(this.props.pathPrefix)})
-    return viewStack.last().component
+    this.props.hackyUpdateStack(viewStack)
+    return viewStack.first().component
   }
 }

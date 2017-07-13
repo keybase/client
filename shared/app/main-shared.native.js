@@ -1,7 +1,9 @@
 // @flow
 import Push from './push/push.native'
 import React, {Component} from 'react'
-import RenderRoute from '../route-tree/render-route'
+import {Navigation} from 'react-native-navigation'
+import {Provider} from 'react-redux'
+import RenderRoute, {RenderRouteNode} from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {bootstrap} from '../actions/config'
@@ -39,6 +41,7 @@ type OwnProps = {
 class Main extends Component<void, any, void> {
   constructor(props: Props) {
     super(props)
+    this._lastStack = null
 
     if (!global.mainLoaded) {
       global.mainLoaded = true
@@ -63,6 +66,52 @@ class Main extends Component<void, any, void> {
     }
   }
 
+  hackyUpdateStack = (viewStack) => {
+    function screenNameFromItem(item) {
+      return 'keybase.' + item.path.join('.')
+    }
+
+    viewStack = viewStack.skip(1)  // root stack item is already rendered
+
+    const lastStack = this._lastStack
+    this._lastStack = viewStack
+
+    if (!lastStack) {
+      this.props.navigator.popToRoot()
+      return
+    }
+
+    let screens = global.hackRegisteredScreens
+    if (!screens) {
+      screens = global.hackRegisteredScreens = {}
+    }
+
+    viewStack.forEach(item => {
+      const screenName = screenNameFromItem(item)
+      if (!screens[screenName]) {
+        Navigation.registerComponent(screenName, () => RenderRouteNode, this.props.store, Provider)
+      }
+    })
+
+    lastStack.forEach((oldItem, key) => {
+      if (!viewStack.get(key) || !viewStack.get(key).equals(oldItem)) {
+        this.props.navigator.pop()
+      }
+    })
+
+    viewStack.forEach((newItem, key) => {
+      if (!lastStack.get(key) || !lastStack.get(key).equals(newItem)) {
+        this.props.navigator.push({
+          screen: screenNameFromItem(newItem),
+          passProps: newItem.component.props,
+          navigatorStyle: {
+            navBarHidden: true,
+          },
+        })
+      }
+    })
+  }
+
   render() {
     if (this.props.dumbFullscreen) {
       const DumbSheet = require('../dev/dumb-sheet').default
@@ -82,6 +131,7 @@ class Main extends Component<void, any, void> {
         routeState={this.props.routeState.getChild(this.props.part)}
         pathPrefix={[this.props.part]}
         setRouteState={this.props.setRouteState}
+        hackyUpdateStack={this.hackyUpdateStack}
       />
     )
   }
