@@ -40,7 +40,7 @@ func (e *PerUserKeyRoll) Name() string {
 // GetPrereqs returns the engine prereqs.
 func (e *PerUserKeyRoll) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
