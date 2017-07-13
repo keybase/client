@@ -557,11 +557,11 @@ func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
 
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	if !d.G().Env.GetUpgradePerUserKey() {
-		d.G().Log.Debug("PerUserKeyBackground disabled (not starting)")
+		d.G().Log.Debug("PerUserKeyUpgradeBackground disabled (not starting)")
 		return
 	}
 
-	eng := engine.NewPerUserKeyBackground(d.G(), &engine.PerUserKeyBackgroundArgs{})
+	eng := engine.NewPerUserKeyUpgradeBackground(d.G(), &engine.PerUserKeyUpgradeBackgroundArgs{})
 	go func() {
 		ectx := &engine.Context{NetContext: context.Background()}
 		err := engine.RunEngine(eng, ectx)
