@@ -19,17 +19,19 @@ type userPath struct {
 func (u *userPath) IsAdmin() bool      { return u.Admin }
 func (u *userPath) PrefixPath() string { return u.Path }
 
-// CurrentUser returns a User representing the current user.
-func CurrentUser() (*userPath, error) {
+// CurrentUser returns a User representing the current user. Assumes admin if
+// fails.
+func CurrentUser() *userPath {
+	var u userPath
 	current, err := user.Current()
 	if err != nil {
-		return nil, err
-	}
-	u := &userPath{
-		Admin: current.Uid == "0",
+		// Assume root.
+		u.Admin = true
+	} else {
+		u.Admin = (current.Uid == "0")
 	}
 	if !u.IsAdmin() {
 		u.Path = current.HomeDir
 	}
-	return u, nil
+	return &u
 }
