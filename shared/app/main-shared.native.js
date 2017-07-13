@@ -78,8 +78,9 @@ class Main extends Component<void, any, void> {
 
     return (
       <RenderRoute
-        routeDef={this.props.part ? this.props.routeDef.getChild(this.props.part) : this.props.routeDef}
-        routeState={this.props.part ? this.props.routeState.getChild(this.props.part) : this.props.routeState}
+        routeDef={this.props.routeDef.getChild(this.props.part)}
+        routeState={this.props.routeState.getChild(this.props.part)}
+        pathPrefix={[this.props.part]}
         setRouteState={this.props.setRouteState}
       />
     )
