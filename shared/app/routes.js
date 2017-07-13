@@ -9,7 +9,16 @@ import searchRoutes from '../search/routes'
 import settingsRoutes from '../settings/routes'
 import Nav from './nav'
 import {isMobile} from '../constants/platform'
-import {chatTab, loginTab, profileTab, folderTab, devicesTab, searchTab, settingsTab} from '../constants/tabs'
+import {
+  chatTab,
+  devicesTab,
+  folderTab,
+  loginTab,
+  peopleTab,
+  profileTab,
+  searchTab,
+  settingsTab,
+} from '../constants/tabs'
 
 const routeTree = new RouteDefNode({
   defaultSelected: loginTab,
@@ -23,6 +32,7 @@ const routeTree = new RouteDefNode({
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
         }),
+    [peopleTab]: profileRoutes,
     [profileTab]: profileRoutes,
     [searchTab]: searchRoutes,
     [settingsTab]: settingsRoutes,
