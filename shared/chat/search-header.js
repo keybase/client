@@ -10,7 +10,7 @@ import {Box} from '../common-adapters'
 import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
-import {chatSearchResultArray} from '../constants/selectors'
+import {chatSearchResultArray, chatSearchResultTerm} from '../constants/selectors'
 import * as HocHelpers from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
@@ -28,10 +28,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = createSelector(
-  [Constants.getUserItems, chatSearchResultArray],
-  (userItems, searchResultIds) => ({
+  [Constants.getUserItems, chatSearchResultArray, chatSearchResultTerm],
+  (userItems, searchResultIds, searchResultTerm) => ({
     userItems,
     searchResultIds,
+    searchResultTerm,
   })
 )
 

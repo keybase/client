@@ -81,7 +81,7 @@ export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
 // Generic so others can make their own version
 export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<
   T,
-  {searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
+  {searchResultTerm: string, searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
 >
 export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 

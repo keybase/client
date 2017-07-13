@@ -10,11 +10,11 @@ type OwnProps = {
   onChangeSearchText: (s: string) => void,
   search: (term: string, service: Constants.Service) => void,
   selectedService: Constants.Service,
-
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
   onAddSelectedUser: (id: Constants.SearchResultId) => void,
+  searchResultTerm: string,
 }
 
 // Which search result is highlighted
@@ -71,16 +71,12 @@ const onChangeSelectedSearchResultHoc = compose(
     _searchDebounced: debounce(search, debounceTimeout),
   })),
   withHandlers(() => {
-    // lastSearchTime keeps track of debounce timing, which is not
-    // available in lodash/debounce
-    let lastSearchTime
+    let lastSearchTerm
     return {
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
-        if (Date.now() <= lastSearchTime + debounceTimeout) {
-          // Flush the pending debounce timout
-          props._searchDebounced.flush()
-        } else {
-          // otherwise it's safe to pick the user from the list
+        props._searchDebounced.flush()
+        // See whether the current search result term matches the last one submitted
+        if (lastSearchTerm === props.searchResultTerm) {
           props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
           props.onChangeSearchText('')
         }
@@ -88,14 +84,13 @@ const onChangeSelectedSearchResultHoc = compose(
       onMoveSelectUp: ({onMove}) => () => onMove('up'),
       onMoveSelectDown: ({onMove}) => () => onMove('down'),
       onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
+        lastSearchTerm = nextText
         props.onChangeSearchText(nextText)
         if (nextText === '') {
           // In case we have a search that would fire after our other search
-          lastSearchTime = 0
           props._searchDebounced.cancel()
           props.search(nextText, props.selectedService)
         } else {
-          lastSearchTime = Date.now()
           props._searchDebounced(nextText, props.selectedService)
         }
       },

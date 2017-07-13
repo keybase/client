@@ -36,6 +36,8 @@ const chatSearchResultArray = createSelector(
 const chatSearchShowingSuggestions = ({chat: {searchShowingSuggestions}}: TypedState) =>
   searchShowingSuggestions
 
+const chatSearchResultTerm = ({chat: {searchResultTerm}}: TypedState) => searchResultTerm
+
 const profileSearchResultArray = createSelector(
   ({profile: {searchResults}}: TypedState) => searchResults,
   searchResults => (searchResults ? searchResults.toArray() : null)
@@ -51,6 +53,7 @@ export {
   cachedSearchResults,
   chatSearchPending,
   chatSearchShowingSuggestions,
+  chatSearchResultTerm,
   chatSearchResultArray,
   createShallowEqualSelector,
   inboxSearchSelector,
