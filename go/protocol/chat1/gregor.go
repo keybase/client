@@ -133,14 +133,16 @@ func (o SetAppNotificationSettingsPayload) DeepCopy() SetAppNotificationSettings
 }
 
 type UnreadUpdate struct {
-	ConvID         ConversationID `codec:"convID" json:"convID"`
-	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`
+	ConvID                  ConversationID `codec:"convID" json:"convID"`
+	UnreadMessages          int            `codec:"UnreadMessages" json:"UnreadMessages"`
+	UnreadNotifyingMessages int            `codec:"UnreadNotifyingMessages" json:"UnreadNotifyingMessages"`
 }
 
 func (o UnreadUpdate) DeepCopy() UnreadUpdate {
 	return UnreadUpdate{
-		ConvID:         o.ConvID.DeepCopy(),
-		UnreadMessages: o.UnreadMessages,
+		ConvID:                  o.ConvID.DeepCopy(),
+		UnreadMessages:          o.UnreadMessages,
+		UnreadNotifyingMessages: o.UnreadNotifyingMessages,
 	}
 }
 

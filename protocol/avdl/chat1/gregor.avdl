@@ -59,6 +59,8 @@ protocol gregor {
         // Counts only visible types of messages deserving of a badge, no EDITs
         @lint("ignore")
         int UnreadMessages;
+        @lint("ignore")
+        int UnreadNotifyingMessages;
     }
 
     record TLFFinalizeUpdate {

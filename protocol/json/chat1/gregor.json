@@ -178,6 +178,11 @@
           "type": "int",
           "name": "UnreadMessages",
           "lint": "ignore"
+        },
+        {
+          "type": "int",
+          "name": "UnreadNotifyingMessages",
+          "lint": "ignore"
         }
       ]
     },

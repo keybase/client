@@ -2088,6 +2088,7 @@ export type UnreadFirstNumLimit = {
 export type UnreadUpdate = {
   convID: ConversationID,
   UnreadMessages: int,
+  UnreadNotifyingMessages: int,
 }
 
 export type UnreadUpdateFull = {
