@@ -6,7 +6,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
-import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
+import * as HocHelpers from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -61,9 +61,10 @@ export default compose(
   }),
   withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  selectedSearchIdHoc,
-  onChangeSelectedSearchResultHoc,
-  showServiceLogicHoc,
+  HocHelpers.selectedSearchIdHoc,
+  HocHelpers.onChangeSelectedSearchResultHoc,
+  HocHelpers.showServiceLogicHoc,
+  HocHelpers.placeholderServiceHoc,
   withHandlers(() => {
     let input
     return {
