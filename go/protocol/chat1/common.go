@@ -184,6 +184,44 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 }
 
+type NotificationAppType int
+
+const (
+	NotificationAppType_DESKTOP NotificationAppType = 0
+	NotificationAppType_MOBILE  NotificationAppType = 1
+)
+
+func (o NotificationAppType) DeepCopy() NotificationAppType { return o }
+
+var NotificationAppTypeMap = map[string]NotificationAppType{
+	"DESKTOP": 0,
+	"MOBILE":  1,
+}
+
+var NotificationAppTypeRevMap = map[NotificationAppType]string{
+	0: "DESKTOP",
+	1: "MOBILE",
+}
+
+type NotificationKind int
+
+const (
+	NotificationKind_GENERIC   NotificationKind = 0
+	NotificationKind_ATMENTION NotificationKind = 1
+)
+
+func (o NotificationKind) DeepCopy() NotificationKind { return o }
+
+var NotificationKindMap = map[string]NotificationKind{
+	"GENERIC":   0,
+	"ATMENTION": 1,
+}
+
+var NotificationKindRevMap = map[NotificationKind]string{
+	0: "GENERIC",
+	1: "ATMENTION",
+}
+
 type ConversationStatus int
 
 const (
@@ -220,6 +258,18 @@ func (e ConversationStatus) String() string {
 		return v
 	}
 	return ""
+}
+
+type ConversationMember struct {
+	Uid    gregor1.UID    `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o ConversationMember) DeepCopy() ConversationMember {
+	return ConversationMember{
+		Uid:    o.Uid.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+	}
 }
 
 type ConversationMemberStatus int
@@ -462,6 +512,7 @@ type ConversationMetadata struct {
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
+	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
 }
 
 func (o ConversationMetadata) DeepCopy() ConversationMetadata {
@@ -502,6 +553,42 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ActiveList),
+		AllList: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AllList),
+	}
+}
+
+type ConversationNotificationInfo struct {
+	ChannelWide bool                                              `codec:"channelWide" json:"channelWide"`
+	Settings    map[NotificationAppType]map[NotificationKind]bool `codec:"settings" json:"settings"`
+}
+
+func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
+	return ConversationNotificationInfo{
+		ChannelWide: o.ChannelWide,
+		Settings: (func(x map[NotificationAppType]map[NotificationKind]bool) map[NotificationAppType]map[NotificationKind]bool {
+			ret := make(map[NotificationAppType]map[NotificationKind]bool)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x map[NotificationKind]bool) map[NotificationKind]bool {
+					ret := make(map[NotificationKind]bool)
+					for k, v := range x {
+						kCopy := k.DeepCopy()
+						vCopy := v
+						ret[kCopy] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Settings),
 	}
 }
 
@@ -520,10 +607,11 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 }
 
 type Conversation struct {
-	Metadata        ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo      *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgs         []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
-	MaxMsgSummaries []MessageSummary        `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
+	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
+	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -536,6 +624,13 @@ func (o Conversation) DeepCopy() Conversation {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReaderInfo),
+		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Notifications),
 		MaxMsgs: (func(x []MessageBoxed) []MessageBoxed {
 			var ret []MessageBoxed
 			for _, v := range x {

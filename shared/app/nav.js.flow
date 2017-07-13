@@ -3,7 +3,7 @@ import {Component} from 'react'
 import {Map} from 'immutable'
 
 import type {RouteRenderStack} from '../route-tree/render-route'
-import type {Reachability} from '../constants/types/flow-types'
+import type {Reachable} from '../constants/types/flow-types'
 import type {Tab} from '../constants/tabs'
 
 export type Props = {
@@ -16,7 +16,7 @@ export type Props = {
   routeSelected: Tab,
   routeStack: RouteRenderStack,
   hideNav: boolean,
-  reachability: ?Reachability,
+  reachable: Reachable,
   navBadges: Map<Tab, number>,
 }
 

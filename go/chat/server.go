@@ -637,7 +637,7 @@ func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.Conversation
 	}
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
-	mbox, _, err := sender.Prepare(ctx, msg, membersType, nil)
+	mbox, _, _, err := sender.Prepare(ctx, msg, membersType, nil)
 	return mbox, err
 }
 
@@ -2220,6 +2220,35 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	sort.Sort(utils.ConvLocalByTopicName(convsLocal))
 
 	res.Convs = convsLocal
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
+}
+
+func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
+	arg chat1.SetAppNotificationSettingsLocalArg) (res chat1.SetAppNotificationSettingsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetAppNotificationSettings(%s)",
+		arg.ConvID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
+	setRes, err := h.remoteClient().SetAppNotificationSettings(ctx, chat1.SetAppNotificationSettingsArg{
+		ConvID:   arg.ConvID,
+		Settings: arg.Settings,
+	})
+	if err != nil {
+		h.Debug(ctx, "SetAppNotificationSettings: failed to post to remote: %s", err.Error())
+		return res, err
+	}
+	if setRes.RateLimit != nil {
+		res.RateLimits = append(res.RateLimits, *setRes.RateLimit)
+	}
+
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil

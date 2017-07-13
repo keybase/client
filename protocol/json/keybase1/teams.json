@@ -278,6 +278,14 @@
             "items": "UserVersion"
           },
           "name": "none"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "UID",
+            "keys": "TeamInviteID"
+          },
+          "name": "completedInvites"
         }
       ]
     },
@@ -339,6 +347,10 @@
       "name": "TeamData",
       "fields": [
         {
+          "type": "boolean",
+          "name": "secretless"
+        },
+        {
           "type": "TeamSigChainState",
           "name": "chain"
         },
@@ -370,7 +382,7 @@
     },
     {
       "type": "enum",
-      "name": "TypeInviteCategory",
+      "name": "TeamInviteCategory",
       "symbols": [
         "NONE_0",
         "UNKNOWN_1",
@@ -383,7 +395,7 @@
       "type": "variant",
       "name": "TeamInviteType",
       "switch": {
-        "type": "TypeInviteCategory",
+        "type": "TeamInviteCategory",
         "name": "c"
       },
       "cases": [
@@ -599,6 +611,82 @@
     },
     {
       "type": "record",
+      "name": "TeamChangeRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated",
+          "jsonkey": "key_rotated"
+        },
+        {
+          "type": "boolean",
+          "name": "membershipChanged",
+          "jsonkey": "membership_changed"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqno",
+          "jsonkey": "latest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInvitee",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSBSMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamInvitee"
+          },
+          "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -611,6 +699,10 @@
             "items": "UserVersion"
           },
           "name": "wantMembers"
+        },
+        {
+          "type": "TeamRole",
+          "name": "wantMembersRole"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
@@ -715,6 +807,31 @@
           "name": "teams"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAddMemberResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "invited"
+        },
+        {
+          "type": [
+            null,
+            "User"
+          ],
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "name": "emailSent"
+        },
+        {
+          "type": "boolean",
+          "name": "chatSent"
+        }
+      ]
     }
   ],
   "messages": {
@@ -789,6 +906,10 @@
           "type": "string"
         },
         {
+          "name": "email",
+          "type": "string"
+        },
+        {
           "name": "username",
           "type": "string"
         },
@@ -801,7 +922,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMemberResult"
     },
     "teamRemoveMember": {
       "request": [
@@ -854,6 +975,19 @@
         {
           "name": "role",
           "type": "TeamRole"
+        }
+      ],
+      "response": null
+    },
+    "teamAcceptInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "token",
+          "type": "string"
         }
       ],
       "response": null

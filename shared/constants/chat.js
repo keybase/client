@@ -232,7 +232,7 @@ export const ConversationStateRecord = Record({
   messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
-  moreToLoad: true,
+  moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
   isStale: false,
@@ -249,7 +249,7 @@ export type ConversationState = KBRecord<{
   // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
-  moreToLoad: boolean,
+  moreToLoad: ?boolean,
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
@@ -810,6 +810,18 @@ function makeSnippet(messageBody: ?MessageBody): ?string {
   }
 }
 
+function makeTeamTitle(messageBody: ?MessageBody): ?string {
+  if (!messageBody) {
+    return null
+  }
+  switch (messageBody.messageType) {
+    case ChatTypes.CommonMessageType.metadata:
+      return messageBody.metadata ? messageBody.metadata.conversationTitle : '<none>'
+    default:
+      return null
+  }
+}
+
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function textSnippet(message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
@@ -1141,6 +1153,7 @@ export {
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,
+  makeTeamTitle,
   messageKey,
   messageKeyKind,
   messageKeyValue,

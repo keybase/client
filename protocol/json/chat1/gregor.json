@@ -145,6 +145,29 @@
     },
     {
       "type": "record",
+      "name": "SetAppNotificationSettingsPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action",
+          "lint": "ignore"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "ConversationNotificationInfo",
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {
@@ -226,14 +249,14 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "joined"
         },
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "removed"
         }

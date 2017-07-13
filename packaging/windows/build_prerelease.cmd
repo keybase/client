@@ -67,6 +67,5 @@ if "%KBNM_BUILD%" == "" (
 )
 echo KBNM_BUILD %KBNM_BUILD%
 go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
-powershell -Command "(gc host_json.template) -replace '@@HOST_PATH@@', 'kbnm.exe' | Out-File -encoding ASCII kbnm.json"
 popd
 

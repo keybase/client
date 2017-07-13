@@ -291,11 +291,12 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 }
 
 type TeamChangeReq struct {
-	Owners  []UserVersion `codec:"owners" json:"owners"`
-	Admins  []UserVersion `codec:"admins" json:"admins"`
-	Writers []UserVersion `codec:"writers" json:"writers"`
-	Readers []UserVersion `codec:"readers" json:"readers"`
-	None    []UserVersion `codec:"none" json:"none"`
+	Owners           []UserVersion        `codec:"owners" json:"owners"`
+	Admins           []UserVersion        `codec:"admins" json:"admins"`
+	Writers          []UserVersion        `codec:"writers" json:"writers"`
+	Readers          []UserVersion        `codec:"readers" json:"readers"`
+	None             []UserVersion        `codec:"none" json:"none"`
+	CompletedInvites map[TeamInviteID]UID `codec:"completedInvites" json:"completedInvites"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
@@ -340,6 +341,15 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.None),
+		CompletedInvites: (func(x map[TeamInviteID]UID) map[TeamInviteID]UID {
+			ret := make(map[TeamInviteID]UID)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.CompletedInvites),
 	}
 }
 
@@ -397,6 +407,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 }
 
 type TeamData struct {
+	Secretless      bool                                                 `codec:"secretless" json:"secretless"`
 	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
 	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
@@ -405,7 +416,8 @@ type TeamData struct {
 
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
-		Chain: o.Chain.DeepCopy(),
+		Secretless: o.Secretless,
+		Chain:      o.Chain.DeepCopy(),
 		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
 			ret := make(map[PerTeamKeyGeneration]PerTeamKeySeedItem)
 			for k, v := range x {
@@ -436,19 +448,19 @@ func (o TeamData) DeepCopy() TeamData {
 	}
 }
 
-type TypeInviteCategory int
+type TeamInviteCategory int
 
 const (
-	TypeInviteCategory_NONE    TypeInviteCategory = 0
-	TypeInviteCategory_UNKNOWN TypeInviteCategory = 1
-	TypeInviteCategory_KEYBASE TypeInviteCategory = 2
-	TypeInviteCategory_EMAIL   TypeInviteCategory = 3
-	TypeInviteCategory_SBS     TypeInviteCategory = 4
+	TeamInviteCategory_NONE    TeamInviteCategory = 0
+	TeamInviteCategory_UNKNOWN TeamInviteCategory = 1
+	TeamInviteCategory_KEYBASE TeamInviteCategory = 2
+	TeamInviteCategory_EMAIL   TeamInviteCategory = 3
+	TeamInviteCategory_SBS     TeamInviteCategory = 4
 )
 
-func (o TypeInviteCategory) DeepCopy() TypeInviteCategory { return o }
+func (o TeamInviteCategory) DeepCopy() TeamInviteCategory { return o }
 
-var TypeInviteCategoryMap = map[string]TypeInviteCategory{
+var TeamInviteCategoryMap = map[string]TeamInviteCategory{
 	"NONE":    0,
 	"UNKNOWN": 1,
 	"KEYBASE": 2,
@@ -456,7 +468,7 @@ var TypeInviteCategoryMap = map[string]TypeInviteCategory{
 	"SBS":     4,
 }
 
-var TypeInviteCategoryRevMap = map[TypeInviteCategory]string{
+var TeamInviteCategoryRevMap = map[TeamInviteCategory]string{
 	0: "NONE",
 	1: "UNKNOWN",
 	2: "KEYBASE",
@@ -464,27 +476,27 @@ var TypeInviteCategoryRevMap = map[TypeInviteCategory]string{
 	4: "SBS",
 }
 
-func (e TypeInviteCategory) String() string {
-	if v, ok := TypeInviteCategoryRevMap[e]; ok {
+func (e TeamInviteCategory) String() string {
+	if v, ok := TeamInviteCategoryRevMap[e]; ok {
 		return v
 	}
 	return ""
 }
 
 type TeamInviteType struct {
-	C__       TypeInviteCategory       `codec:"c" json:"c"`
+	C__       TeamInviteCategory       `codec:"c" json:"c"`
 	Unknown__ *string                  `codec:"unknown,omitempty" json:"unknown,omitempty"`
 	Sbs__     *TeamInviteSocialNetwork `codec:"sbs,omitempty" json:"sbs,omitempty"`
 }
 
-func (o *TeamInviteType) C() (ret TypeInviteCategory, err error) {
+func (o *TeamInviteType) C() (ret TeamInviteCategory, err error) {
 	switch o.C__ {
-	case TypeInviteCategory_UNKNOWN:
+	case TeamInviteCategory_UNKNOWN:
 		if o.Unknown__ == nil {
 			err = errors.New("unexpected nil value for Unknown__")
 			return ret, err
 		}
-	case TypeInviteCategory_SBS:
+	case TeamInviteCategory_SBS:
 		if o.Sbs__ == nil {
 			err = errors.New("unexpected nil value for Sbs__")
 			return ret, err
@@ -494,7 +506,7 @@ func (o *TeamInviteType) C() (ret TypeInviteCategory, err error) {
 }
 
 func (o TeamInviteType) Unknown() (res string) {
-	if o.C__ != TypeInviteCategory_UNKNOWN {
+	if o.C__ != TeamInviteCategory_UNKNOWN {
 		panic("wrong case accessed")
 	}
 	if o.Unknown__ == nil {
@@ -504,7 +516,7 @@ func (o TeamInviteType) Unknown() (res string) {
 }
 
 func (o TeamInviteType) Sbs() (res TeamInviteSocialNetwork) {
-	if o.C__ != TypeInviteCategory_SBS {
+	if o.C__ != TeamInviteCategory_SBS {
 		panic("wrong case accessed")
 	}
 	if o.Sbs__ == nil {
@@ -515,19 +527,19 @@ func (o TeamInviteType) Sbs() (res TeamInviteSocialNetwork) {
 
 func NewTeamInviteTypeWithUnknown(v string) TeamInviteType {
 	return TeamInviteType{
-		C__:       TypeInviteCategory_UNKNOWN,
+		C__:       TeamInviteCategory_UNKNOWN,
 		Unknown__: &v,
 	}
 }
 
 func NewTeamInviteTypeWithSbs(v TeamInviteSocialNetwork) TeamInviteType {
 	return TeamInviteType{
-		C__:   TypeInviteCategory_SBS,
+		C__:   TeamInviteCategory_SBS,
 		Sbs__: &v,
 	}
 }
 
-func NewTeamInviteTypeDefault(c TypeInviteCategory) TeamInviteType {
+func NewTeamInviteTypeDefault(c TeamInviteCategory) TeamInviteType {
 	return TeamInviteType{
 		C__: c,
 	}
@@ -742,11 +754,67 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	}
 }
 
+type TeamChangeRow struct {
+	Id                TeamID `codec:"id" json:"id"`
+	Name              string `codec:"name" json:"name"`
+	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
+	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
+	LatestSeqno       Seqno  `codec:"latestSeqno" json:"latest_seqno"`
+}
+
+func (o TeamChangeRow) DeepCopy() TeamChangeRow {
+	return TeamChangeRow{
+		Id:                o.Id.DeepCopy(),
+		Name:              o.Name,
+		KeyRotated:        o.KeyRotated,
+		MembershipChanged: o.MembershipChanged,
+		LatestSeqno:       o.LatestSeqno.DeepCopy(),
+	}
+}
+
+type TeamInvitee struct {
+	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	EldestSeqno Seqno        `codec:"eldestSeqno" json:"eldest_seqno"`
+	Role        TeamRole     `codec:"role" json:"role"`
+}
+
+func (o TeamInvitee) DeepCopy() TeamInvitee {
+	return TeamInvitee{
+		InviteID:    o.InviteID.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Role:        o.Role.DeepCopy(),
+	}
+}
+
+type TeamSBSMsg struct {
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	Score    int           `codec:"score" json:"score"`
+	Invitees []TeamInvitee `codec:"invitees" json:"invitees"`
+}
+
+func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
+	return TeamSBSMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Score:  o.Score,
+		Invitees: (func(x []TeamInvitee) []TeamInvitee {
+			var ret []TeamInvitee
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Invitees),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cached.
 type TeamRefreshers struct {
 	NeedKeyGeneration PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
 	WantMembers       []UserVersion        `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole   TeamRole             `codec:"wantMembersRole" json:"wantMembersRole"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
@@ -760,6 +828,7 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 			}
 			return ret
 		})(o.WantMembers),
+		WantMembersRole: o.WantMembersRole.DeepCopy(),
 	}
 }
 
@@ -842,6 +911,28 @@ func (o TeamList) DeepCopy() TeamList {
 	}
 }
 
+type TeamAddMemberResult struct {
+	Invited   bool  `codec:"invited" json:"invited"`
+	User      *User `codec:"user,omitempty" json:"user,omitempty"`
+	EmailSent bool  `codec:"emailSent" json:"emailSent"`
+	ChatSent  bool  `codec:"chatSent" json:"chatSent"`
+}
+
+func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
+	return TeamAddMemberResult{
+		Invited: o.Invited,
+		User: (func(x *User) *User {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.User),
+		EmailSent: o.EmailSent,
+		ChatSent:  o.ChatSent,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -897,6 +988,7 @@ func (o TeamChangeMembershipArg) DeepCopy() TeamChangeMembershipArg {
 type TeamAddMemberArg struct {
 	SessionID            int      `codec:"sessionID" json:"sessionID"`
 	Name                 string   `codec:"name" json:"name"`
+	Email                string   `codec:"email" json:"email"`
 	Username             string   `codec:"username" json:"username"`
 	Role                 TeamRole `codec:"role" json:"role"`
 	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
@@ -906,6 +998,7 @@ func (o TeamAddMemberArg) DeepCopy() TeamAddMemberArg {
 	return TeamAddMemberArg{
 		SessionID:            o.SessionID,
 		Name:                 o.Name,
+		Email:                o.Email,
 		Username:             o.Username,
 		Role:                 o.Role.DeepCopy(),
 		SendChatNotification: o.SendChatNotification,
@@ -956,6 +1049,18 @@ func (o TeamEditMemberArg) DeepCopy() TeamEditMemberArg {
 	}
 }
 
+type TeamAcceptInviteArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Token     string `codec:"token" json:"token"`
+}
+
+func (o TeamAcceptInviteArg) DeepCopy() TeamAcceptInviteArg {
+	return TeamAcceptInviteArg{
+		SessionID: o.SessionID,
+		Token:     o.Token,
+	}
+}
+
 type LoadTeamPlusApplicationKeysArg struct {
 	SessionID   int             `codec:"sessionID" json:"sessionID"`
 	Id          TeamID          `codec:"id" json:"id"`
@@ -977,10 +1082,11 @@ type TeamsInterface interface {
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (TeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
-	TeamAddMember(context.Context, TeamAddMemberArg) error
+	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1066,7 +1172,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamAddMemberArg)(nil), args)
 						return
 					}
-					err = i.TeamAddMember(ctx, (*typedArgs)[0])
+					ret, err = i.TeamAddMember(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1119,6 +1225,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamAcceptInvite": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamAcceptInviteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamAcceptInviteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamAcceptInviteArg)(nil), args)
+						return
+					}
+					err = i.TeamAcceptInvite(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadTeamPlusApplicationKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
@@ -1163,8 +1285,8 @@ func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeM
 	return
 }
 
-func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1180,6 +1302,11 @@ func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err err
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInviteArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []interface{}{__arg}, nil)
 	return
 }
 

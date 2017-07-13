@@ -275,6 +275,15 @@ func RandBytes(length int) ([]byte, error) {
 	return buf, nil
 }
 
+func RandBytesWithSuffix(length int, suffix byte) ([]byte, error) {
+	buf, err := RandBytes(length)
+	if err != nil {
+		return nil, err
+	}
+	buf[len(buf)-1] = suffix
+	return buf, nil
+}
+
 func XORBytes(dst, a, b []byte) int {
 	n := len(a)
 	if len(b) < n {

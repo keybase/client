@@ -38,7 +38,6 @@ type configGetter interface {
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetSupportPerUserKey() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
@@ -582,6 +581,7 @@ type ConnectivityMonitor interface {
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
 	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
+	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	OnLogout()
 }

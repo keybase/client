@@ -172,7 +172,6 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             plainDivider={',\u200a'}
             containerStyle={{...boldOverride, color: usernameColor, paddingRight: 6}}
             users={participants.map(p => ({username: p})).toArray()}
-            title={participants.join(', ')}
           />
         </div>
       </div>

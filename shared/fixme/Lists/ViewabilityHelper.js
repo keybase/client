@@ -7,12 +7,19 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  *
  * @flow
+ * @format
  */
 'use strict'
 
 const invariant = require('fbjs/lib/invariant')
 
-export type ViewToken = {item: any, key: string, index: ?number, isViewable: boolean, section?: any}
+export type ViewToken = {
+  item: any,
+  key: string,
+  index: ?number,
+  isViewable: boolean,
+  section?: any,
+}
 
 export type ViewabilityConfig = {|
   /**
@@ -132,7 +139,10 @@ class ViewabilityHelper {
     viewportHeight: number,
     getFrameMetrics: (index: number) => ?{length: number, offset: number},
     createViewToken: (index: number, isViewable: boolean) => ViewToken,
-    onViewableItemsChanged: ({viewableItems: Array<ViewToken>, changed: Array<ViewToken>}) => void,
+    onViewableItemsChanged: ({
+      viewableItems: Array<ViewToken>,
+      changed: Array<ViewToken>,
+    }) => void,
     renderRange?: {first: number, last: number} // Optional optimization to reduce the scan size
   ): void {
     const updateTime = Date.now()
@@ -206,7 +216,10 @@ class ViewabilityHelper {
     }
     if (changed.length > 0) {
       this._viewableItems = nextItems
-      onViewableItemsChanged({viewableItems: Array.from(nextItems.values()), changed})
+      onViewableItemsChanged({
+        viewableItems: Array.from(nextItems.values()),
+        changed,
+      })
     }
   }
 }

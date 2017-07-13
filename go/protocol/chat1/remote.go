@@ -626,6 +626,22 @@ func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
 	}
 }
 
+type SetAppNotificationSettingsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetAppNotificationSettingsRes) DeepCopy() SetAppNotificationSettingsRes {
+	return SetAppNotificationSettingsRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -695,12 +711,21 @@ func (o GetPublicConversationsArg) DeepCopy() GetPublicConversationsArg {
 type PostRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions     []gregor1.UID  `codec:"atMentions" json:"atMentions"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 	return PostRemoteArg{
 		ConversationID: o.ConversationID.DeepCopy(),
 		MessageBoxed:   o.MessageBoxed.DeepCopy(),
+		AtMentions: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
 	}
 }
 
@@ -984,6 +1009,18 @@ func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
 	}
 }
 
+type SetAppNotificationSettingsArg struct {
+	ConvID   ConversationID               `codec:"convID" json:"convID"`
+	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg {
+	return SetAppNotificationSettingsArg{
+		ConvID:   o.ConvID.DeepCopy(),
+		Settings: o.Settings.DeepCopy(),
+	}
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1009,6 +1046,7 @@ type RemoteInterface interface {
 	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
+	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1399,6 +1437,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setAppNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetAppNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetAppNotificationSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetAppNotificationSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.SetAppNotificationSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1532,5 +1586,10 @@ func (c RemoteClient) LeaveConversation(ctx context.Context, convID Conversation
 
 func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res)
 	return
 }

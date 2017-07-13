@@ -125,7 +125,16 @@ class UserInput extends Component<void, Props, State> {
   }
 
   render() {
-    const {autoFocus, placeholder, userItems, usernameText, onChangeText, onClickAddButton} = this.props
+    const {
+      autoFocus,
+      placeholder,
+      userItems,
+      usernameText,
+      onChangeText,
+      onClickAddButton,
+      onAddSelectedUser,
+      onClearSearch,
+    } = this.props
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
@@ -157,6 +166,8 @@ class UserInput extends Component<void, Props, State> {
               placeholder={userItems.length ? '' : placeholder}
               value={usernameText}
               onChangeText={onChangeText}
+              onSubmitEditing={onAddSelectedUser}
+              returnKeyType="next"
             />
             {showAddButton &&
               onClickAddButton &&
@@ -170,6 +181,12 @@ class UserInput extends Component<void, Props, State> {
                 }}
               />}
           </Box>
+          {onClearSearch &&
+            <Icon
+              type="iconfont-remove"
+              style={{height: 16, width: 16, marginRight: 16}}
+              onClick={onClearSearch}
+            />}
         </Box>
       </ClickableBox>
     )

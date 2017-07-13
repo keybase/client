@@ -12,6 +12,14 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+type ByUID []gregor1.UID
+
+func (b ByUID) Len() int      { return len(b) }
+func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByUID) Less(i, j int) bool {
+	return bytes.Compare(b[i].Bytes(), b[j].Bytes()) < 0
+}
+
 // Eq compares two TLFIDs
 func (id TLFID) Eq(other TLFID) bool {
 	return bytes.Equal([]byte(id), []byte(other))
@@ -571,6 +579,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 }
 
 func (r *GetTLFConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
 

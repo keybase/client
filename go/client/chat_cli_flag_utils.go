@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -159,6 +160,11 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 &&
 		req.MembersType != chat1.ConversationMembersType_TEAM {
 		return chatConversationResolvingRequest{}, errors.New("multiple topics only supported for teams and dev channels")
+	}
+
+	// Set the default topic name to #general if none is specified
+	if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
+		req.TopicName = chat.DefaultTeamTopic
 	}
 
 	return req, nil

@@ -324,6 +324,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 		}
 		convToAppend := *conv
 		convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
+		convToAppend.Notifications = new(chat1.ConversationNotificationInfo)
 
 		ibfull.Conversations = append(ibfull.Conversations, convToAppend)
 		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(ibfull.Conversations) {
@@ -560,6 +561,11 @@ func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 
 func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.SetConversationStatusArg) (res chat1.SetConversationStatusRes, err error) {
 	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
+	arg chat1.SetAppNotificationSettingsArg) (res chat1.SetAppNotificationSettingsRes, err error) {
+	return res, errors.New("not implemented")
 }
 
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {

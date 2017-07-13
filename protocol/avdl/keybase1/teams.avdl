@@ -3,6 +3,7 @@
 protocol teams {
 
   enum TeamRole {
+    // These must be ordered by privilege.
     NONE_0,
     READER_1,
     WRITER_2,
@@ -93,6 +94,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
+    map<TeamInviteID,UID> completedInvites;
   }
 
   record UserVersion {
@@ -113,6 +115,9 @@ protocol teams {
 
   // Snapshot of a loaded team.
   record TeamData {
+    // Whether this snapshot is entirely missing secrets.
+    boolean secretless;
+
     TeamSigChainState chain;
     // generation -> seed
     map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
@@ -123,7 +128,7 @@ protocol teams {
     Time cachedAt;
   }
 
-  enum TypeInviteCategory {
+  enum TeamInviteCategory {
     NONE_0,
     UNKNOWN_1,
     KEYBASE_2,
@@ -131,7 +136,7 @@ protocol teams {
     SBS_4
   }
 
-  variant TeamInviteType switch (TypeInviteCategory c) {
+  variant TeamInviteType switch (TeamInviteCategory c) {
     case UNKNOWN: string;
     case SBS: TeamInviteSocialNetwork;
     default: void;
@@ -158,6 +163,9 @@ protocol teams {
 
     TeamID id;
     // Latest name of the team
+    // The last part of this name tracks LatestSeqno.
+    // But the middle parts (b in a.b.c) do not track.
+    // They are kept up fairly up to date, but the guarantees are fuzzy.
     TeamName name;
     // The last link procesed
     Seqno lastSeqno;
@@ -225,6 +233,34 @@ protocol teams {
     int score;
   }
 
+  record TeamChangeRow {
+    TeamID id;
+    string name;
+    @jsonkey("key_rotated")
+    boolean keyRotated;
+    @jsonkey("membership_changed")
+    boolean membershipChanged;
+    @jsonkey("latest_seqno")
+    Seqno latestSeqno;
+  }
+
+  record TeamInvitee {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    TeamRole role;
+  }
+
+  // team.sbs gregor message body
+  @lint("ignore")
+  record TeamSBSMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int score;
+    array<TeamInvitee> invitees;
+  }
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
@@ -233,11 +269,14 @@ protocol teams {
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
     PerTeamKeyGeneration needKeyGeneration;
-    // Refresh if these members are not current writers or above of the team in the cache.
+    // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
     // Does not work on implicit admins.
     array<UserVersion> wantMembers;
+    // The minimum role each of wantMembers must have in order to avoid a refresh.
+    // The default value is WRITER. So if the role is NONE, it will act like WRITER.
+    TeamRole wantMembersRole;
   }
 
   record LoadTeamArg {
@@ -256,9 +295,9 @@ protocol teams {
 
     TeamRefreshers refreshers;
 
-    boolean forceFullReload; // Ignore local data and fetch from the server.
-    boolean forceRepoll;     // Force a sync with merkle.
-    boolean staleOK;         // If a very stale cache hit is OK.
+    boolean forceFullReload;      // Ignore local data and fetch from the server.
+    boolean forceRepoll;          // Force a sync with merkle.
+    boolean staleOK;              // If a very stale cache hit is OK.
   }
 
   record ImplicitRole {
@@ -282,14 +321,22 @@ protocol teams {
     array<MemberInfo> teams;
   }
 
+  record TeamAddMemberResult {
+    boolean invited;
+    union{null, User} user;
+    boolean emailSent;
+    boolean chatSent;
+  }
+
   void teamCreate(int sessionID, string name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
-  void teamAddMember(int sessionID, string name, string username, TeamRole role, boolean sendChatNotification);
+  TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamAcceptInvite(int sessionID, string token);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

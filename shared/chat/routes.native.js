@@ -7,6 +7,7 @@ import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
+import InfoPanel from './conversation/info-panel/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -25,6 +26,9 @@ const conversationRoute = new RouteDefNode({
       component: AttachmentInputPopup,
       tags: {layerOnTop: true},
       children: {},
+    },
+    infoPanel: {
+      component: InfoPanel,
     },
     enterPaperkey: {
       component: EnterPaperkey,

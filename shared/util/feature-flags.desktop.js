@@ -17,7 +17,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   recentFilesEnabled: false,
   searchv3Enabled: false,
-  tabPeopleEnabled: false,
+  tabPeopleEnabled: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {

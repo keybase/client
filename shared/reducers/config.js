@@ -11,7 +11,6 @@ const readyForBootstrap = isMobile
 
 const initialState: Constants.State = {
   appFocused: true,
-  hideKeyboard: 1,
   bootStatus: 'bootStatusLoading',
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
@@ -188,12 +187,6 @@ export default function(state: Constants.State = initialState, action: Action): 
       return {
         ...state,
         appFocused: action.payload.appFocused,
-      }
-
-    case 'app:hideKeyboard':
-      return {
-        ...state,
-        hideKeyboard: state.hideKeyboard + 1,
       }
 
     default:

@@ -39,6 +39,18 @@ protocol common {
     DEV_2
   }
 
+  @go("nostring")
+  enum NotificationAppType {
+    DESKTOP_0,
+    MOBILE_1
+  }
+
+  @go("nostring")
+  enum NotificationKind {
+    GENERIC_0,
+    ATMENTION_1
+  }
+
   enum ConversationStatus {
     // Default status of the conversation
     UNFILED_0,
@@ -66,6 +78,11 @@ protocol common {
     // as blocked.
     REPORTED_5
 
+  }
+
+  record ConversationMember {
+    gregor1.UID uid;
+    ConversationID convID;
   }
 
   enum ConversationMemberStatus {
@@ -149,7 +166,16 @@ protocol common {
 
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
+    // *** Empty for TEAM chats. ***
     array<gregor1.UID> activeList;
+
+    // All of the users in the conversation, regardless of active status.
+    array<gregor1.UID> allList;
+  }
+
+  record ConversationNotificationInfo {
+    boolean channelWide;
+    map<NotificationAppType, map<NotificationKind, boolean>> settings;
   }
 
   record ConversationReaderInfo {
@@ -161,6 +187,7 @@ protocol common {
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
+    union { null, ConversationNotificationInfo } notifications; // user notification settings for the convo, will be null if it is just the default. Otherwise contains entries to modify default setting.
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;

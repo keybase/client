@@ -17,6 +17,7 @@ import openURL from '../../util/open-url'
 import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
+import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
@@ -268,12 +269,12 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
+    yield put(setDeviceNameError(errorMessage))
     yield put(
       navigateAppend(
         [
           {
             props: {
-              deviceNameError: errorMessage,
               existingDevices,
             },
             selected: 'setPublicName',

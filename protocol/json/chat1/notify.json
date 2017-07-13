@@ -17,7 +17,9 @@
         "READ_MESSAGE_2",
         "NEW_CONVERSATION_3",
         "SET_STATUS_4",
-        "FAILED_MESSAGE_5"
+        "FAILED_MESSAGE_5",
+        "MEMBERS_UPDATE_6",
+        "SET_APP_NOTIFICATION_SETTINGS_7"
       ]
     },
     {
@@ -31,6 +33,10 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "displayDesktopNotification"
         },
         {
           "type": [
@@ -102,6 +108,20 @@
     },
     {
       "type": "record",
+      "name": "SetAppNotificationSettingsInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationNotificationInfo",
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FailedMessageInfo",
       "fields": [
         {
@@ -110,6 +130,24 @@
             "items": "OutboxRecord"
           },
           "name": "outboxRecords"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MembersUpdateInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "member"
+        },
+        {
+          "type": "boolean",
+          "name": "joined"
         }
       ]
     },
@@ -155,6 +193,20 @@
             "def": false
           },
           "body": "FailedMessageInfo"
+        },
+        {
+          "label": {
+            "name": "MEMBERS_UPDATE",
+            "def": false
+          },
+          "body": "MembersUpdateInfo"
+        },
+        {
+          "label": {
+            "name": "SET_APP_NOTIFICATION_SETTINGS",
+            "def": false
+          },
+          "body": "SetAppNotificationSettingsInfo"
         }
       ]
     },
@@ -311,6 +363,36 @@
             "type": "array",
             "items": "ConvTypingUpdate"
           }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatJoinedConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "conv",
+          "type": "ConversationLocal"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatLeftConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": null,

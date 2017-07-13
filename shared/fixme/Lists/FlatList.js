@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  *
- * @providesModule FlatList
  * @flow
+ * @format
  */
 'use strict'
 
@@ -62,7 +62,7 @@ type RequiredProps<ItemT> = {
    * For simplicity, data is just a plain array. If you want to use something else, like an
    * immutable list, use the underlying `VirtualizedList` directly.
    */
-  data: ?Array<ItemT>,
+  data: ?$ReadOnlyArray<ItemT>,
 }
 type OptionalProps<ItemT> = {
   /**
@@ -72,6 +72,11 @@ type OptionalProps<ItemT> = {
    * `separators.updateProps`.
    */
   ItemSeparatorComponent?: ?ReactClass<any>,
+  /**
+   * Rendered when the list is empty. Can be a React Component Class, a render function, or
+   * a rendered element.
+   */
+  ListEmptyComponent?: ?(ReactClass<any> | React.Element<any>),
   /**
    * Rendered at the bottom of all the items. Can be a React Component Class, a render function, or
    * a rendered element.
@@ -116,6 +121,17 @@ type OptionalProps<ItemT> = {
    */
   initialNumToRender: number,
   /**
+   * Instead of starting at the top with the first item, start at `initialScrollIndex`. This
+   * disables the "scroll to top" optimization that keeps the first `initialNumToRender` items
+   * always rendered and immediately renders the items starting at this initial index. Requires
+   * `getItemLayout` to be implemented.
+   */
+  initialScrollIndex?: ?number,
+  /**
+   * Reverses the direction of scroll. Uses scale transforms of -1.
+   */
+  inverted?: ?boolean,
+  /**
    * Used to extract a unique key for a given item at the specified index. Key is used for caching
    * and as the react key to track item re-ordering. The default extractor checks `item.key`, then
    * falls back to using the index, like React does.
@@ -150,6 +166,11 @@ type OptionalProps<ItemT> = {
     viewableItems: Array<ViewToken>,
     changed: Array<ViewToken>,
   }) => void,
+  /**
+   * Set this when offset is needed for the loading indicator to show correctly.
+   * @platform android
+   */
+  progressViewOffset?: number,
   legacyImplementation?: ?boolean,
   /**
    * Set this true while waiting for new data from a refresh.
@@ -170,8 +191,6 @@ type Props<ItemT> = RequiredProps<ItemT> & OptionalProps<ItemT> & VirtualizedLis
 
 const defaultProps = {
   ...VirtualizedList.defaultProps,
-  getItem: undefined,
-  getItemCount: undefined,
   numColumns: 1,
 }
 type DefaultProps = typeof defaultProps
@@ -235,7 +254,7 @@ type DefaultProps = typeof defaultProps
  *         this.setState((state) => {
  *           // copy the map rather than modifying state.
  *           const selected = new Map(state.selected);
- *           selected.set(id, !state.get(id)); // toggle
+ *           selected.set(id, !selected.get(id)); // toggle
  *           return {selected};
  *         });
  *       };
@@ -262,7 +281,7 @@ type DefaultProps = typeof defaultProps
  *     }
  *
  * This is a convenience wrapper around [`<VirtualizedList>`](docs/virtualizedlist.html),
- * and thus inherits it's props (as well as those of `ScrollView`) that aren't explicitly listed
+ * and thus inherits its props (as well as those of `ScrollView`) that aren't explicitly listed
  * here, along with the following caveats:
  *
  * - Internal state is not preserved when content scrolls out of the render window. Make sure all
@@ -312,7 +331,9 @@ class FlatList<ItemT> extends React.PureComponent<DefaultProps, Props<ItemT>, vo
   }
 
   /**
-   * Scroll to a specific content pixel offset, like a normal `ScrollView`.
+   * Scroll to a specific content pixel offset in the list.
+   *
+   * Check out [scrollToOffset](docs/virtualizedlist.html#scrolltooffset) of VirtualizedList
    */
   scrollToOffset(params: {animated?: ?boolean, offset: number}) {
     this._listRef.scrollToOffset(params)
@@ -328,6 +349,15 @@ class FlatList<ItemT> extends React.PureComponent<DefaultProps, Props<ItemT>, vo
   }
 
   /**
+   * Displays the scroll indicators momentarily.
+   *
+   * @platform ios
+   */
+  flashScrollIndicators() {
+    this._listRef.flashScrollIndicators()
+  }
+
+  /**
    * Provides a handle to the underlying scroll responder.
    */
   getScrollResponder() {
@@ -339,6 +369,12 @@ class FlatList<ItemT> extends React.PureComponent<DefaultProps, Props<ItemT>, vo
   getScrollableNode() {
     if (this._listRef) {
       return this._listRef.getScrollableNode()
+    }
+  }
+
+  setNativeProps(props: Object) {
+    if (this._listRef) {
+      this._listRef.setNativeProps(props)
     }
   }
 

@@ -160,6 +160,31 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 	}
 }
 
+func TestLookupUID(t *testing.T) {
+	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClock()
+	tc.G.SetClock(fakeClock)
+
+	test := func() {
+		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		un := NewNormalizedUsername("t_tracy")
+		uid2, err := tc.G.GetUPAKLoader().LookupUID(nil, un)
+		require.NoError(t, err)
+		require.Equal(t, uid, uid2)
+	}
+
+	for i := 0; i < 2; i++ {
+		test()
+		test()
+		fakeClock.Advance(10 * time.Hour)
+		test()
+		test()
+		tc.G.GetUPAKLoader().ClearMemory()
+	}
+}
+
 func TestLookupUsername(t *testing.T) {
 	tc := SetupTest(t, "LookupUsernameAndDevice", 1)
 	defer tc.Cleanup()

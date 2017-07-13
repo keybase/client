@@ -257,9 +257,7 @@ func (g *GlobalContext) Logout() error {
 
 	g.CallLogoutHooks()
 
-	if g.Env.GetSupportPerUserKey() {
-		g.ClearPerUserKeyring()
-	}
+	g.ClearPerUserKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -783,10 +781,8 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
-	if g.Env.GetSupportPerUserKey() {
-		// Trigger the creation of a per-user-keyring
-		_, _ = g.GetPerUserKeyring()
-	}
+	// Trigger the creation of a per-user-keyring
+	_, _ = g.GetPerUserKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -976,9 +972,6 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 // routes through LoginSession and deadlocks.
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
-	if !g.Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-key support disabled")
-	}
 
 	myUID := g.GetMyUID()
 	if myUID.IsNil() {
@@ -1014,9 +1007,7 @@ func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 
 func (g *GlobalContext) ClearPerUserKeyring() {
 	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
-	if !g.Env.GetSupportPerUserKey() {
-		return
-	}
+
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
 	g.perUserKeyring = nil
