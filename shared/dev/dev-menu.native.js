@@ -21,7 +21,7 @@ class DevMenu extends Component {
       <Box style={globalStyles.flexBoxRow}>
         <Box>
           {menuItems.map(m => (
-            <Box style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}>
+            <Box key={m.name} style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}>
               <Text onClick={m.onClick} type="Header">{m.name}</Text>
             </Box>
           ))}

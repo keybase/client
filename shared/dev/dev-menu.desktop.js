@@ -18,7 +18,11 @@ function DevMenu(props) {
       <BackButton onClick={() => props.onBack()} />
       <Box>
         {menuItems.map(m => (
-          <Box onClick={m.onClick} style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}>
+          <Box
+            key={m.name}
+            onClick={m.onClick}
+            style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}
+          >
             <Text type="Header">{m.name}</Text>
           </Box>
         ))}
