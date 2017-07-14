@@ -13,6 +13,7 @@ const _icons = {
   [Tabs.devicesTab]: {selected: 'icon-nav-devices-selected-32', unselected: 'icon-nav-devices-32'},
   [Tabs.folderTab]: {selected: 'icon-nav-folders-selected-32', unselected: 'icon-nav-folders-32'},
   [Tabs.peopleTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
+  [Tabs.profileTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.searchTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-32', unselected: 'icon-nav-settings-32'},
 }
@@ -22,17 +23,28 @@ const _labels = {
   [Tabs.devicesTab]: 'Devices',
   [Tabs.folderTab]: 'Folders',
   [Tabs.peopleTab]: 'People',
+  [Tabs.profileTab]: 'People',
   [Tabs.searchTab]: 'Search',
   [Tabs.settingsTab]: 'Settings',
 }
 
 const _tabs = [
-  ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
+  ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
   Tabs.folderTab,
   Tabs.chatTab,
   Tabs.devicesTab,
   Tabs.settingsTab,
 ].filter(Boolean)
+
+const iconForTab = (tab, selectedTab) => {
+  const icon = tab === Tabs.profileTab
+    ? _icons[Tabs.peopleTab][selectedTab === tab ? 'selected' : 'unselected']
+    : _icons[tab][selectedTab === tab ? 'selected' : 'unselected']
+  return {
+    icon,
+    type: 'nav',
+  }
+}
 
 const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
@@ -45,7 +57,7 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
-        source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'nav'}}
+        source={iconForTab(tab, selectedTab)}
         style={stylesTabButton}
       />
     ))}
@@ -53,9 +65,9 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
     <TabBarButton
       label={username}
       isNav={true}
-      selected={selectedTab === Tabs.profileTab}
-      onClick={() => onTabClick(Tabs.profileTab)}
-      badgeNumber={badgeNumbers[Tabs.profileTab]}
+      selected={selectedTab === Tabs.peopleTab}
+      onClick={() => onTabClick(Tabs.peopleTab)}
+      badgeNumber={badgeNumbers[Tabs.peopleTab]}
       source={{type: 'avatar', username}}
       style={stylesTabButton}
     />
