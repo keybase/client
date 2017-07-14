@@ -414,10 +414,10 @@ type KeybaseService interface {
 	// specified TeamID.  The caller can specify `desiredKeyGen` to
 	// force a server check if that particular key gen isn't yet
 	// known; it may be set to UnspecifiedKeyGen if no server check is
-	// required.  The caller can specify `desiredUID` to force a
-	// server check if that particular UID isn't a member of the team
-	// yet according to local caches; it may be set to "" if no server
-	// check is required.
+	// required.  The caller can specify `desiredUID` and
+	// `desiredRole` to force a server check if that particular UID
+	// isn't a member of the team yet according to local caches; it
+	// may be set to "" if no server check is required.
 	LoadTeamPlusKeys(ctx context.Context, tid keybase1.TeamID,
 		desiredKeyGen KeyGen, desiredUser keybase1.UserVersion,
 		desiredRole keybase1.TeamRole) (TeamInfo, error)

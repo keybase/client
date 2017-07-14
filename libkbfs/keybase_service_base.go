@@ -428,7 +428,7 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 		if pollForKID == keybase1.KID("") {
 			return cachedUserInfo, nil
 		}
-		// Skip the cache if pollForKID isn't present.
+		// Skip the cache if pollForKID isn't present in `VerifyingKeys`.
 		for _, key := range cachedUserInfo.VerifyingKeys {
 			if key.KID().Equal(pollForKID) {
 				return cachedUserInfo, nil
