@@ -123,6 +123,11 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
 		}
+		if _, ok := err.(libkb.NotFoundError); ok {
+			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
+				Msg: fmt.Sprintf("Not found: user %v", username),
+			}
+		}
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	if t.IsMember(ctx, uv) {

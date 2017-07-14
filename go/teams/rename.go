@@ -8,21 +8,34 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase1.TeamName, newNameLastPart string) error {
-	g.Log.CDebugf(ctx, "RenameSubteam")
+func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase1.TeamName, newName keybase1.TeamName) error {
+	g.Log.CDebugf(ctx, "RenameSubteam %v -> %v", prevName, newName)
 
 	if prevName.IsRootTeam() {
 		return fmt.Errorf("cannot rename root team: %s", prevName.String())
+	}
+	if prevName.Depth() < 2 {
+		return fmt.Errorf("cannot rename team: '%v'", prevName)
+	}
+	if newName.Depth() != prevName.Depth() {
+		return fmt.Errorf("cannot change depth of team: %v (%v) -> %v (%v)",
+			prevName, prevName.Depth(), newName, newName.Depth())
 	}
 	parentName, err := prevName.Parent()
 	if err != nil {
 		return err
 	}
-	newName, err := prevName.SwapLastPart(newNameLastPart)
+	checkParentName, err := newName.Parent()
 	if err != nil {
-		return err
+		// this should never happen
+		return fmt.Errorf("error checking new name: %v", err)
 	}
-	g.Log.CDebugf(ctx, "RenameSubteam %v -> %v", prevName, newName)
+	if !checkParentName.Eq(parentName) {
+		return fmt.Errorf("cannot rename teams with different parents: %v != %v", checkParentName, parentName)
+	}
+	if prevName.Eq(newName) {
+		return fmt.Errorf("cannot rename team without changing name")
+	}
 
 	g.Log.CDebugf(ctx, "RenameSubteam load teams: parent:'%v' subteam:'%v'",
 		parentName.String(), prevName.String())

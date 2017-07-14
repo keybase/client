@@ -13,14 +13,14 @@ import (
 )
 
 type CmdTeamCreate struct {
-	TeamName  string
+	TeamName  keybase1.TeamName
 	SessionID int
 	libkb.Contextified
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 	var err error
-	v.TeamName, err = ParseOneTeamName(ctx)
+	v.TeamName, err = ParseOneTeamNameK1(ctx)
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,13 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
-	return cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+	if v.TeamName.IsRootTeam() {
+		return cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+			Name:      v.TeamName,
+			SessionID: v.SessionID,
+		})
+	}
+	return cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
 		Name:      v.TeamName,
 		SessionID: v.SessionID,
 	})

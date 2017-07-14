@@ -330,7 +330,8 @@ protocol teams {
     boolean chatSent;
   }
 
-  void teamCreate(int sessionID, string name);
+  void teamCreate(int sessionID, TeamName name);
+  void teamCreateSubteam(int sessionID, TeamName name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
@@ -338,6 +339,7 @@ protocol teams {
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamRename(int sessionID, TeamName prevName, TeamName newName);
   void teamAcceptInvite(int sessionID, string token);
 
   /**

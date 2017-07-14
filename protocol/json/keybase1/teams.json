@@ -843,7 +843,20 @@
         },
         {
           "name": "name",
-          "type": "string"
+          "type": "TeamName"
+        }
+      ],
+      "response": null
+    },
+    "teamCreateSubteam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
         }
       ],
       "response": null
@@ -975,6 +988,23 @@
         {
           "name": "role",
           "type": "TeamRole"
+        }
+      ],
+      "response": null
+    },
+    "teamRename": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prevName",
+          "type": "TeamName"
+        },
+        {
+          "name": "newName",
+          "type": "TeamName"
         }
       ],
       "response": null

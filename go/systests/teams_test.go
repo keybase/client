@@ -179,15 +179,19 @@ type userPlusDevice struct {
 
 func (u *userPlusDevice) createTeam() string {
 	create := client.NewCmdTeamCreateRunner(u.tc.G)
-	name, err := libkb.RandString("tt", 5)
+	nameStr, err := libkb.RandString("tt", 5)
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}
-	create.TeamName = strings.ToLower(name)
+	name, err := keybase1.TeamNameFromString(strings.ToLower(nameStr))
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	create.TeamName = name
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
-	return create.TeamName
+	return create.TeamName.String()
 }
 
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {

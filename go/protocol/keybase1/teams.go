@@ -934,14 +934,26 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 }
 
 type TeamCreateArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      TeamName `codec:"name" json:"name"`
 }
 
 func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 	return TeamCreateArg{
 		SessionID: o.SessionID,
-		Name:      o.Name,
+		Name:      o.Name.DeepCopy(),
+	}
+}
+
+type TeamCreateSubteamArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      TeamName `codec:"name" json:"name"`
+}
+
+func (o TeamCreateSubteamArg) DeepCopy() TeamCreateSubteamArg {
+	return TeamCreateSubteamArg{
+		SessionID: o.SessionID,
+		Name:      o.Name.DeepCopy(),
 	}
 }
 
@@ -1049,6 +1061,20 @@ func (o TeamEditMemberArg) DeepCopy() TeamEditMemberArg {
 	}
 }
 
+type TeamRenameArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	PrevName  TeamName `codec:"prevName" json:"prevName"`
+	NewName   TeamName `codec:"newName" json:"newName"`
+}
+
+func (o TeamRenameArg) DeepCopy() TeamRenameArg {
+	return TeamRenameArg{
+		SessionID: o.SessionID,
+		PrevName:  o.PrevName.DeepCopy(),
+		NewName:   o.NewName.DeepCopy(),
+	}
+}
+
 type TeamAcceptInviteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Token     string `codec:"token" json:"token"`
@@ -1079,6 +1105,7 @@ func (o LoadTeamPlusApplicationKeysArg) DeepCopy() LoadTeamPlusApplicationKeysAr
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
+	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (TeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1086,6 +1113,7 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -1109,6 +1137,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamCreate(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamCreateSubteam": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateSubteamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateSubteamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateSubteamArg)(nil), args)
+						return
+					}
+					err = i.TeamCreateSubteam(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1225,6 +1269,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamRename": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamRenameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamRenameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamRenameArg)(nil), args)
+						return
+					}
+					err = i.TeamRename(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamAcceptInvite": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamAcceptInviteArg, 1)
@@ -1270,6 +1330,11 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err e
 	return
 }
 
+func (c TeamsClient) TeamCreateSubteam(ctx context.Context, __arg TeamCreateSubteamArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSubteam", []interface{}{__arg}, nil)
+	return
+}
+
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
 	return
@@ -1302,6 +1367,11 @@ func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err err
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamRename(ctx context.Context, __arg TeamRenameArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRename", []interface{}{__arg}, nil)
 	return
 }
 

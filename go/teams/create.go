@@ -13,11 +13,13 @@ import (
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
 
+	g.Log.CDebugf(ctx, "CreateRootTeam load me")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
 		return err
 	}
 
+	g.Log.CDebugf(ctx, "CreateRootTeam get device keys")
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
 		return err
@@ -54,6 +56,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		return err
 	}
 
+	g.Log.CDebugf(ctx, "CreateRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, me, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID())
 	if err != nil {
 		return err
@@ -111,6 +114,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		},
 	}
 
+	g.Log.CDebugf(ctx, "CreateRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretboxes
