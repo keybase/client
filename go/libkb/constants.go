@@ -283,7 +283,8 @@ const (
 	LinkTypeRotateKey        LinkType = "team.rotate_key"
 	LinkTypeLeave            LinkType = "team.leave"
 	LinkTypeInvite           LinkType = "team.invite"
-	LinkTypeSubteamRename    LinkType = "team.subteam_rename"
+	LinkTypeRenameSubteam    LinkType = "team.rename_subteam"
+	LinkTypeRenameUpPointer  LinkType = "team.rename_up_pointer"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

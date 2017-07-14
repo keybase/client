@@ -1563,6 +1563,26 @@ func (t TeamName) RootAncestorName() TeamName {
 	}
 }
 
+func (t TeamName) Parent() (TeamName, error) {
+	if len(t.Parts) == 0 {
+		return t, fmt.Errorf("empty team name")
+	}
+	if t.IsRootTeam() {
+		return t, fmt.Errorf("root team has no parent")
+	}
+	return TeamName{
+		Parts: t.Parts[:len(t.Parts)-1],
+	}, nil
+}
+
+func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
+	parent, err := t.Parent()
+	if err != nil {
+		return t, err
+	}
+	return parent.Append(newLast)
+}
+
 // The number of parts in a team name.
 // Root teams have 1.
 func (t TeamName) Depth() int {

@@ -119,6 +119,61 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 	return ret, nil
 }
 
+func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+	prev, err := parentTeam.GetLatestLibkbLinkID()
+	if err != nil {
+		return nil, err
+	}
+	ret, err := libkb.ProofMetadata{
+		Me:         me,
+		LinkType:   libkb.LinkTypeRenameSubteam,
+		SigningKey: key,
+		Seqno:      parentTeam.GetLatestSeqno() + 1,
+		PrevLinkID: prev,
+		SigVersion: libkb.KeybaseSignatureV2,
+		SeqType:    libkb.SeqTypeSemiprivate,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ret.AtKey("body")
+	body.SetKey("team", teamSectionJSON)
+
+	return ret, nil
+}
+
+func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+	prev, err := subteam.GetLatestLibkbLinkID()
+	ret, err := libkb.ProofMetadata{
+		Me:         me,
+		LinkType:   libkb.LinkTypeRenameUpPointer,
+		SigningKey: key,
+		Seqno:      subteam.GetLatestSeqno() + 1,
+		PrevLinkID: prev,
+		SigVersion: libkb.KeybaseSignatureV2,
+		SeqType:    libkb.SeqTypeSemiprivate,
+	}.ToJSON(me.G())
+	if err != nil {
+		return nil, err
+	}
+
+	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ret.AtKey("body")
+	body.SetKey("team", teamSectionJSON)
+
+	return ret, nil
+}
+
 // 15 random bytes, followed by the byte 0x25, encoded as hex
 func NewSubteamID() keybase1.TeamID {
 	idBytes, err := libkb.RandBytesWithSuffix(16, libkb.SubteamIDTag)
