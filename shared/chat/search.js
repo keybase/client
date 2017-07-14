@@ -7,11 +7,12 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import SearchResultsList from '../searchv3/results-list'
 import ServiceFilter from '../searchv3/services-filter'
-import {Box, Icon, ProgressIndicator} from '../common-adapters'
-import {compose, withState, defaultProps, withHandlers} from 'recompose'
+import {Box, Icon, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {branch, compose, withState, defaultProps, withHandlers, withPropsOnChange} from 'recompose'
 import {connect} from 'react-redux'
 import {globalMargins, globalStyles} from '../styles'
 import {chatSearchPending, chatSearchResultArray, chatSearchShowingSuggestions} from '../constants/selectors'
+import {isMobile} from '../constants/platform'
 import {onChangeSelectedSearchResultHoc, showServiceLogicHoc, selectedSearchIdHoc} from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
@@ -27,7 +28,7 @@ const mapStateToProps = createSelector(
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
-  exitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch()),
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
@@ -58,14 +59,14 @@ const SearchHeader = props => (
           onChangeText={props.onChangeText}
           onMoveSelectUp={props.onMoveSelectUp}
           onMoveSelectDown={props.onMoveSelectDown}
-          onCancel={props.exitSearch}
+          onCancel={props.onExitSearch}
           onAddSelectedUser={props.onAddSelectedUser}
         />
       </Box>
       <Icon
         type="iconfont-close"
         style={{height: 16, width: 16, marginRight: 10}}
-        onClick={props.exitSearch}
+        onClick={props.onExitSearch}
       />
     </Box>
     <Box style={{alignSelf: 'center'}}>
@@ -103,6 +104,16 @@ export default compose(
       props.clearSearchResults()
     },
   }),
+  branch(
+    () => isMobile,
+    compose(
+      withPropsOnChange(['onExitSearch'], props => ({
+        onCancel: () => props.onExitSearch(),
+        title: 'New Chat',
+      })),
+      HeaderHoc
+    )
+  ),
   defaultProps({
     placeholder: 'Search for someone',
   })
