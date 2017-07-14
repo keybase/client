@@ -3516,4 +3516,9 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	require.True(t, bytes.Equal(data, gotData3))
 	_, _, err = kbfsOps3.CreateFile(ctx, rootNode3, "c", false, NoExcl)
 	require.IsType(t, WriteAccessError{}, errors.Cause(err))
+
+	// Verify that "a" has the correct writer.
+	ei, err := kbfsOps3.GetNodeMetadata(ctx, nodeA3)
+	require.NoError(t, err)
+	require.Equal(t, u1, ei.LastWriterUnverified)
 }

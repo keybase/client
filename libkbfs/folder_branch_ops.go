@@ -1948,8 +1948,12 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 		return res, err
 	}
 	res.BlockInfo = de.BlockInfo
-	id := de.Writer
-	if id == keybase1.UserOrTeamID("") {
+
+	id := de.TeamWriter.AsUserOrTeam()
+	if id.IsNil() {
+		id = de.Writer
+	}
+	if id.IsNil() {
 		id = de.Creator
 	}
 	res.LastWriterUnverified, err =

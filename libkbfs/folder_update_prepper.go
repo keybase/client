@@ -192,6 +192,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	var newDe DirEntry
 	doSetTime := true
 	now := fup.nowUnixNano()
+	var uid keybase1.UID
 	for len(newPath.path) < len(dir.path)+1 {
 		info, plainSize, err := fup.readyBlockMultiple(
 			ctx, md.ReadOnly(), currBlock, chargedTo, bps, keybase1.BlockType_DATA)
@@ -300,6 +301,18 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 				de.Ctime = now
 			}
 		}
+
+		if fup.id().Type() == tlf.SingleTeam {
+			if uid.IsNil() {
+				session, err := fup.config.KBPKI().GetCurrentSession(ctx)
+				if err != nil {
+					return path{}, DirEntry{}, nil, err
+				}
+				uid = session.UID
+			}
+			de.TeamWriter = uid
+		}
+
 		if !newDe.IsInitialized() {
 			newDe = de
 		}

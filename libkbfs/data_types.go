@@ -628,6 +628,9 @@ type EntryInfo struct {
 	Mtime int64
 	// Ctime is in unix nanoseconds
 	Ctime int64
+	// If this is a team TLF, we want to track the last writer of an
+	// entry, since in the block, only the team ID will be tracked.
+	TeamWriter keybase1.UID `codec:"tw,omitempty"`
 }
 
 // ReportedError represents an error reported by KBFS.

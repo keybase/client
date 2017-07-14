@@ -28,6 +28,7 @@ func makeRandomDirEntry(t *testing.T, typ EntryType, size uint64, path string) D
 			path,
 			101,
 			102,
+			"",
 		},
 		codec.UnknownFieldSetHandler{},
 	}

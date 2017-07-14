@@ -33,6 +33,7 @@ func makeFakeDirEntry(t *testing.T, typ EntryType, size uint64) DirEntry {
 			"fake sym path",
 			101,
 			102,
+			"",
 		},
 		codec.UnknownFieldSetHandler{},
 	}
