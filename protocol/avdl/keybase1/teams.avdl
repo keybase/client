@@ -210,7 +210,7 @@ protocol teams {
 
   // A subteam got this name at this point in time.
   record SubteamLogPoint {
-  // The new subteam name.
+    // The new subteam name.
     TeamName name;
     // The seqno at which the subteam got this name.
     Seqno seqno;

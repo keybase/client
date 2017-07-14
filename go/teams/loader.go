@@ -359,7 +359,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, readSubteamID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx,
+		arg.me, arg.teamID, ret.Chain.ParentID, readSubteamID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}

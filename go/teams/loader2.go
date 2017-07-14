@@ -384,9 +384,18 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 		if parentSeqno < 1 {
 			return nil, fmt.Errorf("bad parent-child up seqno: %v", parentSeqno)
 		}
+		if link.inner.Body.Team.Name == nil {
+			return nil, fmt.Errorf("parent-child operation %v missing new name", link.LinkType())
+		}
+		newName, err := keybase1.TeamNameFromString((string)(*link.inner.Body.Team.Name))
+		if err != nil {
+			return nil, fmt.Errorf("parent-child operation %v has invalid new name: %v",
+				link.LinkType(), *link.inner.Body.Team.Name)
+		}
 		return &parentChildOperation{
-			TODOImplement: true,
-			parentSeqno:   parentSeqno,
+			parentSeqno: parentSeqno,
+			linkType:    link.LinkType(),
+			newName:     newName,
 		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported parent-child operation: %v", link.LinkType())
@@ -470,7 +479,7 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 
 // Check that the parent-child operations appear in the parent sigchains.
 func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
-	me keybase1.UserVersion, parentID *keybase1.TeamID, readSubteamID keybase1.TeamID,
+	me keybase1.UserVersion, loadingTeamID keybase1.TeamID, parentID *keybase1.TeamID, readSubteamID keybase1.TeamID,
 	parentChildOperations []*parentChildOperation) error {
 
 	if len(parentChildOperations) == 0 {
@@ -505,9 +514,27 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
-	// TODO check that the operations match
-	_ = parent
-	return l.unimplementedVerificationTODO(ctx, nil)
+	for _, pco := range parentChildOperations {
+		parentChain := TeamSigChainState{inner: parent.Chain}
+		err = l.checkOneParentChildOperation(ctx, pco, loadingTeamID, &parentChain)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (l *TeamLoader) checkOneParentChildOperation(ctx context.Context,
+	pco *parentChildOperation, teamID keybase1.TeamID, parent *TeamSigChainState) error {
+
+	switch pco.linkType {
+	case libkb.SigchainV2TypeTeamSubteamHead:
+		return parent.SubteamRenameOccurred(teamID, pco.newName, pco.parentSeqno)
+	case libkb.SigchainV2TypeTeamRenameUpPointer:
+		return parent.SubteamRenameOccurred(teamID, pco.newName, pco.parentSeqno)
+	}
+	return fmt.Errorf("unrecognized parent-child operation could not be checked: %v", pco.linkType)
 }
 
 // Check all the proofs and ordering constraints in proofSet
@@ -730,11 +757,6 @@ func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase
 	}
 	encKey, err = kr.GetEncryptionKeyBySeqno(ctx, userSeqno)
 	return encKey, err
-}
-
-func (l *TeamLoader) unimplementedVerificationTODO(ctx context.Context, meanwhile error) error {
-	l.G().Log.Warning("TODO: team verification not implemented, skipping verification")
-	return meanwhile
 }
 
 func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*chainLinkUnpacked, error) {
