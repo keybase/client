@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -73,16 +72,10 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 // Run starts the provisioner engine.
 func (e *Kex2Provisioner) Run(ctx *Context) error {
 	// before starting provisioning, need to load some information:
-
-	// load self:
-	var err error
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
+	if err := e.loadMe(); err != nil {
 		return err
 	}
-
-	err = e.loadSecretKeys(ctx)
-	if err != nil {
+	if err := e.loadSecretKeys(ctx); err != nil {
 		return err
 	}
 
@@ -274,12 +267,9 @@ func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase
 	}
 	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
 
-	if e.G().Env.GetSupportPerUserKey() {
-		pukBox, err := e.makePukBox(key)
-		if err != nil {
-			return output, err
-		}
-		output.PukBox = pukBox
+	output.PukBox, err = e.makePukBox(key)
+	if err != nil {
+		return output, err
 	}
 
 	return output, err
@@ -310,6 +300,12 @@ func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 // skeletonProof generates a partial key proof structure that
 // device Y can fill in.
 func (e *Kex2Provisioner) skeletonProof() (string, error) {
+	// reload the self user to make sure it is fresh
+	// (this fixes TestProvisionWithRevoke [CORE-5631, CORE-5636])
+	if err := e.loadMe(); err != nil {
+		return "", err
+	}
+
 	delg := libkb.Delegator{
 		ExistingKey:    e.signingKey,
 		Me:             e.me,
@@ -384,9 +380,6 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 
 // Returns nil box if there are no per-user-keys.
 func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keybase1.PerUserKeyBox, error) {
-	if !e.G().Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-key support disabled")
-	}
 	receiverKey, ok := receiverKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, fmt.Errorf("Unexpected receiver key type")
@@ -408,4 +401,13 @@ func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keyb
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
 	return &pukBox, err
+}
+
+func (e *Kex2Provisioner) loadMe() error {
+	var err error
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		return err
+	}
+	return nil
 }

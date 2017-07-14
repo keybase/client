@@ -5,7 +5,7 @@ import type {Tab} from '../../constants/tabs'
 export type Props = {
   onTabClick: (tab: Tab) => void,
   selectedTab: Tab,
-  username: string,
+  username?: string,
   badgeNumbers: {[key: Tab]: number},
 }
 

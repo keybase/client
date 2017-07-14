@@ -86,7 +86,11 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
-    } else if (ev.key === 'Enter' && !trim(this.props.usernameText) && this.props.onEnterEmptyText) {
+    } else if (
+      (ev.key === 'Enter' || ev.key === 'Tab') &&
+      !trim(this.props.usernameText) &&
+      this.props.onEnterEmptyText
+    ) {
       this.props.onEnterEmptyText()
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
@@ -158,7 +162,7 @@ class UserInput extends Component<void, Props, State> {
         </Box>
         {onClearSearch &&
           <Icon
-            type="iconfont-close"
+            type="iconfont-remove"
             style={{height: 16, width: 16, marginRight: 10}}
             onClick={onClearSearch}
           />}

@@ -23,6 +23,7 @@ export type Props = {
   searchText: string,
   selectedSearchId: ?SearchResultId,
   selectedService: string,
+  setInputRef: () => void,
   showAddButton: boolean,
   showSearchSuggestions: boolean,
   userItems: Array<UserDetails>,

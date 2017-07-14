@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -388,6 +390,34 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
+
+func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
+	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+	for _, m := range matches {
+		if len(m) >= 2 {
+			res = append(res, m[1])
+		}
+	}
+	return res
+}
+
+func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (res []gregor1.UID) {
+	names := ParseAtMentionsNames(ctx, body)
+	for _, name := range names {
+		kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
+		if err != nil {
+			if debug != nil {
+				debug.Debug(ctx, "ParseAtMentionedUIDs: failed to lookup UID for: %s msg: %s",
+					name, err.Error())
+			}
+			continue
+		}
+		res = append(res, kuid.ToBytes())
+	}
+	return res
+}
+
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	res := make([]chat1.MessageID, len(msgs))
 	for i, m := range msgs {
@@ -460,4 +490,16 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 		return ""
 	}
 	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
+}
+
+func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
+	apptype chat1.NotificationAppType,
+	kind chat1.NotificationKind, enabled bool) {
+	if settings.Settings == nil {
+		settings.Settings = make(map[chat1.NotificationAppType]map[chat1.NotificationKind]bool)
+	}
+	if settings.Settings[apptype] == nil {
+		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
+	}
+	settings.Settings[apptype][kind] = enabled
 }

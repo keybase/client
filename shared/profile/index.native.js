@@ -215,7 +215,7 @@ class Profile extends Component<void, Props, State> {
             <BackButton
               title={null}
               onClick={this.props.onBack}
-              style={{marginLeft: 16}}
+              style={styleBack}
               iconStyle={{color: globalColors.white}}
             />}
           {featureFlags.searchv3Enabled &&
@@ -306,10 +306,17 @@ class Profile extends Component<void, Props, State> {
   }
 }
 
+const styleBack = {
+  left: globalMargins.tiny,
+  position: 'absolute',
+  top: 30,
+}
+
 const styleHeader = {
   ...globalStyles.flexBoxRow,
   height: HEADER_TOP_SPACE,
   alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleProofNotice = {
@@ -360,9 +367,8 @@ const styleSearchContainer = {
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 64,
   minHeight: 24,
-  minWidth: 273,
+  minWidth: 233,
   position: 'absolute',
   top: 30,
   zIndex: SEARCH_CONTAINER_ZINDEX,

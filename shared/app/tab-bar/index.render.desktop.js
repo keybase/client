@@ -27,10 +27,9 @@ const _labels = {
 }
 
 const _tabs = [
-  Tabs.searchTab,
+  ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
   Tabs.folderTab,
   Tabs.chatTab,
-  ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
   Tabs.devicesTab,
   Tabs.settingsTab,
 ].filter(Boolean)

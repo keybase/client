@@ -55,7 +55,6 @@ export function publicFolderWithUsers(users: Array<string>): string {
 
 export type State = {
   appFocused: boolean,
-  hideKeyboard: number,
   bootStatus: BootStatus,
   bootstrapTriesRemaining: number,
   config: ?Config,

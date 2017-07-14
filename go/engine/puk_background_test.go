@@ -27,7 +27,6 @@ func TestPerUserKeyBackgroundShutdownFirst(t *testing.T) {
 
 	metaCh := make(chan string, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:      PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh: metaCh,
 	}
 	eng := NewPerUserKeyBackground(tc.G, arg)
@@ -43,11 +42,11 @@ func TestPerUserKeyBackgroundShutdownFirst(t *testing.T) {
 
 	expectMeta(t, metaCh, "early-shutdown")
 
-	advance(arg.Settings.Start)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
+	advance(PerUserKeyBackgroundSettings.Start)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
 
 	expectMeta(t, metaCh, "")
 }
@@ -68,7 +67,6 @@ func TestPerUserKeyBackgroundShutdownSoon(t *testing.T) {
 	metaCh := make(chan string, 100)
 	roundResCh := make(chan error, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:          PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh:     metaCh,
 		testingRoundResCh: roundResCh,
 	}
@@ -81,14 +79,14 @@ func TestPerUserKeyBackgroundShutdownSoon(t *testing.T) {
 
 	expectMeta(t, metaCh, "loop-start")
 
-	advance(arg.Settings.Start - time.Second)
+	advance(PerUserKeyBackgroundSettings.Start - time.Second)
 
 	eng.Shutdown()
 
 	expectMeta(t, metaCh, "loop-exit")
 
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
 
 	expectMeta(t, metaCh, "")
 }
@@ -110,7 +108,6 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 	metaCh := make(chan string, 100)
 	roundResCh := make(chan error, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:          PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh:     metaCh,
 		testingRoundResCh: roundResCh,
 	}
@@ -122,7 +119,7 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
-	advance(arg.Settings.Start + time.Second)
+	advance(PerUserKeyBackgroundSettings.Start + time.Second)
 	expectMeta(t, metaCh, "woke-start")
 
 	n := 3
@@ -130,15 +127,15 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 		t.Logf("check %v", i)
 		select {
 		case x := <-roundResCh:
-			require.Equal(t, libkb.LoginRequiredError{}, x, "round result")
+			require.Equal(t, libkb.DeviceRequiredError{}, x, "round result")
 		case <-time.After(5 * time.Second):
 			require.FailNow(t, "channel timed out")
 		}
 		expectMeta(t, metaCh, "loop-round-complete")
 		if i < n-1 {
-			advance(arg.Settings.Interval + time.Second)
+			advance(PerUserKeyBackgroundSettings.Interval + time.Second)
 			expectMeta(t, metaCh, "woke-interval")
-			advance(arg.Settings.WakeUp + time.Second)
+			advance(PerUserKeyBackgroundSettings.WakeUp + time.Second)
 			expectMeta(t, metaCh, "woke-wakeup")
 		}
 	}
@@ -147,7 +144,7 @@ func TestPerUserKeyBackgroundShutdownMiddle(t *testing.T) {
 	expectMeta(t, metaCh, "loop-exit")
 
 	for i := 0; i < 2; i++ {
-		advance(arg.Settings.Interval)
+		advance(PerUserKeyBackgroundSettings.Interval)
 		select {
 		case x := <-roundResCh:
 			require.FailNow(t, "unexpected", x)
@@ -178,7 +175,6 @@ func TestPerUserKeyBackgroundUnnecessary(t *testing.T) {
 
 	metaCh := make(chan string, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:      PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh: metaCh,
 	}
 	eng := NewPerUserKeyBackground(tc.G, arg)
@@ -194,11 +190,11 @@ func TestPerUserKeyBackgroundUnnecessary(t *testing.T) {
 
 	expectMeta(t, metaCh, "early-shutdown")
 
-	advance(arg.Settings.Start)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
-	advance(arg.Settings.Interval)
+	advance(PerUserKeyBackgroundSettings.Start)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
+	advance(PerUserKeyBackgroundSettings.Interval)
 
 	expectMeta(t, metaCh, "")
 
@@ -228,7 +224,6 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	metaCh := make(chan string, 100)
 	roundResCh := make(chan error, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:          PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh:     metaCh,
 		testingRoundResCh: roundResCh,
 	}
@@ -241,7 +236,7 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
-	advance(arg.Settings.Start + time.Second)
+	advance(PerUserKeyBackgroundSettings.Start + time.Second)
 	expectMeta(t, metaCh, "woke-start")
 
 	select {
@@ -253,9 +248,9 @@ func TestPerUserKeyBackgroundWork(t *testing.T) {
 	expectMeta(t, metaCh, "loop-round-complete")
 
 	// second run that doesn't do anything
-	advance(arg.Settings.Interval + time.Second)
+	advance(PerUserKeyBackgroundSettings.Interval + time.Second)
 	expectMeta(t, metaCh, "woke-interval")
-	advance(arg.Settings.WakeUp + time.Second)
+	advance(PerUserKeyBackgroundSettings.WakeUp + time.Second)
 	expectMeta(t, metaCh, "woke-wakeup") // this line has flaked before (CORE-5410)
 	select {
 	case x := <-roundResCh:
@@ -291,7 +286,6 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	metaCh := make(chan string, 100)
 	roundResCh := make(chan error, 100)
 	arg := &PerUserKeyBackgroundArgs{
-		Settings:          PerUserKeyBackgroundDefaultSettings,
 		testingMetaCh:     metaCh,
 		testingRoundResCh: roundResCh,
 	}
@@ -304,13 +298,13 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	require.NoError(t, err)
 
 	expectMeta(t, metaCh, "loop-start")
-	advance(arg.Settings.Start + time.Second)
+	advance(PerUserKeyBackgroundSettings.Start + time.Second)
 	expectMeta(t, metaCh, "woke-start")
 
 	t.Logf("run once while not logged in")
 	select {
 	case x := <-roundResCh:
-		require.Equal(t, libkb.LoginRequiredError{}, x, "round result")
+		require.Equal(t, libkb.DeviceRequiredError{}, x, "round result")
 	case <-time.After(5 * time.Second):
 		require.FailNow(t, "channel timed out")
 	}
@@ -324,9 +318,9 @@ func TestPerUserKeyBackgroundLoginLate(t *testing.T) {
 	tc.Tp.DisableUpgradePerUserKey = false
 
 	t.Logf("second run upgrades the user")
-	advance(arg.Settings.Interval + time.Second)
+	advance(PerUserKeyBackgroundSettings.Interval + time.Second)
 	expectMeta(t, metaCh, "woke-interval")
-	advance(arg.Settings.WakeUp + time.Second)
+	advance(PerUserKeyBackgroundSettings.WakeUp + time.Second)
 	expectMeta(t, metaCh, "woke-wakeup")
 	select {
 	case x := <-roundResCh:

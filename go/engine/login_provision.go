@@ -101,11 +101,9 @@ func (e *loginProvision) Run(ctx *Context) error {
 		}
 	}()
 
-	if e.G().Env.GetSupportPerUserKey() {
-		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
-		if err != nil {
-			return err
-		}
+	e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.arg.User.GetUID())
+	if err != nil {
+		return err
 	}
 
 	e.cleanupOnErr = true

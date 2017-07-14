@@ -520,20 +520,20 @@ export const TeamsTeamApplication = {
   saltpack: 3,
 }
 
+export const TeamsTeamInviteCategory = {
+  none: 0,
+  unknown: 1,
+  keybase: 2,
+  email: 3,
+  sbs: 4,
+}
+
 export const TeamsTeamRole = {
   none: 0,
   reader: 1,
   writer: 2,
   admin: 3,
   owner: 4,
-}
-
-export const TeamsTypeInviteCategory = {
-  none: 0,
-  unknown: 1,
-  keybase: 2,
-  email: 3,
-  sbs: 4,
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
@@ -560,6 +560,7 @@ export const UPKUPAKVersion = {
 export const UPKUPK2MinorVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const UiPromptDefault = {
@@ -3538,18 +3539,33 @@ export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: $Exact<requ
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamAddMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>) {
+export function teamsTeamAcceptInviteRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request)
+}
+
+export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
+}
+export function teamsTeamAcceptInviteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamAcceptInviteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamAddMemberRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
 }
 
-export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
+export function teamsTeamAddMemberRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddMember', request)
 }
-export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
+export function teamsTeamAddMemberRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAddMember', request, callback, incomingCallMap) })
 }
 
-export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAddMemberRpcParam}>): Promise<void> {
+export function teamsTeamAddMemberRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>): Promise<teamsTeamAddMemberResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddMember', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -5024,9 +5040,11 @@ export type NotifySessionLoggedInRpcParam = Exact<{
   username: string
 }>
 
-export type NotifyTeamTeamKeyRotatedRpcParam = Exact<{
+export type NotifyTeamTeamChangedRpcParam = Exact<{
   teamID: TeamID,
-  teamName: string
+  teamName: string,
+  latestSeqno: Seqno,
+  changes: TeamChangeSet
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -5166,6 +5184,7 @@ export type PerUserKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+  signedByKID: KID,
 }
 
 export type PerUserKeyBox = {
@@ -5899,6 +5918,13 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TeamAddMemberResult = {
+  invited: boolean,
+  user?: ?User,
+  emailSent: boolean,
+  chatSent: boolean,
+}
+
 export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
@@ -5922,9 +5948,25 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
+  completedInvites: {[key: string]: UID},
+}
+
+export type TeamChangeRow = {
+  id: TeamID,
+  name: string,
+  keyRotated: boolean,
+  membershipChanged: boolean,
+  latestSeqno: Seqno,
+}
+
+export type TeamChangeSet = {
+  membershipChanged: boolean,
+  keyRotated: boolean,
+  renamed: boolean,
 }
 
 export type TeamData = {
+  secretless: boolean,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
@@ -5945,6 +5987,13 @@ export type TeamInvite = {
   name: TeamInviteName,
 }
 
+export type TeamInviteCategory =
+    0 // NONE_0
+  | 1 // UNKNOWN_1
+  | 2 // KEYBASE_2
+  | 3 // EMAIL_3
+  | 4 // SBS_4
+
 export type TeamInviteID = string
 
 export type TeamInviteName = string
@@ -5955,6 +6004,13 @@ export type TeamInviteType =
     { c: 1, unknown: ?string }
   | { c: 4, sbs: ?TeamInviteSocialNetwork }
   | { c: any }
+
+export type TeamInvitee = {
+  inviteID: TeamInviteID,
+  uid: UID,
+  eldestSeqno: Seqno,
+  role: TeamRole,
+}
 
 export type TeamList = {
   uid: UID,
@@ -6007,6 +6063,7 @@ export type TeamPlusApplicationKeys = {
 export type TeamRefreshers = {
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
+  wantMembersRole: TeamRole,
 }
 
 export type TeamRole =
@@ -6015,6 +6072,12 @@ export type TeamRole =
   | 2 // WRITER_2
   | 3 // ADMIN_3
   | 4 // OWNER_4
+
+export type TeamSBSMsg = {
+  teamID: TeamID,
+  score: int,
+  invitees?: ?Array<TeamInvitee>,
+}
 
 export type TeamSigChainState = {
   reader: UserVersion,
@@ -6097,13 +6160,6 @@ export type Tracker = {
   mTime: Time,
 }
 
-export type TypeInviteCategory =
-    0 // NONE_0
-  | 1 // UNKNOWN_1
-  | 2 // KEYBASE_2
-  | 3 // EMAIL_3
-  | 4 // SBS_4
-
 export type UID = string
 
 export type UPAKVersion =
@@ -6117,6 +6173,7 @@ export type UPAKVersioned =
 export type UPK2MinorVersion =
     0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type UnboxAnyRes = {
   kid: KID,
@@ -7147,8 +7204,13 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   refreshers: TeamRefreshers
 }>
 
+export type teamsTeamAcceptInviteRpcParam = Exact<{
+  token: string
+}>
+
 export type teamsTeamAddMemberRpcParam = Exact<{
   name: string,
+  email: string,
   username: string,
   role: TeamRole,
   sendChatNotification: boolean
@@ -7430,6 +7492,7 @@ type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
+type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListResult = TeamList
 type testTestCallbackResult = string
@@ -7657,6 +7720,7 @@ export type rpc =
   | sigsSigListJSONRpc
   | sigsSigListRpc
   | teamsLoadTeamPlusApplicationKeysRpc
+  | teamsTeamAcceptInviteRpc
   | teamsTeamAddMemberRpc
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
@@ -8023,10 +8087,12 @@ export type incomingCallMapType = Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.NotifyTeam.teamKeyRotated'?: (
+  'keybase.1.NotifyTeam.teamChanged'?: (
     params: Exact<{
       teamID: TeamID,
-      teamName: string
+      teamName: string,
+      latestSeqno: Seqno,
+      changes: TeamChangeSet
     }>,
     response: CommonResponseHandler
   ) => void,

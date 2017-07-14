@@ -44,6 +44,14 @@ protocol gregor {
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
     }
+
+    record SetAppNotificationSettingsPayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+        ConversationNotificationInfo settings;
+    }
     
     record UnreadUpdate {
         ConversationID convID;
@@ -70,10 +78,10 @@ protocol gregor {
         ConversationID convID;
         boolean typing; 
     }
-   
+
     record UpdateConversationMembership {
         InboxVers inboxVers;
-        array<ConversationID> joined;
-        array<ConversationID> removed;
+        array<ConversationMember> joined;
+        array<ConversationMember> removed;
     }
 }

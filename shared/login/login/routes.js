@@ -16,7 +16,6 @@ import Feedback from '../../settings/feedback-container'
 const recursiveLazyRoutes = I.Seq({
   feedback: {
     component: Feedback,
-    tags: {hideStatusBar: true, fullscreen: true},
   },
   login: {
     component: Login,

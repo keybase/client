@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"errors"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -9,6 +10,8 @@ import (
 type nullTeamLoader struct {
 	Contextified
 }
+
+var _ TeamLoader = (*nullTeamLoader)(nil)
 
 func newNullTeamLoader(g *GlobalContext) *nullTeamLoader {
 	return &nullTeamLoader{NewContextified(g)}
@@ -29,6 +32,10 @@ func (n nullTeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, 
 // (this actually happens in the Resolver).
 func (n nullTeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
 	return keybase1.TeamName{}, nil
+}
+
+func (n nullTeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {
+	return nil
 }
 
 func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error) {

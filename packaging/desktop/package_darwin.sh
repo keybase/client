@@ -237,6 +237,7 @@ sign() {(
 # Create dmg from Keybase.app
 package_dmg() {(
   cd "$out_dir"
+  echo "Packaging dmg in $out_dir"
   appdmg="appdmg.json"
 
   osx_scripts="$client_dir/osx/Scripts"

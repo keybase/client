@@ -353,7 +353,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
 
-      if (!oldConversationState.get('moreToLoad')) {
+      if (oldConversationState.get('moreToLoad') === false) {
         console.log('Bailing on chat load more due to no more to load')
         return
       }
@@ -715,9 +715,16 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
-  // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
+    const inboxSearch = yield select(inboxSearchSelector)
+    if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+      // Ignore 'New Chat' attempts when we're already building a chat
+      return
+    }
     yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
+    for (const username of action.payload.existingParticipants) {
+      yield put(Creators.stageUserForSearch(username))
+    }
     yield put(Creators.selectConversation(null, false))
     yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
@@ -748,7 +755,8 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
   // Don't send sharing before signup values
   const metaData = yield select(Shared.metaDataSelector)
   const usernames = action.payload.users.filter(
-    name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1
+    name =>
+      metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1 && name.indexOf('#') === -1
   )
   if (!usernames.length) {
     return

@@ -4,7 +4,7 @@ import ConversationHeader from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
-import ConversationSidePanel from './conversation/side-panel'
+import ConversationInfoPanel from './conversation/info-panel'
 import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
@@ -334,7 +334,7 @@ const list = {
   },
 }
 
-const commonSidePanel = {
+const commonInfoPanel = {
   parentProps: {
     style: {
       width: 320,
@@ -351,14 +351,14 @@ const commonSidePanel = {
   ),
 }
 
-const sidePanel = {
-  component: ConversationSidePanel,
+const infoPanel = {
+  component: ConversationInfoPanel,
   mocks: {
     Normal: {
-      ...commonSidePanel,
+      ...commonInfoPanel,
     },
     Muted: {
-      ...commonSidePanel,
+      ...commonInfoPanel,
       muted: true,
     },
   },
@@ -529,7 +529,7 @@ export default {
   ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
-  ChatSidePanel: sidePanel,
+  ChatInfoPanel: infoPanel,
   ChatNoConversation: noConversationMap,
   YouRekey: youRekey,
 }

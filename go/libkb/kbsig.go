@@ -538,11 +538,12 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID, 
 	return ret, nil
 }
 
-func (u *User) CryptocurrencySig(key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
+func (u *User) CryptocurrencySig(key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID, merkleRoot *MerkleRoot) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeCryptocurrency,
 		SigningKey: key,
+		MerkleRoot: merkleRoot,
 	}.ToJSON(u.G())
 	if err != nil {
 		return nil, err
@@ -680,10 +681,11 @@ func PerUserKeyProofReverseSigned(me *User, perUserKeySeed PerUserKeySeed, gener
 	// Update the user locally
 	me.SigChainBump(linkID, sigID)
 	me.localDelegatePerUserKey(keybase1.PerUserKey{
-		Gen:    int(generation),
-		Seqno:  me.GetSigChainLastKnownSeqno(),
-		SigKID: pukSigKey.GetKID(),
-		EncKID: pukEncKey.GetKID(),
+		Gen:         int(generation),
+		Seqno:       me.GetSigChainLastKnownSeqno(),
+		SigKID:      pukSigKey.GetKID(),
+		EncKID:      pukEncKey.GetKID(),
+		SignedByKID: signer.GetKID(),
 	})
 
 	publicKeysEntry := make(JSONPayload)

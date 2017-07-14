@@ -102,6 +102,24 @@
     },
     {
       "type": "enum",
+      "name": "NotificationAppType",
+      "symbols": [
+        "DESKTOP_0",
+        "MOBILE_1"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "enum",
+      "name": "NotificationKind",
+      "symbols": [
+        "GENERIC_0",
+        "ATMENTION_1"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "enum",
       "name": "ConversationStatus",
       "symbols": [
         "UNFILED_0",
@@ -110,6 +128,20 @@
         "BLOCKED_3",
         "MUTED_4",
         "REPORTED_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
       ]
     },
     {
@@ -361,6 +393,35 @@
             "items": "gregor1.UID"
           },
           "name": "activeList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "allList"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationNotificationInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "channelWide"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "boolean",
+              "keys": "NotificationKind"
+            },
+            "keys": "NotificationAppType"
+          },
+          "name": "settings"
         }
       ]
     },
@@ -396,6 +457,13 @@
             "ConversationReaderInfo"
           ],
           "name": "readerInfo"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
         },
         {
           "type": {

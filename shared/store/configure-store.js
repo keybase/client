@@ -73,7 +73,7 @@ const errorCatching = store => next => action => {
       return
     }
     lastError = error
-    console.warn(`Caught a middleware exception ${error}`)
+    console.warn(`Caught a middleware exception ${error} ${error.stack}`)
 
     try {
       crashHandler(error) // don't let this thing crash us forever

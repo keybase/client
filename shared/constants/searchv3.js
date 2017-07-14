@@ -42,6 +42,7 @@ export type RowProps = {|
   showTrackerButton: boolean,
   onShowTracker: () => void,
   onClick: () => void,
+  onMouseOver?: () => void,
   selected: boolean,
 |}
 

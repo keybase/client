@@ -471,6 +471,19 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SetAppNotificationSettingsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -546,6 +559,13 @@
         {
           "name": "messageBoxed",
           "type": "MessageBoxed"
+        },
+        {
+          "name": "atMentions",
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          }
         }
       ],
       "response": "PostRemoteRes"
@@ -849,6 +869,19 @@
         }
       ],
       "response": "GetTLFConversationsRes"
+    },
+    "setAppNotificationSettings": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "settings",
+          "type": "ConversationNotificationInfo"
+        }
+      ],
+      "response": "SetAppNotificationSettingsRes"
     }
   },
   "namespace": "chat.1"

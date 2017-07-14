@@ -32,7 +32,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -183,6 +183,10 @@ func (f failingRemote) SetConversationStatus(context.Context, chat1.SetConversat
 	require.Fail(f.t, "SetConversationStatus call")
 	return chat1.SetConversationStatusRes{}, nil
 }
+func (f failingRemote) SetAppNotificationSettings(context.Context, chat1.SetAppNotificationSettingsArg) (chat1.SetAppNotificationSettingsRes, error) {
+	require.Fail(f.t, "SetAppNotificationSettings call")
+	return chat1.SetAppNotificationSettingsRes{}, nil
+}
 func (f failingRemote) GetUnreadUpdateFull(context.Context, chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 
 	require.Fail(f.t, "GetUnreadUpdateFull call")
@@ -332,6 +336,10 @@ func (f failingUpak) LookupUsername(ctx context.Context, uid keybase1.UID) (libk
 	require.Fail(f.t, "LookupUsername call")
 	return "", nil
 }
+func (f failingUpak) LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error) {
+	require.Fail(f.t, "LookupUID call")
+	return keybase1.UID(""), nil
+}
 func (f failingUpak) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
 	require.Fail(f.t, "LookupUsernameAndDevice call")
 	return "", "", "", nil
@@ -361,7 +369,7 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -474,7 +482,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		msg, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
 

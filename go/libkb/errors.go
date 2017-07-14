@@ -1494,9 +1494,18 @@ func (e UnmetAssertionError) Error() string {
 
 //=============================================================================
 
+type ResolutionErrorKind int
+
+const (
+	ResolutionErrorGeneral ResolutionErrorKind = iota
+	ResolutionErrorNotFound
+	ResolutionErrorAmbiguous
+)
+
 type ResolutionError struct {
 	Input string
 	Msg   string
+	Kind  ResolutionErrorKind
 }
 
 func (e ResolutionError) Error() string {
@@ -1995,4 +2004,12 @@ func (e AccountResetError) Error() string {
 		return fmt.Sprintf("Account reset, and not reestablished (for user %s)", e.expected.String())
 	}
 	return fmt.Sprintf("Account reset, reestablished at %d (for user %s)", e.received, e.expected.String())
+}
+
+type BadSessionError struct {
+	Desc string
+}
+
+func (e BadSessionError) Error() string {
+	return fmt.Sprintf("bad session: %s", e.Desc)
 }

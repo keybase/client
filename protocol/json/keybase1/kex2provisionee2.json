@@ -23,13 +23,6 @@
     },
     {
       "type": "record",
-      "name": "PerUserKeyGeneration",
-      "fields": [],
-      "typedef": "int",
-      "lint": "ignore"
-    },
-    {
-      "type": "record",
       "name": "PerUserKeyBox",
       "fields": [
         {
