@@ -385,6 +385,7 @@ export const StateRecord: KBRecord<T> = Record({
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
+  searchResultTerm: '',
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -417,6 +418,7 @@ export type State = KBRecord<{
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
+  searchResultTerm: string,
 }>
 
 export const maxAttachmentPreviewSize = 320
