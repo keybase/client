@@ -397,7 +397,7 @@ func (md *BareRootMetadataV3) isNonTeamWriter(
 		}
 		return wkb.IsWriter(user, cryptKey), nil
 	default:
-		panic(fmt.Sprintf("Unknown TLF type: %s", md.TlfID().Type()))
+		return false, errors.Errorf("Unknown TLF type: %s", md.TlfID().Type())
 	}
 }
 

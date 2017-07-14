@@ -1910,7 +1910,7 @@ type BareRootMetadata interface {
 		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
 	// IsReader returns whether or not the user+device is an authorized reader.
 	IsReader(ctx context.Context, user keybase1.UID,
-		deviceKey kbfscrypto.CryptPublicKey,
+		cryptKey kbfscrypto.CryptPublicKey,
 		teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error)
 	// DeepCopy returns a deep copy of the underlying data structure.
 	DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error)

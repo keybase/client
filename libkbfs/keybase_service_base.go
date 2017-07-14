@@ -445,16 +445,20 @@ func (k *KeybaseServiceBase) LoadUserPlusKeys(ctx context.Context,
 	return k.processUserPlusKeys(res)
 }
 
+var allowedLoadTeamRoles = map[keybase1.TeamRole]bool{
+	keybase1.TeamRole_NONE:   true,
+	keybase1.TeamRole_WRITER: true,
+	keybase1.TeamRole_READER: true,
+}
+
 // LoadTeamPlusKeys implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	ctx context.Context, tid keybase1.TeamID, desiredKeyGen KeyGen,
 	desiredUser keybase1.UserVersion, desiredRole keybase1.TeamRole) (
 	TeamInfo, error) {
-	if desiredRole != keybase1.TeamRole_NONE &&
-		desiredRole != keybase1.TeamRole_WRITER &&
-		desiredRole != keybase1.TeamRole_READER {
-		panic("KBFS shouldn't care about non-writer/reader roles")
+	if !allowedLoadTeamRoles[desiredRole] {
+		panic(fmt.Sprintf("Disallowed team role: %v", desiredRole))
 	}
 
 	cachedTeamInfo := k.getCachedTeamInfo(tid)
@@ -463,6 +467,9 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 		// use it.
 		satisfiesDesires := true
 		if desiredKeyGen >= FirstValidKeyGen {
+			// If `desiredKeyGen` is at most as large as the keygen in
+			// the cached latest team info, then our cached info
+			// satisfies our desires.
 			satisfiesDesires = desiredKeyGen <= cachedTeamInfo.LatestKeyGen
 		}
 
