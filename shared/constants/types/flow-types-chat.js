@@ -195,6 +195,12 @@ export const NotifyChatChatActivityType = {
   setAppNotificationSettings: 7,
 }
 
+export const RemoteChannelMention = {
+  none: 0,
+  all: 1,
+  here: 2,
+}
+
 export const RemoteMessageBoxedVersion = {
   vnone: 0,
   v1: 1,
@@ -1118,6 +1124,11 @@ export type BodyPlaintextVersion =
   | 8 // V8_8
   | 9 // V9_9
   | 10 // V10_10
+
+export type ChannelMention =
+    0 // NONE_0
+  | 1 // ALL_1
+  | 2 // HERE_2
 
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
@@ -2410,7 +2421,8 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed,
-  atMentions?: ?Array<gregor1.UID>
+  atMentions?: ?Array<gregor1.UID>,
+  channelMention: ChannelMention
 }>
 
 export type remotePublishReadMessageRpcParam = Exact<{

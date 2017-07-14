@@ -15,7 +15,7 @@ import (
 )
 
 func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
-	ri chat1.RemoteInterface, sender Sender, tlfName string) chat1.Conversation {
+	ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
 	trip := newConvTriple(ctx, t, tc, tlfName)
 	firstMessagePlaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
@@ -26,7 +26,7 @@ func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -51,7 +51,7 @@ func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 }
 
 func newConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, uid gregor1.UID,
-	ri chat1.RemoteInterface, sender Sender, tlfName string) chat1.Conversation {
+	ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, tlfName)
 	_, _, _, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{

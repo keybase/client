@@ -345,15 +345,19 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
 		case chat1.MessageType_TEXT:
-			atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
-				g.G().GetUPAKLoader(), &g.DebugLabeler)
+			atMentions, chanMention := utils.ParseAtMentionedUIDs(ctx,
+				msg.Valid().MessageBody.Text().Body, g.G().GetUPAKLoader(), &g.DebugLabeler)
 			for _, at := range atMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
 					break
 				}
 			}
-			return conv.Notifications.Settings[apptype][kind]
+			notifyFromChanMention := false
+			if chanMention == chat1.ChannelMention_HERE || chanMention == chat1.ChannelMention_ALL {
+				notifyFromChanMention = conv.Notifications.ChannelWide
+			}
+			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
 		case chat1.MessageType_ATTACHMENT:
 			return conv.Notifications.Settings[apptype][kind]
 		default:

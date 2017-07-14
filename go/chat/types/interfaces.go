@@ -56,6 +56,12 @@ type MessageDeliverer interface {
 	ForceDeliverLoop(ctx context.Context)
 }
 
+type Sender interface {
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
+	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
+		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error)
+}
+
 type ChatLocalizer interface {
 	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
 	Name() string
