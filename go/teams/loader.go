@@ -233,7 +233,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
 		// Check that we are the same person as when this team was last loaded as a courtesy.
 		// This should never happen. We shouldn't be able to decrypt someone else's snapshot.
-		l.G().Log.CWarningf(ctx, "team loader got someone else's snapshot, discarding.")
+		l.G().Log.CWarningf(ctx, "team loader discarding snapshot for wrong user: (%v, %v) != (%v, %v)",
+			arg.me.Uid, arg.me.EldestSeqno, ret.Chain.Reader.Uid, ret.Chain.Reader.EldestSeqno)
 		ret = nil
 	}
 
@@ -697,12 +698,18 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 
 	var ancestorIDs []keybase1.TeamID
 
+	me, err := l.getMe(ctx)
+	if err != nil {
+		return err
+	}
+
 	loopID := &id
 	if loopID != nil {
 		team, err := l.load2(ctx, load2ArgT{
 			teamID:        *loopID,
 			forceRepoll:   true,
 			readSubteamID: &id,
+			me:            me,
 		})
 		if err != nil {
 			return err
@@ -723,6 +730,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 		_, err := l.load2(ctx, load2ArgT{
 			teamID:        loopID,
 			readSubteamID: &id,
+			me:            me,
 		})
 		if err != nil {
 			return err

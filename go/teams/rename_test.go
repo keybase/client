@@ -26,8 +26,10 @@ func TestRenameSimple(t *testing.T) {
 	require.NoError(t, err)
 	subteamName, err := parentTeamName.Append(subteamBasename)
 	require.NoError(t, err)
+	desiredName, err := parentTeamName.Append("bb2")
+	require.NoError(t, err)
 
-	err = RenameSubteam(context.TODO(), tc.G, subteamName, "bb2")
+	err = RenameSubteam(context.TODO(), tc.G, subteamName, desiredName)
 	require.NoError(t, err)
 
 	t.Logf("load the renamed team")

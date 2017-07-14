@@ -18,6 +18,14 @@ func ParseOneTeamName(ctx *cli.Context) (string, error) {
 	return ctx.Args()[0], nil
 }
 
+func ParseOneTeamNameK1(ctx *cli.Context) (res keybase1.TeamName, err error) {
+	teamNameStr, err := ParseOneTeamName(ctx)
+	if err != nil {
+		return res, err
+	}
+	return keybase1.TeamNameFromString(teamNameStr)
+}
+
 func ParseUser(ctx *cli.Context) (string, error) {
 	username := ctx.String("user")
 	if len(username) == 0 {
