@@ -134,6 +134,7 @@ class Conversation extends Component<void, Props, State> {
               ? <SearchResultsList
                   items={this.props.searchResultIds}
                   onClick={this.props.onClickSearchResult}
+                  onMouseOver={this.props.onMouseOverSearchResult}
                   onShowTracker={this.props.onShowTrackerInSearch}
                   selectedId={this.props.selectedSearchId}
                   showSearchSuggestions={this.props.showSearchSuggestions}

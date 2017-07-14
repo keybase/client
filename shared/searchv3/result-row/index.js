@@ -103,33 +103,32 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Constants.RowProps) => {
-  return (
-    <ClickableBox
-      style={_clickableBoxStyle[(!!props.selected).toString()]}
-      underlayColor={globalColors.blue4}
-      onClick={props.onClick}
-    >
-      <Box style={_rowStyle}>
-        <Left
-          leftFollowingState={props.leftFollowingState}
-          leftIcon={props.leftIcon}
-          leftService={props.leftService}
-          leftUsername={props.leftUsername}
-        />
-        <Middle
-          rightFollowingState={props.rightFollowingState}
-          rightFullname={props.rightFullname}
-          rightIcon={props.rightIcon}
-          rightService={props.rightService}
-          rightUsername={props.rightUsername}
-        />
-        <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
-        <Line />
-      </Box>
-    </ClickableBox>
-  )
-}
+const SearchResultRow = (props: Constants.RowProps) => (
+  <ClickableBox
+    style={_clickableBoxStyle[(!!props.selected).toString()]}
+    underlayColor={globalColors.blue4}
+    onClick={props.onClick}
+    onMouseOver={props.onMouseOver}
+  >
+    <Box style={_rowStyle}>
+      <Left
+        leftFollowingState={props.leftFollowingState}
+        leftIcon={props.leftIcon}
+        leftService={props.leftService}
+        leftUsername={props.leftUsername}
+      />
+      <Middle
+        rightFollowingState={props.rightFollowingState}
+        rightFullname={props.rightFullname}
+        rightIcon={props.rightIcon}
+        rightService={props.rightService}
+        rightUsername={props.rightUsername}
+      />
+      <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+      <Line />
+    </Box>
+  </ClickableBox>
+)
 
 const _clickableBoxStyleCommon = {
   ...globalStyles.flexBoxRow,
