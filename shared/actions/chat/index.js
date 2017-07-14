@@ -890,10 +890,10 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const conversations = action.payload
   let conversationsWithKeys = {}
   conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
+    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
   })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('UnreadMessages')
+    const count = conv.get('unreadMessages')
     if (!count) {
       return map
     } else {

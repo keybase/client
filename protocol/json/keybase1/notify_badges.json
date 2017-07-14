@@ -60,8 +60,8 @@
           "name": "badgeCounts"
         },
         {
-          "type": "boolean",
-          "name": "hasUnreadMessages"
+          "type": "int",
+          "name": "unreadMessages"
         }
       ]
     }

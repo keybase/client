@@ -45,9 +45,9 @@ func (o BadgeState) DeepCopy() BadgeState {
 }
 
 type BadgeConversationInfo struct {
-	ConvID            ChatConversationID `codec:"convID" json:"convID"`
-	BadgeCounts       map[DeviceType]int `codec:"badgeCounts" json:"badgeCounts"`
-	HasUnreadMessages bool               `codec:"hasUnreadMessages" json:"hasUnreadMessages"`
+	ConvID         ChatConversationID `codec:"convID" json:"convID"`
+	BadgeCounts    map[DeviceType]int `codec:"badgeCounts" json:"badgeCounts"`
+	UnreadMessages int                `codec:"unreadMessages" json:"unreadMessages"`
 }
 
 func (o BadgeConversationInfo) DeepCopy() BadgeConversationInfo {
@@ -62,7 +62,7 @@ func (o BadgeConversationInfo) DeepCopy() BadgeConversationInfo {
 			}
 			return ret
 		})(o.BadgeCounts),
-		HasUnreadMessages: o.HasUnreadMessages,
+		UnreadMessages: o.UnreadMessages,
 	}
 }
 

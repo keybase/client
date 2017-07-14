@@ -17,7 +17,7 @@ protocol NotifyBadges {
   record BadgeConversationInfo {
     ChatConversationID convID;
     map<DeviceType, int> badgeCounts;
-    boolean hasUnreadMessages;
+    int unreadMessages;
   }
 
   @notify("")

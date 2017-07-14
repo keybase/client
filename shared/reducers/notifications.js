@@ -25,18 +25,23 @@ export default function(state: Constants.State = initialState, action: Constants
     case 'notifications:receivedBadgeState': {
       const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
 
+      // Compute badge counts for desktop and mobile, and store
+      const computeBadgeCount = typ => {
+        return (conversations || [])
+          .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${typ}`] : total), 0)
+      }
+      const totalMessagesDesktop = computeBadgeCount(RPCTypes.CommonDeviceType.desktop)
+      const totalMessagesMobile = computeBadgeCount(RPCTypes.CommonDeviceType.mobile)
+
       const navBadges = state.get('navBadges').withMutations(n => {
-        const totalMessages = (conversations || []).reduce((total, c) => c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.CommonDeviceType.desktop}`] : total, 0)
-        console.log("TOTAL: " + totalMessages)
-        n.set(chatTab, totalMessages)
+        n.set(chatTab, totalMessagesDesktop)
         n.set(folderTab, newTlfs + rekeysNeeded)
       })
-
       // $FlowIssue withMutations
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
         s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
-        s.set('mobileAppBadgeCount', navBadges.get(chatTab, 0))
+        s.set('mobileAppBadgeCount', totalMessagesMobile)
       })
 
       newState = _updateWidgetBadge(newState)

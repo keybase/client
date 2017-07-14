@@ -262,12 +262,12 @@ export type ConversationState = KBRecord<{
 
 export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
-  UnreadMessages: number,
+  unreadMessages: number,
 }>
 
 export const ConversationBadgeStateRecord = Record({
   convID: undefined,
-  UnreadMessages: 0,
+  unreadMessages: 0,
 })
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>

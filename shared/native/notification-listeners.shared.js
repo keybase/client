@@ -3,6 +3,7 @@ import {receivedBadgeState} from '../actions/notifications'
 import {bootstrap, updateFollowing} from '../actions/config'
 import {logoutDone} from '../actions/login/creators'
 import throttle from 'lodash/throttle'
+import * as RPCTypes from '../constants/types/flow-types'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -26,7 +27,14 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
 
       lastBadgeStateVersion = badgeState.inboxVers
 
-      const totalChats = (badgeState.conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
+      const conversations = badgeState.conversations
+      const computeBadgeCount = typ => {
+        return (conversations || [])
+          .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${typ}`] : total), 0)
+      }
+      const totalMessagesDesktop = computeBadgeCount(RPCTypes.CommonDeviceType.desktop)
+      const totalMessagesMobile = computeBadgeCount(RPCTypes.CommonDeviceType.mobile)
+      const totalChats = totalMessagesDesktop + totalMessagesMobile
 
       const action = receivedBadgeState(badgeState)
       if (totalChats > 0) {
