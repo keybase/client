@@ -91,7 +91,7 @@
     "react": "16.0.0-alpha.12",
     "react-dom": "16.0.0-alpha.12",
     "react-list": "0.8.6",
-    "react-native": "0.46.1",
+    "react-native": "0.46.2",
     "react-native-camera": "lwansbrough/react-native-camera#885cdf41b7674d76eb9eaf971c0700eb9f585bed",
     "react-native-fetch-blob": "0.10.5",
     "react-native-image-picker": "0.26.3",

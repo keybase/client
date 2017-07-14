@@ -168,6 +168,7 @@ class UserInput extends Component<void, Props, State> {
               value={usernameText}
               onChangeText={onChangeText}
               onSubmitEditing={onAddSelectedUser}
+              underlineColorAndroid="transparent"
               returnKeyType="next"
             />
             {showAddButton &&
