@@ -279,13 +279,26 @@ func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error
 		uids = append(uids, member.version.Uid)
 	}
 
-	for _, member := range ms.nonAdmins() {
-		admin, err := t.isAdminOrOwner(member.version)
+	appendIfDowngrade := func(member *member, newRole keybase1.TeamRole) (err error) {
+		role, err := t.chain().GetUserRole(member.version)
 		if err != nil {
+			return err
+		}
+		if role > newRole {
+			uids = append(uids, member.version.Uid)
+		}
+		return nil
+	}
+
+	for _, member := range ms.Readers {
+		if err := appendIfDowngrade(&member, keybase1.TeamRole_READER); err != nil {
 			return nil, err
 		}
-		if admin {
-			uids = append(uids, member.version.Uid)
+	}
+
+	for _, member := range ms.Writers {
+		if err := appendIfDowngrade(&member, keybase1.TeamRole_WRITER); err != nil {
+			return nil, err
 		}
 	}
 
