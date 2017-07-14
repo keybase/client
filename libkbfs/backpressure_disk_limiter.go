@@ -120,7 +120,7 @@ func (bt backpressureTracker) usedFrac() float64 {
 	return float64(bt.used) / bt.currLimit()
 }
 
-func (bt backpressureTracker) usedBytes() int64 {
+func (bt backpressureTracker) usedResources() int64 {
 	return bt.used
 }
 
@@ -898,9 +898,9 @@ func (bdl *backpressureDiskLimiter) getDelayLocked(
 func (bdl *backpressureDiskLimiter) reserveError(err error) (
 	availableBytes, availableFiles int64, _ error) {
 	bdl.lock.RLock()
+	defer bdl.lock.RUnlock()
 	availableBytes, availableFiles =
 		bdl.journalTracker.getSemaphoreCounts()
-	bdl.lock.RUnlock()
 	return availableBytes, availableFiles, err
 }
 
@@ -1041,7 +1041,7 @@ func (bdl *backpressureDiskLimiter) reserveBytes(
 	// We calculate the total free bytes by adding the reported free bytes and
 	// the non-`tracker` used bytes.
 	tracker.updateFree(freeBytes + bdl.overallByteTracker.used -
-		tracker.usedBytes())
+		tracker.usedResources())
 
 	count = tracker.tryReserve(blockBytes)
 	if count < 0 {

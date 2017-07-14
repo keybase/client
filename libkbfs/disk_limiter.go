@@ -30,7 +30,7 @@ type simpleResourceTracker interface {
 	onEnable(usedResources int64) int64
 	onDisable(usedResources int64)
 	updateFree(freeResources int64)
-	usedBytes() int64
+	usedResources() int64
 	reserve(ctx context.Context, resources int64) (available int64, err error)
 	tryReserve(resources int64) (available int64)
 	commit(resources int64)
