@@ -6,9 +6,9 @@ import {
   Text,
   Button,
   FormWithCheckbox,
-  Dropdown,
   NativeScrollView,
 } from '../../common-adapters/index.native'
+import Dropdown from './dropdown'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 import type {Props} from '.'

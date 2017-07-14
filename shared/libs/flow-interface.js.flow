@@ -36,9 +36,6 @@ declare module 'marked' {
 declare module 'material-ui' {
   declare var exports: any
 }
-declare module 'material-ui/Popover' {
-  declare var exports: any
-}
 declare module 'material-ui/styles' {
   declare var exports: any
 }
