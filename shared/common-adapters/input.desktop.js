@@ -42,10 +42,6 @@ class Input extends Component<void, Props, State> {
     }
   }
 
-  componentDidUpdate() {
-    this._autoResize()
-  }
-
   getValue(): string {
     return this.state.value || ''
   }
