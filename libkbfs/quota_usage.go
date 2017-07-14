@@ -118,7 +118,7 @@ func (q *EventuallyConsistentQuotaUsage) Get(
 	}()
 	past := q.config.Clock().Now().Sub(c.timestamp)
 	switch {
-	case past > blockTolerance:
+	case past > blockTolerance || c.timestamp.IsZero():
 		q.log.CDebugf(ctx, "Blocking on getAndCache. Cached data is %s old.", past)
 		// TODO: optimize this to make sure there's only one outstanding RPC. In
 		// other words, wait for it to finish if one is already in progress.
