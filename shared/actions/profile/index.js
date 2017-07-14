@@ -23,6 +23,7 @@ import * as Selectors from '../../constants/selectors'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -67,7 +68,10 @@ function onUserClick(username: string): Constants.OnUserClick {
 }
 
 function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
-  const {username} = action.payload
+  const {username: userId} = action.payload
+  const searchResultMap = yield select(Selectors.searchResultMapSelector)
+  const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+
   if (!username.includes('@')) {
     yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
