@@ -23,7 +23,7 @@ func newCmdTeamAcceptInvite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		ArgumentHelp: "<team name> --token=<invite token>",
 		Usage:        "accept a team email invitation",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdTeamAddMemberRunner(g)
+			cmd := NewCmdTeamAcceptInviteRunner(g)
 			cl.ChooseCommand(cmd, "accept-invite", c)
 		},
 		Flags: []cli.Flag{
