@@ -832,6 +832,20 @@
           "name": "chatSent"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamJoinRequest",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1017,6 +1031,48 @@
         },
         {
           "name": "token",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamListRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamJoinRequest"
+      }
+    },
+    "teamIgnoreRequest": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
           "type": "string"
         }
       ],

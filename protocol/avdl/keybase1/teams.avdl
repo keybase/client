@@ -330,6 +330,11 @@ protocol teams {
     boolean chatSent;
   }
 
+  record TeamJoinRequest {
+    string name;
+    string username;
+  }
+
   void teamCreate(int sessionID, TeamName name);
   void teamCreateSubteam(int sessionID, TeamName name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
@@ -341,6 +346,9 @@ protocol teams {
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
   void teamAcceptInvite(int sessionID, string token);
+  void teamRequestAccess(int sessionID, string name); 
+  array<TeamJoinRequest> teamListRequests(int sessionID);
+  void teamIgnoreRequest(int sessionID, string name, string username);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
