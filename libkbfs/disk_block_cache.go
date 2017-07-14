@@ -65,15 +65,15 @@ type DiskBlockCacheStandard struct {
 	tlfSizes  map[tlf.ID]uint64
 	currBytes uint64
 	// Track the cache hit rate and eviction rate
-	hitMeter         metrics.Meter
-	missMeter        metrics.Meter
-	putMeter         metrics.Meter
-	updateMeter      metrics.Meter
-	evictCountMeter  metrics.Meter
-	evictSizeMeter   metrics.Meter
-	deleteCountMeter metrics.Meter
-	deleteSizeMeter  metrics.Meter
-	// This protects the disk caches from being shutdown while they're being
+	hitMeter         *CountMeter
+	missMeter        *CountMeter
+	putMeter         *CountMeter
+	updateMeter      *CountMeter
+	evictCountMeter  *CountMeter
+	evictSizeMeter   *CountMeter
+	deleteCountMeter *CountMeter
+	deleteSizeMeter  *CountMeter
+	// Protect the disk caches from being shutdown while they're being
 	// accessed.
 	lock    sync.RWMutex
 	blockDb *leveldb.DB
@@ -92,15 +92,16 @@ type MeterStatus struct {
 	Minutes1  float64
 	Minutes5  float64
 	Minutes15 float64
-	Mean      float64
+	Count     int64
 }
 
 func rateMeterToStatus(m metrics.Meter) MeterStatus {
+	s := m.Snapshot()
 	return MeterStatus{
-		m.Rate1(),
-		m.Rate5(),
-		m.Rate15(),
-		m.RateMean(),
+		s.Rate1(),
+		s.Rate5(),
+		s.Rate15(),
+		s.Count(),
 	}
 }
 
@@ -192,14 +193,14 @@ func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
 		maxBlockID:       maxBlockID.Bytes(),
 		tlfCounts:        map[tlf.ID]int{},
 		tlfSizes:         map[tlf.ID]uint64{},
-		hitMeter:         metrics.NewMeter(),
-		missMeter:        metrics.NewMeter(),
-		putMeter:         metrics.NewMeter(),
-		updateMeter:      metrics.NewMeter(),
-		evictCountMeter:  metrics.NewMeter(),
-		evictSizeMeter:   metrics.NewMeter(),
-		deleteCountMeter: metrics.NewMeter(),
-		deleteSizeMeter:  metrics.NewMeter(),
+		hitMeter:         NewCountMeter(),
+		missMeter:        NewCountMeter(),
+		putMeter:         NewCountMeter(),
+		updateMeter:      NewCountMeter(),
+		evictCountMeter:  NewCountMeter(),
+		evictSizeMeter:   NewCountMeter(),
+		deleteCountMeter: NewCountMeter(),
+		deleteSizeMeter:  NewCountMeter(),
 		log:              log,
 		blockDb:          blockDb,
 		metaDb:           metaDb,
@@ -968,4 +969,12 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	cache.tlfDb = nil
 	cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
 		workingSetCacheLimitTrackerType, int64(cache.currBytes))
+	cache.hitMeter.Shutdown()
+	cache.missMeter.Shutdown()
+	cache.putMeter.Shutdown()
+	cache.updateMeter.Shutdown()
+	cache.evictCountMeter.Shutdown()
+	cache.evictSizeMeter.Shutdown()
+	cache.deleteCountMeter.Shutdown()
+	cache.deleteSizeMeter.Shutdown()
 }
