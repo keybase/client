@@ -117,22 +117,22 @@ func (sdl semaphoreDiskLimiter) onJournalDisable(
 	sdl.quotaTracker.onJournalDisable(journalUnflushedBytes)
 }
 
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheEnable(
-	ctx context.Context, diskCacheBytes int64) {
+func (sdl semaphoreDiskLimiter) onSimpleByteTrackerEnable(
+	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.ForceAcquire(diskCacheBytes)
 	}
 }
 
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheDisable(
-	ctx context.Context, diskCacheBytes int64) {
+func (sdl semaphoreDiskLimiter) onSimpleByteTrackerDisable(
+	ctx context.Context, typ diskLimitTrackerType, diskCacheBytes int64) {
 	if diskCacheBytes != 0 {
 		sdl.byteSemaphore.Release(diskCacheBytes)
 	}
 }
 
-func (sdl semaphoreDiskLimiter) beforeBlockPut(
-	ctx context.Context, blockBytes, blockFiles int64,
+func (sdl semaphoreDiskLimiter) reserveWithBackpressure(
+	ctx context.Context, typ diskLimitTrackerType, blockBytes, blockFiles int64,
 	_ keybase1.UserOrTeamID) (availableBytes, availableFiles int64, err error) {
 	// Better to return an error than to panic in Acquire.
 	if blockBytes == 0 {
@@ -159,8 +159,8 @@ func (sdl semaphoreDiskLimiter) beforeBlockPut(
 	return availableBytes, availableFiles, err
 }
 
-func (sdl semaphoreDiskLimiter) afterBlockPut(
-	ctx context.Context, blockBytes, blockFiles int64, putData bool,
+func (sdl semaphoreDiskLimiter) commitOrRollback(ctx context.Context,
+	typ diskLimitTrackerType, blockBytes, blockFiles int64, putData bool,
 	_ keybase1.UserOrTeamID) {
 	if !putData {
 		sdl.byteSemaphore.Release(blockBytes)
@@ -174,8 +174,8 @@ func (sdl semaphoreDiskLimiter) onBlocksFlush(
 	sdl.quotaTracker.onBlocksFlush(blockBytes)
 }
 
-func (sdl semaphoreDiskLimiter) onBlocksDelete(
-	ctx context.Context, blockBytes, blockFiles int64) {
+func (sdl semaphoreDiskLimiter) release(ctx context.Context,
+	typ diskLimitTrackerType, blockBytes, blockFiles int64) {
 	if blockBytes != 0 {
 		sdl.byteSemaphore.Release(blockBytes)
 	}
@@ -184,13 +184,9 @@ func (sdl semaphoreDiskLimiter) onBlocksDelete(
 	}
 }
 
-func (sdl semaphoreDiskLimiter) onDiskBlockCacheDelete(ctx context.Context,
-	blockBytes int64) {
-	sdl.onBlocksDelete(ctx, blockBytes, 0)
-}
-
-func (sdl semaphoreDiskLimiter) beforeDiskBlockCachePut(ctx context.Context,
-	blockBytes int64) (availableBytes int64, err error) {
+func (sdl semaphoreDiskLimiter) reserveBytes(ctx context.Context,
+	typ diskLimitTrackerType, blockBytes int64) (availableBytes int64,
+	err error) {
 	if blockBytes == 0 {
 		return 0, errors.New("semaphoreDiskLimiter.beforeDiskBlockCachePut" +
 			" called with 0 blockBytes")

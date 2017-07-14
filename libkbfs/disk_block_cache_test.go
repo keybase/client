@@ -462,7 +462,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 
 	t.Log("Add a round of blocks to the cache. Verify that blocks were" +
 		" evicted each time we went past the limit.")
-	start := numBlocks - int(defaultNumBlocksToEvict)
+	start := numBlocks - defaultNumBlocksToEvict
 	for i := 1; i <= numBlocks; i++ {
 		blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 			t, config)
@@ -470,7 +470,7 @@ func TestDiskBlockCacheDynamicLimit(t *testing.T) {
 			ctx, tlf.FakeID(10, tlf.Private), blockPtr.ID, blockEncoded,
 			serverHalf)
 		require.NoError(t, err)
-		require.Equal(t, start+(i%int(defaultNumBlocksToEvict)), cache.numBlocks)
+		require.Equal(t, start+(i%defaultNumBlocksToEvict), cache.numBlocks)
 	}
 
 	require.True(t, int64(cache.currBytes) < currBytes)

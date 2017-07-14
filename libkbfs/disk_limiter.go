@@ -1,37 +1,58 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
-type diskBlockCacheLimiter interface {
-	// onDiskBlockCacheDelete is called by the disk block cache after deleting
-	// blocks from the cache.
-	onDiskBlockCacheDelete(ctx context.Context, blockBytes int64)
+type diskLimitTrackerType int
 
-	// beforeDiskBlockCachePut is called by the disk block cache before putting
-	// a block into the cache. It returns the total number of available bytes.
-	beforeDiskBlockCachePut(ctx context.Context, blockBytes int64) (
-		availableBytes int64, err error)
+type unknownTrackerTypeError struct {
+	typ diskLimitTrackerType
+}
 
-	// afterDiskBlockCachePut is called by the disk block cache after putting
-	// a block into the cache. It returns how many bytes it acquired.
-	afterDiskBlockCachePut(ctx context.Context, blockBytes int64,
-		putData bool)
+func (e unknownTrackerTypeError) Error() string {
+	return fmt.Sprintf("Unknown tracker type: %d", e.typ)
+}
 
-	// onDiskBlockCacheEnable is called when the disk block cache is enabled to
-	// begin accounting for its blocks.
-	onDiskBlockCacheEnable(ctx context.Context, cacheBytes int64)
+const (
+	unknownLimitTrackerType diskLimitTrackerType = iota
+	journalLimitTrackerType
+	workingSetCacheLimitTrackerType
+	syncCacheLimitTrackerType
+)
 
-	// onDiskBlockCacheDisable is called when the disk block cache is disabled to
-	// stop accounting for its blocks.
-	onDiskBlockCacheDisable(ctx context.Context, cacheBytes int64)
+// simpleResourceTracker is an interface for limiting a single resource type.
+// It is mostly used to limit bytes.
+type simpleResourceTracker interface {
+	onEnable(usedResources int64) int64
+	onDisable(usedResources int64)
+	updateFree(freeResources int64)
+	usedResources() int64
+	reserve(ctx context.Context, resources int64) (available int64, err error)
+	tryReserve(resources int64) (available int64)
+	commit(resources int64)
+	rollback(resources int64)
+	commitOrRollback(resources int64, shouldCommit bool)
+	release(resources int64)
 }
 
 // DiskLimiter is an interface for limiting disk usage.
 type DiskLimiter interface {
-	diskBlockCacheLimiter
+	// onSimpleByteTrackerEnable is called when a byte tracker is enabled to
+	// begin accounting. This should be called by consumers of disk space that
+	// only track bytes (i.e. not the journal tracker).
+	onSimpleByteTrackerEnable(ctx context.Context, typ diskLimitTrackerType,
+		cacheBytes int64)
+
+	// onSimpleByteTrackerDisable is called when a byte tracker is disabled to
+	// stop accounting. This should be called by consumers of disk space that
+	// only track bytes (i.e. not the journal tracker).
+	onSimpleByteTrackerDisable(ctx context.Context, typ diskLimitTrackerType,
+		cacheBytes int64)
+
 	// onJournalEnable is called when initializing a TLF journal
 	// with that journal's current disk usage. Both journalBytes
 	// and journalFiles must be >= 0. The updated available byte
@@ -48,24 +69,37 @@ type DiskLimiter interface {
 		journalStoredBytes, journalUnflushedBytes, journalFiles int64,
 		chargedTo keybase1.UserOrTeamID)
 
-	// beforeBlockPut is called before putting a block of the
-	// given byte and file count, both of which must be > 0. It
-	// may block, but must return immediately with a
-	// (possibly-wrapped) ctx.Err() if ctx is cancelled. The
-	// updated available byte and file count must be returned,
+	// reserveWithBackpressure is called before using disk storage of the given
+	// byte and file count, both of which must be > 0. It may block, but must
+	// return immediately with a (possibly-wrapped) ctx.Err() if ctx is
+	// cancelled. The updated available byte and file count must be returned,
 	// even if err is non-nil.
-	beforeBlockPut(ctx context.Context,
+	reserveWithBackpressure(ctx context.Context, typ diskLimitTrackerType,
 		blockBytes, blockFiles int64, chargedTo keybase1.UserOrTeamID) (
 		availableBytes, availableFiles int64, err error)
 
-	// afterBlockPut is called after putting a block of the given
-	// byte and file count, which must match the corresponding call to
-	// beforeBlockPut. putData reflects whether or not the data
-	// was actually put; if it's false, it's either because of an
-	// error or because the block already existed.
-	afterBlockPut(ctx context.Context,
-		blockBytes, blockFiles int64, putData bool,
-		chargedTo keybase1.UserOrTeamID)
+	// reserveBytes is called a number of bytes equal to `blockBytes` by a
+	// consumer of disk space that only tracks bytes, before actually using
+	// that disk space. It returns the total number of available bytes.
+	// reserveBytes() should not block. If there aren't enough bytes available,
+	// no reservation is made, and a negative number is returned indicating how
+	// much space must be freed to make the requested reservation possible.
+	reserveBytes(ctx context.Context, typ diskLimitTrackerType, blockBytes int64) (
+		availableBytes int64, err error)
+
+	// commitOrRollback is called after using disk storage of the given byte
+	// and file count, which must match the corresponding call to
+	// beforeBlockPut. `shouldCommit` reflects whether we should commit. A
+	// false value will cause a rollback instead. If the `typ` is a type that
+	// only tracks bytes, `blockFiles` is ignored.
+	commitOrRollback(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+		blockFiles int64, shouldCommit bool, chargedTo keybase1.UserOrTeamID)
+
+	// release is called after releasing byte and/or file usage, both of which
+	// must be >= 0. Unlike reserve and commitOrRollback, this is a one-step
+	// operation.
+	release(ctx context.Context, typ diskLimitTrackerType, blockBytes,
+		blockFiles int64)
 
 	// onBlocksFlush is called after flushing blocks of the given
 	// byte count, which must be >= 0. (Flushing a block with a
@@ -73,12 +107,6 @@ type DiskLimiter interface {
 	// through.)
 	onBlocksFlush(ctx context.Context, blockBytes int64,
 		chargedTo keybase1.UserOrTeamID)
-
-	// onBlocksDelete is called after deleting blocks of the given
-	// byte and file count, both of which must be >= 0. (Deleting
-	// a block with either zero byte or zero file count shouldn't
-	// happen, but may as well let it go through.)
-	onBlocksDelete(ctx context.Context, blockBytes, blockFiles int64)
 
 	// getQuotaInfo returns the quota info as known by the disk
 	// limiter.

@@ -79,12 +79,11 @@ func (s *Semaphore) Acquire(ctx context.Context, n int64) (int64, error) {
 	}
 }
 
-// ForceAcquire atomically subtracts n (which must be positive) from
-// the resource count without waking up any waiting acquirers. It is
-// meant for correcting the initial resource count of the
-// semaphore. It's okay if adding n causes the resource count goes
-// negative, but it must not cause the resource count to overflow (in
-// the negative direction). The updated resource count is returned.
+// ForceAcquire atomically subtracts n (which must be positive) from the
+// resource count without waking up any waiting acquirers. It is meant for
+// correcting the initial resource count of the semaphore. It's okay if adding
+// n causes the resource count goes negative, but it must not cause the
+// resource count to underflow. The updated resource count is returned.
 func (s *Semaphore) ForceAcquire(n int64) int64 {
 	if n <= 0 {
 		panic(fmt.Sprintf("n=%d must be positive", n))
@@ -93,8 +92,33 @@ func (s *Semaphore) ForceAcquire(n int64) int64 {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if s.count < (math.MinInt64 + n) {
-		panic(fmt.Sprintf("s.count=%d - n=%d would overflow",
+		panic(fmt.Sprintf("s.count=%d - n=%d would underflow",
 			s.count, n))
+	}
+	s.count -= n
+	return s.count
+}
+
+// TryAcquire atomically subtracts n (which must be positive) from the resource
+// count without waking up any waiting acquirers, as long as it wouldn't go
+// negative. If the count would go negative, it doesn't update the count but
+// still returns the difference between the count and n. TryAcquire is
+// successful if the return value is non-negative, and unsuccessful if the
+// return value is negative. If the count would underflow, it panics.
+// Otherwise, TryAcquire returns the updated resource count.
+func (s *Semaphore) TryAcquire(n int64) int64 {
+	if n <= 0 {
+		panic(fmt.Sprintf("n=%d must be positive", n))
+	}
+
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if s.count < n {
+		if s.count < (math.MinInt64 + n) {
+			panic(fmt.Sprintf("s.count=%d - n=%d would overflow",
+				s.count, n))
+		}
+		return s.count - n
 	}
 	s.count -= n
 	return s.count
