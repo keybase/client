@@ -20,7 +20,7 @@ class Confirm extends Component<void, Props, void> {
               alignSelf: 'stretch',
               ...globalStyles.flexBoxColumn,
               justifyContent: 'flex-end',
-              flex: 1,
+              flexGrow: 1,
               marginBottom: globalMargins.medium,
               marginTop: globalMargins.medium,
             }}
@@ -62,7 +62,7 @@ const styleIconContainer = {
 
 const styleBodyContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
   alignItems: 'center',
   justifyContent: 'center',
   marginLeft: globalMargins.small,

@@ -92,6 +92,12 @@ const util = {
     backgroundColor: globalColors.lightGrey,
     height: 16,
   },
+  flexGrow: {
+    flexGrow: 1,
+  },
+  fullHeight: {
+    height: '100%',
+  },
 }
 
 const globalStyles = {

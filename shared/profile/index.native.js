@@ -45,14 +45,9 @@ type State = {
 }
 
 class Profile extends Component<void, Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      currentFriendshipsTab: 'Followers',
-      activeMenuProof: null,
-    }
+  state = {
+    currentFriendshipsTab: 'Followers',
+    activeMenuProof: null,
   }
 
   _handleToggleMenu(idx: number) {
@@ -203,7 +198,7 @@ class Profile extends Component<void, Props, State> {
     const activeMenuProof = this.state.activeMenuProof
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.fullHeight}}>
         <Box
           style={{
             ...styleHeader,
@@ -224,78 +219,80 @@ class Profile extends Component<void, Props, State> {
               <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
             </Box>}
         </Box>
-        <NativeScrollView
-          style={{flex: 1, backgroundColor: trackerStateColors.header.background}}
-          contentContainerStyle={{
-            height: this.props.loading ? '100%' : undefined,
-            backgroundColor: globalColors.white,
-          }}
-        >
-          {proofNotice &&
-            <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-              <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
-                {proofNotice}
-              </Text>
-            </Box>}
-          <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
-            <Box
-              style={{
-                position: 'absolute',
-                backgroundColor: trackerStateColors.header.background,
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 56,
+        <Box style={globalStyles.flexGrow}>
+          <Box style={globalStyles.fillAbsolute}>
+            <NativeScrollView
+              style={{backgroundColor: trackerStateColors.header.background}}
+              contentContainerStyle={{
+                height: this.props.loading ? '100%' : undefined,
+                backgroundColor: globalColors.white,
               }}
-            />
-            <LoadingWrapper
-              style={{minHeight: this.props.loading ? 220 : 0}}
-              duration={500}
-              loading={this.props.loading}
-              loadingComponent={this._makeUserBio(true)}
-              doneLoadingComponent={this._makeUserBio(false)}
-            />
+            >
+              {proofNotice &&
+                <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
+                  <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+                    {proofNotice}
+                  </Text>
+                </Box>}
+              <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
+                <Box
+                  style={{
+                    ...globalStyles.fillAbsolute,
+                    backgroundColor: trackerStateColors.header.background,
+                    height: 56,
+                    bottom: undefined,
+                  }}
+                />
+                <LoadingWrapper
+                  style={{minHeight: this.props.loading ? 220 : 0}}
+                  duration={500}
+                  loading={this.props.loading}
+                  loadingComponent={this._makeUserBio(true)}
+                  doneLoadingComponent={this._makeUserBio(false)}
+                />
+              </Box>
+              {!this.props.isYou &&
+                !this.props.loading &&
+                <UserActions
+                  style={styleActions}
+                  trackerState={this.props.trackerState}
+                  currentlyFollowing={this.props.currentlyFollowing}
+                  onChat={this.props.onChat}
+                  onFollow={this.props.onFollow}
+                  onUnfollow={this.props.onUnfollow}
+                  onAcceptProofs={this.props.onAcceptProofs}
+                />}
+              <Box style={styleProofsAndFolders}>
+                <LoadingWrapper
+                  duration={500}
+                  style={{marginTop: globalMargins.medium}}
+                  loading={this.props.loading}
+                  loadingComponent={this._makeUserProofs(true)}
+                  doneLoadingComponent={this._makeUserProofs(false)}
+                />
+                {!this.props.loading &&
+                  <UserProofs
+                    type={'missingProofs'}
+                    username={this.props.username}
+                    missingProofs={missingProofs}
+                    currentlyFollowing={false}
+                  />}
+                {!this.props.loading && folders}
+              </Box>
+              {!this.props.loading &&
+                <Friendships
+                  username={this.props.username}
+                  isYou={this.props.isYou}
+                  currentTab={this.state.currentFriendshipsTab}
+                  onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+                  onUserClick={this.props.onUserClick}
+                  followersLoaded={this.props.followersLoaded}
+                  followers={this.props.followers}
+                  following={this.props.following}
+                />}
+            </NativeScrollView>
           </Box>
-          {!this.props.isYou &&
-            !this.props.loading &&
-            <UserActions
-              style={styleActions}
-              trackerState={this.props.trackerState}
-              currentlyFollowing={this.props.currentlyFollowing}
-              onChat={this.props.onChat}
-              onFollow={this.props.onFollow}
-              onUnfollow={this.props.onUnfollow}
-              onAcceptProofs={this.props.onAcceptProofs}
-            />}
-          <Box style={styleProofsAndFolders}>
-            <LoadingWrapper
-              duration={500}
-              style={{marginTop: globalMargins.medium}}
-              loading={this.props.loading}
-              loadingComponent={this._makeUserProofs(true)}
-              doneLoadingComponent={this._makeUserProofs(false)}
-            />
-            {!this.props.loading &&
-              <UserProofs
-                type={'missingProofs'}
-                username={this.props.username}
-                missingProofs={missingProofs}
-                currentlyFollowing={false}
-              />}
-            {!this.props.loading && folders}
-          </Box>
-          {!this.props.loading &&
-            <Friendships
-              username={this.props.username}
-              isYou={this.props.isYou}
-              currentTab={this.state.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
-              onUserClick={this.props.onUserClick}
-              followersLoaded={this.props.followersLoaded}
-              followers={this.props.followers}
-              following={this.props.following}
-            />}
-        </NativeScrollView>
+        </Box>
         {!!activeMenuProof &&
           <PopupMenu
             {...this._proofMenuContent(activeMenuProof)}
@@ -334,10 +331,8 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
-  flex: 1,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-  paddingBottom: globalMargins.medium,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 
 const styleFolderLine = {

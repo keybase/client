@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConvListOrSearch from './conversation-list-or-search'
+import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
@@ -29,6 +29,13 @@ const conversationRoute = new RouteDefNode({
     },
     infoPanel: {
       component: InfoPanel,
+      children: {
+        showBlockConversationDialog: {
+          component: BlockConversationWarning,
+          tags: {hideStatusBar: true},
+          children: {},
+        },
+      },
     },
     enterPaperkey: {
       component: EnterPaperkey,
@@ -36,11 +43,6 @@ const conversationRoute = new RouteDefNode({
     messageAction: {
       component: MessagePopup,
       tags: {keepKeyboardOnLeave: true, layerOnTop: true},
-    },
-    showBlockConversationDialog: {
-      component: BlockConversationWarning,
-      tags: {layerOnTop: true},
-      children: {},
     },
   },
 })

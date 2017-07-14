@@ -19,8 +19,8 @@ const SearchRender = (props: Props) => {
   const searchBarProps: SearchBarProps = props
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
         <SearchBar {...searchBarProps} />
         {props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
       </Box>

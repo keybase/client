@@ -91,6 +91,7 @@ class UserItem extends Component<void, UserItemProps, UserItemState> {
             onBlur={this._onDeselect}
             onChangeText={this._onChangeText}
             value=" "
+            underlineColorAndroid="transparent"
             style={{position: 'absolute', left: -9999}}
           />}
       </Box>

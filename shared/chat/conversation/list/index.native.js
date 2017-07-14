@@ -3,9 +3,8 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
-import {Box, NativeScrollView, NativeKeyboard} from '../../../common-adapters/index.native'
-// $FlowIssue
-import FlatList from '../../../fixme/Lists/FlatList'
+import {Box, NativeScrollView, NativeKeyboard, NativeFlatList} from '../../../common-adapters/index.native'
+import {globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
@@ -70,22 +69,23 @@ class ConversationList extends Component<void, Props, void> {
 
   render() {
     return (
-      <FlatList
-        data={this.props.messageKeys.toArray()}
-        renderItem={this._renderItem}
-        renderScrollComponent={this._renderScrollComponent}
-        onEndReached={this._onEndReached}
-        onEndReachedThreshold={0}
-        keyExtractor={this._keyExtractor}
-        // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-        windowSize={5}
-      />
+      <Box style={globalStyles.fillAbsolute}>
+        <NativeFlatList
+          data={this.props.messageKeys.toArray()}
+          renderItem={this._renderItem}
+          renderScrollComponent={this._renderScrollComponent}
+          onEndReached={this._onEndReached}
+          onEndReachedThreshold={0}
+          keyExtractor={this._keyExtractor}
+          // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+          windowSize={5}
+        />
+      </Box>
     )
   }
 }
 
 const verticallyInvertedStyle = {
-  flex: 1,
   transform: [{scaleY: -1}],
 }
 
