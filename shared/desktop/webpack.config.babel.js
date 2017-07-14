@@ -269,7 +269,6 @@ const makeDllConfig = () => {
       'lodash',
       'material-ui/svg-icons',
       'material-ui/FontIcon',
-      'material-ui/List',
       'material-ui/styles/spacing',
       'material-ui/styles/getMuiTheme',
       'material-ui/styles/MuiThemeProvider',
