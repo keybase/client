@@ -137,12 +137,11 @@ func updateKIDNamesFromParents(kidNames map[keybase1.KID]string,
 }
 
 func filterKeys(keys []keybase1.PublicKey) (
-	[]kbfscrypto.VerifyingKey, []kbfscrypto.CryptPublicKey,
-	map[keybase1.KID]string, error) {
-	var verifyingKeys []kbfscrypto.VerifyingKey
-	var cryptPublicKeys []kbfscrypto.CryptPublicKey
-	var kidNames = map[keybase1.KID]string{}
-	var parents = map[keybase1.KID]keybase1.KID{}
+	verifyingKeys []kbfscrypto.VerifyingKey,
+	cryptPublicKeys []kbfscrypto.CryptPublicKey,
+	kidNames map[keybase1.KID]string, err error) {
+	kidNames = make(map[keybase1.KID]string, len(keys))
+	parents := make(map[keybase1.KID]keybase1.KID, len(keys))
 
 	addVerifyingKey := func(key kbfscrypto.VerifyingKey) {
 		verifyingKeys = append(verifyingKeys, key)
