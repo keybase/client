@@ -791,3 +791,22 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, rmd.Revision(), head.Revision())
 }
+
+func TestJournalQuotaStatus(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+
+	// Set initial quota usage and refresh quotaUsage's cache.
+	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
+	config.SetBlockServer(qbs)
+	qbs.setUserQuotaInfo(10, 1000)
+
+	// Make sure the quota status is correct, even if we haven't
+	// written anything yet.
+	s, _ := jServer.Status(ctx)
+	bs := s.DiskLimiterStatus.(backpressureDiskLimiterStatus)
+	require.Equal(
+		t, int64(10), bs.JournalTrackerStatus.QuotaStatus.RemoteUsedBytes)
+	require.Equal(
+		t, int64(1000), bs.JournalTrackerStatus.QuotaStatus.QuotaBytes)
+}
