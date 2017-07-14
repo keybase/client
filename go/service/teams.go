@@ -116,15 +116,15 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 }
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) error {
-	return nil
+	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {
-	return nil, nil
+	return teams.ListRequests(ctx, h.G().ExternalG())
 }
 
 func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) error {
-	return nil
+	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

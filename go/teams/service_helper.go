@@ -381,3 +381,15 @@ func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	}
 	return t.chain().FindActiveInvite(username, typ)
 }
+
+func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+	return nil
+}
+
+func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJoinRequest, error) {
+	return nil, nil
+}
+
+func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	return nil
+}
