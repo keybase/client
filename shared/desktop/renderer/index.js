@@ -12,7 +12,6 @@ import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
 import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
-import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
@@ -67,16 +66,6 @@ function setupApp(store) {
   }
 
   setupContextMenu(electron.remote.getCurrentWindow())
-
-  // Used by material-ui widgets.
-  if (module.hot) {
-    // Don't reload this thing if we're hot reloading
-    if (module.hot.data === undefined) {
-      injectTapEventPlugin()
-    }
-  } else {
-    injectTapEventPlugin()
-  }
 
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830

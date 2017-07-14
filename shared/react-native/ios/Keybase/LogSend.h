@@ -1,4 +1,4 @@
-#import "RCTBridgeModule.h"
+#import <React/RCTBridgeModule.h>
 #import <keybase/keybase.h>
 
 @interface LogSend : NSObject <RCTBridgeModule>

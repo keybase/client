@@ -268,7 +268,6 @@ const makeDllConfig = () => {
       'inline-style-prefixer',
       'lodash',
       'material-ui/svg-icons',
-      'material-ui/Popover',
       'material-ui/FontIcon',
       'material-ui/List',
       'material-ui/styles/spacing',
