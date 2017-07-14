@@ -51,6 +51,9 @@ func (e *PGPProvision) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PGPProvision) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PGPProvision")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PGPProvision")
+
 	// clear out any existing session:
 	e.G().Logout()
 

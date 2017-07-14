@@ -60,6 +60,9 @@ func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, 
 }
 
 func (e *RevokeSigsEngine) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "RevokeSigsEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "RevokeSigsEngine")
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err
