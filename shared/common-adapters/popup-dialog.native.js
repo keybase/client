@@ -22,12 +22,8 @@ export function PopupDialog({children, onClose, fill, styleCover, styleContainer
 
 const coverStyle = {
   ...globalStyles.flexBoxCenter,
+  ...globalStyles.fillAbsolute,
   backgroundColor: globalColors.midnightBlue_75,
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
@@ -37,7 +33,7 @@ const coverStyle = {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
-  flex: 1,
+  flexGrow: 1,
   backgroundColor: globalColors.white,
   borderRadius: 4,
 }

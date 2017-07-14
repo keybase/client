@@ -178,14 +178,14 @@ const styleContainer = {
   alignItems: 'center',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
+  flexShrink: 0,
+  minHeight: 48,
   ...(isIOS
     ? {
         paddingBottom: globalMargins.tiny,
         paddingTop: globalMargins.tiny,
       }
-    : {
-        minHeight: 48,
-      }),
+    : {}),
 }
 
 const styleInput = {

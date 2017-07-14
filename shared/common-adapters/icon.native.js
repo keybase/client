@@ -5,6 +5,7 @@ import React from 'react'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import omit from 'lodash/omit'
+import has from 'lodash/has'
 import glamorous from 'glamorous-native'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 
@@ -114,10 +115,14 @@ const Icon = (props: Exact<Props>) => {
       </Text>
     )
   } else {
-    icon = <Image source={iconMeta[iconType].require} style={props.style} />
+    // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
+    // lets just filter it out if it exists
+    const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
+    icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
   }
 
-  const boxStyle = omit(props.style || {}, ['color', 'fontSize', 'textAlign'])
+  const filter = ['color', 'fontSize', 'textAlign']
+  const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
 
   return props.onClick
     ? <ClickableBox

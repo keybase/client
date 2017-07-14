@@ -1,4 +1,6 @@
 // @flow
+// TODO cecile wants this to be one big scrollview. We still need followers/following tab to be clickable so
+// we'd have to make that a section header etc
 import React, {Component} from 'react'
 import chunk from 'lodash/chunk'
 import {
@@ -98,7 +100,7 @@ class FriendshipsRender extends Component<void, Props, State> {
 
   _renderRow = users => {
     return (
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
+      <Box style={{...globalStyles.flexBoxRow, width: '100%', height: 108, justifyContent: 'space-around'}}>
         {[0, 1, 2].map(idx => {
           const user = users[idx]
           if (user) {
@@ -120,7 +122,7 @@ class FriendshipsRender extends Component<void, Props, State> {
       )
     }
 
-    const {height, width} = NativeDimensions.get('window')
+    const {height} = NativeDimensions.get('window')
     const {isYou} = this.props
     const textWhenEmptyYou = {
       Followers: 'You have no followers.',
@@ -134,35 +136,40 @@ class FriendshipsRender extends Component<void, Props, State> {
       Followers: this.props.followers.length,
       Following: this.props.following.length,
     }
+
+    const barHeight = height - 115
     return (
-      <TabBar>
+      <TabBar style={{height: barHeight, maxHeight: barHeight}}>
         {['Followers', 'Following'].map(tab => {
           return (
             <TabBarItem
               key={tab}
               selected={this.props.currentTab === tab}
               label={`${tab.toUpperCase()} (${counts[tab]})`}
-              styleContainer={{flex: 1}}
               onClick={() => {
                 this.props.onSwitchTab && this.props.onSwitchTab(tab)
               }}
             >
-              <Box style={{...tabItemContainerStyle, maxHeight: height - 160, width: width}}>
-                <Box style={tabItemContainerTopBorder} />
-                {counts[tab] === 0 &&
-                  <Box style={tabItemEmptyStyle}>
-                    <Text type="BodySmall" style={{color: globalColors.black_40}}>
-                      {isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}
-                    </Text>
-                  </Box>}
-                <Box style={tabItemContainerUsers}>
-                  {this.props.currentTab === tab &&
-                    !!this.state.dataSource &&
-                    <NativeListView
-                      enableEmptySections={true}
-                      dataSource={this.state.dataSource}
-                      renderRow={this._renderRow}
-                    />}
+              <Box style={globalStyles.flexGrow}>
+                <Box style={globalStyles.fillAbsolute}>
+                  <Box style={{...tabItemContainerStyle, width: '100%'}}>
+                    <Box style={tabItemContainerTopBorder} />
+                    {counts[tab] === 0 &&
+                      <Box style={tabItemEmptyStyle}>
+                        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+                          {isYou ? textWhenEmptyYou[tab] : textWhenEmpty[tab]}
+                        </Text>
+                      </Box>}
+                    <Box style={tabItemContainerUsers}>
+                      {this.props.currentTab === tab &&
+                        !!this.state.dataSource &&
+                        <NativeListView
+                          enableEmptySections={true}
+                          dataSource={this.state.dataSource}
+                          renderRow={this._renderRow}
+                        />}
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
             </TabBarItem>
@@ -175,16 +182,14 @@ class FriendshipsRender extends Component<void, Props, State> {
 
 const tabItemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  flexBasis: 1,
-  flexGrow: 1,
-  flexShrink: 0,
 }
 
 const tabItemContainerTopBorder = {
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_10,
-  flexGrow: 1,
+  width: '100%',
   height: 1,
+  maxHeight: 1,
 }
 
 const tabItemContainerUsers = {

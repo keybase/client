@@ -215,7 +215,7 @@ const styleStatusIconTouchable = {
 }
 const styleStatusIconContainer = {
   ...styleStatusIconTouchable,
-  alignSelf: 'flex-start',
+  alignSelf: 'center',
   marginLeft: globalMargins.tiny,
   minWidth: 40,
 }

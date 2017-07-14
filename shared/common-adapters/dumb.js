@@ -19,7 +19,6 @@ import {
   StandardScreen,
   TabBar,
   Text,
-  Dropdown,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
@@ -32,31 +31,6 @@ const onClick = () => console.log('on click!')
 // So we can share this between mobile and desktop
 const display = type => (isMobile ? {} : {display: type})
 
-const dropdownMap: DumbComponentMap<Dropdown> = {
-  component: Dropdown,
-  mocks: {
-    Normal: {
-      type: 'General',
-      options: ['one', 'two', 'three'],
-      value: 'one',
-      onOther: onClick,
-      onClick: onClick,
-    },
-    'Not selected': {
-      type: 'General',
-      options: ['one', 'two', 'three'],
-      onOther: onClick,
-      onClick: onClick,
-    },
-    Username: {
-      type: 'Username',
-      options: ['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb'],
-      value: 'cjb',
-      onOther: onClick,
-      onClick: onClick,
-    },
-  },
-}
 const colorMocks = {}
 
 Object.keys(globalColors).sort().forEach(c => {
@@ -786,7 +760,9 @@ const listItemMap: DumbComponentMap<ListItem> = {
 }
 
 const popupCommon = {
-  parentProps: isMobile ? {} : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  parentProps: isMobile
+    ? {style: {height: 300}}
+    : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
 }
@@ -1092,7 +1068,6 @@ export default {
   Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
   Colors: colorsMap,
-  Dropdown: dropdownMap,
   Icon: iconMap,
   Input: inputMap,
   ListItem: listItemMap,
