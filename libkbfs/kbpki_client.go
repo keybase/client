@@ -233,6 +233,19 @@ func (k *KBPKIClient) IsTeamWriter(
 		}
 	}
 	if !found {
+		// For the purposes of finding the eldest seqno, we need to
+		// check the verified key against the list of revoked keys as
+		// well.  (The caller should use `HasVerifyingKey` later to
+		// check whether the revoked key was valid at the time of the
+		// update or not.)
+		for key := range userInfo.RevokedVerifyingKeys {
+			if verifyingKey.KID().Equal(key.KID()) {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
 		// The user doesn't currently have this KID, therefore they
 		// shouldn't be treated as a writer.  The caller should check
 		// historical device records and team membership.
