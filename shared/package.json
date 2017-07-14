@@ -97,7 +97,6 @@
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#eedae53f4346223b5aee60ef2702ecc47a01fcd2",
     "react-navigation": "git://github.com/keybase/react-navigation#89d3c8eaefe61739357065b93d053f54df39268f",
     "react-redux": "5.0.5",
-    "react-tap-event-plugin": "2.0.1",
     "react-transition-group": "1.x",
     "react-virtualized": "9.7.6",
     "recompose": "0.23.4",
