@@ -73,6 +73,8 @@ const onChangeSelectedSearchResultHoc = compose(
   withHandlers(() => {
     let lastSearchTerm
     return {
+      // onAddSelectedUser happens on desktop when tab, enter or comma
+      // is typed, so we expedite the current search, if any
       onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
