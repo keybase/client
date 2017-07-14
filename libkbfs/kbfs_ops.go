@@ -697,7 +697,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	dbc := fs.config.DiskBlockCache()
 	var dbcStatus *DiskBlockCacheStatus
 	if dbc != nil {
-		dbcStatus = dbc.Status()
+		dbcStatus = dbc.Status(ctx)
 	}
 
 	return KBFSStatus{

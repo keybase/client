@@ -120,5 +120,5 @@ type DiskLimiter interface {
 
 	// getStatus returns an object that's marshallable into JSON
 	// for use in displaying status.
-	getStatus(chargedTo keybase1.UserOrTeamID) interface{}
+	getStatus(ctx context.Context, chargedTo keybase1.UserOrTeamID) interface{}
 }

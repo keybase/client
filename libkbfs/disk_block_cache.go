@@ -904,7 +904,8 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 }
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Status() *DiskBlockCacheStatus {
+func (cache *DiskBlockCacheStandard) Status(
+	ctx context.Context) *DiskBlockCacheStatus {
 	select {
 	case <-cache.startedCh:
 	default:
@@ -916,7 +917,7 @@ func (cache *DiskBlockCacheStandard) Status() *DiskBlockCacheStatus {
 	// we don't have easy access to the UID here, so pass in a dummy.
 	limiterStatus :=
 		cache.config.DiskLimiter().getStatus(
-			keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
+			ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	return &DiskBlockCacheStatus{
 		NumBlocks:       uint64(cache.numBlocks),
 		BlockBytes:      cache.currBytes,

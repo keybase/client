@@ -2528,14 +2528,14 @@ func (_mr *_MockDiskBlockCacheRecorder) Size() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Size")
 }
 
-func (_m *MockDiskBlockCache) Status() *DiskBlockCacheStatus {
-	ret := _m.ctrl.Call(_m, "Status")
+func (_m *MockDiskBlockCache) Status(ctx context.Context) *DiskBlockCacheStatus {
+	ret := _m.ctrl.Call(_m, "Status", ctx)
 	ret0, _ := ret[0].(*DiskBlockCacheStatus)
 	return ret0
 }
 
-func (_mr *_MockDiskBlockCacheRecorder) Status() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Status")
+func (_mr *_MockDiskBlockCacheRecorder) Status(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Status", arg0)
 }
 
 func (_m *MockDiskBlockCache) Shutdown(ctx context.Context) {

@@ -1075,19 +1075,27 @@ type backpressureDiskLimiterStatus struct {
 }
 
 func (bdl *backpressureDiskLimiter) getStatus(
-	chargedTo keybase1.UserOrTeamID) interface{} {
+	ctx context.Context, chargedTo keybase1.UserOrTeamID) interface{} {
 	bdl.lock.RLock()
 	defer bdl.lock.RUnlock()
 
 	currentDelay := bdl.getDelayLocked(
 		context.Background(), time.Now(), chargedTo)
 
+	jStatus := bdl.journalTracker.getStatus(chargedTo)
+	// If we haven't updated the quota limit yet, update it now.
+	if jStatus.QuotaStatus.QuotaBytes == math.MaxInt64 {
+		remoteUsedBytes, quotaBytes := bdl.quotaFn(ctx, chargedTo)
+		bdl.journalTracker.updateRemote(remoteUsedBytes, quotaBytes, chargedTo)
+		jStatus = bdl.journalTracker.getStatus(chargedTo)
+	}
+
 	return backpressureDiskLimiterStatus{
 		Type: "BackpressureDiskLimiter",
 
 		CurrentDelaySec: currentDelay.Seconds(),
 
-		JournalTrackerStatus: bdl.journalTracker.getStatus(chargedTo),
+		JournalTrackerStatus: jStatus,
 		DiskCacheByteStatus:  bdl.diskCacheByteTracker.getStatus(),
 	}
 }

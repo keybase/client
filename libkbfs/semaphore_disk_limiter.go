@@ -229,7 +229,8 @@ type semaphoreDiskLimiterStatus struct {
 	QuotaUsed  int64
 }
 
-func (sdl semaphoreDiskLimiter) getStatus(_ keybase1.UserOrTeamID) interface{} {
+func (sdl semaphoreDiskLimiter) getStatus(
+	_ context.Context, _ keybase1.UserOrTeamID) interface{} {
 	byteFree := sdl.byteSemaphore.Count()
 	fileFree := sdl.fileSemaphore.Count()
 	usedQuotaBytes, quotaBytes := sdl.quotaTracker.getQuotaInfo()

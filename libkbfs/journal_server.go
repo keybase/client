@@ -757,7 +757,7 @@ func (j *JournalServer) Status(
 		StoredFiles:         totalStoredFiles,
 		UnflushedBytes:      totalUnflushedBytes,
 		DiskLimiterStatus: j.config.DiskLimiter().getStatus(
-			j.currentUID.AsUserOrTeam()),
+			ctx, j.currentUID.AsUserOrTeam()),
 	}, tlfIDs
 }
 
