@@ -9,12 +9,16 @@ import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine
 
+// Uncomment this to disable yellowboxes
+// console.disableYellowBox = true
+
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
   clickableVisible: false,
+  colorBoxes: false, // set to true to color boxes to help debug layout and perf
   dumbChatOnly: false,
   dumbSheetOnly: false,
   enableActionLogging: true,
@@ -70,6 +74,7 @@ if (PERF) {
   config = {
     actionStatFrequency: 0,
     clickableVisible: false,
+    colorBoxes: config.colorBoxes,
     dumbChatOnly: false,
     dumbSheetOnly: false,
     enableActionLogging: false,
@@ -96,6 +101,7 @@ if (PERF) {
 export const {
   actionStatFrequency,
   clickableVisible,
+  colorBoxes,
   dumbChatOnly,
   dumbSheetOnly,
   enableActionLogging,
