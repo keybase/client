@@ -3,6 +3,7 @@ import {Component} from 'react'
 import type {Device} from '../../../constants/types/more'
 
 export type Props = {
+  canSelectNoDevice: boolean,
   devices: Array<Device>,
   onSelect: (id: string) => void,
   onWont: () => void,
