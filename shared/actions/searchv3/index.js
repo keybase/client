@@ -210,17 +210,14 @@ function* search<T>({
 }
 
 function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constants.SearchSuggestions<T>) {
-  const suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
+  let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
     },
   })
 
-  if (!suggestions) {
-    // No search results (e.g. this user doesn't follow/chat anyone)
-    yield put(Creators.finishedSearch(actionTypeToFire, [], '', 'Keybase', true))
-    return
-  }
+  // No search results (e.g. this user doesn't follow/chat anyone)
+  suggestions = suggestions || []
 
   const rows = suggestions.map(person => _parseSuggestion(person.username))
   const ids = rows.map(r => r.id)
