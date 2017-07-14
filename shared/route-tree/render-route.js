@@ -97,7 +97,12 @@ type _RenderRouteProps<S> = {
 
 // Render a route tree recursively. Returns a stack of rendered components from
 // the bottom (the currently visible view) up through each parent path.
-function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteProps<*>): RouteRenderStack {
+function renderRouteStack({
+  routeDef,
+  routeState,
+  setRouteState,
+  path,
+}: _RenderRouteProps<*>): RouteRenderStack {
   if (!routeDef) {
     throw new Error(`Undefined route: ${pathToString(path)}`)
   } else if (!routeState) {
@@ -118,7 +123,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
     let childDef = routeDef.getChild(selected)
     const childState = routeState.children.get(selected)
     const childPath = path.push(selected)
-    const childStack = _RenderRoute({
+    const childStack = renderRouteStack({
       routeDef: childDef,
       routeState: childState,
       path: childPath,
@@ -176,11 +181,13 @@ type RenderRouteProps<S> = {
   setRouteState: (partialState: $Shape<S>) => void,
 }
 
+export {renderRouteStack}
+
 export default class RenderRoute extends PureComponent<*, RenderRouteProps<*>, *> {
   render() {
-    // _RenderRoute gives us a stack of all views down the current route path.
+    // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.
-    var viewStack = _RenderRoute({...this.props, path: I.List()})
+    var viewStack = renderRouteStack({...this.props, path: I.List()})
     return viewStack.last().component
   }
 }
