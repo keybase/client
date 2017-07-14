@@ -1203,11 +1203,15 @@ func (s *LoginState) AccountDump() {
 	}
 }
 
-func (s *LoginState) SessionLoadAndForceCheck() (bool, error) {
+func (s *LoginState) SessionLoadAndCheck(force bool) (bool, error) {
 	var sessionValid bool
 	var err error
 	lsErr := s.LocalSession(func(session *Session) {
-		sessionValid, err = session.LoadAndForceCheck()
+		if force {
+			sessionValid, err = session.LoadAndForceCheck()
+		} else {
+			sessionValid, err = session.LoadAndCheckIfStale()
+		}
 	}, "APIServerSession")
 	if lsErr != nil {
 		return false, lsErr
@@ -1224,12 +1228,12 @@ type APIServerSessionStatus struct {
 	SessionToken string
 }
 
-func (s *LoginState) APIServerSession() (*APIServerSessionStatus, error) {
+func (s *LoginState) APIServerSession(force bool) (*APIServerSessionStatus, error) {
 	if !s.G().ActiveDevice.Valid() {
 		return nil, LoginRequiredError{}
 	}
 
-	sessionValid, err := s.SessionLoadAndForceCheck()
+	sessionValid, err := s.SessionLoadAndCheck(force)
 	if err != nil {
 		return nil, err
 	}

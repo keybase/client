@@ -379,6 +379,11 @@ func (s *RemoteInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	return nil, nil
 }
 
+func (s *RemoteInboxSource) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (*chat1.ConversationLocal, error) {
+	return nil, nil
+}
+
 func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error) {
 	// Notify rest of system about reset
@@ -631,6 +636,22 @@ func (s *HybridInboxSource) SetStatus(ctx context.Context, uid gregor1.UID, vers
 	return conv, nil
 }
 
+func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SetAppNotificationSettings")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.SetAppNotificationSettings(ctx, vers, convID, settings); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "SetAppNotificationSettings: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
@@ -869,6 +890,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
+	conversationLocal.Notifications = conversationRemote.Notifications
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

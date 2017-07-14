@@ -9,20 +9,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func getInternalByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{
-		Name:        name,
-		ForceRepoll: true,
-	})
-}
-
-func getInternal(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{
-		ID:          id,
-		ForceRepoll: true,
-	})
-}
-
 type rawTeam struct {
 	ID             keybase1.TeamID                                        `json:"id"`
 	Name           keybase1.TeamName                                      `json:"name"`
@@ -52,35 +38,44 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 	return links, nil
 }
 
-func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	return getInternalByStringName(ctx, g, name)
+// needAdmin must be set when interacting with links that have a possibility of being stubbed.
+func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string, needAdmin bool) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+		NeedAdmin:   needAdmin,
+	})
 }
 
-func GetForTeamManagement(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
-	return getInternal(ctx, g, id)
-}
-
-func GetForApplication(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	// TODO -- use the `application` and `refreshers` arguments
-	return getInternal(ctx, g, id)
-}
-
-func GetForApplicationByStringName(ctx context.Context, g *libkb.GlobalContext, name string, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	teamName, err := keybase1.TeamNameFromString(name)
+// Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
+// know whether you are an admin. This always causes roundtrips.
+func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+	// Find out our up-to-date role.
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
 	if err != nil {
 		return nil, err
 	}
-	return GetForApplicationByName(ctx, g, teamName, app, refreshers)
-}
-
-func GetForApplicationByName(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName, app keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	id, err := ResolveNameToID(ctx, g, name)
+	me, err := loadUserVersionByUID(ctx, g, g.Env.GetUID())
 	if err != nil {
 		return nil, err
 	}
-	return GetForApplication(ctx, g, id, app, refreshers)
-}
-
-func GetForChatByStringName(ctx context.Context, g *libkb.GlobalContext, s string, refreshers keybase1.TeamRefreshers) (*Team, error) {
-	return GetForApplicationByStringName(ctx, g, s, keybase1.TeamApplication_CHAT, refreshers)
+	role, err := team.MemberRole(ctx, me)
+	if err != nil {
+		return nil, err
+	}
+	if role.IsAdminOrAbove() {
+		// Will hit the cache _unless_ we had a cached non-admin team
+		// and are now an admin.
+		team, err = Load(ctx, g, keybase1.LoadTeamArg{
+			Name:      name,
+			NeedAdmin: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return team, nil
 }

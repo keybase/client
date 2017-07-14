@@ -7,7 +7,7 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
 import {Box} from '../common-adapters'
-import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
+import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray} from '../constants/selectors'
@@ -25,6 +25,8 @@ type OwnProps = {
   selectedSearchId: ?SearchConstants.SearchResultId,
   onUpdateSelectedSearchResult: (id: SearchConstants.SearchResultId) => void,
   showServiceFilter: boolean,
+  onAddNewParticipant: (clicked: boolean) => void,
+  addNewParticipant: boolean,
 }
 
 const mapStateToProps = createSelector(
@@ -49,38 +51,37 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
-const SearchHeader = props => {
-  return (
-    <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
-      <UserInput
-        ref={props.setInputRef}
-        autoFocus={true}
-        userItems={props.userItems}
-        onRemoveUser={props.onRemoveUser}
-        onClickAddButton={props.onClickAddButton}
-        placeholder={props.placeholder}
-        usernameText={props.searchText}
-        onChangeText={props.onChangeText}
-        onMoveSelectUp={props.onMoveSelectUp}
-        onMoveSelectDown={props.onMoveSelectDown}
-        onClearSearch={props.onClearSearch}
-        onAddSelectedUser={props.onAddSelectedUser}
-        onEnterEmptyText={props.onExitSearch}
-        onCancel={props.onExitSearch}
-      />
-      <Box style={{alignSelf: 'center'}}>
-        {props.showServiceFilter &&
-          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
-      </Box>
+const SearchHeader = props => (
+  <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
+    <UserInput
+      ref={props.setInputRef}
+      autoFocus={true}
+      userItems={props.userItems}
+      onRemoveUser={props.onRemoveUser}
+      onClickAddButton={props.onClickAddButton}
+      placeholder={props.placeholder}
+      usernameText={props.searchText}
+      onChangeText={props.onChangeText}
+      onMoveSelectUp={props.onMoveSelectUp}
+      onMoveSelectDown={props.onMoveSelectDown}
+      onClearSearch={props.onClearSearch}
+      onAddSelectedUser={props.onAddSelectedUser}
+      onEnterEmptyText={props.onExitSearch}
+      onCancel={props.onExitSearch}
+    />
+    <Box style={{alignSelf: 'center'}}>
+      {props.showServiceFilter &&
+        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
-  )
-}
+  </Box>
+)
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('selectedService', '_onSelectService', 'Keybase'),
   HocHelpers.showServiceLogicHoc,
   HocHelpers.onChangeSelectedSearchResultHoc,
+  HocHelpers.placeholderServiceHoc,
   withHandlers(() => {
     let input
     return {
@@ -88,19 +89,21 @@ export default compose(
         input = el
       },
       onFocusInput: () => () => {
-        input.focus()
+        input && input.focus()
       },
       onSelectService: (props: OwnProps & {_onSelectService: Function}) => nextService => {
         props._onSelectService(nextService)
         props.clearSearchResults()
         props.search(props.searchText, nextService)
+        input && input.focus()
+      },
+      onClickAddButton: (props: OwnProps) => () => {
+        props.onAddNewParticipant(true)
+        props.search('', props.selectedService)
       },
     }
   }),
   HocHelpers.clearSearchHoc,
-  defaultProps({
-    placeholder: 'Search for someone',
-  }),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {

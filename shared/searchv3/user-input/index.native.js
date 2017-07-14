@@ -134,6 +134,7 @@ class UserInput extends Component<void, Props, State> {
       onChangeText,
       onClickAddButton,
       onAddSelectedUser,
+      onClearSearch,
     } = this.props
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
@@ -181,6 +182,12 @@ class UserInput extends Component<void, Props, State> {
                 }}
               />}
           </Box>
+          {onClearSearch &&
+            <Icon
+              type="iconfont-remove"
+              style={{height: 16, width: 16, marginRight: 16}}
+              onClick={onClearSearch}
+            />}
         </Box>
       </ClickableBox>
     )

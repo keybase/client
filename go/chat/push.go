@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -321,6 +322,42 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	return nil
 }
 
+func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
+	uid gregor1.UID, conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) bool {
+	if conv == nil || conv.Notifications == nil {
+		return false
+	}
+	if !utils.GetConversationStatusBehavior(conv.Info.Status).DesktopNotifications {
+		return false
+	}
+	if msg.IsValid() {
+		// No notifications for our own messages
+		if msg.Valid().ClientHeader.Sender.Eq(uid) {
+			return false
+		}
+		body := msg.Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
+			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %s", err.Error())
+			return false
+		}
+		if typ == chat1.MessageType_TEXT {
+			atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
+				g.G().GetUPAKLoader(), &g.DebugLabeler)
+			kind := chat1.NotificationKind_GENERIC
+			for _, at := range atMentions {
+				if at.Eq(uid) {
+					kind = chat1.NotificationKind_ATMENTION
+					break
+				}
+			}
+			apptype := chat1.NotificationAppType_DESKTOP
+			return conv.Notifications.Settings[apptype][kind]
+		}
+	}
+	return false
+}
+
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -359,7 +396,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		action := gm.Action
 		reader.Reset(m.Body().Bytes())
 		switch action {
-		case "newMessage":
+		case types.ActionNewMessage:
 			var nm chat1.NewMessagePayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -399,11 +436,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if err != nil {
 					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
 				}
+				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message:    decmsg,
-					ConvID:     nm.ConvID,
-					Conv:       conv,
-					Pagination: page,
+					Message: decmsg,
+					ConvID:  nm.ConvID,
+					Conv:    conv,
+					DisplayDesktopNotification: desktopNotification,
+					Pagination:                 page,
 				})
 			}
 
@@ -426,7 +465,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "readMessage":
+		case types.ActionReadMessage:
 			var nm chat1.ReadMessagePayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -450,7 +489,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "setStatus":
+		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -473,7 +512,27 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
-		case "newConversation":
+		case types.ActionSetAppNotificationSettings:
+			var nm chat1.SetAppNotificationSettingsPayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: setAppNotificationSettings: convID: %s num settings: %d",
+				nm.ConvID, len(nm.Settings.Settings))
+
+			uid := m.UID().Bytes()
+			if _, err = g.G().InboxSource.SetAppNotificationSettings(ctx, uid, nm.InboxVers,
+				nm.ConvID, nm.Settings); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			}
+			info := chat1.SetAppNotificationSettingsInfo{
+				ConvID:   nm.ConvID,
+				Settings: nm.Settings,
+			}
+			activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
+		case types.ActionNewConversation:
 			var nm chat1.NewConversationPayload
 			err = dec.Decode(&nm)
 			if err != nil {
@@ -512,7 +571,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}
-
 		g.notifyNewChatActivity(ctx, m.UID(), convID, conv, &activity)
 	}(bctx)
 	return nil
@@ -686,15 +744,15 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 	}
 
 	switch obm.System().String() {
-	case "chat.activity":
+	case types.PushActivity:
 		return g.Activity(ctx, obm)
-	case "chat.tlffinalize":
+	case types.PushTLFFinalize:
 		return g.TlfFinalize(ctx, obm)
-	case "chat.tlfresolve":
+	case types.PushTLFResolve:
 		return g.TlfResolve(ctx, obm)
-	case "chat.typing":
+	case types.PushTyping:
 		return g.Typing(ctx, obm)
-	case "chat.membershipUpdate":
+	case types.PushMembershipUpdate:
 		return g.MembershipUpdate(ctx, obm)
 	}
 

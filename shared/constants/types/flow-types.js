@@ -560,6 +560,7 @@ export const UPKUPAKVersion = {
 export const UPKUPK2MinorVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const UiPromptDefault = {
@@ -3538,6 +3539,21 @@ export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: $Exact<requ
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAcceptInviteRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request)
+}
+
+export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
+}
+export function teamsTeamAcceptInviteRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamAcceptInviteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAddMemberRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddMemberResult) => void} & {param: teamsTeamAddMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamAddMember', request)
 }
@@ -5168,6 +5184,7 @@ export type PerUserKey = {
   seqno: Seqno,
   sigKID: KID,
   encKID: KID,
+  signedByKID: KID,
 }
 
 export type PerUserKeyBox = {
@@ -5931,6 +5948,7 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
+  completedInvites: {[key: string]: UID},
 }
 
 export type TeamChangeRow = {
@@ -5987,6 +6005,13 @@ export type TeamInviteType =
   | { c: 4, sbs: ?TeamInviteSocialNetwork }
   | { c: any }
 
+export type TeamInvitee = {
+  inviteID: TeamInviteID,
+  uid: UID,
+  eldestSeqno: Seqno,
+  role: TeamRole,
+}
+
 export type TeamList = {
   uid: UID,
   username: string,
@@ -6038,6 +6063,7 @@ export type TeamPlusApplicationKeys = {
 export type TeamRefreshers = {
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
+  wantMembersRole: TeamRole,
 }
 
 export type TeamRole =
@@ -6046,6 +6072,12 @@ export type TeamRole =
   | 2 // WRITER_2
   | 3 // ADMIN_3
   | 4 // OWNER_4
+
+export type TeamSBSMsg = {
+  teamID: TeamID,
+  score: int,
+  invitees?: ?Array<TeamInvitee>,
+}
 
 export type TeamSigChainState = {
   reader: UserVersion,
@@ -6141,6 +6173,7 @@ export type UPAKVersioned =
 export type UPK2MinorVersion =
     0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type UnboxAnyRes = {
   kid: KID,
@@ -7171,6 +7204,10 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   refreshers: TeamRefreshers
 }>
 
+export type teamsTeamAcceptInviteRpcParam = Exact<{
+  token: string
+}>
+
 export type teamsTeamAddMemberRpcParam = Exact<{
   name: string,
   email: string,
@@ -7683,6 +7720,7 @@ export type rpc =
   | sigsSigListJSONRpc
   | sigsSigListRpc
   | teamsLoadTeamPlusApplicationKeysRpc
+  | teamsTeamAcceptInviteRpc
   | teamsTeamAddMemberRpc
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc

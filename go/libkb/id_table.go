@@ -781,10 +781,11 @@ func (s *PerUserKeyChainLink) insertIntoTable(tab *IdentityTable) {
 
 func (s *PerUserKeyChainLink) ToPerUserKey() keybase1.PerUserKey {
 	return keybase1.PerUserKey{
-		Gen:    int(s.generation),
-		Seqno:  s.GetSeqno(),
-		SigKID: s.sigKID,
-		EncKID: s.encKID,
+		Gen:         int(s.generation),
+		Seqno:       s.GetSeqno(),
+		SigKID:      s.sigKID,
+		EncKID:      s.encKID,
+		SignedByKID: s.GetKID(),
 	}
 }
 

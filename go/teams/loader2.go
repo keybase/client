@@ -491,6 +491,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		needAdmin:         false,
 		needKeyGeneration: 0,
 		wantMembers:       nil,
+		wantMembersRole:   keybase1.TeamRole_NONE,
 		forceFullReload:   false,
 		forceRepoll:       false,
 		staleOK:           true, // stale is fine, as long as get those seqnos.
@@ -779,4 +780,46 @@ func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 		}
 	}
 	return nil
+}
+
+func (l *TeamLoader) recalculateName(ctx context.Context,
+	state *keybase1.TeamData, me keybase1.UserVersion, staleOK bool) (newName keybase1.TeamName, err error) {
+
+	chain := TeamSigChainState{inner: state.Chain}
+	if !chain.IsSubteam() {
+		return chain.GetName(), nil
+	}
+
+	prevName := chain.GetName()
+
+	// Load the parent. The parent load will recalculate it's own name,
+	// so this name recalculation is recursive.
+	parent, err := l.load2(ctx, load2ArgT{
+		teamID:  *chain.GetParentID(),
+		staleOK: staleOK,
+		me:      me,
+	})
+	if err != nil {
+		return newName, err
+	}
+
+	parentName := TeamSigChainState{inner: parent.Chain}.GetName()
+
+	// Swap out the parent name as the base of this name.
+	// For example if:
+	// parentName: a.b2.c
+	// prevName:   a.b.c
+	// newName:    {a.b}.{c}
+	//              ^     ^ from prevName
+	//              | from parentName
+	newName, err = parentName.Append(string(prevName.LastPart()))
+	if err != nil {
+		return newName, fmt.Errorf("invalid new subteam name: %v", err)
+	}
+
+	if newName.Depth() != prevName.Depth() {
+		return newName, fmt.Errorf("team changed level: %v -> %v", prevName.Depth(), newName.Depth())
+	}
+
+	return newName, nil
 }

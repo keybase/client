@@ -168,7 +168,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 	// this change request should generate boxes since other.Username
 	// is not a member
 	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
-	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	tm, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 
 	// this change request shouldn't generate any new boxes
 	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
-	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	tm, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,7 +219,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	before, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	before, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,7 +237,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -391,7 +391,7 @@ func TestLeave(t *testing.T) {
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}

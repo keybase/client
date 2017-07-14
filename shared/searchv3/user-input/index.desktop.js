@@ -162,7 +162,7 @@ class UserInput extends Component<void, Props, State> {
         </Box>
         {onClearSearch &&
           <Icon
-            type="iconfont-close"
+            type="iconfont-remove"
             style={{height: 16, width: 16, marginRight: 10}}
             onClick={onClearSearch}
           />}

@@ -40,6 +40,8 @@ const Conversation = (props: Props) => (
       selectedSearchId={props.selectedSearchId}
       selectedConversationIDKey={props.selectedConversationIDKey}
       onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
+      onAddNewParticipant={props.onAddNewParticipant}
+      addNewParticipant={props.addNewParticipant}
     />
     {props.showSearchPending
       ? <ProgressIndicator style={{width: globalMargins.xlarge}} />

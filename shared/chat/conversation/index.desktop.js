@@ -125,6 +125,8 @@ class Conversation extends Component<void, Props, State> {
           selectedConversationIDKey={this.props.selectedConversationIDKey}
           selectedSearchId={this.props.selectedSearchId}
           onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
+          onAddNewParticipant={this.props.onAddNewParticipant}
+          addNewParticipant={this.props.addNewParticipant}
         />
         {this.props.showSearchPending
           ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
@@ -132,6 +134,7 @@ class Conversation extends Component<void, Props, State> {
               ? <SearchResultsList
                   items={this.props.searchResultIds}
                   onClick={this.props.onClickSearchResult}
+                  onMouseOver={this.props.onMouseOverSearchResult}
                   onShowTracker={this.props.onShowTrackerInSearch}
                   selectedId={this.props.selectedSearchId}
                   showSearchSuggestions={this.props.showSearchSuggestions}

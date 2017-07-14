@@ -17,7 +17,7 @@ import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {openInKBFS} from '../actions/kbfs'
-import {profileTab} from '../constants/tabs'
+import {peopleTab, profileTab} from '../constants/tabs'
 import {startConversation} from '../actions/chat'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -63,7 +63,8 @@ export default connect(
     return {
       currentFriendshipsTab: routeState.currentFriendshipsTab,
       myUsername,
-      profileIsRoot: routePath.size === 1 && routePath.first() === profileTab,
+      profileIsRoot: routePath.size === 1 &&
+        (routePath.first() === profileTab || routePath.first() === peopleTab),
       trackerState: state.tracker.trackers[username],
       username,
     }

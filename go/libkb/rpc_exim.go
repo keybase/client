@@ -219,6 +219,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return nil
 	case SCGeneric:
 		return errors.New(s.Desc)
+	case SCBadSession:
+		return BadSessionError{s.Desc}
 	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
 	case SCKeyBadGen:
@@ -770,6 +772,15 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Name = "CANCELED"
 	s.Desc = c.M
 	return
+}
+
+//=============================================================================
+
+func (e BadSessionError) ToStatus() (s keybase1.Status) {
+	s.Code = SCBadSession
+	s.Name = "BAD_SESSION"
+	s.Desc = e.Desc
+	return s
 }
 
 //=============================================================================

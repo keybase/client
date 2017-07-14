@@ -66,8 +66,15 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
-	r.G().Log.Debug("team.sbs (sharing before signup) not yet implemented")
-	return nil
+	r.G().Log.Debug("team.sbs received")
+	var msg keybase1.TeamSBSMsg
+	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
+		r.G().Log.Debug("error unmarshaling team.sbs item: %s", err)
+		return err
+	}
+	r.G().Log.Debug("team.sbs unmarshaled: %+v", msg)
+
+	return teams.HandleSBSRequest(ctx, r.G(), msg)
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

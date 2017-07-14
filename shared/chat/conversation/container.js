@@ -126,8 +126,10 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
+  withState('addNewParticipant', 'onAddNewParticipant', false),
   selectedSearchIdHoc,
   withHandlers({
+    onAddNewParticipant: props => () => props.onAddNewParticipant(true),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
@@ -135,6 +137,9 @@ export default compose(
       props.onChangeSearchText('')
       props._onClickSearchResult(id)
       props._clearSearchResults()
+    },
+    onMouseOverSearchResult: props => id => {
+      props.onUpdateSelectedSearchResult(id)
     },
   })
 )(Conversation)

@@ -88,7 +88,7 @@ class Feedback extends Component<void, Props, void> {
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               <Text type="Body">Include my logs</Text>
               <Text type="BodySmall">
-                This includes some private metadata info (e.g., filenames, but not contents) but it will help the developers fix bugs quicker.
+                This includes some private metadata info (e.g., filenames, but not contents) but it will help the developers fix bugs more quickly.
               </Text>
             </Box>
           </Box>

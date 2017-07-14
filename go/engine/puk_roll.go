@@ -1,9 +1,8 @@
 // Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// PerUserKeyUpgrade creates a per-user-key for the active user
-// if they do not already have one.
-// It adds a per-user-key link to the sigchain and adds the key to the local keyring.
+// PerUserKeyRoll creates a new per-user-key for the active user.
+// This can be the first per-user-key for the user.
 package engine
 
 import (
@@ -13,91 +12,76 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// PerUserKeyUpgrade is an engine.
-type PerUserKeyUpgrade struct {
+// PerUserKeyRoll is an engine.
+type PerUserKeyRoll struct {
 	libkb.Contextified
-	args      *PerUserKeyUpgradeArgs
+	args      *PerUserKeyRollArgs
 	DidNewKey bool
 }
 
-type PerUserKeyUpgradeArgs struct {
-	LoginContext libkb.LoginContext // optional
+type PerUserKeyRollArgs struct {
+	Me *libkb.User // optional
 }
 
-// NewPerUserKeyUpgrade creates a PerUserKeyUpgrade engine.
-func NewPerUserKeyUpgrade(g *libkb.GlobalContext, args *PerUserKeyUpgradeArgs) *PerUserKeyUpgrade {
-	return &PerUserKeyUpgrade{
+// NewPerUserKeyRoll creates a PerUserKeyRoll engine.
+func NewPerUserKeyRoll(g *libkb.GlobalContext, args *PerUserKeyRollArgs) *PerUserKeyRoll {
+	return &PerUserKeyRoll{
 		args:         args,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *PerUserKeyUpgrade) Name() string {
-	return "PerUserKeyUpgrade"
+func (e *PerUserKeyRoll) Name() string {
+	return "PerUserKeyRoll"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *PerUserKeyUpgrade) Prereqs() Prereqs {
+func (e *PerUserKeyRoll) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *PerUserKeyUpgrade) RequiredUIs() []libkb.UIKind {
+func (e *PerUserKeyRoll) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *PerUserKeyUpgrade) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{&PaperKeyGen{}}
+func (e *PerUserKeyRoll) SubConsumers() []libkb.UIConsumer {
+	return []libkb.UIConsumer{}
 }
 
 // Run starts the engine.
-func (e *PerUserKeyUpgrade) Run(ctx *Context) (err error) {
-	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyUpgrade", func() error { return err })()
+func (e *PerUserKeyRoll) Run(ctx *Context) (err error) {
+	defer e.G().CTrace(ctx.GetNetContext(), "PerUserKeyRoll", func() error { return err })()
 	return e.inner(ctx)
 }
 
-func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
-	if !e.G().Env.GetUpgradePerUserKey() {
-		return fmt.Errorf("per-user-key upgrade is disabled")
-	}
-
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade load self")
+func (e *PerUserKeyRoll) inner(ctx *Context) error {
+	var err error
 
 	uid := e.G().GetMyUID()
 	if uid.IsNil() {
 		return libkb.NoUIDError{}
 	}
 
-	loadArg := libkb.NewLoadUserArgBase(e.G()).
-		WithNetContext(ctx.GetNetContext()).
-		WithUID(uid).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	loadArg.LoginContext = e.args.LoginContext
-	upak, me, err := e.G().GetUPAKLoader().Load(*loadArg)
-	if err != nil {
-		return err
-	}
-	// `me` could be nil. Use the upak for quick checks and then fill `me`.
-
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade check for key")
-	if len(upak.Base.PerUserKeys) > 0 {
-		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade already has per-user-key")
-		e.DidNewKey = false
-		return nil
-	}
-	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade has no per-user-key")
-
+	me := e.args.Me
 	if me == nil {
+		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll load self")
+
+		loadArg := libkb.NewLoadUserArgBase(e.G()).
+			WithNetContext(ctx.GetNetContext()).
+			WithUID(uid).
+			WithSelf(true).
+			WithPublicKeyOptional()
 		me, err = libkb.LoadUser(*loadArg)
 		if err != nil {
 			return err
 		}
 	}
+	meUPAK := me.ExportToUserPlusAllKeys()
 
 	sigKey, err := e.G().ActiveDevice.SigningKey()
 	if err != nil {
@@ -117,14 +101,25 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return err
 	}
 
-	gen1 := keybase1.PerUserKeyGeneration(1)
+	// Generation of the new key
+	gen := pukring.CurrentGeneration() + keybase1.PerUserKeyGeneration(1)
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll creating gen: %v", gen)
 
 	pukSeed, err := libkb.GeneratePerUserKeySeed()
 	if err != nil {
 		return err
 	}
 
-	pukReceivers, err := e.getPukReceivers(ctx, upak)
+	var pukPrev *libkb.PerUserKeyPrev
+	if gen > 1 {
+		pukPrevInner, err := pukring.PreparePrev(ctx.GetNetContext(), pukSeed, gen)
+		if err != nil {
+			return err
+		}
+		pukPrev = &pukPrevInner
+	}
+
+	pukReceivers, err := e.getPukReceivers(ctx, &meUPAK)
 	if err != nil {
 		return err
 	}
@@ -134,12 +129,13 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 	// Create boxes of the new per-user-key
 	pukBoxes, err := pukring.PrepareBoxesForDevices(ctx.GetNetContext(),
-		pukSeed, gen1, pukReceivers, encKey)
+		pukSeed, gen, pukReceivers, encKey)
 	if err != nil {
 		return err
 	}
 
-	sig1, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen1, sigKey)
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll make sigs")
+	sig, err := libkb.PerUserKeyProofReverseSigned(me, pukSeed, gen, sigKey)
 	if err != nil {
 		return err
 	}
@@ -147,13 +143,16 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	pukSeqno := me.GetSigChainLastKnownSeqno()
 
 	var sigsList []libkb.JSONPayload
-	sigsList = append(sigsList, sig1)
+	sigsList = append(sigsList, sig)
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = sigsList
 
-	libkb.AddPerUserKeyServerArg(payload, gen1, pukBoxes, nil)
+	e.G().Log.CDebugf(ctx.NetContext, "PerUserKeyRoll pukBoxes:%v pukPrev:%v for generation %v",
+		len(pukBoxes), pukPrev != nil, gen)
+	libkb.AddPerUserKeyServerArg(payload, gen, pukBoxes, pukPrev)
 
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll post")
 	_, err = e.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -165,7 +164,7 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 	e.DidNewKey = true
 
 	// Add the per-user-key locally
-	err = pukring.AddKey(ctx.GetNetContext(), gen1, pukSeqno, pukSeed)
+	err = pukring.AddKey(ctx.GetNetContext(), gen, pukSeqno, pukSeed)
 	if err != nil {
 		return err
 	}
@@ -176,7 +175,7 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 
 // Get the receivers of the new per-user-key boxes.
 // Includes all the user's device subkeys.
-func (e *PerUserKeyUpgrade) getPukReceivers(ctx *Context, meUPAK *keybase1.UserPlusAllKeys) (res []libkb.NaclDHKeyPair, err error) {
+func (e *PerUserKeyRoll) getPukReceivers(ctx *Context, meUPAK *keybase1.UserPlusAllKeys) (res []libkb.NaclDHKeyPair, err error) {
 	for _, dk := range meUPAK.Base.DeviceKeys {
 		if dk.IsSibkey == false && !dk.IsRevoked {
 			receiver, err := libkb.ImportNaclDHKeyPairFromHex(dk.KID.String())

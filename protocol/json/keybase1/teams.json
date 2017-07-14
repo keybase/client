@@ -278,6 +278,14 @@
             "items": "UserVersion"
           },
           "name": "none"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "UID",
+            "keys": "TeamInviteID"
+          },
+          "name": "completedInvites"
         }
       ]
     },
@@ -632,6 +640,53 @@
     },
     {
       "type": "record",
+      "name": "TeamInvitee",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSBSMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamInvitee"
+          },
+          "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -644,6 +699,10 @@
             "items": "UserVersion"
           },
           "name": "wantMembers"
+        },
+        {
+          "type": "TeamRole",
+          "name": "wantMembersRole"
         }
       ],
       "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
@@ -916,6 +975,19 @@
         {
           "name": "role",
           "type": "TeamRole"
+        }
+      ],
+      "response": null
+    },
+    "teamAcceptInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "token",
+          "type": "string"
         }
       ],
       "response": null

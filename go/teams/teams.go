@@ -16,7 +16,6 @@ type Team struct {
 	libkb.Contextified
 
 	ID   keybase1.TeamID
-	Name keybase1.TeamName
 	Data *keybase1.TeamData
 
 	keyManager *TeamKeyManager
@@ -31,13 +30,16 @@ func NewTeam(ctx context.Context, g *libkb.GlobalContext, teamData *keybase1.Tea
 		Contextified: libkb.NewContextified(g),
 
 		ID:   chain.GetID(),
-		Name: chain.GetName(),
 		Data: teamData,
 	}
 }
 
 func (t *Team) chain() *TeamSigChainState {
 	return &TeamSigChainState{inner: t.Data.Chain}
+}
+
+func (t *Team) Name() keybase1.TeamName {
+	return t.chain().GetName()
 }
 
 func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
@@ -215,7 +217,7 @@ func (t *Team) readerKeyMask(
 
 func (t *Team) Rotate(ctx context.Context) error {
 
-	// make keys for the team
+	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
@@ -255,7 +257,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// result of this work, so use `NextSeqno()` and not `CurrentSeqno()`. Note that we're going
 	// to be getting this same notification a second time, since it will bounce off a gregor and
 	// back to us. But they are idempotent, so it should be fine to be double-notified.
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
+	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), keybase1.TeamChangeSet{KeyRotated: true})
 
 	return nil
 }
@@ -323,7 +325,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 
 	// send notification that team key rotated
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
-	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name.String(), t.NextSeqno(), changes)
+	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
 	return nil
 }
 
@@ -335,6 +337,10 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	payload := make(libkb.JSONPayload)
 	payload["permanent"] = permanent
 	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
+}
+
+func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
+	return t.chain().HasActiveInvite(name, typ)
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
@@ -352,7 +358,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 }
 
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
-	t.G().Log.Debug("team %s invite email member %s", t.Name, email)
+	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
 	invite := SCTeamInvite{
 		Type: "email",
 		Name: email,
@@ -362,7 +368,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 }
 
 func (t *Team) inviteKeybaseMember(ctx context.Context, uid keybase1.UID, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
-	t.G().Log.Debug("team %s invite keybase member %s", t.Name, uid)
+	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uid)
 	invite := SCTeamInvite{
 		Type: "keybase",
 		Name: uid.String(),
@@ -384,7 +390,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 		return keybase1.TeamAddMemberResult{}, fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
 	}
 	typ, name := assertion.ToKeyValuePair()
-	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name, typ, name)
+	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name(), typ, name)
 
 	invite := SCTeamInvite{
 		Type: typ,
@@ -400,7 +406,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
-	existing, err := t.chain().HasActiveInvite(invite.Name, invite.Type)
+	existing, err := t.HasActiveInvite(invite.Name, invite.Type)
 	if err != nil {
 		return err
 	}
@@ -459,7 +465,12 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 		if parentID == nil {
 			return nil, nil
 		}
-		targetTeam, err = GetForTeamManagement(ctx, t.G(), *parentID)
+		targetTeam, err = Load(ctx, t.G(), keybase1.LoadTeamArg{
+			ID: *parentID,
+			// This is in a cold path anyway, so might as well trade reliability
+			// at the expense of speed.
+			ForceRepoll: true,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -496,7 +507,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 }
 
 func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, *memberSet, error) {
-	// make keys for the team
+	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return SCTeamSection{}, nil, nil, err
 	}
@@ -524,6 +535,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, err
 	}
 	section.PerTeamKey = perTeamKeySection
+
+	section.CompletedInvites = req.CompletedInvites
 
 	return section, secretBoxes, memSet, nil
 }
@@ -735,11 +748,15 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
-func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (keybase1.TeamPlusApplicationKeys, error) {
-	var teamPlusApplicationKeys keybase1.TeamPlusApplicationKeys
-	teamByID, err := GetForApplication(ctx, g, id, application, refreshers)
+func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
+	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:         id,
+		Refreshers: refreshers,
+	})
 	if err != nil {
-		return teamPlusApplicationKeys, err
+		return res, err
 	}
-	return teamByID.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
 }

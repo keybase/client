@@ -232,10 +232,7 @@ func TestLoaderWantMembers(t *testing.T) {
 		team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
-				WantMembers: []keybase1.UserVersion{{
-					Uid:         fus[2].GetUID(),
-					EldestSeqno: keybase1.Seqno(1),
-				}},
+				WantMembers: []keybase1.UserVersion{fus[2].GetUserVersion()},
 			},
 		})
 		require.NoError(t, err)
@@ -251,10 +248,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	t.Logf("U1 loads with WantMembers=U2 and it works")
 	team = loadAsU1WantU2()
 	requireSeqno(team, 4, "seqno should advance to pick up the new link")
-	role, err := TeamSigChainState{inner: team.Chain}.GetUserRole(keybase1.UserVersion{
-		Uid:         fus[2].GetUID(),
-		EldestSeqno: keybase1.Seqno(1),
-	})
+	role, err := TeamSigChainState{inner: team.Chain}.GetUserRole(fus[2].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
@@ -433,4 +427,58 @@ func TestLoaderMultilevel(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, *subsubteamID, team.Chain.Id)
 	require.Equal(t, expectedSubsubTeamName, TeamSigChainState{inner: team.Chain}.GetName())
+}
+
+// Test that loading with wantmembers which have eldestseqno=0 works.
+func TestLoaderInferWantMembers(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	// Require that a team is at this seqno
+	requireSeqno := func(team *keybase1.TeamData, seqno int, dots ...interface{}) {
+		require.NotNil(t, team, dots...)
+		require.Equal(t, keybase1.Seqno(seqno), TeamSigChainState{inner: team.Chain}.GetLatestSeqno(), dots...)
+	}
+
+	t.Logf("U0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads and caches")
+	team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	requireSeqno(team, 2)
+
+	t.Logf("U0 bumps the sigchain (add U2) (3)")
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads and hits the cache")
+	team, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	requireSeqno(team, 2)
+
+	t.Logf("U1 loads with WantMembers=U2 which infers the eldestseqno and repolls")
+	loadAsU1WantU2 := func() *keybase1.TeamData {
+		team, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+			ID: teamID,
+			Refreshers: keybase1.TeamRefreshers{
+				WantMembers: []keybase1.UserVersion{keybase1.UserVersion{
+					Uid:         fus[2].GetUID(),
+					EldestSeqno: 0,
+				}},
+			},
+		})
+		require.NoError(t, err)
+		return team
+	}
+	team = loadAsU1WantU2()
+	requireSeqno(team, 3, "seqno should advance because wantmembers pre-check fails")
 }

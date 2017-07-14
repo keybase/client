@@ -1254,7 +1254,7 @@ func TestChatSrvGap(t *testing.T) {
 		ooMsg.ServerHeader.MessageID = 4
 
 		payload := chat1.NewMessagePayload{
-			Action:  "newMessage",
+			Action:  types.ActionNewMessage,
 			ConvID:  created.Id,
 			Message: ooMsg,
 		}
@@ -1270,7 +1270,7 @@ func TestChatSrvGap(t *testing.T) {
 		ph := NewPushHandler(tc.Context())
 		require.NoError(t, ph.Activity(ctx, &gregor1.OutOfBandMessage{
 			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
+			System_: gregor1.System(types.PushActivity),
 			Body_:   data,
 		}))
 
@@ -1283,7 +1283,7 @@ func TestChatSrvGap(t *testing.T) {
 
 		ooMsg.ServerHeader.MessageID = 5
 		payload = chat1.NewMessagePayload{
-			Action:  "newMessage",
+			Action:  types.ActionNewMessage,
 			ConvID:  created.Id,
 			Message: ooMsg,
 		}
@@ -1291,7 +1291,7 @@ func TestChatSrvGap(t *testing.T) {
 		require.NoError(t, enc.Encode(payload))
 		require.NoError(t, ph.Activity(ctx, &gregor1.OutOfBandMessage{
 			Uid_:    u.User.GetUID().ToBytes(),
-			System_: "chat.activity",
+			System_: gregor1.System(types.PushActivity),
 			Body_:   data,
 		}))
 
@@ -1304,12 +1304,13 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
-	newMessage    chan chat1.MessageUnboxed
-	threadsStale  chan []chat1.ConversationID
-	inboxStale    chan struct{}
-	joinedConv    chan chat1.ConversationLocal
-	leftConv      chan chat1.ConversationID
-	membersUpdate chan chat1.MembersUpdateInfo
+	newMessage              chan chat1.IncomingMessage
+	threadsStale            chan []chat1.ConversationID
+	inboxStale              chan struct{}
+	joinedConv              chan chat1.ConversationLocal
+	leftConv                chan chat1.ConversationID
+	membersUpdate           chan chat1.MembersUpdateInfo
+	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1345,9 +1346,11 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 	typ, _ := activity.ActivityType()
 	switch typ {
 	case chat1.ChatActivityType_INCOMING_MESSAGE:
-		n.newMessage <- activity.IncomingMessage().Message
+		n.newMessage <- activity.IncomingMessage()
 	case chat1.ChatActivityType_MEMBERS_UPDATE:
 		n.membersUpdate <- activity.MembersUpdate()
+	case chat1.ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
+		n.appNotificationSettings <- activity.SetAppNotificationSettings()
 	}
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -1361,12 +1364,13 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
-		newMessage:    make(chan chat1.MessageUnboxed, 100),
-		threadsStale:  make(chan []chat1.ConversationID, 100),
-		inboxStale:    make(chan struct{}, 100),
-		joinedConv:    make(chan chat1.ConversationLocal, 100),
-		leftConv:      make(chan chat1.ConversationID, 100),
-		membersUpdate: make(chan chat1.MembersUpdateInfo, 100),
+		newMessage:              make(chan chat1.IncomingMessage, 100),
+		threadsStale:            make(chan []chat1.ConversationID, 100),
+		inboxStale:              make(chan struct{}, 100),
+		joinedConv:              make(chan chat1.ConversationLocal, 100),
+		leftConv:                make(chan chat1.ConversationID, 100),
+		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
+		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
 	}
 }
 
@@ -1398,7 +1402,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		require.NoError(t, err)
 		var unboxed chat1.MessageUnboxed
 		select {
-		case unboxed = <-listener.newMessage:
+		case info := <-listener.newMessage:
+			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
 			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
@@ -1420,7 +1425,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		res, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
 		require.NoError(t, err)
 		select {
-		case unboxed = <-listener.newMessage:
+		case info := <-listener.newMessage:
+			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
 			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
@@ -1441,7 +1447,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		res, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 		require.NoError(t, err)
 		select {
-		case unboxed = <-listener.newMessage:
+		case info := <-listener.newMessage:
+			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
 			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
@@ -1975,4 +1982,99 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.Error(t, err)
 	})
+}
+
+func TestChatSrvSetAppNotificationSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvSetAppNotificationSettings", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		ctx := ctc.as(t, users[0]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gilres.Conversations))
+		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
+		gconv := gilres.Conversations[0]
+		require.True(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.Equal(t, 2, len(gconv.Notifications.Settings))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+
+		mustPostLocalForTest(t, ctc, users[1], conv,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		select {
+		case info := <-listener0.newMessage:
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message event")
+		}
+
+		var settings chat1.ConversationNotificationInfo
+		utils.NotificationInfoSet(&settings, chat1.NotificationAppType_DESKTOP,
+			chat1.NotificationKind_GENERIC, false)
+		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
+			chat1.SetAppNotificationSettingsLocalArg{
+				ConvID:   conv.Id,
+				Settings: settings,
+			})
+		require.NoError(t, err)
+		select {
+		case rsettings := <-listener0.appNotificationSettings:
+			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
+			require.Equal(t, 1, len(rsettings.Settings.Settings))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no app notification received")
+		}
+
+		gilres, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(gilres.Conversations))
+		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
+		gconv = gilres.Conversations[0]
+		require.False(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.Equal(t, 2, len(gconv.Notifications.Settings))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+
+		mustPostLocalForTest(t, ctc, users[1], conv,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		select {
+		case info := <-listener0.newMessage:
+			require.False(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message event")
+		}
+		text := fmt.Sprintf("@%s", users[0].Username)
+		mustPostLocalForTest(t, ctc, users[1], conv,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
+		select {
+		case info := <-listener0.newMessage:
+			require.True(t, info.DisplayDesktopNotification)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message event")
+		}
+	})
+
 }
