@@ -59,6 +59,7 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
     messages: action.payload.messages.map(safeServerMessageMap),
+    svcShouldDisplayNotification: action.payload.svcShouldDisplayNotification,
   },
   type: action.type,
 })
@@ -176,7 +177,10 @@ function startConversation(
   forceImmediate?: boolean = false,
   temporary?: boolean = false
 ): Constants.StartConversation {
-  return {payload: {forceImmediate, users: uniq(users), temporary}, type: 'chat:startConversation'}
+  return {
+    payload: {forceImmediate, users: uniq(users), temporary},
+    type: 'chat:startConversation',
+  }
 }
 
 function newChat(existingParticipants: Array<string>): Constants.NewChat {
@@ -218,7 +222,10 @@ function loadMoreMessages(
   onlyIfUnloaded: boolean,
   fromUser?: boolean = false
 ): Constants.LoadMoreMessages {
-  return {payload: {conversationIDKey, onlyIfUnloaded, fromUser}, type: 'chat:loadMoreMessages'}
+  return {
+    payload: {conversationIDKey, onlyIfUnloaded, fromUser},
+    type: 'chat:loadMoreMessages',
+  }
 }
 
 function showEditor(message: ?Constants.Message): Constants.ShowEditor {
@@ -233,7 +240,10 @@ function muteConversation(
   conversationIDKey: Constants.ConversationIDKey,
   muted: boolean
 ): Constants.MuteConversation {
-  return {payload: {conversationIDKey, muted}, type: 'chat:muteConversation'}
+  return {
+    payload: {conversationIDKey, muted},
+    type: 'chat:muteConversation',
+  }
 }
 
 function blockConversation(
@@ -241,7 +251,10 @@ function blockConversation(
   conversationIDKey: Constants.ConversationIDKey,
   reportUser: boolean
 ): Constants.BlockConversation {
-  return {payload: {blocked, conversationIDKey, reportUser}, type: 'chat:blockConversation'}
+  return {
+    payload: {blocked, conversationIDKey, reportUser},
+    type: 'chat:blockConversation',
+  }
 }
 
 function deleteMessage(message: Constants.Message): Constants.DeleteMessage {
@@ -252,7 +265,10 @@ function addPending(
   participants: Array<string>,
   temporary: boolean = false
 ): Constants.AddPendingConversation {
-  return {payload: {participants, temporary}, type: 'chat:addPendingConversation'}
+  return {
+    payload: {participants, temporary},
+    type: 'chat:addPendingConversation',
+  }
 }
 
 function removeTempPendingConversations(): Constants.RemoveTempPendingConversations {
@@ -270,7 +286,10 @@ function updateSupersedesState(supersedesState: Constants.SupersedesState): Cons
 function updateSupersededByState(
   supersededByState: Constants.SupersededByState
 ): Constants.UpdateSupersededByState {
-  return {payload: {supersededByState}, type: 'chat:updateSupersededByState'}
+  return {
+    payload: {supersededByState},
+    type: 'chat:updateSupersededByState',
+  }
 }
 
 function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox {
@@ -281,32 +300,48 @@ function createPendingFailure(
   failureDescription: string,
   outboxID: Constants.OutboxIDKey
 ): Constants.CreatePendingFailure {
-  return {payload: {failureDescription, outboxID}, type: 'chat:createPendingFailure'}
+  return {
+    payload: {failureDescription, outboxID},
+    type: 'chat:createPendingFailure',
+  }
 }
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
   paginationNext: Buffer
 ): Constants.UpdatePaginationNext {
-  return {payload: {conversationIDKey, paginationNext}, type: 'chat:updatePaginationNext'}
+  return {
+    payload: {conversationIDKey, paginationNext},
+    type: 'chat:updatePaginationNext',
+  }
 }
 
 function markSeenMessage(
   conversationIDKey: Constants.ConversationIDKey,
   messageKey: Constants.MessageKey
 ): Constants.MarkSeenMessage {
-  return {payload: {conversationIDKey, messageKey}, type: 'chat:markSeenMessage'}
+  return {
+    payload: {conversationIDKey, messageKey},
+    type: 'chat:markSeenMessage',
+  }
 }
 
 function appendMessages(
   conversationIDKey: Constants.ConversationIDKey,
   isSelected: boolean,
   isAppFocused: boolean,
-  messages: Array<Constants.Message>
+  messages: Array<Constants.Message>,
+  svcShouldDisplayNotification: boolean
 ): Constants.AppendMessages {
   return {
     logTransformer: appendMessageActionTransformer,
-    payload: {conversationIDKey, isAppFocused, isSelected, messages},
+    payload: {
+      conversationIDKey,
+      isAppFocused,
+      isSelected,
+      messages,
+      svcShouldDisplayNotification,
+    },
     type: 'chat:appendMessages',
   }
 }
@@ -328,7 +363,10 @@ function clearSearchResults(): Constants.ClearSearchResults {
 function updateConversationUnreadCounts(
   conversationUnreadCounts: Map<Constants.ConversationIDKey, number>
 ): Constants.UpdateConversationUnreadCounts {
-  return {payload: {conversationUnreadCounts}, type: 'chat:updateConversationUnreadCounts'}
+  return {
+    payload: {conversationUnreadCounts},
+    type: 'chat:updateConversationUnreadCounts',
+  }
 }
 
 function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
@@ -391,7 +429,10 @@ function loadingMessages(
   conversationIDKey: Constants.ConversationIDKey,
   isRequesting: boolean
 ): Constants.LoadingMessages {
-  return {payload: {conversationIDKey, isRequesting}, type: 'chat:loadingMessages'}
+  return {
+    payload: {conversationIDKey, isRequesting},
+    type: 'chat:loadingMessages',
+  }
 }
 
 function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryAttachment {
@@ -408,7 +449,10 @@ function retryAttachment(message: Constants.AttachmentMessage): Constants.RetryA
     title,
     type: previewType || 'Other',
   }
-  return {payload: {input, oldOutboxID: outboxID}, type: 'chat:retryAttachment'}
+  return {
+    payload: {input, oldOutboxID: outboxID},
+    type: 'chat:retryAttachment',
+  }
 }
 
 function selectAttachment(input: Constants.AttachmentInput): Constants.SelectAttachment {
@@ -476,7 +520,10 @@ function selectConversation(
   conversationIDKey: ?Constants.ConversationIDKey,
   fromUser: boolean
 ): Constants.SelectConversation {
-  return {payload: {conversationIDKey, fromUser}, type: 'chat:selectConversation'}
+  return {
+    payload: {conversationIDKey, fromUser},
+    type: 'chat:selectConversation',
+  }
 }
 
 function updateTempMessage(
@@ -505,7 +552,10 @@ function untrustedInboxVisible(
   conversationIDKey: Constants.ConversationIDKey,
   rowsVisible: number
 ): Constants.UntrustedInboxVisible {
-  return {payload: {conversationIDKey, rowsVisible}, type: 'chat:untrustedInboxVisible'}
+  return {
+    payload: {conversationIDKey, rowsVisible},
+    type: 'chat:untrustedInboxVisible',
+  }
 }
 
 function setUnboxing(
@@ -514,7 +564,11 @@ function setUnboxing(
 ): Constants.SetUnboxing {
   // Just to make flow happy
   if (errored) {
-    return {error: true, payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
+    return {
+      error: true,
+      payload: {conversationIDKeys},
+      type: 'chat:setUnboxing',
+    }
   }
   return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
 }
@@ -533,7 +587,10 @@ function updateInboxRekeyOthers(
   conversationIDKey: Constants.ConversationIDKey,
   rekeyers: Array<string>
 ): Constants.UpdateInboxRekeyOthers {
-  return {payload: {conversationIDKey, rekeyers}, type: 'chat:updateInboxRekeyOthers'}
+  return {
+    payload: {conversationIDKey, rekeyers},
+    type: 'chat:updateInboxRekeyOthers',
+  }
 }
 
 function updateInboxComplete(): Constants.UpdateInboxComplete {
@@ -544,7 +601,10 @@ function removeOutboxMessage(
   conversationIDKey: Constants.ConversationIDKey,
   outboxID: Constants.OutboxIDKey
 ): Constants.RemoveOutboxMessage {
-  return {payload: {conversationIDKey, outboxID}, type: 'chat:removeOutboxMessage'}
+  return {
+    payload: {conversationIDKey, outboxID},
+    type: 'chat:removeOutboxMessage',
+  }
 }
 
 function removePendingFailure(outboxID: Constants.OutboxIDKey): Constants.RemovePendingFailure {
@@ -571,7 +631,10 @@ function setInitialConversation(
 function setPreviousConversation(
   conversationIDKey: ?Constants.ConversationIDKey
 ): Constants.SetPreviousConversation {
-  return {payload: {conversationIDKey}, type: 'chat:setPreviousConversation'}
+  return {
+    payload: {conversationIDKey},
+    type: 'chat:setPreviousConversation',
+  }
 }
 
 function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Constants.ThreadLoadedOffline {
@@ -625,7 +688,10 @@ function updateThread(
   yourDeviceName: string,
   conversationIDKey: string
 ): Constants.UpdateThread {
-  return {payload: {thread, yourName, yourDeviceName, conversationIDKey}, type: 'chat:updateThread'}
+  return {
+    payload: {thread, yourName, yourDeviceName, conversationIDKey},
+    type: 'chat:updateThread',
+  }
 }
 
 export {

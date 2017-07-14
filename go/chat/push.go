@@ -341,7 +341,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %s", err.Error())
 			return false
 		}
-		if typ == chat1.MessageType_TEXT {
+		if typ == chat1.MessageType_TEXT || typ == chat1.MessageType_ATTACHMENT {
 			atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
 				g.G().GetUPAKLoader(), &g.DebugLabeler)
 			kind := chat1.NotificationKind_GENERIC
