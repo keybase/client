@@ -36,16 +36,6 @@ const _tabs = [
   Tabs.settingsTab,
 ].filter(Boolean)
 
-const iconForTab = (tab, selectedTab) => {
-  const icon = tab === Tabs.profileTab
-    ? _icons[Tabs.peopleTab][selectedTab === tab ? 'selected' : 'unselected']
-    : _icons[tab][selectedTab === tab ? 'selected' : 'unselected']
-  return {
-    icon,
-    type: 'nav',
-  }
-}
-
 const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
     {_tabs.map(tab => (
@@ -57,7 +47,7 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
-        source={iconForTab(tab, selectedTab)}
+        source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'nav'}}
         style={stylesTabButton}
       />
     ))}
@@ -65,8 +55,8 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
     <TabBarButton
       label={username}
       isNav={true}
-      selected={selectedTab === Tabs.peopleTab}
-      onClick={() => onTabClick(Tabs.peopleTab)}
+      selected={false}
+      onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.peopleTab]}
       source={{type: 'avatar', username}}
       style={stylesTabButton}
