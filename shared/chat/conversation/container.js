@@ -35,6 +35,7 @@ type DispatchProps = {|
     inputs: Array<Constants.AttachmentInput>
   ) => void,
   onOpenInfoPanelMobile: () => void,
+  onExitSearch: () => void,
   onBack: () => void,
   _clearSearchResults: () => void,
   _onClickSearchResult: (id: string) => void,
@@ -87,6 +88,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
+  onExitSearch: () => dispatch(Creators.exitSearch()),
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([
