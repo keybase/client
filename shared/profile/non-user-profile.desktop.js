@@ -6,7 +6,7 @@ import {globalColors, globalStyles, globalMargins} from '../styles'
 import {platformToLogo24} from '../constants/search'
 import {AVATAR_SIZE, HEADER_SIZE} from '../profile/index.desktop'
 
-import type Props from './non-user-profile.render'
+import type {Props} from './non-user-profile'
 
 const NonUserRender = (props: Props) => (
   <Box style={styleContainer}>
