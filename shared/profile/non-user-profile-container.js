@@ -28,10 +28,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
   onOpenPrivateFolder: () =>
     dispatchProps.onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
   onStartChat: () => dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
-}))(NonUserProfile)
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NonUserProfile)
