@@ -1,9 +1,9 @@
 // @flow
-import NonUserProfile from './non-user-profile.render'
 import {connect} from 'react-redux'
 import {openInKBFS} from '../actions/kbfs'
 import {privateFolderWithUsers} from '../constants/config'
 import {startConversation} from '../actions/chat'
+import NonUserProfile from './non-user-profile'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -16,21 +16,22 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
-  onOpenPrivateFolder: (myUsername, username) =>
-    dispatch(openInKBFS(privateFolderWithUsers([username, myUsername]))),
+  onOpenPrivateFolder: (myUsername, username) => {
+    if (myUsername && username) {
+      dispatch(openInKBFS(privateFolderWithUsers([username, myUsername])))
+    }
+  },
   onStartChat: (myUsername, username) => {
-    dispatch(startConversation([username, myUsername]))
+    if (myUsername && username) {
+      dispatch(startConversation([username, myUsername]))
+    }
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    onOpenPrivateFolder: () =>
-      stateProps.myUsername &&
-      dispatchProps.onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
-    onStartChat: () =>
-      stateProps.myUsername && dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
-  }
-})(NonUserProfile)
+export default connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  onOpenPrivateFolder: () =>
+    dispatchProps.onOpenPrivateFolder(stateProps.myUsername, stateProps.fullUsername),
+  onStartChat: () => dispatchProps.onStartChat(stateProps.myUsername, stateProps.fullUsername),
+}))(NonUserProfile)
