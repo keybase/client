@@ -390,6 +390,34 @@ func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
 	return res
 }
 
+// Check that a subteam rename occurred just so.
+// That the subteam `subteamID` got a new name `newName` at exactly `seqno` in this,
+// the parent, chain.
+// Note this only checks against the last part of `newName` because mid-team renames are such a pain.
+// This is currently linear in the number of times that subteam has been renamed.
+// It should be easy to add an index if need be.
+func (t *TeamSigChainState) SubteamRenameOccurred(
+	subteamID keybase1.TeamID, newName keybase1.TeamName, seqno keybase1.Seqno) error {
+
+	points := t.inner.SubteamLog[subteamID]
+	if len(points) == 0 {
+		return fmt.Errorf("subteam %v has no name log", subteamID)
+	}
+	for _, point := range points {
+		if point.Seqno == seqno {
+			if point.Name.LastPart().Eq(newName.LastPart()) {
+				// found it!
+				return nil
+			}
+		}
+		if point.Seqno > seqno {
+			break
+		}
+	}
+	return fmt.Errorf("subteam %v did not have rename entry in log: %v %v",
+		subteamID, newName, seqno)
+}
+
 func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 	i, err := t.FindActiveInvite(name, typ)
 	if err != nil {
