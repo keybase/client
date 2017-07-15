@@ -11,7 +11,7 @@ import {
   checkProof,
 } from '../actions/profile'
 import {searchSuggestions} from '../actions/searchv3/creators'
-import {connect} from 'react-redux'
+import pausableConnect from '../util/pausable-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
@@ -55,7 +55,7 @@ class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   }
 }
 
-export default connect(
+export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
     const username = routeProps.username ? routeProps.username : myUsername

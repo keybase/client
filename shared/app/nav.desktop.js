@@ -32,8 +32,8 @@ function Nav(props: Props) {
           badgeNumbers={props.navBadges.toJS()}
         />}
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {visibleScreen.component}
-        {layerScreens.map(r => r.leafComponent)}
+        {visibleScreen.component({isActive: true})}
+        {layerScreens.map(r => r.leafComponent({isActive: true}))}
       </Box>
       <div id="popupContainer" />
       {![chatTab, loginTab].includes(props.routeSelected) &&

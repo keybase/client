@@ -3,9 +3,9 @@ import React from 'react'
 import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
 
-const Render = ({children}: {children: any}) => (
+const Render = ({isActive, children}: {isActive: boolean, children: any}) => (
   <div style={style}>
-    <Inbox />
+    <Inbox isActive={isActive} />
     {children}
   </div>
 )
