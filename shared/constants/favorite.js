@@ -4,7 +4,7 @@ import {FavoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 
 import type {Exact} from '../constants/types/more'
-import type {Folder as FolderRPC, FuseStatus} from '../constants/types/flow-types'
+import type {Folder as FolderRPC, FuseStatus, InstallResult} from '../constants/types/flow-types'
 import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
@@ -40,9 +40,16 @@ export type KBFSStatus = {
 
 export type State = Exact<{
   folderState: FolderState,
-  viewState: ViewState,
+  fuseStatus: {
+    loading: boolean,
+    status: ?FuseStatus,
+  },
+  kbfsInstall: {
+    installing: boolean,
+    result: ?InstallResult,
+  },
   kbfsStatus: KBFSStatus,
-  fuseStatus: ?FuseStatus,
+  viewState: ViewState,
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'

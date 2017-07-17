@@ -2144,18 +2144,18 @@ export function installFuseStatusRpcPromise (request: $Exact<requestCommon & {ca
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function installInstallKBFSRpc (request: Exact<requestCommon & requestErrorCallback>) {
+export function installInstallKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>) {
   engineRpcOutgoing('keybase.1.install.installKBFS', request)
 }
 
-export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
+export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
 }
-export function installInstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+export function installInstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): ChannelMap<*> {
   return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installKBFS', request, callback, incomingCallMap) })
 }
 
-export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
+export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): Promise<installInstallKBFSResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -7510,6 +7510,7 @@ type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
+type installInstallKBFSResult = InstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
