@@ -36,7 +36,8 @@ class ConversationList extends Component<void, Props, void> {
             this._onAction,
             this._onShowEditor,
             isSelected,
-            this._measure
+            this._measure,
+            this.props.isActive,
           )}
         </Box>
       )
@@ -72,6 +73,7 @@ class ConversationList extends Component<void, Props, void> {
     return (
       <FlatList
         data={this.props.messageKeys.toArray()}
+        extraData={this.props.isActive}
         renderItem={this._renderItem}
         renderScrollComponent={this._renderScrollComponent}
         onEndReached={this._onEndReached}

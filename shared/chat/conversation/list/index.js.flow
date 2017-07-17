@@ -4,6 +4,7 @@ import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
 
 export type Props = {|
+  isActive: boolean,
   messageKeys: List<string>,
   editLastMessageCounter: number,
   listScrollDownCounter: number,

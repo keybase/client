@@ -26,6 +26,7 @@ export type DispatchProps = {|
 |}
 
 export type OwnProps = {|
+  isActive: boolean,
   focusInputCounter: number,
   listScrollDownCounter: number,
   onEditLastMessage: () => void,

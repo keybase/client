@@ -142,6 +142,7 @@ class Conversation extends Component<void, Props, State> {
                 />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
                   <List
+                    isActive={this.props.isActive}
                     focusInputCounter={this.props.focusInputCounter}
                     listScrollDownCounter={this.props.listScrollDownCounter}
                     onEditLastMessage={this.props.onEditLastMessage}
