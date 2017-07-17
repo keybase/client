@@ -59,10 +59,7 @@ func (e *FavoriteList) Run(ctx *Context) error {
 	arg := libkb.NewRetryAPIArg("kbfs/favorite/list")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 
-	// return e.G().API.GetDecode(arg, &e.result)
-	err := e.G().API.GetDecode(arg, &e.result)
-	e.G().Log.Errorf("Got result %#v", e.result)
-	return err
+	return e.G().API.GetDecode(arg, &e.result)
 }
 
 // Favorites returns the list of favorites that Run generated.
