@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './render'
+import Install from './install'
 import {connect} from 'react-redux'
 import {favoriteList} from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
+import {fuseStatus, openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
 
 import {switchTo, navigateAppend} from '../actions/route-tree'
@@ -15,6 +16,8 @@ import type {FolderState} from '../constants/favorite'
 export type Props = {
   favoriteList: () => void,
   folderState: ?FolderState,
+  fuseInstalled: boolean,
+  fuseStatus: () => void,
   openInKBFS: (path: string) => void,
   openTlfInChat: (tlf: string) => void,
   showingPrivate: boolean,
@@ -29,9 +32,13 @@ export type Props = {
 class Folders extends Component<void, Props, void> {
   componentDidMount() {
     this.props.favoriteList()
+    this.props.fuseStatus()
   }
 
   render() {
+    if (!this.props.fuseInstalled) {
+      return <Install />
+    }
     return (
       <Render
         {...this.props.folderState}
@@ -53,14 +60,16 @@ type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
 const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
-  username: state.config.username,
   folderState: state.favorite ? state.favorite.folderState : null,
-  showingPrivate: !!state.favorite && showingPrivate,
+  fuseInstalled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
   showingIgnored: !!state.favorite && routeState.showingIgnored,
+  showingPrivate: !!state.favorite && showingPrivate,
+  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
   favoriteList: () => dispatch(favoriteList()),
+  fuseStatus: () => dispatch(fuseStatus()),
   onOpenFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
   onRekeyFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
   openInKBFS: path => dispatch(openInKBFS(path)),

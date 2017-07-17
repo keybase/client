@@ -2,7 +2,11 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import fs from 'fs'
-import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
+import {
+  installFuseStatusRpcPromise,
+  installInstallKBFSRpcPromise,
+  kbfsMountGetCurrentMountDirRpcPromise,
+} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
@@ -103,6 +107,20 @@ function openInDefault(openPath: string): Promise<*> {
   return _open(openPath)
 }
 
+function* fuseStatusSaga(): SagaGenerator<any, any> {
+  const fuseStatus = yield call(installFuseStatusRpcPromise)
+  const action = {payload: {fuseStatus}, type: 'fs:fuseStatusUpdate'}
+  yield put(action)
+}
+
+function* installKBFSSaga(): SagaGenerator<any, any> {
+  yield call(installInstallKBFSRpcPromise)
+
+  const fuseStatus = yield call(installFuseStatusRpcPromise)
+  const action = {payload: {fuseStatus}, type: 'fs:fuseStatusUpdate'}
+  yield put(action)
+}
+
 function* openInWindows(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
@@ -152,4 +170,4 @@ function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, 
   yield call(_open, path)
 }
 
-export {openInFileUISaga, openSaga}
+export {fuseStatusSaga, installKBFSSaga, openInFileUISaga, openSaga}

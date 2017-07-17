@@ -75,4 +75,14 @@ protocol install {
     Status status;
   }
 
+  /*
+    Return status for Fuse install.
+    If you specify bundleVersion, it will tell you if an upgrade is needed.
+   */
+  FuseStatus fuseStatus(int sessionID, string bundleVersion);
+
+  /*
+    Install KBFS (Fuse, mount).
+   */
+  void installKBFS();
 }

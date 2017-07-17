@@ -147,7 +147,7 @@ else
 
   if [ "$number_of_builds" = "2" ]; then
     # Announce the new builds to the API server.
-    echo "Annoucing builds: $build_a and $build_b."
+    echo "Announcing builds: $build_a and $build_b."
     BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="darwin"
   fi
 

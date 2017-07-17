@@ -2129,6 +2129,36 @@ export function identifyResolveRpcPromise (request: $Exact<requestCommon & {call
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function installFuseStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>) {
+  engineRpcOutgoing('keybase.1.install.fuseStatus', request)
+}
+
+export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
+}
+export function installFuseStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.fuseStatus', request, callback, incomingCallMap) })
+}
+
+export function installFuseStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): Promise<installFuseStatusResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallKBFSRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing('keybase.1.install.installKBFS', request)
+}
+
+export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
+}
+export function installInstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installKBFS', request, callback, incomingCallMap) })
+}
+
+export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function kbfsFSEditListRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
   engineRpcOutgoing('keybase.1.kbfs.FSEditList', request)
 }
@@ -6708,6 +6738,10 @@ export type identifyUiStartRpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
+export type installFuseStatusRpcParam = Exact<{
+  bundleVersion: string
+}>
+
 export type kbfsFSEditListRpcParam = Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
@@ -7475,6 +7509,7 @@ type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
+type installFuseStatusResult = FuseStatus
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
@@ -7666,6 +7701,8 @@ export type rpc =
   | identifyResolve2Rpc
   | identifyResolve3Rpc
   | identifyResolveRpc
+  | installFuseStatusRpc
+  | installInstallKBFSRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
   | kbfsFSSyncEventRpc

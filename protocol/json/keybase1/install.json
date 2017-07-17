@@ -212,6 +212,24 @@
       ]
     }
   ],
-  "messages": {},
+  "messages": {
+    "fuseStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bundleVersion",
+          "type": "string"
+        }
+      ],
+      "response": "FuseStatus"
+    },
+    "installKBFS": {
+      "request": [],
+      "response": null
+    }
+  },
   "namespace": "keybase.1"
 }
