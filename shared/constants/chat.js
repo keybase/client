@@ -1091,8 +1091,9 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 function isImageFileName(filename: string): boolean {
-  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+  return imageFileNameRegex.test(filename)
 }
 
 const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
