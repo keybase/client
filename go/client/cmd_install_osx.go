@@ -308,7 +308,7 @@ func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Installs Keybase (via auto install)",
+		Usage:        "Installs Keybase by choosing automatically which components to install",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
