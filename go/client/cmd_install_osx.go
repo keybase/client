@@ -87,6 +87,9 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 var defaultInstallComponents = []string{
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameService.String(),
+	install.ComponentNameCLI.String(),
+	install.ComponentNameHelper.String(),
+	install.ComponentNameFuse.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
 	install.ComponentNameKBNM.String(),
@@ -141,6 +144,11 @@ func (v *CmdInstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
+	exitOnError(result)
+	return nil
+}
+
+func exitOnError(result keybase1.InstallResult) {
 	if result.Fatal {
 		os.Exit(1)
 	}
@@ -149,7 +157,6 @@ func (v *CmdInstall) Run() error {
 			os.Exit(2)
 		}
 	}
-	return nil
 }
 
 var defaultUninstallComponents = []string{
@@ -281,4 +288,64 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 			}
 		}
 	}
+}
+
+func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "install-auto",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "b, bin-path",
+				Usage: "Full path to the executable, if it would be ambiguous otherwise.",
+			},
+			cli.DurationFlag{
+				Name:  "t, timeout",
+				Usage: "Timeout as duration, such as '10s' or '1m'.",
+			},
+			cli.StringFlag{
+				Name:  "source-path",
+				Usage: "Source path to app bundle.",
+			},
+		},
+		ArgumentHelp: "",
+		Usage:        "Installs Keybase (via auto install)",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(newCmdInstallAutoRunner(g), "install-auto", c)
+		},
+	}
+}
+
+type cmdInstallAuto struct {
+	libkb.Contextified
+	binPath    string
+	sourcePath string
+	timeout    time.Duration
+}
+
+func newCmdInstallAutoRunner(g *libkb.GlobalContext) *cmdInstallAuto {
+	return &cmdInstallAuto{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *cmdInstallAuto) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
+	v.binPath = ctx.String("bin-path")
+	v.timeout = ctx.Duration("timeout")
+	v.sourcePath = ctx.String("source-path")
+	if v.timeout == 0 {
+		v.timeout = 11 * time.Second
+	}
+	return nil
+}
+
+func (v *cmdInstallAuto) Run() error {
+	result := install.InstallAuto(v.G(), v.binPath, v.sourcePath, v.timeout, v.G().Log)
+	exitOnError(result)
+	return nil
 }
