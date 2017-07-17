@@ -428,6 +428,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = installHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		if err != nil {
+			log.Errorf("Error installing Helper: %s", err)
+		}
+	}
+
 	if libkb.IsIn(string(ComponentNameFuse), components, false) {
 		err = installFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
@@ -642,14 +650,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = uninstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
-		if err != nil {
-			log.Errorf("Error uninstalling helper: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
 		err = uninstallApp(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
@@ -663,6 +663,14 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
 		if err != nil {
 			log.Errorf("Error uninstalling command line: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = uninstallHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		if err != nil {
+			log.Errorf("Error uninstalling helper: %s", err)
 		}
 	}
 
@@ -766,6 +774,11 @@ func installMountDir(runMode libkb.RunMode, log Log) error {
 func installFuse(runMode libkb.RunMode, log Log) error {
 	log.Info("Installing KBFuse")
 	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
+}
+
+func installHelper(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing Helper")
+	return execNativeInstallerWithArg([]string{"--install-helper"}, runMode, log)
 }
 
 func installAppBundle(context Context, sourcePath string, log Log) error {
