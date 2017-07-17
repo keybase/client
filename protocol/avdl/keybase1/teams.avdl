@@ -335,6 +335,15 @@ protocol teams {
     string username;
   }
 
+  record TeamTreeResult {
+    array<TeamTreeEntry> entries;
+  }
+
+  record TeamTreeEntry {
+    TeamName name;
+    boolean admin; // Whether the user is an admin, explicit or implicit.
+  }
+
   void teamCreate(int sessionID, TeamName name);
   void teamCreateSubteam(int sessionID, TeamName name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
@@ -349,6 +358,10 @@ protocol teams {
   void teamRequestAccess(int sessionID, string name); 
   array<TeamJoinRequest> teamListRequests(int sessionID);
   void teamIgnoreRequest(int sessionID, string name, string username);
+  // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
+  // Team must be a root team.
+  // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
+  TeamTreeResult teamTree(int sessionID, TeamName name);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
