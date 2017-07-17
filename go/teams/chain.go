@@ -312,6 +312,10 @@ func (t *TeamSigChainState) informCanceledInvite(i keybase1.TeamInviteID) {
 	delete(t.inner.ActiveInvites, i)
 }
 
+func (t *TeamSigChainState) informCompletedInvite(i keybase1.TeamInviteID) {
+	delete(t.inner.ActiveInvites, i)
+}
+
 func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.SubteamLogPoint {
 	if len(t.inner.SubteamLog[id]) > 0 {
 		return &t.inner.SubteamLog[id][len(t.inner.SubteamLog[id])-1]
@@ -320,7 +324,7 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 }
 
 // Inform the SubteamLog of a subteam name change.
-// Links must be added in order by seqno for each subteam.
+// Links must be added in order by seqno for each subteam (asserted here).
 // Links for different subteams can interleave.
 // Mutates the SubteamLog.
 func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
@@ -363,6 +367,57 @@ func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keyba
 	return nil
 }
 
+type TeamIDAndName struct {
+	ID   keybase1.TeamID
+	Name keybase1.TeamName
+}
+
+// Only call this on a Team that has been loaded with NeedAdmin.
+// Otherwise, you might get incoherent answers due to links that
+// were stubbed over the life of the cached object.
+func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+	for subteamID, points := range t.inner.SubteamLog {
+		if len(points) == 0 {
+			// this should never happen
+			continue
+		}
+		lastPoint := points[len(points)-1]
+		res = append(res, TeamIDAndName{
+			ID:   subteamID,
+			Name: lastPoint.Name,
+		})
+	}
+	return res
+}
+
+// Check that a subteam rename occurred just so.
+// That the subteam `subteamID` got a new name `newName` at exactly `seqno` in this,
+// the parent, chain.
+// Note this only checks against the last part of `newName` because mid-team renames are such a pain.
+// This is currently linear in the number of times that subteam has been renamed.
+// It should be easy to add an index if need be.
+func (t *TeamSigChainState) SubteamRenameOccurred(
+	subteamID keybase1.TeamID, newName keybase1.TeamName, seqno keybase1.Seqno) error {
+
+	points := t.inner.SubteamLog[subteamID]
+	if len(points) == 0 {
+		return fmt.Errorf("subteam %v has no name log", subteamID)
+	}
+	for _, point := range points {
+		if point.Seqno == seqno {
+			if point.Name.LastPart().Eq(newName.LastPart()) {
+				// found it!
+				return nil
+			}
+		}
+		if point.Seqno > seqno {
+			break
+		}
+	}
+	return fmt.Errorf("subteam %v did not have rename entry in log: %v %v",
+		subteamID, newName, seqno)
+}
+
 func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 	i, err := t.FindActiveInvite(name, typ)
 	if err != nil {
@@ -388,6 +443,11 @@ func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamIn
 		}
 	}
 	return nil, libkb.NotFoundError{}
+}
+
+func (t *TeamSigChainState) FindActiveInviteByID(id keybase1.TeamInviteID) (keybase1.TeamInvite, bool) {
+	invite, found := t.inner.ActiveInvites[id]
+	return invite, found
 }
 
 // Threadsafe handle to a local model of a team sigchain.
@@ -620,6 +680,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	hasInvites := func(has bool) error {
 		return hasGeneric(has, team.Invites != nil, "invite")
 	}
+	hasCompletedInvites := func(has bool) error {
+		return hasGeneric(has, len(team.CompletedInvites) != 0, "completed_invites")
+	}
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
@@ -637,8 +700,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(true),
+			hasAdmin(false),
 			hasInvites(false),
-			hasAdmin(false))
+			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
 		}
@@ -706,7 +770,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(true),
 			hasParent(false),
 			hasInvites(false),
-			hasSubteam(false))
+			hasSubteam(false),
+			hasInvites(false))
 		if err != nil {
 			return res, err
 		}
@@ -732,6 +797,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
+		t.completeInvites(&res.newState, team.CompletedInvites)
+
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
 		if team.PerTeamKey != nil {
@@ -755,7 +822,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(false),
 			hasParent(false),
 			hasSubteam(false),
-			hasPerTeamKey(true))
+			hasPerTeamKey(true),
+			hasInvites(false),
+			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
 		}
@@ -795,7 +864,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasAdmin(false))
+			hasAdmin(false),
+			hasInvites(false),
+			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
 		}
@@ -828,27 +899,21 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(false),
 			hasParent(false),
 			hasSubteam(true),
+			hasPerTeamKey(false),
 			hasInvites(false),
-			hasPerTeamKey(false))
+			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
 		}
 
 		// Check the subteam ID
-		subteamID, err := keybase1.TeamIDFromString(string(team.Subteam.ID))
+		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
 		if err != nil {
-			return res, fmt.Errorf("invalid subteam id: %v", err)
-		}
-		if !subteamID.IsSubTeam() {
-			return res, fmt.Errorf("malformed subteam id")
+			return res, err
 		}
 
 		// Check the subteam name
-		subteamName, err := keybase1.TeamNameFromString(string(team.Subteam.Name))
-		if err != nil {
-			return res, fmt.Errorf("invalid subteam team name '%s': %v", team.Subteam.Name, err)
-		}
-		err = t.assertSubteamName(prevState, subteamName)
+		subteamName, err := t.assertSubteamName(prevState, string(team.Subteam.Name))
 		if err != nil {
 			return res, err
 		}
@@ -871,8 +936,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(true),
 			hasParent(true),
 			hasSubteam(false),
+			hasPerTeamKey(true),
 			hasInvites(false),
-			hasPerTeamKey(true))
+			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
 		}
@@ -928,8 +994,96 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		return res, nil
-	case libkb.LinkTypeSubteamRename:
-		return res, fmt.Errorf("subteam renaming not yet supported: %s", payload.Body.Type)
+	case libkb.LinkTypeRenameSubteam:
+		err = libkb.PickFirstError(
+			allowInflate(true),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(true),
+			hasPerTeamKey(false),
+			hasInvites(false),
+			hasCompletedInvites(false))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam ID
+		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam name
+		subteamName, err := t.assertSubteamName(prevState, string(team.Subteam.Name))
+		if err != nil {
+			return res, err
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		// informSubteam will take care of asserting that these links are inflated
+		// in order for each subteam.
+		err = res.newState.informSubteam(subteamID, subteamName, link.Seqno())
+		if err != nil {
+			return res, fmt.Errorf("adding new subteam: %v", err)
+		}
+
+		return res, nil
+	case libkb.LinkTypeRenameUpPointer:
+		err = libkb.PickFirstError(
+			allowInflate(false),
+			hasPrevState(true),
+			hasName(true),
+			hasMembers(false),
+			hasParent(true),
+			hasSubteam(false),
+			hasPerTeamKey(false),
+			hasInvites(false),
+			hasCompletedInvites(false))
+		if err != nil {
+			return res, err
+		}
+
+		// These links only occur in subteam.
+		if !prevState.IsSubteam() {
+			return res, fmt.Errorf("got %v in root team", payload.Body.Type)
+		}
+
+		// Sanity check that the parent doesn't claim to have changed.
+		parentID, err := keybase1.TeamIDFromString(string(team.Parent.ID))
+		if err != nil {
+			return res, fmt.Errorf("invvalid parent team id: %v", err)
+		}
+		if !parentID.Eq(*prevState.GetParentID()) {
+			return res, fmt.Errorf("wrong parent team ID: %s != %s", parentID, prevState.GetParentID())
+		}
+
+		// Ideally we would assert that the name
+		// But we may not have an up-to-date picture at this time of the parent's name.
+		// So assert this:
+		// - The root team name is the same.
+		// - The depth of the new name is the same.
+		newName, err := keybase1.TeamNameFromString(string(*team.Name))
+		if err != nil {
+			return res, fmt.Errorf("invalid team name '%s': %v", *team.Name, err)
+		}
+		if newName.IsRootTeam() {
+			return res, fmt.Errorf("cannot rename to root team name: %v", newName.String())
+		}
+		if !newName.RootAncestorName().Eq(prevState.GetName().RootAncestorName()) {
+			return res, fmt.Errorf("rename cannot change root ancestor team name: %v -> %v", prevState.GetName(), newName)
+		}
+		if newName.Depth() != prevState.GetName().Depth() {
+			return res, fmt.Errorf("rename cannot change team nesting depth: %v -> %v", prevState.GetName(), newName)
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		res.newState.inner.Name = newName
+
+		return res, nil
 	case libkb.LinkTypeInvite:
 		err = libkb.PickFirstError(
 			allowInflate(false),
@@ -938,6 +1092,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(false),
 			hasParent(false),
 			hasSubteam(false),
+			hasPerTeamKey(false),
 			hasInvites(true))
 		if err != nil {
 			return res, err
@@ -1247,33 +1402,58 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 }
 
-func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, subteamName keybase1.TeamName) error {
+func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UID) {
+	for id := range completed {
+		stateToUpdate.informCompletedInvite(id)
+	}
+}
+
+// Check that the subteam name is valid and kind of is a child of this chain.
+// Returns the parsed subteam name.
+func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, subteamNameStr string) (keybase1.TeamName, error) {
 	// Ideally, we would assert the team name is a direct child of this team's name.
 	// But the middle parts of the names might be out of date.
 	// Instead assert:
 	// - The root team name is same.
 	// - The subteam is 1 level deeper.
-	// - The last part of this parent team's name matches.
+	// - The last part of the parent team's name matches.
 	//   (If the subteam is a.b.c.d then c should be the same.)
 
+	subteamName, err := keybase1.TeamNameFromString(subteamNameStr)
+	if err != nil {
+		return subteamName, fmt.Errorf("invalid subteam team name '%s': %v", subteamNameStr, err)
+	}
+
 	if !parent.GetName().RootAncestorName().Eq(subteamName.RootAncestorName()) {
-		return fmt.Errorf("subteam is of a different root team: %v != %v",
+		return subteamName, fmt.Errorf("subteam is of a different root team: %v != %v",
 			subteamName.RootAncestorName().String(),
 			parent.GetName().RootAncestorName().String())
 	}
 
 	expectedDepth := parent.GetName().Depth() + 1
 	if subteamName.Depth() != expectedDepth {
-		return fmt.Errorf("subteam name has depth %v but expected %v",
+		return subteamName, fmt.Errorf("subteam name has depth %v but expected %v",
 			subteamName.Depth(), expectedDepth)
 	}
 
 	subteamSecondToLastPart := subteamName.Parts[len(subteamName.Parts)-2]
 	parentLastPart := parent.GetName().LastPart()
 	if !subteamSecondToLastPart.Eq(parentLastPart) {
-		return fmt.Errorf("subteam name has wrong name for us: %v != %v",
+		return subteamName, fmt.Errorf("subteam name has wrong name for us: %v != %v",
 			subteamSecondToLastPart, parentLastPart)
 	}
 
-	return nil
+	return subteamName, nil
+}
+
+func (t *TeamSigChainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.TeamID, error) {
+	// Check the subteam ID
+	subteamID, err := keybase1.TeamIDFromString(string(subteamIDStr))
+	if err != nil {
+		return subteamID, fmt.Errorf("invalid subteam id: %v", err)
+	}
+	if !subteamID.IsSubTeam() {
+		return subteamID, fmt.Errorf("malformed subteam id")
+	}
+	return subteamID, nil
 }

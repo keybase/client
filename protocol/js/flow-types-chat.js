@@ -93,11 +93,6 @@ export const CommonMessageType = {
   attachmentuploaded: 8,
 }
 
-export const CommonNotificationAppType = {
-  desktop: 0,
-  mobile: 1,
-}
-
 export const CommonNotificationKind = {
   generic: 0,
   atmention: 1,
@@ -198,6 +193,12 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
   membersUpdate: 6,
   setAppNotificationSettings: 7,
+}
+
+export const RemoteChannelMention = {
+  none: 0,
+  all: 1,
+  here: 2,
 }
 
 export const RemoteMessageBoxedVersion = {
@@ -1124,6 +1125,11 @@ export type BodyPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
+export type ChannelMention =
+    0 // NONE_0
+  | 1 // ALL_1
+  | 2 // HERE_2
+
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
   | { activityType: 2, readMessage: ?ReadMessageInfo }
@@ -1779,10 +1785,6 @@ export type NonblockFetchRes = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
-export type NotificationAppType =
-    0 // DESKTOP_0
-  | 1 // MOBILE_1
-
 export type NotificationKind =
     0 // GENERIC_0
   | 1 // ATMENTION_1
@@ -2087,7 +2089,8 @@ export type UnreadFirstNumLimit = {
 
 export type UnreadUpdate = {
   convID: ConversationID,
-  UnreadMessages: int,
+  unreadMessages: int,
+  unreadNotifyingMessages: {[key: string]: int},
 }
 
 export type UnreadUpdateFull = {
@@ -2100,6 +2103,7 @@ export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
@@ -2417,7 +2421,8 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed,
-  atMentions?: ?Array<gregor1.UID>
+  atMentions?: ?Array<gregor1.UID>,
+  channelMention: ChannelMention
 }>
 
 export type remotePublishReadMessageRpcParam = Exact<{

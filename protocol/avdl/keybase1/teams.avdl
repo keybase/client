@@ -94,6 +94,7 @@ protocol teams {
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
+    map<TeamInviteID,UID> completedInvites;
   }
 
   record UserVersion {
@@ -209,7 +210,7 @@ protocol teams {
 
   // A subteam got this name at this point in time.
   record SubteamLogPoint {
-  // The new subteam name.
+    // The new subteam name.
     TeamName name;
     // The seqno at which the subteam got this name.
     Seqno seqno;
@@ -243,6 +244,23 @@ protocol teams {
     Seqno latestSeqno;
   }
 
+  record TeamInvitee {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    TeamRole role;
+  }
+
+  // team.sbs gregor message body
+  @lint("ignore")
+  record TeamSBSMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int score;
+    array<TeamInvitee> invitees;
+  }
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
@@ -255,6 +273,8 @@ protocol teams {
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
     // Does not work on implicit admins.
+    // If the EldestSeqno of an item is zero, the latest EldestSeqno for that UID will be looked
+    // up and used. But the used EldestSeqno may come from a cache.
     array<UserVersion> wantMembers;
     // The minimum role each of wantMembers must have in order to avoid a refresh.
     // The default value is WRITER. So if the role is NONE, it will act like WRITER.
@@ -310,7 +330,8 @@ protocol teams {
     boolean chatSent;
   }
 
-  void teamCreate(int sessionID, string name);
+  void teamCreate(int sessionID, TeamName name);
+  void teamCreateSubteam(int sessionID, TeamName name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   TeamList teamList(int sessionID, string userAssertion);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
@@ -318,6 +339,8 @@ protocol teams {
   void teamRemoveMember(int sessionID, string name, string username);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
+  void teamRename(int sessionID, TeamName prevName, TeamName newName);
+  void teamAcceptInvite(int sessionID, string token);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

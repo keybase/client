@@ -48,6 +48,22 @@ func TestPerUserKeyUpgrade(t *testing.T) {
 
 	t.Logf("run the upgrade engine again. Expect an error because the user is already up.")
 	require.False(t, upgrade().DidNewKey, "did not create key")
+
+	t.Logf("check SignedByKID field of the PUKs")
+	loadArg := libkb.NewLoadUserSelfArg(tc.G)
+	loadArg.UID = fu.UID()
+	upak, _, err := tc.G.GetUPAKLoader().LoadV2(loadArg)
+	require.NoError(t, err)
+	require.Len(t, upak.Current.PerUserKeys, 2, "PUK count")
+	var eldest keybase1.KID
+	for _, dkey := range upak.Current.DeviceKeys {
+		if dkey.Base.IsEldest {
+			eldest = dkey.Base.Kid
+		}
+	}
+	require.True(t, eldest.IsValid(), "could not find eldest key")
+	require.Equal(t, eldest, upak.Current.PerUserKeys[0].SignedByKID)
+	require.Equal(t, eldest, upak.Current.PerUserKeys[1].SignedByKID)
 }
 
 func checkPerUserKeyCount(tc *libkb.TestContext, n int) {

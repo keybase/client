@@ -33,7 +33,22 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 }
 
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (err error) {
-	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name)
+	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String())
+}
+
+func (h *TeamsHandler) TeamCreateSubteam(ctx context.Context, arg keybase1.TeamCreateSubteamArg) (err error) {
+	if arg.Name.Depth() == 0 {
+		return fmt.Errorf("empty team name")
+	}
+	if arg.Name.IsRootTeam() {
+		return fmt.Errorf("cannot create subteam with root team name")
+	}
+	parentName, err := arg.Name.Parent()
+	if err != nil {
+		return err
+	}
+	_, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName)
+	return err
 }
 
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {
@@ -90,6 +105,14 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) error {
 	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
+}
+
+func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameArg) error {
+	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
+}
+
+func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) error {
+	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

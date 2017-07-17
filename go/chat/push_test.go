@@ -17,7 +17,7 @@ import (
 )
 
 func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
-	sender Sender, conv chat1.Conversation, user *kbtest.FakeUser,
+	sender types.Sender, conv chat1.Conversation, user *kbtest.FakeUser,
 	iboxXform func(chat1.InboxVers) chat1.InboxVers) {
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 	convID := conv.GetConvID()

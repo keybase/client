@@ -5,10 +5,13 @@ import type {SearchPlatforms} from '../constants/search'
 
 export type Props = {
   avatar: ?string,
-  username: string,
-  fullname?: string,
-  serviceName: SearchPlatforms,
+  fullname: string,
+  onBack: () => void,
+  onOpenPrivateFolder: () => void,
+  onStartChat: () => void,
   profileUrl: string,
+  serviceName: SearchPlatforms,
+  username: string,
 }
 
 export default class Render extends Component<void, Props, void> {}

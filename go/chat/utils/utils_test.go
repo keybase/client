@@ -27,4 +27,8 @@ func TestParseAtMentionsNames(t *testing.T) {
 	matches := ParseAtMentionsNames(context.TODO(), text)
 	expected := []string{"chat_1e2263952c", "mike", "chat_5511c5e0ce", "ksjdskj", "k1"}
 	require.Equal(t, expected, matches)
+	text = "@mike@jim"
+	matches = ParseAtMentionsNames(context.TODO(), text)
+	expected = []string{"mike"}
+	require.Equal(t, expected, matches)
 }

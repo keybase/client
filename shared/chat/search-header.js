@@ -7,10 +7,10 @@ import * as Constants from '../constants/chat'
 import UserInput from '../searchv3/user-input'
 import ServiceFilter from '../searchv3/services-filter'
 import {Box} from '../common-adapters'
-import {compose, withState, defaultProps, withHandlers, lifecycle} from 'recompose'
+import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
-import {chatSearchResultArray} from '../constants/selectors'
+import {chatSearchResultArray, chatSearchResultTerm} from '../constants/selectors'
 import * as HocHelpers from '../searchv3/helpers'
 import {createSelector} from 'reselect'
 
@@ -30,10 +30,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = createSelector(
-  [Constants.getUserItems, chatSearchResultArray],
-  (userItems, searchResultIds) => ({
+  [Constants.getUserItems, chatSearchResultArray, chatSearchResultTerm],
+  (userItems, searchResultIds, searchResultTerm) => ({
     userItems,
     searchResultIds,
+    searchResultTerm,
   })
 )
 
@@ -81,6 +82,7 @@ export default compose(
   withState('selectedService', '_onSelectService', 'Keybase'),
   HocHelpers.showServiceLogicHoc,
   HocHelpers.onChangeSelectedSearchResultHoc,
+  HocHelpers.placeholderServiceHoc,
   withHandlers(() => {
     let input
     return {
@@ -103,9 +105,6 @@ export default compose(
     }
   }),
   HocHelpers.clearSearchHoc,
-  defaultProps({
-    placeholder: 'Search for someone',
-  }),
   lifecycle({
     componentWillReceiveProps(nextProps: OwnProps) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {

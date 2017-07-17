@@ -123,6 +123,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
         if (pagination) {
@@ -189,7 +190,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               conversationIDKey,
               conversationIDKey === selectedConversationIDKey,
               appFocused,
-              [message]
+              [message],
+              svcShouldDisplayNotification
             )
           )
         }
@@ -890,10 +892,10 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const conversations = action.payload
   let conversationsWithKeys = {}
   conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
+    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
   })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('UnreadMessages')
+    const count = conv.get('unreadMessages')
     if (!count) {
       return map
     } else {
@@ -908,10 +910,17 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = selectedTab === chatTab
   const convoIsSelected = action.payload.isSelected
+  const svcDisplay = action.payload.svcShouldDisplayNotification
 
-  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
-  // Only send if you're not looking at it
-  if (!convoIsSelected || !appFocused || !chatTabSelected) {
+  console.log(
+    'Deciding whether to notify new message:',
+    svcDisplay,
+    convoIsSelected,
+    appFocused,
+    chatTabSelected
+  )
+  // Only send if you're not looking at it and service wants us to
+  if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
     const me = yield select(usernameSelector)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.

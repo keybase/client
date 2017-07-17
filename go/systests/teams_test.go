@@ -179,15 +179,19 @@ type userPlusDevice struct {
 
 func (u *userPlusDevice) createTeam() string {
 	create := client.NewCmdTeamCreateRunner(u.tc.G)
-	name, err := libkb.RandString("tt", 5)
+	nameStr, err := libkb.RandString("tt", 5)
 	if err != nil {
 		u.tc.T.Fatal(err)
 	}
-	create.TeamName = strings.ToLower(name)
+	name, err := keybase1.TeamNameFromString(strings.ToLower(nameStr))
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	create.TeamName = name
 	if err := create.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
-	return create.TeamName
+	return create.TeamName.String()
 }
 
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
@@ -197,6 +201,54 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Role = role
 	add.SkipChatNotification = true // kbfs client currently required to do this...
 	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
+	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
+	add.Team = team
+	add.Email = email
+	add.Role = role
+	add.SkipChatNotification = true // kbfs client currently required to do this...
+	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) readInviteEmails(email string) []string {
+	arg := libkb.NewAPIArg("test/team/get_tokens")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("email", libkb.S{Val: email})
+	res, err := u.tc.G.API.Get(arg)
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	tokens := res.Body.AtKey("tokens")
+	n, err := tokens.Len()
+	if err != nil {
+		u.tc.T.Fatal(err)
+	}
+	if n == 0 {
+		u.tc.T.Fatalf("no invite tokens for %s", email)
+	}
+
+	exp := make([]string, n)
+	for i := 0; i < n; i++ {
+		token, err := tokens.AtIndex(i).GetString()
+		if err != nil {
+			u.tc.T.Fatal(err)
+		}
+		exp[i] = token
+	}
+
+	return exp
+}
+
+func (u *userPlusDevice) acceptEmailInvite(token string) {
+	c := client.NewCmdTeamAcceptInviteRunner(u.tc.G)
+	c.Token = token
+	if err := c.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
 }
@@ -239,7 +291,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.
 				u.tc.T.Logf("change matched!")
 				return
 			}
-			u.tc.T.Logf("ignoring change message")
+			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
 		case <-time.After(1 * time.Second):
 		}
 	}
@@ -264,6 +316,13 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) prooveRooter() {
+	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
+	if err := cmd.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {

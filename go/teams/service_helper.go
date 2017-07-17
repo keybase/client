@@ -123,6 +123,11 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
 		}
+		if _, ok := err.(libkb.NotFoundError); ok {
+			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
+				Msg: fmt.Sprintf("Not found: user %v", username),
+			}
+		}
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	if t.IsMember(ctx, uv) {
@@ -219,6 +224,15 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 		return err
 	}
 	return t.Leave(ctx, permanent)
+}
+
+func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
+	arg := libkb.NewAPIArg("team/token")
+	arg.Args = libkb.NewHTTPArgs()
+	arg.Args.Add("token", libkb.S{Val: token})
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	_, err := g.API.Post(arg)
+	return err
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {

@@ -112,11 +112,11 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
-  # Whitelist for NativeMessaging
-  kbnm_bin="/usr/bin/kbnm"
-
-  # Write whitelists into the overlay
-  KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" $(kbnm_bin) install
+  # Write whitelists into the overlay. Note that we have to explicitly set USER
+  # here, because docker doesn't do it by default, and so otherwise the
+  # CGO-disabled i386 cross platform build will fail because it's unable to
+  # find the current user.
+  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."

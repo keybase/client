@@ -93,16 +93,24 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
+	mungedForceRepoll := lArg.ForceRepoll
+	mungedWantMembers, err := l.mungeWantMembers(ctx, lArg.Refreshers.WantMembers)
+	if err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader munge failed: %v", err)
+		// drop the error and just force a repoll.
+		mungedForceRepoll = true
+	}
+
 	var ret *keybase1.TeamData
 	ret, err = l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
 		needAdmin:         lArg.NeedAdmin,
 		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
-		wantMembers:       lArg.Refreshers.WantMembers,
+		wantMembers:       mungedWantMembers,
 		wantMembersRole:   lArg.Refreshers.WantMembersRole,
 		forceFullReload:   lArg.ForceFullReload,
-		forceRepoll:       lArg.ForceRepoll,
+		forceRepoll:       mungedForceRepoll,
 		staleOK:           lArg.StaleOK,
 
 		needSeqnos:    nil,
@@ -180,11 +188,13 @@ type load2ArgT struct {
 
 	needAdmin         bool
 	needKeyGeneration keybase1.PerTeamKeyGeneration
-	wantMembers       []keybase1.UserVersion
-	wantMembersRole   keybase1.TeamRole
-	forceFullReload   bool
-	forceRepoll       bool
-	staleOK           bool
+	// wantMembers here is different from wantMembers on LoadTeamArg:
+	// The EldestSeqno's should not be 0.
+	wantMembers     []keybase1.UserVersion
+	wantMembersRole keybase1.TeamRole
+	forceFullReload bool
+	forceRepoll     bool
+	staleOK         bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -223,7 +233,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
 		// Check that we are the same person as when this team was last loaded as a courtesy.
 		// This should never happen. We shouldn't be able to decrypt someone else's snapshot.
-		l.G().Log.CWarningf(ctx, "team loader got someone else's snapshot, discarding.")
+		l.G().Log.CWarningf(ctx, "team loader discarding snapshot for wrong user: (%v, %v) != (%v, %v)",
+			arg.me.Uid, arg.me.EldestSeqno, ret.Chain.Reader.Uid, ret.Chain.Reader.EldestSeqno)
 		ret = nil
 	}
 
@@ -348,7 +359,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, readSubteamID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx,
+		arg.me, arg.teamID, ret.Chain.ParentID, readSubteamID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}
@@ -556,7 +568,7 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	return nil
 }
 
-// Whether the snapshot has all of `wantMembers` as a member.
+// Whether the snapshot has each of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state *keybase1.TeamData) error {
 
@@ -594,6 +606,24 @@ func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (
 		return r1, r2, fmt.Errorf("merkle returned nil leaf")
 	}
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
+}
+
+func (l *TeamLoader) mungeWantMembers(ctx context.Context, wantMembers []keybase1.UserVersion) (res []keybase1.UserVersion, err error) {
+	for _, uv1 := range wantMembers {
+		uv2 := uv1
+		if uv2.EldestSeqno == 0 {
+			// Lookup the latest eldest seqno for that uid.
+			// This value may come from a cache.
+			upak, err := loadUPAK2(ctx, l.G(), uv2.Uid, false /*forcePoll */)
+			if err != nil {
+				return res, err
+			}
+			uv2.EldestSeqno = upak.Current.EldestSeqno
+			l.G().Log.CDebugf(ctx, "TeamLoader resolved wantMember %v -> %v", uv2.Uid, uv2.EldestSeqno)
+		}
+		res = append(res, uv2)
+	}
+	return res, err
 }
 
 // Whether y is in xs.
@@ -669,12 +699,18 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 
 	var ancestorIDs []keybase1.TeamID
 
+	me, err := l.getMe(ctx)
+	if err != nil {
+		return err
+	}
+
 	loopID := &id
 	if loopID != nil {
 		team, err := l.load2(ctx, load2ArgT{
 			teamID:        *loopID,
 			forceRepoll:   true,
 			readSubteamID: &id,
+			me:            me,
 		})
 		if err != nil {
 			return err
@@ -695,6 +731,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 		_, err := l.load2(ctx, load2ArgT{
 			teamID:        loopID,
 			readSubteamID: &id,
+			me:            me,
 		})
 		if err != nil {
 			return err

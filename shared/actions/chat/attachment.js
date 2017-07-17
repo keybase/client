@@ -228,9 +228,13 @@ function* _appendAttachmentPlaceholder(
   const appFocused = yield select(Shared.focusedSelector)
 
   yield put(
-    Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, [
-      message,
-    ])
+    Creators.appendMessages(
+      conversationIDKey,
+      conversationIDKey === selectedConversation,
+      appFocused,
+      [message],
+      false
+    )
   )
   yield put(Creators.attachmentLoaded(message.key, preview.filename, true))
   if (hasPendingFailure) {

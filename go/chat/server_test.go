@@ -2013,10 +2013,10 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 1, len(gilres.Conversations))
 		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
 		gconv := gilres.Conversations[0]
-		require.True(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.True(t, gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2028,7 +2028,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		}
 
 		var settings chat1.ConversationNotificationInfo
-		utils.NotificationInfoSet(&settings, chat1.NotificationAppType_DESKTOP,
+		utils.NotificationInfoSet(&settings, keybase1.DeviceType_DESKTOP,
 			chat1.NotificationKind_GENERIC, false)
 		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
 			chat1.SetAppNotificationSettingsLocalArg{
@@ -2053,10 +2053,10 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 1, len(gilres.Conversations))
 		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
 		gconv = gilres.Conversations[0]
-		require.False(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.False(t, gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2066,15 +2066,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
-		text := fmt.Sprintf("@%s", users[0].Username)
-		mustPostLocalForTest(t, ctc, users[1], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
-		select {
-		case info := <-listener0.newMessage:
-			require.True(t, info.DisplayDesktopNotification)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no new message event")
+
+		validateDisplayAtMention := func(name string) {
+			text := fmt.Sprintf("@%s", name)
+			mustPostLocalForTest(t, ctc, users[1], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
+			select {
+			case info := <-listener0.newMessage:
+				require.True(t, info.DisplayDesktopNotification)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no new message event")
+			}
 		}
+		validateDisplayAtMention(users[0].Username)
+		validateDisplayAtMention("channel")
+		validateDisplayAtMention("everyone")
+		validateDisplayAtMention("here")
 	})
 
 }

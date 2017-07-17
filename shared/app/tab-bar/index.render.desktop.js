@@ -13,6 +13,7 @@ const _icons = {
   [Tabs.devicesTab]: {selected: 'icon-nav-devices-selected-32', unselected: 'icon-nav-devices-32'},
   [Tabs.folderTab]: {selected: 'icon-nav-folders-selected-32', unselected: 'icon-nav-folders-32'},
   [Tabs.peopleTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
+  [Tabs.profileTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.searchTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-32', unselected: 'icon-nav-settings-32'},
 }
@@ -22,15 +23,15 @@ const _labels = {
   [Tabs.devicesTab]: 'Devices',
   [Tabs.folderTab]: 'Folders',
   [Tabs.peopleTab]: 'People',
+  [Tabs.profileTab]: 'People',
   [Tabs.searchTab]: 'Search',
   [Tabs.settingsTab]: 'Settings',
 }
 
 const _tabs = [
-  Tabs.searchTab,
+  ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
   Tabs.folderTab,
   Tabs.chatTab,
-  ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
   Tabs.devicesTab,
   Tabs.settingsTab,
 ].filter(Boolean)
@@ -54,9 +55,9 @@ const TabBar = ({onTabClick, selectedTab, username, badgeNumbers}: Props) => (
     <TabBarButton
       label={username}
       isNav={true}
-      selected={selectedTab === Tabs.profileTab}
+      selected={false}
       onClick={() => onTabClick(Tabs.profileTab)}
-      badgeNumber={badgeNumbers[Tabs.profileTab]}
+      badgeNumber={badgeNumbers[Tabs.peopleTab]}
       source={{type: 'avatar', username}}
       style={stylesTabButton}
     />

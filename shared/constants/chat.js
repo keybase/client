@@ -262,12 +262,12 @@ export type ConversationState = KBRecord<{
 
 export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
-  UnreadMessages: number,
+  unreadMessages: number,
 }>
 
 export const ConversationBadgeStateRecord = Record({
   convID: undefined,
-  UnreadMessages: 0,
+  unreadMessages: 0,
 })
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
@@ -385,6 +385,7 @@ export const StateRecord: KBRecord<T> = Record({
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
+  searchResultTerm: '',
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -417,6 +418,7 @@ export type State = KBRecord<{
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
+  searchResultTerm: string,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -434,12 +436,22 @@ export type AddPendingConversation = NoErrorTypedAction<
 
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
-  {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
+  {
+    conversationIDKey: ConversationIDKey,
+    isAppFocused: boolean,
+    isSelected: boolean,
+    messages: Array<Message>,
+    svcShouldDisplayNotification: boolean,
+  }
 >
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<
   'chat:blockConversation',
-  {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}
+  {
+    blocked: boolean,
+    conversationIDKey: ConversationIDKey,
+    reportUser: boolean,
+  }
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
@@ -988,7 +1000,11 @@ function messageKey(
 
 function splitMessageIDKey(
   key: MessageKey
-): {conversationIDKey: ConversationIDKey, keyKind: string, messageID: MessageID} {
+): {
+  conversationIDKey: ConversationIDKey,
+  keyKind: string,
+  messageID: MessageID,
+} {
   const [conversationIDKey, keyKind, messageIDStr] = key.split(':')
   const messageID: MessageID = Number(messageIDStr)
   return {conversationIDKey, keyKind, messageID}
