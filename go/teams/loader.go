@@ -330,7 +330,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		var signer *keybase1.UserVersion
-		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, readSubteamID, proofSet)
+		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -394,10 +394,14 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 
 	// Recalculate the team name. This is only dealing with ancestor renames, chain.go has already
 	// handled on-chain renames
-	newName, err := l.recalculateName(ctx, ret, arg.me, arg.staleOK)
+	newName, err := l.recalculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
+	if err != nil {
+		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Chain.Name, err)
+	}
 	if !ret.Chain.Name.Eq(newName) {
 		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
-		ret := ret.DeepCopy()
+		copy := ret.DeepCopy()
+		ret = &copy
 		ret.Chain.Name = newName
 	}
 	// Check that the name matches the subteam-ness

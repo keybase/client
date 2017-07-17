@@ -57,7 +57,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		}
 
 		var signer *keybase1.UserVersion
-		signer, proofSet, err = l.verifyLink(ctx, teamID, state, link, readSubteamID, proofSet)
+		signer, proofSet, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -211,7 +211,7 @@ func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keyba
 // - Check the rest of the format of the inner link
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
-	teamID keybase1.TeamID, state *keybase1.TeamData, link *chainLinkUnpacked,
+	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
 	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*keybase1.UserVersion, *proofSetT, error) {
 
 	if link.isStubbed() {
@@ -256,7 +256,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	}
 
 	if link.outerLink.LinkType.RequiresAdminPermission() {
-		proofSet, err = l.verifyAdminPermissions(ctx, state, link, readSubteamID, user.ToUserVersion(), proofSet)
+		proofSet, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, user.ToUserVersion(), proofSet)
 	} else {
 		err = l.verifyWriterOrReaderPermissions(ctx, state, link, user.ToUserVersion())
 	}
@@ -271,7 +271,7 @@ func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
 
 // Does not return a full TeamData because it might get a subteam-reader version.
 func (l *TeamLoader) walkUpToAdmin(
-	ctx context.Context, team *keybase1.TeamData, readSubteamID keybase1.TeamID,
+	ctx context.Context, team *keybase1.TeamData, me keybase1.UserVersion, readSubteamID keybase1.TeamID,
 	uv keybase1.UserVersion, admin SCTeamAdmin) (*TeamSigChainState, error) {
 
 	target, err := admin.TeamID.ToTeamID()
@@ -286,7 +286,7 @@ func (l *TeamLoader) walkUpToAdmin(
 		}
 		arg := load2ArgT{
 			teamID:        *parent,
-			me:            uv,
+			me:            me,
 			staleOK:       true,
 			readSubteamID: &readSubteamID,
 		}
@@ -316,7 +316,7 @@ func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUn
 }
 
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
-	state *keybase1.TeamData, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
+	state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
 	uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, error) {
 
 	explicitAdmin := link.inner.TeamAdmin()
@@ -330,7 +330,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 
 	// The more complicated case is that there's an explicit admin permssion given, perhaps
 	// of a parent team.
-	adminTeam, err := l.walkUpToAdmin(ctx, state, readSubteamID, uv, *explicitAdmin)
+	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin)
 	if err != nil {
 		return proofSet, err
 	}
@@ -805,7 +805,7 @@ func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 }
 
 func (l *TeamLoader) recalculateName(ctx context.Context,
-	state *keybase1.TeamData, me keybase1.UserVersion, staleOK bool) (newName keybase1.TeamName, err error) {
+	state *keybase1.TeamData, me keybase1.UserVersion, readSubteamID keybase1.TeamID, staleOK bool) (newName keybase1.TeamName, err error) {
 
 	chain := TeamSigChainState{inner: state.Chain}
 	if !chain.IsSubteam() {
@@ -817,9 +817,10 @@ func (l *TeamLoader) recalculateName(ctx context.Context,
 	// Load the parent. The parent load will recalculate it's own name,
 	// so this name recalculation is recursive.
 	parent, err := l.load2(ctx, load2ArgT{
-		teamID:  *chain.GetParentID(),
-		staleOK: staleOK,
-		me:      me,
+		teamID:        *chain.GetParentID(),
+		staleOK:       staleOK,
+		readSubteamID: &readSubteamID,
+		me:            me,
 	})
 	if err != nil {
 		return newName, err
