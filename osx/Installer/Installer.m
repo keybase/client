@@ -3,7 +3,7 @@
 //  Keybase
 //
 //  Created by Gabriel on 11/23/15.
-//  Copyright © 2015 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 #import "Installer.h"

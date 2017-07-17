@@ -3,7 +3,7 @@
 //  Keybase
 //
 //  Created by Chris Nojima on 9/28/16.
-//  Copyright © 2016 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 #import "AppDelegate.h"

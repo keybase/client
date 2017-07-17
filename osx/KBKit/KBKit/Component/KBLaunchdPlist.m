@@ -3,7 +3,7 @@
 //  Keybase
 //
 //  Created by Gabriel on 10/26/15.
-//  Copyright © 2015 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 #import "KBLaunchdPlist.h"
