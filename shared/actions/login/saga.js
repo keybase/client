@@ -23,7 +23,7 @@ import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
-import {call, put, take, race, select, all} from 'redux-saga/effects'
+import {all, call, put, take, race, select} from 'redux-saga/effects'
 import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
