@@ -623,7 +623,7 @@ func (k *KeybaseServiceBase) LoadUnverifiedKeys(ctx context.Context, uid keybase
 	return keys, nil
 }
 
-func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
+func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID int) (SessionInfo, bool, error) {
 	// Hold the lock the entire function, to prevent multiple
 	// goroutines from trying to fetch the session at once.
 	k.sessionCacheLock.Lock()
@@ -631,7 +631,7 @@ func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID in
 
 	cachedCurrentSession := k.cachedCurrentSession
 	if cachedCurrentSession != (SessionInfo{}) {
-		return cachedCurrentSession, nil
+		return cachedCurrentSession, false, nil
 	}
 
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
@@ -640,11 +640,11 @@ func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID in
 			// Use an error with a proper OS error code attached to it.
 			err = NoCurrentSessionError{}
 		}
-		return SessionInfo{}, err
+		return SessionInfo{}, false, err
 	}
 	s, err := SessionInfoFromProtocol(res)
 	if err != nil {
-		return s, err
+		return SessionInfo{}, false, err
 	}
 
 	k.log.CDebugf(
@@ -652,18 +652,18 @@ func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID in
 		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
 
 	k.cachedCurrentSession = s
-	return s, nil
+	return s, true, nil
 }
 
 // CurrentSession implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
-	s, err := k.getCurrentSession(ctx, sessionID)
+	s, newSession, err := k.getCurrentSession(ctx, sessionID)
 	if err != nil {
 		return SessionInfo{}, err
 	}
 
-	if k.config != nil {
+	if newSession && k.config != nil {
 		// Don't hold the lock while calling `serviceLoggedIn`.
 		serviceLoggedIn(ctx, k.config, s, TLFJournalBackgroundWorkEnabled)
 	}
