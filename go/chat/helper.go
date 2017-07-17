@@ -139,7 +139,7 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 
 	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, _, err := sender.Prepare(ctx, first, s.membersType, nil)
+	mbox, _, _, _, err := sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}

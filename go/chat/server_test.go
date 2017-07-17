@@ -2066,15 +2066,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
-		text := fmt.Sprintf("@%s", users[0].Username)
-		mustPostLocalForTest(t, ctc, users[1], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
-		select {
-		case info := <-listener0.newMessage:
-			require.True(t, info.DisplayDesktopNotification)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no new message event")
+
+		validateDisplayAtMention := func(name string) {
+			text := fmt.Sprintf("@%s", name)
+			mustPostLocalForTest(t, ctc, users[1], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
+			select {
+			case info := <-listener0.newMessage:
+				require.True(t, info.DisplayDesktopNotification)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no new message event")
+			}
 		}
+		validateDisplayAtMention(users[0].Username)
+		validateDisplayAtMention("channel")
+		validateDisplayAtMention("everyone")
+		validateDisplayAtMention("here")
 	})
 
 }
