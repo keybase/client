@@ -271,12 +271,22 @@ func (k *KeybaseServiceBase) clearCaches() {
 // LoggedIn implements keybase1.NotifySessionInterface.
 func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
 	k.log.CDebugf(ctx, "Current session logged in: %s", name)
-	// Since we don't have the whole session, just clear the cache.
+	// Since we don't have the whole session, just clear the cache and
+	// repopulate it.  The `CurrentSession` call executes the "logged
+	// in" flow.
 	k.setCachedCurrentSession(SessionInfo{})
-	if k.config != nil {
-		serviceLoggedIn(
-			ctx, k.config, name, TLFJournalBackgroundWorkEnabled)
+	const sessionID = 0
+	_, err := k.CurrentSession(ctx, sessionID)
+	if err != nil {
+		k.log.CDebugf(ctx, "Getting current session failed when %s is logged "+
+			"in, so pretending user has logged out: %v",
+			name, err)
+		if k.config != nil {
+			serviceLoggedOut(ctx, k.config)
+		}
+		return nil
 	}
+
 	return nil
 }
 
@@ -639,6 +649,11 @@ func (k *KeybaseServiceBase) CurrentSession(ctx context.Context, sessionID int) 
 		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
 
 	k.setCachedCurrentSession(s)
+
+	if k.config != nil {
+		serviceLoggedIn(
+			ctx, k.config, s.Name.String(), TLFJournalBackgroundWorkEnabled)
+	}
 
 	return s, nil
 }
