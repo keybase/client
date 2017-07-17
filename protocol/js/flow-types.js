@@ -1417,7 +1417,41 @@ export function identifyResolveRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function kbfsFSEditListRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}): EngineChannel {
+export function installFuseStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>) {
+  engineRpcOutgoing('keybase.1.install.fuseStatus', request)
+}
+
+export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
+}
+export function installFuseStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.fuseStatus', request, callback, incomingCallMap) })
+}
+
+export function installFuseStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): Promise<installFuseStatusResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallKBFSRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing('keybase.1.install.installKBFS', request)
+}
+
+export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
+}
+export function installInstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installKBFS', request, callback, incomingCallMap) })
+}
+
+export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function kbfsFSEditListRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
+  engineRpcOutgoing('keybase.1.kbfs.FSEditList', request)
+}
+
+export function kbfsFSEditListRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.kbfs.FSEditList', request)
 }
 
@@ -5159,6 +5193,10 @@ export type identifyUiStartRpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
+export type installFuseStatusRpcParam = Exact<{
+  bundleVersion: string
+}>
+
 export type kbfsFSEditListRpcParam = Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
@@ -5953,6 +5991,7 @@ type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
+type installFuseStatusResult = FuseStatus
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
@@ -6042,6 +6081,251 @@ type userLoadUserByNameResult = User
 type userLoadUserPlusKeysResult = UserPlusKeys
 type userLoadUserResult = User
 type userSearchResult = ?Array<SearchResult>
+
+export type rpc =
+    BTCRegisterBTCRpc
+  | Kex2Provisionee2DidCounterSign2Rpc
+  | Kex2Provisionee2Hello2Rpc
+  | Kex2ProvisioneeDidCounterSignRpc
+  | Kex2ProvisioneeHelloRpc
+  | Kex2ProvisionerKexStartRpc
+  | NotifyFSRequestFSEditListRequestRpc
+  | NotifyFSRequestFSSyncStatusRequestRpc
+  | ScanProofsScanProofsRpc
+  | SecretKeysGetSecretKeysRpc
+  | SimpleFSSimpleFSCancelRpc
+  | SimpleFSSimpleFSCheckRpc
+  | SimpleFSSimpleFSCloseRpc
+  | SimpleFSSimpleFSCopyRecursiveRpc
+  | SimpleFSSimpleFSCopyRpc
+  | SimpleFSSimpleFSGetOpsRpc
+  | SimpleFSSimpleFSListRecursiveRpc
+  | SimpleFSSimpleFSListRpc
+  | SimpleFSSimpleFSMakeOpidRpc
+  | SimpleFSSimpleFSMoveRpc
+  | SimpleFSSimpleFSOpenRpc
+  | SimpleFSSimpleFSReadListRpc
+  | SimpleFSSimpleFSReadRpc
+  | SimpleFSSimpleFSRemoveRpc
+  | SimpleFSSimpleFSRenameRpc
+  | SimpleFSSimpleFSSetStatRpc
+  | SimpleFSSimpleFSStatRpc
+  | SimpleFSSimpleFSWaitRpc
+  | SimpleFSSimpleFSWriteRpc
+  | accountEmailChangeRpc
+  | accountHasServerKeysRpc
+  | accountPassphraseChangeRpc
+  | accountPassphrasePromptRpc
+  | accountResetAccountRpc
+  | apiserverDeleteRpc
+  | apiserverGetRpc
+  | apiserverGetWithSessionRpc
+  | apiserverPostJSONRpc
+  | apiserverPostRpc
+  | appStateUpdateAppStateRpc
+  | badgerGetBadgeStateRpc
+  | blockAddReferenceRpc
+  | blockArchiveReferenceRpc
+  | blockArchiveReferenceWithCountRpc
+  | blockAuthenticateSessionRpc
+  | blockBlockPingRpc
+  | blockDelReferenceRpc
+  | blockDelReferenceWithCountRpc
+  | blockGetBlockRpc
+  | blockGetSessionChallengeRpc
+  | blockGetTeamQuotaInfoRpc
+  | blockGetUserQuotaInfoRpc
+  | blockPutBlockAgainRpc
+  | blockPutBlockRpc
+  | configCheckAPIServerOutOfDateWarningRpc
+  | configClearValueRpc
+  | configGetBootstrapStatusRpc
+  | configGetConfigRpc
+  | configGetCurrentStatusRpc
+  | configGetExtendedStatusRpc
+  | configGetValueRpc
+  | configHelloIAmRpc
+  | configSetPathRpc
+  | configSetUserConfigRpc
+  | configSetValueRpc
+  | configWaitForClientRpc
+  | cryptoSignED25519ForKBFSRpc
+  | cryptoSignED25519Rpc
+  | cryptoSignToStringRpc
+  | cryptoUnboxBytes32AnyRpc
+  | cryptoUnboxBytes32Rpc
+  | cryptocurrencyRegisterAddressRpc
+  | ctlAppExitRpc
+  | ctlDbDeleteRpc
+  | ctlDbGetRpc
+  | ctlDbNukeRpc
+  | ctlDbPutRpc
+  | ctlLogRotateRpc
+  | ctlReloadRpc
+  | ctlStopRpc
+  | debuggingFirstStepRpc
+  | debuggingIncrementRpc
+  | debuggingSecondStepRpc
+  | delegateUiCtlRegisterGregorFirehoseRpc
+  | delegateUiCtlRegisterIdentifyUIRpc
+  | delegateUiCtlRegisterRekeyUIRpc
+  | delegateUiCtlRegisterSecretUIRpc
+  | delegateUiCtlRegisterUpdateUIRpc
+  | deviceCheckDeviceNameForUserRpc
+  | deviceCheckDeviceNameFormatRpc
+  | deviceDeviceAddRpc
+  | deviceDeviceHistoryListRpc
+  | deviceDeviceListRpc
+  | favoriteFavoriteAddRpc
+  | favoriteFavoriteIgnoreRpc
+  | favoriteGetFavoritesRpc
+  | fsListRpc
+  | gregorGetStateRpc
+  | identifyIdentify2Rpc
+  | identifyIdentifyLiteRpc
+  | identifyIdentifyRpc
+  | identifyResolve2Rpc
+  | identifyResolve3Rpc
+  | identifyResolveRpc
+  | installFuseStatusRpc
+  | installInstallKBFSRpc
+  | kbfsFSEditListRpc
+  | kbfsFSEventRpc
+  | kbfsFSSyncEventRpc
+  | kbfsFSSyncStatusRpc
+  | kbfsMountGetAllAvailableMountDirsRpc
+  | kbfsMountGetCurrentMountDirRpc
+  | kbfsMountSetCurrentMountDirRpc
+  | logRegisterLoggerRpc
+  | loginAccountDeleteRpc
+  | loginClearStoredSecretRpc
+  | loginDeprovisionRpc
+  | loginGetConfiguredAccountsRpc
+  | loginLoginProvisionedDeviceRpc
+  | loginLoginRpc
+  | loginLoginWithPaperKeyRpc
+  | loginLogoutRpc
+  | loginPaperKeyRpc
+  | loginPaperKeySubmitRpc
+  | loginPgpProvisionRpc
+  | loginRecoverAccountFromEmailAddressRpc
+  | loginUnlockRpc
+  | loginUnlockWithPassphraseRpc
+  | merkleGetCurrentMerkleRootRpc
+  | metadataAuthenticateRpc
+  | metadataDeleteKeyRpc
+  | metadataGetChallengeRpc
+  | metadataGetFolderHandleRpc
+  | metadataGetFoldersForRekeyRpc
+  | metadataGetKeyBundlesRpc
+  | metadataGetKeyRpc
+  | metadataGetLatestFolderHandleRpc
+  | metadataGetMerkleNodeRpc
+  | metadataGetMerkleRootLatestRpc
+  | metadataGetMerkleRootRpc
+  | metadataGetMerkleRootSinceRpc
+  | metadataGetMetadataRpc
+  | metadataPing2Rpc
+  | metadataPingRpc
+  | metadataPruneBranchRpc
+  | metadataPutKeysRpc
+  | metadataPutMetadataRpc
+  | metadataRegisterForUpdatesRpc
+  | metadataTruncateLockRpc
+  | metadataTruncateUnlockRpc
+  | metadataUpdateFolderNeedsRekeyRpc
+  | metadataUpdateFoldersNeedRekeyRpc
+  | metadataUpdateMetadataUpdateRpc
+  | notifyCtlSetNotificationsRpc
+  | paperprovisionPaperProvisionRpc
+  | pgpPgpDecryptRpc
+  | pgpPgpDeletePrimaryRpc
+  | pgpPgpEncryptRpc
+  | pgpPgpExportByFingerprintRpc
+  | pgpPgpExportByKIDRpc
+  | pgpPgpExportRpc
+  | pgpPgpImportRpc
+  | pgpPgpKeyGenDefaultRpc
+  | pgpPgpKeyGenRpc
+  | pgpPgpPullRpc
+  | pgpPgpPurgeRpc
+  | pgpPgpSelectRpc
+  | pgpPgpSignRpc
+  | pgpPgpStorageDismissRpc
+  | pgpPgpUpdateRpc
+  | pgpPgpVerifyRpc
+  | proveCheckProofRpc
+  | proveStartProofRpc
+  | quotaVerifySessionRpc
+  | reachabilityCheckReachabilityRpc
+  | reachabilityReachabilityChangedRpc
+  | reachabilityStartReachabilityRpc
+  | rekeyDebugShowRekeyStatusRpc
+  | rekeyGetPendingRekeyStatusRpc
+  | rekeyGetRevokeWarningRpc
+  | rekeyRekeyStatusFinishRpc
+  | rekeyRekeySyncRpc
+  | rekeyShowPendingRekeyStatusRpc
+  | revokeRevokeDeviceRpc
+  | revokeRevokeKeyRpc
+  | revokeRevokeSigsRpc
+  | saltpackSaltpackDecryptRpc
+  | saltpackSaltpackEncryptRpc
+  | saltpackSaltpackSignRpc
+  | saltpackSaltpackVerifyRpc
+  | sessionCurrentSessionRpc
+  | sessionSessionPingRpc
+  | signupCheckInvitationCodeRpc
+  | signupCheckUsernameAvailableRpc
+  | signupGetInvitationCodeRpc
+  | signupInviteRequestRpc
+  | signupSignupRpc
+  | sigsSigListJSONRpc
+  | sigsSigListRpc
+  | teamsLoadTeamPlusApplicationKeysRpc
+  | teamsTeamAcceptInviteRpc
+  | teamsTeamAddMemberRpc
+  | teamsTeamChangeMembershipRpc
+  | teamsTeamCreateRpc
+  | teamsTeamCreateSubteamRpc
+  | teamsTeamEditMemberRpc
+  | teamsTeamGetRpc
+  | teamsTeamLeaveRpc
+  | teamsTeamListRpc
+  | teamsTeamRemoveMemberRpc
+  | teamsTeamRenameRpc
+  | testPanicRpc
+  | testTestCallbackRpc
+  | testTestRpc
+  | tlfCompleteAndCanonicalizePrivateTlfNameRpc
+  | tlfCryptKeysRpc
+  | tlfKeysGetPublicCanonicalTLFNameAndIDRpc
+  | tlfKeysGetTLFCryptKeysRpc
+  | tlfPublicCanonicalTLFNameAndIDRpc
+  | trackCheckTrackingRpc
+  | trackDismissWithTokenRpc
+  | trackFakeTrackingChangedRpc
+  | trackTrackRpc
+  | trackTrackWithTokenRpc
+  | trackUntrackRpc
+  | userInterestingPeopleRpc
+  | userListTrackers2Rpc
+  | userListTrackersByNameRpc
+  | userListTrackersRpc
+  | userListTrackersSelfRpc
+  | userListTrackingJSONRpc
+  | userListTrackingRpc
+  | userLoadAllPublicKeysUnverifiedRpc
+  | userLoadMyPublicKeysRpc
+  | userLoadMySettingsRpc
+  | userLoadPublicKeysRpc
+  | userLoadUncheckedUserSummariesRpc
+  | userLoadUserByNameRpc
+  | userLoadUserPlusKeysRpc
+  | userLoadUserRpc
+  | userProfileEditRpc
+  | userResetUserRpc
+  | userSearchRpc
 
 export type incomingCallMapType = Exact<{
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

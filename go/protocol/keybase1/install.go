@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	context "golang.org/x/net/context"
 )
 
 // Install status describes state of install for a component or service.
@@ -219,16 +220,75 @@ func (o UninstallResult) DeepCopy() UninstallResult {
 	}
 }
 
+type FuseStatusArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	BundleVersion string `codec:"bundleVersion" json:"bundleVersion"`
+}
+
+func (o FuseStatusArg) DeepCopy() FuseStatusArg {
+	return FuseStatusArg{
+		SessionID:     o.SessionID,
+		BundleVersion: o.BundleVersion,
+	}
+}
+
+type InstallKBFSArg struct {
+}
+
+func (o InstallKBFSArg) DeepCopy() InstallKBFSArg {
+	return InstallKBFSArg{}
+}
+
 type InstallInterface interface {
+	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
+	InstallKBFS(context.Context) error
 }
 
 func InstallProtocol(i InstallInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name:    "keybase.1.install",
-		Methods: map[string]rpc.ServeHandlerDescription{},
+		Name: "keybase.1.install",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"fuseStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]FuseStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FuseStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FuseStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.FuseStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"installKBFS": {
+				MakeArg: func() interface{} {
+					ret := make([]InstallKBFSArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.InstallKBFS(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
 	}
 }
 
 type InstallClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res FuseStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.fuseStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c InstallClient) InstallKBFS(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []interface{}{InstallKBFSArg{}}, nil)
+	return
 }

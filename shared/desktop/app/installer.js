@@ -8,7 +8,7 @@ import {isWindows} from '../../constants/platform'
 // Install components.
 //
 // User components (not requiring privileges): updater,service,cli,kbfs,kbnm
-// KBFS componnets (requiring privileges): helper,fuse,mountdir
+// KBFS components (requiring privileges): helper,fuse,mountdir,kbfs
 //
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
 // to a place where keybase bin is bundled, for example:

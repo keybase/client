@@ -15,6 +15,7 @@ const initialState: Constants.State = {
     },
     publicBadge: 0,
   },
+  fuseStatus: null,
   kbfsStatus: {
     isAsyncWriteHappening: false,
   },
@@ -108,6 +109,12 @@ export default function(
       return {
         ...state,
         kbfsStatus: action.payload,
+      }
+
+    case 'fs:fuseStatusUpdate':
+      return {
+        ...state,
+        fuseStatus: action.payload.fuseStatus,
       }
 
     default:
