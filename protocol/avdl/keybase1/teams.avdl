@@ -118,6 +118,11 @@ protocol teams {
     // Whether this snapshot is entirely missing secrets.
     boolean secretless;
 
+    // Name of the team. This is tricky.
+    // The root ancestor and the depth are always correct.
+    // But the middle parts (b in a.b.c) do not track the sigchain.
+    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
+    TeamName name;
     TeamSigChainState chain;
     // generation -> seed
     map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
@@ -162,22 +167,21 @@ protocol teams {
     UserVersion reader;
 
     TeamID id;
-    // Latest name of the team
-    // The last part of this name tracks LatestSeqno.
-    // But the middle parts (b in a.b.c) do not track.
-    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
-    TeamName name;
+
+    // Name of the root ancestor. For A.B.C this is 'A'.
+    TeamName rootAncestor;
+    // Depth of the name.
+    int nameDepth;
+
+    // Log of the last part of the team name.
+    array<TeamNameLogPoint> nameLog;
+
     // The last link procesed
     Seqno lastSeqno;
     LinkID lastLinkID;
 
     // Present if a subteam
     union { null, TeamID } parentID;
-
-	/* // Log of the names this team has gone through.  */
-	/* // The last part of the last entry in this log is the same as Name.  */
-	/* // However the rest of that entry may not be the same because of mid-team-renames.  */
-	/* array<NameLogPoint> nameLog;  */
 
     // For each user; the timeline of their role status.
     // The role checkpoints are always ordered by seqno.
@@ -204,15 +208,12 @@ protocol teams {
     map<TeamInviteID,TeamInvite> activeInvites;
   }
 
-  /* // The team got this name at this point in time.  */
-  /* record NameLogPoint {  */
-  /* 	// The root ancestor and depth are always correct. */
-  /* 	// For the first entry in the log: the last 2 parts of the name are race-free correct. */
-  /* 	// For other entries: only the the last part is race-free correct. */
-  /* 	TeamName name;  */
-  /* 	// The seqno at which the team got this nam.e  */
-  /* 	Seqno seqno;  */
-  /* }  */
+  // The team got this name at this point in time.
+  record TeamNameLogPoint {
+    TeamNamePart lastPart;
+    // The seqno at which the team got this name.
+    Seqno seqno;
+  }
 
   // A user became this role at a point in time
   record UserLogPoint {

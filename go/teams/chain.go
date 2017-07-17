@@ -64,12 +64,12 @@ func (t TeamSigChainState) GetID() keybase1.TeamID {
 	return t.inner.Id
 }
 
-func (t TeamSigChainState) GetName() keybase1.TeamName {
-	return t.inner.Name
-}
-
 func (t TeamSigChainState) IsSubteam() bool {
 	return t.inner.ParentID != nil
+}
+
+func (t TeamSigChainState) LatestLastNamePart() keybase1.TeamNamePart {
+	return t.inner.NameLog[len(t.inner.NameLog)-1].LastPart
 }
 
 // Only non-nil if this is a subteam.
@@ -743,7 +743,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
-				Name:         teamName,
+				RootAncestor: teamName.RootAncestorName(),
+				NameDepth:    teamName.Depth(),
+				NameLog: []keybase1.TeamNameLogPoint{{
+					LastPart: teamName.LastPart(),
+					Seqno:    1,
+				}},
 				LastSeqno:    1,
 				LastLinkID:   link.LinkID().Export(),
 				ParentID:     nil,
@@ -913,7 +918,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		// Check the subteam name
-		subteamName, err := t.assertSubteamName(prevState, string(team.Subteam.Name))
+		subteamName, err := t.assertSubteamName(prevState, link.Seqno(), string(team.Subteam.Name))
 		if err != nil {
 			return res, err
 		}
@@ -980,7 +985,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
-				Name:         teamName,
+				RootAncestor: teamName.RootAncestorName(),
+				NameDepth:    teamName.Depth(),
+				NameLog: []keybase1.TeamNameLogPoint{{
+					LastPart: teamName.LastPart(),
+					Seqno:    1,
+				}},
 				LastSeqno:    1,
 				LastLinkID:   link.LinkID().Export(),
 				ParentID:     &parentID,
@@ -1016,7 +1026,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		// Check the subteam name
-		subteamName, err := t.assertSubteamName(prevState, string(team.Subteam.Name))
+		subteamName, err := t.assertSubteamName(prevState, link.Seqno(), string(team.Subteam.Name))
 		if err != nil {
 			return res, err
 		}
@@ -1072,16 +1082,19 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		if newName.IsRootTeam() {
 			return res, fmt.Errorf("cannot rename to root team name: %v", newName.String())
 		}
-		if !newName.RootAncestorName().Eq(prevState.GetName().RootAncestorName()) {
-			return res, fmt.Errorf("rename cannot change root ancestor team name: %v -> %v", prevState.GetName(), newName)
+		if !newName.RootAncestorName().Eq(prevState.inner.RootAncestor) {
+			return res, fmt.Errorf("rename cannot change root ancestor team name: %v -> %v", prevState.inner.RootAncestor, newName)
 		}
-		if newName.Depth() != prevState.GetName().Depth() {
-			return res, fmt.Errorf("rename cannot change team nesting depth: %v -> %v", prevState.GetName(), newName)
+		if newName.Depth() != prevState.inner.NameDepth {
+			return res, fmt.Errorf("rename cannot change team nesting depth: %v -> %v", prevState.inner.NameDepth, newName)
 		}
 
 		res.newState = prevState.DeepCopy()
 
-		res.newState.inner.Name = newName
+		res.newState.inner.NameLog = append(res.newState.inner.NameLog, keybase1.TeamNameLogPoint{
+			LastPart: newName.LastPart(),
+			Seqno:    link.Seqno(),
+		})
 
 		return res, nil
 	case libkb.LinkTypeInvite:
@@ -1410,34 +1423,45 @@ func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 
 // Check that the subteam name is valid and kind of is a child of this chain.
 // Returns the parsed subteam name.
-func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, subteamNameStr string) (keybase1.TeamName, error) {
+func (t *TeamSigChainPlayer) assertSubteamName(parent *TeamSigChainState, parentSeqno keybase1.Seqno, subteamNameStr string) (keybase1.TeamName, error) {
 	// Ideally, we would assert the team name is a direct child of this team's name.
 	// But the middle parts of the names might be out of date.
 	// Instead assert:
 	// - The root team name is same.
 	// - The subteam is 1 level deeper.
-	// - The last part of the parent team's name matches.
-	//   (If the subteam is a.b.c.d then c should be the same.)
+	// - The last part of the parent team's name matched
+	//   at the parent-seqno that this subteam name was mentioned.
+	//   (If the subteam is a.b.c.d then c should match)
+	//   The reason this is pegged at seqno instead of simply the latest parent name is
+	//   hard to explain, see TestRenameInflateSubteamAfterRenameParent.
 
 	subteamName, err := keybase1.TeamNameFromString(subteamNameStr)
 	if err != nil {
 		return subteamName, fmt.Errorf("invalid subteam team name '%s': %v", subteamNameStr, err)
 	}
 
-	if !parent.GetName().RootAncestorName().Eq(subteamName.RootAncestorName()) {
+	if !parent.inner.RootAncestor.Eq(subteamName.RootAncestorName()) {
 		return subteamName, fmt.Errorf("subteam is of a different root team: %v != %v",
-			subteamName.RootAncestorName().String(),
-			parent.GetName().RootAncestorName().String())
+			subteamName.RootAncestorName(),
+			parent.inner.RootAncestor)
 	}
 
-	expectedDepth := parent.GetName().Depth() + 1
+	expectedDepth := parent.inner.NameDepth + 1
 	if subteamName.Depth() != expectedDepth {
 		return subteamName, fmt.Errorf("subteam name has depth %v but expected %v",
 			subteamName.Depth(), expectedDepth)
 	}
 
+	// The last part of the parent name at parentSeqno.
+	var parentLastPart keybase1.TeamNamePart
+	for _, point := range parent.inner.NameLog {
+		if point.Seqno > parentSeqno {
+			break
+		}
+		parentLastPart = point.LastPart
+	}
+
 	subteamSecondToLastPart := subteamName.Parts[len(subteamName.Parts)-2]
-	parentLastPart := parent.GetName().LastPart()
 	if !subteamSecondToLastPart.Eq(parentLastPart) {
 		return subteamName, fmt.Errorf("subteam name has wrong name for us: %v != %v",
 			subteamSecondToLastPart, parentLastPart)

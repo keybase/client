@@ -408,6 +408,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 
 type TeamData struct {
 	Secretless      bool                                                 `codec:"secretless" json:"secretless"`
+	Name            TeamName                                             `codec:"name" json:"name"`
 	Chain           TeamSigChainState                                    `codec:"chain" json:"chain"`
 	PerTeamKeySeeds map[PerTeamKeyGeneration]PerTeamKeySeedItem          `codec:"perTeamKeySeeds" json:"perTeamKeySeeds"`
 	ReaderKeyMasks  map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
@@ -417,6 +418,7 @@ type TeamData struct {
 func (o TeamData) DeepCopy() TeamData {
 	return TeamData{
 		Secretless: o.Secretless,
+		Name:       o.Name.DeepCopy(),
 		Chain:      o.Chain.DeepCopy(),
 		PerTeamKeySeeds: (func(x map[PerTeamKeyGeneration]PerTeamKeySeedItem) map[PerTeamKeyGeneration]PerTeamKeySeedItem {
 			ret := make(map[PerTeamKeyGeneration]PerTeamKeySeedItem)
@@ -596,7 +598,9 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 type TeamSigChainState struct {
 	Reader        UserVersion                         `codec:"reader" json:"reader"`
 	Id            TeamID                              `codec:"id" json:"id"`
-	Name          TeamName                            `codec:"name" json:"name"`
+	RootAncestor  TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth     int                                 `codec:"nameDepth" json:"nameDepth"`
+	NameLog       []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
 	LastSeqno     Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
 	LastLinkID    LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
 	ParentID      *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
@@ -610,9 +614,18 @@ type TeamSigChainState struct {
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 	return TeamSigChainState{
-		Reader:     o.Reader.DeepCopy(),
-		Id:         o.Id.DeepCopy(),
-		Name:       o.Name.DeepCopy(),
+		Reader:       o.Reader.DeepCopy(),
+		Id:           o.Id.DeepCopy(),
+		RootAncestor: o.RootAncestor.DeepCopy(),
+		NameDepth:    o.NameDepth,
+		NameLog: (func(x []TeamNameLogPoint) []TeamNameLogPoint {
+			var ret []TeamNameLogPoint
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.NameLog),
 		LastSeqno:  o.LastSeqno.DeepCopy(),
 		LastLinkID: o.LastLinkID.DeepCopy(),
 		ParentID: (func(x *TeamID) *TeamID {
@@ -690,6 +703,18 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ActiveInvites),
+	}
+}
+
+type TeamNameLogPoint struct {
+	LastPart TeamNamePart `codec:"lastPart" json:"lastPart"`
+	Seqno    Seqno        `codec:"seqno" json:"seqno"`
+}
+
+func (o TeamNameLogPoint) DeepCopy() TeamNameLogPoint {
+	return TeamNameLogPoint{
+		LastPart: o.LastPart.DeepCopy(),
+		Seqno:    o.Seqno.DeepCopy(),
 	}
 }
 

@@ -431,6 +431,9 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 	var newState *keybase1.TeamData
 	if state == nil {
 		newState = &keybase1.TeamData{
+			// Name is left blank until calculateName updates it.
+			// It shall not be blank by the time it is returned from load2.
+			Name:            keybase1.TeamName{},
 			Chain:           newChainState.inner,
 			PerTeamKeySeeds: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem),
 			ReaderKeyMasks:  make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64),
@@ -804,15 +807,16 @@ func (l *TeamLoader) checkNeededSeqnos(ctx context.Context,
 	return nil
 }
 
-func (l *TeamLoader) recalculateName(ctx context.Context,
+// Calculates the latest name of the team.
+// The last part will be as up to date as the sigchain in state.
+// The mid-team parts can be as old as the cache time, unless staleOK is false in which case they will be fetched.
+func (l *TeamLoader) calculateName(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, readSubteamID keybase1.TeamID, staleOK bool) (newName keybase1.TeamName, err error) {
 
 	chain := TeamSigChainState{inner: state.Chain}
 	if !chain.IsSubteam() {
-		return chain.GetName(), nil
+		return chain.inner.RootAncestor, nil
 	}
-
-	prevName := chain.GetName()
 
 	// Load the parent. The parent load will recalculate it's own name,
 	// so this name recalculation is recursive.
@@ -826,22 +830,21 @@ func (l *TeamLoader) recalculateName(ctx context.Context,
 		return newName, err
 	}
 
-	parentName := TeamSigChainState{inner: parent.Chain}.GetName()
-
 	// Swap out the parent name as the base of this name.
-	// For example if:
-	// parentName: a.b2.c
-	// prevName:   a.b.c
-	// newName:    {a.b}.{c}
-	//              ^     ^ from prevName
-	//              | from parentName
-	newName, err = parentName.Append(string(prevName.LastPart()))
+	// Check that the root ancestor name and depth still match the subteam chain.
+
+	newName, err = parent.Name.Append(string(chain.LatestLastNamePart()))
 	if err != nil {
 		return newName, fmt.Errorf("invalid new subteam name: %v", err)
 	}
 
-	if newName.Depth() != prevName.Depth() {
-		return newName, fmt.Errorf("team changed level: %v -> %v", prevName.Depth(), newName.Depth())
+	if !newName.RootAncestorName().Eq(chain.inner.RootAncestor) {
+		return newName, fmt.Errorf("subteam changed root ancestor: %v -> %v",
+			chain.inner.RootAncestor, newName.RootAncestorName())
+	}
+
+	if newName.Depth() != chain.inner.NameDepth {
+		return newName, fmt.Errorf("subteam changed depth: %v -> %v", chain.inner.NameDepth, newName.Depth())
 	}
 
 	return newName, nil

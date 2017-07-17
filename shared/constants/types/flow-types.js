@@ -6064,6 +6064,7 @@ export type TeamChangeSet = {
 
 export type TeamData = {
   secretless: boolean,
+  name: TeamName,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
@@ -6151,6 +6152,11 @@ export type TeamName = {
   parts?: ?Array<TeamNamePart>,
 }
 
+export type TeamNameLogPoint = {
+  lastPart: TeamNamePart,
+  seqno: Seqno,
+}
+
 export type TeamNamePart = string
 
 export type TeamPlusApplicationKeys = {
@@ -6184,7 +6190,9 @@ export type TeamSBSMsg = {
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
-  name: TeamName,
+  rootAncestor: TeamName,
+  nameDepth: int,
+  nameLog?: ?Array<TeamNameLogPoint>,
   lastSeqno: Seqno,
   lastLinkID: LinkID,
   parentID?: ?TeamID,

@@ -351,6 +351,10 @@
           "name": "secretless"
         },
         {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
           "type": "TeamSigChainState",
           "name": "chain"
         },
@@ -469,7 +473,18 @@
         },
         {
           "type": "TeamName",
-          "name": "name"
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamNameLogPoint"
+          },
+          "name": "nameLog"
         },
         {
           "type": "Seqno",
@@ -539,6 +554,20 @@
             "keys": "TeamInviteID"
           },
           "name": "activeInvites"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNameLogPoint",
+      "fields": [
+        {
+          "type": "TeamNamePart",
+          "name": "lastPart"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
         }
       ]
     },
