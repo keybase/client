@@ -13,6 +13,7 @@ import {isWindows} from '../../constants/platform'
 
 import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {FuseStatus, InstallResult} from '../../constants/types/flow-types'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -108,17 +109,17 @@ function openInDefault(openPath: string): Promise<*> {
 }
 
 function* fuseStatusSaga(): SagaGenerator<any, any> {
-  const fuseStatus = yield call(installFuseStatusRpcPromise)
-  const action = {payload: {fuseStatus}, type: 'fs:fuseStatusUpdate'}
+  const status = yield call(installFuseStatusRpcPromise)
+  const action = {payload: {status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
-  yield call(installInstallKBFSRpcPromise)
+  const result: InstallResult = yield call(installInstallKBFSRpcPromise)
+  yield put({payload: {result}, type: 'fs:installKBFSResult'})
 
-  const fuseStatus = yield call(installFuseStatusRpcPromise)
-  const action = {payload: {fuseStatus}, type: 'fs:fuseStatusUpdate'}
-  yield put(action)
+  const status: FuseStatus = yield call(installFuseStatusRpcPromise)
+  yield put({payload: {status}, type: 'fs:fuseStatusUpdate'})
 }
 
 function* openInWindows(openPath: string): SagaGenerator<any, any> {

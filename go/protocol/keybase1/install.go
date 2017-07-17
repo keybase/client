@@ -241,7 +241,7 @@ func (o InstallKBFSArg) DeepCopy() InstallKBFSArg {
 
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
-	InstallKBFS(context.Context) error
+	InstallKBFS(context.Context) (InstallResult, error)
 }
 
 func InstallProtocol(i InstallInterface) rpc.Protocol {
@@ -270,7 +270,7 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.InstallKBFS(ctx)
+					ret, err = i.InstallKBFS(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -288,7 +288,7 @@ func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res
 	return
 }
 
-func (c InstallClient) InstallKBFS(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []interface{}{InstallKBFSArg{}}, nil)
+func (c InstallClient) InstallKBFS(ctx context.Context) (res InstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []interface{}{InstallKBFSArg{}}, &res)
 	return
 }

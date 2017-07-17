@@ -29,8 +29,8 @@ func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusAr
 	return status, nil
 }
 
-func (h *InstallHandler) InstallKBFS(context.Context) error {
+func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, error) {
 	components := []string{"helper", "fuse", "mountdir", "kbfs"}
-	_ = install.Install(h.G(), "", "", components, false, 30, h.G().Log)
-	return nil
+	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	return result, nil
 }

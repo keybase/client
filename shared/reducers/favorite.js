@@ -15,7 +15,14 @@ const initialState: Constants.State = {
     },
     publicBadge: 0,
   },
-  fuseStatus: null,
+  fuseStatus: {
+    loading: false,
+    status: null,
+  },
+  kbfsInstall: {
+    installing: false,
+    result: null,
+  },
   kbfsStatus: {
     isAsyncWriteHappening: false,
   },
@@ -111,10 +118,38 @@ export default function(
         kbfsStatus: action.payload,
       }
 
+    case 'fs:fuseStatus':
+      return {
+        ...state,
+        fuseStatus: {
+          loading: true,
+          status: null,
+        },
+      }
     case 'fs:fuseStatusUpdate':
       return {
         ...state,
-        fuseStatus: action.payload.fuseStatus,
+        fuseStatus: {
+          loading: false,
+          status: action.payload.status,
+        },
+      }
+    case 'fs:installKBFS':
+      return {
+        ...state,
+        kbfsInstall: {
+          installing: true,
+          result: null,
+        },
+      }
+    case 'fs:installKBFSResult':
+      console.log('Install result:', action.payload.result)
+      return {
+        ...state,
+        kbfsInstall: {
+          installing: false,
+          result: action.payload.result,
+        },
       }
 
     default:
