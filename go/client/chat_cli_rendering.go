@@ -217,10 +217,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		// show the last TEXT message
 		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
-				unread = "*"
-			}
 			if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
+				if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
+					unread = "*"
+				}
 				if msg == nil || m.GetMessageID() > msg.GetMessageID() {
 					mCopy := m
 					msg = &mCopy
