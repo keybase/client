@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ByUID []gregor1.UID
@@ -596,4 +597,15 @@ func (o TLFConvOrdinal) Int() int {
 
 func (o TLFConvOrdinal) IsFirst() bool {
 	return o.Int() == 1
+}
+
+func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
+	counts := make(map[keybase1.DeviceType]int)
+	counts[keybase1.DeviceType_DESKTOP] = 0
+	counts[keybase1.DeviceType_MOBILE] = 0
+	return UnreadUpdate{
+		ConvID:                  convID,
+		UnreadMessages:          0,
+		UnreadNotifyingMessages: counts,
+	}
 }

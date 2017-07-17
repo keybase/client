@@ -341,18 +341,23 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %s", err.Error())
 			return false
 		}
-		if typ == chat1.MessageType_TEXT {
+		apptype := keybase1.DeviceType_DESKTOP
+		kind := chat1.NotificationKind_GENERIC
+		switch typ {
+		case chat1.MessageType_TEXT:
 			atMentions := utils.ParseAtMentionedUIDs(ctx, msg.Valid().MessageBody.Text().Body,
 				g.G().GetUPAKLoader(), &g.DebugLabeler)
-			kind := chat1.NotificationKind_GENERIC
 			for _, at := range atMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
 					break
 				}
 			}
-			apptype := chat1.NotificationAppType_DESKTOP
 			return conv.Notifications.Settings[apptype][kind]
+		case chat1.MessageType_ATTACHMENT:
+			return conv.Notifications.Settings[apptype][kind]
+		default:
+			return false
 		}
 	}
 	return false
@@ -730,6 +735,11 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 		for _, cm := range updateRes.OthersRemovedConvs {
 			g.notifyMembersUpdate(ctx, uid, cm, false)
+		}
+
+		// Fire off badger update
+		if g.badger != nil && update.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*update.UnreadUpdate, update.InboxVers)
 		}
 
 		return nil

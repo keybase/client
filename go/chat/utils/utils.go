@@ -493,10 +493,10 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 }
 
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
-	apptype chat1.NotificationAppType,
+	apptype keybase1.DeviceType,
 	kind chat1.NotificationKind, enabled bool) {
 	if settings.Settings == nil {
-		settings.Settings = make(map[chat1.NotificationAppType]map[chat1.NotificationKind]bool)
+		settings.Settings = make(map[keybase1.DeviceType]map[chat1.NotificationKind]bool)
 	}
 	if settings.Settings[apptype] == nil {
 		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)

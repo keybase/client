@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -182,25 +183,6 @@ var TopicTypeRevMap = map[TopicType]string{
 	0: "NONE",
 	1: "CHAT",
 	2: "DEV",
-}
-
-type NotificationAppType int
-
-const (
-	NotificationAppType_DESKTOP NotificationAppType = 0
-	NotificationAppType_MOBILE  NotificationAppType = 1
-)
-
-func (o NotificationAppType) DeepCopy() NotificationAppType { return o }
-
-var NotificationAppTypeMap = map[string]NotificationAppType{
-	"DESKTOP": 0,
-	"MOBILE":  1,
-}
-
-var NotificationAppTypeRevMap = map[NotificationAppType]string{
-	0: "DESKTOP",
-	1: "MOBILE",
 }
 
 type NotificationKind int
@@ -566,14 +548,14 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 
 type ConversationNotificationInfo struct {
 	ChannelWide bool                                              `codec:"channelWide" json:"channelWide"`
-	Settings    map[NotificationAppType]map[NotificationKind]bool `codec:"settings" json:"settings"`
+	Settings    map[keybase1.DeviceType]map[NotificationKind]bool `codec:"settings" json:"settings"`
 }
 
 func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 	return ConversationNotificationInfo{
 		ChannelWide: o.ChannelWide,
-		Settings: (func(x map[NotificationAppType]map[NotificationKind]bool) map[NotificationAppType]map[NotificationKind]bool {
-			ret := make(map[NotificationAppType]map[NotificationKind]bool)
+		Settings: (func(x map[keybase1.DeviceType]map[NotificationKind]bool) map[keybase1.DeviceType]map[NotificationKind]bool {
+			ret := make(map[keybase1.DeviceType]map[NotificationKind]bool)
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := (func(x map[NotificationKind]bool) map[NotificationKind]bool {
