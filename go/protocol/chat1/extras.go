@@ -189,12 +189,16 @@ func (m MessageBoxed) GetMessageType() MessageType {
 }
 
 func (m MessageBoxed) Summary() MessageSummary {
-	return MessageSummary{
+	s := MessageSummary{
 		MsgID:       m.GetMessageID(),
 		MessageType: m.GetMessageType(),
 		TlfName:     m.ClientHeader.TlfName,
 		TlfPublic:   m.ClientHeader.TlfPublic,
 	}
+	if m.ServerHeader != nil {
+		s.Ctime = m.ServerHeader.Ctime
+	}
+	return s
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
