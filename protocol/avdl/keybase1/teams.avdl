@@ -165,7 +165,7 @@ protocol teams {
     // Latest name of the team
     // The last part of this name tracks LatestSeqno.
     // But the middle parts (b in a.b.c) do not track.
-    // They are kept up fairly up to date, but the guarantees are fuzzy.
+    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
     TeamName name;
     // The last link procesed
     Seqno lastSeqno;
@@ -173,6 +173,11 @@ protocol teams {
 
     // Present if a subteam
     union { null, TeamID } parentID;
+
+	/* // Log of the names this team has gone through.  */
+	/* // The last part of the last entry in this log is the same as Name.  */
+	/* // However the rest of that entry may not be the same because of mid-team-renames.  */
+	/* array<NameLogPoint> nameLog;  */
 
     // For each user; the timeline of their role status.
     // The role checkpoints are always ordered by seqno.
@@ -198,6 +203,16 @@ protocol teams {
     // All invitations that are currently active.
     map<TeamInviteID,TeamInvite> activeInvites;
   }
+
+  /* // The team got this name at this point in time.  */
+  /* record NameLogPoint {  */
+  /* 	// The root ancestor and depth are always correct. */
+  /* 	// For the first entry in the log: the last 2 parts of the name are race-free correct. */
+  /* 	// For other entries: only the the last part is race-free correct. */
+  /* 	TeamName name;  */
+  /* 	// The seqno at which the team got this nam.e  */
+  /* 	Seqno seqno;  */
+  /* }  */
 
   // A user became this role at a point in time
   record UserLogPoint {

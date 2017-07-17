@@ -393,7 +393,9 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 
 	// Recalculate the team name. This is only dealing with ancestor renames, chain.go has already
-	// handled on-chain renames
+	// handled on-chain renames.
+	// It is probably critical that this is always run. Without this a subteam could claim any parent
+	// team name and we woudln't notice.
 	newName, err := l.recalculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
 	if err != nil {
 		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Chain.Name, err)
