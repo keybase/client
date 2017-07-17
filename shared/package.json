@@ -162,9 +162,9 @@
     "source-map-support": "0.4.15",
     "style-loader": "0.18.1",
     "uglifyjs-webpack-plugin": "1.0.0-beta.1",
-    "webpack": "2.6.1",
+    "webpack": "3.3.0",
     "webpack-dashboard": "0.4.0",
-    "webpack-dev-server": "2.4.5",
+    "webpack-dev-server": "2.5.1",
     "webpack-merge": "4.1.0"
   }
 }
