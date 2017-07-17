@@ -79,7 +79,7 @@ function start() {
   })
 
   ipcMain.on('install-check', (event, arg) => {
-    installer('updater,service,cli,kbfs,kbnm', err => {
+    installer(err => {
       if (err) {
         console.log('Error: ', err)
       }

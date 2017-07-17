@@ -389,6 +389,37 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
+// InstallAuto installs everything it can without asking for privileges or
+// extensions. If the user has already installed and loaded Fuse, we install
+// everything.
+func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
+	var components []string
+	status := KeybaseFuseStatus("", log)
+	if !status.KextStarted {
+		components = []string{
+			ComponentNameUpdater.String(),
+			ComponentNameService.String(),
+			ComponentNameCLI.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameKBNM.String(),
+		}
+	} else {
+		components = []string{
+			ComponentNameUpdater.String(),
+			ComponentNameService.String(),
+			ComponentNameCLI.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameHelper.String(),
+			ComponentNameFuse.String(),
+			ComponentNameMountDir.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameKBNM.String(),
+		}
+	}
+
+	return Install(context, binPath, sourcePath, components, false, timeout, log)
+}
+
 // Install installs specified components
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error

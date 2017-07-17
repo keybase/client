@@ -7,15 +7,14 @@ import {isWindows} from '../../constants/platform'
 
 // Install components.
 //
-// User components (not requiring privileges): updater,service,cli,kbfs,kbnm
-// KBFS components (requiring privileges): helper,fuse,mountdir,kbfs
+// User components (not requiring privileges).
 //
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
 // to a place where keybase bin is bundled, for example:
 //   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
 //
 // Reminder: hot-server doesn't reload code in here (/desktop)
-export default (components: string, callback: (err: any) => void): void => {
+export default (callback: (err: any) => void): void => {
   if (isWindows) {
     console.log('Skipping installer on win32')
     callback(null)
@@ -31,7 +30,7 @@ export default (components: string, callback: (err: any) => void): void => {
   if (app.getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
-  const args = ['--debug', 'install', '--timeout=' + timeout + 's', `--components=${components}`]
+  const args = ['--debug', 'install-auto', '--timeout=' + timeout + 's']
 
   exec(keybaseBin, args, 'darwin', 'prod', true, function(err) {
     if (err) {
