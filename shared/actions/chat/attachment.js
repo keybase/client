@@ -65,17 +65,19 @@ function* _saveAttachment(messageKey: Constants.MessageKey) {
   }
   const endTime = Date.now()
 
-  // Instead of an instant download transition when already cached, we show a
-  // brief fake progress bar.  We do this based on duration because the wait
-  // above could be fast for multiple reasons: it could load instantly because
-  // already cached on disk, or we could be near the end of an already-started
-  // download.
-  if (endTime - startTime < 500) {
-    for (let i = 0; i < 5; i++) {
-      yield put(Creators.downloadProgress(messageKey, false, (i + 1) / 5))
-      yield delay(150)
+  if (!isMobile) {
+    // Instead of an instant download transition when already cached, we show a
+    // brief fake progress bar.  We do this based on duration because the wait
+    // above could be fast for multiple reasons: it could load instantly because
+    // already cached on disk, or we could be near the end of an already-started
+    // download.
+    if (endTime - startTime < 500) {
+      for (let i = 0; i < 5; i++) {
+        yield put(Creators.downloadProgress(messageKey, false, (i + 1) / 5))
+        yield delay(150)
+      }
+      yield put(Creators.downloadProgress(messageKey, false, null))
     }
-    yield put(Creators.downloadProgress(messageKey, false, null))
   }
 
   const {downloadedPath} = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
