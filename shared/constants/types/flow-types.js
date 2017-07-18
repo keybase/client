@@ -206,6 +206,9 @@ export const ConstantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scteamreaderror: 2623,
+  scteamtarduplicate: 2663,
+  scteamtarnotfound: 2664,
+  scteammemberexists: 2665,
 }
 
 export const CtlDbType = {
@@ -5946,6 +5949,9 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2623 // SCTeamReadError_2623
+  | 2663 // SCTeamTarDuplicate_2663
+  | 2664 // SCTeamTarNotFound_2664
+  | 2665 // SCTeamMemberExists_2665
 
 export type Stream = {
   fd: int,
