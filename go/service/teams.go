@@ -115,6 +115,18 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
+func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) error {
+	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
+}
+
+func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {
+	return teams.ListRequests(ctx, h.G().ExternalG())
+}
+
+func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) error {
+	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}
+
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)

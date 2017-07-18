@@ -933,6 +933,18 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 	}
 }
 
+type TeamJoinRequest struct {
+	Name     string `codec:"name" json:"name"`
+	Username string `codec:"username" json:"username"`
+}
+
+func (o TeamJoinRequest) DeepCopy() TeamJoinRequest {
+	return TeamJoinRequest{
+		Name:     o.Name,
+		Username: o.Username,
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      TeamName `codec:"name" json:"name"`
@@ -1087,6 +1099,42 @@ func (o TeamAcceptInviteArg) DeepCopy() TeamAcceptInviteArg {
 	}
 }
 
+type TeamRequestAccessArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
+func (o TeamRequestAccessArg) DeepCopy() TeamRequestAccessArg {
+	return TeamRequestAccessArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+	}
+}
+
+type TeamListRequestsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+func (o TeamListRequestsArg) DeepCopy() TeamListRequestsArg {
+	return TeamListRequestsArg{
+		SessionID: o.SessionID,
+	}
+}
+
+type TeamIgnoreRequestArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Username  string `codec:"username" json:"username"`
+}
+
+func (o TeamIgnoreRequestArg) DeepCopy() TeamIgnoreRequestArg {
+	return TeamIgnoreRequestArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Username:  o.Username,
+	}
+}
+
 type LoadTeamPlusApplicationKeysArg struct {
 	SessionID   int             `codec:"sessionID" json:"sessionID"`
 	Id          TeamID          `codec:"id" json:"id"`
@@ -1115,6 +1163,9 @@ type TeamsInterface interface {
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
+	TeamRequestAccess(context.Context, TeamRequestAccessArg) error
+	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
+	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1301,6 +1352,54 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamRequestAccess": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamRequestAccessArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamRequestAccessArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamRequestAccessArg)(nil), args)
+						return
+					}
+					err = i.TeamRequestAccess(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListRequests": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListRequestsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListRequestsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListRequestsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListRequests(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamIgnoreRequest": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamIgnoreRequestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamIgnoreRequestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamIgnoreRequestArg)(nil), args)
+						return
+					}
+					err = i.TeamIgnoreRequest(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadTeamPlusApplicationKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
@@ -1377,6 +1476,22 @@ func (c TeamsClient) TeamRename(ctx context.Context, __arg TeamRenameArg) (err e
 
 func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInviteArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamListRequests(ctx context.Context, sessionID int) (res []TeamJoinRequest, err error) {
+	__arg := TeamListRequestsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamIgnoreRequest(ctx context.Context, __arg TeamIgnoreRequestArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamIgnoreRequest", []interface{}{__arg}, nil)
 	return
 }
 
