@@ -48,6 +48,7 @@
   [parser registerSwitch:@"install-mountdir"];
   [parser registerSwitch:@"install-helper"];
   [parser registerSwitch:@"install-app-bundle"];
+  [parser registerSwitch:@"install-etc-paths"];
   [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
   [parser registerSwitch:@"debug"];
   [parser registerSettings:self.settings];
@@ -95,9 +96,10 @@
     self.installOptions |= KBInstallOptionAppBundle;
     self.sourcePath = [self.settings objectForKey:@"source-path"];
   }
-  if (self.installOptions == 0) {
-    self.installOptions = KBInstallOptionAll;
+  if ([[self.settings objectForKey:@"install-etc-paths"] boolValue]) {
+    self.installOptions |= KBInstallOptionEtcPaths;
   }
+
   self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
   if (self.installTimeout <= 0) {
     if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(self.installTimeout));

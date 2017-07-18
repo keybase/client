@@ -1,5 +1,5 @@
 //
-//  KBCommandLine.h
+//  KBCommandLineEtcPaths.h
 //  KBKit
 //
 //  Created by Gabriel on 1/18/16.
@@ -11,7 +11,7 @@
 #import "KBInstallable.h"
 #import "KBHelperTool.h"
 
-@interface KBCommandLine : KBInstallable
+@interface KBCommandLineEtcPaths : KBInstallable
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath;
 

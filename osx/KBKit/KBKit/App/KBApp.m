@@ -57,9 +57,6 @@
 
 - (void)open {
   [self setup];
-  [self selectEnv:^(KBEnvironment *environment) {
-    [self openWithEnvironment:environment];
-  }];
 }
 
 - (void)setup {
@@ -91,27 +88,6 @@
   NSUserDefaults *userDefaults = [KBWorkspace userDefaults];
   [userDefaults setObject:version forKey:@"InstallVersion"];
   [userDefaults synchronize];
-}
-
-- (void)selectEnv:(void (^)(KBEnvironment *env))completion {
-  NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
-  NSString *servicePath = [KBPath pathInDir:NSBundle.mainBundle.sharedSupportPath path:@"bin" options:0];
-  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:runMode installOptions:KBInstallOptionAll installTimeout:10 appPath:nil sourcePath:nil];
-  if (envConfig) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath]];
-  } else {
-    KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
-    KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
-    KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
-    envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
-      [window close];
-      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
-      [self openWithEnvironment:environment];
-    };
-    window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
-    [window center];
-    [window makeKeyAndOrderFront:nil];
-  }
 }
 
 - (void)openWithEnvironment:(KBEnvironment *)environment {

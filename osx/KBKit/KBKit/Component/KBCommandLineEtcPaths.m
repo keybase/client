@@ -1,19 +1,19 @@
 //
-//  KBCommandLine.m
+//  KBCommandLineEtcPaths.m
 //  KBKit
 //
 //  Created by Gabriel on 1/18/16.
 //  Copyright © 2016 Gabriel Handford. All rights reserved.
 //
 
-#import "KBCommandLine.h"
+#import "KBCommandLineEtcPaths.h"
 
-@interface KBCommandLine ()
+@interface KBCommandLineEtcPaths ()
 @property KBHelperTool *helperTool;
 @property NSString *servicePath;
 @end
 
-@implementation KBCommandLine
+@implementation KBCommandLineEtcPaths
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line" image:nil])) {
@@ -34,11 +34,6 @@
     return;
   }
 
-  // Try to create/fix link as current user first
-  if ([self createLinkForServicePath:self.servicePath name:self.config.serviceBinName]) {
-    completion(nil);
-    return;
-  }
 
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
@@ -58,6 +53,7 @@
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  // Also consider us installed if there is a file in /usr/local/bin/keybase
   NSString *linkDir = @"/usr/local/bin";
   NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
   NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
@@ -78,60 +74,6 @@
   }
 
   completion(self.componentStatus);
-}
-
-- (BOOL)linkExists:(NSString *)linkPath {
-  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
-  if (!attributes) {
-    return NO;
-  }
-  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
-}
-
-- (NSString *)resolveLinkPath:(NSString *)linkPath {
-  if (![self linkExists:linkPath]) {
-    return nil;
-  }
-  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
-}
-
-- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath {
-  if ([self linkExists:linkPath]) {
-    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
-  }
-  if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {
-    return YES;
-  }
-  return NO;
-}
-
-- (BOOL)createLinkForServicePath:(NSString *)directory name:(NSString *)name {
-  NSString *path = [NSString stringWithFormat:@"%@/%@", directory, name];
-  NSString *linkDir = @"/usr/local/bin";
-  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, name];
-
-  // Check if link dir exists at all
-  if (![NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
-    DDLogError(@"%@ doesn't exist", linkDir);
-    return NO;
-  }
-
-  // Check if we're linked properly at /usr/local/bin
-  NSString *resolved = [self resolveLinkPath:linkPath];
-  if ([resolved isEqualToString:path]) {
-    DDLogDebug(@"%@ resolved to %@", linkPath, resolved);
-    return YES;
-  }
-
-  // Create/fix the link
-  DDLogDebug(@"Fixing symlink: %@, %@", linkPath, path);
-  if (![self createLink:path linkPath:linkPath]) {
-    DDLogError(@"Failed to create link: %@, %@", path, linkPath);
-    return NO;
-  } else {
-    DDLogDebug(@"Created link: %@, %@", path, linkPath);
-    return YES;
-  }
 }
 
 @end
