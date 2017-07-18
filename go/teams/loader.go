@@ -146,9 +146,14 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
-	// TODO: stricter check on team ID format.
 	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
+	if hasID {
+		_, err := keybase1.TeamIDFromString(lArg.ID.String())
+		if err != nil {
+			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+		}
+	}
 	if !hasID && !hasName {
 		return fmt.Errorf("team load arg must have either ID or Name")
 	}
