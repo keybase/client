@@ -2159,6 +2159,21 @@ export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function installUninstallKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>) {
+  engineRpcOutgoing('keybase.1.install.uninstallKBFS', request)
+}
+
+export function installUninstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
+}
+export function installUninstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.uninstallKBFS', request, callback, incomingCallMap) })
+}
+
+export function installUninstallKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): Promise<installUninstallKBFSResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.uninstallKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function kbfsFSEditListRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
   engineRpcOutgoing('keybase.1.kbfs.FSEditList', request)
 }
@@ -7511,6 +7526,7 @@ type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
 type installInstallKBFSResult = InstallResult
+type installUninstallKBFSResult = UninstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
@@ -7704,6 +7720,7 @@ export type rpc =
   | identifyResolveRpc
   | installFuseStatusRpc
   | installInstallKBFSRpc
+  | installUninstallKBFSRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
   | kbfsFSSyncEventRpc
