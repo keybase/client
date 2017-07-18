@@ -1707,3 +1707,7 @@ func (t TeamInviteType) String() (string, error) {
 
 	return "", nil
 }
+
+func (m MemberInfo) TeamName() (TeamName, error) {
+	return TeamNameFromString(m.FqName)
+}

@@ -39,7 +39,7 @@ func (t *Team) chain() *TeamSigChainState {
 }
 
 func (t *Team) Name() keybase1.TeamName {
-	return t.chain().GetName()
+	return t.Data.Name
 }
 
 func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
