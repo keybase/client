@@ -274,6 +274,81 @@ func TestPerUserKeyUpgradeBackgroundWork(t *testing.T) {
 	expectMeta(t, metaCh, "")
 }
 
+// The task should abort if the sigchain guard is taken.
+func TestPerUserKeyUpgradeBackgroundYield(t *testing.T) {
+	tc := SetupEngineTest(t, "pukup")
+	defer tc.Cleanup()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	tc.Tp.DisableUpgradePerUserKey = true
+	_ = CreateAndSignupFakeUser(tc, "pukup")
+	tc.Tp.DisableUpgradePerUserKey = false
+
+	t.Logf("user has no per-user-key")
+	checkPerUserKeyCount(&tc, 0)
+
+	advance := func(d time.Duration) {
+		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
+		fakeClock.Advance(d)
+		tc.G.Log.Debug("- fakeClock#adance(%s) end: %s", d, fakeClock.Now())
+	}
+
+	metaCh := make(chan string, 100)
+	roundResCh := make(chan error, 100)
+	arg := &PerUserKeyUpgradeBackgroundArgs{
+		testingMetaCh:     metaCh,
+		testingRoundResCh: roundResCh,
+	}
+	eng := NewPerUserKeyUpgradeBackground(tc.G, arg)
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+
+	err := RunEngine(eng, ctx)
+	require.NoError(t, err)
+
+	expectMeta(t, metaCh, "loop-start")
+
+	tc.G.LocalSigchainGuard().Set(ctx.GetNetContext(), "Test")
+
+	advance(PerUserKeyUpgradeBackgroundSettings.Start + time.Second)
+	expectMeta(t, metaCh, "woke-start")
+
+	// first round runs, but yields to the guard
+	select {
+	case x := <-roundResCh:
+		require.Equal(t, nil, x, "round result")
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "channel timed out")
+	}
+	expectMeta(t, metaCh, "loop-round-complete")
+
+	checkPerUserKeyCount(&tc, 0)
+	checkPerUserKeyCountLocal(&tc, 0)
+
+	// second round runs and works
+	tc.G.LocalSigchainGuard().Clear(ctx.GetNetContext(), "Test")
+	advance(PerUserKeyUpgradeBackgroundSettings.Interval + time.Second)
+	expectMeta(t, metaCh, "woke-interval")
+	advance(PerUserKeyUpgradeBackgroundSettings.WakeUp + time.Second)
+	expectMeta(t, metaCh, "woke-wakeup") // this line has flaked before (CORE-5410)
+	select {
+	case x := <-roundResCh:
+		require.Equal(t, nil, x, "round result")
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "channel timed out")
+	}
+	expectMeta(t, metaCh, "loop-round-complete")
+
+	checkPerUserKeyCount(&tc, 1)
+	checkPerUserKeyCountLocal(&tc, 1)
+
+	eng.Shutdown()
+	expectMeta(t, metaCh, "loop-exit")
+	expectMeta(t, metaCh, "")
+}
+
 // Test upgrading after running for a while and then logging in.
 func TestPerUserKeyUpgradeBackgroundLoginLate(t *testing.T) {
 	tc := SetupEngineTest(t, "pukup")
