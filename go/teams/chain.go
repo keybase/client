@@ -786,16 +786,24 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		if err != nil {
 			return res, err
 		}
-		switch signerRole {
-		case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-			// ok
-		default:
-			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v", signer, signerRole)
+		if !signerRole.IsAdminOrAbove() {
+			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v",
+				signer, signerRole)
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, false, true)
 		if err != nil {
 			return res, err
+		}
+
+		// Only owners can add more owners.
+		if (len(roleUpdates[keybase1.TeamRole_OWNER]) > 0) && (signerRole != keybase1.TeamRole_OWNER) {
+			return res, fmt.Errorf("non-owner cannot add owners")
+		}
+
+		// Only owners can remove owners.
+		if t.roleUpdatesDemoteOwners(prevState, roleUpdates) && (signerRole != keybase1.TeamRole_OWNER) {
+			return res, fmt.Errorf("non-owner cannot demote owners")
 		}
 
 		res.newState = prevState.DeepCopy()
@@ -1275,6 +1283,11 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 	return additions, cancelations, nil
 }
 
+// A map describing an intent to change users's roles.
+// Each item means: change that user to that role.
+// To be clear: An omission does NOT mean to remove the existing role.
+type chainRoleUpdates map[keybase1.TeamRole][]keybase1.UserVersion
+
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
@@ -1282,8 +1295,8 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 // `allowRemovals` is whether removals are allowed.
 // `firstLink` is whether this is seqno=1. In which case owners must exist (for root team). And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
-// In other words, if the input has only `admin -> []` then the output will have only `admin` in the map.
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOwners bool, allowRemovals bool) (map[keybase1.TeamRole][]keybase1.UserVersion, error) {
+// In other words, if the input has only `admin -> [...]` then the output will have only `admin` in the map.
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOwners bool, allowRemovals bool) (chainRoleUpdates, error) {
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
@@ -1356,6 +1369,26 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOw
 	return res, nil
 }
 
+// Whether the roleUpdates would demote any current owner to a lesser role.
+func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+	for toRole, uvs := range roleUpdates {
+		if toRole == keybase1.TeamRole_OWNER {
+			continue
+		}
+		for _, uv := range uvs {
+			fromRole, err := prev.GetUserRole(uv)
+			if err != nil {
+				continue // ignore error, user not in team
+			}
+			if fromRole == keybase1.TeamRole_OWNER {
+				// This is an intent to demote an owner.
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
 	// check the per-team-key
 	if perTeamKey.Generation != expectedGeneration {
@@ -1396,7 +1429,7 @@ func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 // Update `userLog` with the membership in roleUpdates.
 // The `NONE` list removes users.
 // The other lists add users.
-func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion, sigMeta keybase1.SignatureMetadata) {
+func (t *TeamSigChainPlayer) updateMembership(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, sigMeta keybase1.SignatureMetadata) {
 	for role, uvs := range roleUpdates {
 		for _, uv := range uvs {
 			stateToUpdate.inform(uv, role, sigMeta)
