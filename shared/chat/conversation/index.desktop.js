@@ -10,6 +10,7 @@ import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
+import ConversationError from './error/conversation-error'
 
 import type {Props} from '.'
 
@@ -106,6 +107,10 @@ class Conversation extends Component<void, Props, State> {
           Couldn't load all chat messages due to network connectivity. Retrying...
         </Text>
       </Box>
+
+    if (this.props.conversationIsError) {
+      return <ConversationError conversationErrorText={this.props.conversationErrorText} />
+    }
 
     return (
       <Box

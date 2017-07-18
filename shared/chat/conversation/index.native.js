@@ -9,6 +9,7 @@ import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, ProgressIndicator, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import ConversationError from './error/conversation-error'
 
 import type {Props} from './index'
 
@@ -55,25 +56,27 @@ const Conversation = (props: Props) => (
               showSearchSuggestions={props.showSearchSuggestions}
               style={{flex: 1}}
             />
-          : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <List
-                focusInputCounter={props.focusInputCounter}
-                listScrollDownCounter={props.listScrollDownCounter}
-                onEditLastMessage={props.onEditLastMessage}
-                onScrollDown={props.onScrollDown}
-                onFocusInput={props.onFocusInput}
-                editLastMessageCounter={props.editLastMessageCounter}
-              />
-              <Banner />
-              {props.showLoader && <LoadingLine />}
-              {props.finalizeInfo
-                ? <OldProfileResetNotice />
-                : <Input
+          : props.conversationIsError
+              ? <ConversationError conversationErrorText={props.conversationErrorText} />
+              : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  <List
                     focusInputCounter={props.focusInputCounter}
+                    listScrollDownCounter={props.listScrollDownCounter}
                     onEditLastMessage={props.onEditLastMessage}
                     onScrollDown={props.onScrollDown}
-                  />}
-            </Box>}
+                    onFocusInput={props.onFocusInput}
+                    editLastMessageCounter={props.editLastMessageCounter}
+                  />
+                  <Banner />
+                  {props.showLoader && <LoadingLine />}
+                  {props.finalizeInfo
+                    ? <OldProfileResetNotice />
+                    : <Input
+                        focusInputCounter={props.focusInputCounter}
+                        onEditLastMessage={props.onEditLastMessage}
+                        onScrollDown={props.onScrollDown}
+                      />}
+                </Box>}
   </Box>
 )
 

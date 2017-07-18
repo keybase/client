@@ -27,6 +27,8 @@ type StateProps = {|
   showSearchResults: boolean,
   showSearchPending: boolean,
   showSearchSuggestions: boolean,
+  conversationIsError: boolean,
+  conversationErrorText: string,
 |}
 
 type DispatchProps = {|
@@ -50,6 +52,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
   let supersededBy = null
   let showLoader = false
   let threadLoadedOffline = false
+  let conversationIsError = false
+  let conversationErrorText = ''
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
@@ -62,6 +66,10 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
       const inbox = state.chat.get('inbox')
       const selected =
         inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
+      if (selected.state === 'error') {
+        conversationIsError = true
+        conversationErrorText = selected.snippet
+      }
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }
@@ -69,6 +77,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
 
   const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
   return {
+    conversationErrorText,
+    conversationIsError,
     finalizeInfo,
     rekeyInfo,
     selectedConversationIDKey,
