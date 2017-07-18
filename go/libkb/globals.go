@@ -107,6 +107,7 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
+	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -196,6 +197,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
+	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
 	return g
 }
@@ -254,6 +256,8 @@ func (g *GlobalContext) Logout() error {
 	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
+
+	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
 
 	g.CallLogoutHooks()
 
@@ -1011,4 +1015,8 @@ func (g *GlobalContext) ClearPerUserKeyring() {
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
 	g.perUserKeyring = nil
+}
+
+func (g *GlobalContext) LocalSigchainGuard() *LocalSigchainGuard {
+	return g.localSigchainGuard
 }

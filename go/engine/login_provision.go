@@ -83,6 +83,9 @@ func (e *loginProvision) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *loginProvision) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "loginProvision")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "loginProvision")
+
 	if err := e.checkArg(); err != nil {
 		return err
 	}

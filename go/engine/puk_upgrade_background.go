@@ -96,6 +96,11 @@ func PerUserKeyUpgradeBackgroundRound(g *libkb.GlobalContext, ectx *Context) err
 		return nil
 	}
 
+	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "PerUserKeyUpgradeBackgroundRound") {
+		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey yielding to guard")
+		return nil
+	}
+
 	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
 		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey giving up offline")
 		return nil
