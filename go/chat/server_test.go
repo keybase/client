@@ -1275,8 +1275,10 @@ func TestChatSrvGap(t *testing.T) {
 		}))
 
 		select {
-		case cids := <-listener.threadsStale:
-			require.Equal(t, []chat1.ConversationID{created.Id}, cids, "wrong cids")
+		case updates := <-listener.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, created.Id, updates[0].ConvID, "wrong cid")
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to receive stale event")
 		}
@@ -1305,7 +1307,7 @@ func TestChatSrvGap(t *testing.T) {
 
 type serverChatListener struct {
 	newMessage              chan chat1.IncomingMessage
-	threadsStale            chan []chat1.ConversationID
+	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
 	joinedConv              chan chat1.ConversationLocal
 	leftConv                chan chat1.ConversationID
@@ -1339,7 +1341,7 @@ func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.Conve
 func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 	n.inboxStale <- struct{}{}
 }
-func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
@@ -1365,7 +1367,7 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
 		newMessage:              make(chan chat1.IncomingMessage, 100),
-		threadsStale:            make(chan []chat1.ConversationID, 100),
+		threadsStale:            make(chan []chat1.ConversationStaleUpdate, 100),
 		inboxStale:              make(chan struct{}, 100),
 		joinedConv:              make(chan chat1.ConversationLocal, 100),
 		leftConv:                make(chan chat1.ConversationID, 100),

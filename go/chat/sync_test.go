@@ -150,9 +150,10 @@ func TestSyncerConnected(t *testing.T) {
 	default:
 	}
 	select {
-	case cids := <-list.threadsStale:
-		require.Equal(t, 1, len(cids))
-		require.Equal(t, convs[1].GetConvID(), cids[0])
+	case updates := <-list.threadsStale:
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, convs[1].GetConvID(), updates[0].ConvID)
+		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
