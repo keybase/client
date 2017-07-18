@@ -37,6 +37,6 @@ func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, e
 
 func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResult, error) {
 	components := []string{"helper", "fuse", "mountdir", "kbfs"}
-	result := install.Uninstall(context, components, log)
+	result := install.Uninstall(h.G(), components, h.G().Log)
 	return result, nil
 }
