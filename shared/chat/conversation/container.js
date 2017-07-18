@@ -10,6 +10,7 @@ import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
+import ConversationError from './error/conversation-error'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -133,6 +134,7 @@ export default compose(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
   ),
+  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
