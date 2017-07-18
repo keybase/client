@@ -21,16 +21,15 @@ import type {Props} from '.'
 
 const SubTitle = ({usePhone}) => (
   <p>
-    <Text type="Body">In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon
-      type="iconfont-identity-devices"
-      style={{
-        color: globalColors.black_75,
-        paddingLeft: globalMargins.xtiny,
-        paddingRight: globalMargins.xtiny,
-      }}
-    />
-    <Text type="Body">Devices > Add a new device.</Text>
+    {usePhone
+      ? <Text type="Body">
+          In the Keybase app on your phone, go to
+          {' '}
+          <Text type="BodySemibold">Settings > Devices > Add new...</Text>
+        </Text>
+      : <Text type="Body">
+          In the Keybase app on your computer, go to <Text type="BodySemibold">Devices > Add new...</Text>
+        </Text>}
   </p>
 )
 
@@ -146,7 +145,8 @@ const stylesPaperkey = {
   color: globalColors.darkBlue,
   display: 'inline-block',
   lineHeight: '20px',
-  marginTop: 30,
+  marginBottom: globalMargins.xlarge,
+  marginTop: globalMargins.medium,
   maxWidth: 460,
   textAlign: 'center',
 }
@@ -154,12 +154,11 @@ const stylesQrContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   alignSelf: 'stretch',
-  backgroundColor: globalColors.blue2,
-  marginBottom: 47,
-  marginTop: 35,
+  marginBottom: globalMargins.large,
+  marginTop: globalMargins.large,
   minHeight: 220,
   minWidth: 220,
-  padding: 15,
+  padding: globalMargins.small,
 }
 const stylesQr = {
   backgroundPosition: '-22px -22px',
