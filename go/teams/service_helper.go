@@ -387,17 +387,6 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return err
 }
 
-/*
- "requests": [
-		        {
-		            "fq_name": "b6649e87",
-		            "team_id": "24d1a710564a4b8df341ce2b89a3c024",
-		            "uid": "7043f764ebac3571d30bafc3cc7f1d19",
-		            "username": "team_403bf36fda"
-		        }
-		    ],
-*/
-
 type accessRequest struct {
 	FQName   string          `json:"fq_name"`
 	TeamID   keybase1.TeamID `json:"team_id"`
@@ -415,7 +404,6 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 }
 
 func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJoinRequest, error) {
-	// team/laar GET
 	arg := apiArg(ctx, "team/laar")
 
 	var arList accessRequestList
