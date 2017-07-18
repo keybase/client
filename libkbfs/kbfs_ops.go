@@ -180,11 +180,6 @@ func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
 // AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
 	fav Favorite) error {
-	if fav.Type == tlf.SingleTeam {
-		// Ignore team favorites for now, until CORE-5378 is ready.
-		return nil
-	}
-
 	kbpki := fs.config.KBPKI()
 	_, err := kbpki.GetCurrentSession(ctx)
 	isLoggedIn := err == nil

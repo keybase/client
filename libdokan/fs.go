@@ -381,11 +381,6 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		oc.isUppercasePath = true
 		fallthrough
 	case TeamName == ps[0]:
-		if env.NewContext().GetRunMode() == libkb.ProductionRunMode &&
-			!libkbfs.EnableAdminFeature(ctx, f.config) {
-			return nil, false, dokan.ErrObjectNameNotFound
-		}
-
 		// Refuse team directories while we are in a error state.
 		if f.remoteStatus.ExtraFileName() != "" {
 			f.log.CWarningf(ctx, "Refusing access to team directory while errors are present!")

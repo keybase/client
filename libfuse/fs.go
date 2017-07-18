@@ -454,9 +454,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return r.public, nil
 	}
 
-	if req.Name == TeamName &&
-		(env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
-			libkbfs.EnableAdminFeature(ctx, r.team.fs.config)) {
+	if req.Name == TeamName {
 		return r.team, nil
 	}
 
