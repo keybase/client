@@ -69,6 +69,8 @@
                        />
 
     <util:RegistrySearch Id="vcredist_2015_x86_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x86_installed" Win64="no"/>
+    <!-- Alternat reg key location, as per https://msdn.microsoft.com/en-us/vs-knownissues/vs2015-update3-rc?f=255&MSPPError=-2147217396 -->
+    <util:RegistrySearch Id="vcredist_2015_x86_check2" Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86" Value="Installed" Variable="vcredist_2015_x86_installed" Win64="yes" Condition="NOT vcredist_2015_x86_installed"/>
     <util:RegistrySearch Id="vcredist_2015_x86_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_version" Result="exists" Win64="no"/>
     <util:RegistrySearch Id="vcredist_2015_x86_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_versionnumber" Result="value" Win64="no"/>
 
