@@ -145,7 +145,7 @@ done
 
 
 if [ ! "$istest" = "" ]; then
-  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test"
+  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.
