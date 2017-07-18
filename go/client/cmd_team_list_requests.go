@@ -1,9 +1,14 @@
 package client
 
 import (
+	"fmt"
+	"strings"
+	"text/tabwriter"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 )
 
 type CmdTeamListRequests struct {
@@ -35,10 +40,25 @@ func (c *CmdTeamListRequests) Run() error {
 		return err
 	}
 
-	_ = cli
+	reqs, err := cli.TeamListRequests(context.Background(), 0)
+	if err != nil {
+		return err
+	}
 
-	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("done")
+	dui := c.G().UI.GetTerminalUI()
+	if len(reqs) == 0 {
+		dui.Printf("No requests at this time.\n")
+		return nil
+	}
+
+	tabw := new(tabwriter.Writer)
+	tabw.Init(dui.OutputWriter(), 0, 8, 2, ' ', 0)
+	for _, req := range reqs {
+		fmt.Fprintf(tabw, "%s\t%s wants to join\n", req.Name, req.Username)
+	}
+	tabw.Flush()
+	dui.Printf("%s\n", strings.Repeat("-", 70))
+	dui.Printf("To handle requests, use `keybase team add-member` or `keybase team ignore-request`.\n")
 
 	return nil
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type CmdTeamIgnoreRequest struct {
@@ -20,6 +22,12 @@ func newCmdTeamIgnoreRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamIgnoreRequestRunner(g)
 			cl.ChooseCommand(cmd, "ignore-request", c)
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "u, user",
+				Usage: "username",
+			},
 		},
 	}
 }
@@ -49,10 +57,18 @@ func (c *CmdTeamIgnoreRequest) Run() error {
 		return err
 	}
 
-	_ = cli
+	arg := keybase1.TeamIgnoreRequestArg{
+		Name:     c.Team,
+		Username: c.Username,
+	}
+
+	err = cli.TeamIgnoreRequest(context.Background(), arg)
+	if err != nil {
+		return err
+	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("done")
+	dui.Printf("Success! %s's request will be ignored.\n", c.Username)
 
 	return nil
 }

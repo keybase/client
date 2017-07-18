@@ -24,6 +24,9 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdTeamLeave(cl, g),
 			newCmdTeamRename(cl, g),
 			newCmdTeamAcceptInvite(cl, g),
+			newCmdTeamRequestAccess(cl, g),
+			newCmdTeamIgnoreRequest(cl, g),
+			newCmdTeamListRequests(cl, g),
 		},
 	}
 }

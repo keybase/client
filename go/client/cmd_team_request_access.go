@@ -4,6 +4,8 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type CmdTeamRequestAccess struct {
@@ -43,10 +45,17 @@ func (c *CmdTeamRequestAccess) Run() error {
 		return err
 	}
 
-	_ = cli
+	arg := keybase1.TeamRequestAccessArg{
+		Name: c.Team,
+	}
+
+	err = cli.TeamRequestAccess(context.Background(), arg)
+	if err != nil {
+		return err
+	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("done")
+	dui.Printf("An email has been sent to the admins of %s.\n", c.Team)
 
 	return nil
 }
