@@ -236,11 +236,42 @@ func (j journalMDOps) GetForHandle(
 	// ID mapping with the journals.  If we are looking for an
 	// unmerged head, that exists only in the journal, so check the
 	// remote server only to get the TLF ID.
-	remoteMStatus := mStatus
-	if mStatus == Unmerged {
-		remoteMStatus = Merged
+	//
+	// Fetch the tlf ID directly from the mdserver, so that we don't
+	// cache the resulting MD when it could conflict with a local
+	// squash in our journal (KBFS-2310).  Let `rmd` continue to be
+	// ImmutableRootMetadata{}.
+	bh, err := handle.ToBareHandle()
+	if err != nil {
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
-	tlfID, rmd, err = j.MDOps.GetForHandle(ctx, handle, remoteMStatus)
+	tlfID, _, err = j.jServer.config.MDServer().GetForHandle(
+		ctx, bh, Merged)
+	if err != nil {
+		return tlf.ID{}, ImmutableRootMetadata{}, err
+	}
+
+	// If the journal has a head, use that.
+	irmd, err := j.getHeadFromJournal(
+		ctx, tlfID, NullBranchID, mStatus, handle)
+	if err != nil {
+		return tlf.ID{}, ImmutableRootMetadata{}, err
+	}
+	if irmd != (ImmutableRootMetadata{}) {
+		// Make sure the TLF ID that's been signed over by our own
+		// device matches what the server told us.
+		if irmd.TlfID() != tlfID {
+			return tlf.ID{}, ImmutableRootMetadata{},
+				fmt.Errorf("Expected RMD to have TLF ID %s, but got %s",
+					tlfID, irmd.TlfID())
+		}
+		return tlfID, irmd, nil
+	}
+
+	// Otherwise, use the server's head.  It's ok to let it be cached
+	// this time, since there's nothing to conflict with in the
+	// journal.
+	_, rmd, err = j.MDOps.GetForHandle(ctx, handle, mStatus)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -251,20 +282,6 @@ func (j journalMDOps) GetForHandle(
 				tlfID, rmd.TlfID())
 	}
 
-	// If the journal has a head, use that.
-	irmd, err := j.getHeadFromJournal(
-		ctx, tlfID, NullBranchID, mStatus, handle)
-	if err != nil {
-		return tlf.ID{}, ImmutableRootMetadata{}, err
-	}
-	if irmd != (ImmutableRootMetadata{}) {
-		return tlfID, irmd, nil
-	}
-	if remoteMStatus != mStatus {
-		return tlfID, ImmutableRootMetadata{}, nil
-	}
-
-	// Otherwise, use the server's head.
 	return tlfID, rmd, nil
 }
 
