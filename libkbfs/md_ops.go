@@ -282,17 +282,19 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 // GetForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (id tlf.ID, rmd ImmutableRootMetadata, err error) {
-	md.log.CDebugf(ctx, "GetForHandle: %s", handle.GetCanonicalPath())
+	md.log.CDebugf(
+		ctx, "GetForHandle: %s %s", handle.GetCanonicalPath(), mStatus)
 	defer func() {
 		// Temporary debugging for KBFS-1921.  TODO: remove.
 		if err != nil {
 			md.log.CDebugf(ctx, "GetForHandle done with err=%+v", err)
 		} else if rmd != (ImmutableRootMetadata{}) {
-			md.log.CDebugf(ctx, "GetForHandle done, id=%s, revision=%d",
-				id, rmd.Revision())
+			md.log.CDebugf(ctx, "GetForHandle done, id=%s, revision=%d, "+
+				"mStatus=%s", id, rmd.Revision(), rmd.MergedStatus())
 		} else {
 			md.log.CDebugf(
-				ctx, "GetForHandle done, id=%s, no MD revisions yet", id)
+				ctx, "GetForHandle done, id=%s, no %s MD revisions yet", id,
+				mStatus)
 		}
 	}()
 
