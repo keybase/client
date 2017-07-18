@@ -323,10 +323,10 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
-			"checksumSHA1": "mygyoPMxVCiSt7lvq8rXHeK+2bg=",
+			"checksumSHA1": "xm5+2OZUaEqW5gPr9DAu4uFd7hw=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "6dabc1576edcd6dbc6a51f7c14a23ccfdaff52b0",
-			"revisionTime": "2017-05-31T18:23:02Z"
+			"revision": "a103dea04d3a0f3ee027b641b226b7fd760a8f53",
+			"revisionTime": "2017-07-18T14:33:06Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
