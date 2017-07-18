@@ -131,7 +131,8 @@ class BaseList extends Component<void, Props, State> {
             this._onAction,
             this._onShowEditor,
             isSelected,
-            measure
+            measure,
+            this.props.isActive,
           )
           return (
             <div style={style}>

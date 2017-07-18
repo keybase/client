@@ -10,6 +10,9 @@ function selectorFactory(dispatch, factoryOptions) {
   const pausableSelector = function(state, ownProps) {
     if (ownProps.isActive || cachedResult === undefined) {
       cachedResult = selector(state, ownProps)
+      cachedResult.isActive = ownProps.isActive
+    } else if (cachedResult.isActive !== ownProps.isActive) {
+      cachedResult = {...cachedResult, isActive: ownProps.isActive}
     }
     return cachedResult
   }

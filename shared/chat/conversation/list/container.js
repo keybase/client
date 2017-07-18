@@ -5,7 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
 import {List} from 'immutable'
 import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import pausableConnect from '../../../util/pausable-connect'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
 
@@ -141,4 +141,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   }
 }
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)
+export default compose(pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)

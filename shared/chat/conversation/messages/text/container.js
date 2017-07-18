@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import TextMessage from '.'
 import createCachedSelector from 're-reselect'
 import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import pausableConnect from '../../../../util/pausable-connect'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'
@@ -29,7 +29,7 @@ const mergeProps = (stateProps, dispatchProps, {measure}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, () => ({}), mergeProps),
+  pausableConnect(mapStateToProps, () => ({}), mergeProps),
   lifecycle({
     componentWillReceiveProps: function(nextProps: Props) {
       if (this.props.measure && this.props.type !== nextProps.type) {

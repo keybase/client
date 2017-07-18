@@ -16,7 +16,8 @@ const factory = (
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onShowEditor: (message: Constants.ServerMessage, event: any) => void,
   isSelected: boolean,
-  measure: () => void
+  measure: () => void,
+  isActive: boolean,
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
@@ -27,6 +28,7 @@ const factory = (
       return (
         <Wrapper
           innerClass={Attachment}
+          isActive={isActive}
           isSelected={isSelected}
           measure={measure}
           messageKey={messageKey}
@@ -44,6 +46,7 @@ const factory = (
       return (
         <Wrapper
           innerClass={TextMessage}
+          isActive={isActive}
           isSelected={isSelected}
           measure={measure}
           messageKey={messageKey}

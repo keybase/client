@@ -80,6 +80,7 @@ const MessageWrapper = (props: Props) => (
           <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>
               <props.innerClass
+                isActive={props.isActive}
                 messageKey={props.messageKey}
                 measure={props.measure}
                 onAction={props.onAction}

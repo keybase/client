@@ -57,6 +57,7 @@ const Conversation = (props: Props) => (
             />
           : <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
               <List
+                isActive={props.isActive}
                 focusInputCounter={props.focusInputCounter}
                 listScrollDownCounter={props.listScrollDownCounter}
                 onEditLastMessage={props.onEditLastMessage}

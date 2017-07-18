@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import Wrapper from '.'
 import {compose, withHandlers, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import pausableConnect from '../../../../util/pausable-connect'
 import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
@@ -106,7 +106,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   withHandlers({
     onAction: props => event => props._onAction(props._message, props._localMessageState, event),
     onShowEditor: props => event => props._onShowEditor(props._message, event),
