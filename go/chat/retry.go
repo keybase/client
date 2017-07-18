@@ -55,7 +55,11 @@ func (c *ConversationRetry) String() string {
 }
 
 func (c *ConversationRetry) SendStale(ctx context.Context, uid gregor1.UID) {
-	c.G().Syncer.SendChatStaleNotifications(ctx, uid, []chat1.ConversationID{c.convID}, false)
+	supdates := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+		ConvID:     c.convID,
+		UpdateType: chat1.StaleUpdateType_CLEAR,
+	}}
+	c.G().Syncer.SendChatStaleNotifications(ctx, uid, supdates, false)
 }
 
 func (c *ConversationRetry) Fix(ctx context.Context, uid gregor1.UID) error {
