@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -23,9 +22,6 @@ type CmdTeamShowTree struct {
 
 func (v *CmdTeamShowTree) ParseArgv(ctx *cli.Context) (err error) {
 	v.TeamName, err = ParseOneTeamNameK1(ctx)
-	if err != nil {
-		return err
-	}
 	return err
 }
 
@@ -35,15 +31,7 @@ func (v *CmdTeamShowTree) Run() (err error) {
 		return err
 	}
 
-	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(v.G()),
-	}
-	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
-		return err
-	}
-
 	// Get the tree from the root.
-
 	treeRes, err := cli.TeamTree(context.TODO(), keybase1.TeamTreeArg{
 		Name:      v.TeamName.RootAncestorName(),
 		SessionID: v.SessionID,

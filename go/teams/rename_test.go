@@ -60,7 +60,7 @@ func TestRenameSimple(t *testing.T) {
 // - Create team A.B1
 // - Create team A.B1.C <new_subteam>
 // - Rename A.B1 -> A.B2 (implicitly renaming A.B1.C -> A.B2.C)
-// - Someone else (U1) loads A.B1 with <new_subteam> stubbed
+// - Someone else (U1) loads A.B2 with <new_subteam> stubbed
 // - Add U1 as an admin of A.B2 or as a member of A.B2's subtree.
 // - U1 loads and inflates <new_subteam>.
 // The last step failed because the new_subteam link says A.B1.C
