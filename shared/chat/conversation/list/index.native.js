@@ -90,9 +90,8 @@ const verticallyInvertedStyle = {
 }
 
 // Reverse the order of messageKeys to compensate for vertically reversed display
-const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys, ...rest}) => ({
+const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys}) => ({
   messageKeys: messageKeys.reverse(),
-  ...rest,
 }))
 
 export default withReversedMessageKeys(ConversationList)
