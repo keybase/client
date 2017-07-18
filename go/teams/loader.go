@@ -99,6 +99,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		l.G().Log.CDebugf(ctx, "TeamLoader munge failed: %v", err)
 		// drop the error and just force a repoll.
 		mungedForceRepoll = true
+		mungedWantMembers = nil
 	}
 
 	var ret *keybase1.TeamData
