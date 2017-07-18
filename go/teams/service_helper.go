@@ -328,9 +328,11 @@ func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.Id
 func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1.UserOrTeamID, id2 keybase1.TeamID) (res keybase1.IdentifyLiteRes, err error) {
 
 	var id1 keybase1.TeamID
-	id1, err = utid.AsTeam()
-	if err != nil {
-		return res, err
+	if utid.Exists() {
+		id1, err = utid.AsTeam()
+		if err != nil {
+			return res, err
+		}
 	}
 
 	if id1.Exists() && id2.Exists() && !id1.Eq(id2) {
