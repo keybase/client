@@ -12,6 +12,7 @@ const readyForBootstrap = isMobile
 const initialState: Constants.State = {
   appFocused: true,
   bootStatus: 'bootStatusLoading',
+  pushLoaded: false,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   config: null,
   daemonError: null,
@@ -51,6 +52,12 @@ export default function(state: Constants.State = initialState, action: Action): 
         ...initialState,
         readyForBootstrap: state.readyForBootstrap,
       }
+    case 'config:pushLoaded': {
+      return {
+        ...state,
+        pushLoaded: action.payload,
+      }
+    }
 
     case Constants.configLoaded:
       if (action.payload && action.payload.config) {
