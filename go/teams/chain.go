@@ -726,7 +726,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("malformed root team id")
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, true, false)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+			requireOwners: true,
+			allowRemovals: false,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -791,7 +794,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				signer, signerRole)
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, false, true)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+			disallowOwners: prevState.IsSubteam(),
+			allowRemovals:  true,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -976,7 +982,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("subteam has root team name: %s", teamName)
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, false, false)
+		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+			disallowOwners: true,
+			allowRemovals:  false,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1288,22 +1297,27 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 // To be clear: An omission does NOT mean to remove the existing role.
 type chainRoleUpdates map[keybase1.TeamRole][]keybase1.UserVersion
 
+type sanityCheckMembersOptions struct {
+	requireOwners  bool
+	disallowOwners bool
+	allowRemovals  bool
+}
+
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
 // `requireOwners` is whether owners must exist.
 // `allowRemovals` is whether removals are allowed.
-// `firstLink` is whether this is seqno=1. In which case owners must exist (for root team). And removals must not exist.
 // Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
 // In other words, if the input has only `admin -> [...]` then the output will have only `admin` in the map.
-func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOwners bool, allowRemovals bool) (chainRoleUpdates, error) {
+func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
 	}
 	var all []assignment
 
-	if requireOwners {
+	if options.requireOwners {
 		if members.Owners == nil {
 			return nil, fmt.Errorf("team has no owner list: %+v", members)
 		}
@@ -1311,7 +1325,12 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, requireOw
 			return nil, fmt.Errorf("team has no owners: %+v", members)
 		}
 	}
-	if !allowRemovals {
+	if options.disallowOwners {
+		if members.Owners != nil && len(*members.Owners) > 0 {
+			return nil, fmt.Errorf("team has owners: %+v", members)
+		}
+	}
+	if !options.allowRemovals {
 		if members.None != nil && len(*members.None) != 0 {
 			return nil, fmt.Errorf("team has removals in link: %+v", members)
 		}
