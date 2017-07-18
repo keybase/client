@@ -260,6 +260,7 @@ const (
 	ConversationMemberStatus_ACTIVE  ConversationMemberStatus = 0
 	ConversationMemberStatus_REMOVED ConversationMemberStatus = 1
 	ConversationMemberStatus_LEFT    ConversationMemberStatus = 2
+	ConversationMemberStatus_PREVIEW ConversationMemberStatus = 3
 )
 
 func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
@@ -268,12 +269,14 @@ var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
 	"ACTIVE":  0,
 	"REMOVED": 1,
 	"LEFT":    2,
+	"PREVIEW": 3,
 }
 
 var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
 	0: "ACTIVE",
 	1: "REMOVED",
 	2: "LEFT",
+	3: "PREVIEW",
 }
 
 func (e ConversationMemberStatus) String() string {
@@ -575,9 +578,10 @@ func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 }
 
 type ConversationReaderInfo struct {
-	Mtime     gregor1.Time `codec:"mtime" json:"mtime"`
-	ReadMsgid MessageID    `codec:"readMsgid" json:"readMsgid"`
-	MaxMsgid  MessageID    `codec:"maxMsgid" json:"maxMsgid"`
+	Mtime     gregor1.Time             `codec:"mtime" json:"mtime"`
+	ReadMsgid MessageID                `codec:"readMsgid" json:"readMsgid"`
+	MaxMsgid  MessageID                `codec:"maxMsgid" json:"maxMsgid"`
+	Status    ConversationMemberStatus `codec:"status" json:"status"`
 }
 
 func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
@@ -585,6 +589,7 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 		Mtime:     o.Mtime.DeepCopy(),
 		ReadMsgid: o.ReadMsgid.DeepCopy(),
 		MaxMsgid:  o.MaxMsgid.DeepCopy(),
+		Status:    o.Status.DeepCopy(),
 	}
 }
 
