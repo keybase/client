@@ -207,12 +207,20 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	return nil
 }
 
+type ctxMDServerResetKeyType int
+
+const (
+	// ctxMDServerResetKey identifies whether the current context has
+	// already passed through `MDServerRemote.resetAuth`.
+	ctxMDServerResetKey ctxMDServerResetKeyType = iota
+)
+
 // resetAuth is called to reset the authorization on an MDServer
 // connection.  If this function returns NoCurrentSessionError, the
 // caller should treat this as a logged-out user.
 func (md *MDServerRemote) resetAuth(
 	ctx context.Context, c keybase1.MetadataClient) (int, error) {
-	md.log.CDebugf(ctx, "resetAuth called")
+	ctx = context.WithValue(ctx, ctxMDServerResetKey, "1")
 
 	isAuthenticated := false
 	defer func() {
@@ -280,6 +288,11 @@ func (md *MDServerRemote) getClient() keybase1.MetadataClient {
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
 	md.log.CDebugf(ctx, "MDServerRemote: Refreshing auth token...")
+
+	if v := ctx.Value(ctxMDServerResetKey); v != nil {
+		md.log.CDebugf(ctx, "Avoiding resetAuth recursion")
+		return
+	}
 
 	_, err := md.resetAuth(ctx, md.getClient())
 	switch err.(type) {

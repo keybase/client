@@ -623,7 +623,8 @@ func (k *KeybaseServiceBase) LoadUnverifiedKeys(ctx context.Context, uid keybase
 	return keys, nil
 }
 
-func (k *KeybaseServiceBase) getCurrentSession(ctx context.Context, sessionID int) (SessionInfo, bool, error) {
+func (k *KeybaseServiceBase) getCurrentSession(
+	ctx context.Context, sessionID int) (SessionInfo, bool, error) {
 	// Hold the lock the entire function, to prevent multiple
 	// goroutines from trying to fetch the session at once.
 	k.sessionCacheLock.Lock()
