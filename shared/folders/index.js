@@ -4,7 +4,7 @@ import Render from './render'
 import Install from './install'
 import {connect} from 'react-redux'
 import {favoriteList} from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
+import {fuseStatus, openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
 
 import {switchTo, navigateAppend} from '../actions/route-tree'
@@ -17,6 +17,7 @@ export type Props = {
   favoriteList: () => void,
   folderState: ?FolderState,
   fuseInstalled: boolean,
+  fuseStatus: () => void,
   openInKBFS: (path: string) => void,
   openTlfInChat: (tlf: string) => void,
   showingPrivate: boolean,
@@ -30,6 +31,7 @@ export type Props = {
 
 class Folders extends Component<void, Props, void> {
   componentDidMount() {
+    this.props.fuseStatus()
     this.props.favoriteList()
   }
 
@@ -67,6 +69,7 @@ const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnPro
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
   favoriteList: () => dispatch(favoriteList()),
+  fuseStatus: () => dispatch(fuseStatus()),
   onOpenFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
   onRekeyFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
   openInKBFS: path => dispatch(openInKBFS(path)),
