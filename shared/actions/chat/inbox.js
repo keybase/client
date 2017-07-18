@@ -76,12 +76,14 @@ function* _backgroundUnboxLoop() {
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   const finalizedState: Constants.FinalizedState = Map(
-    (inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
-      return map.set(
-        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-        convoUnverified.metadata.finalizeInfo
-      )
-    }, Map())
+    (inbox.conversationsUnverified || [])
+      .filter(c => c.metadata.finalizeInfo)
+      .reduce((map, convoUnverified) => {
+        return map.set(
+          Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+          convoUnverified.metadata.finalizeInfo
+        )
+      }, Map())
   )
 
   if (finalizedState.count()) {
