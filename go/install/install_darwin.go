@@ -397,17 +397,17 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 	status := KeybaseFuseStatus("", log)
 	if !status.KextStarted {
 		components = []string{
+			ComponentNameCLI.String(),
 			ComponentNameUpdater.String(),
 			ComponentNameService.String(),
-			ComponentNameCLI.String(),
 			ComponentNameKBFS.String(),
 			ComponentNameKBNM.String(),
 		}
 	} else {
 		components = []string{
+			ComponentNameCLI.String(),
 			ComponentNameUpdater.String(),
 			ComponentNameService.String(),
-			ComponentNameCLI.String(),
 			ComponentNameKBFS.String(),
 			ComponentNameHelper.String(),
 			ComponentNameFuse.String(),
@@ -427,6 +427,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 
 	log.Debug("Installing components: %s", components)
 
+	if libkb.IsIn(string(ComponentNameCLI), components, false) {
+		err = installCommandLine(context, binPath, true, log) // Always force CLI install
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
+		if err != nil {
+			log.Errorf("Error installing CLI: %s", err)
+		}
+	}
+
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
 		err = installAppBundle(context, sourcePath, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
@@ -440,14 +448,6 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 		if err != nil {
 			log.Errorf("Error installing updater: %s", err)
-		}
-	}
-
-	if libkb.IsIn(string(ComponentNameCLI), components, false) {
-		err = installCommandLine(context, binPath, true, log) // Always force CLI install
-		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
-		if err != nil {
-			log.Errorf("Error installing CLI: %s", err)
 		}
 	}
 
@@ -815,6 +815,11 @@ func installHelper(runMode libkb.RunMode, log Log) error {
 func installAppBundle(context Context, sourcePath string, log Log) error {
 	log.Info("Install app bundle")
 	return execNativeInstallerWithArg([]string{"--install-app-bundle", fmt.Sprintf("--source-path=%s", sourcePath)}, context.GetRunMode(), log)
+}
+
+func installEtcPaths(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing in /etc/paths.d")
+	return execNativeInstallerWithArg([]string{"--install-etc-paths"}, runMode, log)
 }
 
 func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {

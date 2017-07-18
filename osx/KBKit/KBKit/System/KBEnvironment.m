@@ -12,7 +12,7 @@
 #import "KBFuseComponent.h"
 #import "KBRunOver.h"
 #import "KBDefines.h"
-#import "KBCommandLine.h"
+#import "KBCommandLineEtcPaths.h"
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
 #import "KBAppBundle.h"
@@ -40,12 +40,17 @@
 
     _installables = [NSMutableArray array];
 
+    // Whether we need to install helper because a component needs it,
+    // even if not specified as a component to install explicitly.
+    BOOL helperRequired = NO;
+
     _helperTool = [[KBHelperTool alloc] initWithConfig:config];
     if (config.installOptions&KBInstallOptionHelper) {
       [_installables addObject:_helperTool];
     }
 
     if (config.installOptions&KBInstallOptionAppBundle) {
+      helperRequired = YES;
       [_installables addObject:[[KBAppBundle alloc] initWithConfig:config helperTool:_helperTool]];
     }
 
@@ -65,6 +70,7 @@
     }
 
     if (config.installOptions&KBInstallOptionMountDir) {
+      helperRequired = YES;
       KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:config helperTool:_helperTool];
       [_installables addObject:mountDir];
     }
@@ -74,14 +80,20 @@
       [_installables addObject:_kbfs];
     }
 
-    if (config.installOptions&KBInstallOptionCLI) {
-      KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
+    if (config.installOptions&KBInstallOptionEtcPaths) {
+      helperRequired = YES;
+      KBCommandLineEtcPaths *cli = [[KBCommandLineEtcPaths alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:cli];
     }
 
     if (config.installOptions&KBInstallOptionKBNM) {
       KBNM *kbnm = [[KBNM alloc] initWithConfig:config servicePath:servicePath];
       [_installables addObject:kbnm];
+    }
+
+    // If we have a component that needs the helper, make sure it's installed first.
+    if (helperRequired && ![_installables containsObject:_helperTool]) {
+      [_installables insertObject:_helperTool atIndex:0];
     }
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, _updater, nil];
