@@ -245,7 +245,9 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 
 func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
-	res := g.Resolver.ResolveWithBody(username)
+	// need username here as `username` parameter might be social assertion, also username
+	// is used for chat notification recipient
+	res := g.Resolver.ResolveFullExpressionNeedUsername(ctx, username)
 	if res.GetError() != nil {
 		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
