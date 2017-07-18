@@ -229,6 +229,10 @@
     "installKBFS": {
       "request": [],
       "response": "InstallResult"
+    },
+    "uninstallKBFS": {
+      "request": [],
+      "response": "UninstallResult"
     }
   },
   "namespace": "keybase.1"

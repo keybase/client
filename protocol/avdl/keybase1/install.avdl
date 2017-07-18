@@ -85,4 +85,9 @@ protocol install {
     Install KBFS (Fuse, mount).
    */
   InstallResult installKBFS();
+
+  /*
+    Uninstalls KBFS (and Fuse, mount).
+   */
+  UninstallResult uninstallKBFS();
 }
