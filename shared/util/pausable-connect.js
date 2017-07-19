@@ -8,11 +8,11 @@ function selectorFactory(dispatch, factoryOptions) {
   const selector = defaultSelectorFactory(dispatch, factoryOptions)
   let cachedResult
   const pausableSelector = function(state, ownProps) {
-    if (ownProps.isActive || cachedResult === undefined) {
+    if (ownProps.isActiveRoute || cachedResult === undefined) {
       cachedResult = selector(state, ownProps)
-      cachedResult.isActive = ownProps.isActive
-    } else if (cachedResult.isActive !== ownProps.isActive) {
-      cachedResult = {...cachedResult, isActive: ownProps.isActive}
+      cachedResult.isActiveRoute = ownProps.isActiveRoute
+    } else if (cachedResult.isActiveRoute !== ownProps.isActiveRoute) {
+      cachedResult = {...cachedResult, isActiveRoute: ownProps.isActiveRoute}
     }
     return cachedResult
   }
