@@ -91,9 +91,12 @@ func NewDiskStorage(g *libkb.GlobalContext) *DiskStorage {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return getLocalStorageSecretBoxKey(ctx, g)
 	}
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalDb
+	}
 	return &DiskStorage{
 		Contextified: libkb.NewContextified(g),
-		encryptedDB:  encrypteddb.New(g, g.LocalDb, keyFn),
+		encryptedDB:  encrypteddb.New(g, dbFn, keyFn),
 	}
 }
 
