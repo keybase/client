@@ -92,25 +92,29 @@ func (e *PerUserKeyUpgradeBackground) Shutdown() {
 
 func PerUserKeyUpgradeBackgroundRound(g *libkb.GlobalContext, ectx *Context) error {
 	if !g.Env.GetUpgradePerUserKey() {
-		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey disabled")
+		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground disabled")
 		return nil
 	}
 
 	if !g.LocalSigchainGuard().IsAvailable(ectx.GetNetContext(), "PerUserKeyUpgradeBackgroundRound") {
-		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey yielding to guard")
+		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground yielding to guard")
 		return nil
 	}
 
 	if g.ConnectivityMonitor.IsConnected(ectx.GetNetContext()) == libkb.ConnectivityMonitorNo {
-		g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey giving up offline")
+		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground giving up offline")
 		return nil
 	}
 
 	// Do a fast local check to see if our work is done.
 	pukring, err := g.GetPerUserKeyring()
+	if err != nil {
+		g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground error getting keyring: %v", err)
+		// ignore error
+	}
 	if err == nil {
 		if pukring.HasAnyKeys() {
-			g.Log.CDebugf(ectx.GetNetContext(), "CheckUpgradePerUserKey already has keys")
+			g.Log.CDebugf(ectx.GetNetContext(), "PerUserKeyUpgradeBackground already has keys")
 			return nil
 		}
 	}
