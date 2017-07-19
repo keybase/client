@@ -15,8 +15,8 @@ import (
 // MDCacheStandard implements a simple LRU cache for per-folder
 // metadata objects.
 type MDCacheStandard struct {
-	// lock protects `lru` from atomic operations that need to
-	// atomicity across multiple `lru` calls.
+	// lock protects `lru` from atomic operations that need atomicity
+	// across multiple `lru` calls.
 	lock sync.RWMutex
 	lru  *lru.Cache
 }
