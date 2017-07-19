@@ -108,7 +108,6 @@ func (l *LevelDb) Opts() *opt.Options {
 	return &opt.Options{
 		OpenFilesCacheCapacity: 16,
 	}
-
 }
 
 func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error) {
