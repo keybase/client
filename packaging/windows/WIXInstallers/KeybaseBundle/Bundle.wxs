@@ -9,7 +9,7 @@
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
 
-    <Variable Name="nodriver" bal:Overridable="yes" />
+    <Variable Name="driver" bal:Overridable="yes" />
     
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
@@ -91,7 +91,7 @@
       -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
-        DetectCondition="DokanUninstallString OR nodriver"
+        DetectCondition="DokanUninstallString OR NOT driver"
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
@@ -109,6 +109,7 @@
                   UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
+                  InstallCondition="driver OR DokanUninstallString"
                   DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918"
                   PerMachine="yes"
                   Vital="yes"
@@ -131,7 +132,7 @@
                   UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
-                  InstallCondition="VersionNT64"
+                  InstallCondition="VersionNT64 AND (driver OR DokanUninstallString)"
                   DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918"
                   PerMachine="yes"
                   Vital="yes"
@@ -149,7 +150,7 @@
                   Name="Windows6.1-KB2999226-x86.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.1"
+                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.1 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -162,7 +163,7 @@
                   Name="Windows6.1-KB2999226-x64.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT = v6.1"
+                  InstallCondition="VersionNT64 AND VersionNT = v6.1 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -175,7 +176,7 @@
                   Name="Windows8-RT-KB2999226-x86.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.2"
+                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.2 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -188,7 +189,7 @@
                   Name="Windows8-RT-KB2999226-x64.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT = v6.2"
+                  InstallCondition="VersionNT64 AND VersionNT = v6.2 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -201,7 +202,7 @@
                   Name="Windows8.1-KB2999226-x86.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="NOT VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
+                  InstallCondition="NOT VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -214,7 +215,7 @@
                   Name="Windows8.1-KB2999226-x64.msu"
                   Compressed="yes"
                   Permanent="yes"
-                  InstallCondition="VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
+                  InstallCondition="VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0 AND (driver OR DokanUninstallString)"
                   DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
                   Vital="yes"
                   Cache="no"
@@ -224,7 +225,7 @@
                   />
 
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
-                  InstallCondition="NOT VersionNT64 AND NOT nodriver"
+                  InstallCondition="NOT VersionNT64 AND (driver OR DokanUninstallString)"
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
@@ -236,7 +237,7 @@
       </MsiPackage>
 
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
-                  InstallCondition="VersionNT64 AND NOT nodriver"
+                  InstallCondition="VersionNT64 AND (driver OR DokanUninstallString)"
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
