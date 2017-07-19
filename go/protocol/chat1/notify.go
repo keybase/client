@@ -440,6 +440,44 @@ func (o ConvTypingUpdate) DeepCopy() ConvTypingUpdate {
 	}
 }
 
+type StaleUpdateType int
+
+const (
+	StaleUpdateType_CLEAR       StaleUpdateType = 0
+	StaleUpdateType_NEWACTIVITY StaleUpdateType = 1
+)
+
+func (o StaleUpdateType) DeepCopy() StaleUpdateType { return o }
+
+var StaleUpdateTypeMap = map[string]StaleUpdateType{
+	"CLEAR":       0,
+	"NEWACTIVITY": 1,
+}
+
+var StaleUpdateTypeRevMap = map[StaleUpdateType]string{
+	0: "CLEAR",
+	1: "NEWACTIVITY",
+}
+
+func (e StaleUpdateType) String() string {
+	if v, ok := StaleUpdateTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ConversationStaleUpdate struct {
+	ConvID     ConversationID  `codec:"convID" json:"convID"`
+	UpdateType StaleUpdateType `codec:"updateType" json:"updateType"`
+}
+
+func (o ConversationStaleUpdate) DeepCopy() ConversationStaleUpdate {
+	return ConversationStaleUpdate{
+		ConvID:     o.ConvID.DeepCopy(),
+		UpdateType: o.UpdateType.DeepCopy(),
+	}
+}
+
 type NewChatActivityArg struct {
 	Uid      keybase1.UID `codec:"uid" json:"uid"`
 	Activity ChatActivity `codec:"activity" json:"activity"`
@@ -509,21 +547,21 @@ func (o ChatInboxStaleArg) DeepCopy() ChatInboxStaleArg {
 }
 
 type ChatThreadsStaleArg struct {
-	Uid     keybase1.UID     `codec:"uid" json:"uid"`
-	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+	Uid     keybase1.UID              `codec:"uid" json:"uid"`
+	Updates []ConversationStaleUpdate `codec:"updates" json:"updates"`
 }
 
 func (o ChatThreadsStaleArg) DeepCopy() ChatThreadsStaleArg {
 	return ChatThreadsStaleArg{
 		Uid: o.Uid.DeepCopy(),
-		ConvIDs: (func(x []ConversationID) []ConversationID {
-			var ret []ConversationID
+		Updates: (func(x []ConversationStaleUpdate) []ConversationStaleUpdate {
+			var ret []ConversationStaleUpdate
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.ConvIDs),
+		})(o.Updates),
 	}
 }
 

@@ -26,6 +26,7 @@ import type {
   OutboxID as RPCOutboxID,
   ConversationID as RPCConversationID,
   TyperInfo,
+  ConversationStaleUpdate,
 } from './types/flow-types-chat'
 import type {DeviceType, KBRecord} from './types/more'
 import type {TypedState} from './reducer'
@@ -482,7 +483,7 @@ export type LoadingMessages = NoErrorTypedAction<
 >
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
-  {convIDs: Array<ConversationIDKey>}
+  {updates: Array<ConversationStaleUpdate>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
@@ -1091,8 +1092,9 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 function isImageFileName(filename: string): boolean {
-  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+  return imageFileNameRegex.test(filename)
 }
 
 const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch

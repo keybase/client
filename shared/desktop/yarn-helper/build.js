@@ -19,10 +19,10 @@ const commands = {
     shell: `${webpackCmd} --progress`,
   },
   'hot-server': {
+    code: hotServer,
     env: {BABEL_ENV: 'yarn', HOT: 'true'},
     help: 'Start the webpack hot reloading code server (needed by yarn run start-hot)',
     nodeEnv: 'development',
-    shell: `BEFORE_HOT=true yarn run _helper build-dev && BEFORE_HOT=false ${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
   },
   package: {
     env: {BABEL_ENV: 'yarn', NO_SOURCE_MAPS: 'true'},
@@ -30,6 +30,14 @@ const commands = {
     nodeEnv: 'production',
     shell: `babel-node ${spaceArg} desktop/package.js`,
   },
+}
+
+function hotServer(info: any, exec: Function) {
+  exec('yarn run _helper build-dev', {...info.env, BEFORE_HOT: 'true'})
+  exec(
+    `${process.env['NO_DASHBOARD'] ? '' : 'webpack-dashboard --'} webpack-dev-server --config=./desktop/webpack.config.babel.js`,
+    {...info.env, BEFORE_HOT: 'false'}
+  )
 }
 
 export default commands

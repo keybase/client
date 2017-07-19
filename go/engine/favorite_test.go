@@ -25,19 +25,19 @@ func TestFavoriteAdd(t *testing.T) {
 
 	idUI := &FakeIdentifyUI{}
 	fave := makeFave(u.Username, "t_bob")
-	addfav(fave, true, true, idUI, tc, expectedFaves)
+	addfav(fave, keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
 
 	// Add the same share again. The number shouldn't change.
-	addfav(fave, true, true, idUI, tc, nil)
+	addfav(fave, keybase1.FolderType_PRIVATE, true, idUI, tc, nil)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
 
 	// Add a public share of the same name, make sure both are represented.
-	addfav(fave, false, true, idUI, tc, expectedFaves)
+	addfav(fave, keybase1.FolderType_PUBLIC, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
@@ -53,7 +53,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav(fmt.Sprintf("bob@twitter,%s", u.Username), true, true, idUI, tc, expectedFaves)
+	addfav(fmt.Sprintf("bob@twitter,%s", u.Username), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
@@ -75,7 +75,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 	// Test adding a favorite when not the creator.  Should not call ui for
 	// displaying tlf + invite.
 	// created flag == false
-	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), true, false, idUI, tc, expectedFaves)
+	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), keybase1.FolderType_PRIVATE, false, idUI, tc, expectedFaves)
 	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
 		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
@@ -86,7 +86,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 	idUI = &FakeIdentifyUI{}
 	// Make sure ui for displaying tlf + invite not called for non-social
 	// assertion TLF.
-	addfav(fmt.Sprintf("%s,t_alice", u.Username), true, true, idUI, tc, expectedFaves)
+	addfav(fmt.Sprintf("%s,t_alice", u.Username), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
 		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
@@ -96,7 +96,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 
 	idUI = &FakeIdentifyUI{}
 	// Test adding a public favorite with SBS social assertion
-	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), false, true, idUI, tc, expectedFaves)
+	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), keybase1.FolderType_PUBLIC, true, idUI, tc, expectedFaves)
 	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
 		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
@@ -116,12 +116,12 @@ func TestFavoriteIgnore(t *testing.T) {
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav(makeFave(u.Username, "t_bob"), true, true, idUI, tc, expectedFaves)
-	addfav(makeFave(u.Username, "t_charlie"), true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_bob"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_charlie"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
-	rmfav(makeFave(u.Username, "t_bob"), true, tc, expectedFaves)
+	rmfav(makeFave(u.Username, "t_bob"), keybase1.FolderType_PRIVATE, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
@@ -134,8 +134,8 @@ func TestFavoriteList(t *testing.T) {
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav(makeFave(u.Username, "t_charlie"), true, true, idUI, tc, expectedFaves)
-	addfav(makeFave(u.Username, "t_bob"), true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_charlie"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_bob"), keybase1.FolderType_PRIVATE, true, idUI, tc, expectedFaves)
 
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
@@ -148,12 +148,12 @@ func TestFavoriteList(t *testing.T) {
 	}
 }
 
-func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext, expectedFaves *favorites) {
+func addfav(name string, folderType keybase1.FolderType, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext, expectedFaves *favorites) {
 	ctx := &Context{
 		IdentifyUI: idUI,
 	}
 	arg := keybase1.FavoriteAddArg{
-		Folder: keybase1.Folder{Name: name, Private: private, Created: created},
+		Folder: keybase1.Folder{Name: name, FolderType: folderType, Created: created},
 	}
 	eng := NewFavoriteAdd(&arg, tc.G)
 	err := RunEngine(eng, ctx)
@@ -162,14 +162,14 @@ func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.
 	}
 	eng.Wait()
 	if expectedFaves != nil {
-		expectedFaves.Push(keybase1.Folder{Name: name, Private: private})
+		expectedFaves.Push(keybase1.Folder{Name: name, FolderType: folderType})
 	}
 }
 
-func rmfav(name string, private bool, tc libkb.TestContext, expectedFaves *favorites) {
+func rmfav(name string, folderType keybase1.FolderType, tc libkb.TestContext, expectedFaves *favorites) {
 	ctx := &Context{}
 	arg := keybase1.FavoriteIgnoreArg{
-		Folder: keybase1.Folder{Name: name, Private: private},
+		Folder: keybase1.Folder{Name: name, FolderType: folderType},
 	}
 	eng := NewFavoriteIgnore(&arg, tc.G)
 	err := RunEngine(eng, ctx)
@@ -177,7 +177,7 @@ func rmfav(name string, private bool, tc libkb.TestContext, expectedFaves *favor
 		tc.T.Fatal(err)
 	}
 	if expectedFaves != nil {
-		expectedFaves.Remove(keybase1.Folder{Name: name, Private: private})
+		expectedFaves.Remove(keybase1.Folder{Name: name, FolderType: folderType})
 	}
 }
 
@@ -241,13 +241,13 @@ func (v favorites) Equal(b favorites) bool {
 }
 
 func makeKey(f keybase1.Folder) string {
-	return fmt.Sprintf("%s:%v", f.Name, f.Private)
+	return fmt.Sprintf("%s:%v", f.Name, f.FolderType)
 }
 
 func defaultFaves(un string) []keybase1.Folder {
 	return []keybase1.Folder{
-		keybase1.Folder{Name: un, Private: false},
-		keybase1.Folder{Name: un, Private: true},
+		keybase1.Folder{Name: un, FolderType: keybase1.FolderType_PRIVATE},
+		keybase1.Folder{Name: un, FolderType: keybase1.FolderType_PUBLIC},
 	}
 }
 

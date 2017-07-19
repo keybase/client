@@ -206,6 +206,9 @@ export const ConstantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scteamreaderror: 2623,
+  scteamtarduplicate: 2663,
+  scteamtarnotfound: 2664,
+  scteammemberexists: 2665,
 }
 
 export const CtlDbType = {
@@ -3689,6 +3692,21 @@ export function teamsTeamGetRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamGet', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamIgnoreRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamIgnoreRequestRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamIgnoreRequest', request)
+}
+
+export function teamsTeamIgnoreRequestRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamIgnoreRequestRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamIgnoreRequest', request)
+}
+export function teamsTeamIgnoreRequestRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamIgnoreRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamIgnoreRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamIgnoreRequestRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamIgnoreRequest', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamLeaveRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamLeave', request)
 }
@@ -3702,6 +3720,21 @@ export function teamsTeamLeaveRpcChannelMapOld (channelConfig: ChannelConfig<*>,
 
 export function teamsTeamLeaveRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamLeaveRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamLeave', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamListRequestsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListRequestsResult) => void}>) {
+  engineRpcOutgoing('keybase.1.teams.teamListRequests', request)
+}
+
+export function teamsTeamListRequestsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListRequestsResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListRequests', request)
+}
+export function teamsTeamListRequestsRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListRequestsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamListRequests', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamListRequestsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListRequestsResult) => void}>): Promise<teamsTeamListRequestsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamListRequests', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam}>) {
@@ -3747,6 +3780,36 @@ export function teamsTeamRenameRpcChannelMapOld (channelConfig: ChannelConfig<*>
 
 export function teamsTeamRenameRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRenameRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRename', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamRequestAccessRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request)
+}
+
+export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
+}
+export function teamsTeamRequestAccessRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamRequestAccessRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamTreeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamTree', request)
+}
+
+export function teamsTeamTreeRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamTree', request)
+}
+export function teamsTeamTreeRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.teams.teamTree', request, callback, incomingCallMap) })
+}
+
+export function teamsTeamTreeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}>): Promise<teamsTeamTreeResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamTree', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
@@ -5946,6 +6009,9 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2623 // SCTeamReadError_2623
+  | 2663 // SCTeamTarDuplicate_2663
+  | 2664 // SCTeamTarNotFound_2664
+  | 2665 // SCTeamMemberExists_2665
 
 export type Stream = {
   fd: int,
@@ -6043,6 +6109,7 @@ export type TeamChangeSet = {
 
 export type TeamData = {
   secretless: boolean,
+  name: TeamName,
   chain: TeamSigChainState,
   perTeamKeySeeds: {[key: string]: PerTeamKeySeedItem},
   readerKeyMasks: {[key: string]: {[key: string]: MaskB64}},
@@ -6088,6 +6155,11 @@ export type TeamInvitee = {
   role: TeamRole,
 }
 
+export type TeamJoinRequest = {
+  name: string,
+  username: string,
+}
+
 export type TeamList = {
   uid: UID,
   username: string,
@@ -6125,6 +6197,11 @@ export type TeamName = {
   parts?: ?Array<TeamNamePart>,
 }
 
+export type TeamNameLogPoint = {
+  lastPart: TeamNamePart,
+  seqno: Seqno,
+}
+
 export type TeamNamePart = string
 
 export type TeamPlusApplicationKeys = {
@@ -6158,7 +6235,9 @@ export type TeamSBSMsg = {
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
-  name: TeamName,
+  rootAncestor: TeamName,
+  nameDepth: int,
+  nameLog?: ?Array<TeamNameLogPoint>,
   lastSeqno: Seqno,
   lastLinkID: LinkID,
   parentID?: ?TeamID,
@@ -6168,6 +6247,15 @@ export type TeamSigChainState = {
   linkIDs: {[key: string]: LinkID},
   stubbedLinks: {[key: string]: boolean},
   activeInvites: {[key: string]: TeamInvite},
+}
+
+export type TeamTreeEntry = {
+  name: TeamName,
+  admin: boolean,
+}
+
+export type TeamTreeResult = {
+  entries?: ?Array<TeamTreeEntry>,
 }
 
 export type Test = {
@@ -7320,6 +7408,11 @@ export type teamsTeamGetRpcParam = Exact<{
   forceRepoll: boolean
 }>
 
+export type teamsTeamIgnoreRequestRpcParam = Exact<{
+  name: string,
+  username: string
+}>
+
 export type teamsTeamLeaveRpcParam = Exact<{
   name: string,
   permanent: boolean
@@ -7337,6 +7430,14 @@ export type teamsTeamRemoveMemberRpcParam = Exact<{
 export type teamsTeamRenameRpcParam = Exact<{
   prevName: TeamName,
   newName: TeamName
+}>
+
+export type teamsTeamRequestAccessRpcParam = Exact<{
+  name: string
+}>
+
+export type teamsTeamTreeRpcParam = Exact<{
+  name: TeamName
 }>
 
 export type testPanicRpcParam = Exact<{
@@ -7586,7 +7687,9 @@ type streamUiWriteResult = int
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
+type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = TeamList
+type teamsTeamTreeResult = TeamTreeResult
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7822,10 +7925,14 @@ export type rpc =
   | teamsTeamCreateSubteamRpc
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
+  | teamsTeamIgnoreRequestRpc
   | teamsTeamLeaveRpc
+  | teamsTeamListRequestsRpc
   | teamsTeamListRpc
   | teamsTeamRemoveMemberRpc
   | teamsTeamRenameRpc
+  | teamsTeamRequestAccessRpc
+  | teamsTeamTreeRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc

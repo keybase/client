@@ -251,6 +251,14 @@ func (p CommandLine) GetProofCacheSize() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
+	ret := p.GetGInt("leveldb-num-files")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetLinkCacheSize() (int, bool) {
 	ret := p.GetGInt("link-cache-size")
 	if ret != 0 {
@@ -414,6 +422,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "home, H",
 			Usage: "Specify an (alternate) home directory.",
+		},
+		cli.IntFlag{
+			Name:  "leveldb-num-files",
+			Usage: "Specify the max number of files LevelDB may open",
 		},
 		cli.StringFlag{
 			Name:  "local-rpc-debug-unsafe",

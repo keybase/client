@@ -68,9 +68,9 @@ func (e *FavoriteAdd) Run(ctx *Context) error {
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
-			"private":  libkb.B{Val: e.arg.Folder.Private},
-			"status":   libkb.S{Val: "favorite"},
+			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
+			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},
+			"status":      libkb.S{Val: "favorite"},
 		},
 	})
 	if err != nil {
@@ -119,7 +119,7 @@ func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
 			FolderName:      e.arg.Folder.Name,
 			Assertion:       assertion.String(),
 			SocialAssertion: assertion,
-			IsPrivate:       e.arg.Folder.Private,
+			IsPrivate:       e.arg.Folder.FolderType == keybase1.FolderType_PRIVATE,
 			Throttled:       inv.Throttled,
 			InviteLink:      inv.Link(),
 		}

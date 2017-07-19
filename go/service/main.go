@@ -291,6 +291,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.configureRekey(uir)
 	d.runBackgroundIdentifier()
 	d.runBackgroundPerUserKeyUpgrade()
+	d.runBackgroundPerUserKeyUpkeep()
 	go d.identifySelf()
 }
 
@@ -558,11 +559,11 @@ func (d *Service) runBackgroundIdentifierWithUID(u keybase1.UID) {
 
 func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	if !d.G().Env.GetUpgradePerUserKey() {
-		d.G().Log.Debug("PerUserKeyBackground disabled (not starting)")
+		d.G().Log.Debug("PerUserKeyUpgradeBackground disabled (not starting)")
 		return
 	}
 
-	eng := engine.NewPerUserKeyBackground(d.G(), &engine.PerUserKeyBackgroundArgs{})
+	eng := engine.NewPerUserKeyUpgradeBackground(d.G(), &engine.PerUserKeyUpgradeBackgroundArgs{})
 	go func() {
 		ectx := &engine.Context{NetContext: context.Background()}
 		err := engine.RunEngine(eng, ectx)
@@ -573,6 +574,23 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping per-user-key background upgrade")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundPerUserKeyUpkeep() {
+	eng := engine.NewPerUserKeyUpkeepBackground(d.G(), &engine.PerUserKeyUpkeepBackgroundArgs{})
+	go func() {
+		ectx := &engine.Context{NetContext: context.Background()}
+		err := engine.RunEngine(eng, ectx)
+		if err != nil {
+			d.G().Log.Warning("per-user-key background upkeep error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping per-user-key background upkeep")
 		eng.Shutdown()
 		return nil
 	})
