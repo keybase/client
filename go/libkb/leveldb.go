@@ -104,9 +104,8 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 func (l *LevelDb) Open() error { return nil }
 
 func (l *LevelDb) Opts() *opt.Options {
-	// Only allow leveldb to open 20 files
 	return &opt.Options{
-		OpenFilesCacheCapacity: 16,
+		OpenFilesCacheCapacity: 16, // Only 16 files open by level DB per db
 	}
 }
 
