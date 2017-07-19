@@ -116,6 +116,9 @@ const (
 
 	ChatBoxerMerkleFreshness    = 10 * time.Minute
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
+
+	// By default, only 64 files can be opened.
+	LevelDBNumFiles = 64
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second

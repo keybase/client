@@ -76,6 +76,7 @@ type configGetter interface {
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
+	GetLevelDBNumFiles() (int, bool)
 }
 
 type CommandLine interface {
