@@ -123,7 +123,10 @@ class TransportShared extends RobustTransport {
       // delay the call back to us
       const handler = payload => {
         this._injectInstrumentedResponse(payload)
-        incomingRPCCallback(payload)
+        // Defer a frame since decoding can take awhile, using setTimeout and not setImmediate on purpose
+        setTimeout(() => {
+          incomingRPCCallback(payload)
+        }, 0)
       }
 
       this.set_generic_handler(
