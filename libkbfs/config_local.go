@@ -88,6 +88,7 @@ type ConfigLocal struct {
 	noBGFlush      bool // logic opposite so the default value is the common setting
 	rwpWaitTime    time.Duration
 	diskLimiter    DiskLimiter
+	syncedTlfs     map[tlf.ID]bool
 
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -294,6 +295,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 		loggerFn:    loggerFn,
 		storageRoot: storageRoot,
 		mode:        mode,
+		syncedTlfs:  make(map[tlf.ID]bool),
 	}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
@@ -1180,7 +1182,7 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
-	dbc, err := newDiskBlockCacheStandard(c,
+	dbc, err := newDiskBlockCacheWrapped(c,
 		diskBlockCacheRootFromStorageRoot(c.storageRoot))
 	if err != nil {
 		return err
@@ -1198,4 +1200,18 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 		return nil
 	}
 	return c.resetDiskBlockCacheLocked()
+}
+
+// IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
+func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.syncedTlfs[tlfID]
+}
+
+// SetTlfSyncState implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.syncedTlfs[tlfID] = isSynced
 }

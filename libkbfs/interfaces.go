@@ -76,6 +76,10 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
+type isSyncedTlfGetter interface {
+	IsSyncedTlf(tlfID tlf.ID) bool
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1635,6 +1639,7 @@ type Config interface {
 	diskBlockCacheSetter
 	clockGetter
 	diskLimiterGetter
+	isSyncedTlfGetter
 	Tracer
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
@@ -1679,6 +1684,7 @@ type Config interface {
 	SetMetadataVersion(MetadataVer)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
+	SetTlfSyncState(tlfID tlf.ID, isSynced bool)
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
