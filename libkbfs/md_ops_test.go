@@ -129,7 +129,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
-		config.mockMdcache.EXPECT().Put(gomock.Any())
+		config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any())
 	}
 }
 
@@ -195,7 +195,7 @@ func verifyMDForPrivateHelper(
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	}
-	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes()
+	config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any()).AnyTimes()
 }
 
 func verifyMDForPrivate(
@@ -211,7 +211,7 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-	config.mockMdcache.EXPECT().Put(gomock.Any())
+	config.mockMdcache.EXPECT().Replace(gomock.Any(), gomock.Any())
 }
 
 func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver MetadataVer) {

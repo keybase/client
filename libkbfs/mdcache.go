@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"sync"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
@@ -13,7 +15,10 @@ import (
 // MDCacheStandard implements a simple LRU cache for per-folder
 // metadata objects.
 type MDCacheStandard struct {
-	lru *lru.Cache
+	// lock protects `lru` from atomic operations that need to
+	// atomicity across multiple `lru` calls.
+	lock sync.RWMutex
+	lru  *lru.Cache
 }
 
 type mdCacheKey struct {
@@ -31,12 +36,14 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 	if err != nil {
 		return nil
 	}
-	return &MDCacheStandard{tmp}
+	return &MDCacheStandard{lru: tmp}
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (
 	ImmutableRootMetadata, error) {
+	md.lock.RLock()
+	defer md.lock.RUnlock()
 	key := mdCacheKey{tlf, rev, bid}
 	if tmp, ok := md.lru.Get(key); ok {
 		if rmd, ok := tmp.(ImmutableRootMetadata); ok {
@@ -49,6 +56,8 @@ func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
+	md.lock.Lock()
+	defer md.lock.Unlock()
 	key := mdCacheKey{rmd.TlfID(), rmd.Revision(), rmd.BID()}
 	if _, ok := md.lru.Get(key); ok {
 		// Don't overwrite the cache.  In the case that `rmd` is
@@ -64,6 +73,8 @@ func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
 // Delete implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
 	bid BranchID) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
 	key := mdCacheKey{tlf, rev, bid}
 	md.lru.Remove(key)
 }
@@ -71,6 +82,8 @@ func (md *MDCacheStandard) Delete(tlf tlf.ID, rev kbfsmd.Revision,
 // Replace implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
 	oldBID BranchID) error {
+	md.lock.Lock()
+	defer md.lock.Unlock()
 	oldKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), oldBID}
 	newKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), newRmd.BID()}
 	// TODO: implement our own LRU where we can replace the old data

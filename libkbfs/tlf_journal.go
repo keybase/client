@@ -2044,7 +2044,9 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// chance to cache it.
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now())
-	err = j.config.MDCache().Put(irmd)
+	// Revisions created locally should always override anything else
+	// in the cache, so use `Replace` rather than `Put`.
+	err = j.config.MDCache().Replace(irmd, irmd.BID())
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
@@ -2193,10 +2195,12 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// Put the MD into the cache under the same lock as it is put in
 	// the journal, to guarantee it will be replaced if the journal is
 	// converted into a branch before any of the upper layer have a
-	// chance to cache it.
+	// chance to cache it. Revisions created locally should always
+	// override anything else in the cache, so use `Replace` rather
+	// than `Put`.
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now())
-	err = j.config.MDCache().Put(irmd)
+	err = j.config.MDCache().Replace(irmd, irmd.BID())
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}

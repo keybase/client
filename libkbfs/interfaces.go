@@ -737,13 +737,16 @@ type MDCache interface {
 	// ID, revision number, and branch ID isn't already cached.  If
 	// there is already a matching item in the cache, we require that
 	// caller manages the cache explicitly by deleting or replacing it
-	// explicitly.
+	// explicitly.  This should be used when putting existing MDs
+	// being fetched from the server.
 	Put(md ImmutableRootMetadata) error
 	// Delete removes the given metadata object from the cache if it exists.
 	Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)
 	// Replace replaces the entry matching the md under the old branch
 	// ID with the new one.  If the old entry doesn't exist, this is
-	// equivalent to a Put.
+	// equivalent to a Put, except that it overrides anything else
+	// that's already in the cache.  This should be used when putting
+	// new MDs created locally.
 	Replace(newRmd ImmutableRootMetadata, oldBID BranchID) error
 }
 

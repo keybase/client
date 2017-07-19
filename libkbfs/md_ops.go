@@ -272,7 +272,9 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	*rmds = RootMetadataSigned{}
 	irmd := MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp)
 
-	err = md.config.MDCache().Put(irmd)
+	// Revisions created locally should always override anything else
+	// in the cache.
+	err = md.config.MDCache().Replace(irmd, irmd.BID())
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -596,7 +598,9 @@ func (md *MDOpsStandard) put(
 
 	irmd := MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, md.config.Clock().Now())
-	err = md.config.MDCache().Put(irmd)
+	// Revisions created locally should always override anything else
+	// in the cache.
+	err = md.config.MDCache().Replace(irmd, irmd.BID())
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
