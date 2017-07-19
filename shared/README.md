@@ -83,3 +83,5 @@ If you run into weird issues with your packager this may be due to a stale cache
 ```sh
 yarn run rn-packager-wipe-cache
 ```
+
+This PR should tag react-hackers automatically.
