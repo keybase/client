@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 	"golang.org/x/net/context"
 )
 
@@ -73,6 +74,15 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 	var err error
 	t.conn, err = t.uri.Dial()
 	if err != nil {
+		// If we get a DNS error, it could be because glibc has cached an old
+		// version of /etc/resolv.conf. The res_init() libc function busts that
+		// cache and keeps us from getting stuck in a state where DNS requests
+		// keep failing even though the network is up. This is similar to what
+		// the Rust standard library does:
+		// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
+		// Note that we still propagate the error here, and we expect callers
+		// to retry.
+		resinit.ResInitIfDNSError(err)
 		return nil, err
 	}
 
