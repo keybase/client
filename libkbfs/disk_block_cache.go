@@ -5,11 +5,18 @@
 package libkbfs
 
 import (
+	"path/filepath"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+)
+
+const (
+	workingSetCacheFolderName = "kbfs_block_cache"
+	syncCacheFolderName       = "kbfs_sync_cache"
 )
 
 // diskBlockCacheConfig specifies the interfaces that a DiskBlockCacheStandard
@@ -29,8 +36,9 @@ type diskBlockCacheWrapped struct {
 
 func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	cache *diskBlockCacheWrapped, err error) {
-	cacheRoot := diskBlockCacheRootFromStorageRoot(storageRoot)
-	workingSetCache, err := newDiskBlockCacheStandard(config, cacheRoot)
+	workingSetCacheRoot := filepath.Join(storageRoot, workingSetCacheFolderName)
+	workingSetCache, err := newDiskBlockCacheStandard(config,
+		workingSetCacheRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +66,16 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
-	return cache.workingSetCache.Delete(ctx, blockIDs)
+	numRemoved, sizeRemoved, err = cache.workingSetCache.Delete(ctx, blockIDs)
+	if err != nil {
+		return numRemoved, sizeRemoved, err
+	}
+	if cache.syncCache == nil {
+		return numRemoved, sizeRemoved, nil
+	}
+	syncNumRemoved, syncSizeRemoved, err :=
+		cache.syncCache.Delete(ctx, blockIDs)
+	return numRemoved + syncNumRemoved, sizeRemoved + syncSizeRemoved, err
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for

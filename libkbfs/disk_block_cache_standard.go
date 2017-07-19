@@ -126,10 +126,6 @@ func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 	return db, err
 }
 
-func diskBlockCacheRootFromStorageRoot(storageRoot string) string {
-	return filepath.Join(storageRoot, "kbfs_block_cache")
-}
-
 // newDiskBlockCacheStandardFromStorage creates a new *DiskBlockCacheStandard
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.

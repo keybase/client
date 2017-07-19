@@ -1182,8 +1182,7 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
-	dbc, err := newDiskBlockCacheWrapped(c,
-		diskBlockCacheRootFromStorageRoot(c.storageRoot))
+	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot)
 	if err != nil {
 		return err
 	}
