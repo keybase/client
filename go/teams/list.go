@@ -20,15 +20,21 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) ([]keybase1.MemberInfo, error) {
-	a := libkb.NewAPIArg("team/for_user")
-	a.NetContext = ctx
-	a.SessionType = libkb.APISessionTypeREQUIRED
+func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool) ([]keybase1.MemberInfo, error) {
+	var endpoint string
+	if all {
+		endpoint = "team/teammates_for_user"
+	} else {
+		endpoint = "team/for_user"
+	}
+	a := libkb.NewAPIArg(endpoint)
 	if uid.Exists() {
 		a.Args = libkb.HTTPArgs{
 			"uid": libkb.S{Val: uid.String()},
 		}
 	}
+	a.NetContext = ctx
+	a.SessionType = libkb.APISessionTypeREQUIRED
 	var list statusList
 	if err := g.API.GetDecode(a, &list); err != nil {
 		return nil, err
@@ -36,7 +42,7 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	return list.Teams, nil
 }
 
-func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.TeamList, error) {
+func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
 	var uid keybase1.UID
 	if arg.UserAssertion != "" {
 		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
@@ -46,33 +52,39 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		uid = res.GetUID()
 	}
 
-	list, err := getTeamsListFromServer(ctx, g, uid)
+	teams, err := getTeamsListFromServer(ctx, g, uid, arg.All)
 	if err != nil {
 		return nil, err
 	}
 
-	if uid.IsNil() {
-		uid = g.Env.GetUID()
+	upakLoader := g.GetUPAKLoader()
+
+	annotatedTeams := make([]keybase1.AnnotatedMemberInfo, len(teams))
+	for idx, memberInfo := range teams {
+		uid := memberInfo.UserID
+		username, err := upakLoader.LookupUsername(context.Background(), uid)
+		if err != nil {
+			return nil, err
+		}
+		fullName, err := engine.GetFullName(context.Background(), g, uid)
+		if err != nil {
+			return nil, err
+		}
+		annotatedTeams[idx] = keybase1.AnnotatedMemberInfo{
+			TeamID:   memberInfo.TeamID,
+			FqName:   memberInfo.FqName,
+			UserID:   memberInfo.UserID,
+			Role:     memberInfo.Role,
+			Implicit: memberInfo.Implicit,
+			Username: username.String(),
+			FullName: fullName,
+		}
 	}
 
-	// get user card for full name
-	fullName, err := engine.GetFullName(context.Background(), g, uid)
-	if err != nil {
-		return nil, err
+	tl := keybase1.AnnotatedTeamList{
+		Teams: annotatedTeams,
 	}
 
-	// and upak for username
-	username, err := g.GetUPAKLoader().LookupUsername(context.Background(), uid)
-	if err != nil {
-		return nil, err
-	}
-
-	tl := keybase1.TeamList{
-		Uid:      uid,
-		Username: username.String(),
-		FullName: fullName,
-		Teams:    list,
-	}
 	return &tl, nil
 }
 
@@ -81,7 +93,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		return res, fmt.Errorf("cannot get tree of non-root team")
 	}
 
-	serverList, err := getTeamsListFromServer(ctx, g, "")
+	serverList, err := getTeamsListFromServer(ctx, g, "", false)
 	if err != nil {
 		return res, err
 	}

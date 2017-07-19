@@ -4255,6 +4255,20 @@ export type APIRes = {
   appStatus: string,
 }
 
+export type AnnotatedMemberInfo = {
+  userID: UID,
+  teamID: TeamID,
+  username: string,
+  fullName: string,
+  fqName: string,
+  role: TeamRole,
+  implicit?: ?ImplicitRole,
+}
+
+export type AnnotatedTeamList = {
+  teams?: ?Array<AnnotatedMemberInfo>,
+}
+
 export type AppState =
     0 // FOREGROUND_0
   | 1 // BACKGROUND_1
@@ -5011,6 +5025,7 @@ export type MDBlock = {
 export type MaskB64 = bytes
 
 export type MemberInfo = {
+  userID: UID,
   teamID: TeamID,
   fqName: string,
   role: TeamRole,
@@ -6118,9 +6133,6 @@ export type TeamJoinRequest = {
 }
 
 export type TeamList = {
-  uid: UID,
-  username: string,
-  fullName: string,
   teams?: ?Array<MemberInfo>,
 }
 
@@ -7372,7 +7384,8 @@ export type teamsTeamLeaveRpcParam = Exact<{
 }>
 
 export type teamsTeamListRpcParam = Exact<{
-  userAssertion: string
+  userAssertion: string,
+  all: boolean
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -7638,7 +7651,7 @@ type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
-type teamsTeamListResult = TeamList
+type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamTreeResult = TeamTreeResult
 type testTestCallbackResult = string
 type testTestResult = Test
