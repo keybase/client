@@ -228,7 +228,9 @@ func (g *GlobalContext) createLoginStateLocked() {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
-	g.ActiveDevice.clear(g.loginState.account)
+	g.loginState.Account(func(a *Account) {
+		g.ActiveDevice.clear(a)
+	}, "ActiveDevice.clear")
 }
 
 func (g *GlobalContext) createLoginState() {
