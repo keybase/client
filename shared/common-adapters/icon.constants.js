@@ -35,21 +35,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-addon-lock-active-8.png'),
   },
-  'icon-bitcoin-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-bitcoin-logo-16.png'),
-  },
-  'icon-bitcoin-logo-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-bitcoin-logo-24.png'),
-  },
-  'icon-bitcoin-logo-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-bitcoin-logo-32.png'),
-  },
   'icon-bitcoin-logo-48': {
     isFont: false,
     extension: 'png',
@@ -59,31 +44,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
-  },
-  'icon-coinbase-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-coinbase-logo-16.png'),
-  },
-  'icon-coinbase-logo-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-coinbase-logo-24.png'),
-  },
-  'icon-coinbase-logo-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-coinbase-logo-32.png'),
-  },
-  'icon-coinbase-logo-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-coinbase-logo-48.png'),
-  },
-  'icon-coinbase-logo-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-coinbase-logo-64.png'),
   },
   'icon-computer-32': {
     isFont: false,
@@ -105,11 +65,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-computer-dark-blue-32.png'),
   },
-  'icon-computer-revoke-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-computer-revoke-32.png'),
-  },
   'icon-computer-revoke-48': {
     isFont: false,
     extension: 'png',
@@ -120,60 +75,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-computer-revoke-64.png'),
   },
-  'icon-computer-success-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-computer-success-32.png'),
-  },
-  'icon-computer-success-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-computer-success-48.png'),
-  },
-  'icon-computer-text-code-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-computer-text-code-32.png'),
-  },
   'icon-computer-text-code-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-computer-text-code-48.png'),
   },
-  'icon-damier-pattern-good-open-48-1000': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-damier-pattern-good-open-48-1000.png'),
-  },
-  'icon-damier-pattern-good-open': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-damier-pattern-good-open.png'),
-  },
-  'icon-damier-pattern-ignored-locked-48-1000': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-damier-pattern-ignored-locked-48-1000.png'),
-  },
-  'icon-damier-pattern-ignored-locked': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-damier-pattern-ignored-locked.png'),
-  },
-  'icon-devices-add-64-x-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-devices-add-64-x-48.png'),
-  },
   'icon-dns-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-dns-48.png'),
-  },
-  'icon-dns-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-dns-64.png'),
   },
   'icon-facebook-continue': {
     isFont: false,
@@ -215,11 +125,6 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-facebook-visibility.gif'),
   },
-  'icon-fancy-bubbles-123-x-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-bubbles-123-x-64.png'),
-  },
   'icon-fancy-chat-103-x-75': {
     isFont: false,
     extension: 'png',
@@ -230,90 +135,40 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-chat-72-x-52.png'),
   },
-  'icon-fancy-email-sent-144-x-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-email-sent-144-x-48.png'),
-  },
   'icon-fancy-encrypted-computer-150-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-encrypted-computer-150-x-64.png'),
-  },
-  'icon-fancy-encrypted-computer-226-x-96': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-encrypted-computer-226-x-96.png'),
   },
   'icon-fancy-encrypted-phone-122-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-encrypted-phone-122-x-64.png'),
   },
-  'icon-fancy-encrypted-phone-183-x-96': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-encrypted-phone-183-x-96.png'),
-  },
   'icon-fancy-feedback-96': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-feedback-96.png'),
-  },
-  'icon-fancy-folders-138-x-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-folders-138-x-48.png'),
-  },
-  'icon-fancy-people-search-80': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-people-search-80.png'),
   },
   'icon-fancy-revoked-computer-150-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-computer-150-x-64.png'),
   },
-  'icon-fancy-revoked-computer-226-x-96': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-revoked-computer-226-x-96.png'),
-  },
   'icon-fancy-revoked-phone-122-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-phone-122-x-64.png'),
-  },
-  'icon-fancy-revoked-phone-183-x-96': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-revoked-phone-183-x-96.png'),
-  },
-  'icon-fancy-settings-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-fancy-settings-64.png'),
   },
   'icon-file-24': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-file-24.png'),
   },
-  'icon-file-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-32.png'),
-  },
   'icon-file-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-file-48.png'),
-  },
-  'icon-file-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-64.png'),
   },
   'icon-file-downloaded-24': {
     isFont: false,
@@ -330,75 +185,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-file-dropping-48.png'),
   },
-  'icon-file-private-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-32.png'),
-  },
-  'icon-file-private-code-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-code-32.png'),
-  },
-  'icon-file-private-image-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-image-32.png'),
-  },
-  'icon-file-private-table-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-table-32.png'),
-  },
-  'icon-file-private-text-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-text-32.png'),
-  },
-  'icon-file-private-video-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-private-video-32.png'),
-  },
-  'icon-file-public-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-32.png'),
-  },
-  'icon-file-public-code-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-code-32.png'),
-  },
-  'icon-file-public-image-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-image-32.png'),
-  },
-  'icon-file-public-table-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-table-32.png'),
-  },
-  'icon-file-public-text-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-text-32.png'),
-  },
-  'icon-file-public-video-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-public-video-32.png'),
-  },
   'icon-file-txt-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-file-txt-48.png'),
-  },
-  'icon-file-txt-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-file-txt-64.png'),
   },
   'icon-file-uploading-48': {
     isFont: false,
@@ -430,16 +220,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-private-24.png'),
   },
-  'icon-folder-private-32-addon-locked': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-32-addon-locked.png'),
-  },
-  'icon-folder-private-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-32.png'),
-  },
   'icon-folder-private-48': {
     isFont: false,
     extension: 'png',
@@ -460,35 +240,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-private-group-32.png'),
   },
-  'icon-folder-private-group-ignored-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-group-ignored-24.png'),
-  },
-  'icon-folder-private-group-ignored-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-group-ignored-32.png'),
-  },
-  'icon-folder-private-has-stuff-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-has-stuff-24.png'),
-  },
   'icon-folder-private-has-stuff-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-private-has-stuff-32.png'),
-  },
-  'icon-folder-private-has-stuff-ignored-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-has-stuff-ignored-24.png'),
-  },
-  'icon-folder-private-has-stuff-ignored-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-private-has-stuff-ignored-32.png'),
   },
   'icon-folder-private-open-24': {
     isFont: false,
@@ -510,11 +265,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-public-24.png'),
   },
-  'icon-folder-public-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-32.png'),
-  },
   'icon-folder-public-48': {
     isFont: false,
     extension: 'png',
@@ -535,35 +285,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-folder-public-group-32.png'),
   },
-  'icon-folder-public-group-ignored-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-group-ignored-24.png'),
-  },
-  'icon-folder-public-group-ignored-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-group-ignored-32.png'),
-  },
-  'icon-folder-public-has-stuff-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-has-stuff-24.png'),
-  },
   'icon-folder-public-has-stuff-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-folder-public-has-stuff-32.png'),
-  },
-  'icon-folder-public-has-stuff-ignored-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-has-stuff-ignored-24.png'),
-  },
-  'icon-folder-public-has-stuff-ignored-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-folder-public-has-stuff-ignored-32.png'),
   },
   'icon-folder-public-open-24': {
     isFont: false,
@@ -680,25 +405,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-invite-code-48.png'),
   },
-  'icon-invite-code-no-more-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-invite-code-no-more-48.png'),
-  },
   'icon-invite-link-16': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-invite-link-16.png'),
-  },
-  'icon-invite-link-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-invite-link-24.png'),
-  },
-  'icon-invite-link-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-invite-link-32.png'),
   },
   'icon-invite-link-48': {
     isFont: false,
@@ -710,11 +420,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-invite-link-negative-48.png'),
   },
-  'icon-invite-link-negative-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-invite-link-negative-64.png'),
-  },
   'icon-keybase-logo-128': {
     isFont: false,
     extension: 'png',
@@ -725,30 +430,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-16.png'),
   },
-  'icon-keybase-logo-160': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-keybase-logo-160.png'),
-  },
   'icon-keybase-logo-24': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-24.png'),
   },
-  'icon-keybase-logo-256': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-keybase-logo-256.png'),
-  },
   'icon-keybase-logo-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-32.png'),
-  },
-  'icon-keybase-logo-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-keybase-logo-48.png'),
   },
   'icon-keybase-logo-64': {
     isFont: false,
@@ -769,11 +459,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-logged-out-80.png'),
-  },
-  'icon-loader-connecting-266-static': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-loader-connecting-266-static.png'),
   },
   'icon-loader-connecting-266': {
     isFont: false,
@@ -845,16 +530,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-nav-chat-selected-40.png'),
   },
-  'icon-nav-crypto-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-nav-crypto-32.png'),
-  },
-  'icon-nav-crypto-selected-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-nav-crypto-selected-32.png'),
-  },
   'icon-nav-devices-32': {
     isFont: false,
     extension: 'png',
@@ -925,11 +600,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-nav-settings-selected-40.png'),
   },
-  'icon-no-gpg': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-no-gpg.png'),
-  },
   'icon-paper-key-32': {
     isFont: false,
     extension: 'png',
@@ -965,16 +635,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-paper-key-revoke-64.png'),
   },
-  'icon-paper-key-success-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-paper-key-success-48.png'),
-  },
-  'icon-people-add-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-people-add-32.png'),
-  },
   'icon-pgp-key-16': {
     isFont: false,
     extension: 'png',
@@ -1005,25 +665,10 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-pgp-key-import-48.png'),
   },
-  'icon-pgp-key-import-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-pgp-key-import-64.png'),
-  },
   'icon-pgp-key-new-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-pgp-key-new-48.png'),
-  },
-  'icon-pgp-key-new-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-pgp-key-new-64.png'),
-  },
-  'icon-phone-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-24.png'),
   },
   'icon-phone-32': {
     isFont: false,
@@ -1050,16 +695,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-phone-qr-code-32.png'),
   },
-  'icon-phone-qr-code-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-qr-code-48.png'),
-  },
-  'icon-phone-revoke-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-revoke-32.png'),
-  },
   'icon-phone-revoke-48': {
     isFont: false,
     extension: 'png',
@@ -1070,100 +705,45 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-phone-revoke-64.png'),
   },
-  'icon-phone-success-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-success-32.png'),
-  },
-  'icon-phone-success-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-success-48.png'),
-  },
   'icon-phone-text-code-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-phone-text-code-32.png'),
-  },
-  'icon-phone-text-code-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-phone-text-code-48.png'),
-  },
-  'icon-placeholder-avatar-112-x-112': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-112-x-112.png'),
   },
   'icon-placeholder-avatar-112': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-112.png'),
   },
-  'icon-placeholder-avatar-176-x-176': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-176-x-176.png'),
-  },
   'icon-placeholder-avatar-176': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-176.png'),
-  },
-  'icon-placeholder-avatar-24-x-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-24-x-24.png'),
   },
   'icon-placeholder-avatar-24': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-24.png'),
   },
-  'icon-placeholder-avatar-32-x-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-32-x-32.png'),
-  },
   'icon-placeholder-avatar-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-32.png'),
-  },
-  'icon-placeholder-avatar-48-x-48': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-48-x-48.png'),
   },
   'icon-placeholder-avatar-48': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-48.png'),
   },
-  'icon-placeholder-avatar-64-x-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-64-x-64.png'),
-  },
   'icon-placeholder-avatar-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-64.png'),
   },
-  'icon-placeholder-avatar-80-x-80': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-placeholder-avatar-80-x-80.png'),
-  },
   'icon-placeholder-avatar-80': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-80.png'),
-  },
-  'icon-play-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-play-32.png'),
   },
   'icon-play-64': {
     isFont: false,
@@ -1199,11 +779,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-proof-pending.png'),
-  },
-  'icon-proof-published': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-proof-published.png'),
   },
   'icon-proof-success': {
     isFont: false,
@@ -1400,21 +975,6 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-shh-active-24.png'),
   },
-  'icon-subnav-folders-all': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-subnav-folders-all.png'),
-  },
-  'icon-subnav-folders-private': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-subnav-folders-private.png'),
-  },
-  'icon-subnav-folders-public': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-subnav-folders-public.png'),
-  },
   'icon-terminal-32': {
     isFont: false,
     extension: 'png',
@@ -1455,35 +1015,10 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-typing-24.gif'),
   },
-  'icon-update-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-update-64.png'),
-  },
-  'icon-update-pause-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-update-pause-64.png'),
-  },
   'icon-user-add-32': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-user-add-32.png'),
-  },
-  'icon-website-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-website-16.png'),
-  },
-  'icon-website-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-website-24.png'),
-  },
-  'icon-website-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-website-32.png'),
   },
   'icon-website-48': {
     isFont: false,
@@ -1494,21 +1029,6 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-website-64.png'),
-  },
-  'icon-zcash-logo-16': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-zcash-logo-16.png'),
-  },
-  'icon-zcash-logo-24': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-zcash-logo-24.png'),
-  },
-  'icon-zcash-logo-32': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-zcash-logo-32.png'),
   },
   'icon-zcash-logo-48': {
     isFont: false,
