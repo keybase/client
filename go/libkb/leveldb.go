@@ -105,7 +105,7 @@ func (l *LevelDb) Open() error { return nil }
 
 func (l *LevelDb) Opts() *opt.Options {
 	return &opt.Options{
-		OpenFilesCacheCapacity: 16, // Only 16 files open by level DB per db
+		OpenFilesCacheCapacity: 64, // Only 64 files open by level DB per db
 	}
 }
 
