@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
-import {Image} from 'react-native'
 import {connect} from 'react-redux'
-import {Box, Button, Text, NativeScrollView} from '../../common-adapters/index.native'
+import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {permissionsRequest} from '../../actions/push/creators'
 
@@ -35,7 +34,7 @@ const Push = (props: Props) => (
           Please turn on notifications!
         </Text>
         <Box style={{height: 270, width: '100%'}}>
-          <Image
+          <NativeImage
             resizeMode="contain"
             source={require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
           />
