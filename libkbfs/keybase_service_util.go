@@ -65,12 +65,10 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 				"Failed to enable existing journals: %v", err)
 		}
 	}
-	if config.DiskBlockCache() == nil {
-		dbc, err := newDiskBlockCacheStandard(config,
-			diskBlockCacheRootFromStorageRoot(config.StorageRoot()))
-		if err == nil {
-			config.SetDiskBlockCache(dbc)
-		}
+	err := config.MakeDiskBlockCacheIfNotExists()
+	if err != nil {
+		log.CWarningf(ctx, "serviceLoggedIn: Failed to enable disk cache: "+
+			"%+v", err)
 	}
 
 	config.MDServer().RefreshAuthToken(ctx)
