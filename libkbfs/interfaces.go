@@ -733,7 +733,11 @@ type MDCache interface {
 	// Get gets the metadata object associated with the given TLF ID,
 	// revision number, and branch ID (NullBranchID for merged MD).
 	Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (ImmutableRootMetadata, error)
-	// Put stores the metadata object.
+	// Put stores the metadata object, only if an MD matching that TLF
+	// ID, revision number, and branch ID isn't already cached.  If
+	// there is already a matching item in the cache, we require that
+	// caller manages the cache explicitly by deleting or replacing it
+	// explicitly.
 	Put(md ImmutableRootMetadata) error
 	// Delete removes the given metadata object from the cache if it exists.
 	Delete(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)

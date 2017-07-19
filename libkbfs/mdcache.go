@@ -49,9 +49,14 @@ func (md *MDCacheStandard) Get(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) (
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
-	// TODO: is it worth the extra lookup here to make sure if there's
-	// one already in the cache that it has the same MdID?
 	key := mdCacheKey{rmd.TlfID(), rmd.Revision(), rmd.BID()}
+	if _, ok := md.lru.Get(key); ok {
+		// Don't overwrite the cache.  In the case that `rmd` is
+		// different from what's in the cache, we require that upper
+		// layers manage the cache explicitly by deleting or replacing
+		// it explicitly.
+		return nil
+	}
 	md.lru.Add(key, rmd)
 	return nil
 }
