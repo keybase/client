@@ -29,7 +29,7 @@ type chatListener struct {
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
-	threadsStale   chan []chat1.ConversationID
+	threadsStale   chan []chat1.ConversationStaleUpdate
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 }
@@ -69,9 +69,9 @@ func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 	}
 }
 
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 	select {
-	case n.threadsStale <- cids:
+	case n.threadsStale <- updates:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
 	}
@@ -171,7 +171,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 		inboxStale:     make(chan struct{}, 1),
-		threadsStale:   make(chan []chat1.ConversationID, 1),
+		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 	}

@@ -73,7 +73,7 @@ type nlistener struct {
 	t                *testing.T
 	favoritesChanged []keybase1.UID
 	badgeState       chan keybase1.BadgeState
-	threadStale      chan []chat1.ConversationID
+	threadStale      chan []chat1.ConversationStaleUpdate
 	testChanTimeout  time.Duration
 }
 
@@ -83,7 +83,7 @@ func newNlistener(t *testing.T) *nlistener {
 	return &nlistener{
 		t:               t,
 		badgeState:      make(chan keybase1.BadgeState, 1),
-		threadStale:     make(chan []chat1.ConversationID, 1),
+		threadStale:     make(chan []chat1.ConversationStaleUpdate, 1),
 		testChanTimeout: 20 * time.Second,
 	}
 }
@@ -116,7 +116,7 @@ func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.Conversa
 func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                       {}
 func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
-func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadStale <- cids:
 	case <-time.After(n.testChanTimeout):

@@ -195,6 +195,11 @@ export const NotifyChatChatActivityType = {
   setAppNotificationSettings: 7,
 }
 
+export const NotifyChatStaleUpdateType = {
+  clear: 0,
+  newactivity: 1,
+}
+
 export const RemoteChannelMention = {
   none: 0,
   all: 1,
@@ -1270,6 +1275,11 @@ export type ConversationResolveInfo = {
   newTLFName: string,
 }
 
+export type ConversationStaleUpdate = {
+  convID: ConversationID,
+  updateType: StaleUpdateType,
+}
+
 export type ConversationStatus =
     0 // UNFILED_0
   | 1 // FAVORITE_1
@@ -1822,7 +1832,7 @@ export type NotifyChatChatTLFResolveRpcParam = Exact<{
 
 export type NotifyChatChatThreadsStaleRpcParam = Exact<{
   uid: keybase1.UID,
-  convIDs?: ?Array<ConversationID>
+  updates?: ?Array<ConversationStaleUpdate>
 }>
 
 export type NotifyChatChatTypingUpdateRpcParam = Exact<{
@@ -1998,6 +2008,10 @@ export type SignatureInfo = {
   s: bytes,
   k: bytes,
 }
+
+export type StaleUpdateType =
+    0 // CLEAR_0
+  | 1 // NEWACTIVITY_1
 
 export type SyncAllNotificationRes =
     { typ: 0, state: ?gregor1.State }
@@ -2737,7 +2751,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatThreadsStale'?: (
     params: Exact<{
       uid: keybase1.UID,
-      convIDs?: ?Array<ConversationID>
+      updates?: ?Array<ConversationStaleUpdate>
     }> /* ,
     response: {} // Notify call
     */

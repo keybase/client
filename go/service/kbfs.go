@@ -110,7 +110,14 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	}
 
 	h.G().Log.Debug("sending ChatThreadsStale notification (conversations: %d)", len(convIDs))
-	h.ChatG().Syncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), convIDs, false)
+	var updates []chat1.ConversationStaleUpdate
+	for _, convID := range convIDs {
+		updates = append(updates, chat1.ConversationStaleUpdate{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		})
+	}
+	h.ChatG().Syncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), updates, false)
 }
 
 func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool) ([]chat1.ConversationID, error) {

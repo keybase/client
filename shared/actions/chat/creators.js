@@ -421,8 +421,8 @@ function inboxStale(): Constants.InboxStale {
   return {payload: undefined, type: 'chat:inboxStale'}
 }
 
-function markThreadsStale(convIDs: Array<Constants.ConversationIDKey>): Constants.MarkThreadsStale {
-  return {payload: {convIDs}, type: 'chat:markThreadsStale'}
+function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Constants.MarkThreadsStale {
+  return {payload: {updates}, type: 'chat:markThreadsStale'}
 }
 
 function loadingMessages(
