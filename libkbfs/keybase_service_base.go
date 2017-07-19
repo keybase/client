@@ -552,24 +552,17 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	return info, nil
 }
 
-// GetCurrentMerkleSeqNo implements the KeybaseService interface for
+// GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) GetCurrentMerkleSeqNo(ctx context.Context) (
-	MerkleSeqNo, error) {
+func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
+	keybase1.MerkleRootV2, error) {
 	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)
 	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshnessMs)
 	if err != nil {
-		return 0, err
+		return keybase1.MerkleRootV2{}, err
 	}
 
-	if res.Root.Seqno < 0 {
-		return 0, fmt.Errorf(
-			"Illegal negative merkle seqno: %d", res.Root.Seqno)
-	}
-
-	// NOTE: `res.Seqno` is an int64, while `MerkleSeqNo` is a uint64,
-	// so casting in this direction should be safe.
-	return MerkleSeqNo(res.Root.Seqno), nil
+	return res.Root, nil
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (

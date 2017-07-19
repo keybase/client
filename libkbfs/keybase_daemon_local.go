@@ -146,7 +146,7 @@ type KeybaseDaemonLocal struct {
 	currentUID    keybase1.UID
 	asserts       map[string]keybase1.UserOrTeamID
 	favoriteStore favoriteStore
-	merkleSeqNo   MerkleSeqNo
+	merkleRoot    keybase1.MerkleRootV2
 }
 
 var _ KeybaseService = &KeybaseDaemonLocal{}
@@ -295,17 +295,17 @@ func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase
 	return u.UnverifiedKeys, nil
 }
 
-// GetCurrentMerkleSeqNo implements the KeybaseService interface for
+// GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) GetCurrentMerkleSeqNo(ctx context.Context) (
-	MerkleSeqNo, error) {
+func (k *KeybaseDaemonLocal) GetCurrentMerkleRoot(ctx context.Context) (
+	keybase1.MerkleRootV2, error) {
 	if err := checkContext(ctx); err != nil {
-		return 0, err
+		return keybase1.MerkleRootV2{}, err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	return k.merkleSeqNo, nil
+	return k.merkleRoot, nil
 }
 
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -723,7 +723,7 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		asserts:       asserts,
 		currentUID:    currentUID,
 		favoriteStore: favoriteStore,
-		merkleSeqNo:   FirstValidMerkleSeqNo,
+		// TODO: let test fill in valid merkle root.
 	}
 	k.addTeamsForTest(teams)
 	return k

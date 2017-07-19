@@ -962,11 +962,11 @@ func (md *BareRootMetadataV2) RevisionNumber() kbfsmd.Revision {
 	return md.Revision
 }
 
-// MerkleSeqNo implements the BareRootMetadata interface for
+// MerkleRoot implements the BareRootMetadata interface for
 // BareRootMetadataV2.
-func (md *BareRootMetadataV2) MerkleSeqNo() MerkleSeqNo {
+func (md *BareRootMetadataV2) MerkleRoot() keybase1.MerkleRootV2 {
 	// No v2 MDs will have had this field set.
-	return UnknownMerkleSeqNo
+	return keybase1.MerkleRootV2{}
 }
 
 // BID implements the BareRootMetadata interface for BareRootMetadataV2.
@@ -1072,9 +1072,9 @@ func (md *BareRootMetadataV2) SetRevision(revision kbfsmd.Revision) {
 	md.Revision = revision
 }
 
-// SetMerkleSeqNo implements the MutableBareRootMetadata interface for
+// SetMerkleRoot implements the MutableBareRootMetadata interface for
 // BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetMerkleSeqNo(seqNo MerkleSeqNo) {
+func (md *BareRootMetadataV2) SetMerkleRoot(root keybase1.MerkleRootV2) {
 	// V2 doesn't support merkle seqnos, just ignore.
 }
 

@@ -241,7 +241,7 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
-	crypto cryptoPure, keyManager KeyManager, merkleGetter merkleSeqNoGetter,
+	crypto cryptoPure, keyManager KeyManager, merkleGetter merkleRootGetter,
 	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
 	*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
@@ -300,11 +300,11 @@ func (md *RootMetadata) MakeSuccessor(
 	}
 	newMd.SetRevision(md.Revision() + 1)
 
-	merkleSeqNo, err := merkleGetter.GetCurrentMerkleSeqNo(ctx)
+	merkleRoot, err := merkleGetter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return nil, err
 	}
-	newMd.SetMerkleSeqNo(merkleSeqNo)
+	newMd.SetMerkleRoot(merkleRoot)
 
 	return newMd, nil
 }
@@ -630,10 +630,10 @@ func (md *RootMetadata) Revision() kbfsmd.Revision {
 	return md.bareMd.RevisionNumber()
 }
 
-// MerkleSeqNo wraps the respective method of the underlying
+// MerkleRoot wraps the respective method of the underlying
 // BareRootMetadata for convenience.
-func (md *RootMetadata) MerkleSeqNo() MerkleSeqNo {
-	return md.bareMd.MerkleSeqNo()
+func (md *RootMetadata) MerkleRoot() keybase1.MerkleRootV2 {
+	return md.bareMd.MerkleRoot()
 }
 
 // MergedStatus wraps the respective method of the underlying BareRootMetadata for convenience.
@@ -720,10 +720,10 @@ func (md *RootMetadata) SetRevision(revision kbfsmd.Revision) {
 	md.bareMd.SetRevision(revision)
 }
 
-// SetMerkleSeqNo wraps the respective method of the underlying
+// SetMerkleRoot wraps the respective method of the underlying
 // BareRootMetadata for convenience.
-func (md *RootMetadata) SetMerkleSeqNo(seqNo MerkleSeqNo) {
-	md.bareMd.SetMerkleSeqNo(seqNo)
+func (md *RootMetadata) SetMerkleRoot(root keybase1.MerkleRootV2) {
+	md.bareMd.SetMerkleRoot(root)
 }
 
 // SetWriters wraps the respective method of the underlying BareRootMetadata for convenience.

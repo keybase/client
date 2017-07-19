@@ -14,18 +14,18 @@ import (
 // KeybaseServiceMeasured delegates to another KeybaseService instance
 // but also keeps track of stats.
 type KeybaseServiceMeasured struct {
-	delegate                   KeybaseService
-	resolveTimer               metrics.Timer
-	identifyTimer              metrics.Timer
-	loadUserPlusKeysTimer      metrics.Timer
-	loadTeamPlusKeysTimer      metrics.Timer
-	loadUnverifiedKeysTimer    metrics.Timer
-	getCurrentMerkleSeqNoTimer metrics.Timer
-	currentSessionTimer        metrics.Timer
-	favoriteAddTimer           metrics.Timer
-	favoriteDeleteTimer        metrics.Timer
-	favoriteListTimer          metrics.Timer
-	notifyTimer                metrics.Timer
+	delegate                  KeybaseService
+	resolveTimer              metrics.Timer
+	identifyTimer             metrics.Timer
+	loadUserPlusKeysTimer     metrics.Timer
+	loadTeamPlusKeysTimer     metrics.Timer
+	loadUnverifiedKeysTimer   metrics.Timer
+	getCurrentMerkleRootTimer metrics.Timer
+	currentSessionTimer       metrics.Timer
+	favoriteAddTimer          metrics.Timer
+	favoriteDeleteTimer       metrics.Timer
+	favoriteListTimer         metrics.Timer
+	notifyTimer               metrics.Timer
 }
 
 var _ KeybaseService = KeybaseServiceMeasured{}
@@ -38,25 +38,25 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUserPlusKeys", r)
 	loadTeamPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadTeamPlusKeys", r)
 	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseService.LoadUnverifiedKeys", r)
-	getCurrentMerkleSeqNoTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleSeqNo", r)
+	getCurrentMerkleRootTimer := metrics.GetOrRegisterTimer("KeybaseService.GetCurrentMerkleRoot", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseService.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteList", r)
 	notifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Notify", r)
 	return KeybaseServiceMeasured{
-		delegate:                   delegate,
-		resolveTimer:               resolveTimer,
-		identifyTimer:              identifyTimer,
-		loadUserPlusKeysTimer:      loadUserPlusKeysTimer,
-		loadTeamPlusKeysTimer:      loadTeamPlusKeysTimer,
-		loadUnverifiedKeysTimer:    loadUnverifiedKeysTimer,
-		getCurrentMerkleSeqNoTimer: getCurrentMerkleSeqNoTimer,
-		currentSessionTimer:        currentSessionTimer,
-		favoriteAddTimer:           favoriteAddTimer,
-		favoriteDeleteTimer:        favoriteDeleteTimer,
-		favoriteListTimer:          favoriteListTimer,
-		notifyTimer:                notifyTimer,
+		delegate:                  delegate,
+		resolveTimer:              resolveTimer,
+		identifyTimer:             identifyTimer,
+		loadUserPlusKeysTimer:     loadUserPlusKeysTimer,
+		loadTeamPlusKeysTimer:     loadTeamPlusKeysTimer,
+		loadUnverifiedKeysTimer:   loadUnverifiedKeysTimer,
+		getCurrentMerkleRootTimer: getCurrentMerkleRootTimer,
+		currentSessionTimer:       currentSessionTimer,
+		favoriteAddTimer:          favoriteAddTimer,
+		favoriteDeleteTimer:       favoriteDeleteTimer,
+		favoriteListTimer:         favoriteListTimer,
+		notifyTimer:               notifyTimer,
 	}
 }
 
@@ -98,14 +98,14 @@ func (k KeybaseServiceMeasured) LoadTeamPlusKeys(ctx context.Context,
 	return teamInfo, err
 }
 
-// GetCurrentMerkleSeqNo implements the KeybaseService interface for
+// GetCurrentMerkleRoot implements the KeybaseService interface for
 // KeybaseServiceMeasured.
-func (k KeybaseServiceMeasured) GetCurrentMerkleSeqNo(ctx context.Context) (
-	seqno MerkleSeqNo, err error) {
-	k.getCurrentMerkleSeqNoTimer.Time(func() {
-		seqno, err = k.delegate.GetCurrentMerkleSeqNo(ctx)
+func (k KeybaseServiceMeasured) GetCurrentMerkleRoot(ctx context.Context) (
+	root keybase1.MerkleRootV2, err error) {
+	k.getCurrentMerkleRootTimer.Time(func() {
+		root, err = k.delegate.GetCurrentMerkleRoot(ctx)
 	})
-	return seqno, err
+	return root, err
 }
 
 // LoadUnverifiedKeys implements the KeybaseService interface for KeybaseServiceMeasured.

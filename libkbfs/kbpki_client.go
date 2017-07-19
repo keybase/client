@@ -207,10 +207,10 @@ func (k *KBPKIClient) GetTeamTLFCryptKeys(
 	return teamInfo.CryptKeys, teamInfo.LatestKeyGen, nil
 }
 
-// GetCurrentMerkleSeqNo implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentMerkleSeqNo(ctx context.Context) (
-	MerkleSeqNo, error) {
-	return k.serviceOwner.KeybaseService().GetCurrentMerkleSeqNo(ctx)
+// GetCurrentMerkleRoot implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentMerkleRoot(ctx context.Context) (
+	keybase1.MerkleRootV2, error) {
+	return k.serviceOwner.KeybaseService().GetCurrentMerkleRoot(ctx)
 }
 
 // IsTeamWriter implements the KBPKI interface for KBPKIClient.

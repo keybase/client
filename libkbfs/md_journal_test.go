@@ -107,11 +107,11 @@ func makeMDForTest(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 
 type constMerkleRootGetter struct{}
 
-var _ merkleSeqNoGetter = constMerkleRootGetter{}
+var _ merkleRootGetter = constMerkleRootGetter{}
 
-func (cmrg constMerkleRootGetter) GetCurrentMerkleSeqNo(
-	ctx context.Context) (MerkleSeqNo, error) {
-	return FirstValidMerkleSeqNo, nil
+func (cmrg constMerkleRootGetter) GetCurrentMerkleRoot(
+	ctx context.Context) (keybase1.MerkleRootV2, error) {
+	return keybase1.MerkleRootV2{}, nil
 }
 
 func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,

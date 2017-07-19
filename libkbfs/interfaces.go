@@ -361,16 +361,16 @@ type KBFSOps interface {
 	TeamNameChanged(ctx context.Context, tid keybase1.TeamID)
 }
 
-type merkleSeqNoGetter interface {
-	// GetCurrentMerkleSeqNo returns the current sequence number of the
-	// global Keybase Merkle tree.
-	GetCurrentMerkleSeqNo(ctx context.Context) (MerkleSeqNo, error)
+type merkleRootGetter interface {
+	// GetCurrentMerkleRoot returns the current root of the global
+	// Keybase Merkle tree.
+	GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error)
 }
 
 // KeybaseService is an interface for communicating with the keybase
 // service.
 type KeybaseService interface {
-	merkleSeqNoGetter
+	merkleRootGetter
 
 	// Resolve, given an assertion, resolves it to a username/UID
 	// pair. The username <-> UID mapping is trusted and
@@ -526,10 +526,10 @@ type TeamMembershipChecker interface {
 	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
 		bool, error)
 	// TODO: add Was* method for figuring out whether the user was a
-	// writer/reader at a particular Merkle sequence number.  Not sure
-	// whether these calls should also verify that sequence number
-	// corresponds to a given TLF revision, or leave that work to
-	// another component.
+	// writer/reader at a particular Merkle root.  Not sure whether
+	// these calls should also verify that sequence number corresponds
+	// to a given TLF revision, or leave that work to another
+	// component.
 }
 
 type teamKeysGetter interface {
@@ -549,7 +549,7 @@ type KBPKI interface {
 	resolver
 	identifier
 	normalizedUsernameGetter
-	merkleSeqNoGetter
+	merkleRootGetter
 	TeamMembershipChecker
 	teamKeysGetter
 
@@ -1987,9 +1987,9 @@ type BareRootMetadata interface {
 	MDDiskUsage() uint64
 	// RevisionNumber returns the revision number associated with this metadata structure.
 	RevisionNumber() kbfsmd.Revision
-	// MerkleSeqNo returns the sequence number of the global
-	// Keybase Merkle tree at the time the MD was written.
-	MerkleSeqNo() MerkleSeqNo
+	// MerkleRoot returns the root of the global Keybase Merkle tree
+	// at the time the MD was written.
+	MerkleRoot() keybase1.MerkleRootV2
 	// BID returns the per-device branch ID associated with this metadata revision.
 	BID() BranchID
 	// GetPrevRoot returns the hash of the previous metadata revision.
@@ -2079,9 +2079,9 @@ type MutableBareRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision kbfsmd.Revision)
-	// SetMerkleSeqNo sets the sequence number of the global
-	// Keybase Merkle tree at the time the MD was written.
-	SetMerkleSeqNo(seqNo MerkleSeqNo)
+	// SetMerkleRoot sets the root of the global Keybase Merkle tree
+	// at the time the MD was written.
+	SetMerkleRoot(root keybase1.MerkleRootV2)
 	// SetUnresolvedReaders sets the list of unresolved readers associated with this folder.
 	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
 	// SetUnresolvedWriters sets the list of unresolved writers associated with this folder.
