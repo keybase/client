@@ -71,7 +71,7 @@ func mdOpsInit(t *testing.T, ver MetadataVer) (mockCtrl *gomock.Controller,
 	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
 	config.SetCodec(kbfscodec.NewMsgpack())
-	config.SetKeyBundleCache(NewKeyBundleCacheStandard(1))
+	config.SetKeyBundleCache(NewKeyBundleCacheLRU(0))
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
 	config.mockClock.EXPECT().Now().Return(time.Now()).AnyTimes()

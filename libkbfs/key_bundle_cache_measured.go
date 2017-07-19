@@ -4,10 +4,7 @@
 
 package libkbfs
 
-import (
-	"github.com/keybase/kbfs/tlf"
-	metrics "github.com/rcrowley/go-metrics"
-)
+import metrics "github.com/rcrowley/go-metrics"
 
 // KeyBundleCacheMeasured delegates to another KeyBundleCache instance but
 // also keeps track of stats.
@@ -52,10 +49,10 @@ func NewKeyBundleCacheMeasured(delegate KeyBundleCache, r metrics.Registry) KeyB
 // GetTLFReaderKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) GetTLFReaderKeyBundle(
-	tlfID tlf.ID, bundleID TLFReaderKeyBundleID) (rkb *TLFReaderKeyBundleV3, err error) {
+	bundleID TLFReaderKeyBundleID) (rkb *TLFReaderKeyBundleV3, err error) {
 	b.attemptReaderBundleCountMeter.Mark(1)
 	b.getReaderBundleTimer.Time(func() {
-		rkb, err = b.delegate.GetTLFReaderKeyBundle(tlfID, bundleID)
+		rkb, err = b.delegate.GetTLFReaderKeyBundle(bundleID)
 	})
 	if err == nil && rkb != nil {
 		b.hitReaderBundleCountMeter.Mark(1)
@@ -66,10 +63,10 @@ func (b KeyBundleCacheMeasured) GetTLFReaderKeyBundle(
 // GetTLFWriterKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) GetTLFWriterKeyBundle(
-	tlfID tlf.ID, bundleID TLFWriterKeyBundleID) (wkb *TLFWriterKeyBundleV3, err error) {
+	bundleID TLFWriterKeyBundleID) (wkb *TLFWriterKeyBundleV3, err error) {
 	b.attemptWriterBundleCountMeter.Mark(1)
 	b.getWriterBundleTimer.Time(func() {
-		wkb, err = b.delegate.GetTLFWriterKeyBundle(tlfID, bundleID)
+		wkb, err = b.delegate.GetTLFWriterKeyBundle(bundleID)
 	})
 	if err == nil && wkb != nil {
 		b.hitWriterBundleCountMeter.Mark(1)
@@ -80,17 +77,17 @@ func (b KeyBundleCacheMeasured) GetTLFWriterKeyBundle(
 // PutTLFReaderKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) PutTLFReaderKeyBundle(
-	tlfID tlf.ID, bundleID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) {
+	bundleID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) {
 	b.putReaderBundleTimer.Time(func() {
-		b.delegate.PutTLFReaderKeyBundle(tlfID, bundleID, rkb)
+		b.delegate.PutTLFReaderKeyBundle(bundleID, rkb)
 	})
 }
 
 // PutTLFWriterKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) PutTLFWriterKeyBundle(
-	tlfID tlf.ID, bundleID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) {
+	bundleID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) {
 	b.putWriterBundleTimer.Time(func() {
-		b.delegate.PutTLFWriterKeyBundle(tlfID, bundleID, wkb)
+		b.delegate.PutTLFWriterKeyBundle(bundleID, wkb)
 	})
 }

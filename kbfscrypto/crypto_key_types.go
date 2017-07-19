@@ -203,6 +203,11 @@ type TLFPublicKey struct {
 	publicByte32Container
 }
 
+// Size implements the cache.Measurable interface.
+func (TLFPublicKey) Size() int {
+	return 32
+}
+
 var _ encoding.BinaryMarshaler = TLFPublicKey{}
 var _ encoding.BinaryUnmarshaler = (*TLFPublicKey)(nil)
 
@@ -314,6 +319,13 @@ func MakeTLFEphemeralPublicKey(data [32]byte) TLFEphemeralPublicKey {
 
 // TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
 type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
+
+const ptrSize = 4 << (^uintptr(0) >> 63) // stolen from runtime/internal/sys
+
+// Size implements the Measurable interface.
+func (k TLFEphemeralPublicKeys) Size() int {
+	return ptrSize + len(k)*(ptrSize+32)
+}
 
 // TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
 // of a TLFCryptKey, which can be recovered only with both

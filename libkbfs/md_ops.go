@@ -674,12 +674,12 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 	kbcache := md.config.KeyBundleCache()
 	tlf := brmd.TlfID()
 	// Check the cache.
-	wkb, err2 := kbcache.GetTLFWriterKeyBundle(tlf, wkbID)
+	wkb, err2 := kbcache.GetTLFWriterKeyBundle(wkbID)
 	if err2 != nil {
 		md.log.CDebugf(ctx, "Error fetching writer key bundle %s from cache for TLF %s: %s",
 			wkbID, tlf, err2)
 	}
-	rkb, err2 := kbcache.GetTLFReaderKeyBundle(tlf, rkbID)
+	rkb, err2 := kbcache.GetTLFReaderKeyBundle(rkbID)
 	if err2 != nil {
 		md.log.CDebugf(ctx, "Error fetching reader key bundle %s from cache for TLF %s: %s",
 			rkbID, tlf, err2)
@@ -701,7 +701,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 		return nil, err
 	}
 	// Cache the results.
-	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, *wkb)
-	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, *rkb)
+	kbcache.PutTLFWriterKeyBundle(wkbID, *wkb)
+	kbcache.PutTLFReaderKeyBundle(rkbID, *rkb)
 	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }

@@ -7,9 +7,11 @@ package libkbfs
 import (
 	"encoding"
 	"fmt"
+	"reflect"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/cache"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
@@ -24,6 +26,34 @@ import (
 // corresponding device CryptPublicKey) to the TLF's symmetric secret
 // key information.
 type DeviceKeyInfoMapV3 map[kbfscrypto.CryptPublicKey]TLFCryptKeyInfo
+
+// static sizes in DeviceKeyInfoMapV3
+var (
+	ssCryptPublicKey  = int(reflect.TypeOf(kbfscrypto.CryptPublicKey{}).Size())
+	ssTLFCryptKeyInfo = int(reflect.TypeOf(TLFCryptKeyInfo{}).Size())
+)
+
+// Size implements the cache.Measurable interface.
+func (dkimV3 DeviceKeyInfoMapV3) Size() int {
+	// statically-sized part
+	mapSize := cache.StaticSizeOfMapWithSize(
+		ssCryptPublicKey, ssTLFCryptKeyInfo, len(dkimV3))
+
+	// go through pointer type content
+	var contentSize int
+	for k, v := range dkimV3 {
+		contentSize += len(k.KID())
+		contentSize += len(v.ServerHalfID.ID.String())
+
+		// We are not using v.ClientHalf.encryptedData here since that would
+		// include the size of struct itself which is already counted in
+		// cache.StaticSizeOfMapWithSize.
+		contentSize += len(v.ClientHalf.encryptedData.EncryptedData) +
+			len(v.ClientHalf.encryptedData.Nonce)
+	}
+
+	return mapSize + contentSize
+}
 
 func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(crypto cryptoPure,
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
@@ -62,6 +92,21 @@ func (dkimV3 DeviceKeyInfoMapV3) toPublicKeys() DevicePublicKeys {
 // UserDeviceKeyInfoMapV3 maps a user's keybase UID to their
 // DeviceKeyInfoMapV3.
 type UserDeviceKeyInfoMapV3 map[keybase1.UID]DeviceKeyInfoMapV3
+
+// Size implements the cache.Measurable interface.
+func (udkimV3 UserDeviceKeyInfoMapV3) Size() int {
+	// statically-sized part
+	mapSize := cache.StaticSizeOfMapWithSize(
+		cache.PtrSize, cache.PtrSize, len(udkimV3))
+
+	// go through pointer type content
+	var contentSize int
+	for k, v := range udkimV3 {
+		contentSize += len(k) + v.Size()
+	}
+
+	return mapSize + contentSize
+}
 
 func (udkimV3 UserDeviceKeyInfoMapV3) toPublicKeys() UserDevicePublicKeys {
 	publicKeys := make(UserDevicePublicKeys, len(udkimV3))
@@ -214,6 +259,27 @@ func DeserializeTLFWriterKeyBundleV3(codec kbfscodec.Codec, path string) (
 	return wkb, nil
 }
 
+// Size implements the cache.Measurable interface.
+func (wkb TLFWriterKeyBundleV3) Size() (bytes int) {
+	bytes += cache.PtrSize + wkb.Keys.Size() // Keys
+
+	// TLFPublicKey is essentially a 32-byte array.
+	bytes += kbfscrypto.TLFPublicKey{}.Size()
+
+	// TLFEphemeralPublicKeys
+	bytes += wkb.TLFEphemeralPublicKeys.Size()
+
+	// EncryptedHistoricTLFCryptKeys
+	bytes += wkb.EncryptedHistoricTLFCryptKeys.encryptedData.Size()
+
+	// For codec.UnknownFieldSetHandler. It has a private map field which we
+	// can't inspect unless extending the codec package. Just assume it's empty
+	// for now.
+	bytes += cache.PtrSize
+
+	return bytes
+}
+
 // IsWriter returns true if the given user device is in the device set.
 func (wkb TLFWriterKeyBundleV3) IsWriter(user keybase1.UID, deviceKey kbfscrypto.CryptPublicKey) bool {
 	_, ok := wkb.Keys[user][deviceKey]
@@ -324,6 +390,21 @@ func DeserializeTLFReaderKeyBundleV3(codec kbfscodec.Codec, path string) (
 		rkb.Keys = make(UserDeviceKeyInfoMapV3)
 	}
 	return rkb, nil
+}
+
+// Size implements the cache.Measurable interface.
+func (rkb TLFReaderKeyBundleV3) Size() (bytes int) {
+	bytes += cache.PtrSize + rkb.Keys.Size() // Keys
+
+	// TLFEphemeralPublicKeys
+	bytes += rkb.TLFEphemeralPublicKeys.Size()
+
+	// For codec.UnknownFieldSetHandler. It has a private map field which we
+	// can't inspect unless extending the codec package. Just assume it's empty
+	// for now.
+	bytes += cache.PtrSize
+
+	return bytes
 }
 
 // IsReader returns true if the given user device is in the reader set.

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/cache"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -51,7 +52,8 @@ const (
 	bgFlushDirOpBatchSizeDefault = 100
 	// bgFlushPeriodDefault is the default for how long to wait for a
 	// batch to fill up before syncing a set of changes to the servers.
-	bgFlushPeriodDefault = 1 * time.Second
+	bgFlushPeriodDefault         = 1 * time.Second
+	keyBundlesCacheCapacityBytes = 10 * cache.MB
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -788,7 +790,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
 	c.kcache = NewKeyCacheStandard(defaultMDCacheCapacity)
-	c.kbcache = NewKeyBundleCacheStandard(defaultMDCacheCapacity * 2)
+	c.kbcache = NewKeyBundleCacheLRU(keyBundlesCacheCapacityBytes)
 
 	log := c.MakeLogger("")
 	var capacity uint64

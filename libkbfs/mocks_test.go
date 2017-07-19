@@ -6815,42 +6815,42 @@ func (_m *MockKeyBundleCache) EXPECT() *_MockKeyBundleCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyBundleCache) GetTLFReaderKeyBundle(_param0 tlf.ID, _param1 TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundle", _param0, _param1)
+func (_m *MockKeyBundleCache) GetTLFReaderKeyBundle(_param0 TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundle", _param0)
 	ret0, _ := ret[0].(*TLFReaderKeyBundleV3)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) GetTLFReaderKeyBundle(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundle", arg0, arg1)
+func (_mr *_MockKeyBundleCacheRecorder) GetTLFReaderKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundle", arg0)
 }
 
-func (_m *MockKeyBundleCache) GetTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundle", _param0, _param1)
+func (_m *MockKeyBundleCache) GetTLFWriterKeyBundle(_param0 TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundle", _param0)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) GetTLFWriterKeyBundle(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundle", arg0, arg1)
+func (_mr *_MockKeyBundleCacheRecorder) GetTLFWriterKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundle", arg0)
 }
 
-func (_m *MockKeyBundleCache) PutTLFReaderKeyBundle(_param0 tlf.ID, _param1 TLFReaderKeyBundleID, _param2 TLFReaderKeyBundleV3) {
-	_m.ctrl.Call(_m, "PutTLFReaderKeyBundle", _param0, _param1, _param2)
+func (_m *MockKeyBundleCache) PutTLFReaderKeyBundle(_param0 TLFReaderKeyBundleID, _param1 TLFReaderKeyBundleV3) {
+	_m.ctrl.Call(_m, "PutTLFReaderKeyBundle", _param0, _param1)
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) PutTLFReaderKeyBundle(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFReaderKeyBundle", arg0, arg1, arg2)
+func (_mr *_MockKeyBundleCacheRecorder) PutTLFReaderKeyBundle(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFReaderKeyBundle", arg0, arg1)
 }
 
-func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFWriterKeyBundleID, _param2 TLFWriterKeyBundleV3) {
-	_m.ctrl.Call(_m, "PutTLFWriterKeyBundle", _param0, _param1, _param2)
+func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 TLFWriterKeyBundleID, _param1 TLFWriterKeyBundleV3) {
+	_m.ctrl.Call(_m, "PutTLFWriterKeyBundle", _param0, _param1)
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0, arg1, arg2)
+func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0, arg1)
 }
 
 // Mock of RekeyFSM interface
