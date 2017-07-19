@@ -111,6 +111,7 @@
     "reselect": "3.0.1",
     "semver": "5.3.0",
     "shallowequal": "1.0.1",
+    "typedarray-to-buffer": "3.1.2",
     "util": "0.10.3"
   },
   "devDependencies": {
