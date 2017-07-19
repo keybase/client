@@ -1,6 +1,7 @@
 // @flow
 import fs from 'fs'
 import path from 'path'
+import {execSync} from 'child_process'
 
 const commands = {
   'apply-new-fonts': {
@@ -15,6 +16,45 @@ const commands = {
     code: updatedFonts,
     help: 'Update our font sizes automatically',
   },
+  'unused-assets': {
+    code: unusedAssetes,
+    help: 'Find unused assets',
+  },
+}
+
+function unusedAssetes() {
+  const allFiles = fs.readdirSync(path.join(__dirname, '../../images/icons'))
+
+  // map of root name => [files]
+  const images = {}
+  allFiles.forEach(f => {
+    const parsed = path.parse(f)
+    if (!['.jpg', '.png'].includes(parsed.ext)) {
+      return
+    }
+
+    let root = parsed.name
+    const atFiles = root.match(/(.*)@[23]x$/)
+    if (atFiles) {
+      root = atFiles[1]
+    }
+
+    if (!images[root]) {
+      images[root] = []
+    }
+    images[root].push(f)
+  })
+
+  Object.keys(images).forEach(image => {
+    const command = `ag --ignore "./common-adapters/icon.constants.js" "${image}"`
+    try {
+      execSync(command, {encoding: 'utf8', env: process.env})
+    } catch (e) {
+      if (e.status === 1) {
+        console.log(images[image].join('\n'))
+      }
+    }
+  })
 }
 
 function svgToGridMap() {
