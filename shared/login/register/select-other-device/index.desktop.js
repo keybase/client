@@ -10,9 +10,9 @@ import type {Props} from '.'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
-    mobile: 'icon-phone-48',
-    desktop: 'icon-computer-48',
-    backup: 'icon-paper-key-48',
+    mobile: 'icon-phone-32',
+    desktop: 'icon-computer-32',
+    backup: 'icon-paper-key-32',
   }: {[key: DeviceType]: IconType})[type]
 
   const onClick = e => {
@@ -53,14 +53,14 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
 const stylesContainer = {}
 const stylesHeader = {
   alignSelf: 'center',
-  marginTop: 46,
-  marginBottom: 20,
+  marginBottom: globalMargins.large,
+  marginTop: globalMargins.large,
 }
 const stylesDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   overflow: 'auto',
-  width: 375,
+  width: 460,
   alignSelf: 'center',
 }
 const stylesRow = {

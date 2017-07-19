@@ -33,15 +33,21 @@ const SubTitle = ({usePhone}) => (
   </p>
 )
 
+const DeviceIcon = ({usePhone}) => (
+  <p>
+    {usePhone
+      ? <Icon type="icon-phone-text-code-48" style={{marginTop: globalMargins.medium}} />
+      : <Icon type="icon-computer-text-code-48" style={{marginTop: globalMargins.medium}} />}
+  </p>
+)
+
 const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={{marginTop: 60}}>Type in text code</Text>
-    <p style={{marginTop: 10}}>
-      <Text type="Body">Run&nbsp;</Text>
-      <Text type="TerminalInline">keybase device add</Text>
-      <Text type="Body">&nbsp;on your other device and type this code there: </Text>
-    </p>
-    <Icon type="icon-computer-text-code-48" style={{marginTop: 28}} />
+    <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.large}}>
+      Type in text code
+    </Text>
+    <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
+    <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
     <Text type="Body" style={stylesPaperkey}>{textCode}</Text>
     {_otherIsPhone(otherDeviceRole) &&
       <p
@@ -59,7 +65,9 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
 const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   <Container style={{...stylesContainer, alignItems: 'stretch'}} onBack={onBack}>
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, overflowY: 'auto'}}>
-      <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Scan this QR code</Text>
+      <Text style={{marginBottom: globalMargins.small, marginTop: globalMargins.large}} type="Header">
+        Scan this QR code
+      </Text>
       <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
       <div style={stylesQrContainer}>
         <div style={{background: `url("${qrCode}")`, ...stylesQr}} />
@@ -87,7 +95,7 @@ const CodePageEnterText = ({
   <Container style={stylesContainer} onBack={onBack}>
     <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Type in text code</Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Icon style={{marginBottom: 40, marginTop: 30}} type="icon-phone-text-code-32" />
+    <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
     <Input
       errorText={enterCodeErrorText}
       hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
