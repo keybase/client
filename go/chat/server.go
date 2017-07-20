@@ -2097,6 +2097,39 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	return nil
 }
 
+func (h *Server) checkInConv(ctx context.Context, convID chat1.ConversationID) (in bool, err error) {
+	h.Debug(ctx, "+ checkInConv(%v)", convID)
+	defer func() { h.Debug(ctx, "- checkInConv -> (%v, %v)", in, err) }()
+
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return false, libkb.LoginRequiredError{}
+	}
+
+	// Get the conversation from the inbox.
+	query := chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}
+	localizer := NewBlockingLocalizer(h.G())
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, &query, nil)
+	if len(ib.Convs) == 0 {
+		return false, nil
+	}
+	if len(ib.Convs) != 1 {
+		return false, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
+	}
+	conv := ib.Convs[0]
+
+	switch conv.ReaderInfo.Status {
+	case chat1.ConversationMemberStatus_ACTIVE:
+		return true, nil
+	case chat1.ConversationMemberStatus_REMOVED, chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_PREVIEW:
+		return false, nil
+	default:
+		return false, fmt.Errorf("unrecognized reader status: %v", conv.ReaderInfo.Status)
+	}
+}
+
 // Post a join or leave. Must be called when the user is in the conv.
 // Uses a blocking sender.
 func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
@@ -2156,6 +2189,14 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (h *Server) doJoinConversation(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+	alreadyIn, err := h.checkInConv(ctx, convID)
+	if err != nil {
+		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
+		// Assume we're not in.
+		alreadyIn = false
+	}
+
+	// Send the join command even if we're in.
 	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
 	if err != nil {
 		h.Debug(ctx, "doJoinConversation: failed to join conversation: %s", err.Error())
@@ -2167,15 +2208,17 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
-	// Send a message to the channel after joining.
-	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-	rl, err := h.postJoinLeave(ctx, convID, joinMessageBody)
-	if err != nil {
-		h.Debug(ctx, "posting join-conv message failed: %v", err)
-		// ignore the error
-	}
-	if err == nil && rl != nil {
-		res.RateLimits = utils.AggRateLimits(append(res.RateLimits, *rl))
+	if !alreadyIn {
+		// Send a message to the channel after joining.
+		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		rl, err := h.postJoinLeave(ctx, convID, joinMessageBody)
+		if err != nil {
+			h.Debug(ctx, "posting join-conv message failed: %v", err)
+			// ignore the error
+		}
+		if err == nil && rl != nil {
+			res.RateLimits = utils.AggRateLimits(append(res.RateLimits, *rl))
+		}
 	}
 
 	res.Offline = h.G().Syncer.IsConnected(ctx)
@@ -2263,12 +2306,21 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		return res, err
 	}
 
-	// Send a message to the channel before leaving
-	leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
-	_, err = h.postJoinLeave(ctx, convID, leaveMessageBody)
+	alreadyIn, err := h.checkInConv(ctx, convID)
 	if err != nil {
-		h.Debug(ctx, "posting leave-conv message failed: %v", err)
-		// ignore the error
+		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
+		// Pretend we're in.
+		alreadyIn = true
+	}
+
+	// Send a message to the channel before leaving
+	if alreadyIn {
+		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
+		_, err = h.postJoinLeave(ctx, convID, leaveMessageBody)
+		if err != nil {
+			h.Debug(ctx, "posting leave-conv message failed: %v", err)
+			// ignore the error
+		}
 	}
 
 	leaveRes, err := h.remoteClient().LeaveConversation(ctx, convID)
