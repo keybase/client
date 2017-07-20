@@ -552,7 +552,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 				// Note that from this point on, TopicID is entirely the wrong value.
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
-				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
+				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.N
 				h.Debug(ctx, "NewConversationLocal: collision: %v", reserr)
 				continue
 			default:
@@ -592,8 +592,20 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
 		}
 
+		// Send a message to the channel after joining.
+		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		rl, err = h.postJoinLeave(ctx, convID, joinMessageBody)
+		if err != nil {
+			h.Debug(ctx, "posting join-conv message failed: %v", err)
+			// ignore the error
+		}
+		if err == nil && rl != nil {
+			res.RateLimits = append(res.RateLimits, *rl)
+		}
+
 		res.RateLimits = utils.AggRateLimits(res.RateLimits)
 		res.IdentifyFailures = identBreaks
+
 		return res, nil
 	}
 
@@ -2206,8 +2218,6 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 		res.RateLimits = append(res.RateLimits, *joinRes.RateLimit)
 	}
 
-	res.RateLimits = utils.AggRateLimits(res.RateLimits)
-
 	if !alreadyIn {
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
@@ -2217,10 +2227,11 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 			// ignore the error
 		}
 		if err == nil && rl != nil {
-			res.RateLimits = utils.AggRateLimits(append(res.RateLimits, *rl))
+			res.RateLimits = append(res.RateLimits, *rl)
 		}
 	}
 
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 
 	return res, nil
@@ -2316,10 +2327,13 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	// Send a message to the channel before leaving
 	if alreadyIn {
 		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
-		_, err = h.postJoinLeave(ctx, convID, leaveMessageBody)
+		rl, err := h.postJoinLeave(ctx, convID, leaveMessageBody)
 		if err != nil {
 			h.Debug(ctx, "posting leave-conv message failed: %v", err)
 			// ignore the error
+		}
+		if err == nil && rl != nil {
+			res.RateLimits = append(res.RateLimits, *rl)
 		}
 	}
 
