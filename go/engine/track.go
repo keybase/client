@@ -79,8 +79,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	}
 
 	e.confirmResult = ieng.ConfirmResult()
+	e.G().Log.Debug("confirmResult: %+v", e.confirmResult)
 	if !e.confirmResult.IdentityConfirmed {
-		e.G().Log.Debug("confirmResult: %+v", e.confirmResult)
 		return errors.New("Follow not confirmed")
 	}
 

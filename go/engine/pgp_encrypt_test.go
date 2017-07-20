@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestPGPEncrypt(t *testing.T) {
@@ -27,6 +28,7 @@ func TestPGPEncrypt(t *testing.T) {
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 		NoSign: true,
+		BypassConfirm: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -58,6 +60,7 @@ func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 		NoSign: true,
+		BypassConfirm: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -87,6 +90,7 @@ func TestPGPEncryptSelfNoKey(t *testing.T) {
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
 		NoSign: true,
+		BypassConfirm: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -106,6 +110,10 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	u := createFakeUserWithPGPSibkey(tc)
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
+		FakeConfirmResult: &keybase1.ConfirmResult {
+			IdentityConfirmed: true,
+			RemoteConfirmed: false,
+		},
 	}
 	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
 
@@ -150,6 +158,7 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 		NoSign: true,
+		BypassConfirm: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)

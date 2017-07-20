@@ -13,13 +13,15 @@ import (
 )
 
 type PGPEncryptArg struct {
-	Recips       []string // user assertions
-	Source       io.Reader
-	Sink         io.WriteCloser
-	NoSign       bool
-	NoSelf       bool
-	BinaryOutput bool
-	KeyQuery     string
+	Recips        []string // user assertions
+	Source        io.Reader
+	Sink          io.WriteCloser
+	NoSign        bool
+	NoSelf        bool
+	BinaryOutput  bool
+	KeyQuery      string
+	BypassConfirm bool
+	NoTrack       bool
 }
 
 // PGPEncrypt encrypts data read from a source into a sink
@@ -193,7 +195,13 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 	// Get current user for tracking. Ignore errors, but look out for
 	// me == nil, e.g. when user is not logged in (pgp encrypt can be
 	// used without Keybase account).
-	me, _ := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		if _, ok := err.(libkb.SelfNotFoundError); !ok {
+			return nil, err
+		}
+	}
+
 
 	var names []string
 	for _, userAssert := range assertions {
@@ -204,6 +212,7 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 		}
 		topts := keybase1.TrackOptions{
 			LocalOnly: me == nil,
+			BypassConfirm: e.arg.BypassConfirm,
 		}
 		ieng := NewResolveThenIdentify2WithTrack(e.G(), &arg, topts)
 		if err := RunEngine(ieng, ctx); err != nil {
@@ -216,7 +225,7 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Not confirmed by user."}
 		}
 
-		if me != nil && confirmResult.RemoteConfirmed {
+		if !e.arg.NoTrack && me != nil && confirmResult.RemoteConfirmed {
 			targ := &TrackTokenArg{
 				Token:   ieng.TrackToken(),
 				Me:      me,

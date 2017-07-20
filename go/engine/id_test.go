@@ -173,19 +173,20 @@ func TestIdPGPNotEldest(t *testing.T) {
 }
 
 type FakeIdentifyUI struct {
-	Proofs          map[string]string
-	ProofResults    map[string]keybase1.LinkCheckResult
-	User            *keybase1.User
-	Confirmed       bool
-	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
-	DisplayKeyCalls int
-	DisplayKeyDiffs []*keybase1.TrackDiff
-	Outcome         *keybase1.IdentifyOutcome
-	StartCount      int
-	Token           keybase1.TrackToken
-	BrokenTracking  bool
-	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
-	DisplayTLFCount int
+	Proofs            map[string]string
+	ProofResults      map[string]keybase1.LinkCheckResult
+	User              *keybase1.User
+	Confirmed         bool
+	Keys              map[libkb.PGPFingerprint]*keybase1.TrackDiff
+	DisplayKeyCalls   int
+	DisplayKeyDiffs   []*keybase1.TrackDiff
+	Outcome           *keybase1.IdentifyOutcome
+	StartCount        int
+	Token             keybase1.TrackToken
+	BrokenTracking    bool
+	DisplayTLFArg     keybase1.DisplayTLFCreateWithInviteArg
+	DisplayTLFCount   int
+	FakeConfirmResult *keybase1.ConfirmResult
 	sync.Mutex
 }
 
@@ -235,8 +236,13 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	time.Sleep(100 * time.Millisecond)
 
 	ui.Outcome = outcome
-	result.IdentityConfirmed = outcome.TrackOptions.BypassConfirm
-	result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
+	if ui.FakeConfirmResult != nil {
+		result.IdentityConfirmed = ui.FakeConfirmResult.IdentityConfirmed
+		result.RemoteConfirmed = ui.FakeConfirmResult.RemoteConfirmed
+	} else {
+		result.IdentityConfirmed = outcome.TrackOptions.BypassConfirm
+		result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
+	}
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
