@@ -18,6 +18,8 @@ export type Props = {
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
+  fuseInstalled: boolean,
+  fuseStatus: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}
