@@ -10,6 +10,7 @@ import {
   ClickableBox,
   LoadingLine,
   NativeStyleSheet,
+  NativeDimensions,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
@@ -327,7 +328,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
 
   _renderItem = ({item, index}) => {
     return index
-      ? <Row conversationIDKey={item} key={item} />
+      ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
       : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
   }
 
@@ -370,6 +371,8 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }
 
+  _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
+
   render() {
     return (
       <Box style={boxStyle}>
@@ -379,6 +382,9 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
+          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
+          initialNumToRender={this._maxVisible}
+          windowSize={this._maxVisible}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>

@@ -26,6 +26,7 @@ export type RowProps = {
 
 export type Props = {
   isLoading: boolean,
+  isActiveRoute: boolean,
   nowOverride?: number, // just for dumb rendering
   rows: List<ConversationIDKey>,
   onNewChat: () => void,
