@@ -279,7 +279,8 @@ function* _chatInboxFailedSubSaga(params) {
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.
   const {maxMsgid} = error.remoteConv.readerInfo
-  if (maxMsgid) {
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  if (maxMsgid && selectedConversation === conversationIDKey) {
     yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
       param: {
         conversationID: convID,
