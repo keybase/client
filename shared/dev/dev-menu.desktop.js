@@ -1,10 +1,9 @@
 // @flow
-import MenuList from '../settings/menu-list'
 import React from 'react'
 import engine from '../engine'
-import {BackButton, Box} from '../common-adapters'
+import {BackButton, Box, Text} from '../common-adapters'
 import {connect} from 'react-redux'
-import {globalStyles} from '../styles'
+import {globalStyles, globalColors} from '../styles'
 import {logout} from '../actions/login/creators'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 
@@ -17,7 +16,17 @@ function DevMenu(props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <BackButton onClick={() => props.onBack()} />
-      <MenuList items={menuItems} />
+      <Box>
+        {menuItems.map(m => (
+          <Box
+            key={m.name}
+            onClick={m.onClick}
+            style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}
+          >
+            <Text type="Header">{m.name}</Text>
+          </Box>
+        ))}
+      </Box>
     </Box>
   )
 }

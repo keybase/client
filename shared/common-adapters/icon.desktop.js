@@ -2,13 +2,25 @@
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import FontIcon from 'material-ui/FontIcon'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
+import Box from './box'
+import glamorous from 'glamorous'
 
 import type {Exact} from '../constants/types/more'
 import type {Props, IconType} from './icon'
+
+const StyledSpan = glamorous.span(props => ({
+  color: props.color,
+  ...(props.hoverColor
+    ? {
+        ':hover': {
+          color: props.hoverColor,
+        },
+      }
+    : null),
+}))
 
 class Icon extends Component<void, Exact<Props>, void> {
   shouldComponentUpdate(nextProps: Exact<Props>, nextState: any): boolean {
@@ -70,24 +82,26 @@ class Icon extends Component<void, Exact<Props>, void> {
       delete cleanStyle.hoverColor
 
       return (
-        <FontIcon
-          title={this.props.hint}
-          style={{
-            ...globalStyles.noSelect,
-            ...styles.icon,
-            ...fontSizeHint,
-            ...cleanStyle,
-            ...(onClick ? globalStyles.clickable : {}),
-          }}
-          className={this.props.className || ''}
-          color={color}
-          hoverColor={onClick ? hoverColor : null}
-          onMouseEnter={this.props.onMouseEnter}
-          onMouseLeave={this.props.onMouseLeave}
-          onClick={onClick}
-        >
-          {String.fromCharCode(iconMeta[iconType].charCode || 0)}
-        </FontIcon>
+        <Box>
+          <StyledSpan
+            alt={this.props.hint}
+            color={color}
+            style={{
+              ...globalStyles.noSelect,
+              ...styles.icon,
+              ...fontSizeHint,
+              ...cleanStyle,
+              ...(onClick ? globalStyles.clickable : {}),
+            }}
+            className={this.props.className || ''}
+            onMouseEnter={this.props.onMouseEnter}
+            onMouseLeave={this.props.onMouseLeave}
+            hoverColor={onClick ? hoverColor : null}
+            onClick={onClick}
+          >
+            {String.fromCharCode(iconMeta[iconType].charCode || 0)}
+          </StyledSpan>
+        </Box>
       )
     } else {
       return (

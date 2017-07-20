@@ -33,15 +33,6 @@ declare module 'lodash/merge' {
 declare module 'marked' {
   declare var exports: any
 }
-declare module 'material-ui' {
-  declare var exports: any
-}
-declare module 'material-ui/styles' {
-  declare var exports: any
-}
-declare module 'material-ui/svg-icons' {
-  declare var exports: any
-}
 declare module 'moment' {
   declare var exports: any
 }
