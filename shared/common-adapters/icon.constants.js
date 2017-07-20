@@ -140,10 +140,20 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-encrypted-computer-150-x-64.png'),
   },
+  'icon-fancy-encrypted-computer-226-x-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-encrypted-computer-226-x-96.png'),
+  },
   'icon-fancy-encrypted-phone-122-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-encrypted-phone-122-x-64.png'),
+  },
+  'icon-fancy-encrypted-phone-183-x-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-encrypted-phone-183-x-96.png'),
   },
   'icon-fancy-feedback-96': {
     isFont: false,
@@ -155,10 +165,20 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-computer-150-x-64.png'),
   },
+  'icon-fancy-revoked-computer-226-x-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-revoked-computer-226-x-96.png'),
+  },
   'icon-fancy-revoked-phone-122-x-64': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-fancy-revoked-phone-122-x-64.png'),
+  },
+  'icon-fancy-revoked-phone-183-x-96': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-fancy-revoked-phone-183-x-96.png'),
   },
   'icon-file-24': {
     isFont: false,

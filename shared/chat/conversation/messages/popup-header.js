@@ -4,16 +4,26 @@ import {Box, Icon, Text} from '../../../common-adapters'
 import {PopupHeaderText} from '../../../common-adapters/popup-menu'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../util/timestamp'
+import {isMobile} from '../../../constants/platform'
 
 import type {TextMessage, AttachmentMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
 function iconNameForDeviceType(deviceType: string, isRevoked: boolean): IconType {
-  switch (deviceType) {
-    case 'mobile':
-      return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
-    default:
-      return isRevoked ? 'icon-fancy-revoked-computer-150-x-64' : 'icon-fancy-encrypted-computer-150-x-64'
+  if (!isMobile) {
+    switch (deviceType) {
+      case 'mobile':
+        return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
+      default:
+        return isRevoked ? 'icon-fancy-revoked-computer-150-x-64' : 'icon-fancy-encrypted-computer-150-x-64'
+    }
+  } else {
+    switch (deviceType) {
+      case 'mobile':
+        return isRevoked ? 'icon-fancy-revoked-phone-183-x-96' : 'icon-fancy-encrypted-phone-183-x-96'
+      default:
+        return isRevoked ? 'icon-fancy-revoked-computer-226-x-96' : 'icon-fancy-encrypted-computer-226-x-96'
+    }
   }
 }
 
@@ -34,9 +44,20 @@ const MessagePopupHeader = ({
         width: '100%',
       }}
     >
-      <Icon type={iconName} style={{marginBottom: globalMargins.tiny, marginTop: -6}} />
+      <Icon
+        type={iconName}
+        style={{
+          marginBottom: globalMargins.tiny,
+          marginTop: !isMobile ? -globalMargins.tiny : -globalMargins.large,
+        }}
+      />
       <Box style={globalStyles.flexBoxRow}>
-        <Text type="BodySmall" style={{color: globalColors.green2}}>ENCRYPTED</Text>
+        <Text
+          type="BodySmall"
+          style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
+        >
+          ENCRYPTED
+        </Text>
         <Text
           type="BodySmall"
           style={{color: senderDeviceRevokedAt ? globalColors.black_40 : globalColors.green2}}
