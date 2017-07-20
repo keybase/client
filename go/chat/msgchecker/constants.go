@@ -3,7 +3,7 @@ package msgchecker
 const (
 	TextMessageMaxLength = 4000
 	HeadlineMaxLength    = 280
-	TopicMaxLength       = 100
+	TopicMaxLength       = 20
 )
 
 const (

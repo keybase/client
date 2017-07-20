@@ -3,9 +3,42 @@ package msgchecker
 import (
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/keybase/client/go/protocol/chat1"
 )
+
+var validTopicNameRegex = regexp.MustCompile(`^[0-9a-zA-Z_-]+$`)
+
+type validateTopicNameRes int
+
+const (
+	validateTopicNameResOK            validateTopicNameRes = 0
+	validateTopicNameResInvalidLength validateTopicNameRes = 1
+	validateTopicNameResInvalidChar   validateTopicNameRes = 2
+)
+
+func (r validateTopicNameRes) String() string {
+	switch r {
+	case validateTopicNameResInvalidChar:
+		return "invalid characters in topic name, please use alphanumeric plus _ and -"
+	case validateTopicNameResInvalidLength:
+		return "invalid topic name length. Must be greater than 0 and <= 20"
+	case validateTopicNameResOK:
+		return "OK"
+	}
+	return ""
+}
+
+func validateTopicName(topicName string) validateTopicNameRes {
+	if len(topicName) == 0 || len(topicName) > TopicMaxLength {
+		return validateTopicNameResInvalidLength
+	}
+	if !validTopicNameRegex.MatchString(topicName) {
+		return validateTopicNameResInvalidChar
+	}
+	return validateTopicNameResOK
+}
 
 type MessagePlaintextLengthExceedingError struct {
 	MaxLength            int
@@ -45,7 +78,11 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 	case chat1.MessageType_HEADLINE:
 		return plaintextFieldLengthChecker("headline", len(msg.MessageBody.Headline().Headline), HeadlineMaxLength)
 	case chat1.MessageType_METADATA:
-		return plaintextFieldLengthChecker("topic name", len(msg.MessageBody.Metadata().ConversationTitle), TopicMaxLength)
+		topicNameRes := validateTopicName(msg.MessageBody.Metadata().ConversationTitle)
+		if validateTopicNameResOK != topicNameRes {
+			return errors.New(topicNameRes.String())
+		}
+		return nil
 	default:
 		return errors.New("unknown message type")
 	}

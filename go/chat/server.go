@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -454,39 +453,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	return res, fullErr
 }
 
-var MaxTopicNameLength int = 20
-var validTopicNameRegex = regexp.MustCompile(`^[0-9a-zA-Z_-]+$`)
-
-type validateTopicNameRes int
-
-const (
-	validateTopicNameResOK            validateTopicNameRes = 0
-	validateTopicNameResInvalidLength validateTopicNameRes = 1
-	validateTopicNameResInvalidChar   validateTopicNameRes = 2
-)
-
-func (r validateTopicNameRes) String() string {
-	switch r {
-	case validateTopicNameResInvalidChar:
-		return "invalid characters in topic name, please use alphanumeric plus _ and -"
-	case validateTopicNameResInvalidLength:
-		return "invalid topic name length. Must be greater than 0 and <= 20"
-	case validateTopicNameResOK:
-		return "OK"
-	}
-	return ""
-}
-
-func (h *Server) validateTopicName(ctx context.Context, topicName string) validateTopicNameRes {
-	if len(topicName) == 0 || len(topicName) > MaxTopicNameLength {
-		return validateTopicNameResInvalidLength
-	}
-	if !validTopicNameRegex.MatchString(topicName) {
-		return validateTopicNameResInvalidChar
-	}
-	return validateTopicNameResOK
-}
-
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
@@ -503,13 +469,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		switch arg.MembersType {
 		case chat1.ConversationMembersType_TEAM:
 			arg.TopicName = &DefaultTeamTopic
-		default:
-			arg.TopicName = new(string)
-		}
-	} else {
-		topicNameRes := h.validateTopicName(ctx, *arg.TopicName)
-		if validateTopicNameResOK != topicNameRes {
-			return res, fmt.Errorf("invalid topic name specified: %s", topicNameRes)
 		}
 	}
 
@@ -520,14 +479,17 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-	findRes, err := h.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+	findArg := chat1.FindConversationsLocalArg{
 		TlfName:          arg.TlfName,
 		MembersType:      arg.MembersType,
 		Visibility:       arg.TlfVisibility,
 		TopicType:        arg.TopicType,
-		TopicName:        *arg.TopicName,
 		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	}
+	if arg.TopicName != nil {
+		findArg.TopicName = *arg.TopicName
+	}
+	findRes, err := h.FindConversationsLocal(ctx, findArg)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -559,7 +521,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
-
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, info.CanonicalName,
 			arg.MembersType, arg.TlfVisibility, arg.TopicName)
 		if err != nil {
@@ -646,8 +607,8 @@ func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.Conversation
 	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
 	topicName *string) (*chat1.MessageBoxed, error) {
 	var msg chat1.MessagePlaintext
-
-	if topicName != nil || *topicName != "" {
+	if topicName != nil {
+		fmt.Printf("TOPIC NAME: FIRST: %s\n", *topicName)
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
