@@ -193,15 +193,38 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	}
 }
 
+type everyoneOnEveryTeamChecker struct{}
+
+func (e everyoneOnEveryTeamChecker) IsTeamWriter(
+	_ context.Context, _ keybase1.TeamID, _ keybase1.UID,
+	_ kbfscrypto.VerifyingKey) (bool, error) {
+	return true, nil
+}
+
+func (e everyoneOnEveryTeamChecker) IsTeamReader(
+	_ context.Context, _ keybase1.TeamID, _ keybase1.UID) (bool, error) {
+	return true, nil
+}
+
 // processMetadata converts the given rmds to an
 // ImmutableRootMetadata. After this function is called, rmds
 // shouldn't be used.
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
-	// First, verify validity and signatures.
+	// First, verify validity and signatures. Until KBFS-2229 is
+	// complete, KBFS doesn't check for team membership on MDs that
+	// have been fetched from the server, because if the writer has
+	// been removed from the team since the MD was written, we have no
+	// easy way of verifying that they used to be in the team.  We
+	// rely on the fact that the updates are decryptable with the
+	// secret key as a way to prove that only an authorized team
+	// member posted the proof, along with trusting that the server
+	// would have rejected an update from a former team member that is
+	// still using an old key.  TODO(KBFS-2229): remove this.
 	err := rmds.IsValidAndSigned(
-		ctx, md.config.Codec(), md.config.Crypto(), md.config.KBPKI(), extra)
+		ctx, md.config.Codec(), md.config.Crypto(),
+		everyoneOnEveryTeamChecker{}, extra)
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
