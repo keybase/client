@@ -32,8 +32,8 @@ const pathActionTransformer = (action, oldState) => {
   }
 }
 
-export function pathSelector(state: TypedState): I.List<string> {
-  return getPath(state.routeTree.routeState)
+export function pathSelector(state: TypedState, parentPath?: Path): I.List<string> {
+  return getPath(state.routeTree.routeState, parentPath)
 }
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
@@ -107,11 +107,12 @@ export function navigateUp(): NavigateUp {
 // Do a navigate action if the path is still what is expected
 export function putActionIfOnPath<T: TypedAction<*, *, *>>(
   expectedPath: Path,
-  otherAction: T
+  otherAction: T,
+  parentPath?: Path
 ): Constants.PutActionIfOnPath<T> {
   return {
     type: Constants.putActionIfOnPath,
-    payload: {expectedPath, otherAction},
+    payload: {expectedPath, otherAction, parentPath},
   }
 }
 
@@ -133,9 +134,11 @@ export function resetRoute(path: Path): ResetRoute {
   }
 }
 
-function* _putActionIfOnPath({payload: {otherAction, expectedPath}}: Constants.PutActionIfOnPath<*>) {
-  const currentPath = yield select(pathSelector)
-  if (I.is(expectedPath, currentPath)) {
+function* _putActionIfOnPath({
+  payload: {otherAction, expectedPath, parentPath},
+}: Constants.PutActionIfOnPath<*>) {
+  const currentPath = yield select(pathSelector, parentPath)
+  if (I.is(I.List(expectedPath), currentPath)) {
     yield put(otherAction)
   }
 }
