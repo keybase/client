@@ -1179,13 +1179,23 @@ func (c *ConfigLocal) EnableJournaling(
 	return nil
 }
 
-// SetDiskBlockCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetDiskBlockCache(dbc DiskBlockCache) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	ctx := context.TODO()
-	if c.diskBlockCache != nil {
-		c.diskBlockCache.Shutdown(ctx)
+func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
+	dbc, err := newDiskBlockCacheStandard(c,
+		diskBlockCacheRootFromStorageRoot(c.storageRoot))
+	if err != nil {
+		return err
 	}
 	c.diskBlockCache = dbc
+	return nil
+}
+
+// MakeDiskBlockCacheIfNotExists implements the Config interface for
+// ConfigLocal.
+func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	if c.diskBlockCache != nil {
+		return nil
+	}
+	return c.resetDiskBlockCacheLocked()
 }

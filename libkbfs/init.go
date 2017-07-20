@@ -632,8 +632,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		log.Debug("Journaling enabled")
 	}
 	if params.EnableDiskCache {
-		dbc, err := newDiskBlockCacheStandard(config,
-			diskBlockCacheRootFromStorageRoot(params.StorageRoot))
+		err = config.MakeDiskBlockCacheIfNotExists()
 		if err != nil {
 			log.Warning("Could not initialize disk cache: %+v", err)
 			notification := &keybase1.FSNotification{
@@ -643,7 +642,6 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			}
 			defer config.Reporter().Notify(ctx10s, notification)
 		} else {
-			config.SetDiskBlockCache(dbc)
 			log.Debug("Disk cache enabled")
 		}
 	}

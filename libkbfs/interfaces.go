@@ -65,7 +65,7 @@ type diskBlockCacheGetter interface {
 }
 
 type diskBlockCacheSetter interface {
-	SetDiskBlockCache(DiskBlockCache)
+	MakeDiskBlockCacheIfNotExists() error
 }
 
 type clockGetter interface {
