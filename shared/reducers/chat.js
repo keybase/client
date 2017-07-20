@@ -423,7 +423,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .setIn(['localMessageStates', newMessageKey], localMessageState)
     }
     case 'chat:markThreadsStale': {
-      const {convIDs} = action.payload
+      const {updates} = action.payload
+      const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
       return state.update('conversationStates', conversationStates =>
         conversationStates.map((conversationState, conversationIDKey) => {
           if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {

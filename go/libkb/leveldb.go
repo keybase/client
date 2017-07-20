@@ -103,6 +103,12 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
+func (l *LevelDb) Opts() *opt.Options {
+	return &opt.Options{
+		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
+	}
+}
+
 func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error) {
 	err = func() error {
 		l.RLock()
@@ -114,7 +120,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
 			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
-			l.db, err = leveldb.OpenFile(fn, nil)
+			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if err != nil {
 				if _, ok := err.(*errors.ErrCorrupted); ok {
 					l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)

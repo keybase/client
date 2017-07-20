@@ -72,12 +72,18 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
+  # If commit is hash, this fails and is unnecessary, if branch it's needed to
+  # update if it has changed.
+  git pull || true
 fi
 
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
+  # If commit is hash, this fails and is unnecessary, if branch it's needed to
+  # update if it has changed.
+  git pull || true
 fi
 
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
@@ -139,7 +145,7 @@ done
 
 
 if [ ! "$istest" = "" ]; then
-  "$client_dir/packaging/slack/send.sh" "Finished test build $platform (keybase: $version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.

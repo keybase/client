@@ -116,6 +116,9 @@ const (
 
 	ChatBoxerMerkleFreshness    = 10 * time.Minute
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
+
+	// By default, only 64 files can be opened.
+	LevelDBNumFiles = 64
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -250,6 +253,10 @@ const (
 	SCChatDuplicateMessage     = int(keybase1.StatusCode_SCChatDuplicateMessage)
 	SCChatClientError          = int(keybase1.StatusCode_SCChatClientError)
 	SCAccountReset             = int(keybase1.StatusCode_SCAccountReset)
+	SCTeamReadError            = int(keybase1.StatusCode_SCTeamReadError)
+	SCTeamTarDuplicate         = int(keybase1.StatusCode_SCTeamTarDuplicate)
+	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
+	SCTeamMemberExists         = int(keybase1.StatusCode_SCTeamMemberExists)
 )
 
 const (

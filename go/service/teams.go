@@ -23,6 +23,8 @@ type TeamsHandler struct {
 	connID libkb.ConnectionID
 }
 
+var _ keybase1.TeamsInterface = (*TeamsHandler)(nil)
+
 func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, gregor *gregorHandler) *TeamsHandler {
 	return &TeamsHandler{
 		BaseHandler:  NewBaseHandler(xp),
@@ -113,6 +115,22 @@ func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameAr
 
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) error {
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
+}
+
+func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) error {
+	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
+}
+
+func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {
+	return teams.ListRequests(ctx, h.G().ExternalG())
+}
+
+func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) error {
+	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}
+
+func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
+	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
