@@ -6,6 +6,7 @@ package install
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -29,6 +30,76 @@ import (
 // AutoInstall is not supported on Windows
 func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
 	return false, fmt.Errorf("Auto install not supported for this build or platform")
+}
+
+// Install just supports the driver on Windows
+func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+	var err error
+	componentResults := []keybase1.ComponentResult{}
+
+	log.Debug("Installing components: %s", components)
+
+	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+		err = installFuse(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
+		if err != nil {
+			log.Errorf("Error installing KBFuse: %s", err)
+		}
+	}
+
+	//	return keybase1.InstallResult{}
+	return newInstallResult(componentResults)
+}
+
+func newInstallResult(componentResults []keybase1.ComponentResult) keybase1.InstallResult {
+	return keybase1.InstallResult{ComponentResults: componentResults, Status: statusFromResults(componentResults)}
+}
+
+func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Status {
+	var errorMessages []string
+	for _, cs := range componentResults {
+		if cs.Status.Code != 0 {
+			errorMessages = append(errorMessages, fmt.Sprintf("%s (%s)", cs.Status.Desc, cs.Name))
+		}
+	}
+
+	if len(errorMessages) > 0 {
+		return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, strings.Join(errorMessages, ". "))
+	}
+
+	return keybase1.StatusOK("")
+}
+
+func componentResult(name string, err error) keybase1.ComponentResult {
+	if err != nil {
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
+	}
+	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
+}
+
+func installFuse(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing KBFuse")
+	command, err := getCachedPackageModifyString()
+	if err != nil {
+		return err
+	}
+
+	command = strings.Replace(command, "/modify", "driver /repair /passive", 1)
+
+	log.Info("Starting %#v", command)
+	cmd := exec.Command(command)
+	err = cmd.Run()
+	if err != nil {
+		log.Errorf("Error running program: %q; %s", command, err)
+		return err
+	}
+	log.Info("Program finished: %q", command)
+	return nil
+}
+
+// Uninstall empty implementation for unsupported platforms
+func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
+	return keybase1.UninstallResult{}
 }
 
 // CheckIfValidLocation is not supported on Windows
@@ -227,4 +298,35 @@ func IsInUse(mountDir string, log Log) bool {
 	}
 
 	return false
+}
+
+func getCachedPackageModifyString() (string, error) {
+	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`, registry.QUERY_VALUE|registry.WOW64_64KEY)
+	defer k.Close()
+	if err != nil {
+		return "", err
+	}
+	subKeyNames, err := k.ReadSubKeyNames(0)
+	if err != nil {
+		return "", err
+	}
+	for _, subKeyName := range subKeyNames {
+		k2, err := registry.OpenKey(k, subKeyName, registry.QUERY_VALUE|registry.WOW64_64KEY)
+		if err != nil {
+			continue
+		}
+		displayName, _, err := k2.GetStringValue("DisplayName")
+		if err != nil {
+			continue
+		}
+		publisher, _, err := k2.GetStringValue("Publisher")
+		if err != nil {
+			continue
+		}
+		if displayName == "Keybase" && publisher == "Keybase, Inc." {
+			modify, _, err := k2.GetStringValue("ModifyPath")
+			return modify, err
+		}
+	}
+	return "", errors.New("no cached package path found")
 }
