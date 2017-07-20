@@ -65,7 +65,7 @@ func (c *CmdDeviceAdd) Run() error {
 			dui.Printf("We only run one at a time to ensure the device is provisioned correctly.\n\n")
 			dui.Printf("(Note that this often happens when you run `device add` on a new\n")
 			dui.Printf("computer while it is being provisioned. You need to run it on an\n")
-			dui.Printf("existing computer that is already reqistered with Keybase.)\n")
+			dui.Printf("existing computer that is already registered with Keybase.)\n")
 			return nil
 		}
 		return err
