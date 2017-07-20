@@ -53,7 +53,8 @@ class Folders extends Component<void, Props, void> {
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
-const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState, showingPrivate}: OwnProps) => ({
+  isActiveRoute,
   username: state.config.username,
   folderState: state.favorite ? state.favorite.folderState : null,
   showingPrivate: !!state.favorite && showingPrivate,

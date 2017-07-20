@@ -7,7 +7,8 @@ import {logout} from '../actions/login/creators'
 
 import type {RouteProps} from '../route-tree/render-route'
 
-const mapStateToProps = (state, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
+const mapStateToProps = (state, {isActiveRoute, routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
+  isActiveRoute,
   badgeNumbers: {}, // TODO add badging logic
   selectedTab: routeSelected,
   isModal: routeLeafTags.modal,

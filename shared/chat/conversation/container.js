@@ -47,7 +47,7 @@ type DispatchProps = {|
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps => {
+const mapStateToProps = (state: TypedState, {isActiveRoute, routePath, routeState}): StateProps => {
   const selectedConversationIDKey = routePath.last()
   let finalizeInfo = null
   let rekeyInfo = null
@@ -80,6 +80,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
 
   const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
   return {
+    isActiveRoute,
     conversationErrorText,
     conversationIsError,
     finalizeInfo,

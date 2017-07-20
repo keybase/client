@@ -70,7 +70,8 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {setRouteState}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: any, {isActiveRoute, setRouteState}: OwnProps) => ({
+  isActiveRoute,
   getProfile: username => dispatch(getProfile(username)),
   onAcceptProofs: username => {
     dispatch(onFollow(username, false))
