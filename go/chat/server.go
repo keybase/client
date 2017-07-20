@@ -2097,6 +2097,49 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	return nil
 }
 
+// Post a join or leave. Must be called when the user is in the conv.
+// Uses a blocking sender.
+func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageJoinLeave) (rl *chat1.RateLimit, err error) {
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return rl, libkb.LoginRequiredError{}
+	}
+
+	// Get the conversation from the inbox.
+	query := chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}
+	localizer := NewBlockingLocalizer(h.G())
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, &query, nil)
+	if len(ib.Convs) != 1 {
+		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
+	}
+	conv := ib.Convs[0]
+
+	plaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:         conv.Info.Triple,
+			TlfName:      conv.Info.TlfName,
+			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			MessageType:  chat1.MessageType_JOINLEAVE,
+			Supersedes:   chat1.MessageID(0),
+			Deletes:      nil,
+			Prev:         nil, // Filled by Sender
+			Sender:       nil, // Filled by Sender
+			SenderDevice: nil, // Filled by Sender
+			MerkleRoot:   nil, // Filled by Boxer
+			OutboxID:     nil,
+			OutboxInfo:   nil,
+		},
+		MessageBody: chat1.NewMessageBodyWithJoinleave(body),
+	}
+
+	// Send with a blocking sender
+	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
+	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0)
+	return rl, err
+}
+
 func (h *Server) doJoinConversation(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
 	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
 	if err != nil {
@@ -2108,7 +2151,20 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+
+	// Send a message to the channel after joining.
+	joinMessageBody := chat1.MessageJoinLeave{Join: true}
+	rl, err := h.postJoinLeave(ctx, convID, joinMessageBody)
+	if err != nil {
+		h.Debug(ctx, "posting join-conv message failed: %v", err)
+		// ignore the error
+	}
+	if err == nil && rl != nil {
+		res.RateLimits = utils.AggRateLimits(append(res.RateLimits, *rl))
+	}
+
 	res.Offline = h.G().Syncer.IsConnected(ctx)
+
 	return res, nil
 }
 
@@ -2190,6 +2246,14 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
+	}
+
+	// Send a message to the channel before leaving
+	leaveMessageBody := chat1.MessageJoinLeave{Join: false}
+	_, err = h.postJoinLeave(ctx, convID, leaveMessageBody)
+	if err != nil {
+		h.Debug(ctx, "posting leave-conv message failed: %v", err)
+		// ignore the error
 	}
 
 	leaveRes, err := h.remoteClient().LeaveConversation(ctx, convID)
