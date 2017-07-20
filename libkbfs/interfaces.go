@@ -65,7 +65,6 @@ type diskBlockCacheGetter interface {
 }
 
 type diskBlockCacheSetter interface {
-	ResetDiskBlockCache(ctx context.Context) error
 	MakeDiskBlockCacheIfNotExists() error
 }
 

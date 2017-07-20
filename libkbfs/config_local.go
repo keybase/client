@@ -1189,18 +1189,6 @@ func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
 	return nil
 }
 
-// ResetDiskBlockCache implements the Config interface for
-// ConfigLocal.
-func (c *ConfigLocal) ResetDiskBlockCache(ctx context.Context) error {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	if c.diskBlockCache != nil {
-		c.diskBlockCache.Shutdown(ctx)
-		c.diskBlockCache = nil
-	}
-	return c.resetDiskBlockCacheLocked()
-}
-
 // MakeDiskBlockCacheIfNotExists implements the Config interface for
 // ConfigLocal.
 func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
