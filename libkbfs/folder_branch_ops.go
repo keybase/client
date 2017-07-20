@@ -334,6 +334,7 @@ type folderBranchOps struct {
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
+	merkleFetches      kbfssync.RepeatedWaitGroup
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -465,6 +466,7 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	}
 
 	close(fbo.shutdownChan)
+	fbo.merkleFetches.Wait(ctx)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
 	fbo.editHistory.Shutdown()
@@ -2505,6 +2507,17 @@ func (fbo *folderBranchOps) canonicalPath(ctx context.Context, dir Node, name st
 func (fbo *folderBranchOps) signalWrite() {
 	select {
 	case fbo.syncNeededChan <- struct{}{}:
+		// Kick off a merkle root fetch in the background, so that it's
+		// ready by the time we do the SyncAll.
+		fbo.merkleFetches.Add(1)
+		go func() {
+			defer fbo.merkleFetches.Done()
+			newCtx := fbo.ctxWithFBOID(context.Background())
+			_, err := fbo.config.KBPKI().GetCurrentMerkleRoot(newCtx)
+			if err != nil {
+				fbo.log.CDebugf(newCtx, "Couldn't fetch merkle root: %+v", err)
+			}
+		}()
 	default:
 	}
 	// A local write always means any ongoing CR should be canceled,

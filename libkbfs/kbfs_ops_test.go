@@ -90,6 +90,10 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Ignore Notify calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
 
+	// Ignore MerkleRoot calls for now.
+	config.mockKbpki.EXPECT().GetCurrentMerkleRoot(gomock.Any()).
+		Return(keybase1.MerkleRootV2{}, nil).AnyTimes()
+
 	// Max out MaxPtrsPerBlock
 	config.mockBsplit.EXPECT().MaxPtrsPerBlock().
 		Return(int((^uint(0)) >> 1)).AnyTimes()
