@@ -480,6 +480,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-keybase-logo-logged-out-80.png'),
   },
+  'icon-loader-connecting-266-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-connecting-266-static.png'),
+  },
   'icon-loader-connecting-266': {
     isFont: false,
     extension: 'gif',
