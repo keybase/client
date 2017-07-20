@@ -1,11 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, ProgressIndicator, Text} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {Box, ProgressIndicator, Text} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles'
 import {connect} from 'react-redux'
-import {fuseStatus, installKBFS} from '../actions/kbfs'
+import {fuseStatus, installKBFS} from '../../actions/kbfs'
 
-import type {TypedState} from '../constants/reducer'
+import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   fuseStatus: () => void,
@@ -15,7 +15,7 @@ type Props = {
   loading: boolean,
 }
 
-class Install extends Component<void, Props, void> {
+class InstallBanner extends Component<void, Props, void> {
   componentDidMount() {
     this.props.fuseStatus()
   }
@@ -76,4 +76,4 @@ const mapDispatchToProps = (dispatch: any) => ({
   installKBFS: () => dispatch(installKBFS()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Install)
+export default connect(mapStateToProps, mapDispatchToProps)(InstallBanner)

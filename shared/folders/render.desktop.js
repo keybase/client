@@ -7,7 +7,7 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {connect} from 'react-redux'
 import {fuseStatus} from '../actions/kbfs'
-import Install from './install'
+import InstallBanner from './install/banner'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -58,7 +58,7 @@ class FoldersRender extends Component<void, Props, void> {
           minHeight: 32,
         }}
       >
-        {!this.props.fuseInstalled && <Install />}
+        {!this.props.fuseInstalled && <InstallBanner />}
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
