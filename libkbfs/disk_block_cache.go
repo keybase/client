@@ -27,9 +27,11 @@ type diskBlockCacheConfig interface {
 	logMaker
 	clockGetter
 	diskLimiterGetter
+	syncedTlfGetterSetter
 }
 
 type diskBlockCacheWrapped struct {
+	config          diskBlockCacheConfig
 	workingSetCache DiskBlockCache
 	syncCache       DiskBlockCache
 }
@@ -43,6 +45,7 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 		return nil, err
 	}
 	return &diskBlockCacheWrapped{
+		config:          config,
 		workingSetCache: workingSetCache,
 		syncCache:       nil,
 	}, nil
@@ -53,6 +56,10 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	hasPrefetched bool, err error) {
+	// TODO: add mutex to guard sync state
+	if cache.IsSyncedTlf(tlfID) {
+		return cache.syncCache.Get(ctx, tldID, blockID)
+	}
 	return cache.workingSetCache.Get(ctx, tlfID, blockID)
 }
 
@@ -60,6 +67,9 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	if cache.IsSyncedTlf(tlfID) {
+		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
+	}
 	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
 
@@ -82,6 +92,13 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, hasPrefetched bool) error {
+	if cache.syncCache != nil {
+		err := cache.syncCache.UpdateMetadata(ctx, blockID, hasPrefetched)
+		_, isNoSuchBlockError := err.(NoSuchBlockError)
+		if !isNoSuchBlockError {
+			return err
+		}
+	}
 	return cache.workingSetCache.UpdateMetadata(ctx, blockID, hasPrefetched)
 }
 
@@ -97,6 +114,7 @@ func (cache *diskBlockCacheWrapped) Size() int64 {
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Status(
 	ctx context.Context) *DiskBlockCacheStatus {
+	// TODO: include syncCache
 	return cache.workingSetCache.Status(ctx)
 }
 

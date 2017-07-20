@@ -76,8 +76,9 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
-type isSyncedTlfGetter interface {
+type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
+	SetTlfSyncState(tlfID tlf.ID, isSynced bool)
 }
 
 // Block just needs to be (de)serialized using msgpack
@@ -1684,7 +1685,6 @@ type Config interface {
 	SetMetadataVersion(MetadataVer)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
-	SetTlfSyncState(tlfID tlf.ID, isSynced bool)
 	// ReqsBufSize indicates the number of read or write operations
 	// that can be buffered per folder
 	ReqsBufSize() int
