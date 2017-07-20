@@ -86,12 +86,55 @@ type loginReq struct {
 	after afterFn
 	res   chan error
 	name  string
+	id    string
+	ctime time.Time
+}
+
+func newLoginReq(f loginHandler, after afterFn, name string) *loginReq {
+	req := loginReq{
+		f:     f,
+		after: after,
+		res:   make(chan error),
+		name:  name,
+		id:    RandStringB64(2),
+		ctime: time.Now(),
+	}
+	return &req
+}
+
+func (r loginReq) String() string {
+	return fmt.Sprintf("%s (%s)", r.Description(), time.Since(r.ctime))
+}
+
+func (r loginReq) Description() string {
+	return fmt.Sprintf("loginReq %s [%s]", r.name, r.id)
 }
 
 type acctReq struct {
-	f    acctHandler
-	done chan struct{}
-	name string
+	f     acctHandler
+	done  chan struct{}
+	name  string
+	id    string
+	ctime time.Time
+}
+
+func newAcctReq(f acctHandler, name string) *acctReq {
+	req := acctReq{
+		f:     f,
+		done:  make(chan struct{}),
+		name:  name,
+		id:    RandStringB64(2),
+		ctime: time.Now(),
+	}
+	return &req
+}
+
+func (r acctReq) String() string {
+	return fmt.Sprintf("%s (%s)", r.Description(), time.Since(r.ctime))
+}
+
+func (r acctReq) Description() string {
+	return fmt.Sprintf("acctReq %s [%s]", r.name, r.id)
 }
 
 type loginAPIResult struct {
@@ -876,17 +919,13 @@ func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, l
 // it, calling f and putting the error on the request res channel.
 // Once the error is on the res channel, loginHandle returns it.
 func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) error {
-	req := loginReq{
-		f:     f,
-		after: after,
-		res:   make(chan error),
-		name:  name,
-	}
-	s.G().Log.Debug("+ Login %q", name)
-	s.loginReqs <- req
+	req := newLoginReq(f, after, name)
+	s.G().Log.Debug("+ loginHandle sending: %s", req.Description())
+	s.loginReqs <- *req
+	s.G().Log.Debug("* loginHandle sent: %s", req)
 
 	err := <-req.res
-	s.G().Log.Debug("- Login %q", name)
+	s.G().Log.Debug("- loginHandle done: %s [%s]", req, ErrToOk(err))
 
 	return err
 }
@@ -898,25 +937,27 @@ func (s *LoginState) loginHandle(f loginHandler, after afterFn, name string) err
 // cases where an account or login request is attempted while
 // another account or login request is in process.
 func (s *LoginState) acctHandle(f acctHandler, name string) error {
-	req := acctReq{
-		f:    f,
-		done: make(chan struct{}),
-		name: name,
-	}
+	req := newAcctReq(f, name)
+
+	s.G().Log.Debug("+ acctHandle sending: %s", req.Description())
 	select {
-	case s.acctReqs <- req:
+	case s.acctReqs <- *req:
+		s.G().Log.Debug("* acctHandle sent: %s", req)
 	case <-time.After(5 * time.Second * CITimeMultiplier(s)):
-		// this is just during debugging:
-		s.G().Log.Debug("timed out sending acct request %q", name)
-		s.G().Log.Debug("active request: %s", s.activeReq)
+		s.G().Log.Debug("- acctHandle timeout: %s, active request: %s", req, s.activeReq)
 		if s.G().Env.GetDebug() {
 			debug.PrintStack()
 		}
-		return TimeoutError{}
+		return LoginStateTimeoutError{
+			ActiveRequest:    s.activeReq,
+			AttemptedRequest: req.Description(),
+			Duration:         time.Since(req.ctime),
+		}
 	}
 
 	// wait for request to finish
 	<-req.done
+	s.G().Log.Debug("- acctHandle done: %s", req)
 
 	return nil
 }
@@ -939,23 +980,31 @@ func (s *LoginState) requests() {
 			s.G().Log.Debug("- LoginState: shutdown chan closed, exiting requests loop")
 			return
 		case req := <-s.loginReqs:
-			s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
+			s.activeReq = req.Description()
+			s.G().Log.Debug("* LoginState running login request: %s", s.activeReq)
 			err := req.f(s.account)
 			if err == nil && req.after != nil {
 				// f ran without error, so call after function
+				s.G().Log.Debug("* LoginState running after func for request: %s", s.activeReq)
 				req.res <- req.after(s.account)
 			} else {
 				// either f returned an error, or there's no after function
 				req.res <- err
 			}
+			s.G().Log.Debug("* LoginState login request complete: %s", s.activeReq)
 		case req := <-s.acctReqs:
-			s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
+			s.activeReq = req.Description()
+			s.G().Log.Debug("* LoginState running account request: %s", s.activeReq)
 			req.f(s.account)
 			close(req.done)
+			s.G().Log.Debug("* LoginState account request complete: %s", s.activeReq)
 		case <-timer:
+			s.activeReq = "account.clean()"
 			s.account.clean()
 			timer = maketimer()
 		}
+
+		s.activeReq = ""
 	}
 }
 

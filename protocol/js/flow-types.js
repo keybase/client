@@ -187,6 +187,7 @@ export const ConstantsStatusCode = {
   scinvalidlocationerror: 1802,
   scservicestatuserror: 1803,
   scinstallerror: 1804,
+  scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
   scchatconvexists: 2502,
@@ -5945,6 +5946,7 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
   | 2502 // SCChatConvExists_2502
