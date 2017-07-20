@@ -7,8 +7,9 @@ const (
 )
 
 const (
-	BoxedTextMessageBodyMaxLength     = 5000
-	BoxedEditMessageBodyMaxLength     = 5000
-	BoxedHeadlineMessageBodyMaxLength = 380
-	BoxedMetadataMessageBodyMaxLength = 200
+	BoxedTextMessageBodyMaxLength      = 5000
+	BoxedEditMessageBodyMaxLength      = 5000
+	BoxedHeadlineMessageBodyMaxLength  = 380
+	BoxedMetadataMessageBodyMaxLength  = 200
+	BoxedJoinLeaveMessageBodyMaxLength = 200
 )
