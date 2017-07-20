@@ -665,6 +665,14 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+// Size implements the keybase/kbfs/cache.Measurable interface.
+func (k *KID) Size() int {
+	if k == nil {
+		return 0
+	}
+	return len(*k)
+}
+
 func (s *SigID) UnmarshalJSON(b []byte) error {
 	sigID, err := SigIDFromString(Unquote(b), true)
 	if err != nil {
