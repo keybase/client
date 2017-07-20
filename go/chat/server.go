@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -453,6 +454,39 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	return res, fullErr
 }
 
+var MaxTopicNameLength int = 20
+var validTopicNameRegex = regexp.MustCompile(`^[0-9a-zA-Z_-]+$`)
+
+type validateTopicNameRes int
+
+const (
+	validateTopicNameResOK            validateTopicNameRes = 0
+	validateTopicNameResInvalidLength validateTopicNameRes = 1
+	validateTopicNameResInvalidChar   validateTopicNameRes = 2
+)
+
+func (r validateTopicNameRes) String() string {
+	switch r {
+	case validateTopicNameResInvalidChar:
+		return "invalid characters in topic name, please use alphanumeric plus _ and -"
+	case validateTopicNameResInvalidLength:
+		return "invalid topic name length. Must be greater than 0 and <= 20"
+	case validateTopicNameResOK:
+		return "OK"
+	}
+	return ""
+}
+
+func (h *Server) validateTopicName(ctx context.Context, topicName string) validateTopicNameRes {
+	if len(topicName) == 0 || len(topicName) > MaxTopicNameLength {
+		return validateTopicNameResInvalidLength
+	}
+	if !validTopicNameRegex.MatchString(topicName) {
+		return validateTopicNameResInvalidChar
+	}
+	return validateTopicNameResOK
+}
+
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
@@ -471,6 +505,11 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			arg.TopicName = &DefaultTeamTopic
 		default:
 			arg.TopicName = new(string)
+		}
+	} else {
+		topicNameRes := h.validateTopicName(ctx, *arg.TopicName)
+		if validateTopicNameResOK != topicNameRes {
+			return res, fmt.Errorf("invalid topic name specified: %s", topicNameRes)
 		}
 	}
 
@@ -601,7 +640,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return chat1.NewConversationLocalRes{}, reserr
 }
 
-var DefaultTeamTopic = "#general"
+var DefaultTeamTopic = "general"
 
 func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
 	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
