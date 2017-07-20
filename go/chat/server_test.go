@@ -461,6 +461,37 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 	})
 }
 
+func TestChatSrvNewConversationLocalTopicNames(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+
+		tc := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+		uid := users[0].User.GetUID().ToBytes()
+		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		require.NoError(t, err)
+		if len(conv.MaxMsgSummaries) == 0 {
+			t.Fatalf("created conversation does not have a message")
+		}
+
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			if conv.MaxMsgSummaries[0].TlfName !=
+				string(kbtest.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+				t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
+			}
+		case chat1.ConversationMembersType_TEAM:
+			teamName := ctc.teamCache[teamKey(ctc.users())]
+			require.Equal(t, teamName, conv.MaxMsgSummaries[0].TlfName)
+		}
+	})
+}
+
 func TestChatSrvNewChatConversationLocalTwice(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
@@ -503,14 +534,14 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "MIKETIME"
-		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
-			chat1.NewConversationLocalArg{
-				TlfName:       conv.TlfName,
-				TopicName:     &topicName,
-				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
-				MembersType:   mt,
-			})
+		arg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			MembersType:   mt,
+		}
+		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
@@ -522,6 +553,23 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewConversationLocal error: %v\n", err)
 		}
+
+		// Try some invalid names
+		topicName = "#mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "/mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "mi.ke"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = ""
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
 	})
 }
 
