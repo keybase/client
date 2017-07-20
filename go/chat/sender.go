@@ -447,11 +447,26 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
+	ri := s.getRi()
+	if ri == nil {
+		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
+	}
+
 	// Get conversation metadata first
 	conv, _, err := GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, true)
 	if err != nil {
 		s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
 		return chat1.OutboxID{}, nil, nil, err
+	}
+
+	// If we are in preview mode, then just join the conversation
+	switch conv.ReaderInfo.Status {
+	case chat1.ConversationMemberStatus_PREVIEW:
+		if _, err = ri.JoinConversation(ctx, convID); err != nil {
+			return chat1.OutboxID{}, nil, nil, err
+		}
+	default:
+		// do nothing
 	}
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
@@ -460,11 +475,6 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
 		return chat1.OutboxID{}, nil, nil, err
-	}
-
-	ri := s.getRi()
-	if ri == nil {
-		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
 	// Delete assets associated with a delete operation.

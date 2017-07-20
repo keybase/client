@@ -1877,7 +1877,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 
 func TestChatSrvTeamChannels(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatTeamChannels", 2)
+		ctc := makeChatTestContext(t, "TestChatTeamChannels", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -1899,8 +1899,12 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
+		listener2 := newServerChatListener()
+		ctc.as(t, users[2]).h.G().SetService()
+		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		_, err := postLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
 		}))
@@ -1957,8 +1961,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 
+		t.Logf("@mention in user2")
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "FAIL",
+			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
 
@@ -1985,6 +1990,26 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: "FAIL",
 		}))
 		require.Error(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[2], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.NoError(t, err)
+		select {
+		case conv := <-listener2.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[2].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
 	})
 }
 
