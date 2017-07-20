@@ -80,7 +80,7 @@ const makeCommonConfig = () => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux))|\/dist\/)/,
+        exclude: /((node_modules\/(?!universalify|fs-extra))|\/dist\/)/,
         test: /\.jsx?$/,
         use: [babelRule],
       },

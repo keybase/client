@@ -5,7 +5,8 @@ import * as Creators from '../../actions/chat/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import pausableConnect from '../../util/pausable-connect'
+import {connect} from 'react-redux'
+import cacheWhenRouteInactive from '../../route-tree/cache-inactive-connect'
 import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
@@ -16,6 +17,7 @@ import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {|
+  isActiveRoute: boolean,
   finalizeInfo: ?Constants.FinalizeInfo,
   rekeyInfo: ?Constants.RekeyInfo,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
@@ -128,7 +130,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(cacheWhenRouteInactive(mapStateToProps), mapDispatchToProps, mergeProps),
   branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
   branch(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,

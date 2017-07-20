@@ -11,7 +11,8 @@ import {
   checkProof,
 } from '../actions/profile'
 import {searchSuggestions} from '../actions/searchv3/creators'
-import pausableConnect from '../util/pausable-connect'
+import {connect} from 'react-redux'
+import cacheWhenRouteInactive from '../route-tree/cache-inactive-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
@@ -55,139 +56,143 @@ class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   }
 }
 
-export default pausableConnect(
-  (state, {routeProps, routeState, routePath}: OwnProps) => {
-    const myUsername = state.config.username
-    const username = routeProps.username ? routeProps.username : myUsername
+const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
+  const myUsername = state.config.username
+  const username = routeProps.username ? routeProps.username : myUsername
 
-    return {
-      currentFriendshipsTab: routeState.currentFriendshipsTab,
-      myUsername,
-      profileIsRoot: routePath.size === 1 &&
-        (routePath.first() === profileTab || routePath.first() === peopleTab),
-      trackerState: state.tracker.trackers[username],
-      username,
-    }
-  },
-  (dispatch: any, {setRouteState}: OwnProps) => ({
-    getProfile: username => dispatch(getProfile(username)),
-    onAcceptProofs: username => {
-      dispatch(onFollow(username, false))
-    },
-    onBack: () => {
-      dispatch(navigateUp())
-    },
-    onChangeFriendshipsTab: currentFriendshipsTab => {
-      setRouteState({currentFriendshipsTab})
-    },
-    onChat: (myUsername, username) => {
-      dispatch(startConversation([username, myUsername]))
-    },
-    onClickAvatar: username => {
-      dispatch(onClickAvatar(username))
-    },
-    onClickFollowers: username => {
-      dispatch(onClickFollowers(username))
-    },
-    onClickFollowing: username => {
-      dispatch(onClickFollowing(username))
-    },
-    onEditAvatar: () => {
-      dispatch(navigateAppend(['editAvatar']))
-    },
-    onEditProfile: () => {
-      dispatch(navigateAppend(['editProfile']))
-    },
-    onFolderClick: folder => {
-      dispatch(openInKBFS(folder.path))
-    },
-    onFollow: username => {
-      dispatch(onFollow(username, false))
-    },
-    onMissingProofClick: (missingProof: MissingProof) => {
-      dispatch(addProof(missingProof.type))
-    },
-    onRecheckProof: (proof: Proof) => {
-      dispatch(checkProof())
-    },
-    onRevokeProof: (proof: Proof) => {
-      dispatch(
-        navigateAppend(
-          [
-            {
-              props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id},
-              selected: 'revoke',
-            },
-          ],
-          [profileTab]
-        )
-      )
-    },
-    onSearch: () => {
-      dispatch(searchSuggestions('profile:updateSearchResults'))
-      dispatch(navigateAppend([{props: {}, selected: 'search'}]))
-    },
-    onUnfollow: username => {
-      dispatch(onUnfollow(username))
-    },
-    onUserClick: username => {
-      dispatch(onUserClick(username))
-    },
-    onViewProof: (proof: Proof) => {
-      dispatch(openProofUrl(proof))
-    },
-    updateTrackers: username => dispatch(updateTrackers(username)),
-  }),
-  (stateProps, dispatchProps) => {
-    const {username} = stateProps
-    const refresh = () => {
-      dispatchProps.getProfile(username)
-      dispatchProps.updateTrackers(username)
-    }
-    const isYou = username === stateProps.myUsername
-    const bioEditFns = isYou
-      ? {
-          onBioEdit: dispatchProps.onEditProfile,
-          onEditAvatarClick: dispatchProps.onEditAvatar,
-          onEditProfile: dispatchProps.onEditProfile,
-          onLocationEdit: dispatchProps.onEditProfile,
-          onNameEdit: dispatchProps.onEditProfile,
-        }
-      : null
-
-    if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
-      const propError = 'Expected a tracker type, trying to show profile for non user'
-      console.warn(propError)
-      return {
-        propError,
-        type: 'error',
-        onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-      }
-    }
-
-    const okProps = {
-      ...stateProps.trackerState,
-      ...dispatchProps,
-      bioEditFns,
-      currentFriendshipsTab: stateProps.currentFriendshipsTab,
-      followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
-      followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
-      following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
-      isYou,
-      loading: isLoading(stateProps.trackerState) && !isTesting,
-      onAcceptProofs: () => dispatchProps.onFollow(username),
-      onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-      onChat: () => dispatchProps.onChat(stateProps.myUsername, username),
-      onClickAvatar: () => dispatchProps.onClickAvatar(username),
-      onClickFollowers: () => dispatchProps.onClickFollowers(username),
-      onClickFollowing: () => dispatchProps.onClickFollowing(username),
-      onFollow: () => dispatchProps.onFollow(username),
-      onSearch: () => dispatchProps.onSearch(),
-      onUnfollow: () => dispatchProps.onUnfollow(username),
-      refresh,
-      username,
-    }
-
-    return {okProps, type: 'ok'}
+  return {
+    currentFriendshipsTab: routeState.currentFriendshipsTab,
+    myUsername,
+    profileIsRoot: routePath.size === 1 &&
+      (routePath.first() === profileTab || routePath.first() === peopleTab),
+    trackerState: state.tracker.trackers[username],
+    username,
   }
-)(ProfileContainer)
+}
+
+const mapDispatchToProps = (dispatch: any, {setRouteState}: OwnProps) => ({
+  getProfile: username => dispatch(getProfile(username)),
+  onAcceptProofs: username => {
+    dispatch(onFollow(username, false))
+  },
+  onBack: () => {
+    dispatch(navigateUp())
+  },
+  onChangeFriendshipsTab: currentFriendshipsTab => {
+    setRouteState({currentFriendshipsTab})
+  },
+  onChat: (myUsername, username) => {
+    dispatch(startConversation([username, myUsername]))
+  },
+  onClickAvatar: username => {
+    dispatch(onClickAvatar(username))
+  },
+  onClickFollowers: username => {
+    dispatch(onClickFollowers(username))
+  },
+  onClickFollowing: username => {
+    dispatch(onClickFollowing(username))
+  },
+  onEditAvatar: () => {
+    dispatch(navigateAppend(['editAvatar']))
+  },
+  onEditProfile: () => {
+    dispatch(navigateAppend(['editProfile']))
+  },
+  onFolderClick: folder => {
+    dispatch(openInKBFS(folder.path))
+  },
+  onFollow: username => {
+    dispatch(onFollow(username, false))
+  },
+  onMissingProofClick: (missingProof: MissingProof) => {
+    dispatch(addProof(missingProof.type))
+  },
+  onRecheckProof: (proof: Proof) => {
+    dispatch(checkProof())
+  },
+  onRevokeProof: (proof: Proof) => {
+    dispatch(
+      navigateAppend(
+        [
+          {
+            props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id},
+            selected: 'revoke',
+          },
+        ],
+        [profileTab]
+      )
+    )
+  },
+  onSearch: () => {
+    dispatch(searchSuggestions('profile:updateSearchResults'))
+    dispatch(navigateAppend([{props: {}, selected: 'search'}]))
+  },
+  onUnfollow: username => {
+    dispatch(onUnfollow(username))
+  },
+  onUserClick: username => {
+    dispatch(onUserClick(username))
+  },
+  onViewProof: (proof: Proof) => {
+    dispatch(openProofUrl(proof))
+  },
+  updateTrackers: username => dispatch(updateTrackers(username)),
+})
+
+const mergeProps = (stateProps, dispatchProps) => {
+  const {username} = stateProps
+  const refresh = () => {
+    dispatchProps.getProfile(username)
+    dispatchProps.updateTrackers(username)
+  }
+  const isYou = username === stateProps.myUsername
+  const bioEditFns = isYou
+    ? {
+        onBioEdit: dispatchProps.onEditProfile,
+        onEditAvatarClick: dispatchProps.onEditAvatar,
+        onEditProfile: dispatchProps.onEditProfile,
+        onLocationEdit: dispatchProps.onEditProfile,
+        onNameEdit: dispatchProps.onEditProfile,
+      }
+    : null
+
+  if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
+    const propError = 'Expected a tracker type, trying to show profile for non user'
+    console.warn(propError)
+    return {
+      propError,
+      type: 'error',
+      onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+    }
+  }
+
+  const okProps = {
+    ...stateProps.trackerState,
+    ...dispatchProps,
+    bioEditFns,
+    currentFriendshipsTab: stateProps.currentFriendshipsTab,
+    followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
+    followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
+    following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
+    isYou,
+    loading: isLoading(stateProps.trackerState) && !isTesting,
+    onAcceptProofs: () => dispatchProps.onFollow(username),
+    onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+    onChat: () => dispatchProps.onChat(stateProps.myUsername, username),
+    onClickAvatar: () => dispatchProps.onClickAvatar(username),
+    onClickFollowers: () => dispatchProps.onClickFollowers(username),
+    onClickFollowing: () => dispatchProps.onClickFollowing(username),
+    onFollow: () => dispatchProps.onFollow(username),
+    onSearch: () => dispatchProps.onSearch(),
+    onUnfollow: () => dispatchProps.onUnfollow(username),
+    refresh,
+    username,
+  }
+
+  return {okProps, type: 'ok'}
+}
+
+export default connect(cacheWhenRouteInactive(mapStateToProps), mapDispatchToProps, mergeProps)(
+  ProfileContainer
+)

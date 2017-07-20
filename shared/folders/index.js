@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './render'
-import pausableConnect from '../util/pausable-connect'
+import {connect} from 'react-redux'
+import cacheWhenRouteInactive from '../route-tree/cache-inactive-connect'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
@@ -70,7 +71,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
 })
 
-const ConnectedFolders = pausableConnect(mapStateToProps, mapDispatchToProps)(Folders)
+const ConnectedFolders = connect(cacheWhenRouteInactive(mapStateToProps), mapDispatchToProps)(Folders)
 
 export function PrivateFolders(props: FoldersRouteProps) {
   return <ConnectedFolders showingPrivate={true} {...props} />
