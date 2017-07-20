@@ -8,8 +8,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
-	"sync/atomic"
-	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -143,71 +141,4 @@ func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
 		return keybase1.UserOrTeamID(""), err
 	}
 	return session.UID.AsUserOrTeam(), nil
-}
-
-type useFromCacheOrFetch int
-
-const (
-	useFromCache useFromCacheOrFetch = iota
-	fetchAndCache
-)
-
-// fetchAndCacheDecider is a helper function that helps avoid having
-// too frequent calls into a remote server. The caller can provide a
-// positive tolerance, to accept stale LimitBytes and UsageBytes
-// data. If tolerance is 0 or negative, this always makes a blocking
-// RPC to bserver and return latest quota usage.
-//
-// 1) If the age of cached data is more than blockTolerance, it returns a
-// `fetchAndCache` decision, telling the caller to fetch the newest data.
-// 2) Otherwise, if the age of cached data is more than bgTolerance,
-// a background RPC is spawned to refresh cached data using `backgroundFetch`,
-// and the caller is instructed to use the stale data immediately with a
-// `useFromCache` decision.
-// 3) Otherwise, a `useFromCache` decision is returned.
-func fetchAndCacheDecider(
-	ctx context.Context, bgTolerance, blockTolerance time.Duration,
-	cachedTimestamp time.Time, backgroundFetch func(ctx context.Context),
-	backgroundInProcess *int32, log logger.Logger, tagKey interface{},
-	tagName string, clock Clock) (decision useFromCacheOrFetch, err error) {
-	past := clock.Now().Sub(cachedTimestamp)
-	switch {
-	case past > blockTolerance || cachedTimestamp.IsZero():
-		log.CDebugf(
-			ctx, "Blocking on getAndCache. Cached data is %s old.", past)
-		// TODO: optimize this to make sure there's only one outstanding RPC. In
-		// other words, wait for it to finish if one is already in progress.
-		return fetchAndCache, nil
-	case past > bgTolerance:
-		if atomic.CompareAndSwapInt32(backgroundInProcess, 0, 1) {
-			id, err := MakeRandomRequestID()
-			if err != nil {
-				log.Warning("Couldn't generate a random request ID: %v", err)
-			}
-			log.CDebugf(ctx, "Cached data is %s old. Spawning getAndCache in "+
-				"background with tag:%s=%v.", past, tagName, id)
-			go func() {
-				// Make a new context so that it doesn't get canceled
-				// when returned.
-				logTags := make(logger.CtxLogTags)
-				logTags[tagKey] = tagName
-				bgCtx := logger.NewContextWithLogTags(
-					context.Background(), logTags)
-				bgCtx = context.WithValue(bgCtx, tagKey, id)
-				// Make sure a timeout is on the context, in case the
-				// RPC blocks forever somehow, where we'd end up with
-				// never resetting backgroundInProcess flag again.
-				bgCtx, cancel := context.WithTimeout(bgCtx, 10*time.Second)
-				defer cancel()
-				backgroundFetch(bgCtx)
-				atomic.StoreInt32(backgroundInProcess, 0)
-			}()
-		} else {
-			log.CDebugf(ctx, "Cached data is %s old, but backgroundFetch "+
-				"is already running.", past)
-		}
-	default:
-		log.CDebugf(ctx, "Using cached data from %s ago.", past)
-	}
-	return useFromCache, nil
 }

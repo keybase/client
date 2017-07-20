@@ -76,8 +76,10 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
 		teamCache:               make(map[keybase1.TeamID]TeamInfo),
 	}
-	k.merkleRoot = NewEventuallyConsistentMerkleRoot(
-		config, &keybaseServiceMerkleGetter{&k})
+	if config != nil {
+		k.merkleRoot = NewEventuallyConsistentMerkleRoot(
+			config, &keybaseServiceMerkleGetter{&k})
+	}
 	return &k
 }
 

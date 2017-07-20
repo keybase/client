@@ -33,11 +33,10 @@ type cachedQuotaUsage struct {
 // EventuallyConsistentQuotaUsage keeps tracks of quota usage, in a way user of
 // which can choose to accept stale data to reduce calls into block servers.
 type EventuallyConsistentQuotaUsage struct {
-	config Config
-	log    logger.Logger
-	tid    keybase1.TeamID
-
-	backgroundInProcess int32
+	config  Config
+	log     logger.Logger
+	tid     keybase1.TeamID
+	fetcher *fetchDecider
 
 	mu     sync.RWMutex
 	cached cachedQuotaUsage
@@ -47,10 +46,19 @@ type EventuallyConsistentQuotaUsage struct {
 // EventuallyConsistentQuotaUsage object.
 func NewEventuallyConsistentQuotaUsage(
 	config Config, loggerSuffix string) *EventuallyConsistentQuotaUsage {
-	return &EventuallyConsistentQuotaUsage{
+	q := &EventuallyConsistentQuotaUsage{
 		config: config,
 		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
 	}
+	getAndCache := func(ctx context.Context) error {
+		// The error is igonred here without logging since getAndCache already
+		// logs it.
+		_, err := q.getAndCache(ctx)
+		return err
+	}
+	q.fetcher = newFetchDecider(
+		q.log, getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
+	return q
 }
 
 // NewEventuallyConsistentTeamQuotaUsage creates a new
@@ -58,11 +66,9 @@ func NewEventuallyConsistentQuotaUsage(
 func NewEventuallyConsistentTeamQuotaUsage(
 	config Config, tid keybase1.TeamID,
 	loggerSuffix string) *EventuallyConsistentQuotaUsage {
-	return &EventuallyConsistentQuotaUsage{
-		config: config,
-		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
-		tid:    tid,
-	}
+	q := NewEventuallyConsistentQuotaUsage(config, loggerSuffix)
+	q.tid = tid
+	return q
 }
 
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
@@ -95,6 +101,12 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	return usage, nil
 }
 
+func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	return q.cached
+}
+
 // Get returns KBFS bytes used and limit for user. To help avoid having too
 // frequent calls into bserver, caller can provide a positive tolerance, to
 // accept stale LimitBytes and UsageBytes data. If tolerance is 0 or negative,
@@ -110,29 +122,12 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 func (q *EventuallyConsistentQuotaUsage) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time, usageBytes, limitBytes int64, err error) {
-	c := func() cachedQuotaUsage {
-		q.mu.RLock()
-		defer q.mu.RUnlock()
-		return q.cached
-	}()
-	getAndCache := func(ctx context.Context) {
-		// The error is igonred here without logging since getAndCache already
-		// logs it.
-		_, _ = q.getAndCache(ctx)
-	}
-	decision, err := fetchAndCacheDecider(
-		ctx, bgTolerance, blockTolerance, c.timestamp, getAndCache,
-		&q.backgroundInProcess, q.log, ECQUCtxTagKey{}, ECQUID,
-		q.config.Clock())
+	c := q.getCached()
+	err = q.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {
 		return time.Time{}, -1, -1, err
 	}
 
-	if decision == fetchAndCache {
-		c, err = q.getAndCache(ctx)
-		if err != nil {
-			return time.Time{}, -1, -1, err
-		}
-	}
+	c = q.getCached()
 	return c.timestamp, c.usageBytes, c.limitBytes, nil
 }

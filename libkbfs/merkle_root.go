@@ -32,11 +32,10 @@ type cachedMerkleRoot struct {
 // Merkle root, in a way user of which can choose to accept stale data
 // to reduce calls to the API server.
 type EventuallyConsistentMerkleRoot struct {
-	config Config
-	log    logger.Logger
-	getter merkleRootGetter
-
-	backgroundInProcess int32
+	config  Config
+	log     logger.Logger
+	getter  merkleRootGetter
+	fetcher *fetchDecider
 
 	mu     sync.RWMutex
 	cached cachedMerkleRoot
@@ -46,31 +45,46 @@ type EventuallyConsistentMerkleRoot struct {
 // EventuallyConsistentMerkleRoot object.
 func NewEventuallyConsistentMerkleRoot(
 	config Config, getter merkleRootGetter) *EventuallyConsistentMerkleRoot {
-	return &EventuallyConsistentMerkleRoot{
+	ecmr := &EventuallyConsistentMerkleRoot{
 		config: config,
 		log:    config.MakeLogger(ECMRID),
 		getter: getter,
 	}
+	getAndCache := func(ctx context.Context) error {
+		// The error is igonred here without logging since getAndCache already
+		// logs it.
+		_, err := ecmr.getAndCache(ctx)
+		return err
+	}
+	ecmr.fetcher = newFetchDecider(
+		ecmr.log, getAndCache, ECMRCtxTagKey{}, ECMRID, ecmr.config)
+	return ecmr
 }
 
-func (q *EventuallyConsistentMerkleRoot) getAndCache(
+func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
 	ctx context.Context) (root cachedMerkleRoot, err error) {
 	defer func() {
-		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
+		ecmr.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
 	// Go through the
-	bareRoot, err := q.getter.GetCurrentMerkleRoot(ctx)
+	bareRoot, err := ecmr.getter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return cachedMerkleRoot{}, err
 	}
 
 	root.root = bareRoot
-	root.timestamp = q.config.Clock().Now()
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	q.cached = root
+	root.timestamp = ecmr.config.Clock().Now()
+	ecmr.mu.Lock()
+	defer ecmr.mu.Unlock()
+	ecmr.cached = root
 
 	return root, nil
+}
+
+func (ecmr *EventuallyConsistentMerkleRoot) getCached() cachedMerkleRoot {
+	ecmr.mu.RLock()
+	defer ecmr.mu.RUnlock()
+	return ecmr.cached
 }
 
 // Get returns the current merkle root. To help avoid having too
@@ -86,32 +100,14 @@ func (q *EventuallyConsistentMerkleRoot) getAndCache(
 // a background RPC is spawned to refresh cached data, and the stale
 // data is returned immediately.
 // 3) Otherwise, the cached stale data is returned immediately.
-func (q *EventuallyConsistentMerkleRoot) Get(
+func (ecmr *EventuallyConsistentMerkleRoot) Get(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
 	timestamp time.Time, root keybase1.MerkleRootV2, err error) {
-	c := func() cachedMerkleRoot {
-		q.mu.RLock()
-		defer q.mu.RUnlock()
-		return q.cached
-	}()
-	getAndCache := func(ctx context.Context) {
-		// The error is igonred here without logging since getAndCache already
-		// logs it.
-		_, _ = q.getAndCache(ctx)
-	}
-	decision, err := fetchAndCacheDecider(
-		ctx, bgTolerance, blockTolerance, c.timestamp, getAndCache,
-		&q.backgroundInProcess, q.log, ECMRCtxTagKey{}, ECMRID,
-		q.config.Clock())
+	c := ecmr.getCached()
+	err = ecmr.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
 	if err != nil {
 		return time.Time{}, keybase1.MerkleRootV2{}, err
 	}
-
-	if decision == fetchAndCache {
-		c, err = q.getAndCache(ctx)
-		if err != nil {
-			return time.Time{}, keybase1.MerkleRootV2{}, err
-		}
-	}
+	c = ecmr.getCached()
 	return c.timestamp, c.root, nil
 }
