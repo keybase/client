@@ -2099,13 +2099,24 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 
 // Post a join or leave. Must be called when the user is in the conv.
 // Uses a blocking sender.
-func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageJoinLeave) (rl *chat1.RateLimit, err error) {
+func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
 	h.Debug(ctx, "+ postJoinLeave(%v)", convID)
 	defer func() { h.Debug(ctx, "- postJoinLeave -> %v", err) }()
 
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		return rl, libkb.LoginRequiredError{}
+	}
+
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil, fmt.Errorf("message type for postJoinLeave: %v", err)
+	}
+	switch typ {
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+	// good
+	default:
+		return nil, fmt.Errorf("invalid message type for postJoinLeave: %v", typ)
 	}
 
 	// Get the conversation from the inbox.
@@ -2124,7 +2135,7 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 			Conv:         conv.Info.Triple,
 			TlfName:      conv.Info.TlfName,
 			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
-			MessageType:  chat1.MessageType_JOINLEAVE,
+			MessageType:  typ,
 			Supersedes:   chat1.MessageID(0),
 			Deletes:      nil,
 			Prev:         nil, // Filled by Sender
@@ -2134,7 +2145,7 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 			OutboxID:     nil,
 			OutboxInfo:   nil,
 		},
-		MessageBody: chat1.NewMessageBodyWithJoinleave(body),
+		MessageBody: body,
 	}
 
 	// Send with a blocking sender
@@ -2157,7 +2168,7 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	// Send a message to the channel after joining.
-	joinMessageBody := chat1.MessageJoinLeave{Join: true}
+	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 	rl, err := h.postJoinLeave(ctx, convID, joinMessageBody)
 	if err != nil {
 		h.Debug(ctx, "posting join-conv message failed: %v", err)
@@ -2253,7 +2264,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	}
 
 	// Send a message to the channel before leaving
-	leaveMessageBody := chat1.MessageJoinLeave{Join: false}
+	leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
 	_, err = h.postJoinLeave(ctx, convID, leaveMessageBody)
 	if err != nil {
 		h.Debug(ctx, "posting leave-conv message failed: %v", err)

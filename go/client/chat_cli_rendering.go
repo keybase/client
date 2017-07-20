@@ -475,13 +475,12 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Renderable = false
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
-	case chat1.MessageType_JOINLEAVE:
+	case chat1.MessageType_JOIN:
 		mv.Renderable = true
-		if body.Joinleave().Join {
-			mv.Body = "Joined this channel"
-		} else {
-			mv.Body = "Left this channel"
-		}
+		mv.Body = "<joined the channel>"
+	case chat1.MessageType_LEAVE:
+		mv.Renderable = true
+		mv.Body = "<left the channel>"
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

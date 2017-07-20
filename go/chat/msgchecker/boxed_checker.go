@@ -35,8 +35,10 @@ func checkMessageBoxedLength(msg chat1.MessageBoxed) error {
 		return boxedFieldLengthChecker("HEADLINE message", len(msg.BodyCiphertext.E), BoxedHeadlineMessageBodyMaxLength)
 	case chat1.MessageType_METADATA:
 		return boxedFieldLengthChecker("METADATA message", len(msg.BodyCiphertext.E), BoxedMetadataMessageBodyMaxLength)
-	case chat1.MessageType_JOINLEAVE:
-		return boxedFieldLengthChecker("JOINLEAVE message", len(msg.BodyCiphertext.E), BoxedJoinLeaveMessageBodyMaxLength)
+	case chat1.MessageType_JOIN:
+		return boxedFieldLengthChecker("JOIN message", len(msg.BodyCiphertext.E), BoxedJoinMessageBodyMaxLength)
+	case chat1.MessageType_LEAVE:
+		return boxedFieldLengthChecker("LEAVE message", len(msg.BodyCiphertext.E), BoxedLeaveMessageBodyMaxLength)
 	default:
 		return fmt.Errorf("unknown message type: %v", msg.GetMessageType())
 	}

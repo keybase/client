@@ -68,7 +68,7 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return err
 	}
 	switch mtype {
-	case chat1.MessageType_ATTACHMENT, chat1.MessageType_DELETE, chat1.MessageType_NONE, chat1.MessageType_TLFNAME, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_JOINLEAVE:
+	case chat1.MessageType_ATTACHMENT, chat1.MessageType_DELETE, chat1.MessageType_NONE, chat1.MessageType_TLFNAME, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), TextMessageMaxLength)
