@@ -34,6 +34,7 @@ type cachedMerkleRoot struct {
 type EventuallyConsistentMerkleRoot struct {
 	config Config
 	log    logger.Logger
+	getter merkleRootGetter
 
 	backgroundInProcess int32
 
@@ -44,10 +45,11 @@ type EventuallyConsistentMerkleRoot struct {
 // NewEventuallyConsistentMerkleRoot creates a new
 // EventuallyConsistentMerkleRoot object.
 func NewEventuallyConsistentMerkleRoot(
-	config Config, loggerSuffix string) *EventuallyConsistentMerkleRoot {
+	config Config, getter merkleRootGetter) *EventuallyConsistentMerkleRoot {
 	return &EventuallyConsistentMerkleRoot{
 		config: config,
-		log:    config.MakeLogger(ECMRID + "-" + loggerSuffix),
+		log:    config.MakeLogger(ECMRID),
+		getter: getter,
 	}
 }
 
@@ -56,7 +58,8 @@ func (q *EventuallyConsistentMerkleRoot) getAndCache(
 	defer func() {
 		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
-	bareRoot, err := q.config.KBPKI().GetCurrentMerkleRoot(ctx)
+	// Go through the
+	bareRoot, err := q.getter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return cachedMerkleRoot{}, err
 	}

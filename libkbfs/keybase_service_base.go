@@ -31,7 +31,8 @@ type KeybaseServiceBase struct {
 	kbfsMountClient keybase1.KbfsMountInterface
 	log             logger.Logger
 
-	config Config
+	config     Config
+	merkleRoot *EventuallyConsistentMerkleRoot
 
 	sessionCacheLock sync.RWMutex
 	// Set to the zero value when invalidated.
@@ -51,6 +52,20 @@ type KeybaseServiceBase struct {
 	lastSyncNotificationPath     string
 }
 
+// Wrapper over `KeybaseServiceBase` implementing a `merkleRootGetter`
+// that gets the merkle root directly from the service, without using
+// the cache.
+type keybaseServiceMerkleGetter struct {
+	k *KeybaseServiceBase
+}
+
+var _ merkleRootGetter = (*keybaseServiceMerkleGetter)(nil)
+
+func (k *keybaseServiceMerkleGetter) GetCurrentMerkleRoot(
+	ctx context.Context) (keybase1.MerkleRootV2, error) {
+	return k.k.getCurrentMerkleRoot(ctx)
+}
+
 // NewKeybaseServiceBase makes a new KeybaseService.
 func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *KeybaseServiceBase {
 	k := KeybaseServiceBase{
@@ -61,6 +76,8 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
 		teamCache:               make(map[keybase1.TeamID]TeamInfo),
 	}
+	k.merkleRoot = NewEventuallyConsistentMerkleRoot(
+		config, &keybaseServiceMerkleGetter{&k})
 	return &k
 }
 
@@ -552,9 +569,7 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	return info, nil
 }
 
-// GetCurrentMerkleRoot implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
+func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
 	keybase1.MerkleRootV2, error) {
 	const merkleFreshnessMs = int(time.Second * 60 / time.Millisecond)
 	res, err := k.merkleClient.GetCurrentMerkleRoot(ctx, merkleFreshnessMs)
@@ -563,6 +578,17 @@ func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
 	}
 
 	return res.Root, nil
+}
+
+// GetCurrentMerkleRoot implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetCurrentMerkleRoot(ctx context.Context) (
+	keybase1.MerkleRootV2, error) {
+	// Refresh the cached value in the background if the cached value
+	// is older than 30s; if our cached value is more than 60s old,
+	// block.
+	_, root, err := k.merkleRoot.Get(ctx, 30*time.Second, 60*time.Second)
+	return root, err
 }
 
 func (k *KeybaseServiceBase) processUserPlusKeys(upk keybase1.UserPlusKeys) (
