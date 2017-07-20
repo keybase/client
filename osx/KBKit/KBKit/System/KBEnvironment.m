@@ -66,6 +66,7 @@
 
     _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
     if (config.installOptions&KBInstallOptionFuse) {
+      helperRequired = YES;
       [_installables addObject:_fuse];
     }
 

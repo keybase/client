@@ -8,14 +8,21 @@ of relying on 3rd party binaries shipped from other developers.
 
 #### Build from Xcode 7
 
+In order to support 10.10 and above, you'll need to build from an older Xcode
+version.
+
 - Download Xcode 7 from /keybase/public/gabrielh/Xcode7.app.zip
 - Place in /Applications (as Xcode7.app)
+- `sudo xcode-select --switch /Applications/Xcode7.app`
+- Move /Applications/Xcode.app out of the way: `mv /Applications/Xcode.app /tmp`
+
+Afterwards, you should move Xcode.app back to /Applications.
 
 You'll also need the Keybase signing certificate from someone at Keybase.
 
 ### Building KBFuse
 
-    VERSION=3.6.0 ./build.sh
+    VERSION=3.6.3 ./build.sh
 
 This should generate a kbfuse.bundle (and fsbundle.tgz, that includes debug symbols)
 which you can submit for PR.
