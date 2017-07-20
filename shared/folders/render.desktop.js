@@ -5,6 +5,11 @@ import type {Props} from './render'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+import {connect} from 'react-redux'
+import {fuseStatus} from '../actions/kbfs'
+import Install from './install'
+
+import type {TypedState} from '../constants/reducer'
 
 class FoldersRender extends Component<void, Props, void> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
@@ -53,6 +58,7 @@ class FoldersRender extends Component<void, Props, void> {
           minHeight: 32,
         }}
       >
+        {!this.props.fuseInstalled && <Install />}
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
@@ -119,4 +125,12 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-export default FoldersRender
+const mapStateToProps = (state: TypedState) => ({
+  fuseInstalled: state.favorite.fuseStatus.status ? state.favorite.fuseStatus.status.kextStarted : false,
+})
+
+const mapDispatchToProps = (dispatch: any) => ({
+  fuseStatus: () => dispatch(fuseStatus()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(FoldersRender)

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, ProgressIndicator, Text} from '../common-adapters'
+import {Box, ProgressIndicator, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {connect} from 'react-redux'
 import {fuseStatus, installKBFS} from '../actions/kbfs'
@@ -9,6 +9,7 @@ import type {TypedState} from '../constants/reducer'
 
 type Props = {
   fuseStatus: () => void,
+  fuseInstalled: boolean,
   installing: boolean,
   installKBFS: () => void,
   loading: boolean,
@@ -24,29 +25,43 @@ class Install extends Component<void, Props, void> {
   }
 
   render() {
+    if (this.props.fuseInstalled) {
+      return null
+    }
+
     if (this.props.loading) {
       return (
         <Box style={stylesContainer}>
-          <ProgressIndicator style={{width: 48}} />
+          <ProgressIndicator style={{width: 48}} white={true} />
         </Box>
       )
     }
 
     return (
       <Box style={stylesContainer}>
-        <Text type="Body" style={{paddingBottom: 10}}>You need to install KBFS.</Text>
-        <Button type="Primary" label="Install" onClick={this._onSubmit} disabled={this.props.installing} />
+        <Text type="BodySemibold" style={{textAlign: 'center'}} backgroundMode="HighRisk">
+          Your Keybase folders are currently not showing up in your Finder.
+          <br />
+          <Text
+            type="BodySemiboldLink"
+            style={{color: globalColors.white, textDecoration: 'underline'}}
+            onClick={this._onSubmit}
+          >
+            Display in Finder
+          </Text>
+        </Text>
       </Box>
     )
   }
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.blue,
   flex: 1,
   justifyContent: 'center',
+  minHeight: 52,
 }
 
 const mapStateToProps = (state: TypedState) => {
