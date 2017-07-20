@@ -14,9 +14,12 @@ version.
 - Download Xcode 7 from /keybase/public/gabrielh/Xcode7.app.zip
 - Place in /Applications (as Xcode7.app)
 - `sudo xcode-select --switch /Applications/Xcode7.app`
-- Move /Applications/Xcode.app out of the way: `mv /Applications/Xcode.app /tmp`
+- Move /Applications/Xcode.app out of the way: `sudo mv /Applications/Xcode.app /tmp`
 
-Afterwards, you should move Xcode.app back to /Applications.
+Afterwards, you should move Xcode.app back to /Applications:
+
+- `sudo mv /tmp/Xcode.app /Applications/`
+- `sudo xcode-select --switch /Applications/Xcode.app`
 
 You'll also need the Keybase signing certificate from someone at Keybase.
 
