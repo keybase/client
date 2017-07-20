@@ -140,6 +140,43 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	assertNotTracking(tc, "t_charlie")
 }
 
+func TestPGPEncryptTrack(t *testing.T) {
+	tc := SetupEngineTest(t, "PGPEncrypt")
+	defer tc.Cleanup()
+
+	u := createFakeUserWithPGPSibkey(tc)
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+		FakeConfirmResult: &keybase1.ConfirmResult {
+			IdentityConfirmed: true,
+			RemoteConfirmed: true,
+		},
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+
+	sink := libkb.NewBufferCloser()
+	arg := &PGPEncryptArg{
+		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source: strings.NewReader("identify and encrypt, identify and encrypt"),
+		Sink:   sink,
+		NoSign: true,
+	}
+
+	eng := NewPGPEncrypt(arg, tc.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	out := sink.Bytes()
+	if len(out) == 0 {
+		t.Fatal("no output")
+	}
+
+	assertTracking(tc, "t_alice")
+	assertTracking(tc, "t_bob")
+	assertTracking(tc, "t_charlie")
+}
+
 // encrypt for self via NoSelf: false and username in recipients
 func TestPGPEncryptSelfTwice(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPEncrypt")

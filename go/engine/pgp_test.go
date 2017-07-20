@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestGenerateNewPGPKey(t *testing.T) {
@@ -164,7 +165,14 @@ func (p *pgpPair) isTracking(meContext libkb.TestContext, username string) bool 
 }
 
 func (p *pgpPair) encrypt(sign bool) (string, int) {
-	ctx := &Context{IdentifyUI: &FakeIdentifyUI{}, SecretUI: p.sender.NewSecretUI()}
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+		FakeConfirmResult: &keybase1.ConfirmResult {
+			IdentityConfirmed: true,
+			RemoteConfirmed: false,
+		},
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: p.sender.NewSecretUI()}
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Recips: []string{p.recipient.Username},

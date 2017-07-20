@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"io"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -208,7 +209,6 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 		arg := keybase1.Identify2Arg{
 			UserAssertion: userAssert,
 			AlwaysBlock:   true,
-			NeedProofSet:  true,
 		}
 		topts := keybase1.TrackOptions{
 			LocalOnly: me == nil,
@@ -219,8 +219,11 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
 
+		_ = fmt.Printf
+
 		res := ieng.Result()
 		confirmResult := ieng.ConfirmResult()
+		fmt.Printf("%+v\n", confirmResult)
 		if !confirmResult.IdentityConfirmed {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Not confirmed by user."}
 		}

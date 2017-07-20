@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 	"time"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -243,6 +244,7 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 		result.IdentityConfirmed = outcome.TrackOptions.BypassConfirm
 		result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
 	}
+	fmt.Printf("Fake confirm: %+v\n", result)
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
