@@ -12,6 +12,7 @@ export type StateProps = {|
   selectedConversation: ?Constants.ConversationIDKey,
   validated: boolean,
   you: string,
+  getMessageFromMessageKey: (messageKey: Constants.MessageKey) => Constants.Message
 |}
 
 export type DispatchProps = {|

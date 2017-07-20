@@ -3,50 +3,35 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
-import {List} from 'immutable'
+import {List, is} from 'immutable'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
-import {createSelector} from 'reselect'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import * as Selectors from '../../../constants/selectors'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
 import type {OwnProps, StateProps, DispatchProps} from './container'
 import type {Props} from '.'
+import type {TypedState} from '../../../constants/reducer'
 
-// TODO change this. This is a temporary store for the messages so we can have a function to map from
-// messageKey to Message to support the 'edit last message' functionality. We should change how this works
-let _messages: List<Constants.Message> = List()
-const _getMessageFromMessageKey = (messageKey: Constants.MessageKey): ?Constants.Message =>
-  _messages.find(m => m.key === messageKey)
-
-const getPropsFromConversationState = createSelector(
-  [Constants.getSelectedConversationStates, Constants.getSelectedInbox, Constants.getSupersedes],
-  (conversationState, inbox, _supersedes) => {
-    let supersedes = null
-    let messageKeys = List()
-    let validated = false
-    if (conversationState) {
-      if (!conversationState.moreToLoad) {
-        supersedes = _supersedes
-      }
-
-      messageKeys = conversationState.messages.map(m => m.key)
-      _messages = conversationState.messages
-      validated = inbox && inbox.state === 'unboxed'
-    }
-    return {
-      messageKeys,
-      supersedes,
-      validated,
+const getValidatedState = (state: TypedState) => {
+  const inbox = Constants.getSelectedInbox(state)
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
+    if (Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)) {
+      // If it's as pending conversation with a tlfname, let's call it valid
+      return true
     }
   }
-)
+  return (inbox && inbox.state === 'unboxed') || false
+}
 
-// This is a temporary solution until I can cleanup the reducer in a different PR
-// messageKeys is being derived so it can change even when nothing else is causing re-renders
-// As a short term 'cheat' i'm keeping the last copy and returning that if its equivalent. TODO take this out later
-let _lastMessageKeys = List()
+const supersedesIfNoMoreToLoadSelector = createSelector(
+  [Constants.getSelectedConversationStates, Constants.getSupersedes],
+  (conversationState, _supersedes) =>
+    conversationState && !conversationState.moreToLoad ? _supersedes : null
+)
 
 const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps) => ({
   editLastMessageCounter,
@@ -54,45 +39,44 @@ const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onF
   onFocusInput,
 })
 
-const convStateProps = createSelector(
-  [Constants.getSelectedConversation, getPropsFromConversationState],
-  (selectedConversationIDKey, convStateProps) => {
-    let validated = false
-    let messageKeys = List()
-    let supersedes
+const immutableCreateSelector = createSelectorCreator(defaultMemoize, (a, b) => a === b || is(a, b))
 
-    if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
-      const tlfName = Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)
-      if (tlfName) {
-        validated = true
-      }
-    } else if (selectedConversationIDKey && selectedConversationIDKey !== Constants.nothingSelected) {
-      supersedes = convStateProps.supersedes
-      if (convStateProps.messageKeys.equals(_lastMessageKeys)) {
-        if (messageKeys !== _lastMessageKeys) {
-          console.log('Message keys are not the same!!!')
-        }
-        // messageKeys = _lastMessageKeys
-      } else {
-        _lastMessageKeys = messageKeys
-      }
-      messageKeys = convStateProps.messageKeys
-      validated = convStateProps.validated
-    }
-
-    return {
-      validated,
-      messageKeys,
-      _supersedes: supersedes,
-      selectedConversation: selectedConversationIDKey,
-    }
+const emptyList = List()
+const messagesSelector = (state: TypedState) => {
+  const convState = Constants.getSelectedConversationStates(state)
+  if (convState) {
+    return convState.messages
   }
+  return emptyList
+}
+
+const messageKeysSelector = immutableCreateSelector([messagesSelector], messages => messages.map(m => m.key))
+
+const getMessageFromMessageKeyFnSelector = immutableCreateSelector([messagesSelector], messages => (
+  messageKey: Constants.MessageKey
+): ?Constants.Message => messages.find(m => m.key === messageKey))
+
+const convStateProps = createSelector(
+  [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
+  (selectedConversation, _supersedes, validated) => ({
+    validated,
+    _supersedes,
+    selectedConversation,
+  })
 )
 
 const mapStateToProps = createSelector(
-  [ownPropsSelector, Selectors.usernameSelector, convStateProps],
-  (ownProps, username, convStateProps) => ({
+  [
+    ownPropsSelector,
+    Selectors.usernameSelector,
+    convStateProps,
+    messageKeysSelector,
+    getMessageFromMessageKeyFnSelector,
+  ],
+  (ownProps, username, convStateProps, messageKeys, getMessageFromMessageKey) => ({
     you: username,
+    messageKeys,
+    getMessageFromMessageKey,
     ...ownProps,
     ...convStateProps,
   })
@@ -131,7 +115,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
 
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
-    getMessageFromMessageKey: _getMessageFromMessageKey,
+    getMessageFromMessageKey: stateProps.getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
     messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,
