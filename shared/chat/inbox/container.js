@@ -5,7 +5,7 @@ import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, branch, renderNothing} from 'recompose'
 import throttle from 'lodash/throttle'
 
 import type {TypedState} from '../../constants/reducer'
@@ -43,10 +43,11 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
   return I.List(pending.keys()).concat(inbox)
 })
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
   isLoading: state.chat.get('inboxUntrustedState') === 'loading',
   showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
   rows: getRows(state),
+  isActiveRoute,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -62,6 +63,7 @@ const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps),
+  branch(props => !props.isActiveRoute, renderNothing),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
