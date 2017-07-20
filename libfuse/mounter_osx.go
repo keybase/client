@@ -67,12 +67,12 @@ func translatePlatformSpecificError(err error, platformParams PlatformParams) er
 	if err == fuse.ErrOSXFUSENotFound {
 		if platformParams.UseSystemFuse {
 			return errors.New(
-				"cannot locate OSXFUSE 3.x (3.2 recommended)")
+				"cannot locate OSXFUSE 3.x")
 		}
 		return errors.New(
 			"cannot locate kbfuse; either install the Keybase " +
-				"app, or install OSXFUSE 3.x (3.2 " +
-				"recommended) and pass in --use-system-fuse")
+				"app, or install OSXFUSE 3.x " +
+				"and pass in --use-system-fuse")
 	}
 	return err
 }
