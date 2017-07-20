@@ -608,7 +608,6 @@ func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.Conversation
 	topicName *string) (*chat1.MessageBoxed, error) {
 	var msg chat1.MessagePlaintext
 	if topicName != nil {
-		fmt.Printf("TOPIC NAME: FIRST: %s\n", *topicName)
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
