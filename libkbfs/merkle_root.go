@@ -50,35 +50,28 @@ func NewEventuallyConsistentMerkleRoot(
 		log:    config.MakeLogger(ECMRID),
 		getter: getter,
 	}
-	getAndCache := func(ctx context.Context) error {
-		// The error is igonred here without logging since getAndCache already
-		// logs it.
-		_, err := ecmr.getAndCache(ctx)
-		return err
-	}
 	ecmr.fetcher = newFetchDecider(
-		ecmr.log, getAndCache, ECMRCtxTagKey{}, ECMRID, ecmr.config)
+		ecmr.log, ecmr.getAndCache, ECMRCtxTagKey{}, ECMRID, ecmr.config)
 	return ecmr
 }
 
 func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
-	ctx context.Context) (root cachedMerkleRoot, err error) {
+	ctx context.Context) (err error) {
 	defer func() {
 		ecmr.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
 	// Go through the
 	bareRoot, err := ecmr.getter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
-		return cachedMerkleRoot{}, err
+		return err
 	}
 
-	root.root = bareRoot
-	root.timestamp = ecmr.config.Clock().Now()
 	ecmr.mu.Lock()
 	defer ecmr.mu.Unlock()
-	ecmr.cached = root
+	ecmr.cached.root = bareRoot
+	ecmr.cached.timestamp = ecmr.config.Clock().Now()
 
-	return root, nil
+	return nil
 }
 
 func (ecmr *EventuallyConsistentMerkleRoot) getCached() cachedMerkleRoot {

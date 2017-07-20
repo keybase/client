@@ -50,14 +50,8 @@ func NewEventuallyConsistentQuotaUsage(
 		config: config,
 		log:    config.MakeLogger(ECQUID + "-" + loggerSuffix),
 	}
-	getAndCache := func(ctx context.Context) error {
-		// The error is igonred here without logging since getAndCache already
-		// logs it.
-		_, err := q.getAndCache(ctx)
-		return err
-	}
 	q.fetcher = newFetchDecider(
-		q.log, getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
+		q.log, q.getAndCache, ECQUCtxTagKey{}, ECQUID, q.config)
 	return q
 }
 
@@ -72,7 +66,7 @@ func NewEventuallyConsistentTeamQuotaUsage(
 }
 
 func (q *EventuallyConsistentQuotaUsage) getAndCache(
-	ctx context.Context) (usage cachedQuotaUsage, err error) {
+	ctx context.Context) (err error) {
 	defer func() {
 		q.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
@@ -83,22 +77,20 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 		quotaInfo, err = q.config.BlockServer().GetTeamQuotaInfo(ctx, q.tid)
 	}
 	if err != nil {
-		return cachedQuotaUsage{}, err
+		return err
 	}
-
-	usage.limitBytes = quotaInfo.Limit
-	if quotaInfo.Total != nil {
-		usage.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
-	} else {
-		usage.usageBytes = 0
-	}
-	usage.timestamp = q.config.Clock().Now()
 
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	q.cached = usage
+	q.cached.limitBytes = quotaInfo.Limit
+	if quotaInfo.Total != nil {
+		q.cached.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
+	} else {
+		q.cached.usageBytes = 0
+	}
+	q.cached.timestamp = q.config.Clock().Now()
 
-	return usage, nil
+	return nil
 }
 
 func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
