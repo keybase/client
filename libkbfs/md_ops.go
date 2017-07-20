@@ -219,7 +219,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// easy way of verifying that they used to be in the team.  We
 	// rely on the fact that the updates are decryptable with the
 	// secret key as a way to prove that only an authorized team
-	// member posted the proof, along with trusting that the server
+	// member wrote the update, along with trusting that the server
 	// would have rejected an update from a former team member that is
 	// still using an old key.  TODO(KBFS-2229): remove this.
 	err := rmds.IsValidAndSigned(
