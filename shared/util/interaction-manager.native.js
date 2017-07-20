@@ -8,7 +8,9 @@ const runAfterInteractions = (f: Function, timeout: number = 500) => {
   // @gre workaround https://github.com/facebook/react-native/issues/8624
   let called = false
   const timeoutId = setTimeout(() => {
-    console.warn('Some animation is taking too long. Could not run after interaction')
+    if (__DEV__) {
+      console.warn('Some animation is taking too long. Could not run after interaction')
+    }
     called = true
     f()
   }, timeout)
