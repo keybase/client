@@ -89,6 +89,11 @@ const makeCommonConfig = () => {
         use: [fileLoaderRule],
       },
       {
+        include: path.resolve(__dirname, '../images/install'),
+        test: [/.*\.(gif|png)$/],
+        use: [fileLoaderRule],
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },
