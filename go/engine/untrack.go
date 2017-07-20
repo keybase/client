@@ -49,6 +49,9 @@ func (e *UntrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *UntrackEngine) Run(ctx *Context) (err error) {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "UntrackEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "UntrackEngine")
+
 	e.arg.Me, err = e.loadMe()
 	if err != nil {
 		return

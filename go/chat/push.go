@@ -256,8 +256,11 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
 						convID, update.FinalizeInfo, conv)
 				} else {
-					g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-						[]chat1.ConversationID{convID}, false)
+					supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+						ConvID:     convID,
+						UpdateType: chat1.StaleUpdateType_CLEAR,
+					}}
+					g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 				}
 			}
 		}
@@ -313,8 +316,11 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 				g.G().NotifyRouter.HandleChatTLFResolve(ctx, keybase1.UID(uid.String()),
 					update.ConvID, resolveInfo)
 			} else {
-				g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-					[]chat1.ConversationID{update.ConvID}, false)
+				supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+					ConvID:     update.ConvID,
+					UpdateType: chat1.StaleUpdateType_CLEAR,
+				}}
+				g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 			}
 		}
 	}(bctx)
@@ -467,8 +473,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				if pushErr != nil {
 					g.Debug(ctx, "chat activity: newMessage: push error, alerting")
 				}
-				g.G().Syncer.SendChatStaleNotifications(ctx, m.UID().Bytes(),
-					[]chat1.ConversationID{nm.ConvID}, true)
+				supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+					ConvID:     nm.ConvID,
+					UpdateType: chat1.StaleUpdateType_CLEAR,
+				}}
+				g.G().Syncer.SendChatStaleNotifications(ctx, m.UID().Bytes(), supdate, true)
 			}
 
 			if g.badger != nil && nm.UnreadUpdate != nil {
@@ -600,8 +609,11 @@ func (g *PushHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID,
 	} else {
 		// If we are not in send notifications mode, then just label this conversation
 		// as stale, and we can reload the thread.
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid.(gregor1.UID),
-			[]chat1.ConversationID{convID}, false)
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		}}
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid.(gregor1.UID), supdate, false)
 	}
 
 	return nil
@@ -614,8 +626,11 @@ func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 	if g.shouldSendNotifications() {
 		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv)
 	} else {
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-			[]chat1.ConversationID{conv.GetConvID()}, false)
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     conv.GetConvID(),
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		}}
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 	}
 }
 
@@ -626,8 +641,11 @@ func (g *PushHandler) notifyLeftChannel(ctx context.Context, uid gregor1.UID,
 	if g.shouldSendNotifications() {
 		g.G().NotifyRouter.HandleChatLeftConversation(ctx, kuid, convID)
 	} else {
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid,
-			[]chat1.ConversationID{convID}, false)
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		}}
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 	}
 }
 
@@ -650,7 +668,11 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 		})
 		g.notifyNewChatActivity(ctx, uid, member.ConvID, nil, &activity)
 	} else {
-		g.G().Syncer.SendChatStaleNotifications(ctx, uid, []chat1.ConversationID{member.ConvID}, false)
+		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
+			ConvID:     member.ConvID,
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		}}
+		g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, false)
 	}
 }
 

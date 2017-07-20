@@ -77,6 +77,16 @@ protocol NotifyChat {
     array<TyperInfo> typers;
   }
 
+  enum StaleUpdateType {
+    CLEAR_0,
+    NEWACTIVITY_1
+  }
+
+  record ConversationStaleUpdate {
+    ConversationID convID;
+    StaleUpdateType updateType;
+  }
+
   @notify("")
   @lint("ignore")
   void NewChatActivity(keybase1.UID uid, ChatActivity activity);
@@ -100,7 +110,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatThreadsStale(keybase1.UID uid, array<ConversationID> convIDs);
+  void ChatThreadsStale(keybase1.UID uid, array<ConversationStaleUpdate> updates);
 
   @notify("")
   @lint("ignore")

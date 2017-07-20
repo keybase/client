@@ -247,9 +247,9 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
       dispatch(Creators.inboxStale())
     })
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      if (convIDs) {
-        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+      if (updates) {
+        dispatch(Creators.markThreadsStale(updates))
       }
     })
   })
@@ -806,11 +806,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
-    // Don't navigate into errored conversations
-    if (inbox.get('state') === 'error') {
-      return
-    }
-
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
@@ -943,7 +938,8 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
 
 function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
-  const {convIDs} = action.payload
+  const {updates} = action.payload
+  const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
   yield call(Inbox.unboxConversations, convIDs)
 
   // Selected is stale?

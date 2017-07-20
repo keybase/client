@@ -42,6 +42,7 @@ export type UpdateFollowing = NoErrorTypedAction<
 export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
 export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
 export type SetLaunchedViaPush = NoErrorTypedAction<'config:setLaunchedViaPush', boolean>
+export type PushLoaded = NoErrorTypedAction<'config:pushLoaded', boolean>
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
 
@@ -56,6 +57,7 @@ export function publicFolderWithUsers(users: Array<string>): string {
 export type State = {
   appFocused: boolean,
   bootStatus: BootStatus,
+  pushLoaded: boolean,
   bootstrapTriesRemaining: number,
   config: ?Config,
   daemonError: ?Error,
@@ -80,6 +82,7 @@ export type State = {
 const stateLoggerTransform = (state: State) => ({
   appFocused: state.appFocused,
   bootStatus: state.bootStatus,
+  pushLoaded: state.pushLoaded,
   bootstrapTriesRemaining: state.bootstrapTriesRemaining,
   config: state.config,
   daemonError: state.daemonError,

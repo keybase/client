@@ -29,6 +29,13 @@ const conversationRoute = new RouteDefNode({
     },
     infoPanel: {
       component: InfoPanel,
+      children: {
+        showBlockConversationDialog: {
+          component: BlockConversationWarning,
+          tags: {layerOnTop: true},
+          children: {},
+        },
+      },
     },
     enterPaperkey: {
       component: EnterPaperkey,
@@ -36,11 +43,6 @@ const conversationRoute = new RouteDefNode({
     messageAction: {
       component: MessagePopup,
       tags: {keepKeyboardOnLeave: true, layerOnTop: true},
-    },
-    showBlockConversationDialog: {
-      component: BlockConversationWarning,
-      tags: {layerOnTop: true},
-      children: {},
     },
   },
 })

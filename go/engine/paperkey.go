@@ -60,6 +60,9 @@ func (e *PaperKey) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *PaperKey) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "PaperKey")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "PaperKey")
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		return err

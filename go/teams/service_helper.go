@@ -227,10 +227,8 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 }
 
 func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
-	arg := libkb.NewAPIArg("team/token")
-	arg.Args = libkb.NewHTTPArgs()
+	arg := apiArg(ctx, "team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
-	arg.SessionType = libkb.APISessionTypeREQUIRED
 	_, err := g.API.Post(arg)
 	return err
 }
@@ -247,7 +245,9 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 
 func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
-	res := g.Resolver.ResolveWithBody(username)
+	// need username here as `username` parameter might be social assertion, also username
+	// is used for chat notification recipient
+	res := g.Resolver.ResolveFullExpressionNeedUsername(ctx, username)
 	if res.GetError() != nil {
 		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
@@ -328,9 +328,11 @@ func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.Id
 func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1.UserOrTeamID, id2 keybase1.TeamID) (res keybase1.IdentifyLiteRes, err error) {
 
 	var id1 keybase1.TeamID
-	id1, err = utid.AsTeam()
-	if err != nil {
-		return res, err
+	if utid.Exists() {
+		id1, err = utid.AsTeam()
+		if err != nil {
+			return res, err
+		}
 	}
 
 	if id1.Exists() && id2.Exists() && !id1.Eq(id2) {
@@ -378,4 +380,70 @@ func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return nil, err
 	}
 	return t.chain().FindActiveInvite(username, typ)
+}
+
+func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+	arg := apiArg(ctx, "team/request_access")
+	arg.Args.Add("team", libkb.S{Val: teamname})
+	_, err := g.API.Post(arg)
+	return err
+}
+
+type accessRequest struct {
+	FQName   string          `json:"fq_name"`
+	TeamID   keybase1.TeamID `json:"team_id"`
+	UID      keybase1.UID    `json:"uid"`
+	Username string          `json:"username"`
+}
+
+type accessRequestList struct {
+	Requests []accessRequest `json:"requests"`
+	Status   libkb.AppStatus `json:"status"`
+}
+
+func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func ListRequests(ctx context.Context, g *libkb.GlobalContext) ([]keybase1.TeamJoinRequest, error) {
+	arg := apiArg(ctx, "team/laar")
+
+	var arList accessRequestList
+	if err := g.API.GetDecode(arg, &arList); err != nil {
+		return nil, err
+	}
+
+	joinRequests := make([]keybase1.TeamJoinRequest, len(arList.Requests))
+	for i, ar := range arList.Requests {
+		joinRequests[i] = keybase1.TeamJoinRequest{
+			Name:     ar.FQName,
+			Username: ar.Username,
+		}
+	}
+
+	return joinRequests, nil
+}
+
+func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	uv, err := loadUserVersionByUsername(ctx, g, username)
+	if err != nil {
+		if err == errInviteRequired {
+			return libkb.NotFoundError{
+				Msg: fmt.Sprintf("No keybase user found (%s)", username),
+			}
+		}
+		return err
+	}
+	arg := apiArg(ctx, "team/deny_access")
+	arg.Args.Add("team", libkb.S{Val: teamname})
+	arg.Args.Add("uid", libkb.S{Val: uv.Uid.String()})
+	_, err = g.API.Post(arg)
+	return err
+}
+
+func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
+	arg := libkb.NewAPIArgWithNetContext(ctx, endpoint)
+	arg.Args = libkb.NewHTTPArgs()
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	return arg
 }

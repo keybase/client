@@ -149,6 +149,10 @@ build_one_architecture() {
   fi
 }
 
+# required for cross-compiling, or else the Go compiler will skip over
+# resinit_nix.go and fail the i386 build
+export CGO_ENABLED=1
+
 export GOARCH=amd64
 export debian_arch=amd64
 export electron_arch=x64

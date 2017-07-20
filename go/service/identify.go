@@ -6,10 +6,8 @@ package service
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"golang.org/x/net/context"
-	"stathat.com/c/ramcache"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -33,10 +31,6 @@ type IdentifyHandler struct {
 }
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
-	c := ramcache.New()
-	c.TTL = 5 * time.Minute
-	c.MaxAge = 5 * time.Minute
-
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
@@ -73,6 +67,9 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
 		au, _ = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+	} else {
+		// empty assertion url required for teams.IdentifyLite
+		au = libkb.AssertionKeybase{}
 	}
 
 	if arg.Id.IsTeamOrSubteam() || libkb.AssertionIsTeam(au) {
