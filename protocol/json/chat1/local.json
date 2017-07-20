@@ -286,6 +286,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageJoinLeave",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "join"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -341,6 +351,13 @@
             "def": false
           },
           "body": "MessageAttachmentUploaded"
+        },
+        {
+          "label": {
+            "name": "JOINLEAVE",
+            "def": false
+          },
+          "body": "MessageJoinLeave"
         }
       ]
     },

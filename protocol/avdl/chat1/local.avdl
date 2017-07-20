@@ -92,6 +92,10 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
+  record MessageJoinLeave {
+    boolean join; // whether this is a join or a leave
+  }
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -100,6 +104,7 @@ protocol local {
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
     case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
+    case JOINLEAVE: MessageJoinLeave;
   }
 
   enum OutboxStateType {
