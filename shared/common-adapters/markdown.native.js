@@ -139,13 +139,20 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <EmojiIfExists
             emojiName={String(children)}
-            size={15}
+            size={options.bigEmoji ? 32 : 16}
             key={key}
             allowFontScaling={allowFontScaling}
           />
         )
       case 'native-emoji':
-        return <Emoji emojiName={String(children)} size={15} key={key} allowFontScaling={allowFontScaling} />
+        return (
+          <Emoji
+            emojiName={String(children)}
+            size={options.bigEmoji ? 32 : 16}
+            key={key}
+            allowFontScaling={allowFontScaling}
+          />
+        )
       case 'quote-block':
         return <Box key={key} style={quoteBlockStyle}>{children}</Box>
     }

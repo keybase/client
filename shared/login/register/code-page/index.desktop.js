@@ -21,28 +21,33 @@ import type {Props} from '.'
 
 const SubTitle = ({usePhone}) => (
   <p>
-    <Text type="Body">In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon
-      type="iconfont-identity-devices"
-      style={{
-        color: globalColors.black_75,
-        paddingLeft: globalMargins.xtiny,
-        paddingRight: globalMargins.xtiny,
-      }}
-    />
-    <Text type="Body">Devices > Add a new device.</Text>
+    {usePhone
+      ? <Text type="Body">
+          In the Keybase app on your phone, go to
+          {' '}
+          <Text type="BodySemibold">Settings > Devices > Add new...</Text>
+        </Text>
+      : <Text type="Body">
+          In the Keybase app on your computer, go to <Text type="BodySemibold">Devices > Add new...</Text>
+        </Text>}
+  </p>
+)
+
+const DeviceIcon = ({usePhone}) => (
+  <p>
+    {usePhone
+      ? <Icon type="icon-phone-text-code-48" style={{marginTop: globalMargins.medium}} />
+      : <Icon type="icon-computer-text-code-48" style={{marginTop: globalMargins.medium}} />}
   </p>
 )
 
 const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
   <Container style={stylesContainer} onBack={onBack}>
-    <Text type="Header" style={{marginTop: 60}}>Type in text code</Text>
-    <p style={{marginTop: 10}}>
-      <Text type="Body">Run&nbsp;</Text>
-      <Text type="TerminalInline">keybase device add</Text>
-      <Text type="Body">&nbsp;on your other device and type this code there: </Text>
-    </p>
-    <Icon type="icon-computer-text-code-48" style={{marginTop: 28}} />
+    <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.large}}>
+      Type in text code
+    </Text>
+    <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
+    <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
     <Text type="Body" style={stylesPaperkey}>{textCode}</Text>
     {_otherIsPhone(otherDeviceRole) &&
       <p
@@ -60,7 +65,9 @@ const CodePageText = ({onBack, textCode, otherDeviceRole, setCodePageMode}) => (
 const CodePageCode = ({onBack, otherDeviceRole, setCodePageMode, qrCode}) => (
   <Container style={{...stylesContainer, alignItems: 'stretch'}} onBack={onBack}>
     <div style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, overflowY: 'auto'}}>
-      <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Scan this QR code</Text>
+      <Text style={{marginBottom: globalMargins.small, marginTop: globalMargins.large}} type="Header">
+        Scan this QR code
+      </Text>
       <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
       <div style={stylesQrContainer}>
         <div style={{background: `url("${qrCode}")`, ...stylesQr}} />
@@ -88,7 +95,7 @@ const CodePageEnterText = ({
   <Container style={stylesContainer} onBack={onBack}>
     <Text style={{marginBottom: 11, marginTop: 38}} type="Header">Type in text code</Text>
     <SubTitle usePhone={_otherIsPhone(otherDeviceRole)} />
-    <Icon style={{marginBottom: 40, marginTop: 30}} type="icon-phone-text-code-32" />
+    <DeviceIcon usePhone={_otherIsPhone(otherDeviceRole)} />
     <Input
       errorText={enterCodeErrorText}
       hintText="opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas"
@@ -146,7 +153,8 @@ const stylesPaperkey = {
   color: globalColors.darkBlue,
   display: 'inline-block',
   lineHeight: '20px',
-  marginTop: 30,
+  marginBottom: globalMargins.xlarge,
+  marginTop: globalMargins.medium,
   maxWidth: 460,
   textAlign: 'center',
 }
@@ -154,12 +162,11 @@ const stylesQrContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   alignSelf: 'stretch',
-  backgroundColor: globalColors.blue2,
-  marginBottom: 47,
-  marginTop: 35,
+  marginBottom: globalMargins.large,
+  marginTop: globalMargins.large,
   minHeight: 220,
   minWidth: 220,
-  padding: 15,
+  padding: globalMargins.small,
 }
 const stylesQr = {
   backgroundPosition: '-22px -22px',
