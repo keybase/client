@@ -275,6 +275,19 @@ function* _chatInboxFailedSubSaga(params) {
   })
 
   yield put(Creators.updateInbox(conversation))
+
+  // Mark the conversation as read, to avoid a state where there's a
+  // badged conversation that can't be unbadged by clicking on it.
+  const {maxMsgid} = error.remoteConv.readerInfo
+  if (maxMsgid) {
+    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      param: {
+        conversationID: convID,
+        msgID: maxMsgid,
+      },
+    })
+  }
+
   switch (error.typ) {
     case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
       yield put(Creators.updateInboxRekeySelf(conversationIDKey))
