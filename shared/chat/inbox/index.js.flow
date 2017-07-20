@@ -13,7 +13,7 @@ export type RowProps = {
   onSelectConversation: (key: ConversationIDKey) => void,
   marginRight: number,
   participantNeedToRekey: boolean,
-  participants: any,
+  participants: List<string>,
   rekeyInfo: any,
   showBold: boolean,
   snippet: string,

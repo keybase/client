@@ -10,8 +10,10 @@ import {
   ClickableBox,
   LoadingLine,
   NativeStyleSheet,
+  NativeDimensions,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {List} from 'immutable'
 import {RowConnector} from './row'
 import debounce from 'lodash/debounce'
 import memoize from 'lodash/memoize'
@@ -55,54 +57,69 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
   return !idx && isLastParticipant ? undefined : backgroundColor
 }
 
-const Avatars = ({
-  participants,
-  youNeedToRekey,
-  participantNeedToRekey,
-  isMuted,
-  hasUnread,
-  isSelected,
-  backgroundColor,
-}) => {
-  const avatarCount = Math.min(2, participants.count())
+class Avatars
+  extends PureComponent<
+    void,
+    {
+      participants: List<string>,
+      youNeedToRekey: boolean,
+      participantNeedToRekey: boolean,
+      isMuted: boolean,
+      isSelected: boolean,
+      backgroundColor: string,
+    },
+    void
+  > {
+  render() {
+    const {
+      participants,
+      youNeedToRekey,
+      participantNeedToRekey,
+      isMuted,
+      isSelected,
+      backgroundColor,
+    } = this.props
 
-  let icon
-  if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarMutedIconStyle} />
-  } else if (participantNeedToRekey || youNeedToRekey) {
-    icon = (
-      <Icon
-        type={isSelected ? 'icon-addon-lock-active-12' : 'icon-addon-lock-12'}
-        style={avatarLockIconStyle}
-      />
+    const avatarCount = Math.min(2, participants.count())
+
+    let icon
+    if (isMuted) {
+      icon = <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarMutedIconStyle} />
+    } else if (participantNeedToRekey || youNeedToRekey) {
+      icon = (
+        <Icon
+          type={isSelected ? 'icon-addon-lock-active-12' : 'icon-addon-lock-12'}
+          style={avatarLockIconStyle}
+        />
+      )
+    }
+
+    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
+    const avatarProps = participants
+      .slice(0, 2)
+      .map((username, idx) => ({
+        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+        loadingColor: globalColors.lightGrey,
+        size: 32,
+        username,
+        skipBackground: true,
+      }))
+      .toArray()
+
+    return (
+      <Box style={avatarBoxStyle(backgroundColor)}>
+        <Box style={avatarInnerBoxStyle}>
+          <MultiAvatar
+            singleSize={40}
+            multiSize={32}
+            avatarProps={avatarProps}
+            style={{...multiStyle(backgroundColor), opacity}}
+          />
+          {icon}
+        </Box>
+      </Box>
     )
   }
-
-  const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
-  const avatarProps = participants
-    .slice(0, 2)
-    .map((username, idx) => ({
-      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.lightGrey,
-      size: 32,
-      username,
-      skipBackground: true,
-    }))
-    .toArray()
-
-  return (
-    <Box style={avatarBoxStyle(backgroundColor)}>
-      <Box style={avatarInnerBoxStyle}>
-        <MultiAvatar
-          singleSize={40}
-          multiSize={32}
-          avatarProps={avatarProps}
-          style={{...multiStyle(backgroundColor), opacity}}
-        />
-        {icon}
-      </Box>
-    </Box>
-  )
 }
 
 const multiStyle = memoize(backgroundColor => {
@@ -131,14 +148,142 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, usernameColor}) => {
-  const boldOverride = showBold ? globalStyles.fontBold : null
-  return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 19, minHeight: 19}}>
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 19, minHeight: 19, position: 'relative'}}>
+class TopLine
+  extends PureComponent<
+    void,
+    {
+      hasUnread: boolean,
+      participants: List<string>,
+      showBold: boolean,
+      subColor: ?string,
+      timestamp: ?string,
+      usernameColor: ?string,
+    },
+    void
+  > {
+  render() {
+    const {hasUnread, showBold, participants, subColor, timestamp, usernameColor} = this.props
+    const boldOverride = showBold ? globalStyles.fontBold : null
+    return (
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 19, minHeight: 19}}>
+        <Box
+          style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 19, minHeight: 19, position: 'relative'}}
+        >
+          <Box
+            style={{
+              ...globalStyles.flexBoxColumn,
+              bottom: 0,
+              justifyContent: 'flex-start',
+              left: 0,
+              position: 'absolute',
+              right: 0,
+              top: 0,
+            }}
+          >
+            <Usernames
+              inline={true}
+              plainText={true}
+              type="BodySemibold"
+              containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
+              users={participants.map(p => ({username: p})).toArray()}
+              title={participants.join(', ')}
+            />
+          </Box>
+        </Box>
+        <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
+        {hasUnread && <Box style={unreadDotStyle} />}
+      </Box>
+    )
+  }
+}
+
+class BottomLine
+  extends PureComponent<
+    void,
+    {
+      backgroundColor: ?string,
+      participantNeedToRekey: boolean,
+      showBold: boolean,
+      snippet: ?string,
+      subColor: ?string,
+      youNeedToRekey: boolean,
+    },
+    void
+  > {
+  render() {
+    const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
+    let content
+
+    if (youNeedToRekey) {
+      content = (
         <Box
           style={{
-            ...globalStyles.flexBoxColumn,
+            alignSelf: 'center',
+            backgroundColor: globalColors.red,
+            borderRadius: 2,
+            paddingLeft: globalMargins.xtiny,
+            paddingRight: globalMargins.xtiny,
+          }}
+        >
+          <Text
+            type="BodySmallSemibold"
+            backgroundMode="Terminal"
+            style={{
+              color: globalColors.white,
+              fontSize: 11,
+              lineHeight: 14,
+            }}
+          >
+            REKEY NEEDED
+          </Text>
+        </Box>
+      )
+    } else if (participantNeedToRekey) {
+      content = (
+        <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
+          Waiting for participants to rekey
+        </Text>
+      )
+    } else if (snippet) {
+      const baseStyle = styles['bottomLine']
+
+      let style
+      if (subColor !== globalColors.black_40 || showBold) {
+        style = [
+          {
+            color: subColor,
+            ...(showBold ? globalStyles.fontBold : {}),
+          },
+          baseStyle,
+        ]
+      } else {
+        style = baseStyle
+      }
+
+      content = (
+        <Markdown preview={true} style={style}>
+          {snippet}
+        </Markdown>
+      )
+    } else {
+      return null
+    }
+
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          backgroundColor,
+          flexGrow: 1,
+          maxHeight: 16,
+          minHeight: 16,
+          position: 'relative',
+        }}
+      >
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'flex-start',
             bottom: 0,
             justifyContent: 'flex-start',
             left: 0,
@@ -147,160 +292,57 @@ const TopLine = ({hasUnread, showBold, participants, subColor, timestamp, userna
             top: 0,
           }}
         >
-          <Usernames
-            inline={true}
-            plainText={true}
-            type="BodySemibold"
-            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-            users={participants.map(p => ({username: p})).toArray()}
-            title={participants.join(', ')}
-          />
+          {content}
         </Box>
       </Box>
-      <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
-      {hasUnread && <Box style={unreadDotStyle} />}
-    </Box>
-  )
-}
-
-const BottomLine = ({
-  participantNeedToRekey,
-  youNeedToRekey,
-  isMuted,
-  showBold,
-  subColor,
-  snippet,
-  backgroundColor,
-}) => {
-  let content
-
-  if (youNeedToRekey) {
-    content = (
-      <Box
-        style={{
-          alignSelf: 'center',
-          backgroundColor: globalColors.red,
-          borderRadius: 2,
-          paddingLeft: globalMargins.xtiny,
-          paddingRight: globalMargins.xtiny,
-        }}
-      >
-        <Text
-          type="BodySmallSemibold"
-          backgroundMode="Terminal"
-          style={{
-            color: globalColors.white,
-            fontSize: 11,
-            lineHeight: 14,
-          }}
-        >
-          REKEY NEEDED
-        </Text>
-      </Box>
     )
-  } else if (participantNeedToRekey) {
-    content = (
-      <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
-        Waiting for participants to rekey
-      </Text>
-    )
-  } else if (snippet) {
-    const baseStyle = styles['bottomLine']
-
-    let style
-    if (subColor !== globalColors.black_40 || showBold) {
-      style = [
-        {
-          color: subColor,
-          ...(showBold ? globalStyles.fontBold : {}),
-        },
-        baseStyle,
-      ]
-    } else {
-      style = baseStyle
-    }
-
-    content = (
-      <Markdown preview={true} style={style}>
-        {snippet}
-      </Markdown>
-    )
-  } else {
-    return null
   }
-
-  return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        backgroundColor,
-        flexGrow: 1,
-        maxHeight: 16,
-        minHeight: 16,
-        position: 'relative',
-      }}
-    >
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'flex-start',
-          bottom: 0,
-          justifyContent: 'flex-start',
-          left: 0,
-          position: 'absolute',
-          right: 0,
-          top: 0,
-        }}
-      >
-        {content}
-      </Box>
-    </Box>
-  )
 }
 
-const _Row = (props: RowProps) => {
-  return (
-    <ClickableBox
-      onClick={() => props.onSelectConversation(props.conversationIDKey)}
-      style={{backgroundColor: props.backgroundColor}}
-    >
-      <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-        <Avatars
-          backgroundColor={props.backgroundColor}
-          hasUnread={props.hasUnread}
-          isMuted={props.isMuted}
-          isSelected={props.isSelected}
-          participantNeedToRekey={props.participantNeedToRekey}
-          participants={props.participants}
-          youNeedToRekey={props.youNeedToRekey}
-        />
-        <Box
-          style={{
-            ...conversationRowStyle,
-            backgroundColor: props.backgroundColor,
-          }}
-        >
-          <TopLine
-            hasUnread={props.hasUnread}
-            participants={props.participants}
-            showBold={props.showBold}
-            subColor={props.subColor}
-            timestamp={props.timestamp}
-            usernameColor={props.usernameColor}
-          />
-          <BottomLine
+class _Row extends PureComponent<void, RowProps, void> {
+  render() {
+    const props = this.props
+    return (
+      <ClickableBox
+        onClick={() => props.onSelectConversation(props.conversationIDKey)}
+        style={{backgroundColor: props.backgroundColor}}
+      >
+        <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
+          <Avatars
             backgroundColor={props.backgroundColor}
             isMuted={props.isMuted}
+            isSelected={props.isSelected}
             participantNeedToRekey={props.participantNeedToRekey}
-            showBold={props.showBold}
-            snippet={props.snippet}
-            subColor={props.subColor}
+            participants={props.participants}
             youNeedToRekey={props.youNeedToRekey}
           />
+          <Box
+            style={{
+              ...conversationRowStyle,
+              backgroundColor: props.backgroundColor,
+            }}
+          >
+            <TopLine
+              hasUnread={props.hasUnread}
+              participants={props.participants}
+              showBold={props.showBold}
+              subColor={props.subColor}
+              timestamp={props.timestamp}
+              usernameColor={props.usernameColor}
+            />
+            <BottomLine
+              backgroundColor={props.backgroundColor}
+              participantNeedToRekey={props.participantNeedToRekey}
+              showBold={props.showBold}
+              snippet={props.snippet}
+              subColor={props.subColor}
+              youNeedToRekey={props.youNeedToRekey}
+            />
+          </Box>
         </Box>
-      </Box>
-    </ClickableBox>
-  )
+      </ClickableBox>
+    )
+  }
 }
 
 const Row = RowConnector(_Row)
@@ -370,6 +412,8 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }
 
+  _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
+
   render() {
     return (
       <Box style={boxStyle}>
@@ -379,6 +423,9 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
+          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
+          initialNumToRender={this._maxVisible}
+          windowSize={this._maxVisible}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>
