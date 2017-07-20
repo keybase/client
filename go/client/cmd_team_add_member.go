@@ -59,6 +59,11 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
+	c.Role, err = ParseRole(ctx)
+	if err != nil {
+		return err
+	}
+
 	c.Email = ctx.String("email")
 	if len(c.Email) > 0 {
 		if !libkb.CheckEmail.F(c.Email) {
@@ -67,7 +72,7 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 		return nil
 	}
 
-	c.Username, c.Role, err = ParseUserAndRole(ctx)
+	c.Username, err = ParseUser(ctx)
 	if err != nil {
 		return err
 	}
