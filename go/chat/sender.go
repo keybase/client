@@ -482,8 +482,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_PREVIEW:
-		if _, err = ri.JoinConversation(ctx, convID); err != nil {
-			return chat1.OutboxID{}, nil, nil, err
+		switch msg.ClientHeader.MessageType {
+		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+			// pass so we don't loop between Send and Join/Leave.
+		default:
+			if _, err = ri.JoinConversation(ctx, convID); err != nil {
+				return chat1.OutboxID{}, nil, nil, err
+			}
 		}
 	default:
 		// do nothing
