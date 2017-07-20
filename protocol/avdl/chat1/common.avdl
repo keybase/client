@@ -31,7 +31,8 @@ protocol common {
     TLFNAME_6, // Only used as the very first message in conversations whose topic name is not set when created
     HEADLINE_7,
     ATTACHMENTUPLOADED_8,  // sent after upload completes to modify ATTACHMENT message
-    JOINLEAVE_9 // sent when joining or leaving a channel
+    JOIN_9, // sent when joining a channel
+    LEAVE_10
   }
 
   @go("nostring")

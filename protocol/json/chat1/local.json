@@ -287,13 +287,13 @@
     },
     {
       "type": "record",
-      "name": "MessageJoinLeave",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "join"
-        }
-      ]
+      "name": "MessageJoin",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "MessageLeave",
+      "fields": []
     },
     {
       "type": "variant",
@@ -354,10 +354,17 @@
         },
         {
           "label": {
-            "name": "JOINLEAVE",
+            "name": "JOIN",
             "def": false
           },
-          "body": "MessageJoinLeave"
+          "body": "MessageJoin"
+        },
+        {
+          "label": {
+            "name": "LEAVE",
+            "def": false
+          },
+          "body": "MessageLeave"
         }
       ]
     },

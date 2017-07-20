@@ -92,7 +92,8 @@
         "TLFNAME_6",
         "HEADLINE_7",
         "ATTACHMENTUPLOADED_8",
-        "JOINLEAVE_9"
+        "JOIN_9",
+        "LEAVE_10"
       ],
       "go": "nostring"
     },

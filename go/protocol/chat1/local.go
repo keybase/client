@@ -368,14 +368,18 @@ func (o MessageAttachmentUploaded) DeepCopy() MessageAttachmentUploaded {
 	}
 }
 
-type MessageJoinLeave struct {
-	Join bool `codec:"join" json:"join"`
+type MessageJoin struct {
 }
 
-func (o MessageJoinLeave) DeepCopy() MessageJoinLeave {
-	return MessageJoinLeave{
-		Join: o.Join,
-	}
+func (o MessageJoin) DeepCopy() MessageJoin {
+	return MessageJoin{}
+}
+
+type MessageLeave struct {
+}
+
+func (o MessageLeave) DeepCopy() MessageLeave {
+	return MessageLeave{}
 }
 
 type MessageBody struct {
@@ -387,7 +391,8 @@ type MessageBody struct {
 	Metadata__           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 	Headline__           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
 	Attachmentuploaded__ *MessageAttachmentUploaded   `codec:"attachmentuploaded,omitempty" json:"attachmentuploaded,omitempty"`
-	Joinleave__          *MessageJoinLeave            `codec:"joinleave,omitempty" json:"joinleave,omitempty"`
+	Join__               *MessageJoin                 `codec:"join,omitempty" json:"join,omitempty"`
+	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -427,9 +432,14 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 			err = errors.New("unexpected nil value for Attachmentuploaded__")
 			return ret, err
 		}
-	case MessageType_JOINLEAVE:
-		if o.Joinleave__ == nil {
-			err = errors.New("unexpected nil value for Joinleave__")
+	case MessageType_JOIN:
+		if o.Join__ == nil {
+			err = errors.New("unexpected nil value for Join__")
+			return ret, err
+		}
+	case MessageType_LEAVE:
+		if o.Leave__ == nil {
+			err = errors.New("unexpected nil value for Leave__")
 			return ret, err
 		}
 	}
@@ -506,14 +516,24 @@ func (o MessageBody) Attachmentuploaded() (res MessageAttachmentUploaded) {
 	return *o.Attachmentuploaded__
 }
 
-func (o MessageBody) Joinleave() (res MessageJoinLeave) {
-	if o.MessageType__ != MessageType_JOINLEAVE {
+func (o MessageBody) Join() (res MessageJoin) {
+	if o.MessageType__ != MessageType_JOIN {
 		panic("wrong case accessed")
 	}
-	if o.Joinleave__ == nil {
+	if o.Join__ == nil {
 		return
 	}
-	return *o.Joinleave__
+	return *o.Join__
+}
+
+func (o MessageBody) Leave() (res MessageLeave) {
+	if o.MessageType__ != MessageType_LEAVE {
+		panic("wrong case accessed")
+	}
+	if o.Leave__ == nil {
+		return
+	}
+	return *o.Leave__
 }
 
 func NewMessageBodyWithText(v MessageText) MessageBody {
@@ -565,10 +585,17 @@ func NewMessageBodyWithAttachmentuploaded(v MessageAttachmentUploaded) MessageBo
 	}
 }
 
-func NewMessageBodyWithJoinleave(v MessageJoinLeave) MessageBody {
+func NewMessageBodyWithJoin(v MessageJoin) MessageBody {
 	return MessageBody{
-		MessageType__: MessageType_JOINLEAVE,
-		Joinleave__:   &v,
+		MessageType__: MessageType_JOIN,
+		Join__:        &v,
+	}
+}
+
+func NewMessageBodyWithLeave(v MessageLeave) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_LEAVE,
+		Leave__:       &v,
 	}
 }
 
@@ -624,13 +651,20 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Attachmentuploaded__),
-		Joinleave__: (func(x *MessageJoinLeave) *MessageJoinLeave {
+		Join__: (func(x *MessageJoin) *MessageJoin {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Joinleave__),
+		})(o.Join__),
+		Leave__: (func(x *MessageLeave) *MessageLeave {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Leave__),
 	}
 }
 
