@@ -29,14 +29,15 @@ const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean 
 const filteredInbox = createImmutableEqualSelector(
   [getInbox, getSupersededByState, getAlwaysShow, getFilter],
   (inbox, supersededByState, alwaysShow, filter) => {
-    return inbox
-      .filter(
-        i =>
-          (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
-          !supersededByState.get(i.conversationIDKey) &&
-          passesFilter(i, filter)
-      )
-      .map(i => i.conversationIDKey)
+    const ids = []
+    // Building a list using forEach for performance reason, only call i.conversationIDKey once
+    inbox.forEach(i => {
+      const id = i.conversationIDKey
+      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
+        ids.push(id)
+      }
+    })
+    return I.List(ids)
   }
 )
 const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
