@@ -818,6 +818,3 @@ func (im InitMode) String() string {
 		return "unknown"
 	}
 }
-
-// MerkleSeqNo is a sequence number in the Keybase Merkle tree -- DEPRECATED.
-type MerkleSeqNo uint64

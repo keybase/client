@@ -88,9 +88,6 @@ type BareRootMetadataV3 struct {
 	// of writing to the given folder.
 	FinalizedInfo *tlf.HandleExtension `codec:"fi,omitempty"`
 
-	// DEPRECATED -- see KBMerkleRoot.Seqno instead.
-	KBMerkleSeqNo MerkleSeqNo `codec:"msn,omitempty"`
-
 	// The root of the global Keybase Merkle tree at the time this
 	// update was created (from the writer's perspective).  This field
 	// was added to V3 after it was live for a while, and older
@@ -99,7 +96,9 @@ type BareRootMetadataV3 struct {
 	// updates might end up referring to older Merkle roots.  That's
 	// ok since this is just a hint anyway, and shouldn't be fully
 	// trusted when checking MD updates against the Merkle tree.
-	KBMerkleRoot keybase1.MerkleRootV2 `codec:"mr,omitempty"`
+	// NOTE: this is a pointer in order to get the correct "omitempty"
+	// behavior, so that old MDs are still verifiable.
+	KBMerkleRoot *keybase1.MerkleRootV2 `codec:"mr,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -1064,7 +1063,7 @@ func (md *BareRootMetadataV3) RevisionNumber() kbfsmd.Revision {
 // MerkleRoot implements the BareRootMetadata interface for
 // BareRootMetadataV3.
 func (md *BareRootMetadataV3) MerkleRoot() keybase1.MerkleRootV2 {
-	return md.KBMerkleRoot
+	return *md.KBMerkleRoot
 }
 
 // BID implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -1167,7 +1166,7 @@ func (md *BareRootMetadataV3) SetRevision(revision kbfsmd.Revision) {
 // SetMerkleRoot implements the MutableBareRootMetadata interface for
 // BareRootMetadataV3.
 func (md *BareRootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	md.KBMerkleRoot = root
+	md.KBMerkleRoot = &root
 }
 
 func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
