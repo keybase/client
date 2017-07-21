@@ -10,7 +10,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
