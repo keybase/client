@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -616,4 +617,12 @@ func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
 		UnreadMessages:          0,
 		UnreadNotifyingMessages: counts,
 	}
+}
+
+func (s TopicNameState) Bytes() []byte {
+	return []byte(s)
+}
+
+func (s TopicNameState) Eq(o chat1.TopicNameState) bool {
+	return bytes.Equal(s.Bytes(), o.Bytes())
 }
