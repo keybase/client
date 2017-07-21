@@ -593,14 +593,19 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		}
 
 		// Send a message to the channel after joining.
-		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		rl, err = h.postJoinLeave(ctx, convID, joinMessageBody)
-		if err != nil {
-			h.Debug(ctx, "posting join-conv message failed: %v", err)
-			// ignore the error
-		}
-		if err == nil && rl != nil {
-			res.RateLimits = append(res.RateLimits, *rl)
+		switch arg.MembersType {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+			rl, err = h.postJoinLeave(ctx, convID, joinMessageBody)
+			if err != nil {
+				h.Debug(ctx, "posting join-conv message failed: %v", err)
+				// ignore the error
+			}
+			if err == nil && rl != nil {
+				res.RateLimits = append(res.RateLimits, *rl)
+			}
+		default:
+			// pass
 		}
 
 		res.RateLimits = utils.AggRateLimits(res.RateLimits)
@@ -2142,7 +2147,7 @@ func (h *Server) checkInConv(ctx context.Context, convID chat1.ConversationID) (
 	}
 }
 
-// Post a join or leave. Must be called when the user is in the conv.
+// Post a join or leave message. Must be called when the user is in the conv.
 // Uses a blocking sender.
 func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
 	h.Debug(ctx, "+ postJoinLeave(%v)", convID)
