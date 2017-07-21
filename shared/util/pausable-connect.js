@@ -6,6 +6,7 @@ import typeof {connect} from 'react-redux'
 
 function selectorFactory(dispatch, factoryOptions) {
   const selector = defaultSelectorFactory(dispatch, factoryOptions)
+  let wasActiveRoute = false
   let cachedResult
   const pausableSelector = function(state, ownProps) {
     // We run the selector the first time the HoC is mounted, even if not
@@ -13,22 +14,19 @@ function selectorFactory(dispatch, factoryOptions) {
     // their props, so we can't render them until we have data from the
     // selector.
     //
-    // The selector can pause itself by returning isActiveRoute=false. It will
-    // not run and the cached result will be returned as long as
-    // ownProps.isActiveRoute=false.
+    // The selector will run when ownProps.isActiveRoute=true, or on
+    // transitions from true to false. Otherwise, the last cached result will
+    // be used and the connected component will not update.
     if (
       cachedResult === undefined ||
       cachedResult.isActiveRoute ||
-      cachedResult.isActiveRoute !== ownProps.isActiveRoute
+      wasActiveRoute !== ownProps.isActiveRoute
     ) {
       cachedResult = selector(state, ownProps)
     }
 
-    if (__DEV__) {
-      if (cachedResult.isActiveRoute !== true && cachedResult.isActiveRoute !== false) {
-        console.warn('pausableConnect: selector did not return a value for isActiveRoute', cachedResult)
-      }
-    }
+    wasActiveRoute = ownProps.isActiveRoute
+
     return cachedResult
   }
   // If what we return is === what we returned prior, the connected component
