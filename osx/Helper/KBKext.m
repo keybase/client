@@ -36,7 +36,11 @@
 
   // Copy kext into place
   [self copyWithSource:source destination:destination removeExisting:NO completion:^(NSError *error, id value) {
-    completion(error, nil);    
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    [self loadKextID:kextID path:kextPath completion:completion];
   }];
 }
 

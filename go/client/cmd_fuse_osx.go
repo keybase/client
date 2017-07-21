@@ -77,7 +77,7 @@ func (v *CmdFuseStatus) Run() error {
 func newCmdFuseLoadKext(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "load-kext",
-		Usage: "Load the kext",
+		Usage: "Load the Fuse kext",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
