@@ -371,8 +371,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     }
   }
 
-  _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
-
   render() {
     return (
       <Box style={boxStyle}>
@@ -382,9 +380,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
-          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
-          initialNumToRender={this._maxVisible}
-          windowSize={this._maxVisible}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
       </Box>
