@@ -469,8 +469,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		switch arg.MembersType {
 		case chat1.ConversationMembersType_TEAM:
 			arg.TopicName = &DefaultTeamTopic
-		default:
-			arg.TopicName = new(string)
 		}
 	}
 
@@ -481,14 +479,17 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-	findRes, err := h.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+	findArg := chat1.FindConversationsLocalArg{
 		TlfName:          arg.TlfName,
 		MembersType:      arg.MembersType,
 		Visibility:       arg.TlfVisibility,
 		TopicType:        arg.TopicType,
-		TopicName:        *arg.TopicName,
 		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	}
+	if arg.TopicName != nil {
+		findArg.TopicName = *arg.TopicName
+	}
+	findRes, err := h.FindConversationsLocal(ctx, findArg)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -520,7 +521,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
-
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, info.CanonicalName,
 			arg.MembersType, arg.TlfVisibility, arg.TopicName)
 		if err != nil {
@@ -601,14 +601,13 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	return chat1.NewConversationLocalRes{}, reserr
 }
 
-var DefaultTeamTopic = "#general"
+var DefaultTeamTopic = "general"
 
 func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
 	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
 	topicName *string) (*chat1.MessageBoxed, error) {
 	var msg chat1.MessagePlaintext
-
-	if topicName != nil || *topicName != "" {
+	if topicName != nil {
 		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,

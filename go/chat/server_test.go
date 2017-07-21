@@ -503,14 +503,14 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "MIKETIME"
-		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
-			chat1.NewConversationLocalArg{
-				TlfName:       conv.TlfName,
-				TopicName:     &topicName,
-				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
-				MembersType:   mt,
-			})
+		arg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			MembersType:   mt,
+		}
+		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
@@ -522,6 +522,28 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewConversationLocal error: %v\n", err)
 		}
+
+		// Try some invalid names
+		topicName = "#mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "/mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "mi.ke"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = ""
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			require.NoError(t, err)
+		case chat1.ConversationMembersType_TEAM:
+			require.Error(t, err)
+		}
+		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
 	})
 }
 
@@ -768,33 +790,25 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
-		if err != nil {
-			t.Fatalf("trying to post a text message with body length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a text message with body length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody}))
-		if err != nil {
-			t.Fatalf("trying to post a headline message with headline length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a headline message with headline length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
-		maxTopicBody := strings.Repeat(".", msgchecker.TopicMaxLength)
+		maxTopicBody := strings.Repeat("a", msgchecker.TopicMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody}))
-		if err != nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length equal to the maximum failed")
-		}
-		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length greater than the maximum did not fail")
-		}
+		require.NoError(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "a"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "#mike"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "mii.ke"}))
+		require.Error(t, err)
 	})
 }
 
@@ -1910,7 +1924,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.NoError(t, err)
 
-		topicName := "MIKETIME"
+		topicName := "miketime"
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
 				TlfName:       conv.TlfName,
