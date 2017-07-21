@@ -55,15 +55,24 @@ func (v *CmdTeamCreate) Run() (err error) {
 	}
 
 	if v.TeamName.IsRootTeam() {
-		return cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+		err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+			Name:      v.TeamName,
+			SessionID: v.SessionID,
+		})
+	} else {
+		err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
 			Name:      v.TeamName,
 			SessionID: v.SessionID,
 		})
 	}
-	return cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
-		Name:      v.TeamName,
-		SessionID: v.SessionID,
-	})
+	if err != nil {
+		return err
+	}
+
+	dui := v.G().UI.GetDumbOutputUI()
+	dui.Printf("Success!\n")
+
+	return nil
 }
 
 func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
