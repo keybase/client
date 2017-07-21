@@ -1,24 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Icon, Input, StandardScreen, Text} from '../../common-adapters'
+import {globalMargins} from '../../styles'
+import {Button, Input, StandardScreen, Text} from '../../common-adapters'
 
 import type {Props} from './index'
-
-function VerifiedText({isVerified, style}: {isVerified: boolean, style?: Object}) {
-  const color = isVerified ? globalColors.green2 : globalColors.red
-  return (
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center', ...style}}>
-      <Icon
-        type={isVerified ? 'iconfont-check' : 'iconfont-close'}
-        style={{color, marginRight: 3, marginTop: 2, fontSize: 11}}
-      />
-      <Text type="Body" style={{color}}>
-        {isVerified ? 'Verified' : 'Not verified'}
-      </Text>
-    </Box>
-  )
-}
 
 type State = {
   email: string,
@@ -56,11 +41,6 @@ class UpdateEmail extends Component<void, Props, State> {
           onChangeText={email => this.handleEmailChange(email)}
           style={{width: 400}}
         />
-        {!this.state.edited &&
-          <VerifiedText
-            isVerified={this.props.isVerified}
-            style={{marginTop: 2, justifyContent: 'center'}}
-          />}
         <Button
           style={{alignSelf: 'center', marginTop: globalMargins.medium}}
           type="Primary"
