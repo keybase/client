@@ -892,6 +892,7 @@ func (o ImplicitRole) DeepCopy() ImplicitRole {
 }
 
 type MemberInfo struct {
+	UserID   UID           `codec:"userID" json:"uid"`
 	TeamID   TeamID        `codec:"teamID" json:"team_id"`
 	FqName   string        `codec:"fqName" json:"fq_name"`
 	Role     TeamRole      `codec:"role" json:"role"`
@@ -900,6 +901,7 @@ type MemberInfo struct {
 
 func (o MemberInfo) DeepCopy() MemberInfo {
 	return MemberInfo{
+		UserID: o.UserID.DeepCopy(),
 		TeamID: o.TeamID.DeepCopy(),
 		FqName: o.FqName,
 		Role:   o.Role.DeepCopy(),
@@ -914,19 +916,58 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 }
 
 type TeamList struct {
-	Uid      UID          `codec:"uid" json:"uid"`
-	Username string       `codec:"username" json:"username"`
-	FullName string       `codec:"fullName" json:"fullName"`
-	Teams    []MemberInfo `codec:"teams" json:"teams"`
+	Teams []MemberInfo `codec:"teams" json:"teams"`
 }
 
 func (o TeamList) DeepCopy() TeamList {
 	return TeamList{
-		Uid:      o.Uid.DeepCopy(),
-		Username: o.Username,
-		FullName: o.FullName,
 		Teams: (func(x []MemberInfo) []MemberInfo {
 			var ret []MemberInfo
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Teams),
+	}
+}
+
+type AnnotatedMemberInfo struct {
+	UserID   UID           `codec:"userID" json:"uid"`
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	Username string        `codec:"username" json:"username"`
+	FullName string        `codec:"fullName" json:"full_name"`
+	FqName   string        `codec:"fqName" json:"fq_name"`
+	Role     TeamRole      `codec:"role" json:"role"`
+	Implicit *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+}
+
+func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
+	return AnnotatedMemberInfo{
+		UserID:   o.UserID.DeepCopy(),
+		TeamID:   o.TeamID.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName,
+		FqName:   o.FqName,
+		Role:     o.Role.DeepCopy(),
+		Implicit: (func(x *ImplicitRole) *ImplicitRole {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Implicit),
+	}
+}
+
+type AnnotatedTeamList struct {
+	Teams []AnnotatedMemberInfo `codec:"teams" json:"teams"`
+}
+
+func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
+	return AnnotatedTeamList{
+		Teams: (func(x []AnnotatedMemberInfo) []AnnotatedMemberInfo {
+			var ret []AnnotatedMemberInfo
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -1040,12 +1081,14 @@ func (o TeamGetArg) DeepCopy() TeamGetArg {
 type TeamListArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	UserAssertion string `codec:"userAssertion" json:"userAssertion"`
+	All           bool   `codec:"all" json:"all"`
 }
 
 func (o TeamListArg) DeepCopy() TeamListArg {
 	return TeamListArg{
 		SessionID:     o.SessionID,
 		UserAssertion: o.UserAssertion,
+		All:           o.All,
 	}
 }
 
@@ -1221,7 +1264,7 @@ type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) error
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
-	TeamList(context.Context, TeamListArg) (TeamList, error)
+	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
@@ -1522,7 +1565,7 @@ func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDet
 	return
 }
 
-func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res TeamList, err error) {
+func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res AnnotatedTeamList, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamList", []interface{}{__arg}, &res)
 	return
 }

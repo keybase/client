@@ -790,6 +790,11 @@
       "name": "MemberInfo",
       "fields": [
         {
+          "type": "UID",
+          "name": "userID",
+          "jsonkey": "uid"
+        },
+        {
           "type": "TeamID",
           "name": "teamID",
           "jsonkey": "team_id"
@@ -817,8 +822,27 @@
       "name": "TeamList",
       "fields": [
         {
+          "type": {
+            "type": "array",
+            "items": "MemberInfo"
+          },
+          "name": "teams"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedMemberInfo",
+      "fields": [
+        {
           "type": "UID",
-          "name": "uid"
+          "name": "userID",
+          "jsonkey": "uid"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
         },
         {
           "type": "string",
@@ -826,12 +850,35 @@
         },
         {
           "type": "string",
-          "name": "fullName"
+          "name": "fullName",
+          "jsonkey": "full_name"
         },
+        {
+          "type": "string",
+          "name": "fqName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeamList",
+      "fields": [
         {
           "type": {
             "type": "array",
-            "items": "MemberInfo"
+            "items": "AnnotatedMemberInfo"
           },
           "name": "teams"
         }
@@ -957,9 +1004,13 @@
         {
           "name": "userAssertion",
           "type": "string"
+        },
+        {
+          "name": "all",
+          "type": "boolean"
         }
       ],
-      "response": "TeamList"
+      "response": "AnnotatedTeamList"
     },
     "teamChangeMembership": {
       "request": [

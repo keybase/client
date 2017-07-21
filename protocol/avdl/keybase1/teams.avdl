@@ -324,6 +324,8 @@ protocol teams {
   }
 
   record MemberInfo {
+    @jsonkey("uid")
+    UID userID;
     @jsonkey("team_id")
     TeamID teamID;
     @jsonkey("fq_name")
@@ -333,10 +335,25 @@ protocol teams {
   }
 
   record TeamList {
-    UID uid;
-    string username;
-    string fullName;
     array<MemberInfo> teams;
+  }
+
+  record AnnotatedMemberInfo {
+    @jsonkey("uid")
+    UID userID;
+    @jsonkey("team_id")
+    TeamID teamID;
+    string username;
+    @jsonkey("full_name")
+    string fullName;
+    @jsonkey("fq_name")
+    string fqName;
+    TeamRole role;
+    union{null, ImplicitRole} implicit;
+  }
+
+  record AnnotatedTeamList {
+      array<AnnotatedMemberInfo> teams;
   }
 
   record TeamAddMemberResult {
@@ -363,7 +380,7 @@ protocol teams {
   void teamCreate(int sessionID, TeamName name);
   void teamCreateSubteam(int sessionID, TeamName name);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
-  TeamList teamList(int sessionID, string userAssertion);
+  AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);
