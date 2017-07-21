@@ -39,7 +39,7 @@ type diskBlockCacheWrapped struct {
 func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	cache *diskBlockCacheWrapped, err error) {
 	workingSetCacheRoot := filepath.Join(storageRoot, workingSetCacheFolderName)
-	workingSetCache, err := newDiskBlockCacheStandard(config,
+	workingSetCache, err := newDiskBlockCacheStandard(config, false,
 		workingSetCacheRoot)
 	if err != nil {
 		return nil, err
@@ -57,8 +57,8 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	hasPrefetched bool, err error) {
 	// TODO: add mutex to guard sync state
-	if cache.IsSyncedTlf(tlfID) {
-		return cache.syncCache.Get(ctx, tldID, blockID)
+	if cache.config.IsSyncedTlf(tlfID) {
+		return cache.syncCache.Get(ctx, tlfID, blockID)
 	}
 	return cache.workingSetCache.Get(ctx, tlfID, blockID)
 }
@@ -67,7 +67,7 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	if cache.IsSyncedTlf(tlfID) {
+	if cache.config.IsSyncedTlf(tlfID) {
 		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 	}
 	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)

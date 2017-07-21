@@ -29,6 +29,7 @@ type testDiskBlockCacheConfig struct {
 	logMaker
 	*testClockGetter
 	limiter DiskLimiter
+	syncedTlfGetterSetter
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -37,6 +38,7 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		newTestLogMaker(t),
 		newTestClockGetter(),
 		nil,
+		newTestSyncedTlfGetterSetter(),
 	}
 }
 
@@ -50,8 +52,8 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 	lruStorage := storage.NewMemStorage()
 	tlfStorage := storage.NewMemStorage()
 	maxFiles := int64(10000)
-	cache, err := newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		lruStorage, tlfStorage)
+	cache, err := newDiskBlockCacheStandardFromStorage(config, false,
+		blockStorage, lruStorage, tlfStorage)
 	if err != nil {
 		return nil, err
 	}

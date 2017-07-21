@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 )
 
 type testCodecGetter struct {
@@ -51,4 +52,25 @@ func (cg *testClockGetter) Clock() Clock {
 
 func (cg *testClockGetter) TestClock() *TestClock {
 	return cg.clock
+}
+
+type testSyncedTlfGetterSetter struct {
+	syncedTlfs map[tlf.ID]bool
+}
+
+var _ syncedTlfGetterSetter = (*testSyncedTlfGetterSetter)(nil)
+
+func newTestSyncedTlfGetterSetter() *testSyncedTlfGetterSetter {
+	return &testSyncedTlfGetterSetter{
+		syncedTlfs: make(map[tlf.ID]bool),
+	}
+}
+
+func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
+	return t.syncedTlfs[tlfID]
+}
+
+func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
+	isSynced bool) {
+	t.syncedTlfs[tlfID] = isSynced
 }

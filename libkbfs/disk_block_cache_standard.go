@@ -45,9 +45,10 @@ const (
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
-	config     diskBlockCacheConfig
-	log        logger.Logger
-	maxBlockID []byte
+	config      diskBlockCacheConfig
+	log         logger.Logger
+	maxBlockID  []byte
+	isSyncCache bool
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
 	numBlocks int
@@ -129,7 +130,8 @@ func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
 // newDiskBlockCacheStandardFromStorage creates a new *DiskBlockCacheStandard
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
-func newDiskBlockCacheStandardFromStorage(config diskBlockCacheConfig,
+func newDiskBlockCacheStandardFromStorage(
+	config diskBlockCacheConfig, isSyncCache bool,
 	blockStorage, metadataStorage, tlfStorage storage.Storage) (
 	cache *DiskBlockCacheStandard, err error) {
 	defer func() {
@@ -294,8 +296,8 @@ func getVersionedPathForDiskCache(log logger.Logger, dirPath string) (
 
 // newDiskBlockCacheStandard creates a new *DiskBlockCacheStandard with a
 // specified directory on the filesystem as storage.
-func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
-	cache *DiskBlockCacheStandard, err error) {
+func newDiskBlockCacheStandard(config diskBlockCacheConfig, isSyncCache bool,
+	dirPath string) (cache *DiskBlockCacheStandard, err error) {
 	log := config.MakeLogger("DBC")
 	defer func() {
 		if err != nil {
@@ -336,8 +338,8 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig, dirPath string) (
 			tlfStorage.Close()
 		}
 	}()
-	return newDiskBlockCacheStandardFromStorage(config, blockStorage,
-		metadataStorage, tlfStorage)
+	return newDiskBlockCacheStandardFromStorage(config, isSyncCache,
+		blockStorage, metadataStorage, tlfStorage)
 }
 
 // WaitUntilStarted waits until this cache has started.
