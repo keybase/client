@@ -52,19 +52,14 @@ class Folders extends Component<void, Props, void> {
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, routeState, showingPrivate}: OwnProps) => ({
-  isActiveRoute,
+const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
   username: state.config.username,
   folderState: state.favorite ? state.favorite.folderState : null,
   showingPrivate: !!state.favorite && showingPrivate,
   showingIgnored: !!state.favorite && routeState.showingIgnored,
 })
 
-const mapDispatchToProps = (
-  dispatch: any,
-  {isActiveRoute, routePath, routeState, setRouteState}: OwnProps
-) => ({
-  isActiveRoute,
+const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
   favoriteList: () => dispatch(favoriteList()),
   onOpenFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
   onRekeyFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
