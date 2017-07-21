@@ -20,3 +20,8 @@ func Install(context Context, binPath string, sourcePath string, components []st
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	return keybase1.UninstallResult{}
 }
+
+// LoadKext empty implementation for unsupported platforms
+func LoadKext(log Log) keybase1.Status {
+	return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, "Unsupported")
+}

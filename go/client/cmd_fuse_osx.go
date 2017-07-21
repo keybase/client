@@ -20,6 +20,7 @@ func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdFuseStatus(cl, g),
+			newCmdFuseLoadKext(cl, g),
 		},
 	}
 }
@@ -69,6 +70,46 @@ func (v *CmdFuseStatus) Run() error {
 		return err
 	}
 
+	fmt.Fprintf(os.Stdout, "%s\n", out)
+	return nil
+}
+
+func newCmdFuseLoadKext(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "load-kext",
+		Usage: "Load the kext",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(newCmdFuseLoadKextRunner(g), "load-kext", c)
+		},
+	}
+}
+
+type cmdFuseLoadKext struct {
+	libkb.Contextified
+}
+
+func newCmdFuseLoadKextRunner(g *libkb.GlobalContext) *cmdFuseLoadKext {
+	return &cmdFuseLoadKext{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *cmdFuseLoadKext) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (v *cmdFuseLoadKext) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
+
+func (v *cmdFuseLoadKext) Run() error {
+	status := install.LoadKext(v.G().Log)
+	out, err := json.MarshalIndent(status, "", "  ")
+	if err != nil {
+		return err
+	}
 	fmt.Fprintf(os.Stdout, "%s\n", out)
 	return nil
 }
