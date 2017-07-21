@@ -2,14 +2,13 @@ package chat
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
-	"time"
-
-	"encoding/hex"
-
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 func SendTextByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string, ri chat1.RemoteInterface) error {
@@ -140,15 +140,16 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 
 	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, _, _, err := sender.Prepare(ctx, first, s.membersType, nil)
+	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}
 
 	ncrres, reserr := s.ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-		IdTriple:    s.triple,
-		TLFMessage:  *mbox,
-		MembersType: s.membersType,
+		IdTriple:       s.triple,
+		TLFMessage:     *mbox,
+		MembersType:    s.membersType,
+		TopicNameState: topicNameState,
 	})
 	convID := ncrres.ConvID
 	if reserr != nil {
@@ -289,4 +290,52 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 	sort.Sort(utils.ConvLocalByTopicName(res))
 	rl = utils.AggRateLimits(rl)
 	return res, rl, nil
+}
+
+func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface,
+	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, rl []chat1.RateLimit, err error) {
+
+	var convs []chat1.ConversationLocal
+	convs, rl, err = GetTLFConversations(ctx, g, debugger, ri, uid, tlfID, topicType, membersType)
+	if err != nil {
+		debugger.Debug(ctx, "GetTopicNameState: failed to get TLF conversations: %s", err.Error())
+		return res, rl, err
+	}
+	sort.Sort(utils.ConvLocalByConvID(convs))
+
+	var pairs chat1.ConversationIDMessageIDPairs
+	for _, conv := range convs {
+		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
+		if err != nil {
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, no metadata message",
+				conv.GetConvID())
+			continue
+		}
+		if !msg.IsValid() {
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message",
+				conv.GetConvID())
+			continue
+		}
+		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
+			ConvID: conv.GetConvID(),
+			MsgID:  msg.GetMessageID(),
+		})
+	}
+
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(pairs); err != nil {
+		return res, rl, err
+	}
+
+	h := sha256.New()
+	if _, err = h.Write(data); err != nil {
+		debugger.Debug(ctx, "GetTopicNameState: failed to hash topic name state: %s", err.Error())
+		return res, rl, err
+	}
+
+	return h.Sum(nil), rl, nil
 }

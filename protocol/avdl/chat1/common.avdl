@@ -13,6 +13,7 @@ protocol common {
   @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}
   @typedef("bytes")  record OutboxID {}
+  @typedef("bytes")  record TopicNameState {}
 
   enum ConversationMembersType {
     KBFS_0,
@@ -82,6 +83,14 @@ protocol common {
     ConversationID convID;
   }
 
+  record ConversationIDMessageIDPair {
+    ConversationID convID;
+    MessageID msgID;
+  }
+  record ConversationIDMessageIDPairs {
+    array<ConversationIDMessageIDPair> pairs;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly
@@ -121,7 +130,7 @@ protocol common {
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
 
-    // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then 
+    // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then
     // this it will be like appending it to this list)
     array<ConversationID> convIDs;
 
@@ -185,7 +194,7 @@ protocol common {
 
   record Conversation {
     ConversationMetadata metadata;
-    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective 
+    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
     union { null, ConversationNotificationInfo } notifications; // user notification settings for the convo, will be null if it is just the default. Otherwise contains entries to modify default setting.
 
     // maxMsgs is the maximum message for each messageType in the conversation

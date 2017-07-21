@@ -324,23 +324,23 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
 
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// convID will be nil in makeFirstMessage
 	if conv != nil {
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 	}
 
@@ -350,14 +350,29 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+	}
+
+	// Get topic name state if this is a METADATA message, so that we avoid any races to the
+	// server
+	var topicNameState *chat1.TopicNameState
+	if conv != nil {
+		if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
+			ts, _, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, s.getRi,
+				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
+				conv.GetMembersType())
+			if err != nil {
+				return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+			}
+			topicNameState = &ts
 		}
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// find @ mentions
@@ -392,10 +407,10 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)
 	if err != nil {
-		return nil, nil, nil, chanMention, err
+		return nil, nil, nil, chanMention, topicNameState, err
 	}
 
-	return boxed, pendingAssetDeletes, atMentions, chanMention, nil
+	return boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
@@ -505,7 +520,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, pendingAssetDeletes, atMentions, chanMention, err := s.Prepare(ctx, msg,
+	boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
 		conv.GetMembersType(), &conv)
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
@@ -533,6 +548,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		MessageBoxed:   *boxed,
 		AtMentions:     atMentions,
 		ChannelMention: chanMention,
+		TopicNameState: topicNameState,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
@@ -841,7 +857,7 @@ func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingS
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv)
 }
 
