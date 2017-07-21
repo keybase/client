@@ -131,6 +131,21 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  [self _install:^(NSError *error) {
+    if (error) {
+      completion(error);
+      return;
+    }
+    DDLogInfo(@"Loading kext");
+    [self loadKext:^(NSError *error) {
+      // Don't report errors here. We'll manually check the kext load status in a seperate step.
+      // We need to attempt a load though, to trigger the system policy error on macOS > 10.13,
+      completion(nil);
+    }];
+  }];
+}
+
+- (void)_install:(KBCompletion)completion {
   [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse if there are mounts
     if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
