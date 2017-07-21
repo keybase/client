@@ -1501,7 +1501,7 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+			return ret, errors.New("team names must be between 2 and 16 characters long")
 		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
