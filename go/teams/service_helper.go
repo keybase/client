@@ -42,7 +42,13 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	if err != nil {
 		return res, err
 	}
-	res.ActiveInvites = t.chain().inner.ActiveInvites
+
+	activeInvites := t.chain().inner.ActiveInvites
+	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
+	if err != nil {
+		return res, err
+	}
+	res.AnnotatedActiveInvites = annotatedInvites
 	return res, nil
 }
 

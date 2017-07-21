@@ -157,6 +157,9 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	for _, t := range list.Teams {
 		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), t.Username, t.FullName)
 	}
+	if c.showAll {
+		c.outputInvites(list.AnnotatedActiveInvites)
+	}
 
 	c.tabw.Flush()
 
@@ -190,7 +193,7 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 	c.outputRole("admin", details.Members.Admins)
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
-	c.outputInvites(details.ActiveInvites)
+	c.outputInvites(details.AnnotatedActiveInvites)
 	c.tabw.Flush()
 
 	if c.verbose {
@@ -210,10 +213,10 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 	}
 }
 
-func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.TeamInvite) {
+func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
-		fmtstring := "%s\t%s*\t%s\t%s\t(*invited by %s; awaiting acceptance)\n"
-		fmt.Fprintf(c.tabw, fmtstring, c.team, invite.Role, invite.Name, invite.Inviter)
+		fmtstring := "%s\t%s*\t%s\t(* invited by %s; awaiting acceptance)\n"
+		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()), invite.Name, invite.InviterUsername)
 	}
 }
 

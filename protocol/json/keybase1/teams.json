@@ -241,10 +241,10 @@
         {
           "type": {
             "type": "map",
-            "values": "TeamInvite",
+            "values": "AnnotatedTeamInvite",
             "keys": "TeamInviteID"
           },
-          "name": "activeInvites"
+          "name": "annotatedActiveInvites"
         }
       ]
     },
@@ -468,6 +468,40 @@
         {
           "type": "UserVersion",
           "name": "inviter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
+        },
+        {
+          "type": "string",
+          "name": "inviterUsername"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
         }
       ]
     },
@@ -893,6 +927,14 @@
             "items": "AnnotatedMemberInfo"
           },
           "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AnnotatedTeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "annotatedActiveInvites"
         }
       ]
     },

@@ -57,10 +57,12 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		return nil, err
 	}
 
+	teamNames := make(map[string]bool)
 	upakLoader := g.GetUPAKLoader()
-
 	annotatedTeams := make([]keybase1.AnnotatedMemberInfo, len(teams))
 	for idx, memberInfo := range teams {
+		teamNames[memberInfo.FqName] = true
+
 		uid := memberInfo.UserID
 		username, err := upakLoader.LookupUsername(context.Background(), uid)
 		if err != nil {
@@ -81,11 +83,49 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		}
 	}
 
+	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
+	for teamName := range teamNames {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+		if err != nil {
+			return nil, err
+		}
+		teamAnnotatedInvites, err := AnnotateInvites(ctx, g, t.chain().inner.ActiveInvites, teamName)
+		if err != nil {
+			return nil, err
+		}
+		for teamInviteID, annotatedTeamInvite := range teamAnnotatedInvites {
+			annotatedInvites[teamInviteID] = annotatedTeamInvite
+		}
+	}
+
 	tl := keybase1.AnnotatedTeamList{
 		Teams: annotatedTeams,
+		AnnotatedActiveInvites: annotatedInvites,
 	}
 
 	return &tl, nil
+}
+
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext,
+	invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+
+	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
+	upakLoader := g.GetUPAKLoader()
+	for id, invite := range invites {
+		username, err := upakLoader.LookupUsername(context.Background(), invite.Inviter.Uid)
+		if err != nil {
+			return annotatedInvites, err
+		}
+		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
+			Role:            invite.Role,
+			Id:              invite.Id,
+			Type:            invite.Type,
+			Name:            invite.Name,
+			InviterUsername: username.String(),
+			TeamName:        teamName,
+		}
+	}
+	return annotatedInvites, nil
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
