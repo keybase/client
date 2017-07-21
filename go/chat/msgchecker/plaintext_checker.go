@@ -1,6 +1,7 @@
 package msgchecker
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 

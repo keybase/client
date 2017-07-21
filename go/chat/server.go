@@ -552,7 +552,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 				// Note that from this point on, TopicID is entirely the wrong value.
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
-				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.N
+				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				h.Debug(ctx, "NewConversationLocal: collision: %v", reserr)
 				continue
 			default:
