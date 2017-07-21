@@ -6,7 +6,7 @@ import shallowEqual from 'shallowequal'
 import {List} from 'immutable'
 import {chatTab} from '../../../../constants/tabs'
 import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {getPath} from '../../../../route-tree'
 import {lookupMessageProps} from '../../../shared'
 

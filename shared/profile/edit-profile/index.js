@@ -1,7 +1,7 @@
 // @flow
 import Render from './render'
 import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'

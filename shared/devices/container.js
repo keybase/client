@@ -3,7 +3,7 @@ import Devices from '.'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login/creators'
 import {compose, lifecycle, mapProps, withState} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {createSelector} from 'reselect'
 import {load, paperKeyMake} from '../actions/devices'
 

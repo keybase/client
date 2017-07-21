@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../actions/route-tree'
 
 import type {Props} from './index'

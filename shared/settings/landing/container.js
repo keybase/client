@@ -2,7 +2,7 @@
 import * as actions from '../../actions/settings'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'

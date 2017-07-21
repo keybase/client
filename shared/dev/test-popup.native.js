@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../actions/route-tree'
 import {globalStyles} from '../styles'
 import {PopupDialog, Text} from '../common-adapters'

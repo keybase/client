@@ -4,7 +4,7 @@ import * as Creators from '../../../../actions/chat/creators'
 import OldProfileResetNotice from '.'
 import {List} from 'immutable'
 import {compose, branch, renderNothing} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {StateProps, DispatchProps} from './container'

@@ -6,7 +6,7 @@
 import React, {Component} from 'react'
 import CodePage from '.'
 import * as Creators from '../../../actions/login/creators'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'

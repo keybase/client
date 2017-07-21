@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
 import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {registerRekeyListener, close} from '../../actions/unlock-folders'
 
 type Props = {

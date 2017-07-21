@@ -4,7 +4,7 @@ import Render from './index.render'
 import type {Props} from './index.render'
 import {bindActionCreators} from 'redux'
 import {checkPassphrase, restartSignup} from '../../../actions/signup'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 type State = {
   pass1: string,

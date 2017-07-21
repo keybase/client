@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {permissionsRequest} from '../../actions/push/creators'

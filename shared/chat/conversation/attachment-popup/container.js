@@ -1,7 +1,7 @@
 // @flow
 import {compose, withState, withProps} from 'recompose'
 import RenderAttachmentPopup from './'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {deleteMessage} from '../../../actions/chat/creators'
 import * as Constants from '../../../constants/chat'
 import {lookupMessageProps} from '../../shared'

@@ -1,6 +1,6 @@
 // @flow
 import RenderBlockConversationWarning from './'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 

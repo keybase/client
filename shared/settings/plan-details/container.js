@@ -1,6 +1,6 @@
 // @flow
 import PlanDetails from './index'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../actions/route-tree'
 import {priceToString, planToStars} from '../../constants/plan-billing'
 

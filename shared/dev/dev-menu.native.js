@@ -2,7 +2,7 @@
 import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
 import engine from '../engine'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {logout} from '../actions/login/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {Box} from '../common-adapters'

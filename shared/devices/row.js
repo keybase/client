@@ -1,5 +1,5 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {createSelector} from 'reselect'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'

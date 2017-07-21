@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import Timestamp from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 
 import type {TypedState} from '../../../../constants/reducer'

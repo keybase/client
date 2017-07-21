@@ -220,3 +220,6 @@ declare module 'react-dom' {
     callback?: () => void
   ): React$Component<$DefaultPropsOf<Config>, $PropsOf<Config>, any>
 }
+declare module 'react-redux-profiled' {
+  declare var exports: any
+}

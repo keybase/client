@@ -1,6 +1,7 @@
 // @flow
 import {createConnect} from 'react-redux/src/connect/connect'
 import defaultSelectorFactory from 'react-redux/src/connect/selectorFactory'
+import {instrumentConnect} from './profile-connect'
 
 import typeof {connect} from 'react-redux'
 
@@ -36,6 +37,6 @@ function selectorFactory(dispatch, factoryOptions) {
 // functions, and the child component will not be updated. When isActiveRoute
 // changes from falsy to truthy, the child component will be updated to the
 // latest state as expected.
-const pausableConnect: connect = createConnect({selectorFactory})
+const pausableConnect: connect = instrumentConnect(createConnect({selectorFactory}))
 
 export default pausableConnect

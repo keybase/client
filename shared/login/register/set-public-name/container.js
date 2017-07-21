@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import SetPublicName from '.'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Creators from '../../../actions/login/creators'
 import {clearDeviceNameError} from '../../../actions/signup'
 

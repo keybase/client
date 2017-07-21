@@ -4,7 +4,7 @@ import React from 'react'
 import flags from '../util/feature-flags'
 import {Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Creators from '../actions/chat/creators'
 
 import type {TypedState} from '../constants/reducer'

@@ -1,6 +1,6 @@
 // @flow
 import {HeaderHoc, NativeWebView} from '../common-adapters/index.native'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {compose, defaultProps} from 'recompose'
 
 import type {Dispatch} from '../constants/types/flux'

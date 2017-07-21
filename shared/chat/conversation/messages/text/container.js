@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import TextMessage from '.'
 import createCachedSelector from 're-reselect'
 import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'

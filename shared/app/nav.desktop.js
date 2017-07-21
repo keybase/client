@@ -5,7 +5,7 @@ import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
 import {chatTab, loginTab} from '../constants/tabs'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
 

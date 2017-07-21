@@ -2,7 +2,7 @@
 import {requestInvite, restartSignup} from '../../actions/signup'
 import React, {Component} from 'react'
 import Render from './request-invite.render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {Dispatch} from 'redux'
 

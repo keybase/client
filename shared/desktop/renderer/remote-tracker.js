@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {onClose, startTimer, stopTimer, getProfile} from '../../actions/tracker'
 
 import type {TypedState} from '../../constants/reducer'

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {notificationsRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'

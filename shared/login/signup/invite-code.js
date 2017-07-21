@@ -1,6 +1,6 @@
 // @flow
 import InviteCode from './invite-code.render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {restartSignup, checkInviteCode, startRequestInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'

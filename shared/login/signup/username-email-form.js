@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Render from './username-email-form.render'
 import type {Props} from './username-email-form.render'
 import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 type State = {
   username: string,

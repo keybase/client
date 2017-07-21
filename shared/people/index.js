@@ -3,7 +3,7 @@
 import PeopleRender from './index.render'
 import React, {Component} from 'react'
 import flags from '../util/feature-flags'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 class People extends Component {
   render() {

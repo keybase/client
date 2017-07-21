@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import ProfileResetNotice from '.'
 import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {StateProps, DispatchProps} from './container'

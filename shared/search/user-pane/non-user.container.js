@@ -1,6 +1,6 @@
 // @flow
 import NonUser from './non-user.render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {TypedState} from '../../constants/reducer'
 

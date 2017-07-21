@@ -61,6 +61,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "babel-plugin-module-alias": "^1.6.0",
     "buffer": "5.0.6",
     "core-js": "2.4.1",
     "cross-env": "5.0.0",

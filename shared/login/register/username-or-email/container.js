@@ -1,6 +1,6 @@
 // @flow
 import UsernameOrEmail from '.'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Creators from '../../../actions/login/creators'
 
 import type {TypedState} from '../../../constants/reducer'

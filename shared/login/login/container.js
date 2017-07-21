@@ -2,7 +2,7 @@
 import * as Creators from '../../actions/login/creators'
 import Login from '.'
 import {compose, withState, withHandlers} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {requestAutoInvite} from '../../actions/signup'
 
 import type {TypedState} from '../../constants/reducer'

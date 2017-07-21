@@ -1,6 +1,6 @@
 // @flow
 import {Map} from 'immutable'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import SearchResultRow from '.'
 import {followStateHelper} from '../../constants/searchv3'
 

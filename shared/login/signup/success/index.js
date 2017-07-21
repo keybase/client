@@ -1,6 +1,6 @@
 // @flow
 import RenderSuccess from './index.render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 

@@ -3,7 +3,7 @@ import * as signupActions from '../../actions/signup'
 import React, {Component} from 'react'
 import Render from '../register/set-public-name'
 import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 class DeviceName extends Component {
   state: {

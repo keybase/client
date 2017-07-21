@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'

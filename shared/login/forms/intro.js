@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/config'
 import {Splash, Intro, Failure} from '.'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {retryBootstrap} from '../../actions/config'
 import * as Creators from '../../actions/login/creators'
 import {requestAutoInvite} from '../../actions/signup'

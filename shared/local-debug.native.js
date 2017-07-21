@@ -31,6 +31,7 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printRoutes: false,
   reactPerf: false,
+  reduxPerf: false,
   reduxSagaLogger: false,
   reduxSagaLoggerMasked: true,
   redirectOnLogout: true,
@@ -50,6 +51,7 @@ if (__DEV__ && true) {
   config.printRPC = true
   config.printRoutes = true
   config.reactPerf = false
+  config.reduxPerf = false
   config.redirectOnLogout = false
   config.reduxSagaLogger = true
   config.reduxSagaLoggerMasked = false
@@ -112,6 +114,7 @@ export const {
   printRPC,
   printRoutes,
   reactPerf,
+  reduxPerf,
   reduxDevToolsSelect,
   reduxSagaLoggerMasked,
   reduxSagaLogger,

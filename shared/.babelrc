@@ -12,6 +12,12 @@
           "Error"
         ]
       }
+    ],
+    [
+      "module-alias",
+      [
+        {"src": "./util/profile-connect", expose: "react-redux-profiled"}
+      ]
     ]
   ],
   "env": {

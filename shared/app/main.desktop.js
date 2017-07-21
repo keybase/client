@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 

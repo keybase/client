@@ -1,6 +1,6 @@
 // @flow
 import GPGSign from '.'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Creators from '../../../actions/login/creators'
 
 const mapDispatchToProps = dispatch => ({

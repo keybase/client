@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import PinentryRender from './index.render'
 
 class Pinentry extends Component {

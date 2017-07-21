@@ -1,7 +1,7 @@
 // @flow
 import About from './about'
 import {HeaderHoc} from '../common-adapters'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {version} from '../constants/platform'
 import {defaultProps, compose} from 'recompose'
 

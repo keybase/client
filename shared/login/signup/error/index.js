@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './index.render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {restartSignup} from '../../../actions/signup'
 
 class SignupError extends Component {

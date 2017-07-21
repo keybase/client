@@ -2,7 +2,7 @@
 import DevicePage from '.'
 import moment from 'moment'
 import {compose, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {globalColors} from '../../styles'
 import {navigateUp} from '../../actions/route-tree'
 import {showRevokePage} from '../../actions/devices'

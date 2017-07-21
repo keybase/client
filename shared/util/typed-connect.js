@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 type TypedMergeProps<State, Dispatch, OwnProps, Props> = (
   state: State,

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import Render from './render'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../actions/route-tree'
 import {updateDebugConfig} from '../../actions/dev'
 import {isTesting} from '../../local-debug'

@@ -4,7 +4,7 @@ import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateAppend} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
 

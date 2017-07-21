@@ -5,7 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
 import {List} from 'immutable'
 import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
 

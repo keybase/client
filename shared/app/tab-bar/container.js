@@ -1,5 +1,5 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {createSelector} from 'reselect'
 import {usernameSelector} from '../../constants/selectors'
 import TabBarRender from './index.render'

@@ -1,5 +1,5 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import SearchResultsList from '.'
 
 import type {TypedState} from '../../constants/reducer'

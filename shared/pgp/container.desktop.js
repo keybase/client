@@ -1,6 +1,6 @@
 // @flow
 import PurgeMessage from './purge-message.desktop'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Constants from '../constants/pgp'
 
 export default connect(

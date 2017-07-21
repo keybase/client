@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import PaperKey from '.'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
 

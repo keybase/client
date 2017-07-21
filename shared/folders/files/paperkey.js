@@ -4,7 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import PaperKey from '../../login/register/paper-key'
 import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'

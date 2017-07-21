@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import Bootstrapable from '../../util/bootstrapable'
 import HiddenString from '../../util/hidden-string'
 

@@ -1,6 +1,6 @@
 // @flow
 import RenderAttachmentInput from './'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../../actions/route-tree'
 
 import type {RouteProps} from '../../../route-tree/render-route'

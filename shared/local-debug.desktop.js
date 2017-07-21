@@ -27,6 +27,7 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printRoutes: false,
   reactPerf: false,
+  reduxPerf: false,
   redirectOnLogout: true,
   reduxSagaLogger: false,
   reduxSagaLoggerMasked: true,
@@ -48,6 +49,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRPC = true
   config.printRoutes = true
   config.redirectOnLogout = false
+  config.reduxPerf = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
 
@@ -102,6 +104,7 @@ export const {
   printRPC,
   printRoutes,
   reactPerf,
+  reduxPerf,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   resetEngineOnHMR,

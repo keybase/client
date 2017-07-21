@@ -1,7 +1,7 @@
 // @flow
 import Render from '../../login/signup/success/index.render'
 import {compose, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {navigateUp} from '../../actions/route-tree'
 import {load, paperKeyMake} from '../../actions/devices'
 

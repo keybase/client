@@ -3,7 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import Error from '.'
 import createCachedSelector from 're-reselect'
 import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'

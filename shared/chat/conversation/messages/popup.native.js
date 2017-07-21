@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {connect} from 'react-redux'
+import {connect} from 'react-redux-profiled'
 import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import * as ChatConstants from '../../../constants/chat'
