@@ -79,7 +79,7 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 		// Notify everyone we're done fetching.
 		fd.lock.Lock()
 		defer fd.lock.Unlock()
-		fd.log.CDebugf(bgCtx, "Finished fetch")
+		fd.log.CDebugf(bgCtx, "Finished fetch: %+v", err)
 		*fd.errPtr = err
 		readyCh := fd.readyCh
 		fd.readyCh = nil
@@ -93,8 +93,8 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 // and use existing cached value, or simply use the existing cached
 // value with no more fetching. The caller can provide a positive
 // tolerance, to accept stale LimitBytes and UsageBytes data. If
-// tolerance is 0 or negative, this always makes a blocking RPC to
-// bserver and return latest quota usage.
+// tolerance is 0 or negative, this always makes a blocking call using
+// `fd.fetcher`.
 //
 // 1) If the age of cached data is more than blockTolerance, it blocks
 // until a new value is fetched and ready in the caller's cache.
