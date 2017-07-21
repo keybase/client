@@ -17,11 +17,7 @@ function selectorFactory(dispatch, factoryOptions) {
     // The selector will run when ownProps.isActiveRoute=true, or on
     // transitions from true to false. Otherwise, the last cached result will
     // be used and the connected component will not update.
-    if (
-      cachedResult === undefined ||
-      cachedResult.isActiveRoute ||
-      wasActiveRoute !== ownProps.isActiveRoute
-    ) {
+    if (cachedResult === undefined || ownProps.isActiveRoute || wasActiveRoute !== ownProps.isActiveRoute) {
       cachedResult = selector(state, ownProps)
     }
 
