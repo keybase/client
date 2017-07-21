@@ -232,6 +232,20 @@ func (o FuseStatusArg) DeepCopy() FuseStatusArg {
 	}
 }
 
+type InstallFuseArg struct {
+}
+
+func (o InstallFuseArg) DeepCopy() InstallFuseArg {
+	return InstallFuseArg{}
+}
+
+type LoadKextArg struct {
+}
+
+func (o LoadKextArg) DeepCopy() LoadKextArg {
+	return LoadKextArg{}
+}
+
 type InstallKBFSArg struct {
 }
 
@@ -248,6 +262,8 @@ func (o UninstallKBFSArg) DeepCopy() UninstallKBFSArg {
 
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
+	InstallFuse(context.Context) (InstallResult, error)
+	LoadKext(context.Context) (Status, error)
 	InstallKBFS(context.Context) (InstallResult, error)
 	UninstallKBFS(context.Context) (UninstallResult, error)
 }
@@ -268,6 +284,28 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.FuseStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"installFuse": {
+				MakeArg: func() interface{} {
+					ret := make([]InstallFuseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.InstallFuse(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loadKext": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadKextArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.LoadKext(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -304,6 +342,16 @@ type InstallClient struct {
 
 func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res FuseStatus, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.install.fuseStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c InstallClient) InstallFuse(ctx context.Context) (res InstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installFuse", []interface{}{InstallFuseArg{}}, &res)
+	return
+}
+
+func (c InstallClient) LoadKext(ctx context.Context) (res Status, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.loadKext", []interface{}{LoadKextArg{}}, &res)
 	return
 }
 

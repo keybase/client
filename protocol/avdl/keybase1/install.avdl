@@ -82,7 +82,17 @@ protocol install {
   FuseStatus fuseStatus(int sessionID, string bundleVersion);
 
   /*
-    Install KBFS (Fuse, mount).
+    Install Fuse.
+   */
+  InstallResult installFuse();
+
+  /*
+    Load kext.
+   */
+  Status loadKext();
+
+  /*
+    Install KBFS (including mount).
    */
   InstallResult installKBFS();
 

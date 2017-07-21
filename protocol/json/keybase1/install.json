@@ -226,6 +226,14 @@
       ],
       "response": "FuseStatus"
     },
+    "installFuse": {
+      "request": [],
+      "response": "InstallResult"
+    },
+    "loadKext": {
+      "request": [],
+      "response": "Status"
+    },
     "installKBFS": {
       "request": [],
       "response": "InstallResult"

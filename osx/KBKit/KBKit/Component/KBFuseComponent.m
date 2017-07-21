@@ -131,28 +131,6 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
-  [self _install:^(NSError *error) {
-    if (error) {
-      completion(error);
-      return;
-    }
-    DDLogInfo(@"Loading kext");
-    [self loadKext:^(NSError *error) {
-      if (error.code == -1000) { // KBHelperErrorKext
-        completion([NSError errorWithDomain:@"Keybase" code:-1 userInfo:
-                    @{NSLocalizedDescriptionKey: @"We were unable to load KBFS.",
-                      NSLocalizedRecoveryOptionsErrorKey: @[@"OK"],
-                      NSLocalizedRecoverySuggestionErrorKey: @"This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.",
-                      NSURLErrorKey: [NSURL URLWithString:@"https://github.com/keybase/client/wiki/Troubleshooting#unable-to-load-kbfs-fuse-kext-cant-load"],
-                      }]);
-        return;
-      }
-      completion(error);
-    }];
-  }];
-}
-
-- (void)_install:(KBCompletion)completion {
   [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse if there are mounts
     if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {

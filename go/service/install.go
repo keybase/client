@@ -29,14 +29,25 @@ func (h *InstallHandler) FuseStatus(_ context.Context, arg keybase1.FuseStatusAr
 	return status, nil
 }
 
+func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, error) {
+	components := []string{"helper", "fuse"}
+	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	return result, nil
+}
+
+func (h *InstallHandler) LoadKext(context.Context) (keybase1.Status, error) {
+	status := install.LoadKext(h.G().Log)
+	return status, nil
+}
+
 func (h *InstallHandler) InstallKBFS(context.Context) (keybase1.InstallResult, error) {
-	components := []string{"helper", "fuse", "mountdir", "kbfs"}
+	components := []string{"mountdir", "kbfs"}
 	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
 	return result, nil
 }
 
 func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResult, error) {
-	components := []string{"helper", "fuse", "mountdir", "kbfs"}
+	components := []string{"kbfs", "mountdir", "fuse", "helper"}
 	result := install.Uninstall(h.G(), components, h.G().Log)
 	return result, nil
 }
