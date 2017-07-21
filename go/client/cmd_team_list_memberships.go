@@ -190,6 +190,7 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 	c.outputRole("admin", details.Members.Admins)
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
+	c.outputInvites(details.ActiveInvites)
 	c.tabw.Flush()
 
 	if c.verbose {
@@ -206,6 +207,13 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 			reset = " (inactive due to account reset)"
 		}
 		fmt.Fprintf(c.tabw, "%s\t%s\t%s%s\n", c.team, role, member.Username, reset)
+	}
+}
+
+func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.TeamInvite) {
+	for _, invite := range invites {
+		fmtstring := "%s\t%s*\t%s\t%s\t(*invited by %s; awaiting acceptance)\n"
+		fmt.Fprintf(c.tabw, fmtstring, c.team, invite.Role, invite.Name, invite.Inviter)
 	}
 }
 

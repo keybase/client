@@ -86,6 +86,7 @@ protocol teams {
   record TeamDetails {
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
+    map<TeamInviteID,TeamInvite> activeInvites;
   }
 
   record TeamChangeReq {
@@ -157,6 +158,7 @@ protocol teams {
     TeamInviteID id;
     TeamInviteType type;
     TeamInviteName name;
+    UserVersion inviter;
   }
 
   // State of a parsed team sigchain.

@@ -237,6 +237,14 @@
         {
           "type": "PerTeamKeyGeneration",
           "name": "keyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "activeInvites"
         }
       ]
     },
@@ -456,6 +464,10 @@
         {
           "type": "TeamInviteName",
           "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
         }
       ]
     },

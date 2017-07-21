@@ -42,6 +42,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	if err != nil {
 		return res, err
 	}
+	res.ActiveInvites = t.chain().inner.ActiveInvites
 	return res, nil
 }
 

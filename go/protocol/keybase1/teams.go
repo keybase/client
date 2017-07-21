@@ -279,14 +279,24 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 }
 
 type TeamDetails struct {
-	Members       TeamMembersDetails   `codec:"members" json:"members"`
-	KeyGeneration PerTeamKeyGeneration `codec:"keyGeneration" json:"keyGeneration"`
+	Members       TeamMembersDetails          `codec:"members" json:"members"`
+	KeyGeneration PerTeamKeyGeneration        `codec:"keyGeneration" json:"keyGeneration"`
+	ActiveInvites map[TeamInviteID]TeamInvite `codec:"activeInvites" json:"activeInvites"`
 }
 
 func (o TeamDetails) DeepCopy() TeamDetails {
 	return TeamDetails{
 		Members:       o.Members.DeepCopy(),
 		KeyGeneration: o.KeyGeneration.DeepCopy(),
+		ActiveInvites: (func(x map[TeamInviteID]TeamInvite) map[TeamInviteID]TeamInvite {
+			ret := make(map[TeamInviteID]TeamInvite)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ActiveInvites),
 	}
 }
 
@@ -580,18 +590,20 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 }
 
 type TeamInvite struct {
-	Role TeamRole       `codec:"role" json:"role"`
-	Id   TeamInviteID   `codec:"id" json:"id"`
-	Type TeamInviteType `codec:"type" json:"type"`
-	Name TeamInviteName `codec:"name" json:"name"`
+	Role    TeamRole       `codec:"role" json:"role"`
+	Id      TeamInviteID   `codec:"id" json:"id"`
+	Type    TeamInviteType `codec:"type" json:"type"`
+	Name    TeamInviteName `codec:"name" json:"name"`
+	Inviter UserVersion    `codec:"inviter" json:"inviter"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
 	return TeamInvite{
-		Role: o.Role.DeepCopy(),
-		Id:   o.Id.DeepCopy(),
-		Type: o.Type.DeepCopy(),
-		Name: o.Name.DeepCopy(),
+		Role:    o.Role.DeepCopy(),
+		Id:      o.Id.DeepCopy(),
+		Type:    o.Type.DeepCopy(),
+		Name:    o.Name.DeepCopy(),
+		Inviter: o.Inviter.DeepCopy(),
 	}
 }
 

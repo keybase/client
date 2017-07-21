@@ -6093,6 +6093,7 @@ export type TeamData = {
 export type TeamDetails = {
   members: TeamMembersDetails,
   keyGeneration: PerTeamKeyGeneration,
+  activeInvites: {[key: string]: TeamInvite},
 }
 
 export type TeamID = string
@@ -6102,6 +6103,7 @@ export type TeamInvite = {
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
+  inviter: UserVersion,
 }
 
 export type TeamInviteCategory =
