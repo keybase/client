@@ -337,7 +337,7 @@ class Profile extends Component<void, Props, State> {
       : this.props.following
     let friendData = chunk(friends || [], 3)
     if (!friendData.length) {
-      friendData = [{dummy}]
+      friendData = [[{dummy: true}]]
     }
 
     return (
