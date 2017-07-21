@@ -2115,43 +2115,30 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 }
 
 func (h *Server) checkInConv(ctx context.Context, convID chat1.ConversationID) (in bool, err error) {
-	h.Debug(ctx, "+ checkInConv(%v)", convID)
-	defer func() { h.Debug(ctx, "- checkInConv -> (%v, %v)", in, err) }()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("checkInConv(%v)", convID))()
 
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		return false, libkb.LoginRequiredError{}
 	}
 
-	// Get the conversation from the inbox.
-	query := chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
+	conv, _, err := GetUnverifiedConv(ctx, h.G(), uid.ToBytes(), convID, true)
+	if err != nil {
+		return false, err
 	}
-	localizer := NewBlockingLocalizer(h.G())
-	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, &query, nil)
-	if len(ib.Convs) == 0 {
-		return false, nil
-	}
-	if len(ib.Convs) != 1 {
-		return false, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
-	}
-	conv := ib.Convs[0]
-
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_ACTIVE:
 		return true, nil
-	case chat1.ConversationMemberStatus_REMOVED, chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_PREVIEW:
-		return false, nil
 	default:
-		return false, fmt.Errorf("unrecognized reader status: %v", conv.ReaderInfo.Status)
+		// including PREVIEW
+		return false, nil
 	}
 }
 
 // Post a join or leave message. Must be called when the user is in the conv.
 // Uses a blocking sender.
 func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
-	h.Debug(ctx, "+ postJoinLeave(%v)", convID)
-	defer func() { h.Debug(ctx, "- postJoinLeave -> %v", err) }()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("postJoinLeave(%v)", convID))()
 
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
@@ -2173,8 +2160,7 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 	query := chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
-	localizer := NewBlockingLocalizer(h.G())
-	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, &query, nil)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
 	if len(ib.Convs) != 1 {
 		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}
