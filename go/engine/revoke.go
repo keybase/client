@@ -102,6 +102,9 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 func (e *RevokeEngine) Run(ctx *Context) error {
 	e.G().Log.CDebugf(ctx.NetContext, "RevokeEngine#Run (mode:%v)", e.mode)
 
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "RevokeEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "RevokeEngine")
+
 	currentDevice := e.G().Env.GetDeviceID()
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {

@@ -1221,7 +1221,7 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
-		return TeamID(""), errors.New("ID is not a team ID")
+		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)
 	}
 	return TeamID(ut), nil
 }
@@ -1706,4 +1706,8 @@ func (t TeamInviteType) String() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (m MemberInfo) TeamName() (TeamName, error) {
+	return TeamNameFromString(m.FqName)
 }

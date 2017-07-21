@@ -8,7 +8,8 @@ import type {RouteProps} from '../route-tree/render-route'
 
 // $FlowIssue type this connector
 export default pausableConnect(
-  (state, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
+  (state, {isActiveRoute, routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
+    isActiveRoute,
     badgeNumbers: {}, // TODO add badging logic
     selectedTab: routeSelected,
     isModal: routeLeafTags.modal,

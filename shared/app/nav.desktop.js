@@ -3,7 +3,7 @@ import React from 'react'
 import {Box} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
-import TabBar from './tab-bar/index.render'
+import TabBar from './tab-bar/container'
 import {chatTab, loginTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
@@ -25,12 +25,7 @@ function Nav(props: Props) {
   return (
     <Box style={stylesTabsContainer}>
       {props.routeSelected !== loginTab &&
-        <TabBar
-          onTabClick={props.switchTab}
-          selectedTab={props.routeSelected}
-          username={props.username}
-          badgeNumbers={props.navBadges.toJS()}
-        />}
+        <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {visibleScreen.component({isActiveRoute: true})}
         {layerScreens.map(r => r.leafComponent({isActiveRoute: true}))}
@@ -50,9 +45,7 @@ const stylesTabsContainer = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   appFocused: state.config.appFocused,
-  navBadges: state.notifications.get('navBadges'),
   reachable: state.gregor.reachability.reachable,
-  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({

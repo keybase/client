@@ -1757,6 +1757,10 @@ func (e ChatNotInConvError) Error() string {
 	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
 }
 
+func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatNotInTeamError struct {
@@ -1765,6 +1769,10 @@ type ChatNotInTeamError struct {
 
 func (e ChatNotInTeamError) Error() string {
 	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+}
+
+func (e ChatNotInTeamError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
 }
 
 //=============================================================================

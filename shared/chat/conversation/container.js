@@ -10,11 +10,13 @@ import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
+import ConversationError from './error/conversation-error'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {|
+  isActiveRoute: boolean,
   finalizeInfo: ?Constants.FinalizeInfo,
   rekeyInfo: ?Constants.RekeyInfo,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
@@ -27,6 +29,8 @@ type StateProps = {|
   showSearchResults: boolean,
   showSearchPending: boolean,
   showSearchSuggestions: boolean,
+  conversationIsError: boolean,
+  conversationErrorText: string,
 |}
 
 type DispatchProps = {|
@@ -42,7 +46,7 @@ type DispatchProps = {|
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps => {
+const mapStateToProps = (state: TypedState, {isActiveRoute, routePath, routeState}): StateProps => {
   const selectedConversationIDKey = routePath.last()
   let finalizeInfo = null
   let rekeyInfo = null
@@ -50,6 +54,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
   let supersededBy = null
   let showLoader = false
   let threadLoadedOffline = false
+  let conversationIsError = false
+  let conversationErrorText = ''
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
@@ -62,6 +68,10 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
       const inbox = state.chat.get('inbox')
       const selected =
         inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
+      if (selected && selected.state === 'error') {
+        conversationIsError = true
+        conversationErrorText = selected.snippet
+      }
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }
@@ -69,6 +79,9 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
 
   const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
   return {
+    isActiveRoute,
+    conversationErrorText,
+    conversationIsError,
     finalizeInfo,
     rekeyInfo,
     selectedConversationIDKey,
@@ -123,6 +136,7 @@ export default compose(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
   ),
+  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),

@@ -11,7 +11,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -71,13 +70,6 @@ func (v *CmdTeamRename) helpRenameWrongLevel() (err error) {
 func (v *CmdTeamRename) Run() (err error) {
 	cli, err := GetTeamsClient(v.G())
 	if err != nil {
-		return err
-	}
-
-	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(v.G()),
-	}
-	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 

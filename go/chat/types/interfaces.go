@@ -112,8 +112,8 @@ type Syncer interface {
 	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 		syncRes *chat1.SyncChatRes) error
 	RegisterOfflinable(offlinable Offlinable)
-	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
-		immediate bool)
+	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
+		updates []chat1.ConversationStaleUpdate, immediate bool)
 	Shutdown()
 }
 

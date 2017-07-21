@@ -26,6 +26,7 @@ import type {
   OutboxID as RPCOutboxID,
   ConversationID as RPCConversationID,
   TyperInfo,
+  ConversationStaleUpdate,
 } from './types/flow-types-chat'
 import type {DeviceType, KBRecord} from './types/more'
 import type {TypedState} from './reducer'
@@ -482,7 +483,7 @@ export type LoadingMessages = NoErrorTypedAction<
 >
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
-  {convIDs: Array<ConversationIDKey>}
+  {updates: Array<ConversationStaleUpdate>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',

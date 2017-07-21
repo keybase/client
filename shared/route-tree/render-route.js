@@ -27,6 +27,9 @@ export type RouteRenderStack = I.Stack<RenderRouteResult>
 
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
+  // Whether the route is the primary onscreen route.
+  isActiveRoute: boolean,
+
   // Route props (query params)
   routeProps: P,
 

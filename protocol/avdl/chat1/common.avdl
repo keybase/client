@@ -83,7 +83,8 @@ protocol common {
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly
-    LEFT_2     // voluntarily left conversation
+    LEFT_2,    // voluntarily left conversation
+    PREVIEW_3  // use is previewing the channel from an @mention
   }
 
   record Pagination {
@@ -177,6 +178,7 @@ protocol common {
     gregor1.Time mtime; // The last time the convo was modified from the user perspective
     MessageID readMsgid; // The message ID the user has read up to in the convo
     MessageID maxMsgid; // The max message ID in the convo
+    ConversationMemberStatus status; // The status of the membership to the convo
   }
 
   record Conversation {

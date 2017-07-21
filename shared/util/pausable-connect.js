@@ -12,17 +12,22 @@ function selectorFactory(dispatch, factoryOptions) {
     // active. Some connected components have expectations of the structure of
     // their props, so we can't render them until we have data from the
     // selector.
-    if (ownProps.isActiveRoute || cachedResult === undefined) {
+    //
+    // The selector can pause itself by returning isActiveRoute=false. It will
+    // not run and the cached result will be returned as long as
+    // ownProps.isActiveRoute=false.
+    if (
+      cachedResult === undefined ||
+      cachedResult.isActiveRoute ||
+      cachedResult.isActiveRoute !== ownProps.isActiveRoute
+    ) {
       cachedResult = selector(state, ownProps)
+    }
 
-      // isActiveRoute is always passed through to the child component. It's
-      // not necessary to do this in mapStateToProps or mergeProps -- whatever
-      // the selector returns will be clobbered here anyway.
-      cachedResult.isActiveRoute = ownProps.isActiveRoute
-    } else if (cachedResult.isActiveRoute !== ownProps.isActiveRoute) {
-      // We copy the result into a new object so that it is !== the previous
-      // cachedResult.
-      cachedResult = {...cachedResult, isActiveRoute: ownProps.isActiveRoute}
+    if (__DEV__) {
+      if (cachedResult.isActiveRoute !== true && cachedResult.isActiveRoute !== false) {
+        console.warn('pausableConnect: selector did not return a value for isActiveRoute', cachedResult)
+      }
     }
     return cachedResult
   }

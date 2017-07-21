@@ -50,6 +50,9 @@ func (e *DeprovisionEngine) SubConsumers() []libkb.UIConsumer {
 // be already revoked), but it will still return an error if something
 // unexpected goes wrong.
 func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "DeprovisionEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "DeprovisionEngine")
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error loading current user: %s", err)

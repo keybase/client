@@ -7,7 +7,7 @@ import type {Props} from '.'
 
 const Splash = (props: Props) => (
   <Box style={stylesLoginForm}>
-    <Icon type="icon-keybase-logo-128" />
+    <Icon type="icon-keybase-logo-80" />
     <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
     <Text style={stylesHeaderSub} type="BodySmall">Loading…{props.retrying ? ' (still trying)' : ''}</Text>
   </Box>
@@ -15,7 +15,7 @@ const Splash = (props: Props) => (
 
 const Failure = (props: Props) => (
   <Box style={stylesLoginForm}>
-    <Icon type="icon-keybase-logo-128" />
+    <Icon type="icon-keybase-logo-80" />
     <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
     <Text style={stylesMessage} type="Body">
       Oops, we had a problem communicating with our services.<br />
@@ -49,7 +49,7 @@ const Intro = (props: Props) => (
           has been revoked, please log in again.
         </Text>
       </Box>}
-    <Icon type="icon-keybase-logo-128" />
+    <Icon type="icon-keybase-logo-80" />
     <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
     <Text style={stylesHeaderSub} type="BodySemibold">Public key crypto for everyone</Text>
     <Button style={stylesButton} type="Primary" onClick={props.onSignup} label="Create an account" />

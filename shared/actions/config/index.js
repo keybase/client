@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/config'
+import * as Creators from './creators'
 import engine from '../../engine'
 import {
   CommonClientType,
@@ -8,7 +9,7 @@ import {
   configGetExtendedStatusRpc,
   configWaitForClientRpc,
 } from '../../constants/types/flow-types'
-import {isMobile} from '../../constants/platform'
+import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {navBasedOnLoginState} from '../../actions/login/creators'
 import {
@@ -18,7 +19,13 @@ import {
   listenForNativeReachabilityEvents,
 } from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
+import * as Saga from '../../util/saga'
+import {configurePush} from '../push/creators'
+import {put, select} from 'redux-saga/effects'
+import {loggedInSelector} from '../../constants/selectors'
 
+import type {TypedState} from '../../constants/reducer'
+import type {SagaGenerator} from '../../constants/types/saga'
 import type {Tab} from '../../constants/tabs'
 import type {UpdateFollowing} from '../../constants/config'
 import type {AsyncAction} from '../../constants/types/flux'
@@ -205,6 +212,23 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
   type: Constants.updateFollowing,
 })
 
+function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
+  if (isMobile) {
+    const pushLoaded = yield select(({config: {pushLoaded}}: TypedState) => pushLoaded)
+    const loggedIn = yield select(loggedInSelector)
+    if (!pushLoaded && loggedIn) {
+      if (!isSimulator) {
+        yield put(configurePush())
+      }
+      yield put(Creators.pushLoaded(true))
+    }
+  }
+}
+
+function* configSaga(): SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery('config:bootstrapSuccess', _bootstrapSuccessSaga)
+}
+
 export {
   bootstrap,
   getConfig,
@@ -218,3 +242,5 @@ export {
   updateFollowing,
   waitForKBFS,
 }
+
+export default configSaga
