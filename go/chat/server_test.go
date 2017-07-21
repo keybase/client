@@ -1924,7 +1924,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.NoError(t, err)
 
-		topicName := "MIKETIME"
+		topicName := "miketime"
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
 				TlfName:       conv.TlfName,

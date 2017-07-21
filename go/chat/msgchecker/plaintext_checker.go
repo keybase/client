@@ -21,9 +21,9 @@ const (
 func (r validateTopicNameRes) String() string {
 	switch r {
 	case validateTopicNameResInvalidChar:
-		return "invalid characters in topic name, please use alphanumeric plus _ and -"
+		return "invalid characters in channel name, please use alphanumeric plus _ and -"
 	case validateTopicNameResInvalidLength:
-		return "invalid topic name length. Must be greater than 0 and <= 20"
+		return "invalid channel name length. Must be greater than 0 and <= 20"
 	case validateTopicNameResOK:
 		return "OK"
 	}
