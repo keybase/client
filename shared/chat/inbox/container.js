@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
 import Inbox from './index'
-import {connect} from 'react-redux'
+import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
@@ -61,7 +61,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
