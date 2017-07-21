@@ -87,9 +87,9 @@ protocol install {
   InstallResult installFuse();
 
   /*
-    Load kext.
+    Load Fuse kext.
    */
-  Status loadKext();
+  Status loadFuseKext();
 
   /*
     Install KBFS (including mount).

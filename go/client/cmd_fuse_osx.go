@@ -105,7 +105,7 @@ func (v *cmdFuseLoadKext) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *cmdFuseLoadKext) Run() error {
-	status := install.LoadKext(v.G().Log)
+	status := install.LoadFuseKext(v.G().Log)
 	out, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return err

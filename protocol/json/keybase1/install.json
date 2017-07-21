@@ -230,7 +230,7 @@
       "request": [],
       "response": "InstallResult"
     },
-    "loadKext": {
+    "loadFuseKext": {
       "request": [],
       "response": "Status"
     },
