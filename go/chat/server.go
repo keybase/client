@@ -2369,13 +2369,8 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 		return res, err
 	}
 
-<<<<<<< HEAD
 	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
 		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
-=======
-	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
-		uid, nameInfo.ID, arg.TopicType, arg.MembersType)
->>>>>>> wip
 	if err != nil {
 		return res, err
 	}

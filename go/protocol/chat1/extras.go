@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -623,6 +622,6 @@ func (s TopicNameState) Bytes() []byte {
 	return []byte(s)
 }
 
-func (s TopicNameState) Eq(o chat1.TopicNameState) bool {
+func (s TopicNameState) Eq(o TopicNameState) bool {
 	return bytes.Equal(s.Bytes(), o.Bytes())
 }

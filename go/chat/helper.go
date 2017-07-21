@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-codec/codec"
 )
 
 func SendTextByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string, ri chat1.RemoteInterface) error {
@@ -324,18 +322,10 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 		})
 	}
 
-	mh := codec.MsgpackHandle{WriteExt: true}
-	var data []byte
-	enc := codec.NewEncoderBytes(&data, &mh)
-	if err := enc.Encode(pairs); err != nil {
+	if res, err = utils.CreateTopicNameState(pairs); err != nil {
+		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
 		return res, rl, err
 	}
 
-	h := sha256.New()
-	if _, err = h.Write(data); err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to hash topic name state: %s", err.Error())
-		return res, rl, err
-	}
-
-	return h.Sum(nil), rl, nil
+	return res, rl, nil
 }

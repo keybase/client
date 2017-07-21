@@ -496,18 +496,19 @@ func SanitizeTopicName(topicName string) string {
 func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) chat1.TopicNameState {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var data []byte
+	var err error
+	mh := codec.MsgpackHandle{WriteExt: true}
 	enc := codec.NewEncoderBytes(&data, &mh)
-	if err := enc.Encode(pairs); err != nil {
-		return res, rl, err
+	if err = enc.Encode(cmp); err != nil {
+		return chat1.TopicNameState{}, err
 	}
 
 	h := sha256.New()
 	if _, err = h.Write(data); err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to hash topic name state: %s", err.Error())
-		return res, rl, err
+		return chat1.TopicNameState{}, err
 	}
 
-	return h.Sum(nil)
+	return h.Sum(nil), nil
 }
 
 type ConvLocalByConvID []chat1.ConversationLocal
