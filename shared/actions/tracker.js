@@ -523,7 +523,7 @@ function _serverCallMap(
 
         dispatch({
           type: Constants.updateReason,
-          payload: {username, reason: reason && reason.reason},
+          payload: {username, reason: reason && reason.reason !== profileFromUI && reason.reason},
         })
 
         dispatch({
