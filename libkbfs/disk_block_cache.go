@@ -45,10 +45,10 @@ const (
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
 type DiskBlockCacheStandard struct {
-	config      diskBlockCacheConfig
-	log         logger.Logger
-	maxBlockID  []byte
-	isSyncCache bool
+	config     diskBlockCacheConfig
+	log        logger.Logger
+	maxBlockID []byte
+	cacheType  diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
 	numBlocks int
@@ -176,10 +176,14 @@ func newDiskBlockCacheStandardFromStorage(
 	}
 	startedCh := make(chan struct{})
 	startErrCh := make(chan struct{})
+	cacheType := workingSetCacheLimitTrackerType
+	if isSyncCache {
+		cacheType = syncCacheLimitTrackerType
+	}
 	cache = &DiskBlockCacheStandard{
 		config:           config,
 		maxBlockID:       maxBlockID.Bytes(),
-		isSyncCache:      isSyncCache,
+		cacheType:        cacheType,
 		tlfCounts:        map[tlf.ID]int{},
 		tlfSizes:         map[tlf.ID]uint64{},
 		hitMeter:         NewCountMeter(),
@@ -216,7 +220,7 @@ func newDiskBlockCacheStandardFromStorage(
 			// determined it.
 			ctx := context.Background()
 			cache.config.DiskLimiter().onSimpleByteTrackerEnable(ctx,
-				workingSetCacheLimitTrackerType, int64(cache.currBytes))
+				cache.cacheType, int64(cache.currBytes))
 		}
 		close(startedCh)
 	}()
@@ -558,7 +562,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 			default:
 			}
 			bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
-				ctx, workingSetCacheLimitTrackerType, encodedLen)
+				ctx, cache.cacheType, encodedLen)
 			if err != nil {
 				cache.log.CWarningf(ctx, "Error obtaining space for the disk "+
 					"block cache: %+v", err)
@@ -585,10 +589,10 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
 			cache.config.DiskLimiter().commitOrRollback(ctx,
-				workingSetCacheLimitTrackerType, encodedLen, 0, false, "")
+				cache.cacheType, encodedLen, 0, false, "")
 			return err
 		}
-		cache.config.DiskLimiter().commitOrRollback(ctx, workingSetCacheLimitTrackerType,
+		cache.config.DiskLimiter().commitOrRollback(ctx, cache.cacheType,
 			encodedLen, 0, true, "")
 		cache.tlfCounts[tlfID]++
 		cache.numBlocks++
@@ -712,7 +716,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 		cache.tlfSizes[k] -= removalSizes[k]
 		cache.currBytes -= removalSizes[k]
 	}
-	cache.config.DiskLimiter().release(ctx, workingSetCacheLimitTrackerType,
+	cache.config.DiskLimiter().release(ctx, cache.cacheType,
 		sizeRemoved, 0)
 
 	return numRemoved, sizeRemoved, nil
@@ -938,7 +942,7 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	}
 	cache.tlfDb = nil
 	cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
-		workingSetCacheLimitTrackerType, int64(cache.currBytes))
+		cache.cacheType, int64(cache.currBytes))
 	cache.hitMeter.Shutdown()
 	cache.missMeter.Shutdown()
 	cache.putMeter.Shutdown()
