@@ -9,48 +9,59 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './search'
 
 const Search = (props: Props) => (
-  <Box style={styleSearchContainer}>
-    <Box style={styleSearchRow}>
-      <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-        <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
-          <UserInput
-            ref={props.setInputRef}
-            autoFocus={true}
-            onChangeText={props.onChangeText}
-            onClickAddButton={props.onClickAddButton}
-            onAddSelectedUser={props.onAddSelectedUser}
-            onMoveSelectUp={props.onMoveSelectUp}
-            onMoveSelectDown={props.onMoveSelectDown}
-            onRemoveUser={props.onRemoveUser}
-            placeholder={props.placeholder}
-            userItems={props.userItems}
-            usernameText={props.searchText}
-            onCancel={props.onClose}
-          />
-        </Box>
-        <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
-      </Box>
-    </Box>
-    {props.showServiceFilter &&
-      <Box style={styleServiceRow}>
-        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-      </Box>}
-    <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
-      {props.showSearchPending
-        ? <Box style={styleSpinner}>
-            <ProgressIndicator style={{width: globalMargins.xlarge}} />
+  <Box style={styleCatcher} onClick={props.onClose}>
+    <Box style={styleSearchContainer}>
+      <Box style={styleSearchRow}>
+        <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
+          <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
+            <UserInput
+              ref={props.setInputRef}
+              autoFocus={true}
+              onChangeText={props.onChangeText}
+              onClickAddButton={props.onClickAddButton}
+              onAddSelectedUser={props.onAddSelectedUser}
+              onMoveSelectUp={props.onMoveSelectUp}
+              onMoveSelectDown={props.onMoveSelectDown}
+              onRemoveUser={props.onRemoveUser}
+              placeholder={props.placeholder}
+              userItems={props.userItems}
+              usernameText={props.searchText}
+              onCancel={props.onClose}
+            />
           </Box>
-        : <ResultsList
-            items={props.searchResultIds}
-            onClick={props.onClick}
-            onMouseOver={props.onMouseOverSearchResult}
-            selectedId={props.selectedSearchId}
-            showSearchSuggestions={props.showSearchSuggestions}
-          />}
+          <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+        </Box>
+      </Box>
+      {props.showServiceFilter &&
+        <Box style={styleServiceRow}>
+          <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
+          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
+        </Box>}
+      <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
+        {props.showSearchPending
+          ? <Box style={styleSpinner}>
+              <ProgressIndicator style={{width: globalMargins.xlarge}} />
+            </Box>
+          : <ResultsList
+              items={props.searchResultIds}
+              onClick={props.onClick}
+              onMouseOver={props.onMouseOverSearchResult}
+              selectedId={props.selectedSearchId}
+              showSearchSuggestions={props.showSearchSuggestions}
+            />}
+      </Box>
     </Box>
   </Box>
 )
+
+const styleCatcher = {
+  ...globalStyles.flexBoxCenter,
+  backgroundColor: globalColors.transparent,
+  height: '100%',
+  position: 'absolute',
+  width: '100%',
+  zIndex: 10,
+}
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
