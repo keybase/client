@@ -77,6 +77,8 @@ protocol constants {
     SCInvalidLocationError_1802,
     SCServiceStatusError_1803,
     SCInstallError_1804,
+    SCLoadKextError_1810,
+    SCLoadKextPermError_1811,
     SCLoginStateTimeout_2400,
     SCChatInternal_2500,
     SCChatRateLimit_2501,

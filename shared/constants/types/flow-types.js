@@ -187,6 +187,8 @@ export const ConstantsStatusCode = {
   scinvalidlocationerror: 1802,
   scservicestatuserror: 1803,
   scinstallerror: 1804,
+  scloadkexterror: 1810,
+  scloadkextpermerror: 1811,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -2178,19 +2180,19 @@ export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function installLoadKextRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadKextResult) => void}>) {
-  engineRpcOutgoing('keybase.1.install.loadKext', request)
+export function installLoadFuseKextRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>) {
+  engineRpcOutgoing('keybase.1.install.loadFuseKext', request)
 }
 
-export function installLoadKextRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadKextResult) => void}>): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.loadKext', request)
+export function installLoadFuseKextRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.loadFuseKext', request)
 }
-export function installLoadKextRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadKextResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.loadKext', request, callback, incomingCallMap) })
+export function installLoadFuseKextRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.loadFuseKext', request, callback, incomingCallMap) })
 }
 
-export function installLoadKextRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadKextResult) => void}>): Promise<installLoadKextResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.loadKext', request, (error, result) => error ? reject(error) : resolve(result)))
+export function installLoadFuseKextRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): Promise<installLoadFuseKextResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.loadFuseKext', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function installUninstallKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>) {
@@ -6036,6 +6038,8 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 1810 // SCLoadKextError_1810
+  | 1811 // SCLoadKextPermError_1811
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -7673,7 +7677,7 @@ type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
 type installInstallFuseResult = InstallResult
 type installInstallKBFSResult = InstallResult
-type installLoadKextResult = Status
+type installLoadFuseKextResult = Status
 type installUninstallKBFSResult = UninstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
@@ -7871,7 +7875,7 @@ export type rpc =
   | installFuseStatusRpc
   | installInstallFuseRpc
   | installInstallKBFSRpc
-  | installLoadKextRpc
+  | installLoadFuseKextRpc
   | installUninstallKBFSRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc

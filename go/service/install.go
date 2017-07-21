@@ -35,8 +35,8 @@ func (h *InstallHandler) InstallFuse(context.Context) (keybase1.InstallResult, e
 	return result, nil
 }
 
-func (h *InstallHandler) LoadKext(context.Context) (keybase1.Status, error) {
-	status := install.LoadKext(h.G().Log)
+func (h *InstallHandler) LoadFuseKext(context.Context) (keybase1.Status, error) {
+	status := install.LoadFuseKext(h.G().Log)
 	return status, nil
 }
 
