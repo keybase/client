@@ -345,7 +345,7 @@ func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
 	if role == keybase1.TeamRole_OWNER {
-		return keybase1.TeamAddMemberResult{}, errors.New("cannot invite a user to be an owner")
+		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
 	}
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
@@ -359,6 +359,11 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 
 func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
 	t.G().Log.Debug("team %s invite email member %s", t.Name(), email)
+
+	if role == keybase1.TeamRole_OWNER {
+		return errors.New("You cannot invite an owner to a team over email.")
+	}
+
 	invite := SCTeamInvite{
 		Type: "email",
 		Name: email,
@@ -411,7 +416,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return err
 	}
 	if existing {
-		return libkb.ExistsError{Msg: "invite already exists"}
+		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
 
 	admin, err := t.getAdminPermission(ctx, true)
@@ -429,7 +434,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Readers = &invList
 	default:
 		// should be caught further up, but just in case
-		return errors.New("invalid role for invitation")
+		return errors.New("You cannot invite an owner to a team.")
 	}
 
 	teamSection := SCTeamSection{
@@ -492,7 +497,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	}
 	if targetTeam == nil {
 		if required {
-			err = errors.New("cannot perform this operation without adminship")
+			err = errors.New("Only admins can perform this operation.")
 		}
 		return nil, err
 	}

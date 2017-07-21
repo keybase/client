@@ -13,7 +13,7 @@ import {
 } from './proofs'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
-import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
+import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
@@ -34,7 +34,8 @@ function* _editProfile(action: Constants.EditProfile): SagaGenerator<any, any> {
   yield call(userProfileEditRpcPromise, {
     param: {bio, fullName, location},
   })
-  yield put(navigateUp())
+  // If the profile tab remained on the edit profile screen, navigate back to the top level.
+  yield put(putActionIfOnPath([profileTab, 'editProfile'], navigateTo([], [profileTab]), [profileTab]))
 }
 
 function updateUsername(username: string): Constants.UpdateUsername {

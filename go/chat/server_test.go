@@ -503,14 +503,14 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "MIKETIME"
-		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
-			chat1.NewConversationLocalArg{
-				TlfName:       conv.TlfName,
-				TopicName:     &topicName,
-				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
-				MembersType:   mt,
-			})
+		arg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			MembersType:   mt,
+		}
+		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
@@ -522,6 +522,28 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewConversationLocal error: %v\n", err)
 		}
+
+		// Try some invalid names
+		topicName = "#mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "/mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "mi.ke"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = ""
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			require.NoError(t, err)
+		case chat1.ConversationMembersType_TEAM:
+			require.Error(t, err)
+		}
+		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
 	})
 }
 
@@ -768,33 +790,25 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
-		if err != nil {
-			t.Fatalf("trying to post a text message with body length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a text message with body length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody}))
-		if err != nil {
-			t.Fatalf("trying to post a headline message with headline length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a headline message with headline length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
-		maxTopicBody := strings.Repeat(".", msgchecker.TopicMaxLength)
+		maxTopicBody := strings.Repeat("a", msgchecker.TopicMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody}))
-		if err != nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length equal to the maximum failed")
-		}
-		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length greater than the maximum did not fail")
-		}
+		require.NoError(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "a"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "#mike"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "mii.ke"}))
+		require.Error(t, err)
 	})
 }
 
@@ -1877,7 +1891,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 
 func TestChatSrvTeamChannels(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatTeamChannels", 2)
+		ctc := makeChatTestContext(t, "TestChatTeamChannels", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -1899,14 +1913,18 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
+		listener2 := newServerChatListener()
+		ctc.as(t, users[2]).h.G().SetService()
+		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		_, err := postLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
 		}))
 		require.NoError(t, err)
 
-		topicName := "MIKETIME"
+		topicName := "miketime"
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
 				TlfName:       conv.TlfName,
@@ -1957,8 +1975,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 
+		t.Logf("@mention in user2")
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "FAIL",
+			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
 
@@ -1985,6 +2004,26 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: "FAIL",
 		}))
 		require.Error(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[2], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.NoError(t, err)
+		select {
+		case conv := <-listener2.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[2].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
 	})
 }
 

@@ -85,6 +85,7 @@ const (
 	StatusCode_SCInvalidLocationError     StatusCode = 1802
 	StatusCode_SCServiceStatusError       StatusCode = 1803
 	StatusCode_SCInstallError             StatusCode = 1804
+	StatusCode_SCLoginStateTimeout        StatusCode = 2400
 	StatusCode_SCChatInternal             StatusCode = 2500
 	StatusCode_SCChatRateLimit            StatusCode = 2501
 	StatusCode_SCChatConvExists           StatusCode = 2502
@@ -187,6 +188,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCInvalidLocationError":     1802,
 	"SCServiceStatusError":       1803,
 	"SCInstallError":             1804,
+	"SCLoginStateTimeout":        2400,
 	"SCChatInternal":             2500,
 	"SCChatRateLimit":            2501,
 	"SCChatConvExists":           2502,
@@ -287,6 +289,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1802: "SCInvalidLocationError",
 	1803: "SCServiceStatusError",
 	1804: "SCInstallError",
+	2400: "SCLoginStateTimeout",
 	2500: "SCChatInternal",
 	2501: "SCChatRateLimit",
 	2502: "SCChatConvExists",

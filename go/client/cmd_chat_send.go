@@ -106,8 +106,9 @@ func (c *CmdChatSend) Run() (err error) {
 	// Do one of set topic name, set headline, or send message
 	switch {
 	case c.setTopicName != "":
-		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<\n")
+		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
+			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet (except on team chats). Ignoring --set-topic-name >.<\n")
 			return nil
 		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA

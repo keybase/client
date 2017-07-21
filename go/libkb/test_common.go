@@ -441,3 +441,9 @@ func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
+
+// ResetLoginState is only used for testing...
+// Bypasses locks.
+func (g *GlobalContext) ResetLoginState() {
+	g.createLoginStateLocked()
+}

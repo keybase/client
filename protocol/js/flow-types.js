@@ -187,6 +187,7 @@ export const ConstantsStatusCode = {
   scinvalidlocationerror: 1802,
   scservicestatuserror: 1803,
   scinstallerror: 1804,
+  scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
   scchatconvexists: 2502,
@@ -4299,6 +4300,20 @@ export type APIRes = {
   appStatus: string,
 }
 
+export type AnnotatedMemberInfo = {
+  userID: UID,
+  teamID: TeamID,
+  username: string,
+  fullName: string,
+  fqName: string,
+  role: TeamRole,
+  implicit?: ?ImplicitRole,
+}
+
+export type AnnotatedTeamList = {
+  teams?: ?Array<AnnotatedMemberInfo>,
+}
+
 export type AppState =
     0 // FOREGROUND_0
   | 1 // BACKGROUND_1
@@ -5055,6 +5070,7 @@ export type MDBlock = {
 export type MaskB64 = bytes
 
 export type MemberInfo = {
+  userID: UID,
   teamID: TeamID,
   fqName: string,
   role: TeamRole,
@@ -5990,6 +6006,7 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
   | 2502 // SCChatConvExists_2502
@@ -6161,9 +6178,6 @@ export type TeamJoinRequest = {
 }
 
 export type TeamList = {
-  uid: UID,
-  username: string,
-  fullName: string,
   teams?: ?Array<MemberInfo>,
 }
 
@@ -7419,7 +7433,8 @@ export type teamsTeamLeaveRpcParam = Exact<{
 }>
 
 export type teamsTeamListRpcParam = Exact<{
-  userAssertion: string
+  userAssertion: string,
+  all: boolean
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -7688,7 +7703,7 @@ type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
-type teamsTeamListResult = TeamList
+type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamTreeResult = TeamTreeResult
 type testTestCallbackResult = string
 type testTestResult = Test
