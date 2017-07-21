@@ -66,10 +66,10 @@ type DiskBlockCacheStandard struct {
 	deleteSizeMeter  *CountMeter
 	// Protect the disk caches from being shutdown while they're being
 	// accessed.
-	lock    sync.RWMutex
-	blockDb *leveldb.DB
-	metaDb  *leveldb.DB
-	tlfDb   *leveldb.DB
+	shutdownLock sync.RWMutex
+	blockDb      *leveldb.DB
+	metaDb       *leveldb.DB
+	tlfDb        *leveldb.DB
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
@@ -353,8 +353,8 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	defer cache.log.Debug("- syncBlockCountsFromDb end")
 	// We take a write lock for this to prevent any reads from happening while
 	// we're syncing the block counts.
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.shutdownLock.Lock()
+	defer cache.shutdownLock.Unlock()
 
 	tlfCounts := make(map[tlf.ID]int)
 	tlfSizes := make(map[tlf.ID]uint64)
@@ -482,8 +482,8 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, hasPrefetched bool,
 	err error) {
 
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.shutdownLock.RLock()
+	defer cache.shutdownLock.RUnlock()
 	err = cache.checkCacheLocked("Get")
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
@@ -523,8 +523,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.shutdownLock.Lock()
+	defer cache.shutdownLock.Unlock()
 	err := cache.checkCacheLocked("Put")
 	if err != nil {
 		return errors.WithStack(err)
@@ -621,8 +621,8 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 
 	// Only obtain a read lock because `UpdateMetadata` only happens during a
 	// `Get` from the cache.
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.shutdownLock.RLock()
+	defer cache.shutdownLock.RUnlock()
 	err = cache.checkCacheLocked("UpdateMetadata")
 	if err != nil {
 		return errors.WithStack(err)
@@ -644,8 +644,8 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Size() int64 {
 
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.shutdownLock.RLock()
+	defer cache.shutdownLock.RUnlock()
 	err := cache.checkCacheLocked("Size")
 	if err != nil {
 		return 0
@@ -722,8 +722,8 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 func (cache *DiskBlockCacheStandard) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.shutdownLock.Lock()
+	defer cache.shutdownLock.Unlock()
 	err = cache.checkCacheLocked("Delete")
 	if err != nil {
 		return 0, 0, errors.WithStack(err)
@@ -880,8 +880,8 @@ func (cache *DiskBlockCacheStandard) Status(
 	default:
 		return &DiskBlockCacheStatus{IsStarting: true}
 	}
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
+	cache.shutdownLock.RLock()
+	defer cache.shutdownLock.RUnlock()
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
 	limiterStatus :=
@@ -910,8 +910,8 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	case <-cache.startErrCh:
 		return
 	}
-	cache.lock.Lock()
-	defer cache.lock.Unlock()
+	cache.shutdownLock.Lock()
+	defer cache.shutdownLock.Unlock()
 	// shutdownCh has to be checked under lock, otherwise we can race.
 	select {
 	case <-cache.shutdownCh:
