@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -102,15 +107,6 @@
     },
     {
       "type": "enum",
-      "name": "NotificationAppType",
-      "symbols": [
-        "DESKTOP_0",
-        "MOBILE_1"
-      ],
-      "go": "nostring"
-    },
-    {
-      "type": "enum",
       "name": "NotificationKind",
       "symbols": [
         "GENERIC_0",
@@ -150,7 +146,8 @@
       "symbols": [
         "ACTIVE_0",
         "REMOVED_1",
-        "LEFT_2"
+        "LEFT_2",
+        "PREVIEW_3"
       ]
     },
     {
@@ -419,7 +416,7 @@
               "values": "boolean",
               "keys": "NotificationKind"
             },
-            "keys": "NotificationAppType"
+            "keys": "keybase1.DeviceType"
           },
           "name": "settings"
         }
@@ -440,6 +437,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgid"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "status"
         }
       ]
     },

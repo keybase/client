@@ -13,7 +13,7 @@ import {
 } from './proofs'
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
-import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
+import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
@@ -23,6 +23,7 @@ import * as Selectors from '../../constants/selectors'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -33,7 +34,8 @@ function* _editProfile(action: Constants.EditProfile): SagaGenerator<any, any> {
   yield call(userProfileEditRpcPromise, {
     param: {bio, fullName, location},
   })
-  yield put(navigateUp())
+  // If the profile tab remained on the edit profile screen, navigate back to the top level.
+  yield put(putActionIfOnPath([profileTab, 'editProfile'], navigateTo([], [profileTab]), [profileTab]))
 }
 
 function updateUsername(username: string): Constants.UpdateUsername {
@@ -67,7 +69,10 @@ function onUserClick(username: string): Constants.OnUserClick {
 }
 
 function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
-  const {username} = action.payload
+  const {username: userId} = action.payload
+  const searchResultMap = yield select(Selectors.searchResultMapSelector)
+  const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+
   if (!username.includes('@')) {
     yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))

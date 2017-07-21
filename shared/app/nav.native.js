@@ -4,14 +4,15 @@ import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
 import {compose} from 'recompose'
-import TabBar, {tabBarHeight} from './tab-bar/index.render.native'
+import {tabBarHeight} from './tab-bar/index.render.native'
+import TabBar from './tab-bar/container'
 import {
   Box,
   NativeKeyboard,
   NativeKeyboardAvoidingView,
   NativeAnimated,
+  NativeStatusBar,
 } from '../common-adapters/index.native'
-import {StatusBar} from 'react-native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
 import {chatTab, loginTab} from '../constants/tabs'
@@ -117,7 +118,7 @@ function renderStackRoute(route) {
 
   return (
     <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
-      <StatusBar
+      <NativeStatusBar
         hidden={hideStatusBar}
         translucent={true}
         backgroundColor="rgba(0, 26, 51, 0.25)"
@@ -146,11 +147,7 @@ function MainNavStack(props: Props) {
     <Box style={globalStyles.flexGrow}>
       {shim}
       <AnimatedTabBar show={!props.hideNav}>
-        <TabBar
-          onTabClick={props.switchTab}
-          selectedTab={props.routeSelected}
-          badgeNumbers={props.navBadges.toJS()}
-        />
+        <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />
       </AnimatedTabBar>
     </Box>
   )
@@ -173,6 +170,7 @@ type AnimatedTabBarProps = {
   show: boolean,
   children: any,
 }
+
 class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}> {
   state: {offset: any}
 
@@ -316,7 +314,6 @@ const sceneWrapStyleOver = {
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
-  navBadges: state.notifications.get('navBadges'),
   reachable: state.gregor.reachability.reachable,
 })
 

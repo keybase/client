@@ -71,17 +71,15 @@ func (e *Kex2Provisioner) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the provisioner engine.
 func (e *Kex2Provisioner) Run(ctx *Context) error {
-	// before starting provisioning, need to load some information:
 
-	// load self:
-	var err error
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
+	// The guard is acquired later, after the potentially long pause by the user.
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisioner")
+
+	// before starting provisioning, need to load some information:
+	if err := e.loadMe(); err != nil {
 		return err
 	}
-
-	err = e.loadSecretKeys(ctx)
-	if err != nil {
+	if err := e.loadSecretKeys(ctx); err != nil {
 		return err
 	}
 
@@ -124,6 +122,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	if err := kex2.RunProvisioner(parg); err != nil {
 		return err
 	}
+	e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisioner")
 
 	// successfully provisioned the other device
 	sarg := keybase1.ProvisionerSuccessArg{
@@ -306,6 +305,18 @@ func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 // skeletonProof generates a partial key proof structure that
 // device Y can fill in.
 func (e *Kex2Provisioner) skeletonProof() (string, error) {
+
+	// Set the local sigchain guard to tell background tasks
+	// to stay off the sigchain while we do this.
+	// This is released at the end of Kex2Provisioner#Run
+	e.G().LocalSigchainGuard().Set(context.TODO(), "Kex2Provisioner")
+
+	// reload the self user to make sure it is fresh
+	// (this fixes TestProvisionWithRevoke [CORE-5631, CORE-5636])
+	if err := e.loadMe(); err != nil {
+		return "", err
+	}
+
 	delg := libkb.Delegator{
 		ExistingKey:    e.signingKey,
 		Me:             e.me,
@@ -401,4 +412,13 @@ func (e *Kex2Provisioner) makePukBox(receiverKeyGeneric libkb.GenericKey) (*keyb
 		receiverKey,     // receiver key: provisionee enc
 		e.encryptionKey) // sender key: this device enc
 	return &pukBox, err
+}
+
+func (e *Kex2Provisioner) loadMe() error {
+	var err error
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		return err
+	}
+	return nil
 }

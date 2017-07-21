@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -176,8 +181,15 @@
         },
         {
           "type": "int",
-          "name": "UnreadMessages",
-          "lint": "ignore"
+          "name": "unreadMessages"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int",
+            "keys": "keybase1.DeviceType"
+          },
+          "name": "unreadNotifyingMessages"
         }
       ]
     },
@@ -259,6 +271,13 @@
             "items": "ConversationMember"
           },
           "name": "removed"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     }

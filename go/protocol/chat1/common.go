@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -184,25 +185,6 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 }
 
-type NotificationAppType int
-
-const (
-	NotificationAppType_DESKTOP NotificationAppType = 0
-	NotificationAppType_MOBILE  NotificationAppType = 1
-)
-
-func (o NotificationAppType) DeepCopy() NotificationAppType { return o }
-
-var NotificationAppTypeMap = map[string]NotificationAppType{
-	"DESKTOP": 0,
-	"MOBILE":  1,
-}
-
-var NotificationAppTypeRevMap = map[NotificationAppType]string{
-	0: "DESKTOP",
-	1: "MOBILE",
-}
-
 type NotificationKind int
 
 const (
@@ -278,6 +260,7 @@ const (
 	ConversationMemberStatus_ACTIVE  ConversationMemberStatus = 0
 	ConversationMemberStatus_REMOVED ConversationMemberStatus = 1
 	ConversationMemberStatus_LEFT    ConversationMemberStatus = 2
+	ConversationMemberStatus_PREVIEW ConversationMemberStatus = 3
 )
 
 func (o ConversationMemberStatus) DeepCopy() ConversationMemberStatus { return o }
@@ -286,12 +269,14 @@ var ConversationMemberStatusMap = map[string]ConversationMemberStatus{
 	"ACTIVE":  0,
 	"REMOVED": 1,
 	"LEFT":    2,
+	"PREVIEW": 3,
 }
 
 var ConversationMemberStatusRevMap = map[ConversationMemberStatus]string{
 	0: "ACTIVE",
 	1: "REMOVED",
 	2: "LEFT",
+	3: "PREVIEW",
 }
 
 func (e ConversationMemberStatus) String() string {
@@ -566,14 +551,14 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 
 type ConversationNotificationInfo struct {
 	ChannelWide bool                                              `codec:"channelWide" json:"channelWide"`
-	Settings    map[NotificationAppType]map[NotificationKind]bool `codec:"settings" json:"settings"`
+	Settings    map[keybase1.DeviceType]map[NotificationKind]bool `codec:"settings" json:"settings"`
 }
 
 func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 	return ConversationNotificationInfo{
 		ChannelWide: o.ChannelWide,
-		Settings: (func(x map[NotificationAppType]map[NotificationKind]bool) map[NotificationAppType]map[NotificationKind]bool {
-			ret := make(map[NotificationAppType]map[NotificationKind]bool)
+		Settings: (func(x map[keybase1.DeviceType]map[NotificationKind]bool) map[keybase1.DeviceType]map[NotificationKind]bool {
+			ret := make(map[keybase1.DeviceType]map[NotificationKind]bool)
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := (func(x map[NotificationKind]bool) map[NotificationKind]bool {
@@ -593,9 +578,10 @@ func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 }
 
 type ConversationReaderInfo struct {
-	Mtime     gregor1.Time `codec:"mtime" json:"mtime"`
-	ReadMsgid MessageID    `codec:"readMsgid" json:"readMsgid"`
-	MaxMsgid  MessageID    `codec:"maxMsgid" json:"maxMsgid"`
+	Mtime     gregor1.Time             `codec:"mtime" json:"mtime"`
+	ReadMsgid MessageID                `codec:"readMsgid" json:"readMsgid"`
+	MaxMsgid  MessageID                `codec:"maxMsgid" json:"maxMsgid"`
+	Status    ConversationMemberStatus `codec:"status" json:"status"`
 }
 
 func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
@@ -603,6 +589,7 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 		Mtime:     o.Mtime.DeepCopy(),
 		ReadMsgid: o.ReadMsgid.DeepCopy(),
 		MaxMsgid:  o.MaxMsgid.DeepCopy(),
+		Status:    o.Status.DeepCopy(),
 	}
 }
 

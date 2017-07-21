@@ -21,12 +21,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
-	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
-		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, error)
-}
-
 type BlockingSender struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -36,7 +30,7 @@ type BlockingSender struct {
 	getRi func() chat1.RemoteInterface
 }
 
-var _ Sender = (*BlockingSender)(nil)
+var _ types.Sender = (*BlockingSender)(nil)
 
 func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
@@ -330,22 +324,23 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, err
 	}
 
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, err
 	}
 
 	// convID will be nil in makeFirstMessage
 	if conv != nil {
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, err
 		}
 	}
 
@@ -355,23 +350,31 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, err
 		}
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, err
 	}
 
 	// find @ mentions
 	var atMentions []gregor1.UID
+	chanMention := chat1.ChannelMention_NONE
 	if plaintext.ClientHeader.MessageType == chat1.MessageType_TEXT {
-		atMentions = utils.ParseAtMentionedUIDs(ctx, plaintext.MessageBody.Text().Body,
-			s.G().GetUPAKLoader(), &s.DebugLabeler)
+		var newBody string
+		newBody, atMentions, chanMention = utils.ParseAndDecorateAtMentionedUIDs(ctx,
+			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: newBody,
+		})
 		if len(atMentions) > 0 {
 			s.Debug(ctx, "atMentions: %v", atMentions)
+		}
+		if chanMention != chat1.ChannelMention_NONE {
+			s.Debug(ctx, "channel mention: %v", chanMention)
 		}
 	}
 
@@ -379,10 +382,10 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, chanMention, err
 	}
 
-	return boxed, pendingAssetDeletes, atMentions, nil
+	return boxed, pendingAssetDeletes, atMentions, chanMention, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
@@ -445,6 +448,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
+	ri := s.getRi()
+	if ri == nil {
+		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
+	}
+
 	// Get conversation metadata first
 	conv, _, err := GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, true)
 	if err != nil {
@@ -452,16 +460,22 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		return chat1.OutboxID{}, nil, nil, err
 	}
 
+	// If we are in preview mode, then just join the conversation
+	switch conv.ReaderInfo.Status {
+	case chat1.ConversationMemberStatus_PREVIEW:
+		if _, err = ri.JoinConversation(ctx, convID); err != nil {
+			return chat1.OutboxID{}, nil, nil, err
+		}
+	default:
+		// do nothing
+	}
+
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, pendingAssetDeletes, atMentions, err := s.Prepare(ctx, msg, conv.GetMembersType(), &conv)
+	boxed, pendingAssetDeletes, atMentions, chanMention, err := s.Prepare(ctx, msg,
+		conv.GetMembersType(), &conv)
 	if err != nil {
 		s.Debug(ctx, "error in Prepare: %s", err.Error())
 		return chat1.OutboxID{}, nil, nil, err
-	}
-
-	ri := s.getRi()
-	if ri == nil {
-		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
 	// Delete assets associated with a delete operation.
@@ -484,6 +498,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		ConversationID: convID,
 		MessageBoxed:   *boxed,
 		AtMentions:     atMentions,
+		ChannelMention: chanMention,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
@@ -514,7 +529,7 @@ type Deliverer struct {
 	sync.Mutex
 	utils.DebugLabeler
 
-	sender        Sender
+	sender        types.Sender
 	outbox        *storage.Outbox
 	identNotifier *IdentifyNotifier
 	shutdownCh    chan chan struct{}
@@ -531,7 +546,7 @@ type Deliverer struct {
 
 var _ types.MessageDeliverer = (*Deliverer)(nil)
 
-func NewDeliverer(g *globals.Context, sender Sender) *Deliverer {
+func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
@@ -592,7 +607,7 @@ func (s *Deliverer) ForceDeliverLoop(ctx context.Context) {
 	s.msgSentCh <- struct{}{}
 }
 
-func (s *Deliverer) SetSender(sender Sender) {
+func (s *Deliverer) SetSender(sender types.Sender) {
 	s.sender = sender
 }
 
@@ -777,12 +792,12 @@ func (s *Deliverer) deliverLoop() {
 type NonblockingSender struct {
 	globals.Contextified
 	utils.DebugLabeler
-	sender Sender
+	sender types.Sender
 }
 
-var _ Sender = (*NonblockingSender)(nil)
+var _ types.Sender = (*NonblockingSender)(nil)
 
-func NewNonblockingSender(g *globals.Context, sender Sender) *NonblockingSender {
+func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingSender {
 	s := &NonblockingSender{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingSender", false),
@@ -792,7 +807,7 @@ func NewNonblockingSender(g *globals.Context, sender Sender) *NonblockingSender 
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv)
 }
 

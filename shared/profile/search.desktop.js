@@ -44,6 +44,7 @@ const Search = (props: Props) => (
         : <ResultsList
             items={props.searchResultIds}
             onClick={props.onClick}
+            onMouseOver={props.onMouseOverSearchResult}
             selectedId={props.selectedSearchId}
             showSearchSuggestions={props.showSearchSuggestions}
           />}

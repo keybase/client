@@ -351,6 +351,10 @@
           "name": "secretless"
         },
         {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
           "type": "TeamSigChainState",
           "name": "chain"
         },
@@ -469,7 +473,18 @@
         },
         {
           "type": "TeamName",
-          "name": "name"
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamNameLogPoint"
+          },
+          "name": "nameLog"
         },
         {
           "type": "Seqno",
@@ -539,6 +554,20 @@
             "keys": "TeamInviteID"
           },
           "name": "activeInvites"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNameLogPoint",
+      "fields": [
+        {
+          "type": "TeamNamePart",
+          "name": "lastPart"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
         }
       ]
     },
@@ -832,6 +861,47 @@
           "name": "chatSent"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TeamJoinRequest",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamTreeEntry"
+          },
+          "name": "entries"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "admin"
+        }
+      ]
     }
   ],
   "messages": {
@@ -843,7 +913,20 @@
         },
         {
           "name": "name",
-          "type": "string"
+          "type": "TeamName"
+        }
+      ],
+      "response": null
+    },
+    "teamCreateSubteam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
         }
       ],
       "response": null
@@ -979,6 +1062,23 @@
       ],
       "response": null
     },
+    "teamRename": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prevName",
+          "type": "TeamName"
+        },
+        {
+          "name": "newName",
+          "type": "TeamName"
+        }
+      ],
+      "response": null
+    },
     "teamAcceptInvite": {
       "request": [
         {
@@ -991,6 +1091,61 @@
         }
       ],
       "response": null
+    },
+    "teamRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamListRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamJoinRequest"
+      }
+    },
+    "teamIgnoreRequest": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamTree": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
+        }
+      ],
+      "response": "TeamTreeResult"
     },
     "loadTeamPlusApplicationKeys": {
       "request": [

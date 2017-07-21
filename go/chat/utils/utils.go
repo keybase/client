@@ -402,9 +402,23 @@ func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
 	return res
 }
 
-func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (res []gregor1.UID) {
+func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
 	names := ParseAtMentionsNames(ctx, body)
+	chanRes = chat1.ChannelMention_NONE
 	for _, name := range names {
+
+		switch name {
+		case "channel", "everyone":
+			chanRes = chat1.ChannelMention_ALL
+			continue
+		case "here":
+			if chanRes != chat1.ChannelMention_ALL {
+				chanRes = chat1.ChannelMention_HERE
+			}
+			continue
+		default:
+		}
+
 		kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
 		if err != nil {
 			if debug != nil {
@@ -413,9 +427,33 @@ func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoade
 			}
 			continue
 		}
-		res = append(res, kuid.ToBytes())
+		atRes = append(atRes, kuid.ToBytes())
 	}
-	return res
+	return atRes, chanRes
+}
+
+func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (newBody string, atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+	atRes, chanRes = ParseAtMentionedUIDs(ctx, body, upak, debug)
+	newBody = atMentionRegExp.ReplaceAllStringFunc(body, func(m string) string {
+		replace := false
+		switch m {
+		case "@channel", "@here", "@everyone":
+			replace = true
+		default:
+			toks := strings.Split(m, "@")
+			if len(toks) == 2 {
+				_, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(toks[1]))
+				if err == nil {
+					replace = true
+				}
+			}
+		}
+		if replace {
+			return fmt.Sprintf("`%s`", m)
+		}
+		return m
+	})
+	return newBody, atRes, chanRes
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
@@ -493,10 +531,10 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 }
 
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
-	apptype chat1.NotificationAppType,
+	apptype keybase1.DeviceType,
 	kind chat1.NotificationKind, enabled bool) {
 	if settings.Settings == nil {
-		settings.Settings = make(map[chat1.NotificationAppType]map[chat1.NotificationKind]bool)
+		settings.Settings = make(map[keybase1.DeviceType]map[chat1.NotificationKind]bool)
 	}
 	if settings.Settings[apptype] == nil {
 		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)

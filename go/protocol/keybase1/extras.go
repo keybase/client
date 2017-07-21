@@ -665,6 +665,14 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+// Size implements the keybase/kbfs/cache.Measurable interface.
+func (k *KID) Size() int {
+	if k == nil {
+		return 0
+	}
+	return len(*k)
+}
+
 func (s *SigID) UnmarshalJSON(b []byte) error {
 	sigID, err := SigIDFromString(Unquote(b), true)
 	if err != nil {
@@ -1221,7 +1229,7 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
-		return TeamID(""), errors.New("ID is not a team ID")
+		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)
 	}
 	return TeamID(ut), nil
 }
@@ -1563,6 +1571,26 @@ func (t TeamName) RootAncestorName() TeamName {
 	}
 }
 
+func (t TeamName) Parent() (TeamName, error) {
+	if len(t.Parts) == 0 {
+		return t, fmt.Errorf("empty team name")
+	}
+	if t.IsRootTeam() {
+		return t, fmt.Errorf("root team has no parent")
+	}
+	return TeamName{
+		Parts: t.Parts[:len(t.Parts)-1],
+	}, nil
+}
+
+func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
+	parent, err := t.Parent()
+	if err != nil {
+		return t, err
+	}
+	return parent.Append(newLast)
+}
+
 // The number of parts in a team name.
 // Root teams have 1.
 func (t TeamName) Depth() int {
@@ -1686,4 +1714,8 @@ func (t TeamInviteType) String() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (m MemberInfo) TeamName() (TeamName, error) {
+	return TeamNameFromString(m.FqName)
 }

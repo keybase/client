@@ -123,6 +123,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
         if (pagination) {
@@ -189,7 +190,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               conversationIDKey,
               conversationIDKey === selectedConversationIDKey,
               appFocused,
-              [message]
+              [message],
+              svcShouldDisplayNotification
             )
           )
         }
@@ -245,9 +247,9 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
       dispatch(Creators.inboxStale())
     })
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      if (convIDs) {
-        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+      if (updates) {
+        dispatch(Creators.markThreadsStale(updates))
       }
     })
   })
@@ -804,11 +806,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
-    // Don't navigate into errored conversations
-    if (inbox.get('state') === 'error') {
-      return
-    }
-
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
@@ -890,10 +887,10 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const conversations = action.payload
   let conversationsWithKeys = {}
   conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
+    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
   })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('UnreadMessages')
+    const count = conv.get('unreadMessages')
     if (!count) {
       return map
     } else {
@@ -908,10 +905,17 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = selectedTab === chatTab
   const convoIsSelected = action.payload.isSelected
+  const svcDisplay = action.payload.svcShouldDisplayNotification
 
-  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
-  // Only send if you're not looking at it
-  if (!convoIsSelected || !appFocused || !chatTabSelected) {
+  console.log(
+    'Deciding whether to notify new message:',
+    svcDisplay,
+    convoIsSelected,
+    appFocused,
+    chatTabSelected
+  )
+  // Only send if you're not looking at it and service wants us to
+  if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
     const me = yield select(usernameSelector)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
@@ -934,7 +938,8 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
 
 function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
-  const {convIDs} = action.payload
+  const {updates} = action.payload
+  const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
   yield call(Inbox.unboxConversations, convIDs)
 
   // Selected is stale?

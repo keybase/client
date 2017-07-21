@@ -503,14 +503,14 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 
 		tc := ctc.as(t, users[0])
 		topicName := "MIKETIME"
-		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
-			chat1.NewConversationLocalArg{
-				TlfName:       conv.TlfName,
-				TopicName:     &topicName,
-				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
-				MembersType:   mt,
-			})
+		arg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			MembersType:   mt,
+		}
+		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
@@ -522,6 +522,28 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewConversationLocal error: %v\n", err)
 		}
+
+		// Try some invalid names
+		topicName = "#mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "/mike"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = "mi.ke"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
+		topicName = ""
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			require.NoError(t, err)
+		case chat1.ConversationMembersType_TEAM:
+			require.Error(t, err)
+		}
+		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
+		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.Error(t, err)
 	})
 }
 
@@ -768,33 +790,25 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
-		if err != nil {
-			t.Fatalf("trying to post a text message with body length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a text message with body length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
 		maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody}))
-		if err != nil {
-			t.Fatalf("trying to post a headline message with headline length equal to the maximum failed")
-		}
+		require.NoError(t, err)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a headline message with headline length greater than the maximum did not fail")
-		}
+		require.Error(t, err)
 
-		maxTopicBody := strings.Repeat(".", msgchecker.TopicMaxLength)
+		maxTopicBody := strings.Repeat("a", msgchecker.TopicMaxLength)
 		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody}))
-		if err != nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length equal to the maximum failed")
-		}
-		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "!"}))
-		if err == nil {
-			t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length greater than the maximum did not fail")
-		}
+		require.NoError(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "a"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "#mike"}))
+		require.Error(t, err)
+		_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: "mii.ke"}))
+		require.Error(t, err)
 	})
 }
 
@@ -1275,8 +1289,10 @@ func TestChatSrvGap(t *testing.T) {
 		}))
 
 		select {
-		case cids := <-listener.threadsStale:
-			require.Equal(t, []chat1.ConversationID{created.Id}, cids, "wrong cids")
+		case updates := <-listener.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, created.Id, updates[0].ConvID, "wrong cid")
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to receive stale event")
 		}
@@ -1305,7 +1321,7 @@ func TestChatSrvGap(t *testing.T) {
 
 type serverChatListener struct {
 	newMessage              chan chat1.IncomingMessage
-	threadsStale            chan []chat1.ConversationID
+	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
 	joinedConv              chan chat1.ConversationLocal
 	leftConv                chan chat1.ConversationID
@@ -1339,7 +1355,7 @@ func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.Conve
 func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 	n.inboxStale <- struct{}{}
 }
-func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
@@ -1365,7 +1381,7 @@ func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1
 func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
 		newMessage:              make(chan chat1.IncomingMessage, 100),
-		threadsStale:            make(chan []chat1.ConversationID, 100),
+		threadsStale:            make(chan []chat1.ConversationStaleUpdate, 100),
 		inboxStale:              make(chan struct{}, 100),
 		joinedConv:              make(chan chat1.ConversationLocal, 100),
 		leftConv:                make(chan chat1.ConversationID, 100),
@@ -1696,8 +1712,9 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		ctc.world.Fc.Advance(time.Hour)
 
 		select {
-		case cids := <-listener.threadsStale:
-			require.Equal(t, 1, len(cids))
+		case updates := <-listener.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(2 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -1764,8 +1781,9 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		ctc.world.Fc.Advance(time.Hour)
 
 		select {
-		case cids := <-listener.threadsStale:
-			require.Equal(t, 1, len(cids))
+		case updates := <-listener.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
@@ -1873,7 +1891,7 @@ func TestChatSrvMakePreview(t *testing.T) {
 
 func TestChatSrvTeamChannels(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatTeamChannels", 2)
+		ctc := makeChatTestContext(t, "TestChatTeamChannels", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -1895,14 +1913,18 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
 
+		listener2 := newServerChatListener()
+		ctc.as(t, users[2]).h.G().SetService()
+		ctc.as(t, users[2]).h.G().NotifyRouter.SetListener(listener2)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		_, err := postLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
 		}))
 		require.NoError(t, err)
 
-		topicName := "MIKETIME"
+		topicName := "miketime"
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
 				TlfName:       conv.TlfName,
@@ -1953,8 +1975,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			require.Fail(t, "failed to get members update")
 		}
 
+		t.Logf("@mention in user2")
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "FAIL",
+			Body: fmt.Sprintf("FAIL: @%s", users[2].Username),
 		}))
 		require.NoError(t, err)
 
@@ -1981,6 +2004,26 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: "FAIL",
 		}))
 		require.Error(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[2], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "FAIL",
+		}))
+		require.NoError(t, err)
+		select {
+		case conv := <-listener2.joinedConv:
+			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[2].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
 	})
 }
 
@@ -2013,10 +2056,10 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 1, len(gilres.Conversations))
 		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
 		gconv := gilres.Conversations[0]
-		require.True(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.True(t, gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2028,7 +2071,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		}
 
 		var settings chat1.ConversationNotificationInfo
-		utils.NotificationInfoSet(&settings, chat1.NotificationAppType_DESKTOP,
+		utils.NotificationInfoSet(&settings, keybase1.DeviceType_DESKTOP,
 			chat1.NotificationKind_GENERIC, false)
 		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
 			chat1.SetAppNotificationSettingsLocalArg{
@@ -2053,10 +2096,10 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 1, len(gilres.Conversations))
 		require.Equal(t, conv.Id, gilres.Conversations[0].GetConvID())
 		gconv = gilres.Conversations[0]
-		require.False(t, gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP][chat1.NotificationKind_GENERIC])
+		require.False(t, gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_DESKTOP]))
-		require.Equal(t, 2, len(gconv.Notifications.Settings[chat1.NotificationAppType_MOBILE]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
+		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2066,15 +2109,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message event")
 		}
-		text := fmt.Sprintf("@%s", users[0].Username)
-		mustPostLocalForTest(t, ctc, users[1], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
-		select {
-		case info := <-listener0.newMessage:
-			require.True(t, info.DisplayDesktopNotification)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no new message event")
+
+		validateDisplayAtMention := func(name string) {
+			text := fmt.Sprintf("@%s", name)
+			mustPostLocalForTest(t, ctc, users[1], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}))
+			select {
+			case info := <-listener0.newMessage:
+				require.True(t, info.DisplayDesktopNotification)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no new message event")
+			}
 		}
+		validateDisplayAtMention(users[0].Username)
+		validateDisplayAtMention("channel")
+		validateDisplayAtMention("everyone")
+		validateDisplayAtMention("here")
 	})
 
 }

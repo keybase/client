@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ByUID []gregor1.UID
@@ -188,12 +189,16 @@ func (m MessageBoxed) GetMessageType() MessageType {
 }
 
 func (m MessageBoxed) Summary() MessageSummary {
-	return MessageSummary{
+	s := MessageSummary{
 		MsgID:       m.GetMessageID(),
 		MessageType: m.GetMessageType(),
 		TlfName:     m.ClientHeader.TlfName,
 		TlfPublic:   m.ClientHeader.TlfPublic,
 	}
+	if m.ServerHeader != nil {
+		s.Ctime = m.ServerHeader.Ctime
+	}
+	return s
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -596,4 +601,15 @@ func (o TLFConvOrdinal) Int() int {
 
 func (o TLFConvOrdinal) IsFirst() bool {
 	return o.Int() == 1
+}
+
+func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
+	counts := make(map[keybase1.DeviceType]int)
+	counts[keybase1.DeviceType_DESKTOP] = 0
+	counts[keybase1.DeviceType_MOBILE] = 0
+	return UnreadUpdate{
+		ConvID:                  convID,
+		UnreadMessages:          0,
+		UnreadNotifyingMessages: counts,
+	}
 }

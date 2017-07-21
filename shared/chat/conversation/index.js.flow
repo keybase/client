@@ -20,6 +20,7 @@ export type Props = {|
   threadLoadedOffline: boolean,
   searchV3Enabled: boolean,
   inSearch: boolean,
+  onExitSearch: () => void,
   showSearchPending: boolean,
   showSearchResults: boolean,
   showSearchSuggestions: boolean,
@@ -34,6 +35,8 @@ export type Props = {|
   onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
   onAddNewParticipant: (clicked: boolean) => void,
   addNewParticipant: boolean,
+  conversationIsError: boolean,
+  conversationErrorText: string,
 |}
 
 export default class Conversation extends Component<void, Props, void> {}

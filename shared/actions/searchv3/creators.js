@@ -24,11 +24,14 @@ function pendingSearch<T>(actionTypeToFire: T, pending: boolean): Constants.Pend
 function finishedSearch<T>(
   actionTypeToFire: T,
   searchResults: Array<Constants.SearchResultId>,
-  searchTerm: string,
+  searchResultTerm: string,
   service: Constants.Service = 'Keybase',
   searchShowingSuggestions: boolean = false
 ): Constants.FinishedSearch<T> {
-  return {type: actionTypeToFire, payload: {searchTerm, searchResults, service, searchShowingSuggestions}}
+  return {
+    type: actionTypeToFire,
+    payload: {searchResultTerm, searchResults, service, searchShowingSuggestions},
+  }
 }
 
 export {finishedSearch, pendingSearch, search, searchSuggestions}

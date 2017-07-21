@@ -80,6 +80,9 @@ export default compose(
         props._onChangeText('')
         props._clearSearchResults()
       },
+      onMouseOverSearchResult: (props: Props) => id => {
+        props.onUpdateSelectedSearchResult(id)
+      },
       onSelectService: (props: Props & HocIntermediateProps) => nextService => {
         props._onSelectService(nextService)
         props.search(props.searchText, nextService)

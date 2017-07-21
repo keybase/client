@@ -150,7 +150,9 @@ func (a *ActiveDevice) SigningKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
 	if a.signingKey == nil {
-		return nil, NotFoundError{}
+		return nil, NotFoundError{
+			Msg: "Not found: device signing key",
+		}
 	}
 	return a.signingKey, nil
 }
@@ -161,7 +163,9 @@ func (a *ActiveDevice) EncryptionKey() (GenericKey, error) {
 	a.RLock()
 	defer a.RUnlock()
 	if a.encryptionKey == nil {
-		return nil, NotFoundError{}
+		return nil, NotFoundError{
+			Msg: "Not found: device encryption key",
+		}
 	}
 	return a.encryptionKey, nil
 }

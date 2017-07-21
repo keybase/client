@@ -3,9 +3,10 @@ package teams
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"sort"
 )
 
 func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm map[keybase1.Seqno]keybase1.LinkID) proofTerm {
@@ -189,13 +190,25 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext) error {
 }
 
 // check the entire proof set, failing if any one proof fails.
-func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext) error {
+func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext) (err error) {
+	defer g.CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
+
+	var total int
+	for _, v := range p.proofs {
+		total += len(v)
+	}
+
+	var i int
 	for _, v := range p.proofs {
 		for _, proof := range v {
-			err := proof.check(ctx, g)
+			if i%100 == 0 {
+				g.Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
+			}
+			err = proof.check(ctx, g)
 			if err != nil {
 				return err
 			}
+			i++
 		}
 	}
 	return nil

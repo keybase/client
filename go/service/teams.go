@@ -23,6 +23,8 @@ type TeamsHandler struct {
 	connID libkb.ConnectionID
 }
 
+var _ keybase1.TeamsInterface = (*TeamsHandler)(nil)
+
 func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, gregor *gregorHandler) *TeamsHandler {
 	return &TeamsHandler{
 		BaseHandler:  NewBaseHandler(xp),
@@ -33,7 +35,22 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 }
 
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (err error) {
-	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name)
+	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String())
+}
+
+func (h *TeamsHandler) TeamCreateSubteam(ctx context.Context, arg keybase1.TeamCreateSubteamArg) (err error) {
+	if arg.Name.Depth() == 0 {
+		return fmt.Errorf("empty team name")
+	}
+	if arg.Name.IsRootTeam() {
+		return fmt.Errorf("cannot create subteam with root team name")
+	}
+	parentName, err := arg.Name.Parent()
+	if err != nil {
+		return err
+	}
+	_, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName)
+	return err
 }
 
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {
@@ -92,8 +109,28 @@ func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg)
 	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
 }
 
+func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameArg) error {
+	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
+}
+
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) error {
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
+}
+
+func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) error {
+	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
+}
+
+func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {
+	return teams.ListRequests(ctx, h.G().ExternalG())
+}
+
+func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) error {
+	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}
+
+func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
+	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

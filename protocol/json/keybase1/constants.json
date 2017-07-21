@@ -81,6 +81,7 @@
         "SCInvalidLocationError_1802",
         "SCServiceStatusError_1803",
         "SCInstallError_1804",
+        "SCLoginStateTimeout_2400",
         "SCChatInternal_2500",
         "SCChatRateLimit_2501",
         "SCChatConvExists_2502",
@@ -99,7 +100,10 @@
         "SCChatDuplicateMessage_2515",
         "SCChatClientError_2516",
         "SCChatNotInTeam_2517",
-        "SCTeamReadError_2623"
+        "SCTeamReadError_2623",
+        "SCTeamTarDuplicate_2663",
+        "SCTeamTarNotFound_2664",
+        "SCTeamMemberExists_2665"
       ]
     }
   ],

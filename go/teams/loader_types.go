@@ -10,12 +10,15 @@ import (
 
 // --------------------------------------------------
 
-// An operation that occurs simultaneously on the child and parent team chains
-// TODO implement
+// An operation that occurs simultaneously on the child and parent team chains.
+// This struct holds the child half of the operation.
 type parentChildOperation struct {
-	TODOImplement bool
 	// The seqno in the parent sigchain that corresponds to this operation.
 	parentSeqno keybase1.Seqno
+	// The type of the child link
+	linkType libkb.SigchainV2Type
+	// The new subteam name. The only PCOs at the mo' are subteam renames.
+	newName keybase1.TeamName
 }
 
 // --------------------------------------------------

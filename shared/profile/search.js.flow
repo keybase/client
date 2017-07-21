@@ -13,6 +13,7 @@ export type Props = {
   onChangeText: (s: string) => void,
   onChangeSearchText: (s: string) => void,
   onAddSelectedUser: () => void,
+  onMouseOverSearchResult?: (id: SearchResultId) => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
   onRemoveUser: () => void,

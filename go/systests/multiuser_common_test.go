@@ -306,8 +306,12 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	name := u.username + "t"
+	nameK1, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
 	cli := u.getTeamsClient()
-	err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: name})
+	err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

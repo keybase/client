@@ -66,7 +66,9 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
 
-    yield call(ChatTypes.localCancelPostRpcPromise, {param: {outboxID: Constants.keyToOutboxID(outboxID)}})
+    yield call(ChatTypes.localCancelPostRpcPromise, {
+      param: {outboxID: Constants.keyToOutboxID(outboxID)},
+    })
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
@@ -141,9 +143,13 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     const appFocused = yield select(Shared.focusedSelector)
 
     yield put(
-      Creators.appendMessages(conversationIDKey, conversationIDKey === selectedConversation, appFocused, [
-        message,
-      ])
+      Creators.appendMessages(
+        conversationIDKey,
+        conversationIDKey === selectedConversation,
+        appFocused,
+        [message],
+        false
+      )
     )
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
@@ -198,7 +204,9 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
   yield put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
-  yield call(ChatTypes.localRetryPostRpcPromise, {param: {outboxID: Constants.keyToOutboxID(outboxIDKey)}})
+  yield call(ChatTypes.localRetryPostRpcPromise, {
+    param: {outboxID: Constants.keyToOutboxID(outboxIDKey)},
+  })
 }
 
 export {deleteMessage, editMessage, postMessage, retryMessage}

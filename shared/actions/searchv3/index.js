@@ -186,8 +186,10 @@ function* search<T>({
     const rows = searchResults.list.map((result: RawResult) => {
       return _parseRawResultToRow(result, service || 'Keybase')
     })
+
     // Make a version that maps from keybase id to SearchResult.
-    // This is in case we want to lookup this data by their keybase id. (like the case of upgrading a 3rd party result to a kb result)
+    // This is in case we want to lookup this data by their keybase id.
+    // (like the case of upgrading a 3rd party result to a kb result)
     const kbRows: Array<Constants.SearchResult> = rows.filter(r => r.rightService === 'Keybase').map(r => ({
       id: r.rightUsername || '',
       leftService: 'Keybase',
@@ -208,11 +210,14 @@ function* search<T>({
 }
 
 function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constants.SearchSuggestions<T>) {
-  const suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
+  let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
     },
   })
+
+  // No search results (e.g. this user doesn't follow/chat anyone)
+  suggestions = suggestions || []
 
   const rows = suggestions.map(person => _parseSuggestion(person.username))
   const ids = rows.map(r => r.id)

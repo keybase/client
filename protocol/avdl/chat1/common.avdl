@@ -2,6 +2,7 @@
 protocol common {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
@@ -37,12 +38,6 @@ protocol common {
     NONE_0,
     CHAT_1,
     DEV_2
-  }
-
-  @go("nostring")
-  enum NotificationAppType {
-    DESKTOP_0,
-    MOBILE_1
   }
 
   @go("nostring")
@@ -88,7 +83,8 @@ protocol common {
   enum ConversationMemberStatus {
     ACTIVE_0,  // in the channel
     REMOVED_1, // removed from channel forcibly
-    LEFT_2     // voluntarily left conversation
+    LEFT_2,    // voluntarily left conversation
+    PREVIEW_3  // use is previewing the channel from an @mention
   }
 
   record Pagination {
@@ -175,13 +171,14 @@ protocol common {
 
   record ConversationNotificationInfo {
     boolean channelWide;
-    map<NotificationAppType, map<NotificationKind, boolean>> settings;
+    map<keybase1.DeviceType, map<NotificationKind, boolean>> settings;
   }
 
   record ConversationReaderInfo {
     gregor1.Time mtime; // The last time the convo was modified from the user perspective
     MessageID readMsgid; // The message ID the user has read up to in the convo
     MessageID maxMsgid; // The max message ID in the convo
+    ConversationMemberStatus status; // The status of the membership to the convo
   }
 
   record Conversation {
