@@ -139,7 +139,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     DDLogInfo(@"Loading kext");
     [self loadKext:^(NSError *error) {
       // Don't report errors here. We'll manually check the kext load status in a seperate step.
-      // We need to attempt a load though, to trigger the system policy error on macOS > 10.13,
+      // We need to attempt a load though, to trigger the system policy error on macOS > 10.13.
       completion(nil);
     }];
   }];
