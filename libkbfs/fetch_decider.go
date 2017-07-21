@@ -12,6 +12,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	fetchDeciderBackgroundTimeout = 10 * time.Second
+)
+
 // fetchDecider is a struct that helps avoid having too frequent calls
 // into a remote server.
 type fetchDecider struct {
@@ -72,7 +76,8 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 		// Make sure a timeout is on the context, in case the
 		// RPC blocks forever somehow, where we'd end up with
 		// never resetting backgroundInProcess flag again.
-		bgCtx, cancel := context.WithTimeout(bgCtx, 10*time.Second)
+		bgCtx, cancel := context.WithTimeout(
+			bgCtx, fetchDeciderBackgroundTimeout)
 		defer cancel()
 		err := fd.fetcher(bgCtx)
 
@@ -81,10 +86,9 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 		defer fd.lock.Unlock()
 		fd.log.CDebugf(bgCtx, "Finished fetch: %+v", err)
 		*fd.errPtr = err
-		readyCh := fd.readyCh
+		close(fd.readyCh)
 		fd.readyCh = nil
 		fd.errPtr = nil
-		close(readyCh)
 	}()
 	return fd.readyCh, fd.errPtr
 }

@@ -60,7 +60,6 @@ func (ecmr *EventuallyConsistentMerkleRoot) getAndCache(
 	defer func() {
 		ecmr.log.CDebugf(ctx, "getAndCache: error=%v", err)
 	}()
-	// Go through the
 	bareRoot, err := ecmr.getter.GetCurrentMerkleRoot(ctx)
 	if err != nil {
 		return err
