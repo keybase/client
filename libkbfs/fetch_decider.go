@@ -19,11 +19,12 @@ const (
 // fetchDecider is a struct that helps avoid having too frequent calls
 // into a remote server.
 type fetchDecider struct {
+	clockGetter
+
 	log     logger.Logger
 	fetcher func(ctx context.Context) error
 	tagKey  interface{}
 	tagName string
-	clock   clockGetter
 
 	blockingForTest chan<- struct{}
 
@@ -37,11 +38,11 @@ func newFetchDecider(
 	tagKey interface{}, tagName string,
 	clock clockGetter) *fetchDecider {
 	return &fetchDecider{
-		log:     log,
-		fetcher: fetcher,
-		tagKey:  tagKey,
-		tagName: tagName,
-		clock:   clock,
+		log:         log,
+		fetcher:     fetcher,
+		tagKey:      tagKey,
+		tagName:     tagName,
+		clockGetter: clock,
 	}
 }
 
@@ -109,7 +110,7 @@ func (fd *fetchDecider) launchBackgroundFetch(ctx context.Context) (
 func (fd *fetchDecider) Do(
 	ctx context.Context, bgTolerance, blockTolerance time.Duration,
 	cachedTimestamp time.Time) (err error) {
-	past := fd.clock.Clock().Now().Sub(cachedTimestamp)
+	past := fd.Clock().Now().Sub(cachedTimestamp)
 	switch {
 	case past > blockTolerance || cachedTimestamp.IsZero():
 		fd.log.CDebugf(
