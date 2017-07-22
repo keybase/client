@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -246,6 +247,8 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 	return newRecentConversationParticipants(g).get(ctx, myUID)
 }
 
+var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
 
@@ -256,7 +259,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
 	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: conversation not found: %s", convID)
+		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
 	}
 	return inbox.ConvsUnverified[0], ratelim, nil
 }
