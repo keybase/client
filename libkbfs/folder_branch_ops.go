@@ -6208,7 +6208,7 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		}
 		updateSummary := UpdateSummary{
 			Revision:  rmd.Revision(),
-			Date:      time.Unix(0, rmd.data.Dir.Mtime),
+			Date:      rmd.localTimestamp,
 			Writer:    writer,
 			LiveBytes: rmd.DiskUsage(),
 			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
