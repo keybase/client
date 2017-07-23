@@ -520,3 +520,128 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	t.Logf("U0 sees the 3 implicit admins")
 	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[0].GetUserVersion(), fus[1].GetUserVersion(), fus[2].GetUserVersion()})
 }
+
+// Load a team that we are only an implicit admin of.
+func TestLoaderZapu(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("create a root team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "aa1", parentName)
+	require.NoError(t, err)
+	subteamName, err := parentName.Append("aa1")
+	require.NoError(t, err)
+
+	t.Logf("remove self from subteam")
+	err = RemoveMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username)
+	require.NoError(t, err)
+
+	t.Logf("load subteam (as implicit admin, possibly with cache)")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+// Like TestLoaderZapu but bust the cache before the load.
+func TestLoaderZapu1Point5(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("create a root team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "aa1", parentName)
+	require.NoError(t, err)
+	subteamName, err := parentName.Append("aa1")
+	require.NoError(t, err)
+
+	t.Logf("remove self from subteam")
+	err = RemoveMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username)
+	require.NoError(t, err)
+
+	t.Logf("bust the cache")
+	{
+		st := getStorageFromG(tcs[0].G)
+		team := st.Get(context.TODO(), *subteamID)
+		require.NotNil(t, team)
+		t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
+		team.CachedAt = keybase1.ToTime(tcs[0].G.Clock().Now().Add(freshnessLimit * -2))
+		st.Put(context.TODO(), team)
+		t.Logf("cache post-set cachedAt:%v", team.CachedAt.Time())
+	}
+
+	t.Logf("load subteam (as implicit admin)")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+// Do like TestLoaderZapu but with a second user.
+func TestLoaderZapu2(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates a root team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 as an admin")
+	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+
+	t.Logf("U0 creates subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "aa1", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam (as implicit admin, with cold cache)")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam again")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+// Do like TestLoaderZapu2 but create the subteam before adding the admin.
+func TestLoaderZapu3(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates a root team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 creates subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "aa1", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 as an admin")
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam (as implicit admin, with cold cache)")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U1 loads the subteam again")
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          *subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
