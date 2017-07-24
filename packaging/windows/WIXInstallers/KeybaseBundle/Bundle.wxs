@@ -115,7 +115,7 @@
                   Cache="no"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
-                  DownloadUrl="https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe"
+                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe"
       >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
@@ -132,13 +132,13 @@
                   Protocol="netfx4"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-op                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
+                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
-                  DownloadUrl="https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe"
+                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe"
                   >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
