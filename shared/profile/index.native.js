@@ -20,7 +20,7 @@ import {
   UserBio,
   UserProofs,
 } from '../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {
   normal as proofNormal,
   checking as proofChecking,
@@ -252,7 +252,9 @@ class Profile extends Component<void, Props, State> {
         {item.map(
           user =>
             user.dummy
-              ? <Text type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>{user.dummy}</Text>
+              ? <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
+                  {user.dummy}
+                </Text>
               : <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
         )}
       </Box>
@@ -267,7 +269,8 @@ class Profile extends Component<void, Props, State> {
           style={{
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
-            paddingTop: globalMargins.tiny,
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny + statusBarHeight,
           }}
         >
           {this.props.onBack &&
@@ -289,16 +292,21 @@ class Profile extends Component<void, Props, State> {
           style={{
             ...globalStyles.flexBoxRow,
             backgroundColor: globalColors.white,
-            paddingTop: globalMargins.tiny,
+            paddingTop: globalMargins.tiny + statusBarHeight,
           }}
         >
           {['Followers', 'Following'].map(f => (
             <ClickableBox
               key={f}
-              style={{...globalStyles.flexBoxColumn, flexGrow: 1, alignItems: 'center'}}
+              style={{...globalStyles.flexBoxColumn, width: '50%', alignItems: 'center'}}
               onClick={() => {
                 this.setState({currentFriendshipsTab: f}, () => {
-                  this._list && this._list.scrollToLocation({sectionIndex: 1, itemIndex: 0, viewOffset: 40})
+                  this._list &&
+                    this._list.scrollToLocation({
+                      sectionIndex: 1,
+                      itemIndex: 0,
+                      viewOffset: statusBarHeight + globalMargins.tiny + 40,
+                    })
                 })
               }}
             >
@@ -369,6 +377,8 @@ class Profile extends Component<void, Props, State> {
           initialNumToRender={2}
           renderSectionHeader={this._renderSections}
           keyExtractor={this._keyExtractor}
+          forceRenderProofs={this.props.proofs}
+          forceRenderBio={this.props.userInfo}
           sections={[
             {
               renderItem: this._renderProfile,
@@ -445,7 +455,6 @@ const styleBack = {
 
 const styleHeader = {
   ...globalStyles.flexBoxRow,
-  height: HEADER_TOP_SPACE,
   alignItems: 'center',
   justifyContent: 'center',
 }
