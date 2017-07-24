@@ -69,11 +69,10 @@ helpers.rootLinuxNode(env, {
                         checkout scm
                         sh 'echo -n $(git rev-parse HEAD) > kbfsfuse/revision'
                         env.COMMIT_HASH = readFile('kbfsfuse/revision')
-                        sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                        sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                        env.AUTHOR_NAME = readFile('.author_name')
-                        env.AUTHOR_EMAIL = readFile('.author_email')
-                        sh 'rm .author_name .author_email'
+                        env.AUTHOR_NAME = sh(returnStdout: true, script: 'git --no-pager show -s --format="%an" HEAD').trim()
+                        env.AUTHOR_EMAIL = sh(returnStdout: true, script: 'git --no-pager show -s --format="%ae" HEAD').trim()
+                        sh 'git add kbfsfuse/revision'
+                        sh 'git commit -m "revision"'
                     },
                     pull_kbclient: {
                         if (cause == "upstream" && clientProjectName != '') {
