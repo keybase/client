@@ -24,6 +24,21 @@ class SearchResultsList extends Component<void, Props, void> {
     )
   }
 
+  _list = null
+  _setRef = r => (this._list = r)
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.props.selectedId !== nextProps.selectedId) {
+      const list = this._list
+      if (list && nextProps.selectedId) {
+        const idx = nextProps.items.indexOf(nextProps.selectedId)
+        if (idx !== -1) {
+          list.scrollAround(idx)
+        }
+      }
+    }
+  }
+
   render() {
     const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
@@ -43,6 +58,7 @@ class SearchResultsList extends Component<void, Props, void> {
           useTranslate3d={true}
           useStaticSize={true}
           itemRenderer={this._itemRenderer}
+          ref={this._setRef}
           length={items.length}
           type="uniform"
         />
