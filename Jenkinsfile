@@ -72,7 +72,7 @@ helpers.rootLinuxNode(env, {
                         env.AUTHOR_NAME = sh(returnStdout: true, script: 'git --no-pager show -s --format="%an" HEAD').trim()
                         env.AUTHOR_EMAIL = sh(returnStdout: true, script: 'git --no-pager show -s --format="%ae" HEAD').trim()
                         sh 'git add kbfsfuse/revision'
-                        sh 'git commit -m "revision"'
+                        sh "git -c user.name='Jenkins' -c user.email='ci@keyba.se' commit -m 'revision'"
                     },
                     pull_kbclient: {
                         if (cause == "upstream" && clientProjectName != '') {
