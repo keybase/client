@@ -21,6 +21,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   KBExitOK = 0,
   KBExitIgnoreError = 0,
   KBExitError = 1,
+  KBExitFuseKextPermissionError = 3,
 };
 
 @implementation Installer
@@ -132,7 +133,12 @@ typedef NS_ENUM (NSInteger, KBExit) {
     return;
   }
 
-  [self showErrorDialog:error environment:environment completion:completion];
+  if (error.code == KBErrorCodeFuseKextPermission) {
+    completion(nil, KBExitFuseKextPermissionError);
+    return;
+  }
+
+  completion(nil, KBExitError);
 }
 
 - (void)showErrorDialog:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
@@ -190,6 +196,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   textView.frame = CGRectMake(0, 0, 500, 200);
   textView.borderType = NSBezelBorder;
   alert.accessoryView = textView;
+  [alert runModal];
 
   completion(error, KBExitIgnoreError);
 }

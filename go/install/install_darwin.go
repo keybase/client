@@ -1013,7 +1013,12 @@ func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Sta
 
 func componentResult(name string, err error) keybase1.ComponentResult {
 	if err != nil {
-		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
+		exitCode := 0
+		if exitError, ok := err.(*exec.ExitError); ok {
+			ws := exitError.Sys().(syscall.WaitStatus)
+			exitCode = ws.ExitStatus()
+		}
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error()), ExitCode: exitCode}
 	}
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }

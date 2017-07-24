@@ -132,7 +132,9 @@ const tabBarStyle = {
 
 const mapStateToProps = (state: TypedState) => ({
   fuseInstalled: state.favorite.fuseStatus.status ? state.favorite.fuseStatus.status.kextStarted : false,
-  showSecurityPrefs: state.favorite.fuseStatus.status.kextPermissionRequired,
+  showSecurityPrefs: state.favorite.fuseInstall
+    ? state.favorite.fuseInstall.result.kextPermissionError
+    : false,
 })
 
 const mapDispatchToProps = (dispatch: any) => ({

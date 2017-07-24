@@ -32,6 +32,8 @@ typedef NS_ENUM (NSInteger, KBErrorCode) {
   KBErrorCodeAlreadyOpening = -201,
   KBErrorCodeAlreadyOpen = -202,
   KBErrorCodeTimeout = -210,
+
+  KBErrorCodeFuseKextPermission = -300,
 };
 
 typedef NS_ENUM (NSInteger, KBErrorResponse) {

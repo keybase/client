@@ -133,9 +133,9 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 - (void)install:(KBCompletion)completion {
   [self _install:^(NSError *error) {
     if (error) {
-      // Don't report system policy (permission) error, since it gets reported by the OS in > 10.13.
+      // Resolve kext permission error
       if ([error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
-        completion(nil);
+        completion(KBMakeError(KBErrorCodeFuseKextPermission, @"%@", error.localizedDescription));
         return;
       }
 

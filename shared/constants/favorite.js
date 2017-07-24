@@ -42,6 +42,7 @@ export type State = Exact<{
   folderState: FolderState,
   fuseInstall: {
     installing: boolean,
+    kextPermissionError: boolean,
     result: ?InstallResult,
   },
   fuseStatus: {
