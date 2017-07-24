@@ -20,7 +20,7 @@ import {
   UserBio,
   UserProofs,
 } from '../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {
   normal as proofNormal,
   checking as proofChecking,
@@ -32,6 +32,7 @@ import {usernameText} from '../common-adapters/usernames'
 
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
+import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 64
@@ -250,7 +251,9 @@ class Profile extends Component<void, Props, State> {
       <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
         {item.map(
           user =>
-            user.dummy ? null : <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+            user.dummy
+              ? <Text type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>{user.dummy}</Text>
+              : <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
         )}
       </Box>
     )
@@ -293,7 +296,11 @@ class Profile extends Component<void, Props, State> {
             <ClickableBox
               key={f}
               style={{...globalStyles.flexBoxColumn, flexGrow: 1, alignItems: 'center'}}
-              onClick={() => this.setState({currentFriendshipsTab: f})}
+              onClick={() => {
+                this.setState({currentFriendshipsTab: f}, () => {
+                  this._list && this._list.scrollToLocation({sectionIndex: 1, itemIndex: 0, viewOffset: 40})
+                })
+              }}
             >
               <Text
                 type="BodySmallSemibold"
@@ -323,6 +330,8 @@ class Profile extends Component<void, Props, State> {
   }
 
   _keyExtractor = (item, index) => index
+  _list: any
+  _setRef = r => (this._list = r)
 
   render() {
     if (this.props.error) {
@@ -337,7 +346,18 @@ class Profile extends Component<void, Props, State> {
       : this.props.following
     let friendData = chunk(friends || [], 3)
     if (!friendData.length) {
-      friendData = [[{dummy: true}]]
+      let type
+      if (this.props.isYou) {
+        type = this.state.currentFriendshipsTab === 'Followers'
+          ? `You have no followers.`
+          : `You are not following anyone.`
+      } else {
+        type = this.state.currentFriendshipsTab === 'Followers'
+          ? `${this.props.username} has no followers.`
+          : `${this.props.username} is not following anyone.`
+      }
+
+      friendData = [[{dummy: type}]]
     }
 
     return (
@@ -345,6 +365,7 @@ class Profile extends Component<void, Props, State> {
         <NativeSectionList
           stickySectionHeadersEnabled={true}
           style={globalStyles.fullHeight}
+          ref={this._setRef}
           initialNumToRender={2}
           renderSectionHeader={this._renderSections}
           keyExtractor={this._keyExtractor}
