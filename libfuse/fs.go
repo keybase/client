@@ -19,7 +19,6 @@ import (
 	"bazil.org/fuse/fs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -513,13 +512,10 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
-	}
-	if env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
-		libkbfs.EnableAdminFeature(ctx, r.team.fs.config) {
-		res = append(res, fuse.Dirent{
+		fuse.Dirent{
 			Type: fuse.DT_Dir,
 			Name: TeamName,
-		})
+		},
 	}
 	if r.private.fs.platformParams.shouldAppendPlatformRootDirs() {
 		res = append(res, platformRootDirs...)

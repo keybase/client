@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -658,13 +657,10 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 		if err != nil {
 			return err
 		}
-		if env.NewContext().GetRunMode() != libkb.ProductionRunMode ||
-			libkbfs.EnableAdminFeature(ctx, r.team.fs.config) {
-			ns.Name = TeamName
-			err = callback(&ns)
-			if err != nil {
-				return err
-			}
+		ns.Name = TeamName
+		err = callback(&ns)
+		if err != nil {
+			return err
 		}
 		fallthrough
 	case libfs.HumanNoLoginFileName:
