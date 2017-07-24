@@ -130,12 +130,12 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-const mapStateToProps = (state: TypedState) => ({
-  fuseInstalled: state.favorite.fuseStatus.status ? state.favorite.fuseStatus.status.kextStarted : false,
-  showSecurityPrefs: state.favorite.fuseInstall
-    ? state.favorite.fuseInstall.result.kextPermissionError
-    : false,
-})
+const mapStateToProps = (state: TypedState) => {
+  return {
+    fuseInstalled: state.favorite.fuseStatus.status ? state.favorite.fuseStatus.status.kextStarted : false,
+    showSecurityPrefs: state.favorite.fuseInstall.kextPermissionError,
+  }
+}
 
 const mapDispatchToProps = (dispatch: any) => ({
   fuseStatus: () => dispatch(fuseStatus()),
