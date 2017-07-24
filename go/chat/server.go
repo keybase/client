@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -1957,7 +1956,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
-	uid := h.G().Env.GetUID()
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// First look in the local user inbox
 	query := chat1.GetInboxLocalQuery{
@@ -1983,9 +1982,37 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 
 	// If we have inbox hits, return those
 	if len(inbox.Conversations) > 0 {
-		h.Debug(ctx, "FindConversation: found conversations in inbox: tlfName: %s num: %d",
+		h.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
 			arg.TlfName, len(inbox.Conversations))
 		res.Conversations = inbox.Conversations
+	} else if arg.MembersType == chat1.ConversationMembersType_TEAM {
+		// If this is a team chat that we are looking for, then let's try searching all
+		// chats on the team to see if any match the arguments before giving up.
+		// No need to worry (yet) about conflicting with public code path, since there
+		// are not any public team chats.
+
+		// Fetch the TLF ID from specified name
+		nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
+		if err != nil {
+			h.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
+			return res, err
+		}
+		tlfConvs, rl, err := GetTLFConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
+			uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+		if err != nil {
+			h.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
+			return res, err
+		}
+		res.RateLimits = append(res.RateLimits, rl...)
+
+		for _, tlfConv := range tlfConvs {
+			if utils.GetTopicName(tlfConv) == arg.TopicName {
+				res.Conversations = append(res.Conversations, tlfConv)
+			}
+		}
+		if len(res.Conversations) > 0 {
+			h.Debug(ctx, "FindConversations: found team channels: num: %d", len(res.Conversations))
+		}
 	} else if arg.Visibility == chat1.TLFVisibility_PUBLIC {
 		h.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
@@ -2017,7 +2044,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 		// Localize the convs (if any)
 		if len(pubConvs.Conversations) > 0 {
 			localizer := NewBlockingLocalizer(h.G())
-			convsLocal, err := localizer.Localize(ctx, uid.ToBytes(), chat1.Inbox{
+			convsLocal, err := localizer.Localize(ctx, uid, chat1.Inbox{
 				ConvsUnverified: pubConvs.Conversations,
 			})
 			if err != nil {
@@ -2198,28 +2225,11 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 		return res, err
 	}
 
-	tlfRes, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		TopicType:        arg.TopicType,
-		MembersType:      arg.MembersType,
-		SummarizeMaxMsgs: false,
-	})
-	if tlfRes.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *tlfRes.RateLimit)
-	}
-
-	// Localize the conversations
-	convsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
-		ConvsUnverified: tlfRes.Conversations,
-	})
+	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
+		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
 	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())
 		return res, err
 	}
-	sort.Sort(utils.ConvLocalByTopicName(convsLocal))
-
-	res.Convs = convsLocal
-	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil
 }

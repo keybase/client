@@ -141,7 +141,7 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 }
 
 func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
-	req.TopicName = ctx.String("topic-name")
+	req.TopicName = utils.SanitizeTopicName(ctx.String("topic-name"))
 	req.TlfName = tlfName
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err

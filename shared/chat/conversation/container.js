@@ -5,7 +5,7 @@ import * as Creators from '../../actions/chat/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import {connect} from 'react-redux'
+import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../searchv3/helpers'
@@ -128,7 +128,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
   branch(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,

@@ -1924,7 +1924,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		}))
 		require.NoError(t, err)
 
-		topicName := "miketime"
+		topicName := "zjoinonsend"
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 			chat1.NewConversationLocalArg{
 				TlfName:       conv.TlfName,
@@ -1934,11 +1934,36 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "FAIL",
+			Body: fmt.Sprintf("JOINME"),
 		}))
-		require.Error(t, err)
+		require.NoError(t, err)
+		select {
+		case conv := <-listener1.joinedConv:
+			require.Equal(t, conv.GetConvID(), ncres.Conv.GetConvID())
+			require.Equal(t, topicName, utils.GetTopicName(conv))
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get joined notification")
+		}
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, ncres.Conv.GetConvID())
+			require.True(t, act.Joined)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		topicName = "miketime"
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: chat1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
 
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
@@ -1947,7 +1972,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType: chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		require.Equal(t, 2, len(getTLFRes.Convs))
+		require.Equal(t, 3, len(getTLFRes.Convs))
 		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
 		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
 
@@ -1999,11 +2024,6 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
-
-		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: "FAIL",
-		}))
-		require.Error(t, err)
 
 		_, err = postLocalForTest(t, ctc, users[2], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "FAIL",
