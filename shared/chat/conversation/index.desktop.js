@@ -1,6 +1,7 @@
 // @flow
 import Banner from './banner/container'
-import HeaderOrSearchHeader from './header-or-search-header'
+import Header from './header/container'
+import SearchHeader from '../search-header'
 import SearchResultsList from '../../searchv3/results-list'
 import Input from './input/container'
 import List from './list/container'
@@ -17,6 +18,26 @@ type State = {
   showDropOverlay: boolean,
   infoPanelOpen: boolean,
 }
+
+const Offline = () => (
+  <Box style={offlineStyle}>
+    <Text type="BodySmallSemibold">
+      Couldn't load all chat messages due to network connectivity. Retrying...
+    </Text>
+  </Box>
+)
+
+const DropOverlay = ({onDragLeave, onDrop}) => (
+  <Box style={dropOverlayStyle} onDragLeave={onDragLeave} onDrop={onDrop}>
+    <Icon type="icon-file-dropping-48" />
+  </Box>
+)
+
+const InfoPanelBox = ({onToggle}) => (
+  <div style={infoPanelBox}>
+    <InfoPanel onToggleInfoPanel={onToggle} />
+  </div>
+)
 
 class Conversation extends Component<void, Props, State> {
   state = {
@@ -85,41 +106,9 @@ class Conversation extends Component<void, Props, State> {
     this.setState({infoPanelOpen: !this.state.infoPanelOpen})
   }
 
-  render() {
-    const dropOverlay =
-      this.state.showDropOverlay &&
-      <Box style={dropOverlayStyle} onDragLeave={this._onDragLeave} onDrop={this._onDrop}>
-        <Icon type="icon-file-dropping-48" />
-      </Box>
-
-    const offline =
-      this.props.threadLoadedOffline &&
-      <Box
-        style={{
-          ...globalStyles.flexBoxCenter,
-          backgroundColor: globalColors.black_10,
-          flex: 1,
-          maxHeight: globalMargins.medium,
-        }}
-      >
-        <Text type="BodySmallSemibold">
-          Couldn't load all chat messages due to network connectivity. Retrying...
-        </Text>
-      </Box>
-
-    return (
-      <Box
-        className="conversation"
-        style={containerStyle}
-        onDragEnter={this._onDragEnter}
-        onPaste={this._onPaste}
-      >
-        {offline}
-        <HeaderOrSearchHeader
-          inSearch={this.props.inSearch}
-          infoPanelOpen={this.state.infoPanelOpen}
-          onToggleInfoPanel={this._onToggleInfoPanel}
-          onBack={this.props.onBack}
+  _makeHeaderOrSearchHeader = () =>
+    this.props.inSearch
+      ? <SearchHeader
           onChangeSearchText={this.props.onChangeSearchText}
           searchText={this.props.searchText}
           selectedConversationIDKey={this.props.selectedConversationIDKey}
@@ -128,51 +117,65 @@ class Conversation extends Component<void, Props, State> {
           onAddNewParticipant={this.props.onAddNewParticipant}
           addNewParticipant={this.props.addNewParticipant}
         />
-        {this.props.showSearchPending
-          ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
-          : this.props.showSearchResults
-              ? <SearchResultsList
-                  items={this.props.searchResultIds}
-                  onClick={this.props.onClickSearchResult}
-                  onMouseOver={this.props.onMouseOverSearchResult}
-                  onShowTracker={this.props.onShowTrackerInSearch}
-                  selectedId={this.props.selectedSearchId}
-                  showSearchSuggestions={this.props.showSearchSuggestions}
-                  style={{...globalStyles.scrollable, flexGrow: 1}}
-                />
-              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  <List
-                    focusInputCounter={this.props.focusInputCounter}
-                    listScrollDownCounter={this.props.listScrollDownCounter}
-                    onEditLastMessage={this.props.onEditLastMessage}
-                    onScrollDown={this.props.onScrollDown}
-                    onFocusInput={this.props.onFocusInput}
-                    editLastMessageCounter={this.props.editLastMessageCounter}
-                  />
-                  <Banner />
-                  {this.props.showLoader && <LoadingLine />}
-                  {this.props.finalizeInfo
-                    ? <OldProfileResetNotice />
-                    : <Input
-                        focusInputCounter={this.props.focusInputCounter}
-                        onEditLastMessage={this.props.onEditLastMessage}
-                        onScrollDown={this.props.onScrollDown}
-                      />}
-                  {this.state.infoPanelOpen &&
-                    <div
-                      style={{
-                        ...globalStyles.flexBoxColumn,
-                        bottom: 0,
-                        position: 'absolute',
-                        right: 0,
-                        top: 35,
-                        width: 320,
-                      }}
-                    >
-                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
-                    </div>}
-                  {dropOverlay}
-                </div>}
+      : <Header
+          infoPanelOpen={this.state.infoPanelOpen}
+          onToggleInfoPanel={this._onToggleInfoPanel}
+          onBack={this.props.onBack}
+        />
+
+  _makeListBody = () => (
+    <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <List
+        focusInputCounter={this.props.focusInputCounter}
+        listScrollDownCounter={this.props.listScrollDownCounter}
+        onEditLastMessage={this.props.onEditLastMessage}
+        onScrollDown={this.props.onScrollDown}
+        onFocusInput={this.props.onFocusInput}
+        editLastMessageCounter={this.props.editLastMessageCounter}
+      />
+      <Banner />
+      {this.props.showLoader && <LoadingLine />}
+      {this.props.finalizeInfo
+        ? <OldProfileResetNotice />
+        : <Input
+            focusInputCounter={this.props.focusInputCounter}
+            onEditLastMessage={this.props.onEditLastMessage}
+            onScrollDown={this.props.onScrollDown}
+          />}
+      {this.state.infoPanelOpen && <InfoPanelBox onToggle={this._onToggleInfoPanel} />}
+      {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
+    </div>
+  )
+
+  render() {
+    let body
+    if (this.props.showSearchResults) {
+      body = (
+        <SearchResultsList
+          items={this.props.searchResultIds}
+          onClick={this.props.onClickSearchResult}
+          onMouseOver={this.props.onMouseOverSearchResult}
+          onShowTracker={this.props.onShowTrackerInSearch}
+          selectedId={this.props.selectedSearchId}
+          showSearchSuggestions={this.props.showSearchSuggestions}
+          style={{...globalStyles.scrollable, flexGrow: 1}}
+        />
+      )
+    } else {
+      body = this._makeListBody()
+    }
+
+    return (
+      <Box
+        className="conversation"
+        style={containerStyle}
+        onDragEnter={this._onDragEnter}
+        onPaste={this._onPaste}
+      >
+        {this.props.threadLoadedOffline && <Offline />}
+        {this._makeHeaderOrSearchHeader()}
+        {this.props.showSearchPending && <ProgressIndicator style={progressStyle} />}
+        {body}
       </Box>
     )
   }
@@ -196,5 +199,23 @@ const dropOverlayStyle = {
   right: 0,
   top: 0,
 }
+
+const infoPanelBox = {
+  ...globalStyles.flexBoxColumn,
+  bottom: 0,
+  position: 'absolute',
+  right: 0,
+  top: 35,
+  width: 320,
+}
+
+const offlineStyle = {
+  ...globalStyles.flexBoxCenter,
+  backgroundColor: globalColors.black_10,
+  flex: 1,
+  maxHeight: globalMargins.medium,
+}
+
+const progressStyle = {width: globalMargins.xlarge}
 
 export default Conversation
