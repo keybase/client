@@ -127,6 +127,8 @@ func (fl *FolderList) PathType() libkbfs.PathType {
 		return libkbfs.PrivatePathType
 	case tlf.Public:
 		return libkbfs.PublicPathType
+	case tlf.SingleTeam:
+		return libkbfs.SingleTeamPathType
 	default:
 		// TODO: support the team path.
 		panic(fmt.Sprintf("Unsupported tlf type: %s", fl.tlfType))
