@@ -101,7 +101,7 @@
       </ExePackage>
 
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync -->	    
+ 	   which need to remain in sync. Also, "repair" doesn't seem to work, so we test for that too (WixBundleAction != 7) -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
@@ -109,7 +109,7 @@
                   UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
-                  DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver"
+                  DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver OR WixBundleAction = 7"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="no"
@@ -132,7 +132,7 @@
                   Protocol="netfx4"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
+                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver OR WixBundleAction = 7"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
