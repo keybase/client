@@ -1,13 +1,13 @@
 // @flow
 import SettingsContainer from './render'
-import {connect} from 'react-redux'
+import pausableConnect from '../util/pausable-connect'
 import {switchTo} from '../actions/route-tree'
 import {logout} from '../actions/login/creators'
 
 import type {RouteProps} from '../route-tree/render-route'
 
 // $FlowIssue type this connector
-export default connect(
+export default pausableConnect(
   (state, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
     badgeNumbers: {}, // TODO add badging logic
     selectedTab: routeSelected,

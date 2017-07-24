@@ -44,15 +44,12 @@ func (c *CmdChatListMembers) Run() error {
 	}
 
 	ctx := context.Background()
-	inboxRes, err := chatClient.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query: &chat1.GetInboxLocalQuery{
-			Name: &chat1.NameQuery{
-				Name:        c.tlfName,
-				MembersType: chat1.ConversationMembersType_TEAM,
-			},
-			TopicName: &c.topicName,
-			TopicType: &c.topicType,
-		},
+	inboxRes, err := chatClient.FindConversationsLocal(ctx, chat1.FindConversationsLocalArg{
+		TlfName:          c.tlfName,
+		MembersType:      chat1.ConversationMembersType_TEAM,
+		TopicName:        c.topicName,
+		TopicType:        c.topicType,
+		Visibility:       chat1.TLFVisibility_PRIVATE,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
@@ -65,7 +62,7 @@ func (c *CmdChatListMembers) Run() error {
 		return fmt.Errorf("ambiguous channel description, more than one conversation matches")
 	}
 
-	ui.Printf("Listing members in %s [%s]:\n\n", c.tlfName, c.topicName)
+	ui.Printf("Listing members in %s [#%s]:\n\n", c.tlfName, c.topicName)
 	for _, memb := range inboxRes.Conversations[0].Info.WriterNames {
 		ui.Printf("%s\n", memb)
 	}

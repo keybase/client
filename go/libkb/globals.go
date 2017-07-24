@@ -115,6 +115,8 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
+	// But don't access its members directly.
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
@@ -226,7 +228,9 @@ func (g *GlobalContext) createLoginStateLocked() {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
-	g.ActiveDevice = new(ActiveDevice)
+	g.loginState.Account(func(a *Account) {
+		g.ActiveDevice.clear(a)
+	}, "ActiveDevice.clear")
 }
 
 func (g *GlobalContext) createLoginState() {
@@ -240,11 +244,6 @@ func (g *GlobalContext) LoginState() *LoginState {
 	defer g.loginStateMu.RUnlock()
 
 	return g.loginState
-}
-
-// ResetLoginState is mainly used for testing...
-func (g *GlobalContext) ResetLoginState() {
-	g.createLoginStateLocked()
 }
 
 func (g *GlobalContext) Logout() error {
@@ -972,12 +971,10 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 }
 
 // GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
-// Using this during provisioning is nigh impossible because GetMyUID
-// routes through LoginSession and deadlocks.
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
 
-	myUID := g.GetMyUID()
+	myUID := g.ActiveDevice.UID()
 	if myUID.IsNil() {
 		return nil, errors.New("PerUserKeyring unavailable with no UID")
 	}

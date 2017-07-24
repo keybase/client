@@ -1,5 +1,5 @@
 // @flow
-import {is} from 'immutable'
+import {is, Map} from 'immutable'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
@@ -15,7 +15,7 @@ import {
 } from '../common-adapters/index.native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
-import {chatTab, loginTab} from '../constants/tabs'
+import {chatTab, loginTab, profileTab, folderTab, settingsTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import {isIOS} from '../constants/platform'
@@ -31,9 +31,10 @@ type OwnProps = RouteProps<{}, {}>
 
 type CardStackShimProps = {
   mode?: 'modal',
-  renderRoute: (route: RenderRouteResult) => React$Element<*>,
+  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean) => React$Element<*>,
   onNavigateBack: () => void,
   stack: RouteRenderStack,
+  hidden?: boolean,
 }
 
 class CardStackShim extends Component<*, CardStackShimProps, *> {
@@ -46,8 +47,8 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
   getComponentForRouteName = () => this.RenderRouteShim
 
   RenderRouteShim = ({navigation}) => {
-    const route = navigation.state.params
-    return this.props.renderRoute(route)
+    const {route, isActiveRoute} = navigation.state.params
+    return this.props.renderRoute(route, isActiveRoute)
   }
 
   _dispatchShim = (action: NavigationAction) => {
@@ -72,9 +73,12 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
       state: {
         index: stack.size - 1,
         routes: stack
-          .map(route => {
+          .map((route, index) => {
             const routeName = route.path.join('/')
-            return {key: routeName, routeName, params: route}
+            // Immutable.Stack indexes go from N-1(top/front)...0(bottom/back)
+            // The bottom/back item of the stack is our top (active) screen
+            const isActiveRoute = !this.props.hidden && index === 0
+            return {key: routeName, routeName, params: {route, isActiveRoute}}
           })
           .toArray(),
       },
@@ -85,10 +89,18 @@ class CardStackShim extends Component<*, CardStackShimProps, *> {
     }
 
     return (
-      <CardStackTransitioner navigation={navigation} router={this} headerMode="none" mode={this.props.mode} />
+      <CardStackTransitioner
+        navigation={navigation}
+        router={this}
+        headerMode="none"
+        mode={this.props.mode}
+        style={this.props.hidden ? _hiddenTransitionerStyle : undefined}
+      />
     )
   }
 }
+
+const _hiddenTransitionerStyle = {position: 'absolute', left: -9999, width: '100%', height: '100%'}
 
 const nop = () => {}
 const emptyObj = () => ({})
@@ -113,7 +125,7 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
   return 'dark-content'
 }
 
-function renderStackRoute(route) {
+function renderStackRoute(route, isActiveRoute) {
   const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
 
   return (
@@ -124,40 +136,67 @@ function renderStackRoute(route) {
         backgroundColor="rgba(0, 26, 51, 0.25)"
         barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
       />
-      {route.component}
+      {route.component({isActiveRoute})}
     </Box>
   )
 }
 
-function MainNavStack(props: Props) {
-  const screens = props.routeStack
-  const shim = [
-    <CardStackShim
-      key={props.routeSelected}
-      stack={screens}
-      renderRoute={renderStackRoute}
-      onNavigateBack={props.navigateUp}
-    />,
-    ![chatTab].includes(props.routeSelected) &&
-      <Offline key="offline" reachable={props.reachable} appFocused={true} />,
-    <GlobalError key="globalError" />,
-  ].filter(Boolean)
+const tabIsCached = {
+  [profileTab]: true,
+  [folderTab]: true,
+  [chatTab]: true,
+  [settingsTab]: true,
+}
 
-  const content = (
-    <Box style={globalStyles.flexGrow}>
-      {shim}
-      <AnimatedTabBar show={!props.hideNav}>
-        <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />
-      </AnimatedTabBar>
-    </Box>
-  )
-  return (
-    <Box style={globalStyles.fullHeight}>
-      <NativeKeyboardAvoidingView style={_keyboardStyle} behavior={isIOS ? 'padding' : undefined}>
-        {content}
-      </NativeKeyboardAvoidingView>
-    </Box>
-  )
+class MainNavStack extends Component {
+  state = {
+    stackCache: Map(),
+  }
+
+  componentWillReceiveProps() {
+    const {routeSelected, routeStack} = this.props
+    if (tabIsCached.hasOwnProperty(routeSelected)) {
+      this.setState(({stackCache}) => ({stackCache: stackCache.set(routeSelected, routeStack)}))
+    }
+  }
+
+  render() {
+    const props = this.props
+    const {stackCache} = this.state
+
+    const stacks = stackCache
+      .set(props.routeSelected, props.routeStack)
+      .map((stack, key) => (
+        <CardStackShim
+          key={key}
+          hidden={key !== props.routeSelected}
+          stack={stack}
+          renderRoute={renderStackRoute}
+          onNavigateBack={props.navigateUp}
+        />
+      ))
+      .toArray()
+
+    const content = (
+      <Box style={globalStyles.flexGrow}>
+        {stacks}
+        {![chatTab].includes(props.routeSelected)
+          ? <Offline key="offline" reachable={props.reachable} appFocused={true} />
+          : null}
+        <GlobalError key="globalError" />
+        <AnimatedTabBar show={!props.hideNav}>
+          <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />
+        </AnimatedTabBar>
+      </Box>
+    )
+    return (
+      <Box style={globalStyles.fullHeight}>
+        <NativeKeyboardAvoidingView style={_keyboardStyle} behavior={isIOS ? 'padding' : undefined}>
+          {content}
+        </NativeKeyboardAvoidingView>
+      </Box>
+    )
+  }
 }
 
 // TODO glamour
@@ -266,7 +305,7 @@ class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
     const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
       path: ['main'],
-      component: (
+      component: () => (
         <MainNavStack
           {...this.props}
           hideNav={this.props.hideNav || this.state.keyboardShowing}
@@ -285,7 +324,7 @@ class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
       />
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags.layerOnTop)
-    const layers = layerScreens.map(r => r.leafComponent)
+    const layers = layerScreens.map(r => r.leafComponent({isActiveRoute: true}))
 
     // If we have layers, lets add an extra box, else lets just pass through
     if (layers.count()) {

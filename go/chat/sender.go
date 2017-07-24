@@ -453,14 +453,33 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		return chat1.OutboxID{}, nil, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
-	// Get conversation metadata first
-	conv, _, err := GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, true)
+	// Get conversation metadata first. If we can't find it, we will just attempt to join
+	// the conversation in case that is an option. If it succeeds, then we just keep going,
+	// otherwise we give up and return an error.
+	var conv chat1.Conversation
+	conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, true)
 	if err != nil {
-		s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
-		return chat1.OutboxID{}, nil, nil, err
+		if err == errGetUnverifiedConvNotFound {
+			// If we didn't find it, then just attempt to join it and see what happens
+			s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
+			if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
+				s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+				return chat1.OutboxID{}, nil, nil, err
+			}
+			// Force hit the remote here, so there is no race condition against the local
+			// inbox
+			conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
+			if err != nil {
+				s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
+				return chat1.OutboxID{}, nil, nil, err
+			}
+		} else {
+			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
+			return chat1.OutboxID{}, nil, nil, err
+		}
 	}
 
-	// If we are in preview mode, then just join the conversation
+	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_PREVIEW:
 		if _, err = ri.JoinConversation(ctx, convID); err != nil {
