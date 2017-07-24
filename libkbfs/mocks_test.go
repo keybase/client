@@ -380,12 +380,14 @@ func (_m *MockdiskBlockCacheSetter) EXPECT() *_MockdiskBlockCacheSetterRecorder 
 	return _m.recorder
 }
 
-func (_m *MockdiskBlockCacheSetter) SetDiskBlockCache(_param0 DiskBlockCache) {
-	_m.ctrl.Call(_m, "SetDiskBlockCache", _param0)
+func (_m *MockdiskBlockCacheSetter) MakeDiskBlockCacheIfNotExists() error {
+	ret := _m.ctrl.Call(_m, "MakeDiskBlockCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-func (_mr *_MockdiskBlockCacheSetterRecorder) SetDiskBlockCache(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDiskBlockCache", arg0)
+func (_mr *_MockdiskBlockCacheSetterRecorder) MakeDiskBlockCacheIfNotExists() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeDiskBlockCacheIfNotExists")
 }
 
 // Mock of clockGetter interface
@@ -4693,12 +4695,14 @@ func (_mr *_MockConfigRecorder) DiskBlockCache() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskBlockCache")
 }
 
-func (_m *MockConfig) SetDiskBlockCache(_param0 DiskBlockCache) {
-	_m.ctrl.Call(_m, "SetDiskBlockCache", _param0)
+func (_m *MockConfig) MakeDiskBlockCacheIfNotExists() error {
+	ret := _m.ctrl.Call(_m, "MakeDiskBlockCacheIfNotExists")
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-func (_mr *_MockConfigRecorder) SetDiskBlockCache(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDiskBlockCache", arg0)
+func (_mr *_MockConfigRecorder) MakeDiskBlockCacheIfNotExists() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeDiskBlockCacheIfNotExists")
 }
 
 func (_m *MockConfig) Clock() Clock {
@@ -5901,14 +5905,14 @@ func (_mr *_MockBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
 }
 
-func (_m *MockBareRootMetadata) MerkleRootV2() keybase1.MerkleRootV2 {
-	ret := _m.ctrl.Call(_m, "MerkleRootV2")
+func (_m *MockBareRootMetadata) MerkleRoot() keybase1.MerkleRootV2 {
+	ret := _m.ctrl.Call(_m, "MerkleRoot")
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
 	return ret0
 }
 
-func (_mr *_MockBareRootMetadataRecorder) MerkleRootV2() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleRootV2")
+func (_mr *_MockBareRootMetadataRecorder) MerkleRoot() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleRoot")
 }
 
 func (_m *MockBareRootMetadata) BID() BranchID {
@@ -6349,14 +6353,14 @@ func (_mr *_MockMutableBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
 }
 
-func (_m *MockMutableBareRootMetadata) MerkleRootV2() keybase1.MerkleRootV2 {
-	ret := _m.ctrl.Call(_m, "MerkleRootV2")
+func (_m *MockMutableBareRootMetadata) MerkleRoot() keybase1.MerkleRootV2 {
+	ret := _m.ctrl.Call(_m, "MerkleRoot")
 	ret0, _ := ret[0].(keybase1.MerkleRootV2)
 	return ret0
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) MerkleRootV2() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleRootV2")
+func (_mr *_MockMutableBareRootMetadataRecorder) MerkleRoot() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MerkleRoot")
 }
 
 func (_m *MockMutableBareRootMetadata) BID() BranchID {
