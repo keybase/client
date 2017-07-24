@@ -133,15 +133,16 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 - (void)install:(KBCompletion)completion {
   [self _install:^(NSError *error) {
     if (error) {
+      // Don't report system policy (permission) error, since it gets reported by the OS in > 10.13.
+      if ([error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
+        completion(nil);
+        return;
+      }
+
       completion(error);
       return;
     }
-    DDLogInfo(@"Loading kext");
-    [self loadKext:^(NSError *error) {
-      // Don't report errors here. We'll manually check the kext load status in a seperate step.
-      // We need to attempt a load though, to trigger the system policy error on macOS > 10.13.
-      completion(nil);
-    }];
+    completion(nil);
   }];
 }
 
