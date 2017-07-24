@@ -32,6 +32,7 @@ type blockRetrievalPartialConfig interface {
 	logMaker
 	blockCacher
 	diskBlockCacheGetter
+	syncedTlfGetterSetter
 }
 
 type blockRetrievalConfig interface {
@@ -261,7 +262,12 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go brq.Prefetcher().PrefetchAfterBlockRetrieved(block, ptr, kmd)
+	go func() {
+		<-brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
+			ptr, kmd)
+		// TODO: here we know that the above prefetches are done.
+		// We can now do things like notify the disk cache.
+	}()
 	return nil
 }
 

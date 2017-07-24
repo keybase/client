@@ -21,6 +21,7 @@ type testBlockRetrievalConfig struct {
 	testCache BlockCache
 	bg        blockGetter
 	diskBlockCacheGetter
+	*testSyncedTlfGetterSetter
 }
 
 func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
@@ -31,6 +32,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity()),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),
+		newTestSyncedTlfGetterSetter(),
 	}
 }
 

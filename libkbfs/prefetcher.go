@@ -25,6 +25,7 @@ const (
 )
 
 type prefetcherConfig interface {
+	syncedTlfGetterSetter
 	dataVersioner
 	logMaker
 	blockCacher

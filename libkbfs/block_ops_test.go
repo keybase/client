@@ -84,6 +84,7 @@ type testBlockOpsConfig struct {
 	cp      cryptoPure
 	cache   BlockCache
 	diskBlockCacheGetter
+	*testSyncedTlfGetterSetter
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -115,7 +116,9 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	crypto := MakeCryptoCommon(codecGetter.Codec())
 	cache := NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity())
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
-	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg}
+	stgs := newTestSyncedTlfGetterSetter()
+	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
+		stgs}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
