@@ -131,18 +131,23 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  [self _installAndLoad:^(NSError *error) {
+    // Resolve kext permission error
+    if (error && [error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
+      completion(KBMakeError(KBErrorCodeFuseKextPermission, @"%@", error.localizedDescription));
+      return;
+    }
+    completion(error);
+  }];
+}
+
+- (void)_installAndLoad:(KBCompletion)completion {
   [self _install:^(NSError *error) {
     if (error) {
-      // Resolve kext permission error
-      if ([error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
-        completion(KBMakeError(KBErrorCodeFuseKextPermission, @"%@", error.localizedDescription));
-        return;
-      }
-
       completion(error);
       return;
     }
-    completion(nil);
+    [self _afterInstall:completion];
   }];
 }
 
@@ -168,6 +173,16 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       DDLogInfo(@"Fuse install is OK");
       completion(nil);
     }
+  }];
+}
+
+- (void)_afterInstall:(KBCompletion)completion {
+  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
+    if (fuseStatus.installStatus == KBRInstallStatusInstalled && !fuseStatus.kextStarted) {
+      [self loadKext:completion];
+      return;
+    }
+    completion(nil);
   }];
 }
 
