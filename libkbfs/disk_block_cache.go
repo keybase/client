@@ -394,12 +394,14 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
-	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched bool) error {
+	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched bool,
+	childBlocks []kbfsblock.ID) error {
 	metadata := diskBlockCacheMetadata{
 		TlfID:         tlfID,
 		LRUTime:       cache.config.Clock().Now(),
 		BlockSize:     uint32(encodeLen),
 		HasPrefetched: hasPrefetched,
+		ChildBlocks:   childBlocks,
 	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
@@ -514,7 +516,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
 	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry),
-		md.HasPrefetched)
+		md.HasPrefetched, md.ChildBlocks)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
@@ -615,7 +617,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	// Initially set HasPrefetched to false; rely on UpdateMetadata to fix it.
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen),
-		false)
+		false, nil)
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for
@@ -642,7 +644,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 		return NoSuchBlockError{blockID}
 	}
 	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
-		int(md.BlockSize), hasPrefetched)
+		int(md.BlockSize), hasPrefetched, nil)
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.

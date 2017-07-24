@@ -35,6 +35,7 @@ type prefetchRequest struct {
 	kmd      KeyMetadata
 	ptr      BlockPointer
 	block    Block
+	wg       *sync.WaitGroup
 }
 
 type blockPrefetcher struct {
@@ -107,6 +108,7 @@ func (p *blockPrefetcher) run() {
 					cancel()
 					<-errCh
 				}
+				req.wg.Done()
 			}()
 		case <-p.shutdownCh:
 			return
@@ -115,7 +117,8 @@ func (p *blockPrefetcher) run() {
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
-	ptr BlockPointer, block Block, entryName string) error {
+	ptr BlockPointer, block Block, entryName string,
+	wg *sync.WaitGroup) error {
 	if _, err := p.config.BlockCache().Get(ptr); err == nil {
 		return nil
 	}
@@ -123,7 +126,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 		return err
 	}
 	select {
-	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
+	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block, wg}:
 		return nil
 	case <-p.shutdownCh:
 		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since "+
@@ -132,34 +135,42 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 }
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	// Prefetch indirect block pointers.
 	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file "+
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(b.IPtrs))
 	for _, ptr := range b.IPtrs {
 		p.request(fileIndirectBlockPrefetchPriority, kmd, ptr.BlockPointer,
-			b.NewEmpty(), "")
+			b.NewEmpty(), "", wg)
 	}
+	return wg
 }
 
 func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	// Prefetch indirect block pointers.
 	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir "+
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
+	wg := &sync.WaitGroup{}
+	wg.Add(len(b.IPtrs))
 	for _, ptr := range b.IPtrs {
 		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), "")
+			ptr.BlockPointer, b.NewEmpty(), "", wg)
 	}
+	return wg
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block "+
 		"ID %s. Num entries: %d", ptr.ID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
+	wg := &sync.WaitGroup{}
+	wg.Add(len(b.Children))
 	for i, entry := range dirEntries.dirEntries {
 		// Prioritize small files
 		priority := dirEntryPrefetchPriority - i
@@ -174,10 +185,13 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
 		default:
 			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of "+
 				"unknown type %d", entry.Type)
+			wg.Done()
 			continue
 		}
-		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
+		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName,
+			wg)
 	}
+	return wg
 }
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
@@ -186,27 +200,44 @@ func (p *blockPrefetcher) PrefetchBlock(
 	// TODO: Remove this log line.
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from "+
 		"upstream component. Priority: %d", priority)
-	return p.request(priority, kmd, ptr, block, "")
+	// TODO: pass this channel back up in case the caller wants to be notified
+	// on prefetch completion.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	return p.request(priority, kmd, ptr, block, "", &wg)
 }
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for
-// blockPrefetcher.
+// blockPrefetcher. Returns a channel that is closed once all the prefetches
+// complete.
 func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
-	b Block, ptr BlockPointer, kmd KeyMetadata) {
+	b Block, ptr BlockPointer, kmd KeyMetadata) <-chan struct{} {
+	doneCh := make(chan struct{})
+	var wg *sync.WaitGroup
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
-			p.prefetchIndirectFileBlock(b, kmd)
+			wg = p.prefetchIndirectFileBlock(b, kmd)
+		} else {
+			close(doneCh)
+			return doneCh
 		}
 	case *DirBlock:
 		if b.IsInd {
-			p.prefetchIndirectDirBlock(b, kmd)
+			wg = p.prefetchIndirectDirBlock(b, kmd)
 		} else {
-			p.prefetchDirectDirBlock(ptr, b, kmd)
+			wg = p.prefetchDirectDirBlock(ptr, b, kmd)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
+		close(doneCh)
+		return doneCh
 	}
+	go func() {
+		wg.Wait()
+		close(doneCh)
+	}()
+	return doneCh
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.
