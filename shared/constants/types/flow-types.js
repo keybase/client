@@ -4800,6 +4800,7 @@ export type FuseStatus = {
   kextID: string,
   path: string,
   kextStarted: boolean,
+  kextPermissionRequired: boolean,
   installStatus: InstallStatus,
   installAction: InstallAction,
   mountInfos?: ?Array<FuseMountInfo>,

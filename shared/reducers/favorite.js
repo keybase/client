@@ -15,6 +15,10 @@ const initialState: Constants.State = {
     },
     publicBadge: 0,
   },
+  fuseInstall: {
+    installing: false,
+    result: null,
+  },
   fuseStatus: {
     loading: false,
     status: null,
@@ -134,6 +138,22 @@ export default function(
           status: action.payload.status,
         },
       }
+    case 'fs:installFuse':
+      return {
+        ...state,
+        fuseInstall: {
+          installing: true,
+          result: null,
+        },
+      }
+    case 'fs:installFuseResult':
+      return {
+        ...state,
+        fuseInstall: {
+          installing: false,
+          result: action.payload.result,
+        },
+      }
     case 'fs:installKBFS':
       return {
         ...state,
@@ -143,7 +163,6 @@ export default function(
         },
       }
     case 'fs:installKBFSResult':
-      console.log('Install result:', action.payload.result)
       return {
         ...state,
         kbfsInstall: {
