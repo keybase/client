@@ -53,6 +53,7 @@ protocol install {
     string kextID;
     string path;
     boolean kextStarted;
+    boolean kextPermissionRequired;
     InstallStatus installStatus;
     InstallAction installAction;
     array<FuseMountInfo> mountInfos;

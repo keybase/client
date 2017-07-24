@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/kbfs'
 import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
-import {fuseStatusSaga, installKBFSSaga, openSaga, openInFileUISaga} from './index.platform'
+import {fuseStatusSaga, installFuseSaga, installKBFSSaga, openSaga, openInFileUISaga} from './index.platform'
 import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
 import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
@@ -36,6 +36,10 @@ function fuseStatus() {
   return {payload: undefined, type: 'fs:fuseStatus'}
 }
 
+function installFuse() {
+  return {payload: undefined, type: 'fs:installFuse'}
+}
+
 function installKBFS() {
   return {payload: undefined, type: 'fs:installKBFS'}
 }
@@ -45,8 +49,9 @@ function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
   yield safeTakeLatest('fs:fuseStatus', fuseStatusSaga)
+  yield safeTakeLatest('fs:installFuse', installFuseSaga)
   yield safeTakeLatest('fs:installKBFS', installKBFSSaga)
 }
 
 export default kbfsSaga
-export {fsList, fuseStatus, installKBFS, openInKBFS}
+export {fsList, fuseStatus, installFuse, installKBFS, openInKBFS}

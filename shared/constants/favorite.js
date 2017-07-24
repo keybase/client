@@ -40,6 +40,10 @@ export type KBFSStatus = {
 
 export type State = Exact<{
   folderState: FolderState,
+  fuseInstall: {
+    installing: boolean,
+    result: ?InstallResult,
+  },
   fuseStatus: {
     loading: boolean,
     status: ?FuseStatus,

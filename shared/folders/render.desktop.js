@@ -8,6 +8,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {connect} from 'react-redux'
 import {fuseStatus} from '../actions/kbfs'
 import InstallBanner from './install/banner'
+import InstallSecurityPrefs from './install/security-prefs'
 
 import type {TypedState} from '../constants/reducer'
 
@@ -40,6 +41,10 @@ class FoldersRender extends Component<void, Props, void> {
   }
 
   render() {
+    if (this.props.showSecurityPrefs) {
+      return <InstallSecurityPrefs />
+    }
+
     const sharedListProps = {
       style: this.props.listStyle,
       smallMode: this.props.smallMode,
@@ -127,6 +132,7 @@ const tabBarStyle = {
 
 const mapStateToProps = (state: TypedState) => ({
   fuseInstalled: state.favorite.fuseStatus.status ? state.favorite.fuseStatus.status.kextStarted : false,
+  showSecurityPrefs: state.favorite.fuseStatus.status.kextPermissionRequired,
 })
 
 const mapDispatchToProps = (dispatch: any) => ({

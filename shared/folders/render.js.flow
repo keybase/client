@@ -20,6 +20,7 @@ export type Props = {
   onToggleShowIgnored: () => void,
   fuseInstalled: boolean,
   fuseStatus: () => void,
+  showSecurityPrefs?: boolean,
 }
 
 export default class Render extends Component<void, Props, void> {}

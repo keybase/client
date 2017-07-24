@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {connect} from 'react-redux'
-import {fuseStatus, installKBFS} from '../../actions/kbfs'
+import {fuseStatus, installFuse} from '../../actions/kbfs'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -11,7 +11,7 @@ type Props = {
   fuseStatus: () => void,
   fuseInstalled: boolean,
   installing: boolean,
-  installKBFS: () => void,
+  installFuse: () => void,
   loading: boolean,
 }
 
@@ -21,7 +21,7 @@ class InstallBanner extends Component<void, Props, void> {
   }
 
   _onSubmit = () => {
-    this.props.installKBFS()
+    this.props.installFuse()
   }
 
   render() {
@@ -73,7 +73,7 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: any) => ({
   fuseStatus: () => dispatch(fuseStatus()),
-  installKBFS: () => dispatch(installKBFS()),
+  installFuse: () => dispatch(installFuse()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InstallBanner)

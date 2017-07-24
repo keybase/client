@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import {
   installFuseStatusRpcPromise,
+  installInstallFuseRpcPromise,
   installInstallKBFSRpcPromise,
   kbfsMountGetCurrentMountDirRpcPromise,
 } from '../../constants/types/flow-types'
@@ -114,6 +115,14 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   yield put(action)
 }
 
+function* installFuseSaga(): SagaGenerator<any, any> {
+  const result: InstallResult = yield call(installInstallFuseRpcPromise)
+  yield put({payload: {result}, type: 'fs:installFuseResult'})
+
+  const status: FuseStatus = yield call(installFuseStatusRpcPromise)
+  yield put({payload: {status}, type: 'fs:fuseStatusUpdate'})
+}
+
 function* installKBFSSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallKBFSRpcPromise)
   yield put({payload: {result}, type: 'fs:installKBFSResult'})
@@ -171,4 +180,4 @@ function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, 
   yield call(_open, path)
 }
 
-export {fuseStatusSaga, installKBFSSaga, openInFileUISaga, openSaga}
+export {fuseStatusSaga, installFuseSaga, installKBFSSaga, openInFileUISaga, openSaga}
