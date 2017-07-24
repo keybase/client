@@ -27,12 +27,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// AutoInstall is not supported on Windows
-func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
-	return false, fmt.Errorf("Auto install not supported for this build or platform")
-}
-
-// Install just supports the driver on Windows
+// Install empty implementation for unsupported platforms
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
@@ -40,34 +35,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = installFuse(context.GetRunMode(), log)
+		err = installDokan(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
 			log.Errorf("Error installing KBFuse: %s", err)
 		}
 	}
 
-	//	return keybase1.InstallResult{}
-	return newInstallResult(componentResults)
-}
-
-func newInstallResult(componentResults []keybase1.ComponentResult) keybase1.InstallResult {
-	return keybase1.InstallResult{ComponentResults: componentResults, Status: statusFromResults(componentResults)}
-}
-
-func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Status {
-	var errorMessages []string
-	for _, cs := range componentResults {
-		if cs.Status.Code != 0 {
-			errorMessages = append(errorMessages, fmt.Sprintf("%s (%s)", cs.Status.Desc, cs.Name))
-		}
-	}
-
-	if len(errorMessages) > 0 {
-		return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, strings.Join(errorMessages, ". "))
-	}
-
-	return keybase1.StatusOK("")
+	return keybase1.InstallResult{}
 }
 
 func componentResult(name string, err error) keybase1.ComponentResult {
@@ -77,29 +52,36 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
 
-func installFuse(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing KBFuse")
-	command, err := getCachedPackageModifyString()
-	if err != nil {
-		return err
-	}
-
-	command = strings.Replace(command, "/modify", "driver /repair /passive", 1)
-
-	log.Info("Starting %#v", command)
-	cmd := exec.Command(command)
-	err = cmd.Run()
-	if err != nil {
-		log.Errorf("Error running program: %q; %s", command, err)
-		return err
-	}
-	log.Info("Program finished: %q", command)
-	return nil
+// AutoInstall runs the auto install
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (bool, error) {
+	return false, nil
 }
 
 // Uninstall empty implementation for unsupported platforms
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	return keybase1.UninstallResult{}
+}
+
+// InstallKBFS installs the KBFS launchd service
+func installDokan(_ libkb.RunMode, log Log) error {
+	log.Info("Installing Dokan")
+	command, err := getCachedPackageModifyString(log)
+	if err != nil {
+		return err
+	}
+
+	command = strings.Replace(command, " /modify", "", 1)
+	command = strings.Replace(command, "\"", "", 2)
+
+	log.Info("Starting %#v", command)
+	cmd := exec.Command(command, "driver", "/repair")
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	log.Info("Program finished: %q", command)
+	return nil
 }
 
 // CheckIfValidLocation is not supported on Windows
@@ -300,14 +282,16 @@ func IsInUse(mountDir string, log Log) bool {
 	return false
 }
 
-func getCachedPackageModifyString() (string, error) {
-	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`, registry.QUERY_VALUE|registry.WOW64_64KEY)
+func getCachedPackageModifyString(log Log) (string, error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`, registry.READ|registry.WOW64_64KEY)
 	defer k.Close()
 	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't enumerate uninstall keys")
 		return "", err
 	}
 	subKeyNames, err := k.ReadSubKeyNames(0)
 	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't ReadSubKeyNames")
 		return "", err
 	}
 	for _, subKeyName := range subKeyNames {

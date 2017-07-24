@@ -6,8 +6,11 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/keybase/client/go/install"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -18,7 +21,7 @@ import (
 func NewCmdKbfsMount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "kbfsmount",
-		Usage: "kbfsmount [get|set|getall]",
+		Usage: "kbfsmount [get|set|getall|status]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdKbfsMount{libkb.NewContextified(g), "", ""}, "kbfsmount", c)
 		},
@@ -62,6 +65,14 @@ func (s *CmdKbfsMount) Run() error {
 		results, err2 := cli.GetAllAvailableMountDirs(context.TODO())
 		dui.Printf("%v", results)
 		err = err2
+	case "status":
+		status := install.KeybaseFuseStatus("", s.G().Log)
+		out, err := json.MarshalIndent(status, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		dui.Printf("%s\n", out)
 	}
 	return err
 }
