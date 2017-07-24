@@ -66,7 +66,7 @@ const stylesContainer = {
 
 const mapStateToProps = (state: TypedState) => {
   return {
-    installing: state.favorite.kbfsInstall.installing,
+    installing: state.favorite.fuseInstall.installing,
     loading: state.favorite.fuseStatus.loading,
   }
 }

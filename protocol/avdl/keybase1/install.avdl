@@ -53,7 +53,6 @@ protocol install {
     string kextID;
     string path;
     boolean kextStarted;
-    boolean kextPermissionRequired;
     InstallStatus installStatus;
     InstallAction installAction;
     array<FuseMountInfo> mountInfos;
@@ -63,6 +62,7 @@ protocol install {
   record ComponentResult {
     string name;
     Status status;
+    int exitCode;
   }
 
   record InstallResult {

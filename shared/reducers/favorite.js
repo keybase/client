@@ -17,6 +17,7 @@ const initialState: Constants.State = {
   },
   fuseInstall: {
     installing: false,
+    kextPermissionError: false,
     result: null,
   },
   fuseStatus: {
@@ -143,14 +144,18 @@ export default function(
         ...state,
         fuseInstall: {
           installing: true,
+          kextPermissionError: false,
           result: null,
         },
       }
     case 'fs:installFuseResult':
+      const result = action.payload.result
+      const kextPermissionError = result.componentResults[0].exitCode === 3
       return {
         ...state,
         fuseInstall: {
           installing: false,
+          kextPermissionError,
           result: action.payload.result,
         },
       }

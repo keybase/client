@@ -136,28 +136,26 @@ func (o FuseMountInfo) DeepCopy() FuseMountInfo {
 }
 
 type FuseStatus struct {
-	Version                string          `codec:"version" json:"version"`
-	BundleVersion          string          `codec:"bundleVersion" json:"bundleVersion"`
-	KextID                 string          `codec:"kextID" json:"kextID"`
-	Path                   string          `codec:"path" json:"path"`
-	KextStarted            bool            `codec:"kextStarted" json:"kextStarted"`
-	KextPermissionRequired bool            `codec:"kextPermissionRequired" json:"kextPermissionRequired"`
-	InstallStatus          InstallStatus   `codec:"installStatus" json:"installStatus"`
-	InstallAction          InstallAction   `codec:"installAction" json:"installAction"`
-	MountInfos             []FuseMountInfo `codec:"mountInfos" json:"mountInfos"`
-	Status                 Status          `codec:"status" json:"status"`
+	Version       string          `codec:"version" json:"version"`
+	BundleVersion string          `codec:"bundleVersion" json:"bundleVersion"`
+	KextID        string          `codec:"kextID" json:"kextID"`
+	Path          string          `codec:"path" json:"path"`
+	KextStarted   bool            `codec:"kextStarted" json:"kextStarted"`
+	InstallStatus InstallStatus   `codec:"installStatus" json:"installStatus"`
+	InstallAction InstallAction   `codec:"installAction" json:"installAction"`
+	MountInfos    []FuseMountInfo `codec:"mountInfos" json:"mountInfos"`
+	Status        Status          `codec:"status" json:"status"`
 }
 
 func (o FuseStatus) DeepCopy() FuseStatus {
 	return FuseStatus{
-		Version:                o.Version,
-		BundleVersion:          o.BundleVersion,
-		KextID:                 o.KextID,
-		Path:                   o.Path,
-		KextStarted:            o.KextStarted,
-		KextPermissionRequired: o.KextPermissionRequired,
-		InstallStatus:          o.InstallStatus.DeepCopy(),
-		InstallAction:          o.InstallAction.DeepCopy(),
+		Version:       o.Version,
+		BundleVersion: o.BundleVersion,
+		KextID:        o.KextID,
+		Path:          o.Path,
+		KextStarted:   o.KextStarted,
+		InstallStatus: o.InstallStatus.DeepCopy(),
+		InstallAction: o.InstallAction.DeepCopy(),
 		MountInfos: (func(x []FuseMountInfo) []FuseMountInfo {
 			var ret []FuseMountInfo
 			for _, v := range x {
@@ -171,14 +169,16 @@ func (o FuseStatus) DeepCopy() FuseStatus {
 }
 
 type ComponentResult struct {
-	Name   string `codec:"name" json:"name"`
-	Status Status `codec:"status" json:"status"`
+	Name     string `codec:"name" json:"name"`
+	Status   Status `codec:"status" json:"status"`
+	ExitCode int    `codec:"exitCode" json:"exitCode"`
 }
 
 func (o ComponentResult) DeepCopy() ComponentResult {
 	return ComponentResult{
-		Name:   o.Name,
-		Status: o.Status.DeepCopy(),
+		Name:     o.Name,
+		Status:   o.Status.DeepCopy(),
+		ExitCode: o.ExitCode,
 	}
 }
 

@@ -139,10 +139,6 @@
           "name": "kextStarted"
         },
         {
-          "type": "boolean",
-          "name": "kextPermissionRequired"
-        },
-        {
           "type": "InstallStatus",
           "name": "installStatus"
         },
@@ -174,6 +170,10 @@
         {
           "type": "Status",
           "name": "status"
+        },
+        {
+          "type": "int",
+          "name": "exitCode"
         }
       ]
     },

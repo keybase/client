@@ -37,11 +37,6 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 		var loadErr error
 		kextInfo, loadErr = kext.LoadInfo(kextID)
 		if loadErr != nil {
-			// See if we need kext permission
-			loadStatus := LoadFuseKext(log)
-			if loadStatus.Code == int(keybase1.StatusCode_SCLoadKextPermError) {
-				st.KextPermissionRequired = true
-			}
 			st.InstallStatus = keybase1.InstallStatus_ERROR
 			st.InstallAction = keybase1.InstallAction_REINSTALL
 			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading kext info: %s", loadErr)}
