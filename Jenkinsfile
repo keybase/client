@@ -229,10 +229,6 @@ helpers.rootLinuxNode(env, {
 }
 
 def runNixTest(prefix) {
-    // Dependencies
-    dir('test') {
-        sh 'go test -i -tags fuse'
-    }
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -249,6 +245,19 @@ def runNixTest(prefix) {
         '''
         sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
     }
+    tests[prefix+'gen_mocks'] = {
+        dir('libkbfs') {
+            sh 'go get github.com/golang/mock/gomock github.com/golang/mock/mockgen'
+            sh './gen_mocks.sh'
+            sh 'git diff --exit-code'
+        }
+    }
+    parallel (tests)
+    // Dependencies
+    dir('test') {
+        sh 'go test -i -tags fuse'
+    }
+    tests = [:]
     tests[prefix+'install'] = {
         sh 'go install github.com/keybase/kbfs/...'
     }
