@@ -247,7 +247,8 @@ def runNixTest(prefix) {
     }
     tests[prefix+'gen_mocks'] = {
         dir('libkbfs') {
-            sh 'go get github.com/golang/mock/gomock github.com/golang/mock/mockgen'
+            // Make sure our mock library is up to date.
+            sh 'go get -u github.com/golang/mock/gomock github.com/golang/mock/mockgen'
             sh './gen_mocks.sh'
             sh 'git diff --exit-code'
         }
