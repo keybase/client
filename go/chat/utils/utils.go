@@ -493,8 +493,7 @@ func SanitizeTopicName(topicName string) string {
 	return strings.TrimPrefix(topicName, "#")
 }
 
-func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) chat1.TopicNameState {
-	mh := codec.MsgpackHandle{WriteExt: true}
+func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNameState, error) {
 	var data []byte
 	var err error
 	mh := codec.MsgpackHandle{WriteExt: true}
