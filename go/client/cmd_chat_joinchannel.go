@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -66,7 +67,7 @@ func (c *CmdChatJoinChannel) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	c.teamName = ctx.Args().Get(0)
-	c.topicName = ctx.Args().Get(1)
+	c.topicName = utils.SanitizeTopicName(ctx.Args().Get(1))
 	return nil
 }
 

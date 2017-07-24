@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -75,7 +76,7 @@ func (c *CmdChatLeaveChannel) ParseArgv(ctx *cli.Context) (err error) {
 	// Force team for now
 	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
 	c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
-	c.resolvingRequest.TopicName = topicName
+	c.resolvingRequest.TopicName = utils.SanitizeTopicName(topicName)
 
 	return nil
 }
