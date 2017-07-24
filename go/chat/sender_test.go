@@ -760,30 +760,33 @@ func TestAtMentionsEdit(t *testing.T) {
 			MessageType: chat1.MessageType_EDIT,
 			Supersedes:  firstMessageID,
 		},
-		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: text}),
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: firstMessageID,
+			Body:      text,
+		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
 
 	// edit the message and add channel mention
-	/*
-		text = "Hello @channel!"
-		_, _, atMentions, chanMention, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        conv.Metadata.IdTriple,
-				Sender:      uid,
-				TlfName:     u.Username,
-				MessageType: chat1.MessageType_TEXT,
-			},
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: text,
-			}),
-		}, chat1.ConversationMembersType_KBFS, &conv)
-		require.NoError(t, err)
-		require.Zero(t, len(atMentions))
-		require.Equal(t, chat1.ChannelMention_ALL, chanMention)
-	*/
+	text = "Hello @channel!"
+	_, _, atMentions, chanMention, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: firstMessageID,
+			Body:      text,
+		}),
+	}, chat1.ConversationMembersType_KBFS, &conv)
+	require.NoError(t, err)
+	require.Zero(t, len(atMentions))
+	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
 func TestPrevPointerAddition(t *testing.T) {
