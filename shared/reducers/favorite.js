@@ -150,7 +150,10 @@ export default function(
       }
     case 'fs:installFuseResult':
       const result = action.payload.result
-      const kextPermissionError = result.componentResults[0].exitCode === 3
+      const fuseResults = result.componentResults.filter(c => c.name === 'fuse')
+      const kextPermissionError = fuseResults.length > 0 && fuseResults[0].exitCode === 3
+      console.warn('result:', result)
+      console.warn('kextPermissionError:', kextPermissionError)
       return {
         ...state,
         fuseInstall: {
