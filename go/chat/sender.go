@@ -363,19 +363,29 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
-	if plaintext.ClientHeader.MessageType == chat1.MessageType_TEXT {
+	switch plaintext.ClientHeader.MessageType {
+	case chat1.MessageType_TEXT:
 		var newBody string
 		newBody, atMentions, chanMention = utils.ParseAndDecorateAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: newBody,
 		})
-		if len(atMentions) > 0 {
-			s.Debug(ctx, "atMentions: %v", atMentions)
-		}
-		if chanMention != chat1.ChannelMention_NONE {
-			s.Debug(ctx, "channel mention: %v", chanMention)
-		}
+	case chat1.MessageType_EDIT:
+		var newBody string
+		newBody, atMentions, chanMention = utils.ParseAndDecorateAtMentionedUIDs(ctx,
+			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: plaintext.MessageBody.Edit().MessageID,
+			Body:      newBody,
+		})
+	}
+
+	if len(atMentions) > 0 {
+		s.Debug(ctx, "atMentions: %v", atMentions)
+	}
+	if chanMention != chat1.ChannelMention_NONE {
+		s.Debug(ctx, "channel mention: %v", chanMention)
 	}
 
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
