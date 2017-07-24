@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import SubHeading from '../subheading'
-import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
+import {Box, Button, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
