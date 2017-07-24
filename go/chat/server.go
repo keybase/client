@@ -596,7 +596,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		switch arg.MembersType {
 		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-			rl, err = h.postJoinLeave(ctx, convID, joinMessageBody)
+			rl, err = h.postJoinLeave(ctx, uid.ToBytes(), convID, joinMessageBody)
 			if err != nil {
 				h.Debug(ctx, "posting join-conv message failed: %v", err)
 				// ignore the error
@@ -1684,6 +1684,17 @@ func (h *Server) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
+func (h *Server) assertLoggedInUID(ctx context.Context) (uid gregor1.UID, err error) {
+	if !h.G().ActiveDevice.HaveKeys() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	k1uid := h.G().Env.GetUID()
+	if k1uid.IsNil() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	return gregor1.UID(k1uid.ToBytes()), nil
+}
+
 // Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (h *Server) Sign(payload []byte) ([]byte, error) {
 	arg := chat1.S3SignArg{
@@ -2114,15 +2125,11 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	return nil
 }
 
-func (h *Server) checkInConv(ctx context.Context, convID chat1.ConversationID) (in bool, err error) {
+// Check whether the active user is in a conv.
+func (h *Server) checkInConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (in bool, err error) {
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("checkInConv(%v)", convID))()
 
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		return false, libkb.LoginRequiredError{}
-	}
-
-	conv, _, err := GetUnverifiedConv(ctx, h.G(), uid.ToBytes(), convID, true)
+	conv, _, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true)
 	if err != nil {
 		return false, err
 	}
@@ -2137,13 +2144,8 @@ func (h *Server) checkInConv(ctx context.Context, convID chat1.ConversationID) (
 
 // Post a join or leave message. Must be called when the user is in the conv.
 // Uses a blocking sender.
-func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
+func (h *Server) postJoinLeave(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("postJoinLeave(%v)", convID))()
-
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		return rl, libkb.LoginRequiredError{}
-	}
 
 	typ, err := body.MessageType()
 	if err != nil {
@@ -2160,7 +2162,7 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 	query := chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
-	ib, _, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &query, nil)
 	if len(ib.Convs) != 1 {
 		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
 	}
@@ -2191,8 +2193,8 @@ func (h *Server) postJoinLeave(ctx context.Context, convID chat1.ConversationID,
 	return rl, err
 }
 
-func (h *Server) doJoinConversation(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
-	alreadyIn, err := h.checkInConv(ctx, convID)
+func (h *Server) doJoinConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+	alreadyIn, err := h.checkInConv(ctx, uid, convID)
 	if err != nil {
 		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
 		// Assume we're not in.
@@ -2212,7 +2214,7 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 	if !alreadyIn {
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		rl, err := h.postJoinLeave(ctx, convID, joinMessageBody)
+		rl, err := h.postJoinLeave(ctx, uid, convID, joinMessageBody)
 		if err != nil {
 			h.Debug(ctx, "posting join-conv message failed: %v", err)
 			// ignore the error
@@ -2229,15 +2231,19 @@ func (h *Server) doJoinConversation(ctx context.Context, convID chat1.Conversati
 }
 
 func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
+
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversationByID(%s)", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
-	return h.doJoinConversation(ctx, convID)
+
+	return h.doJoinConversation(ctx, uid, convID)
 }
 
 func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConversationLocalArg) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2247,10 +2253,10 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversation(%s)",
 		arg.TopicName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
@@ -2295,7 +2301,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	return h.doJoinConversation(ctx, convID)
+	return h.doJoinConversation(ctx, uid, convID)
 }
 
 func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2304,11 +2310,12 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("LeaveConversation(%s)", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
-	if err = h.assertLoggedIn(ctx); err != nil {
+	uid, err := h.assertLoggedInUID(ctx)
+	if err != nil {
 		return res, err
 	}
 
-	alreadyIn, err := h.checkInConv(ctx, convID)
+	alreadyIn, err := h.checkInConv(ctx, uid, convID)
 	if err != nil {
 		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
 		// Pretend we're in.
@@ -2318,7 +2325,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	// Send a message to the channel before leaving
 	if alreadyIn {
 		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
-		rl, err := h.postJoinLeave(ctx, convID, leaveMessageBody)
+		rl, err := h.postJoinLeave(ctx, uid, convID, leaveMessageBody)
 		if err != nil {
 			h.Debug(ctx, "posting leave-conv message failed: %v", err)
 			// ignore the error
