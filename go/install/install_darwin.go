@@ -395,15 +395,7 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
 	var components []string
 	status := KeybaseFuseStatus("", log)
-	if !status.KextStarted {
-		components = []string{
-			ComponentNameCLI.String(),
-			ComponentNameUpdater.String(),
-			ComponentNameService.String(),
-			ComponentNameKBFS.String(),
-			ComponentNameKBNM.String(),
-		}
-	} else {
+	if status.InstallStatus == keybase1.InstallStatus_INSTALLED {
 		components = []string{
 			ComponentNameCLI.String(),
 			ComponentNameUpdater.String(),
@@ -412,6 +404,14 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 			ComponentNameHelper.String(),
 			ComponentNameFuse.String(),
 			ComponentNameMountDir.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameKBNM.String(),
+		}
+	} else {
+		components = []string{
+			ComponentNameCLI.String(),
+			ComponentNameUpdater.String(),
+			ComponentNameService.String(),
 			ComponentNameKBFS.String(),
 			ComponentNameKBNM.String(),
 		}
