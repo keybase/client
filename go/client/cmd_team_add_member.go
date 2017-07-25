@@ -24,8 +24,7 @@ type CmdTeamAddMember struct {
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "add-member",
-		// ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
+		Name:         "add-member",
 		ArgumentHelp: "<team name>",
 		Usage:        "add a user to a team",
 		Action: func(c *cli.Context) {
