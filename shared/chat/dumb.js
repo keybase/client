@@ -95,7 +95,7 @@ const followingMap = {
 }
 
 const commonConvoProps = {
-  loadMoreMessages: () => console.log('load more'),
+  onLoadMoreMessages: () => console.log('load more'),
   metaDataMap: Map(metaData),
   followingMap,
   messages: List(messages),
@@ -254,7 +254,7 @@ const listParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
     minWidth: 300,
-    ...(isMobile ? {flex: 1} : {height: 500}),
+    ...(isMobile ? {flexGrow: 1} : {height: 500}),
   },
 }
 
@@ -369,6 +369,7 @@ const inboxParentProps = {
     ...globalStyles.flexBoxColumn,
     minWidth: 240,
     height: isMobile ? undefined : 500,
+    ...(isMobile ? {flexGrow: 1} : {}),
   },
 }
 

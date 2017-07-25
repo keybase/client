@@ -1,7 +1,7 @@
 // @flow
 import {connector, Main} from './main-shared.native'
 import {compose, lifecycle, withProps} from 'recompose'
-import {NativeBackAndroid} from '../common-adapters/index.native'
+import {NativeBackHandler} from '../common-adapters/index.native'
 import {getPath} from '../route-tree'
 
 module.hot &&
@@ -17,7 +17,7 @@ export default compose(
   connector,
   lifecycle({
     componentWillMount: function() {
-      NativeBackAndroid.addEventListener('hardwareBackPress', () => {
+      NativeBackHandler.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false
         }

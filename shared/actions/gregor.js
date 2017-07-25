@@ -184,15 +184,18 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
   const username: string = (yield select(usernameSelector): any)
-  yield createdTLFs
-    .map(m => {
-      const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-      if (folder != null) {
-        return put(folder)
-      }
-      console.warn('Failed to parse tlf for oobm:', m)
-    })
-    .filter(i => !!i)
+  // Must do this else we get weird errors from redux-saga, see https://github.com/redux-saga/redux-saga/issues/1000#issuecomment-315180255
+  yield Promise.resolve(
+    createdTLFs
+      .map(m => {
+        const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
+        if (folder != null) {
+          return put(folder)
+        }
+        console.warn('Failed to parse tlf for oobm:', m)
+      })
+      .filter(i => !!i)
+  )
 }
 
 function* handlePushOOBM(pushOOBM: pushOOBM) {

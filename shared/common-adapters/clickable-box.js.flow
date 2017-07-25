@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 export type Props = {|
   hoverColor?: any,
   children?: any,
-  style?: Object,
+  style?: ?Object,
   onClick?: ?(event: SyntheticEvent) => void,
   onPress?: void,
   onLongPress?: ?(event: SyntheticEvent) => void,

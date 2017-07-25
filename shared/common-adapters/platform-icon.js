@@ -56,7 +56,6 @@ const Render = ({platform, overlay, overlayColor, style}: Props) => {
       <Icon
         type={overlay}
         style={{
-          color: overlayColor,
           position: 'absolute',
           bottom: iconSpec.offsetBottom,
           right: iconSpec.offsetRight,

@@ -45,7 +45,7 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
   alignItems: 'center',
   position: 'relative',
   paddingTop: globalMargins.large,
@@ -80,7 +80,7 @@ const styleErrorBannerText = {
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
   justifyContent: 'center',
   alignItems: 'center',
   margin: globalMargins.large,
