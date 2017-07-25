@@ -76,7 +76,7 @@ func main() {
 		// in Windows.
 		// Had to change from Error to Errorf because of go vet because of:
 		// https://github.com/golang/go/issues/6407
-		g.Log.Errorf("%s", err.Error())
+		g.Log.Errorf("%s", stripFieldsFromAppStatusError(err).Error())
 		if g.ExitCode == keybase1.ExitCode_OK {
 			g.ExitCode = keybase1.ExitCode_NOTOK
 		}
@@ -331,4 +331,17 @@ func HandleSignals() {
 			os.Exit(3)
 		}
 	}
+}
+
+// stripFieldsFromAppStatusError is an error prettifier. By default, AppStatusErrors print optional
+// fields that were problematic. But they make for pretty ugly error messages spit back to the user.
+// So strip that out, but still leave in an error-code integer, since those are quite helpful.
+func stripFieldsFromAppStatusError(e error) error {
+	if e == nil {
+		return e
+	}
+	if ase, ok := e.(libkb.AppStatusError); ok {
+		return fmt.Errorf("%s (code %d)", ase.Desc, ase.Code)
+	}
+	return e
 }

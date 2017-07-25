@@ -312,7 +312,7 @@ class Inbox extends PureComponent<void, Props, void> {
 
   _itemRenderer = index => {
     const conversationIDKey = this.props.rows.get(index)
-    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} />
+    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} isActiveRoute={true} />
   }
 
   _onScroll = debounce(() => {
