@@ -314,49 +314,6 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 }
 
-func TestPrefetcherNoPrefetchWhileCacheFull(t *testing.T) {
-	t.Log("Test that prefetches aren't triggered when the cache is full with permanent entries.")
-	q, bg, config := initPrefetcherTest(t)
-	cache := NewBlockCacheStandard(1, uint64(1))
-	config.testCache = cache
-	defer shutdownPrefetcherTest(q)
-
-	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
-	file1 := makeFakeFileBlock(t, true)
-	file2 := makeFakeFileBlock(t, true)
-	ptr1 := makeRandomBlockPointer(t)
-	ptr2 := makeRandomBlockPointer(t)
-	dir1 := &DirBlock{Children: map[string]DirEntry{
-		"a": makeRandomDirEntry(t, File, 60, "a"),
-	}}
-
-	_, continueCh1 := bg.setBlockToReturn(ptr1, file1)
-	_, continueCh2 := bg.setBlockToReturn(ptr2, dir1)
-	_, _ = bg.setBlockToReturn(dir1.Children["a"].BlockPointer, file2)
-
-	t.Log("Request the block for ptr1 as a permanent entry to fill up the cache.")
-	var block Block = &FileBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr1, block, PermanentEntry)
-	continueCh1 <- nil
-	err := <-ch
-	require.NoError(t, err)
-	_ = block.(*FileBlock).GetHash()
-	require.Equal(t, file1, block)
-	require.Equal(t, uint64(16), cache.cleanTotalBytes)
-
-	t.Log("Request the block for ptr2.")
-	block = &DirBlock{}
-	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, makeKMD(), ptr2, block, TransientEntry)
-	continueCh2 <- nil
-	err = <-ch
-	require.NoError(t, err)
-	require.Equal(t, dir1, block)
-
-	t.Log("Shutdown the prefetcher and wait until it's done prefetching." +
-		" This shouldn't hang, indicating that no prefetches were triggered.")
-	<-q.Prefetcher().Shutdown()
-}
-
 func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Test that prefetches are only triggered once for a given block.")
 	q, bg, config := initPrefetcherTest(t)

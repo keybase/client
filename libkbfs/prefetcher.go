@@ -16,12 +16,11 @@ import (
 )
 
 const (
-	defaultIndirectPointerPrefetchCount int           = 20
-	fileIndirectBlockPrefetchPriority   int           = -100
-	dirEntryPrefetchPriority            int           = -200
-	updatePointerPrefetchPriority       int           = 0
-	defaultPrefetchPriority             int           = -1024
-	prefetchTimeout                     time.Duration = time.Minute
+	fileIndirectBlockPrefetchPriority int           = -100
+	dirEntryPrefetchPriority          int           = -200
+	updatePointerPrefetchPriority     int           = 0
+	defaultPrefetchPriority           int           = -1024
+	prefetchTimeout                   time.Duration = time.Minute
 )
 
 type prefetcherConfig interface {

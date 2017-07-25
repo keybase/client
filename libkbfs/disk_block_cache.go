@@ -644,7 +644,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 		return NoSuchBlockError{blockID}
 	}
 	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
-		int(md.BlockSize), hasPrefetched, nil)
+		int(md.BlockSize), hasPrefetched, md.ChildBlocks)
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.

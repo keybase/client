@@ -22,7 +22,8 @@ const (
 	minimalPrefetchWorkerQueueSize       int = 1
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
-	defaultOnDemandRequestPriority       int = 100
+	defaultOnDemandRequestPriority       int = 1<<30 - 1
+	lowestTriggerPrefetchPriority        int = 1
 	// Channel buffer size can be big because we use the empty struct.
 	workerQueueSize int = 1<<31 - 1
 )
@@ -236,25 +237,22 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, hasPrefetched)
 	}
-	if priority < defaultOnDemandRequestPriority {
-		// Only on-demand or higher priority requests can trigger prefetches.
+	if priority < lowestTriggerPrefetchPriority {
+		// Only high priority requests can trigger prefetches.
 		hasPrefetched = false
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, hasPrefetched)
 	}
-	// We must let the cache know at this point that we've prefetched.
-	// 1) To prevent any other Gets from prefetching.
-	// 2) To prevent prefetching if a cache Put fails, since prefetching if
-	//	  only useful when combined with the cache.
+	// To prevent any other Gets from prefetching, we must let the cache know
+	// at this point that we've prefetched.
 	hasPrefetched = true
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, hasPrefetched)
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
-		brq.log.CDebugf(ctx, "Skipping prefetch because the cache "+
-			"is full")
-		return err
+		brq.log.CWarningf(ctx, "Cache is full, but prefetching anyway to "+
+			"populate the disk cache.")
 	default:
 		// We should return the error here because otherwise we could thrash
 		// the prefetcher.
