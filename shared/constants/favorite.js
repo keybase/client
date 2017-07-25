@@ -9,6 +9,11 @@ import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
 
+// See KBDefines.h: KBExitFuseKextError
+export const ExitCodeFuseKextError = 4
+// See KBDefines.h: KBExitFuseKextPermissionError
+export const ExitCodeFuseKextPermissionError = 5
+
 type ListState = Exact<{
   tlfs?: Array<Folder>,
   ignored?: Array<Folder>,

@@ -306,6 +306,10 @@ func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 				Name:  "source-path",
 				Usage: "Source path to app bundle.",
 			},
+			cli.StringFlag{
+				Name:  "o, format",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
+			},
 		},
 		ArgumentHelp: "",
 		Usage:        "Installs Keybase by choosing automatically which components to install",
@@ -321,6 +325,7 @@ type cmdInstallAuto struct {
 	libkb.Contextified
 	binPath    string
 	sourcePath string
+	format     string
 	timeout    time.Duration
 }
 
@@ -338,6 +343,7 @@ func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.timeout = ctx.Duration("timeout")
 	v.sourcePath = ctx.String("source-path")
+	v.format = ctx.String("format")
 	if v.timeout == 0 {
 		v.timeout = 11 * time.Second
 	}
@@ -346,6 +352,13 @@ func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
 
 func (v *cmdInstallAuto) Run() error {
 	result := install.InstallAuto(v.G(), v.binPath, v.sourcePath, v.timeout, v.G().Log)
+	if v.format == "json" {
+		out, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
+	}
 	exitOnError(result)
 	return nil
 }

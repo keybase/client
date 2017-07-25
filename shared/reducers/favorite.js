@@ -144,7 +144,8 @@ export default function(
     case 'fs:installFuseResult':
       const result = action.payload.result
       const fuseResults = result.componentResults.filter(c => c.name === 'fuse')
-      const kextPermissionError = fuseResults.length > 0 && fuseResults[0].exitCode === 3
+      const kextPermissionError =
+        fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
       return {
         ...state,
         fuseInstall: {

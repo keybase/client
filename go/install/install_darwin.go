@@ -390,8 +390,7 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 }
 
 // InstallAuto installs everything it can without asking for privileges or
-// extensions. If the user has already installed and loaded Fuse, we install
-// everything.
+// extensions. If the user has already installed Fuse, we install everything.
 func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
 	var components []string
 	status := KeybaseFuseStatus("", log)
