@@ -509,6 +509,51 @@ func (_mr *MockdiskLimiterGetterMockRecorder) DiskLimiter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DiskLimiter", reflect.TypeOf((*MockdiskLimiterGetter)(nil).DiskLimiter))
 }
 
+// MocksyncedTlfGetterSetter is a mock of syncedTlfGetterSetter interface
+type MocksyncedTlfGetterSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MocksyncedTlfGetterSetterMockRecorder
+}
+
+// MocksyncedTlfGetterSetterMockRecorder is the mock recorder for MocksyncedTlfGetterSetter
+type MocksyncedTlfGetterSetterMockRecorder struct {
+	mock *MocksyncedTlfGetterSetter
+}
+
+// NewMocksyncedTlfGetterSetter creates a new mock instance
+func NewMocksyncedTlfGetterSetter(ctrl *gomock.Controller) *MocksyncedTlfGetterSetter {
+	mock := &MocksyncedTlfGetterSetter{ctrl: ctrl}
+	mock.recorder = &MocksyncedTlfGetterSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (_m *MocksyncedTlfGetterSetter) EXPECT() *MocksyncedTlfGetterSetterMockRecorder {
+	return _m.recorder
+}
+
+// IsSyncedTlf mocks base method
+func (_m *MocksyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
+	ret := _m.ctrl.Call(_m, "IsSyncedTlf", tlfID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlf indicates an expected call of IsSyncedTlf
+func (_mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "IsSyncedTlf", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlf), arg0)
+}
+
+// SetTlfSyncState mocks base method
+func (_m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, isSynced bool) {
+	_m.ctrl.Call(_m, "SetTlfSyncState", tlfID, isSynced)
+}
+
+// SetTlfSyncState indicates an expected call of SetTlfSyncState
+func (_mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), arg0, arg1)
+}
+
 // MockBlock is a mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -3912,8 +3957,10 @@ func (_mr *MockPrefetcherMockRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 inte
 }
 
 // PrefetchAfterBlockRetrieved mocks base method
-func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer, kmd KeyMetadata) {
-	_m.ctrl.Call(_m, "PrefetchAfterBlockRetrieved", b, blockPtr, kmd)
+func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer, kmd KeyMetadata) <-chan struct{} {
+	ret := _m.ctrl.Call(_m, "PrefetchAfterBlockRetrieved", b, blockPtr, kmd)
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
 }
 
 // PrefetchAfterBlockRetrieved indicates an expected call of PrefetchAfterBlockRetrieved
@@ -5522,6 +5569,28 @@ func (_m *MockConfig) DiskLimiter() DiskLimiter {
 // DiskLimiter indicates an expected call of DiskLimiter
 func (_mr *MockConfigMockRecorder) DiskLimiter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DiskLimiter", reflect.TypeOf((*MockConfig)(nil).DiskLimiter))
+}
+
+// IsSyncedTlf mocks base method
+func (_m *MockConfig) IsSyncedTlf(tlfID tlf.ID) bool {
+	ret := _m.ctrl.Call(_m, "IsSyncedTlf", tlfID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlf indicates an expected call of IsSyncedTlf
+func (_mr *MockConfigMockRecorder) IsSyncedTlf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "IsSyncedTlf", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlf), arg0)
+}
+
+// SetTlfSyncState mocks base method
+func (_m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) {
+	_m.ctrl.Call(_m, "SetTlfSyncState", tlfID, isSynced)
+}
+
+// SetTlfSyncState indicates an expected call of SetTlfSyncState
+func (_mr *MockConfigMockRecorder) SetTlfSyncState(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), arg0, arg1)
 }
 
 // MaybeStartTrace mocks base method
