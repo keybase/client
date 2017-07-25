@@ -143,15 +143,23 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     const selectedConversation = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield put(
-      Creators.appendMessages(
-        conversationIDKey,
-        conversationIDKey === selectedConversation,
-        appFocused,
-        [message],
-        false
+    // We go ahead and add the message we just sent to our messages store for
+    // display locally, *unless* we've already been told that this message
+    // failed as a duplicate send, in which case we ignore adding it.
+    const failureIsDuplicate =
+      hasPendingFailure && hasPendingFailure.failureType === ChatTypes.LocalOutboxErrorType.duplicate
+    if (!failureIsDuplicate) {
+      yield put(
+        Creators.appendMessages(
+          conversationIDKey,
+          conversationIDKey === selectedConversation,
+          appFocused,
+          [message],
+          false
+        )
       )
-    )
+    }
+
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }
