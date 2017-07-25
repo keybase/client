@@ -25,7 +25,7 @@ type CmdTeamAddMember struct {
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "add-member",
-		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
+		ArgumentHelp: "<team name>",
 		Usage:        "add a user to a team",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamAddMemberRunner(g)
@@ -42,9 +42,10 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			},
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (owner, admin, writer, reader)",
+				Usage: "team role (owner, admin, writer, reader) [required]",
 			},
 		},
+		Description: teamAddMemberDoc,
 	}
 }
 
@@ -136,3 +137,20 @@ func (c *CmdTeamAddMember) GetUsage() libkb.Usage {
 		KbKeyring: true,
 	}
 }
+
+const teamAddMemberDoc = `"keybase team add-member" allows you to add users to a team.
+
+EXAMPLES:
+
+Add an existing keybase user:
+
+    keybase team add-member acme --user=alice --role=writer
+
+Add a user via social assertion:
+
+    keybase team add-member acme --user=alice@twitter --role=writer
+
+Add a user via email:
+
+    keybase team add-member acme --email=alice@mail.com --role=reader
+`
