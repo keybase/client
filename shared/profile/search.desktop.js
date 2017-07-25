@@ -40,7 +40,7 @@ const Search = (props: Props) => (
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
         {props.showSearchPending
           ? <Box style={styleSpinner}>
-              <ProgressIndicator style={{width: globalMargins.xlarge}} />
+              <ProgressIndicator style={{width: globalMargins.large}} />
             </Box>
           : <ResultsList
               items={props.searchResultIds}
@@ -93,8 +93,9 @@ const styleServiceRow = {
 }
 
 const styleSpinner = {
+  alignSelf: 'center',
   height: 256,
-  paddingTop: globalMargins.small,
+  marginTop: globalMargins.small,
 }
 
 export default Search

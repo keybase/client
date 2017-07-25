@@ -129,7 +129,7 @@ class Conversation extends Component<void, Props, State> {
           addNewParticipant={this.props.addNewParticipant}
         />
         {this.props.showSearchPending
-          ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+          ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
               ? <SearchResultsList
                   items={this.props.searchResultIds}
@@ -195,6 +195,12 @@ const dropOverlayStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
+}
+
+const styleSpinner = {
+  alignSelf: 'center',
+  marginTop: globalMargins.small,
+  width: globalMargins.large,
 }
 
 export default Conversation
