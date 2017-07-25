@@ -10,7 +10,6 @@ import {
   ClickableBox,
   LoadingLine,
   NativeStyleSheet,
-  NativeDimensions,
   NativeFlatList,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
