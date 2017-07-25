@@ -53,6 +53,7 @@ type Props = {
   title?: ?string,
   allowHighlightText?: boolean, // if true, highlighttext through refs works
   allowFontScaling?: boolean,
+  underline?: boolean,
 }
 
 type MetaType = {
