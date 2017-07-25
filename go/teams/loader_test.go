@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"sort"
 	"testing"
 	"time"
 
@@ -30,6 +31,9 @@ func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext,
 		for _, tc := range tcs {
 			tc.Cleanup()
 		}
+	}
+	for i, fu := range fus {
+		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
 	}
 	return fus, tcs, cleanup
 }
@@ -481,4 +485,53 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	}
 	team = loadAsU1WantU2()
 	requireSeqno(team, 3, "seqno should advance because wantmembers pre-check fails")
+}
+
+func TestLoaderGetImplicitAdminsList(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	t.Logf("U1 creates a root team")
+	parentName, _ := createTeam2(*tcs[1])
+
+	t.Logf("U1 adds U2 as an admin")
+	_, err := AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U2 creates a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[2].G, "sub", parentName)
+	require.NoError(t, err)
+	subteamName, err := parentName.Append("sub")
+	require.NoError(t, err)
+
+	t.Logf("U0 can't load the subteam")
+	_, err = tcs[0].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err, "should not be able to load team when not a member")
+
+	t.Logf("U2 adds U0 to the subteam (as an admin)")
+	_, err = AddMember(context.TODO(), tcs[2].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "adding member to subteam")
+
+	assertImpAdmins := func(as *libkb.GlobalContext, teamID keybase1.TeamID, expectedSet []keybase1.UserVersion) {
+		impAdmins, err := as.GetTeamLoader().ImplicitAdmins(context.TODO(), teamID)
+		require.NoError(t, err)
+		require.Len(t, impAdmins, len(expectedSet), "number of implicit admins")
+		sort.SliceStable(impAdmins, func(i, j int) bool {
+			return impAdmins[i].String() < impAdmins[j].String()
+		})
+		sort.SliceStable(expectedSet, func(i, j int) bool {
+			return expectedSet[i].String() < expectedSet[j].String()
+		})
+		require.Equal(t, expectedSet, impAdmins, "assertImpAdmins")
+	}
+
+	t.Logf("U0 sees the 2 implicit admins")
+	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[1].GetUserVersion(), fus[2].GetUserVersion()})
+
+	t.Logf("U1 adds U0 to the root team")
+	_, err = AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[0].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("U0 sees the 3 implicit admins")
+	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[0].GetUserVersion(), fus[1].GetUserVersion(), fus[2].GetUserVersion()})
 }

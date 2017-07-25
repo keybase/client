@@ -1,7 +1,7 @@
 package libkb
 
 import (
-	"errors"
+	"fmt"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -22,8 +22,11 @@ func newNullTeamLoader(g *GlobalContext) *nullTeamLoader {
 // tests to pass. Once we have an actual implementation, we should change this
 // to error out in all cases.
 func (n nullTeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {
-	n.G().Log.Warning("Using nullTeamLoader -- INSECURE -- please implement")
-	return nil
+	return fmt.Errorf("null team loader")
+}
+
+func (n nullTeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
+	return nil, fmt.Errorf("null team loader")
 }
 
 // MapIDToName maps the team ID to the corresponding name, and can be serviced
@@ -31,7 +34,7 @@ func (n nullTeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, 
 // an empty/nil TeamName, and callers are free to try again with a server access
 // (this actually happens in the Resolver).
 func (n nullTeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
-	return keybase1.TeamName{}, nil
+	return keybase1.TeamName{}, fmt.Errorf("null team loader")
 }
 
 func (n nullTeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {
@@ -39,7 +42,7 @@ func (n nullTeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID
 }
 
 func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
-	return nil, errors.New("unimplemented")
+	return nil, fmt.Errorf("null team loader")
 }
 
 func (n nullTeamLoader) OnLogout() {}
