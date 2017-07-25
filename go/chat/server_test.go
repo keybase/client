@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -994,8 +995,17 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
 		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
+		var joinMessage int
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+			joinMessage = 1
+		default:
+			t.Fatalf("unknown members type: %v", mt)
+		}
+
 		// Wait for message notifications so we don't race cache clear with incoming message
-		for i := 0; i < 2; i++ {
+		for i := 0; i < 2+joinMessage; i++ {
 			select {
 			case <-listener.newMessage:
 			case <-time.After(20 * time.Second):
@@ -1020,15 +1030,7 @@ func TestChatSrvGracefulUnboxing(t *testing.T) {
 			t.Fatalf("GetThreadLocal error: %v", err)
 		}
 
-		expectedMessages := 3
-		switch mt {
-		case chat1.ConversationMembersType_KBFS:
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-			expectedMessages++ // the join message
-		default:
-			t.Fatalf("unknown members type: %v", mt)
-		}
-		require.Len(t, tv.Thread.Messages, expectedMessages,
+		require.Len(t, tv.Thread.Messages, 3+joinMessage,
 			"unexpected response from GetThreadLocal . number of messages")
 
 		if tv.Thread.Messages[0].IsValid() || len(tv.Thread.Messages[0].Error().ErrMsg) == 0 {
@@ -1425,13 +1427,13 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		var err error
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
-
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+
+		var err error
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
 
 		t.Logf("send a text message")
 		arg := chat1.PostTextNonblockArg{
@@ -1454,6 +1456,18 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case info := <-listener.newMessage:
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
+				if unboxed.GetMessageType() != chat1.MessageType_JOIN {
+					t.Logf("failing.. expected JOIN")
+					select {
+					case info2 := <-listener.newMessage:
+						t.Logf("info (1): %v", spew.Sdump(info))
+						t.Logf("info (2): %v", spew.Sdump(info2))
+					case <-time.After(30 * time.Second):
+						t.Logf("no second message in the pipe")
+					}
+					t.Logf("info (1): %v", spew.Sdump(info))
+					require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
+				}
 				require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
 				require.Nil(t, unboxed.Valid().ClientHeader.OutboxID, "surprise outbox ID on JOIN")
 			case <-time.After(20 * time.Second):
@@ -2122,12 +2136,13 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			return
 		}
 
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
-			ctc.as(t, users[1]).user())
-		ctx := ctc.as(t, users[0]).startCtx
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		ctx := ctc.as(t, users[0]).startCtx
 
 		gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
