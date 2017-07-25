@@ -241,13 +241,6 @@ func (o InstallFuseArg) DeepCopy() InstallFuseArg {
 	return InstallFuseArg{}
 }
 
-type LoadFuseKextArg struct {
-}
-
-func (o LoadFuseKextArg) DeepCopy() LoadFuseKextArg {
-	return LoadFuseKextArg{}
-}
-
 type InstallKBFSArg struct {
 }
 
@@ -265,7 +258,6 @@ func (o UninstallKBFSArg) DeepCopy() UninstallKBFSArg {
 type InstallInterface interface {
 	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
 	InstallFuse(context.Context) (InstallResult, error)
-	LoadFuseKext(context.Context) (Status, error)
 	InstallKBFS(context.Context) (InstallResult, error)
 	UninstallKBFS(context.Context) (UninstallResult, error)
 }
@@ -297,17 +289,6 @@ func InstallProtocol(i InstallInterface) rpc.Protocol {
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
 					ret, err = i.InstallFuse(ctx)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"loadFuseKext": {
-				MakeArg: func() interface{} {
-					ret := make([]LoadFuseKextArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.LoadFuseKext(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -349,11 +330,6 @@ func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res
 
 func (c InstallClient) InstallFuse(ctx context.Context) (res InstallResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.install.installFuse", []interface{}{InstallFuseArg{}}, &res)
-	return
-}
-
-func (c InstallClient) LoadFuseKext(ctx context.Context) (res Status, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.install.loadFuseKext", []interface{}{LoadFuseKextArg{}}, &res)
 	return
 }
 

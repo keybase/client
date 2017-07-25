@@ -234,10 +234,6 @@
       "request": [],
       "response": "InstallResult"
     },
-    "loadFuseKext": {
-      "request": [],
-      "response": "Status"
-    },
     "installKBFS": {
       "request": [],
       "response": "InstallResult"
