@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
@@ -134,6 +135,14 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	}
 }
 
+func (p *blockPrefetcher) calculatePriority(basePriority int,
+	tlfID tlf.ID) int {
+	if p.config.IsSyncedTlf(tlfID) {
+		return defaultOnDemandRequestPriority - 1
+	}
+	return basePriority
+}
+
 func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
 	kmd KeyMetadata) *sync.WaitGroup {
 	// Prefetch indirect block pointers.
@@ -141,8 +150,10 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
 	wg := &sync.WaitGroup{}
 	wg.Add(len(b.IPtrs))
-	for _, ptr := range b.IPtrs {
-		p.request(fileIndirectBlockPrefetchPriority, kmd, ptr.BlockPointer,
+	startingPriority :=
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+	for i, ptr := range b.IPtrs {
+		p.request(startingPriority-i, kmd, ptr.BlockPointer,
 			b.NewEmpty(), "", wg)
 	}
 	return wg
@@ -155,8 +166,10 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock,
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
 	wg := &sync.WaitGroup{}
 	wg.Add(len(b.IPtrs))
-	for _, ptr := range b.IPtrs {
-		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
+	startingPriority :=
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+	for i, ptr := range b.IPtrs {
+		_ = p.request(startingPriority-i, kmd,
 			ptr.BlockPointer, b.NewEmpty(), "", wg)
 	}
 	return wg
@@ -171,9 +184,11 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
 	sort.Sort(dirEntries)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(b.Children))
+	startingPriority :=
+		p.calculatePriority(dirEntryPrefetchPriority, kmd.TlfID())
 	for i, entry := range dirEntries.dirEntries {
 		// Prioritize small files
-		priority := dirEntryPrefetchPriority - i
+		priority := startingPriority - i
 		var block Block
 		switch entry.Type {
 		case Dir:
