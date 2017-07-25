@@ -665,6 +665,14 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+// Size implements the keybase/kbfs/cache.Measurable interface.
+func (k *KID) Size() int {
+	if k == nil {
+		return 0
+	}
+	return len(*k)
+}
+
 func (s *SigID) UnmarshalJSON(b []byte) error {
 	sigID, err := SigIDFromString(Unquote(b), true)
 	if err != nil {
@@ -1501,7 +1509,7 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+			return ret, errors.New("team names must be between 2 and 16 characters long")
 		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)

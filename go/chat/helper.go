@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -244,4 +245,48 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
 	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
+}
+
+var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+
+func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
+
+	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
+	}
+	return inbox.ConvsUnverified[0], ratelim, nil
+}
+
+func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+
+	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            tlfID,
+		TopicType:        topicType,
+		MembersType:      membersType,
+		SummarizeMaxMsgs: false,
+	})
+	if tlfRes.RateLimit != nil {
+		rl = append(rl, *tlfRes.RateLimit)
+	}
+
+	// Localize the conversations
+	res, err = NewBlockingLocalizer(g).Localize(ctx, uid, chat1.Inbox{
+		ConvsUnverified: tlfRes.Conversations,
+	})
+	if err != nil {
+		debugger.Debug(ctx, "GetTLFConversations: failed to localize conversations: %s", err.Error())
+		return res, rl, err
+	}
+	sort.Sort(utils.ConvLocalByTopicName(res))
+	rl = utils.AggRateLimits(rl)
+	return res, rl, nil
 }

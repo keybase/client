@@ -11,13 +11,12 @@ import {
   LoadingLine,
   NativeStyleSheet,
   NativeDimensions,
+  NativeFlatList,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {RowConnector} from './row'
 import debounce from 'lodash/debounce'
 import memoize from 'lodash/memoize'
-// $FlowIssue
-import FlatList from '../../fixme/Lists/FlatList'
 
 import type {Props, RowProps} from './'
 
@@ -374,9 +373,10 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   render() {
     return (
       <Box style={boxStyle}>
-        <FlatList
+        <NativeFlatList
           loading={this.props.isLoading /* force loading to update */}
           data={this.state.rows}
+          isActiveRoute={this.props.isActiveRoute}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}

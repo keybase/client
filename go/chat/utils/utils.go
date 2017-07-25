@@ -487,6 +487,10 @@ func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
 	return res
 }
 
+func SanitizeTopicName(topicName string) string {
+	return strings.TrimPrefix(topicName, "#")
+}
+
 type ConvLocalByConvID []chat1.ConversationLocal
 
 func (c ConvLocalByConvID) Len() int      { return len(c) }

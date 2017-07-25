@@ -829,7 +829,7 @@ function makeTeamTitle(messageBody: ?MessageBody): ?string {
   }
   switch (messageBody.messageType) {
     case ChatTypes.CommonMessageType.metadata:
-      return messageBody.metadata ? messageBody.metadata.conversationTitle : '<none>'
+      return messageBody.metadata ? `#${messageBody.metadata.conversationTitle}` : '<none>'
     default:
       return null
   }

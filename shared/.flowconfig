@@ -7,6 +7,7 @@
 .*/node_modules/fbjs/.*
 .*/node_modules/is-my-json-valid/.*
 .*/node_modules/json5/.*
+.*/node_modules/metro-bundler/.*
 .*/node_modules/npm/.*
 .*/node_modules/react-native/.*
 .*/node_modules/react-navigation/.*

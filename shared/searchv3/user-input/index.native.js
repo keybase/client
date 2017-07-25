@@ -1,4 +1,5 @@
 // @flow
+import last from 'lodash/last'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
 import {Box, Text, Icon, ClickableBox} from '../../common-adapters'
@@ -99,13 +100,17 @@ class UserItem extends Component<void, UserItemProps, UserItemState> {
   }
 }
 
-type State = {isFocused: boolean}
+type State = {isFocused: boolean, selectionStart: ?number, selectionEnd: ?number}
+
+const ZERO_WIDTH_SPACE = '\u200B'
 
 class UserInput extends Component<void, Props, State> {
   _textInput: TextInput
 
   state = {
     isFocused: false,
+    selectionStart: null,
+    selectionEnd: null,
   }
 
   focus = () => {
@@ -120,6 +125,21 @@ class UserInput extends Component<void, Props, State> {
     this.setState({isFocused: false})
   }
 
+  _onChangeText = text => {
+    if (text.charAt(0) !== ZERO_WIDTH_SPACE && this.props.userItems.length) {
+      // Backspace key detected when the zero width space is removed (we use
+      // this hack because detecting soft backspace is really tricky on
+      // Android).
+      this.props.onRemoveUser(last(this.props.userItems).id)
+      return
+    }
+    this.props.onChangeText(text.replace(ZERO_WIDTH_SPACE, ''))
+  }
+
+  _onSelectionChange = ({nativeEvent: {selection: {start, end}}}) => {
+    this.setState({selectionStart: start, selectionEnd: end})
+  }
+
   _onRemoveUser = (username: string) => {
     this.props.onRemoveUser(username)
     this.focus()
@@ -131,11 +151,21 @@ class UserInput extends Component<void, Props, State> {
       placeholder,
       userItems,
       usernameText,
-      onChangeText,
       onClickAddButton,
       onAddSelectedUser,
       onClearSearch,
     } = this.props
+
+    const {isFocused, selectionStart, selectionEnd} = this.state
+
+    // Force cursor to be after zero width space so backspace key deletes it.
+    // This fixes tricksy edge cases where the user moves the cursor to the
+    // left end of the input via drag or arrow key interactions. Note: Android
+    // RN crashes if we set the selection to 1 before the value is updated to
+    // include the zero width space.
+    const clampedSelection = selectionStart === null
+      ? null
+      : {start: Math.max(1, selectionStart || 1), end: Math.max(1, selectionEnd || 1)}
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     return (
@@ -165,8 +195,10 @@ class UserInput extends Component<void, Props, State> {
                 ...(showAddButton ? {width: this.state.isFocused ? 10 : 0} : {flexGrow: 1}),
               }}
               placeholder={userItems.length ? '' : placeholder}
-              value={usernameText}
-              onChangeText={onChangeText}
+              value={isFocused ? ZERO_WIDTH_SPACE + usernameText : usernameText}
+              selection={clampedSelection}
+              onChangeText={this._onChangeText}
+              onSelectionChange={this._onSelectionChange}
               onSubmitEditing={onAddSelectedUser}
               underlineColorAndroid="transparent"
               returnKeyType="next"

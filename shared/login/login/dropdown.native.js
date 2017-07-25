@@ -1,12 +1,25 @@
 // @flow
-import Box from './box'
-import Icon from './icon'
+import {
+  Box,
+  Icon,
+  Text,
+  NativeTouchableWithoutFeedback,
+  NativePicker,
+  NativeModal,
+} from '../../common-adapters/index.native'
 import React, {Component} from 'react'
-import Text from './text'
-import type {Props} from './dropdown'
-import {NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './native-wrappers.native'
-import {globalStyles, globalColors} from '../styles'
-import {isIOS} from '../constants/platform'
+import {globalStyles, globalColors} from '../../styles'
+import {isIOS} from '../../constants/platform'
+
+type Props = {
+  type: 'Username' | 'General',
+  options: Array<string>,
+  onClick: (option: string, index: number) => void,
+  onPress?: void,
+  onOther?: () => void,
+  value?: ?string,
+  style?: Object,
+}
 
 /*
  * A dropdown on ios and android.

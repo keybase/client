@@ -2,8 +2,8 @@
 // The filter bar for search. Lets you select a search provider
 import * as Constants from '../../constants/searchv3'
 import React, {Component} from 'react'
-import {Box, Icon, ClickableBox} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
+import {globalStyles, globalColors, transition} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -78,6 +78,15 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
   return (
     <ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
       <Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
+      <Text
+        type="BodySmall"
+        style={{
+          ...serviceTooltipStyle,
+          opacity: hovering ? 1 : 0,
+        }}
+      >
+        {service}
+      </Text>
     </ClickableBox>
   )
 }
@@ -117,12 +126,36 @@ class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}
     )
   }
 }
-
 const styleServices = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   height: 48,
   justifyContent: 'center',
+}
+
+const serviceTooltipPlatformStyle = isMobile
+  ? {
+      borderBottomColor: `${globalColors.white}`,
+      borderBottomWidth: 2,
+      top: -8,
+    }
+  : {
+      ...transition('opacity'),
+      lineHeight: '22px',
+      cursor: 'default',
+      borderBottom: `2px ${globalColors.white}`,
+      top: -24,
+    }
+
+const serviceTooltipStyle = {
+  backgroundColor: globalColors.black_40,
+  ...serviceTooltipPlatformStyle,
+  borderRadius: 65,
+  color: globalColors.white,
+  minHeight: 22,
+  minWidth: 86,
+  position: 'absolute',
+  textAlign: 'center',
 }
 
 export default Filter

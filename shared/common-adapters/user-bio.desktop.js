@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import {CSSTransitionGroup} from 'react-transition-group'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -71,7 +71,7 @@ class BioRender extends Component<void, Props, void> {
 
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
-        <ReactCSSTransitionGroup
+        <CSSTransitionGroup
           transitionName="no-anim"
           transitionEnterTimeout={250}
           transitionLeaveTimeout={250}
@@ -83,7 +83,7 @@ class BioRender extends Component<void, Props, void> {
               style={this.props.style}
               avatarSize={this.props.avatarSize}
             />}
-        </ReactCSSTransitionGroup>
+        </CSSTransitionGroup>
         <Box style={stylesContainer}>
           <Box
             style={{

@@ -103,7 +103,7 @@ const DevicesRender = ({
 }: Props) => (
   <Box style={stylesContainer}>
     <DeviceHeader onAddNew={() => setShowingMenu(true)} waitingForServer={waitingForServer} />
-    <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
       {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
       {!!revokedDeviceIDs.length &&
         <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
@@ -117,7 +117,7 @@ const DevicesRender = ({
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  ...globalStyles.fullHeight,
 }
 
 const stylesCommonCore = {

@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
-import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 
@@ -88,10 +87,6 @@ function messageCreateComponent(type, key, children, options) {
 }
 
 class Markdown extends PureComponent<void, Props, void> {
-  shouldComponentUpdate(nextProps: Props): boolean {
-    return !shallowEqual(this.props, nextProps)
-  }
-
   render() {
     const content = parseMarkdown(
       this.props.children,

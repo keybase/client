@@ -1,10 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import Row from '../result-row/container'
-import {Box, Text} from '../../common-adapters'
+import {Box, Text, NativeFlatList} from '../../common-adapters/index.native'
 import {globalColors, globalMargins} from '../../styles'
-// $FlowIssue
-import FlatList from '../../fixme/Lists/FlatList'
 import EmptyResults from './empty'
 
 import type {Props} from '.'
@@ -39,7 +37,7 @@ class SearchResultsList extends Component<void, Props, void> {
               Recommendations
             </Text>
           </Box>}
-        <FlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />
+        <NativeFlatList data={items} renderItem={this._renderItem} keyExtractor={this._keyExtractor} />
       </Box>
     )
   }

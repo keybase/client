@@ -12,14 +12,12 @@ import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
 import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
-import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
 import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
-import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
@@ -67,16 +65,6 @@ function setupApp(store) {
   }
 
   setupContextMenu(electron.remote.getCurrentWindow())
-
-  // Used by material-ui widgets.
-  if (module.hot) {
-    // Don't reload this thing if we're hot reloading
-    if (module.hot.data === undefined) {
-      injectTapEventPlugin()
-    }
-  } else {
-    injectTapEventPlugin()
-  }
 
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
@@ -168,13 +156,11 @@ function render(store, MainComponent) {
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
-        <GlobalEscapeHandler>
-          <div style={{display: 'flex', flex: 1}}>
-            <RemoteManager />
-            <FontLoader />
-            <MainComponent />
-          </div>
-        </GlobalEscapeHandler>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteManager />
+          <FontLoader />
+          <MainComponent />
+        </div>
       </Root>
     </AppContainer>,
     document.getElementById('root')
