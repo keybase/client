@@ -45,10 +45,8 @@ export type State = Exact<{
     kextPermissionError: boolean,
     result: ?InstallResult,
   },
-  fuseStatus: {
-    loading: boolean,
-    status: ?FuseStatus,
-  },
+  fuseStatus: ?FuseStatus,
+  fuseStatusLoading: boolean,
   kbfsInstall: {
     installing: boolean,
     result: ?InstallResult,

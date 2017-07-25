@@ -20,10 +20,8 @@ const initialState: Constants.State = {
     kextPermissionError: false,
     result: null,
   },
-  fuseStatus: {
-    loading: false,
-    status: null,
-  },
+  fuseStatus: null,
+  fuseStatusLoading: false,
   kbfsInstall: {
     installing: false,
     result: null,
@@ -126,18 +124,13 @@ export default function(
     case 'fs:fuseStatus':
       return {
         ...state,
-        fuseStatus: {
-          loading: true,
-          status: null,
-        },
+        fuseStatusLoading: true,
       }
     case 'fs:fuseStatusUpdate':
       return {
         ...state,
-        fuseStatus: {
-          loading: false,
-          status: action.payload.status,
-        },
+        fuseStatus: action.payload.status,
+        fuseStatusLoading: false,
       }
     case 'fs:installFuse':
       return {
@@ -151,7 +144,7 @@ export default function(
     case 'fs:installFuseResult':
       const result = action.payload.result
       const fuseResults = result.componentResults.filter(c => c.name === 'fuse')
-      const kextPermissionError = fuseResults.length > 0 // && fuseResults[0].exitCode === 3
+      const kextPermissionError = fuseResults.length > 0 && fuseResults[0].exitCode === 3
       return {
         ...state,
         fuseInstall: {

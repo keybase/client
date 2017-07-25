@@ -14,7 +14,7 @@ import {isWindows} from '../../constants/platform'
 
 import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {FuseStatus, InstallResult} from '../../constants/types/flow-types'
+import type {InstallResult} from '../../constants/types/flow-types'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -110,25 +110,31 @@ function openInDefault(openPath: string): Promise<*> {
 }
 
 function* fuseStatusSaga(): SagaGenerator<any, any> {
+  const prevFuseStatus = yield select(state => state.favorite.fuseStatus)
+
   const status = yield call(installFuseStatusRpcPromise)
   const action = {payload: {status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
+
+  // If our kextStarted status changed, finish KBFS install
+  console.log('Installing KBFS (kextStarted changed)')
+  if (status.kextStarted && prevFuseStatus && !prevFuseStatus.kextStarted) {
+    yield call(installKBFSSaga)
+  }
 }
 
 function* installFuseSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallFuseRpcPromise)
   yield put({payload: {result}, type: 'fs:installFuseResult'})
 
-  const status: FuseStatus = yield call(installFuseStatusRpcPromise)
-  yield put({payload: {status}, type: 'fs:fuseStatusUpdate'})
+  yield call(fuseStatusSaga)
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallKBFSRpcPromise)
   yield put({payload: {result}, type: 'fs:installKBFSResult'})
 
-  const status: FuseStatus = yield call(installFuseStatusRpcPromise)
-  yield put({payload: {status}, type: 'fs:fuseStatusUpdate'})
+  yield call(fuseStatusSaga)
 }
 
 function* openInWindows(openPath: string): SagaGenerator<any, any> {

@@ -29,7 +29,7 @@ class InstallBanner extends Component<void, Props, void> {
       return null
     }
 
-    if (this.props.loading) {
+    if (this.props.loading || this.props.installing) {
       return (
         <Box style={stylesContainer}>
           <ProgressIndicator style={{width: 48}} white={true} />
@@ -67,7 +67,7 @@ const stylesContainer = {
 const mapStateToProps = (state: TypedState) => {
   return {
     installing: state.favorite.fuseInstall.installing,
-    loading: state.favorite.fuseStatus.loading,
+    loading: state.favorite.fuseStatusLoading,
   }
 }
 
