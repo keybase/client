@@ -43,8 +43,8 @@ export default (callback: (err: any) => void): void => {
           if (fuseResults[0].exitCode === ExitCodeFuseKextError) {
             errorDetail = `We were unable to load KBFS (${err.code}). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
           } else if (fuseResults[0].exitCode === ExitCodeFuseKextPermissionError) {
-            // This will show if they started install and didn't allow the extension, and then restarted the app.
-            // The app will deal with this scenario in the folders tab, and we can ignore this specific error here.
+            // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
+            // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
             callback(err)
             return
           }
