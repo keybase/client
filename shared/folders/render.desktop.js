@@ -131,7 +131,7 @@ const tabBarStyle = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kextStarted = state.favorite.fuseStatus.status && state.favorite.fuseStatus.status.kextStarted
+  const kextStarted = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   return {
     fuseInstalled: kextStarted,
     showSecurityPrefs: !kextStarted && state.favorite.fuseInstall.kextPermissionError,
