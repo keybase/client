@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {connect} from 'react-redux'
+import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
@@ -115,7 +115,7 @@ const makeSelector = conversationIDKey => {
 }
 
 // $FlowIssue
-const RowConnector = connect(
+const RowConnector = pausableConnect(
   (state: TypedState, {conversationIDKey}) => {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)

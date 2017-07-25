@@ -368,7 +368,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
 
   _renderItem = ({item, index}) => {
     return index
-      ? <Row conversationIDKey={item} key={item} />
+      ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
       : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
   }
 
@@ -419,6 +419,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
         <NativeFlatList
           loading={this.props.isLoading /* force loading to update */}
           data={this.state.rows}
+          isActiveRoute={this.props.isActiveRoute}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
