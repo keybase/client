@@ -236,7 +236,7 @@ export const ConversationStateRecord = Record({
   moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
-  isStale: false,
+  hasNewerMessages: false,
   loadedOffline: false,
   paginationNext: undefined,
   paginationPrevious: undefined,
@@ -252,7 +252,7 @@ export type ConversationState = KBRecord<{
   seenMessages: Set<MessageID>,
   moreToLoad: ?boolean,
   isRequesting: boolean,
-  isStale: boolean,
+  hasNewerMessages: boolean,
   loadedOffline: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
@@ -535,6 +535,10 @@ export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
+export type SetHasNewerMessages = NoErrorTypedAction<
+  'chat:setHasNewerMessages',
+  {conversationIDKey: ?ConversationIDKey}
+>
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
 export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
@@ -612,9 +616,9 @@ export type UpdateMessage = NoErrorTypedAction<
   }
 >
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
-export type UpdatePaginationNext = NoErrorTypedAction<
-  'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: Buffer}
+export type UpdatePagination = NoErrorTypedAction<
+  'chat:updatePagination',
+  {conversationIDKey: ConversationIDKey, next: Buffer, previous: Buffer}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',

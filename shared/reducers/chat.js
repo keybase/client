@@ -422,18 +422,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .deleteIn(['localMessageStates', oldMessageKey])
         .setIn(['localMessageStates', newMessageKey], localMessageState)
     }
-    case 'chat:markThreadsStale': {
-      const {updates} = action.payload
-      const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-      return state.update('conversationStates', conversationStates =>
-        conversationStates.map((conversationState, conversationIDKey) => {
-          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
-            return conversationState.set('isStale', true)
-          }
-          return conversationState
-        })
-      )
-    }
     case 'chat:updateLatestMessage':
       // Clear new messages id of conversation
       const newConversationStates = state
@@ -457,17 +445,21 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       return state.set('conversationStates', newConversationStates)
     }
-    case 'chat:updatePaginationNext': {
-      const {conversationIDKey, paginationNext} = action.payload
+    case 'chat:setHasNewerMessages': {
+      const {conversationIDKey, hasNewer} = action.payload
       const newConversationStates = state
         .get('conversationStates')
-        .update(
-          conversationIDKey,
-          initialConversation,
-          conversation =>
-            conversation.get('paginationNext')
-              ? conversation
-              : conversation.set('paginationNext', paginationNext)
+        .update(conversationIDKey, initialConversation, conversation =>
+          conversation.set('hasNewerMessages', hasNewer)
+        )
+      return state.set('conversationStates', newConversationStates)
+    }
+    case 'chat:updatePagination': {
+      const {conversationIDKey, next, previous} = action.payload
+      const newConversationStates = state
+        .get('conversationStates')
+        .update(conversationIDKey, initialConversation, conversation =>
+          conversation.set('paginationNext', next).set('paginationPrevious', previous)
         )
       return state.set('conversationStates', newConversationStates)
     }
