@@ -258,14 +258,4 @@ const transformTracker = (state: TrackerOrNonUserState) => {
   }
 }
 
-const stateLoggerTransform = (state: State) => {
-  const out = {
-    ...state,
-    trackers: mapValues(state.trackers, transformTracker),
-    tracking: undefined,
-  }
-
-  return out
-}
-
-export {stateLoggerTransform, cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}
+export {cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}
