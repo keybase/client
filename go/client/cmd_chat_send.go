@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -166,7 +167,7 @@ func (c *CmdChatSend) Run() (err error) {
 }
 
 func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = ctx.String("set-topic-name")
+	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-topic-name"))
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())

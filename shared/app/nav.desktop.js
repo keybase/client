@@ -27,8 +27,8 @@ function Nav(props: Props) {
       {props.routeSelected !== loginTab &&
         <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {visibleScreen.component}
-        {layerScreens.map(r => r.leafComponent)}
+        {visibleScreen.component({isActiveRoute: true})}
+        {layerScreens.map(r => r.leafComponent({isActiveRoute: true}))}
       </Box>
       <div id="popupContainer" />
       {![chatTab, loginTab].includes(props.routeSelected) &&

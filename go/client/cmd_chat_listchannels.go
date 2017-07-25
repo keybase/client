@@ -55,7 +55,7 @@ func (c *CmdChatListChannels) Run() error {
 
 	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
 	for _, c := range listRes.Convs {
-		ui.Printf("%s\n", utils.GetTopicName(c))
+		ui.Printf("#%s\n", utils.GetTopicName(c))
 	}
 
 	return nil
