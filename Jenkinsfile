@@ -67,10 +67,13 @@ helpers.rootLinuxNode(env, {
                 parallel (
                     checkout: {
                         checkout scm
-                        sh 'echo -n $(git rev-parse HEAD) > kbfsfuse/revision'
-                        env.COMMIT_HASH = readFile('kbfsfuse/revision')
                         env.AUTHOR_NAME = sh(returnStdout: true, script: 'git --no-pager show -s --format="%an" HEAD').trim()
                         env.AUTHOR_EMAIL = sh(returnStdout: true, script: 'git --no-pager show -s --format="%ae" HEAD').trim()
+                        // We need the revision to be baked into the docker
+                        // image so we can debug downstream builds, so we make
+                        // it a file instead of using `returnStdout`.
+                        sh 'echo -n $(git rev-parse HEAD) > kbfsfuse/revision'
+                        env.COMMIT_HASH = readFile('kbfsfuse/revision')
                         sh 'git add kbfsfuse/revision'
                         sh "git -c user.name='Jenkins' -c user.email='ci@keyba.se' commit -m 'revision'"
                     },
