@@ -76,12 +76,11 @@ function* _backgroundUnboxLoop() {
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   const finalizedState: Constants.FinalizedState = Map(
-    (inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
-      return map.set(
-        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-        convoUnverified.metadata.finalizeInfo
-      )
-    }, Map())
+    (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
+      Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+      // $FlowIssue doesn't understand this is non-null
+      convoUnverified.metadata.finalizeInfo,
+    ])
   )
 
   if (finalizedState.count()) {
@@ -132,6 +131,16 @@ function* onInboxStale(): SagaGenerator<any, any> {
             return null
           }
 
+          const times = (c.maxMsgSummaries || [])
+            .filter(m =>
+              [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
+                m.messageType
+              )
+            )
+            .map((message: {ctime: number}) => message.ctime)
+            .sort()
+          const time = times && times.length > 0 && times[times.length - 1]
+
           return new Constants.InboxStateRecord({
             conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
             info: null,
@@ -139,7 +148,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             snippet: ' ',
             state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-            time: c.readerInfo && c.readerInfo.mtime,
+            time,
           })
         })
         .filter(Boolean)

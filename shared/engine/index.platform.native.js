@@ -1,7 +1,9 @@
 // @flow
-import {Buffer} from 'buffer'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+import {pack} from 'purepack'
+import {toByteArray, fromByteArray} from 'base64-js'
+import toBuffer from 'typedarray-to-buffer'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
@@ -21,8 +23,6 @@ class NativeTransport extends TransportShared {
 
     // We're connected locally so we never get disconnected
     this.needsConnect = false
-    // framed-msg-pack sends us a payload length, then the payload. This holds the length of the next payload
-    this.rawWriteLength = null
   }
 
   // We're always connected, so call the callback
@@ -40,17 +40,18 @@ class NativeTransport extends TransportShared {
     return 1
   } // eslint-disable-line camelcase
 
-  // We get called 2 times per msg. once with the lenth and once with the payload
-  _raw_write(bufStr: any, enc: any) {
-    // eslint-disable-line camelcase
-    if (this.rawWriteLength === null) {
-      this.rawWriteLength = Buffer.from(bufStr, enc)
-    } else {
-      const buffer = Buffer.concat([this.rawWriteLength, Buffer.from(bufStr, enc)])
-      this.rawWriteLength = null
-      // We have to write b64 encoded data over the RN bridge
-      this.writeCallback(buffer.toString('base64'))
-    }
+  // A custom send override to write b64 to the react native bridge
+  send(msg) {
+    const packed = pack(msg)
+    const len = pack(packed.length)
+    // We have to write b64 encoded data over the RN bridge
+
+    const buf = new Uint8Array(len.length + packed.length)
+    buf.set(len, 0)
+    buf.set(packed, len.length)
+    const b64 = fromByteArray(buf)
+    this.writeCallback(b64)
+    return true
   }
 }
 
@@ -66,9 +67,9 @@ function createClient(
   nativeBridge.start()
 
   // This is how the RN side writes back to us
-  RNEmitter.addListener(nativeBridge.eventName, payload =>
-    client.transport.packetize_data(Buffer.from(payload, 'base64'))
-  )
+  RNEmitter.addListener(nativeBridge.eventName, payload => {
+    return client.transport.packetize_data(toBuffer(toByteArray(payload)))
+  })
 
   return client
 }
