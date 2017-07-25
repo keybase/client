@@ -179,7 +179,13 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 - (void)_afterInstall:(KBCompletion)completion {
   [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
     if (fuseStatus.installStatus == KBRInstallStatusInstalled && !fuseStatus.kextStarted) {
-      [self loadKext:completion];
+      [self loadKext:^(NSError *error) {
+        if (error) {
+          completion(KBMakeError(KBErrorCodeFuseKext, @"%@", error.localizedDescription));
+          return;
+        }
+        completion(nil);
+      }];
       return;
     }
     completion(nil);

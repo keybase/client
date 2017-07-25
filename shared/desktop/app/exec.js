@@ -18,29 +18,29 @@ export default function(
   platformOnly: any,
   runModeOnly: ?string,
   killOnExit: boolean,
-  callback: (err: any, attempted: boolean) => void
+  callback: (err: any, attempted: boolean, stdout: string, stderr: string) => void
 ): void {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
-    if (callback) callback(null, false)
+    if (callback) callback(null, false, '', '')
     return
   }
   if (!path) {
     console.log('Exec path not available:', path)
-    if (callback) callback(null, false)
+    if (callback) callback(null, false, '', '')
     return
   }
   if (runModeOnly && runMode !== runModeOnly) {
     console.log('Exec path not available for this run mode: %s != %s', runModeOnly, runMode)
-    if (callback) callback(null, false)
+    if (callback) callback(null, false, '', '')
     return
   }
 
   fs.access(path, fs.X_OK, function(err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)
-      if (callback) callback(null, false)
+      if (callback) callback(null, false, '', '')
       return
     }
 
@@ -57,7 +57,7 @@ export default function(
       if (execErr) {
         console.log('Exec (err):', execErr)
       }
-      if (callback) callback(execErr, true)
+      if (callback) callback(execErr, true, stdout, stderr)
     })
 
     if (killOnExit && procExec) {
