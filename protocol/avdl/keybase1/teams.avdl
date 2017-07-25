@@ -343,7 +343,7 @@ protocol teams {
     @jsonkey("fq_name")
     string fqName;
     TeamRole role;
-    union{null, ImplicitRole} implicit;
+    array<ImplicitRole> implicits;
   }
 
   record TeamList {
@@ -361,7 +361,7 @@ protocol teams {
     @jsonkey("fq_name")
     string fqName;
     TeamRole role;
-    union{null, ImplicitRole} implicit;
+    array<ImplicitRole> implicits;
   }
 
   record AnnotatedTeamList {

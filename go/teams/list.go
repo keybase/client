@@ -52,6 +52,11 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		uid = res.GetUID()
 	}
 
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	if err != nil {
+		return nil, err
+	}
+
 	teams, err := getTeamsListFromServer(ctx, g, uid, arg.All)
 	if err != nil {
 		return nil, err
@@ -60,41 +65,48 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	teamNames := make(map[string]bool)
 	upakLoader := g.GetUPAKLoader()
 	annotatedTeams := make([]keybase1.AnnotatedMemberInfo, len(teams))
+	administeredTeams := make(map[string]bool)
 	for idx, memberInfo := range teams {
 		teamNames[memberInfo.FqName] = true
+		if memberInfo.UserID == me.GetUID() && (memberInfo.Role.IsAdminOrAbove() || len(memberInfo.Implicits) > 0) {
+			administeredTeams[memberInfo.FqName] = true
+		}
 
-		uid := memberInfo.UserID
-		username, err := upakLoader.LookupUsername(context.Background(), uid)
+		memberuid := memberInfo.UserID
+		username, err := upakLoader.LookupUsername(context.Background(), memberuid)
 		if err != nil {
 			return nil, err
 		}
-		fullName, err := engine.GetFullName(context.Background(), g, uid)
+		fullName, err := engine.GetFullName(context.Background(), g, memberuid)
 		if err != nil {
 			return nil, err
 		}
 		annotatedTeams[idx] = keybase1.AnnotatedMemberInfo{
-			TeamID:   memberInfo.TeamID,
-			FqName:   memberInfo.FqName,
-			UserID:   memberInfo.UserID,
-			Role:     memberInfo.Role,
-			Implicit: memberInfo.Implicit,
-			Username: username.String(),
-			FullName: fullName,
+			TeamID:    memberInfo.TeamID,
+			FqName:    memberInfo.FqName,
+			UserID:    memberInfo.UserID,
+			Role:      memberInfo.Role,
+			Implicits: memberInfo.Implicits,
+			Username:  username.String(),
+			FullName:  fullName,
 		}
 	}
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
 	for teamName := range teamNames {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
-		if err != nil {
-			return nil, err
-		}
-		teamAnnotatedInvites, err := AnnotateInvites(ctx, g, t.chain().inner.ActiveInvites, teamName)
-		if err != nil {
-			return nil, err
-		}
-		for teamInviteID, annotatedTeamInvite := range teamAnnotatedInvites {
-			annotatedInvites[teamInviteID] = annotatedTeamInvite
+		_, ok := administeredTeams[teamName]
+		if ok {
+			t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+			if err != nil {
+				return nil, err
+			}
+			teamAnnotatedInvites, err := AnnotateInvites(ctx, g, t.chain().inner.ActiveInvites, teamName)
+			if err != nil {
+				return nil, err
+			}
+			for teamInviteID, annotatedTeamInvite := range teamAnnotatedInvites {
+				annotatedInvites[teamInviteID] = annotatedTeamInvite
+			}
 		}
 	}
 
@@ -164,7 +176,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		if info.Role.IsAdminOrAbove() {
 			admin = true
 		}
-		if info.Implicit != nil && info.Implicit.Role.IsAdminOrAbove() {
+		if len(info.Implicits) > 0 {
 			admin = true
 		}
 		entryMap[team.Name().String()] = keybase1.TeamTreeEntry{

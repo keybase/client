@@ -51,6 +51,7 @@ func (e *FavoriteIgnore) Run(ctx *Context) error {
 	if e.arg == nil {
 		return fmt.Errorf("FavoriteIgnore arg is nil")
 	}
+	e.G().Log.Debug("IGNORINGGGGGGGGGGGGGGGG %v", e.arg)
 	_, err := e.G().API.Post(libkb.APIArg{
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,

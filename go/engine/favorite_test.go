@@ -127,6 +127,27 @@ func TestFavoriteIgnore(t *testing.T) {
 	}
 }
 
+func TestFavoriteIgnoreTeam(t *testing.T) {
+	tc := SetupEngineTest(t, "template")
+	defer tc.Cleanup()
+	u := CreateAndSignupFakeUser(tc, "fav")
+
+	expectedFaves := newFavorites(u.Username)
+
+	idUI := &FakeIdentifyUI{}
+	addfav("hello_world", keybase1.FolderType_TEAM, true, idUI, tc, expectedFaves)
+	t.Logf("HELLO WORLD %v", *expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
+	}
+	rmfav("hello_world", keybase1.FolderType_TEAM, tc, expectedFaves)
+	t.Logf("HELLO WORLD %v", *expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
+	}
+	t.Errorf("--")
+}
+
 func TestFavoriteList(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()

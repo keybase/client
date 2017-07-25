@@ -155,7 +155,17 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 
 	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	for _, t := range list.Teams {
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), t.Username, t.FullName)
+		var role string
+		if len(t.Implicits) != 0 {
+			role += "implied admin"
+		}
+		if t.Role != keybase1.TeamRole_NONE {
+			if len(t.Implicits) != 0 {
+				role += ", "
+			}
+			role += strings.ToLower(t.Role.String())
+		}
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
 	}
 	if c.showAll {
 		c.outputInvites(list.AnnotatedActiveInvites)
