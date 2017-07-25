@@ -300,12 +300,12 @@ const promptNewDeviceNameSaga = onBackSaga =>
 
 // TODO change types in flow-types to generate this
 const chooseDeviceSaga = onBackSaga =>
-  function*({devices}: {devices: Array<Types.Device>}) {
+  function*({devices, canSelectNoDevice}: {devices: Array<Types.Device>, canSelectNoDevice: boolean}) {
     yield put(
       navigateAppend(
         [
           {
-            props: {devices},
+            props: {devices, canSelectNoDevice},
             selected: 'selectOtherDevice',
           },
         ],

@@ -36,7 +36,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   )
 }
 
-const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
+const SelectOtherDevice = ({onBack, devices, onWont, onSelect, canSelectNoDevice}: Props) => (
   <Container style={stylesContainer} onBack={onBack} outerStyle={{paddingLeft: 0, paddingRight: 0}}>
     <Box style={globalStyles.flexBoxColumn}>
       <Text type="Header" style={stylesInstructions}>Please prove you're you</Text>
@@ -47,7 +47,10 @@ const SelectOtherDevice = ({onBack, devices, onWont, onSelect}: Props) => (
     <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </NativeScrollView>
-    <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>Log in with your passphrase</Text>
+    {canSelectNoDevice &&
+      <Text style={stylesWont} type="BodySmallSecondaryLink" onClick={onWont}>
+        Log in with your passphrase
+      </Text>}
   </Container>
 )
 const stylesContainer = {
