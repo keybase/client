@@ -18,6 +18,7 @@
     "apply-new-fonts": "yarn run _helper apply-new-fonts",
     "generate-font-project": "yarn run _helper generate-font-project",
     "updated-fonts": "yarn run _helper updated-fonts",
+    "unused-assets": "yarn run _helper unused-assets",
     "build-dev": "yarn run _helper build-dev",
     "build-pegjs": "yarn run _node -- markdown/generate-emoji-parser.js markdown/parser.pegjs",
     "build-prod": "yarn run _helper build-prod",
