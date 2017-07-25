@@ -9,10 +9,14 @@ import type {Device} from '../../../constants/types/more'
 type OwnProps = {
   routeProps: {
     devices: Array<Device>,
+    canSelectNoDevice: boolean,
   },
 }
 
-const mapStateToProps = (s: TypedState, {routeProps: {devices}}: OwnProps) => ({devices})
+const mapStateToProps = (s: TypedState, {routeProps: {devices, canSelectNoDevice}}: OwnProps) => ({
+  devices,
+  canSelectNoDevice,
+})
 const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(Creators.onBack()),
   onWont: () => dispatch(Creators.onWont()),
