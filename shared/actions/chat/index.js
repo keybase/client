@@ -61,8 +61,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
           const outboxID = Constants.outboxIDToKey(outboxRecord.outboxID)
           // $FlowIssue
-          const errTyp = outboxRecord.state.error.typ
-          const failureDescription = _decodeFailureDescription(errTyp)
+          const failureType = outboxRecord.state.error.typ
+          const failureDescription = Shared.decodeFailureDescription(failureType)
           // There's an RPC race condition here.  Two possibilities:
           //
           // Either we've already finished in _postMessage() and have recorded
@@ -78,19 +78,25 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
 
           const pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, outboxID)
           if (pendingMessage) {
+            const keyType = failureType === ChatTypes.LocalOutboxErrorType.duplicate
+              ? 'errorInvisible'
+              : 'outboxIDText'
+            const key = Constants.messageKey(conversationIDKey, keyType, outboxID)
+
             yield put(
               Creators.updateTempMessage(
                 conversationIDKey,
                 {
                   ...pendingMessage,
                   failureDescription,
+                  key,
                   messageState: 'failed',
                 },
                 outboxID
               )
             )
           } else {
-            yield put(Creators.createPendingFailure(failureDescription, outboxID))
+            yield put(Creators.createPendingFailure(failureDescription, failureType, outboxID))
           }
         }
       }
@@ -441,20 +447,6 @@ function _threadToPagination(thread): {last: any, next: any} {
 // used to key errors
 let errorIdx = 1
 
-function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
-  switch (typ) {
-    case ChatTypes.LocalOutboxErrorType.misc:
-      return 'unknown error'
-    case ChatTypes.LocalOutboxErrorType.offline:
-      return 'disconnected from chat server'
-    case ChatTypes.LocalOutboxErrorType.identify:
-      return 'proofs failed for recipient user'
-    case ChatTypes.LocalOutboxErrorType.toolong:
-      return 'message is too long'
-  }
-  return `unknown error type ${typ}`
-}
-
 function _unboxedToMessage(
   message: ChatTypes.MessageUnboxed,
   yourName,
@@ -470,13 +462,20 @@ function _unboxedToMessage(
       ? 'failed'
       : 'pending'
     const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
-    const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
-      ? _decodeFailureDescription(payload.state.error.typ)
-      : null
+    const failed = messageState === 'failed'
+    // $FlowIssue
+    const failureDescription = failed ? Shared.decodeFailureDescription(payload.state.error.typ) : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
     const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
-
+    let messageKey = 'outboxIDText'
+    if (
+      payload.state &&
+      payload.state.error &&
+      payload.state.error.typ === ChatTypes.LocalOutboxErrorType.duplicate
+    ) {
+      messageKey = 'errorInvisible'
+    }
     return {
       author: yourName,
       conversationIDKey,
@@ -484,7 +483,7 @@ function _unboxedToMessage(
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
       failureDescription,
-      key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
+      key: Constants.messageKey(conversationIDKey, messageKey, outboxIDKey),
       message: new HiddenString((messageText && messageText.body) || ''),
       messageState,
       outboxID: outboxIDKey,

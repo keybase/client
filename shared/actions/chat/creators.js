@@ -298,10 +298,11 @@ function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox 
 
 function createPendingFailure(
   failureDescription: string,
+  failureType: ChatTypes.OutboxErrorType,
   outboxID: Constants.OutboxIDKey
 ): Constants.CreatePendingFailure {
   return {
-    payload: {failureDescription, outboxID},
+    payload: {failureDescription, failureType, outboxID},
     type: 'chat:createPendingFailure',
   }
 }

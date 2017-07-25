@@ -353,6 +353,11 @@ const LocalMessageState: (
   savedPath: null,
 })
 
+export type PendingFailureState = {
+  failureDescription: string,
+  failureType: ChatTypes.OutboxErrorType,
+}
+
 const defaultLocalMessageState = new LocalMessageState({})
 
 const getLocalMessageStateFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
@@ -403,7 +408,7 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  pendingFailures: Map<OutboxIDKey, ?string>,
+  pendingFailures: Map<OutboxIDKey, PendingFailureState>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
@@ -459,7 +464,7 @@ export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type CreatePendingFailure = NoErrorTypedAction<
   'chat:createPendingFailure',
-  {failureDescription: string, outboxID: OutboxIDKey}
+  {failureDescription: string, failureType: ChatTypes.OutboxErrorType, outboxID: OutboxIDKey}
 >
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
