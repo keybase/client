@@ -11,6 +11,7 @@ const readyForBootstrap = isMobile
 
 const initialState: Constants.State = {
   appFocused: true,
+  appFocusedCount: 0,
   bootStatus: 'bootStatusLoading',
   pushLoaded: false,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
@@ -194,6 +195,7 @@ export default function(state: Constants.State = initialState, action: Action): 
       return {
         ...state,
         appFocused: action.payload.appFocused,
+        appFocusedCount: state.appFocusedCount + 1,
       }
 
     default:

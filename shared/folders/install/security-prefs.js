@@ -1,10 +1,38 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text} from '../../common-adapters'
+import {Box, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {shell} from 'electron'
+import {connect} from 'react-redux'
+import {clearFuseInstall, fuseStatus} from '../../actions/kbfs'
 
-class InstallSecurityPrefs extends Component {
+import type {TypedState} from '../../constants/reducer'
+
+type Props = {
+  appFocusedCount: number,
+  clearFuseInstall: () => void,
+  fuseStatus: () => void,
+}
+
+type State = {
+  appFocusedCount: number,
+}
+
+class InstallSecurityPrefs extends Component<void, Props, State> {
+  state = {
+    appFocusedCount: -1,
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    // When app is focused, re-check Fuse status
+    if (nextProps.appFocusedCount !== this.state.appFocusedCount) {
+      this.setState({
+        appFocusedCount: nextProps.appFocusedCount,
+      })
+      this.props.fuseStatus()
+    }
+  }
+
   _openSecurityPrefs = () => {
     shell.openExternal('x-apple.systempreferences:com.apple.preference.security?General')
   }
@@ -12,6 +40,7 @@ class InstallSecurityPrefs extends Component {
   render() {
     return (
       <Box style={stylesContainer}>
+        <Icon style={stylesCloseIcon} type="iconfont-close" onClick={this.props.clearFuseInstall} />
         <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 32}}>
           Ghhh. Try this.
         </Text>
@@ -73,6 +102,7 @@ const stylesContainer = {
   height: '100%',
   justifyContent: 'center',
   overflowY: 'auto',
+  position: 'relative',
 }
 
 const stylesNumberList = {
@@ -100,4 +130,23 @@ const styleHighlight = {
   borderWidth: 2,
 }
 
-export default InstallSecurityPrefs
+const stylesCloseIcon = {
+  ...globalStyles.windowDraggingClickable,
+  ...globalStyles.clickable,
+  left: 10,
+  position: 'absolute',
+  top: 10,
+}
+
+const mapStateToProps = (state: TypedState) => {
+  return {
+    appFocusedCount: state.config.appFocusedCount,
+  }
+}
+
+const mapDispatchToProps = (dispatch: any) => ({
+  clearFuseInstall: () => dispatch(clearFuseInstall()),
+  fuseStatus: () => dispatch(fuseStatus()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(InstallSecurityPrefs)

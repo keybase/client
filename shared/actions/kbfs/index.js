@@ -44,6 +44,10 @@ function installKBFS() {
   return {payload: undefined, type: 'fs:installKBFS'}
 }
 
+function clearFuseInstall() {
+  return {payload: undefined, type: 'fs:clearFuseInstall'}
+}
+
 function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.fsList, _listSaga)
   yield safeTakeEvery(Constants.fsOpen, openSaga)
@@ -54,4 +58,4 @@ function* kbfsSaga(): SagaGenerator<any, any> {
 }
 
 export default kbfsSaga
-export {fsList, fuseStatus, installFuse, installKBFS, openInKBFS}
+export {clearFuseInstall, fsList, fuseStatus, installFuse, installKBFS, openInKBFS}
