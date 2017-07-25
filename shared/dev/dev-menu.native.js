@@ -1,12 +1,11 @@
 // @flow
-import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
 import engine from '../engine'
 import {connect} from 'react-redux'
 import {logout} from '../actions/login/creators'
 import {navigateAppend} from '../actions/route-tree'
-import {Box} from '../common-adapters'
-import {globalStyles} from '../styles'
+import {Box, Text} from '../common-adapters'
+import {globalStyles, globalColors} from '../styles'
 
 class DevMenu extends Component {
   render() {
@@ -20,7 +19,13 @@ class DevMenu extends Component {
     ]
     return (
       <Box style={globalStyles.flexBoxRow}>
-        <MenuList items={menuItems} />
+        <Box>
+          {menuItems.map(m => (
+            <Box key={m.name} style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}>
+              <Text onClick={m.onClick} type="Header">{m.name}</Text>
+            </Box>
+          ))}
+        </Box>
       </Box>
     )
   }

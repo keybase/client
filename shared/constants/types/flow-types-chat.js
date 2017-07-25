@@ -59,6 +59,7 @@ export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
   left: 2,
+  preview: 3,
 }
 
 export const CommonConversationMembersType = {
@@ -193,6 +194,17 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
   membersUpdate: 6,
   setAppNotificationSettings: 7,
+}
+
+export const NotifyChatStaleUpdateType = {
+  clear: 0,
+  newactivity: 1,
+}
+
+export const RemoteChannelMention = {
+  none: 0,
+  all: 1,
+  here: 2,
 }
 
 export const RemoteMessageBoxedVersion = {
@@ -1119,6 +1131,11 @@ export type BodyPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
+export type ChannelMention =
+    0 // NONE_0
+  | 1 // ALL_1
+  | 2 // HERE_2
+
 export type ChatActivity =
     { activityType: 1, incomingMessage: ?IncomingMessage }
   | { activityType: 2, readMessage: ?ReadMessageInfo }
@@ -1225,6 +1242,7 @@ export type ConversationMemberStatus =
     0 // ACTIVE_0
   | 1 // REMOVED_1
   | 2 // LEFT_2
+  | 3 // PREVIEW_3
 
 export type ConversationMembersType =
     0 // KBFS_0
@@ -1253,10 +1271,16 @@ export type ConversationReaderInfo = {
   mtime: gregor1.Time,
   readMsgid: MessageID,
   maxMsgid: MessageID,
+  status: ConversationMemberStatus,
 }
 
 export type ConversationResolveInfo = {
   newTLFName: string,
+}
+
+export type ConversationStaleUpdate = {
+  convID: ConversationID,
+  updateType: StaleUpdateType,
 }
 
 export type ConversationStatus =
@@ -1811,7 +1835,7 @@ export type NotifyChatChatTLFResolveRpcParam = Exact<{
 
 export type NotifyChatChatThreadsStaleRpcParam = Exact<{
   uid: keybase1.UID,
-  convIDs?: ?Array<ConversationID>
+  updates?: ?Array<ConversationStaleUpdate>
 }>
 
 export type NotifyChatChatTypingUpdateRpcParam = Exact<{
@@ -1987,6 +2011,10 @@ export type SignatureInfo = {
   s: bytes,
   k: bytes,
 }
+
+export type StaleUpdateType =
+    0 // CLEAR_0
+  | 1 // NEWACTIVITY_1
 
 export type SyncAllNotificationRes =
     { typ: 0, state: ?gregor1.State }
@@ -2410,7 +2438,8 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed,
-  atMentions?: ?Array<gregor1.UID>
+  atMentions?: ?Array<gregor1.UID>,
+  channelMention: ChannelMention
 }>
 
 export type remotePublishReadMessageRpcParam = Exact<{
@@ -2725,7 +2754,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatThreadsStale'?: (
     params: Exact<{
       uid: keybase1.UID,
-      convIDs?: ?Array<ConversationID>
+      updates?: ?Array<ConversationStaleUpdate>
     }> /* ,
     response: {} // Notify call
     */

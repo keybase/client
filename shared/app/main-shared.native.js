@@ -70,10 +70,8 @@ class Main extends Component<void, any, void> {
     }
 
     // TODO: move Push prompt into route
-    const {showPushPrompt, mountPush} = this.props
-
-    if (showPushPrompt && mountPush) {
-      return <Push prompt={showPushPrompt} />
+    if (this.props.showPushPrompt) {
+      return <Push />
     }
 
     return (
@@ -89,7 +87,6 @@ class Main extends Component<void, any, void> {
 const mapStateToProps = (state: TypedState) => ({
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   folderBadge: state.favorite.folderState.privateBadge + state.favorite.folderState.publicBadge,
-  mountPush: state.config.loggedIn && state.config.bootStatus === 'bootStatusBootstrapped',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.push.permissionsPrompt,

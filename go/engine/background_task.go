@@ -4,6 +4,8 @@
 // BackgroundTask runs a function in the background once in a while.
 // Note that this engine is long-lived and potentially has to deal with being
 // logged out and logged in as a different user, etc.
+// The timer uses the clock to sleep. So if there is a timezone change
+// it will probably wake up early or sleep for the extra hours.
 
 package engine
 
@@ -142,6 +144,7 @@ func (e *BackgroundTask) loop(ectx *Context) error {
 	var i int
 	for {
 		i++
+		e.log(ectx.GetNetContext(), "round(%v) start", i)
 		err := e.round(ectx)
 		if err != nil {
 			e.log(ectx.GetNetContext(), "round(%v) error: %s", i, err)
@@ -183,6 +186,6 @@ func (e *BackgroundTask) meta(s string) {
 }
 
 func (e *BackgroundTask) log(ctx context.Context, format string, args ...interface{}) {
-	content := fmt.Sprintf(format, args)
+	content := fmt.Sprintf(format, args...)
 	e.G().Log.CDebugf(ctx, "%s %s", e.Name(), content)
 }

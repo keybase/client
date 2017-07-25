@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 
 	"h12.me/socks"
 )
@@ -146,6 +147,13 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
 		c, err = net.Dial(network, addr)
 		if err != nil {
+			// If we get a DNS error, it could be because glibc has cached an
+			// old version of /etc/resolv.conf. The res_init() libc function
+			// busts that cache and keeps us from getting stuck in a state
+			// where DNS requests keep failing even though the network is up.
+			// This is similar to what the Rust standard library does:
+			// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
+			resinit.ResInitIfDNSError(err)
 			return c, err
 		}
 		if err = rpc.DisableSigPipe(c); err != nil {
@@ -159,6 +167,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 		}
 		if e.GetTorMode().Enabled() {
+			// TODO: should we call res_init on DNS errors here as well?
 			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
 			xprt.Dial = dialSocksProxy
 		} else {

@@ -246,6 +246,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ChannelMention",
+      "symbols": [
+        "NONE_0",
+        "ALL_1",
+        "HERE_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "UnreadUpdateFull",
       "fields": [
@@ -566,6 +575,10 @@
             "type": "array",
             "items": "gregor1.UID"
           }
+        },
+        {
+          "name": "channelMention",
+          "type": "ChannelMention"
         }
       ],
       "response": "PostRemoteRes"

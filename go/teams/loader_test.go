@@ -50,7 +50,7 @@ func TestLoaderBasic(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.True(t, teamName.Eq(team.Chain.Name))
+	require.True(t, teamName.Eq(team.Name))
 
 	t.Logf("load the team again")
 	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
@@ -58,7 +58,7 @@ func TestLoaderBasic(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.True(t, teamName.Eq(team.Chain.Name))
+	require.True(t, teamName.Eq(team.Name))
 }
 
 // Test that the loader works after the cache turns stale
@@ -80,7 +80,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.True(t, teamName.Eq(team.Chain.Name))
+	require.True(t, teamName.Eq(team.Name))
 
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
@@ -97,7 +97,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.True(t, teamName.Eq(team.Chain.Name))
+	require.True(t, teamName.Eq(team.Name))
 }
 
 // Test loading a root team by name.
@@ -117,7 +117,7 @@ func TestLoaderByName(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
-	require.True(t, teamName.Eq(team.Chain.Name))
+	require.True(t, teamName.Eq(team.Name))
 }
 
 // Test loading a team with NeedKeyGeneration set.
@@ -312,7 +312,7 @@ func TestLoaderSubteamEasy(t *testing.T) {
 	require.Equal(t, team.Chain.Id, *subteamID)
 	expectedSubteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
-	require.Equal(t, expectedSubteamName, TeamSigChainState{inner: team.Chain}.GetName())
+	require.Equal(t, expectedSubteamName, team.Name)
 	require.Equal(t, parentID, *team.Chain.ParentID)
 }
 
@@ -426,7 +426,7 @@ func TestLoaderMultilevel(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, *subsubteamID, team.Chain.Id)
-	require.Equal(t, expectedSubsubTeamName, TeamSigChainState{inner: team.Chain}.GetName())
+	require.Equal(t, expectedSubsubTeamName, team.Name)
 }
 
 // Test that loading with wantmembers which have eldestseqno=0 works.

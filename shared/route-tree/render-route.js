@@ -10,8 +10,8 @@ import type {RouteDefNode, RouteStateNode, Path} from './'
 type _RenderRouteResultParams = {
   path: I.List<string>,
   tags: LeafTags,
-  component: React$Element<any>,
-  leafComponent: React$Element<any>,
+  component: ({isActiveRoute: boolean}) => React$Element<any>,
+  leafComponent: ({isActiveRoute: boolean}) => React$Element<any>,
 }
 
 export const RenderRouteResult: (
@@ -27,6 +27,9 @@ export type RouteRenderStack = I.Stack<RenderRouteResult>
 
 // Components rendered by routes receive the following props:
 export type RouteProps<P, S> = {
+  // Whether the route is the primary onscreen route.
+  isActiveRoute: boolean,
+
   // Route props (query params)
   routeProps: P,
 
@@ -54,6 +57,7 @@ export type RouteProps<P, S> = {
 }
 
 type RenderRouteNodeProps<S> = {
+  isActiveRoute: boolean,
   isContainer: boolean,
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
@@ -68,10 +72,21 @@ type RenderRouteNodeProps<S> = {
 // shouldComponentUpdate (via PureComponent).
 class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
   render() {
-    const {isContainer, routeDef, routeState, setRouteState, path, leafTags, stack, children} = this.props
+    const {
+      isActiveRoute,
+      isContainer,
+      routeDef,
+      routeState,
+      setRouteState,
+      path,
+      leafTags,
+      stack,
+      children,
+    } = this.props
     const RouteComponent = isContainer ? routeDef.containerComponent : routeDef.component
     return (
       <RouteComponent
+        isActiveRoute={isActiveRoute}
         routeProps={routeState.props.toObject()}
         routeState={routeDef.initialState.merge(routeState.state).toObject()}
         routeSelected={routeState.selected}
@@ -97,7 +112,12 @@ type _RenderRouteProps<S> = {
 
 // Render a route tree recursively. Returns a stack of rendered components from
 // the bottom (the currently visible view) up through each parent path.
-function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteProps<*>): RouteRenderStack {
+function renderRouteStack({
+  routeDef,
+  routeState,
+  setRouteState,
+  path,
+}: _RenderRouteProps<*>): RouteRenderStack {
   if (!routeDef) {
     throw new Error(`Undefined route: ${pathToString(path)}`)
   } else if (!routeState) {
@@ -118,7 +138,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
     let childDef = routeDef.getChild(selected)
     const childState = routeState.children.get(selected)
     const childPath = path.push(selected)
-    const childStack = _RenderRoute({
+    const childStack = renderRouteStack({
       routeDef: childDef,
       routeState: childState,
       path: childPath,
@@ -130,8 +150,9 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r =>
-        r.update('component', child => (
+        r.update('component', child => ({isActiveRoute}) => (
           <RenderRouteNode
+            isActiveRoute={isActiveRoute}
             isContainer={true}
             routeDef={routeDef}
             routeState={routeState}
@@ -140,7 +161,7 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
             leafTags={childStack.last().tags}
             stack={childStack}
           >
-            {child}
+            {child({isActiveRoute})}
           </RenderRouteNode>
         ))
       )
@@ -149,8 +170,9 @@ function _RenderRoute({routeDef, routeState, setRouteState, path}: _RenderRouteP
 
   if (routeDef.component) {
     // If this path has a leaf component to render, add it to the stack.
-    const routeComponent = (
+    const routeComponent = ({isActiveRoute}) => (
       <RenderRouteNode
+        isActiveRoute={isActiveRoute}
         isContainer={false}
         routeDef={routeDef}
         routeState={routeState}
@@ -176,11 +198,13 @@ type RenderRouteProps<S> = {
   setRouteState: (partialState: $Shape<S>) => void,
 }
 
+export {renderRouteStack}
+
 export default class RenderRoute extends PureComponent<*, RenderRouteProps<*>, *> {
   render() {
-    // _RenderRoute gives us a stack of all views down the current route path.
+    // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.
-    var viewStack = _RenderRoute({...this.props, path: I.List()})
-    return viewStack.last().component
+    var viewStack = renderRouteStack({...this.props, path: I.List()})
+    return viewStack.last().component({isActiveRoute: true})
   }
 }

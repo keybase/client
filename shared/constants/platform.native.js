@@ -5,6 +5,7 @@ const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
+const isSimulator = nativeBridge.usingSimulator === '1'
 
 const runMode = 'prod'
 const isIOS = Platform.OS === 'ios'
@@ -23,6 +24,8 @@ const mobileOsVersion = Platform.Version
 const isLargeScreen = Dimensions.get('window').height >= 667
 
 export {
+  appVersionCode,
+  appVersionName,
   fileUIName,
   isAndroid,
   isDarwin,
@@ -31,10 +34,9 @@ export {
   isLargeScreen,
   isLinux,
   isMobile,
+  isSimulator,
   isWindows,
   mobileOsVersion,
   runMode,
   version,
-  appVersionName,
-  appVersionCode,
 }

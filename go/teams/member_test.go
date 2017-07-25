@@ -94,8 +94,12 @@ func TestMemberAddOK(t *testing.T) {
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER); err != nil {
+	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if res.User.Username != other.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, other.Username)
 	}
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
@@ -297,18 +301,22 @@ func TestMemberAddNoPUK(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	res, err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_READER)
+	username := "t_alice"
+	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !res.Invited {
 		t.Fatal("res.Invited should be set")
 	}
+	if res.User.Username != username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	}
 
 	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if _, err := AddMember(context.TODO(), tc.G, name, "t_alice", keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already invited")
 	}
 
@@ -321,18 +329,22 @@ func TestMemberAddNoKeys(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	res, err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_READER)
+	username := "t_ellen"
+	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !res.Invited {
 		t.Fatal("res.Invited should be set")
 	}
+	if res.User.Username != username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	}
 
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if _, err := AddMember(context.TODO(), tc.G, name, "t_ellen", keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already invited")
 	}
 
@@ -401,6 +413,33 @@ func TestLeave(t *testing.T) {
 	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
 		t.Fatal("Writer user is still member after leave.")
 	}
+}
+
+func TestMemberAddResolveCache(t *testing.T) {
+	tc, _, other, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	// load user so it is fully cached
+	_, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, other.Username))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// clear the memory cache so it will come from disk
+	tc.G.Resolver.EnableCaching()
+
+	// add the member
+	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.User.Username != other.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, other.Username)
+	}
+
+	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
 
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {

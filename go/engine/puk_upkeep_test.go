@@ -40,7 +40,7 @@ func TestPerUserKeyUpkeep(t *testing.T) {
 	tcY, cleanup := provisionNewDeviceKex(&tc, fu)
 	defer cleanup()
 
-	t.Logf("second device revokes itself")
+	t.Logf("second device deprovisions itself")
 	{
 		eng := NewDeprovisionEngine(tcY.G, fu.Username, true /* doRevoke */)
 		ctx := &Context{

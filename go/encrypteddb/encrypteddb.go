@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+type DbFn func(g *libkb.GlobalContext) *libkb.JSONLocalDb
 type KeyFn func(context.Context) ([32]byte, error)
 
 type boxedData struct {
@@ -27,14 +28,15 @@ const cryptoVersion = 1
 // Not threadsafe.
 type EncryptedDB struct {
 	libkb.Contextified
-	db              *libkb.JSONLocalDb
+
 	getSecretBoxKey KeyFn
+	getDB           DbFn
 }
 
-func New(g *libkb.GlobalContext, db *libkb.JSONLocalDb, getSecretBoxKey KeyFn) *EncryptedDB {
+func New(g *libkb.GlobalContext, getDB DbFn, getSecretBoxKey KeyFn) *EncryptedDB {
 	return &EncryptedDB{
 		Contextified:    libkb.NewContextified(g),
-		db:              db,
+		getDB:           getDB,
 		getSecretBoxKey: getSecretBoxKey,
 	}
 }
@@ -44,7 +46,8 @@ func New(g *libkb.GlobalContext, db *libkb.JSONLocalDb, getSecretBoxKey KeyFn) *
 // Returns (found, err). Res is valid only if (found && err == nil)
 func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{}) (bool, error) {
 	var err error
-	b, found, err := i.db.GetRaw(key)
+	db := i.getDB(i.G())
+	b, found, err := db.GetRaw(key)
 	if err != nil {
 		return false, err
 	}
@@ -78,6 +81,7 @@ func (i *EncryptedDB) Get(ctx context.Context, key libkb.DbKey, res interface{})
 }
 
 func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}) error {
+	db := i.getDB(i.G())
 	dat, err := encode(data)
 	if err != nil {
 		return err
@@ -107,7 +111,7 @@ func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}
 	}
 
 	// Write out
-	if err = i.db.PutRaw(key, dat); err != nil {
+	if err = db.PutRaw(key, dat); err != nil {
 		return err
 	}
 

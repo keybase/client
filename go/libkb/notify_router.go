@@ -47,7 +47,7 @@ type NotifyListener interface {
 	ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
 		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
-	ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID)
+	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
@@ -619,7 +619,7 @@ func (n *NotifyRouter) HandleChatInboxStale(ctx context.Context, uid keybase1.UI
 }
 
 func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.UID,
-	threads []chat1.ConversationID) {
+	updates []chat1.ConversationStaleUpdate) {
 	if n == nil {
 		return
 	}
@@ -633,7 +633,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
 				}).ChatThreadsStale(context.Background(), chat1.ChatThreadsStaleArg{
 					Uid:     uid,
-					ConvIDs: threads,
+					Updates: updates,
 				})
 				wg.Done()
 			}()
@@ -642,7 +642,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatThreadsStale(uid, threads)
+		n.listener.ChatThreadsStale(uid, updates)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatThreadsStale notification")
 }

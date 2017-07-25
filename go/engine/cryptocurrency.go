@@ -45,6 +45,9 @@ func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "CryptocurrencyEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "CryptocurrencyEngine")
+
 	defer e.G().Trace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType

@@ -66,6 +66,7 @@ const stylesHeader = {
 }
 const stylesBody = {
   marginBottom: 35,
+  marginTop: 16,
   maxWidth: 560,
   paddingLeft: 15,
   paddingRight: 15,

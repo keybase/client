@@ -27,7 +27,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
+  flexGrow: 1,
 }
 
 const MIN_BANNER_HEIGHT = 40
@@ -60,10 +60,9 @@ const styleBannerText = {
 const styleContentContainer = (isBannerShowing: boolean) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
-  flex: 1,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  ...(isBannerShowing ? {} : {marginTop: MIN_BANNER_HEIGHT}),
+  ...(isBannerShowing ? {marginTop: MIN_BANNER_HEIGHT} : {}),
 })
 
 export default HeaderHoc(StandardScreen)

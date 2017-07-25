@@ -1,5 +1,6 @@
 // @flow
 import chatSaga from '../actions/chat'
+import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
@@ -23,6 +24,7 @@ import type {SagaGenerator} from '../constants/types/saga'
 
 function* mainSaga(): SagaGenerator<any, any> {
   yield fork(chatSaga)
+  yield fork(configSaga)
   yield fork(deviceSaga)
   yield fork(favoriteSaga)
   yield fork(gregorSaga)

@@ -38,7 +38,11 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceAdd) Run() error {
-	var err error
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Starting `device add`...\n\n")
+	dui.Printf("(Please note that you should run `device add` on a computer that is\n")
+	dui.Printf("already registered with Keybase)\n")
+
 	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return err
@@ -51,7 +55,23 @@ func (c *CmdDeviceAdd) Run() error {
 		return err
 	}
 
-	return cli.DeviceAdd(context.TODO(), 0)
+	if err := cli.DeviceAdd(context.TODO(), 0); err != nil {
+		if lsErr, ok := err.(libkb.LoginStateTimeoutError); ok {
+			c.G().Log.Debug("caught a LoginStateTimeoutError in `device add` command: %s", lsErr)
+			c.G().Log.Debug("providing hopefully helpful terminal output...")
+
+			dui.Printf("\n\nSorry, but it looks like there is another login or device provisioning\n")
+			dui.Printf("task currently running.\n\n")
+			dui.Printf("We only run one at a time to ensure the device is provisioned correctly.\n\n")
+			dui.Printf("(Note that this often happens when you run `device add` on a new\n")
+			dui.Printf("computer while it is being provisioned. You need to run it on an\n")
+			dui.Printf("existing computer that is already registered with Keybase.)\n")
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 // ParseArgv gets the secret phrase from the command args.

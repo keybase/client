@@ -1,6 +1,6 @@
 // @flow
 import React, {Component, PureComponent} from 'react'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import {CSSTransitionGroup} from 'react-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
@@ -193,7 +193,7 @@ class ProofsRender extends Component<void, Props, void> {
     `
     return (
       <Box style={{...styleContainer(loading), ...style}}>
-        <ReactCSSTransitionGroup
+        <CSSTransitionGroup
           transitionName="fade-anim"
           transitionEnterTimeout={250}
           transitionLeaveTimeout={250}
@@ -223,7 +223,7 @@ class ProofsRender extends Component<void, Props, void> {
                   ))}
                 {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
               </Box>}
-        </ReactCSSTransitionGroup>
+        </CSSTransitionGroup>
       </Box>
     )
   }

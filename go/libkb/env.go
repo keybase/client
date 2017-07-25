@@ -85,6 +85,7 @@ func (n NullConfiguration) GetMountDir() string                                 
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)                          { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
+func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
 
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -779,6 +780,14 @@ func (e *Env) GetLinkCacheSize() int {
 		e.cmd.GetLinkCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
 		e.config.GetLinkCacheSize,
+	)
+}
+
+func (e *Env) GetLevelDBNumFiles() int {
+	return e.GetInt(LevelDBNumFiles,
+		e.cmd.GetLevelDBNumFiles,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_LEVELDB_NUM_FILES") },
+		e.config.GetLevelDBNumFiles,
 	)
 }
 

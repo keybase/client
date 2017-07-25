@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -28,7 +29,7 @@ type chatListener struct {
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
-	threadsStale   chan []chat1.ConversationID
+	threadsStale   chan []chat1.ConversationStaleUpdate
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 }
@@ -68,9 +69,9 @@ func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 	}
 }
 
-func (n *chatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationID) {
+func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 	select {
-	case n.threadsStale <- cids:
+	case n.threadsStale <- updates:
 	case <-time.After(5 * time.Second):
 		panic("timeout on the threads stale channel")
 	}
@@ -152,7 +153,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	return res
 }
 
-func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, Sender, Sender, *chatListener) {
+func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, types.Sender, types.Sender, *chatListener) {
 	world := NewChatMockWorld(t, "chatsender", numUsers)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -170,7 +171,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		failing:        make(chan []chat1.OutboxRecord),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
 		inboxStale:     make(chan struct{}, 1),
-		threadsStale:   make(chan []chat1.ConversationID, 1),
+		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
 	}
@@ -275,7 +276,7 @@ func TestNonblockTimer(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -390,7 +391,7 @@ func TestNonblockTimer(t *testing.T) {
 type FailingSender struct {
 }
 
-var _ Sender = (*FailingSender)(nil)
+var _ types.Sender = (*FailingSender)(nil)
 
 func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
@@ -398,8 +399,8 @@ func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, error) {
-	return nil, nil, nil, nil
+	membersType chat1.ConversationMembersType, convID *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+	return nil, nil, nil, chat1.ChannelMention_NONE, nil
 }
 
 func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxRecord) {
@@ -650,7 +651,7 @@ func TestDeletionHeaders(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, _, _, err := blockingSender.Prepare(ctx, deletion,
+	preparedDeletion, _, _, _, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 
@@ -688,7 +689,7 @@ func TestAtMentions(t *testing.T) {
 
 	text := fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
 	t.Logf("text: %s", text)
-	_, _, atMentions, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	_, _, atMentions, chanMention, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -701,6 +702,23 @@ func TestAtMentions(t *testing.T) {
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
+	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
+
+	text = "Hello @channel!"
+	_, _, atMentions, chanMention, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: text,
+		}),
+	}, chat1.ConversationMembersType_KBFS, &conv)
+	require.NoError(t, err)
+	require.Zero(t, len(atMentions))
+	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
 
 func TestPrevPointerAddition(t *testing.T) {
@@ -736,7 +754,7 @@ func TestPrevPointerAddition(t *testing.T) {
 	require.NoError(t, err)
 
 	// Prepare a message and make sure it gets prev pointers
-	boxed, pendingAssetDeletes, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+	boxed, pendingAssetDeletes, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      uid,
@@ -841,7 +859,7 @@ func TestDeletionAssets(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{firstMessageID}}),
 	}
-	preparedDeletion, pendingAssetDeletes, _, err := blockingSender.Prepare(ctx, deletion,
+	preparedDeletion, pendingAssetDeletes, _, _, err := blockingSender.Prepare(ctx, deletion,
 		chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 

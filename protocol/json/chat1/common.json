@@ -146,7 +146,8 @@
       "symbols": [
         "ACTIVE_0",
         "REMOVED_1",
-        "LEFT_2"
+        "LEFT_2",
+        "PREVIEW_3"
       ]
     },
     {
@@ -436,6 +437,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgid"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "status"
         }
       ]
     },

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -1757,6 +1758,10 @@ func (e ChatNotInConvError) Error() string {
 	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
 }
 
+func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatNotInTeamError struct {
@@ -1765,6 +1770,10 @@ type ChatNotInTeamError struct {
 
 func (e ChatNotInTeamError) Error() string {
 	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+}
+
+func (e ChatNotInTeamError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
 }
 
 //=============================================================================
@@ -2012,4 +2021,14 @@ type BadSessionError struct {
 
 func (e BadSessionError) Error() string {
 	return fmt.Sprintf("bad session: %s", e.Desc)
+}
+
+type LoginStateTimeoutError struct {
+	ActiveRequest    string
+	AttemptedRequest string
+	Duration         time.Duration
+}
+
+func (e LoginStateTimeoutError) Error() string {
+	return fmt.Sprintf("LoginState request timeout - attempted: %s, active request: %s, duration: %s", e.ActiveRequest, e.AttemptedRequest, e.Duration)
 }

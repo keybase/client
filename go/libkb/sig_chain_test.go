@@ -80,6 +80,9 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"SIGCHAIN_V2_MISMATCHED_HASH": {
 			reflect.TypeOf(SigchainV2MismatchedHashError{}): true,
 		},
+		"WRONG_PER_USER_KEY_REVERSE_SIG": {
+			reflect.TypeOf(ReverseSigError{}): true,
+		},
 	}
 }
 

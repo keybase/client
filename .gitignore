@@ -46,3 +46,5 @@ visdiff/node_modules
 pvl-tools/node_modules
 
 Keybase.app.dSYM.zip
+
+shared/react-native/ios/fastlane

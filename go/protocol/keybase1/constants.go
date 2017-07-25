@@ -85,6 +85,7 @@ const (
 	StatusCode_SCInvalidLocationError     StatusCode = 1802
 	StatusCode_SCServiceStatusError       StatusCode = 1803
 	StatusCode_SCInstallError             StatusCode = 1804
+	StatusCode_SCLoginStateTimeout        StatusCode = 2400
 	StatusCode_SCChatInternal             StatusCode = 2500
 	StatusCode_SCChatRateLimit            StatusCode = 2501
 	StatusCode_SCChatConvExists           StatusCode = 2502
@@ -104,6 +105,9 @@ const (
 	StatusCode_SCChatClientError          StatusCode = 2516
 	StatusCode_SCChatNotInTeam            StatusCode = 2517
 	StatusCode_SCTeamReadError            StatusCode = 2623
+	StatusCode_SCTeamTarDuplicate         StatusCode = 2663
+	StatusCode_SCTeamTarNotFound          StatusCode = 2664
+	StatusCode_SCTeamMemberExists         StatusCode = 2665
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -184,6 +188,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCInvalidLocationError":     1802,
 	"SCServiceStatusError":       1803,
 	"SCInstallError":             1804,
+	"SCLoginStateTimeout":        2400,
 	"SCChatInternal":             2500,
 	"SCChatRateLimit":            2501,
 	"SCChatConvExists":           2502,
@@ -203,6 +208,9 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatClientError":          2516,
 	"SCChatNotInTeam":            2517,
 	"SCTeamReadError":            2623,
+	"SCTeamTarDuplicate":         2663,
+	"SCTeamTarNotFound":          2664,
+	"SCTeamMemberExists":         2665,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -281,6 +289,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1802: "SCInvalidLocationError",
 	1803: "SCServiceStatusError",
 	1804: "SCInstallError",
+	2400: "SCLoginStateTimeout",
 	2500: "SCChatInternal",
 	2501: "SCChatRateLimit",
 	2502: "SCChatConvExists",
@@ -300,6 +309,9 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2516: "SCChatClientError",
 	2517: "SCChatNotInTeam",
 	2623: "SCTeamReadError",
+	2663: "SCTeamTarDuplicate",
+	2664: "SCTeamTarNotFound",
+	2665: "SCTeamMemberExists",
 }
 
 func (e StatusCode) String() string {

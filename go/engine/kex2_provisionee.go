@@ -81,6 +81,9 @@ func (e *Kex2Provisionee) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Kex2Provisionee) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "Kex2Provisionee")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisionee")
+
 	// check device struct:
 	if len(e.device.Type) == 0 {
 		return errors.New("provisionee device requires Type to be set")

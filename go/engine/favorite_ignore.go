@@ -55,9 +55,9 @@ func (e *FavoriteIgnore) Run(ctx *Context) error {
 		Endpoint:    "kbfs/favorite/add",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
-			"private":  libkb.B{Val: e.arg.Folder.Private},
-			"status":   libkb.S{Val: "ignored"},
+			"tlf_name":    libkb.S{Val: e.arg.Folder.Name},
+			"folder_type": libkb.I{Val: int(e.arg.Folder.FolderType)},
+			"status":      libkb.S{Val: "ignored"},
 		},
 	})
 	return err

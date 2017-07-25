@@ -6,6 +6,7 @@ const isMobile = false
 const isAndroid = false
 const isIOS = false
 const isLargeScreen = true
+const isSimulator = false
 
 const isElectron = true
 const isDarwin = process.platform === 'darwin'
@@ -150,6 +151,8 @@ const appVersionName = 'Not Implemented - Mobile only'
 const appVersionCode = 'Not Implemented - Mobile only'
 
 export {
+  appVersionCode,
+  appVersionName,
   cacheRoot,
   dataRoot,
   fileUIName,
@@ -160,13 +163,12 @@ export {
   isLargeScreen,
   isLinux,
   isMobile,
+  isSimulator,
   isWindows,
-  logFileName,
   jsonDebugFileName,
+  logFileName,
+  mobileOsVersion,
   runMode,
   socketPath,
   version,
-  appVersionName,
-  appVersionCode,
-  mobileOsVersion,
 }

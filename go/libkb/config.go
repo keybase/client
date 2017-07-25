@@ -609,6 +609,10 @@ func (f JSONConfigFile) GetLinkCacheCleanDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.clean_duration.links")
 }
 
+func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
+	return f.GetIntAtPath("leveldb.num_files")
+}
+
 func (f JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {
 	n, err := v.Len()
 	if err != nil {

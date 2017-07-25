@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import SubHeading from '../subheading'
-import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
+import {Box, Button, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
@@ -264,21 +264,6 @@ function AccountEmail({
     >
       <Box style={globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Icon
-            type={isVerified ? 'iconfont-check' : 'iconfont-close'}
-            style={{fontSize: 10, color: isVerified ? globalColors.green2 : globalColors.red}}
-          />
-          <Text
-            type="BodySmall"
-            style={{
-              marginLeft: globalMargins.xtiny,
-              color: isVerified ? globalColors.green2 : globalColors.red,
-            }}
-          >
-            {isVerified ? 'Verified' : 'Not verified'}
-          </Text>
-        </Box>
       </Box>
       <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>Edit</Text>
     </Box>

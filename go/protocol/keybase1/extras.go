@@ -665,6 +665,14 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
 
+// Size implements the keybase/kbfs/cache.Measurable interface.
+func (k *KID) Size() int {
+	if k == nil {
+		return 0
+	}
+	return len(*k)
+}
+
 func (s *SigID) UnmarshalJSON(b []byte) error {
 	sigID, err := SigIDFromString(Unquote(b), true)
 	if err != nil {
@@ -1221,7 +1229,7 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
-		return TeamID(""), errors.New("ID is not a team ID")
+		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)
 	}
 	return TeamID(ut), nil
 }
@@ -1501,7 +1509,7 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+			return ret, errors.New("team names must be between 2 and 16 characters long")
 		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
@@ -1706,4 +1714,8 @@ func (t TeamInviteType) String() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (m MemberInfo) TeamName() (TeamName, error) {
+	return TeamNameFromString(m.FqName)
 }

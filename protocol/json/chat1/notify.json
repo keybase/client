@@ -252,6 +252,28 @@
           "name": "typers"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "StaleUpdateType",
+      "symbols": [
+        "CLEAR_0",
+        "NEWACTIVITY_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationStaleUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "StaleUpdateType",
+          "name": "updateType"
+        }
+      ]
     }
   ],
   "messages": {
@@ -344,10 +366,10 @@
           "type": "keybase1.UID"
         },
         {
-          "name": "convIDs",
+          "name": "updates",
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationStaleUpdate"
           }
         }
       ],

@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
@@ -20,4 +21,15 @@ func GetForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name st
 		Name:        name,
 		ForceRepoll: true,
 	})
+}
+
+func createTeamName(t *testing.T, root string, parts ...string) keybase1.TeamName {
+	name, err := keybase1.TeamNameFromString(root)
+	require.NoError(t, err)
+	require.True(t, name.IsRootTeam(), "team name must be root %v", root)
+	for _, part := range parts {
+		name, err = name.Append(part)
+		require.NoError(t, err)
+	}
+	return name
 }

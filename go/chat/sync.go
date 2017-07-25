@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"encoding/hex"
 	"sync"
 	"time"
 
@@ -30,7 +29,7 @@ type Syncer struct {
 	shutdownCh        chan struct{}
 	fullReloadCh      chan gregor1.UID
 	flushCh           chan struct{}
-	notificationQueue map[string][]chat1.ConversationID
+	notificationQueue map[string][]chat1.ConversationStaleUpdate
 	fullReload        map[string]bool
 }
 
@@ -43,7 +42,7 @@ func NewSyncer(g *globals.Context) *Syncer {
 		shutdownCh:        make(chan struct{}),
 		fullReloadCh:      make(chan gregor1.UID),
 		flushCh:           make(chan struct{}),
-		notificationQueue: make(map[string][]chat1.ConversationID),
+		notificationQueue: make(map[string][]chat1.ConversationStaleUpdate),
 		fullReload:        make(map[string]bool),
 		sendDelay:         time.Millisecond * 1000,
 	}
@@ -61,14 +60,22 @@ func (s *Syncer) Shutdown() {
 	close(s.shutdownCh)
 }
 
-func (s *Syncer) dedupConvIDs(convIDs []chat1.ConversationID) (res []chat1.ConversationID) {
-	m := make(map[string]bool)
-	for _, convID := range convIDs {
-		m[convID.String()] = true
+func (s *Syncer) dedupUpdates(updates []chat1.ConversationStaleUpdate) (res []chat1.ConversationStaleUpdate) {
+	m := make(map[string]chat1.ConversationStaleUpdate)
+	for _, update := range updates {
+		if existing, ok := m[update.ConvID.String()]; ok {
+			switch existing.UpdateType {
+			case chat1.StaleUpdateType_CLEAR:
+				// do nothing, existing is already clearing
+			case chat1.StaleUpdateType_NEWACTIVITY:
+				m[update.ConvID.String()] = update
+			}
+		} else {
+			m[update.ConvID.String()] = update
+		}
 	}
-	for hexConvID := range m {
-		convID, _ := hex.DecodeString(hexConvID)
-		res = append(res, convID)
+	for _, update := range m {
+		res = append(res, update)
 	}
 	return res
 }
@@ -90,15 +97,16 @@ func (s *Syncer) sendNotificationsOnce() {
 		s.fullReload = make(map[string]bool)
 
 		// Broadcast conversation stales
-		for uid, convIDs := range s.notificationQueue {
-			convIDs = s.dedupConvIDs(convIDs)
-			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(convIDs))
-			for _, convID := range convIDs {
-				s.Debug(context.Background(), "flushing: uid: %s convID: %s", uid, convID)
+		for uid, updates := range s.notificationQueue {
+			updates = s.dedupUpdates(updates)
+			s.Debug(context.Background(), "flushing notifications: uid: %s len: %d", uid, len(updates))
+			for _, update := range updates {
+				s.Debug(context.Background(), "flushing: uid: %s convID: %s type: %v", uid,
+					update.ConvID, update.UpdateType)
 			}
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), convIDs)
+			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), updates)
 		}
-		s.notificationQueue = make(map[string][]chat1.ConversationID)
+		s.notificationQueue = make(map[string][]chat1.ConversationStaleUpdate)
 	}
 }
 
@@ -129,26 +137,30 @@ func (s *Syncer) sendNotificationLoop() {
 
 }
 
-func (s *Syncer) getConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
+func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {
 	for _, conv := range convs {
-		res = append(res, conv.GetConvID())
+		res = append(res, chat1.ConversationStaleUpdate{
+			ConvID:     conv.GetConvID(),
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		})
 	}
 	return res
 }
 
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
-	convIDs []chat1.ConversationID, immediate bool) {
-	if len(convIDs) == 0 {
+	updates []chat1.ConversationStaleUpdate, immediate bool) {
+	if len(updates) == 0 {
 		s.Debug(ctx, "sending inbox stale message")
 		s.fullReloadCh <- uid
 	} else {
-		s.Debug(ctx, "sending thread stale messages: len: %d", len(convIDs))
-		for _, convID := range convIDs {
-			s.Debug(ctx, "sending thread stale message: convID: %s", convID)
+		s.Debug(ctx, "sending thread stale messages: len: %d", len(updates))
+		for _, update := range updates {
+			s.Debug(ctx, "sending thread stale message: convID: %s type: %v", update.ConvID,
+				update.UpdateType)
 		}
 		s.notificationLock.Lock()
 		if !s.fullReload[uid.String()] {
-			s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], convIDs...)
+			s.notificationQueue[uid.String()] = append(s.notificationQueue[uid.String()], updates...)
 		}
 		s.notificationLock.Unlock()
 		if immediate {
@@ -283,11 +295,11 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.SendChatStaleNotifications(ctx, uid, nil, true)
 		} else {
 			// Send notifications for a successful partial sync
-			s.SendChatStaleNotifications(ctx, uid, s.getConvIDs(incr.Convs), true)
+			s.SendChatStaleNotifications(ctx, uid, s.getUpdates(incr.Convs), true)
 		}
 
 		// Queue background conversation loads
-		for _, convID := range s.getConvIDs(incr.Convs) {
+		for _, convID := range utils.PluckConvIDs(incr.Convs) {
 			if err := s.G().ConvLoader.Queue(ctx, convID); err != nil {
 				s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 			}

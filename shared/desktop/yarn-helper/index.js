@@ -103,7 +103,7 @@ function main() {
   }
 
   if (info.code) {
-    info.code()
+    info.code(info, exec)
   }
 }
 

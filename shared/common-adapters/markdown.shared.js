@@ -9,6 +9,13 @@ import type {MarkdownCreateComponent} from './markdown'
 
 function processAST(ast, createComponent) {
   const stack = [ast]
+  if (
+    ast.children.length === 1 &&
+    ast.children[0].type === 'text-block' &&
+    ast.children[0].children.every(child => child.type === 'emoji' || child.type === 'native-emoji')
+  ) {
+    ast.children[0].children.forEach(child => (child.bigEmoji = true))
+  }
 
   let index = 0
   while (stack.length > 0) {

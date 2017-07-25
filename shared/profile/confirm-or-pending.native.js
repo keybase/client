@@ -11,12 +11,11 @@ const Render = (props: Props) => {
   const {platformIconOverlay, usernameSubtitle, message, messageSubtitle} = propsForPlatform(props)
 
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    <Box style={globalStyles.flexBoxColumn}>
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
-          paddingTop: globalMargins.xlarge,
           paddingBottom: globalMargins.medium,
           paddingLeft: globalMargins.medium,
           paddingRight: globalMargins.medium,

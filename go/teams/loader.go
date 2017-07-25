@@ -99,6 +99,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		l.G().Log.CDebugf(ctx, "TeamLoader munge failed: %v", err)
 		// drop the error and just force a repoll.
 		mungedForceRepoll = true
+		mungedWantMembers = nil
 	}
 
 	var ret *keybase1.TeamData
@@ -136,8 +137,8 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// because the cache is keyed by ID.
 	if teamName != nil {
 		// (TODO: this won't work for renamed level 3 teams or above. There's work on this in miles/teamloader-names)
-		if !teamName.Eq(ret.Chain.Name) {
-			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name.String(), teamName.String())
+		if !teamName.Eq(ret.Name) {
+			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Name, teamName.String())
 		}
 	}
 
@@ -145,9 +146,14 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
-	// TODO: stricter check on team ID format.
 	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
+	if hasID {
+		_, err := keybase1.TeamIDFromString(lArg.ID.String())
+		if err != nil {
+			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+		}
+	}
 	if !hasID && !hasName {
 		return fmt.Errorf("team load arg must have either ID or Name")
 	}
@@ -239,8 +245,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 
 	var cachedName *keybase1.TeamName
-	if ret != nil {
-		cachedName = &ret.Chain.Name
+	if ret != nil && !ret.Name.IsNil() {
+		cachedName = &ret.Name
 	}
 
 	// Throw out the cache result if it is secretless and this is not a recursive load
@@ -330,7 +336,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		var signer *keybase1.UserVersion
-		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, readSubteamID, proofSet)
+		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -392,18 +398,18 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		return nil, fmt.Errorf("team id mismatch: %v != %v", ret.Chain.Id.String(), arg.teamID.String())
 	}
 
-	// Recalculate the team name. This is only dealing with ancestor renames, chain.go has already
-	// handled on-chain renames
-	newName, err := l.recalculateName(ctx, ret, arg.me, arg.staleOK)
-	if !ret.Chain.Name.Eq(newName) {
-		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
-		ret := ret.DeepCopy()
-		ret.Chain.Name = newName
+	// Recalculate the team name.
+	// This must always run to pick up changes in chain and off-chain with ancestor renames.
+	// Also because without this a subteam could claim any parent in its name.
+	newName, err := l.calculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
+	if err != nil {
+		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Name, err)
 	}
-	// Check that the name matches the subteam-ness
-	chain := TeamSigChainState{inner: ret.Chain}
-	if chain.IsSubteam() == chain.inner.Name.IsRootTeam() {
-		return nil, fmt.Errorf("team name subteam-ness is wrong: %v", chain.inner.Name.String())
+	if !ret.Name.Eq(newName) {
+		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
+		copy := ret.DeepCopy()
+		ret = &copy
+		ret.Name = newName
 	}
 
 	// Cache the validated result
@@ -413,6 +419,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	l.storage.Put(ctx, ret)
 
 	if cachedName != nil && !cachedName.Eq(newName) {
+		chain := TeamSigChainState{inner: ret.Chain}
 		// Send a notification if we used to have the name cached and it has changed at all.
 		go l.G().NotifyRouter.HandleTeamChanged(context.Background(), chain.GetID(), newName.String(), chain.GetLatestSeqno(),
 			keybase1.TeamChangeSet{
@@ -678,7 +685,7 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 	if err != nil {
 		return err
 	}
-	gotName := TeamSigChainState{inner: teamData.Chain}.GetName()
+	gotName := teamData.Name
 	if !gotName.Eq(name) {
 		return NewResolveError(name, id)
 	}

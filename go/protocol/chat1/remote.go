@@ -294,6 +294,35 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 	}
 }
 
+type ChannelMention int
+
+const (
+	ChannelMention_NONE ChannelMention = 0
+	ChannelMention_ALL  ChannelMention = 1
+	ChannelMention_HERE ChannelMention = 2
+)
+
+func (o ChannelMention) DeepCopy() ChannelMention { return o }
+
+var ChannelMentionMap = map[string]ChannelMention{
+	"NONE": 0,
+	"ALL":  1,
+	"HERE": 2,
+}
+
+var ChannelMentionRevMap = map[ChannelMention]string{
+	0: "NONE",
+	1: "ALL",
+	2: "HERE",
+}
+
+func (e ChannelMention) String() string {
+	if v, ok := ChannelMentionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UnreadUpdateFull struct {
 	Ignore    bool           `codec:"ignore" json:"ignore"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -712,6 +741,7 @@ type PostRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
 	AtMentions     []gregor1.UID  `codec:"atMentions" json:"atMentions"`
+	ChannelMention ChannelMention `codec:"channelMention" json:"channelMention"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
@@ -726,6 +756,7 @@ func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 			}
 			return ret
 		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
 	}
 }
 
