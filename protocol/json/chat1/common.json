@@ -91,7 +91,9 @@
         "METADATA_5",
         "TLFNAME_6",
         "HEADLINE_7",
-        "ATTACHMENTUPLOADED_8"
+        "ATTACHMENTUPLOADED_8",
+        "JOIN_9",
+        "LEAVE_10"
       ],
       "go": "nostring"
     },
