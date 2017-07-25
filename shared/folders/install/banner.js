@@ -59,9 +59,9 @@ const stylesContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.blue,
-  flex: 1,
+  height: 56,
   justifyContent: 'center',
-  minHeight: 52,
+  minHeight: 56,
 }
 
 const mapStateToProps = (state: TypedState) => {

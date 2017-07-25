@@ -151,15 +151,22 @@ export default function(
     case 'fs:installFuseResult':
       const result = action.payload.result
       const fuseResults = result.componentResults.filter(c => c.name === 'fuse')
-      const kextPermissionError = fuseResults.length > 0 && fuseResults[0].exitCode === 3
-      console.warn('result:', result)
-      console.warn('kextPermissionError:', kextPermissionError)
+      const kextPermissionError = fuseResults.length > 0 // && fuseResults[0].exitCode === 3
       return {
         ...state,
         fuseInstall: {
           installing: false,
           kextPermissionError,
           result: action.payload.result,
+        },
+      }
+    case 'fs:clearFuseInstall':
+      return {
+        ...state,
+        fuseInstall: {
+          installing: false,
+          kextPermissionError: false,
+          result: null,
         },
       }
     case 'fs:installKBFS':
