@@ -735,6 +735,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-phone-text-code-32.png'),
   },
+  'icon-phone-text-code-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-phone-text-code-48.png'),
+  },
   'icon-placeholder-avatar-112': {
     isFont: false,
     extension: 'png',
