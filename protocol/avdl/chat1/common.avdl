@@ -30,7 +30,9 @@ protocol common {
     METADATA_5,
     TLFNAME_6, // Only used as the very first message in conversations whose topic name is not set when created
     HEADLINE_7,
-    ATTACHMENTUPLOADED_8  // sent after upload completes to modify ATTACHMENT message
+    ATTACHMENTUPLOADED_8,  // sent after upload completes to modify ATTACHMENT message
+    JOIN_9, // sent when joining a channel
+    LEAVE_10
   }
 
   @go("nostring")

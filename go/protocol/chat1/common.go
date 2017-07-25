@@ -135,6 +135,8 @@ const (
 	MessageType_TLFNAME            MessageType = 6
 	MessageType_HEADLINE           MessageType = 7
 	MessageType_ATTACHMENTUPLOADED MessageType = 8
+	MessageType_JOIN               MessageType = 9
+	MessageType_LEAVE              MessageType = 10
 )
 
 func (o MessageType) DeepCopy() MessageType { return o }
@@ -149,18 +151,22 @@ var MessageTypeMap = map[string]MessageType{
 	"TLFNAME":            6,
 	"HEADLINE":           7,
 	"ATTACHMENTUPLOADED": 8,
+	"JOIN":               9,
+	"LEAVE":              10,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
-	0: "NONE",
-	1: "TEXT",
-	2: "ATTACHMENT",
-	3: "EDIT",
-	4: "DELETE",
-	5: "METADATA",
-	6: "TLFNAME",
-	7: "HEADLINE",
-	8: "ATTACHMENTUPLOADED",
+	0:  "NONE",
+	1:  "TEXT",
+	2:  "ATTACHMENT",
+	3:  "EDIT",
+	4:  "DELETE",
+	5:  "METADATA",
+	6:  "TLFNAME",
+	7:  "HEADLINE",
+	8:  "ATTACHMENTUPLOADED",
+	9:  "JOIN",
+	10: "LEAVE",
 }
 
 type TopicType int
