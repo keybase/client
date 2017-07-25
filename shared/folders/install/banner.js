@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {fuseStatus, installFuse} from '../../actions/kbfs'
 
@@ -44,8 +44,9 @@ class InstallBanner extends Component<void, Props, void> {
           <br />
           <Text
             type="BodySemiboldLink"
-            style={{color: globalColors.white, textDecoration: 'underline'}}
+            style={{color: globalColors.white}}
             onClick={this._onSubmit}
+            underline={true}
           >
             Display in Finder
           </Text>
@@ -62,6 +63,8 @@ const stylesContainer = {
   height: 56,
   justifyContent: 'center',
   minHeight: 56,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const mapStateToProps = (state: TypedState) => {
