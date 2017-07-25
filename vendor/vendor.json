@@ -100,10 +100,10 @@
 			"revisionTime": "2017-04-21T00:56:42Z"
 		},
 		{
-			"checksumSHA1": "JSHl8b3nI8EWvzm+uyrIqj2Hiu4=",
+			"checksumSHA1": "M3BUApw7nNipzKvYbHSpxqE04FY=",
 			"path": "github.com/golang/mock/gomock",
-			"revision": "bd3c8e81be01eef76d4b503f5e687d2d1354d2d9",
-			"revisionTime": "2016-01-21T18:51:14Z"
+			"revision": "13f360950a79f5864a972c786a10a50e44b69541",
+			"revisionTime": "2017-07-22T14:45:13Z"
 		},
 		{
 			"checksumSHA1": "UsY6N958JNjS0qzLTAtER7+tVPY=",

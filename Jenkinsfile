@@ -67,13 +67,15 @@ helpers.rootLinuxNode(env, {
                 parallel (
                     checkout: {
                         checkout scm
+                        env.AUTHOR_NAME = sh(returnStdout: true, script: 'git --no-pager show -s --format="%an" HEAD').trim()
+                        env.AUTHOR_EMAIL = sh(returnStdout: true, script: 'git --no-pager show -s --format="%ae" HEAD').trim()
+                        // We need the revision to be baked into the docker
+                        // image so we can debug downstream builds, so we make
+                        // it a file instead of using `returnStdout`.
                         sh 'echo -n $(git rev-parse HEAD) > kbfsfuse/revision'
                         env.COMMIT_HASH = readFile('kbfsfuse/revision')
-                        sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                        sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                        env.AUTHOR_NAME = readFile('.author_name')
-                        env.AUTHOR_EMAIL = readFile('.author_email')
-                        sh 'rm .author_name .author_email'
+                        sh 'git add kbfsfuse/revision'
+                        sh "git -c user.name='Jenkins' -c user.email='ci@keyba.se' commit -m 'revision'"
                     },
                     pull_kbclient: {
                         if (cause == "upstream" && clientProjectName != '') {
@@ -229,10 +231,6 @@ helpers.rootLinuxNode(env, {
 }
 
 def runNixTest(prefix) {
-    // Dependencies
-    dir('test') {
-        sh 'go test -i -tags fuse'
-    }
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -249,6 +247,20 @@ def runNixTest(prefix) {
         '''
         sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
     }
+    tests[prefix+'gen_mocks'] = {
+        dir('libkbfs') {
+            // Make sure our mock library is up to date.
+            sh 'go get -u github.com/golang/mock/gomock github.com/golang/mock/mockgen'
+            sh './gen_mocks.sh'
+            sh 'git diff --exit-code'
+        }
+    }
+    parallel (tests)
+    // Dependencies
+    dir('test') {
+        sh 'go test -i -tags fuse'
+    }
+    tests = [:]
     tests[prefix+'install'] = {
         sh 'go install github.com/keybase/kbfs/...'
     }
