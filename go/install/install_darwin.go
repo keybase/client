@@ -822,30 +822,6 @@ func installEtcPaths(runMode libkb.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--install-etc-paths"}, runMode, log)
 }
 
-// LoadFuseKext loads the Fuse kext
-func LoadFuseKext(log Log) keybase1.Status {
-	cmd := "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse"
-	if _, err := os.Stat(cmd); os.IsNotExist(err) {
-		if err != nil {
-			return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())
-		}
-	}
-	if err := exec.Command(cmd).Run(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			ws := exitError.Sys().(syscall.WaitStatus)
-			exitCode := ws.ExitStatus()
-			switch exitCode {
-			case 1:
-				return keybase1.StatusFromCode(keybase1.StatusCode_SCLoadKextPermError, "Permission error loading Fuse kext")
-			case 2:
-				return keybase1.StatusFromCode(keybase1.StatusCode_SCLoadKextError, "Unable to load Fuse kext")
-			}
-		}
-		return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())
-	}
-	return keybase1.StatusOK("")
-}
-
 func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {
 	appPath, err := AppBundleForPath()
 	if err != nil {

@@ -1464,21 +1464,6 @@ export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function installLoadFuseKextRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>) {
-  engineRpcOutgoing('keybase.1.install.loadFuseKext', request)
-}
-
-export function installLoadFuseKextRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.loadFuseKext', request)
-}
-export function installLoadFuseKextRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.loadFuseKext', request, callback, incomingCallMap) })
-}
-
-export function installLoadFuseKextRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installLoadFuseKextResult) => void}>): Promise<installLoadFuseKextResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.loadFuseKext', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function installUninstallKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>) {
   engineRpcOutgoing('keybase.1.install.uninstallKBFS', request)
 }
@@ -6044,7 +6029,6 @@ type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
 type installInstallFuseResult = InstallResult
 type installInstallKBFSResult = InstallResult
-type installLoadFuseKextResult = Status
 type installUninstallKBFSResult = UninstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
@@ -6244,7 +6228,6 @@ export type rpc =
   | installFuseStatusRpc
   | installInstallFuseRpc
   | installInstallKBFSRpc
-  | installLoadFuseKextRpc
   | installUninstallKBFSRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc

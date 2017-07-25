@@ -88,11 +88,6 @@ protocol install {
   InstallResult installFuse();
 
   /*
-    Load Fuse kext.
-   */
-  Status loadFuseKext();
-
-  /*
     Install KBFS (including mount).
    */
   InstallResult installKBFS();
