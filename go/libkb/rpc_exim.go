@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -561,6 +562,22 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return ret
+	case SCLoginStateTimeout:
+		var e LoginStateTimeoutError
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "ActiveRequest":
+				e.ActiveRequest = field.Value
+			case "AttemptedRequest":
+				e.AttemptedRequest = field.Value
+			case "Duration":
+				dur, err := time.ParseDuration(field.Value)
+				if err == nil {
+					e.Duration = dur
+				}
+			}
+		}
+		return e
 
 	default:
 		ase := AppStatusError{
@@ -1959,6 +1976,19 @@ func (e AccountResetError) ToStatus() keybase1.Status {
 			{Key: "e_uid", Value: string(e.expected.Uid)},
 			{Key: "e_version", Value: fmt.Sprintf("%d", e.expected.EldestSeqno)},
 			{Key: "r_version", Value: fmt.Sprintf("%d", e.received)},
+		},
+	}
+}
+
+func (e LoginStateTimeoutError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCLoginStateTimeout,
+		Name: "LOGIN_STATE_TIMEOUT",
+		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "ActiveRequest", Value: e.ActiveRequest},
+			{Key: "AttemptedRequest", Value: e.AttemptedRequest},
+			{Key: "Duration", Value: e.Duration.String()},
 		},
 	}
 }

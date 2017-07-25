@@ -116,20 +116,11 @@ func (c *CmdTeamListMemberships) Run() error {
 		return err
 	}
 
-	if c.showAll {
-		return c.runAll(cli)
-	}
 	if c.team != "" {
 		return c.runGet(cli)
 	}
 
 	return c.runUser(cli)
-}
-
-func (c *CmdTeamListMemberships) runAll(cli keybase1.TeamsClient) error {
-	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("--all flag not implemented yet\n")
-	return nil
 }
 
 func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
@@ -142,7 +133,8 @@ func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
 }
 
 func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
-	list, err := cli.TeamList(context.Background(), keybase1.TeamListArg{UserAssertion: c.userAssertion})
+	arg := keybase1.TeamListArg{UserAssertion: c.userAssertion, All: c.showAll}
+	list, err := cli.TeamList(context.Background(), arg)
 	if err != nil {
 		return err
 	}
@@ -163,7 +155,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 
 	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	for _, t := range list.Teams {
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), list.Username, list.FullName)
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), t.Username, t.FullName)
 	}
 
 	c.tabw.Flush()

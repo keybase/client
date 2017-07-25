@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConvListOrSearch from './conversation-list-or-search'
+import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
@@ -32,7 +32,7 @@ const conversationRoute = new RouteDefNode({
       children: {
         showBlockConversationDialog: {
           component: BlockConversationWarning,
-          tags: {layerOnTop: true},
+          tags: {hideStatusBar: true},
           children: {},
         },
       },

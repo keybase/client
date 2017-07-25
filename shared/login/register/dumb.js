@@ -45,6 +45,7 @@ const mockDevices = [
 }))
 
 const selectOtherMock = {
+  canSelectNoDevice: true,
   devices: mockDevices,
   onSelect: log('onSelect'),
   onWont: log('onWont'),
@@ -55,6 +56,10 @@ const selectOtherDeviceMap: DumbComponentMap<SelectOtherDevice> = {
   component: SelectOtherDevice,
   mocks: {
     Normal: selectOtherMock,
+    NoUserPassLogin: {
+      ...selectOtherMock,
+      canSelectNoDevice: false,
+    },
   },
 }
 

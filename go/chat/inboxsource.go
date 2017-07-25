@@ -1175,18 +1175,3 @@ func NewInboxSource(g *globals.Context, typ string, ri func() chat1.RemoteInterf
 		return remoteInbox
 	}
 }
-
-func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, *chat1.RateLimit, error) {
-
-	inbox, ratelim, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
-	}
-	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, ratelim, fmt.Errorf("GetUnverifiedConv: conversation not found: %s", convID)
-	}
-	return inbox.ConvsUnverified[0], ratelim, nil
-}

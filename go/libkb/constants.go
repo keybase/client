@@ -257,6 +257,7 @@ const (
 	SCTeamTarDuplicate         = int(keybase1.StatusCode_SCTeamTarDuplicate)
 	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
 	SCTeamMemberExists         = int(keybase1.StatusCode_SCTeamMemberExists)
+	SCLoginStateTimeout        = int(keybase1.StatusCode_SCLoginStateTimeout)
 )
 
 const (

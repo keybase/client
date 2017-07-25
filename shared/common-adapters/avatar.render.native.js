@@ -147,7 +147,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     return (
       <ClickableBox onClick={onClick} feedback={false}>
         <Box style={boxStyle(size, style)}>
-          {skipBackground &&
+          {!skipBackground &&
             <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />}
           {!!url && <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
           {!!borderColor && <Border borderColor={borderColor} size={size} />}

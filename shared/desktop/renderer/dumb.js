@@ -3,10 +3,7 @@ import './style.css'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import injectTapEventPlugin from 'react-tap-event-plugin'
 import {AppContainer} from 'react-hot-loader'
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
-import materialTheme from '../../styles/material-theme.desktop'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
 
 module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
@@ -44,26 +41,15 @@ function render() {
   const DumbSheet = require('../../dev/dumb-sheet/render.desktop').default
   ReactDOM.render(
     <AppContainer>
-      <MuiThemeProvider muiTheme={materialTheme}>
-        <GlobalEscapeHandler>
-          <Wrapper DumbSheet={DumbSheet} />
-        </GlobalEscapeHandler>
-      </MuiThemeProvider>
+      <GlobalEscapeHandler>
+        <Wrapper DumbSheet={DumbSheet} />
+      </GlobalEscapeHandler>
     </AppContainer>,
     document.getElementById('root')
   )
 }
 
 function load() {
-  // Used by material-ui widgets.
-  if (module.hot) {
-    // Don't reload this thing if we're hot reloading
-    if (module.hot.data === undefined) {
-      injectTapEventPlugin()
-    }
-  } else {
-    injectTapEventPlugin()
-  }
   render()
 }
 

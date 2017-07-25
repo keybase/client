@@ -59,6 +59,7 @@ export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
   left: 2,
+  preview: 3,
 }
 
 export const CommonConversationMembersType = {
@@ -1241,6 +1242,7 @@ export type ConversationMemberStatus =
     0 // ACTIVE_0
   | 1 // REMOVED_1
   | 2 // LEFT_2
+  | 3 // PREVIEW_3
 
 export type ConversationMembersType =
     0 // KBFS_0
@@ -1269,6 +1271,7 @@ export type ConversationReaderInfo = {
   mtime: gregor1.Time,
   readMsgid: MessageID,
   maxMsgid: MessageID,
+  status: ConversationMemberStatus,
 }
 
 export type ConversationResolveInfo = {

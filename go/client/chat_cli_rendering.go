@@ -72,7 +72,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 type conversationListView []chat1.ConversationLocal
 
 func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.ConversationLocal) string {
-	return fmt.Sprintf("%s [%s]", conv.Info.TlfName, conv.Info.TopicName)
+	return fmt.Sprintf("%s [#%s]", conv.Info.TlfName, conv.Info.TopicName)
 }
 
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
