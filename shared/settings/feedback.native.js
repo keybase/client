@@ -31,7 +31,7 @@ class Feedback extends Component<void, Props, void> {
   render() {
     const {showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending} = this.props
     return (
-      <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}} ref={this._setScrollRef}>
+      <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
         {showSuccessBanner &&
           <Box
             style={{

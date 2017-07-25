@@ -32,8 +32,10 @@ build() {
 package() {
   if [ "$CARCH" = "i686" ] ; then
     deb_arch="i386"
+    export KEYBASE_SKIP_64_BIT=1
   elif [ "$CARCH" = "x86_64" ] ; then
     deb_arch="amd64"
+    export KEYBASE_SKIP_32_BIT=1
   else
     echo "Unknown arch: $CARCH"
     exit 1
