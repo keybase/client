@@ -38,6 +38,7 @@ export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 
 type State = {
+  searchHovered: boolean,
   foldersExpanded: boolean,
   proofMenuIndex: ?number,
   popupMenuPosition: {
@@ -58,6 +59,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
     this._scrollContainer = null
 
     this.state = {
+      searchHovered: false,
       foldersExpanded: false,
       proofMenuIndex: null,
       popupMenuPosition: {},
@@ -271,7 +273,12 @@ class ProfileRender extends PureComponent<void, Props, State> {
               iconStyle={{color: globalColors.white}}
             />}
           {featureFlags.searchv3Enabled &&
-            <Box onClick={this.props.onSearch} style={styleSearchContainer}>
+            <Box
+              onClick={this.props.onSearch}
+              onMouseEnter={() => this.setState({searchHovered: true})}
+              onMouseLeave={() => this.setState({searchHovered: false})}
+              style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
+            >
               <Icon style={styleSearch} type="iconfont-search" />
               <Text style={styleSearchText} type="Body">Search people</Text>
             </Box>}
@@ -428,7 +435,7 @@ const styleProofNoticeBox = {
   alignItems: 'center',
   justifyContent: 'center',
   textAlign: 'center',
-  zIndex: 11,
+  zIndex: 9,
 }
 
 // header + small space from top of header + tiny space to pad top of first item
@@ -465,6 +472,7 @@ const styleProofMenu = {
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxRow,
+  ...globalStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
   backgroundColor: globalColors.white_20,
@@ -484,7 +492,6 @@ const styleSearch = {
 }
 
 const styleSearchText = {
-  ...globalStyles.selectable,
   ...styleSearch,
   position: 'relative',
   top: -1,

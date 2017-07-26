@@ -1140,7 +1140,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
 		}
 
-		additions, cancelations, err := t.sanityCheckInvites(*team.Invites)
+		additions, cancelations, err := t.sanityCheckInvites(signer, *team.Invites)
 		if err != nil {
 			return res, err
 		}
@@ -1218,7 +1218,7 @@ func (t *TeamSigChainPlayer) inflateLinkHelper(
 //  - that the invite type parses into proper TeamInviteType, or that it's an unknown
 //    invite that we're OK to not act upon.
 // Returns nicely formatted data structures.
-func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
+func (t *TeamSigChainPlayer) sanityCheckInvites(signer keybase1.UserVersion, invites SCTeamInvites) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
 
 	type assignment struct {
 		i    SCTeamInvite
@@ -1271,7 +1271,7 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(invites SCTeamInvites) (addition
 	}
 
 	for _, invite := range all {
-		res, err := invite.i.TeamInvite(t.G(), invite.role)
+		res, err := invite.i.TeamInvite(t.G(), invite.role, signer)
 		if err != nil {
 			return nil, nil, err
 		}

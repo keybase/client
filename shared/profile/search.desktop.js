@@ -10,7 +10,7 @@ import type {Props} from './search'
 
 const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
-    <Box style={styleSearchContainer}>
+    <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
           <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
@@ -29,7 +29,9 @@ const Search = (props: Props) => (
               onCancel={props.onClose}
             />
           </Box>
-          <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          <Box style={{marginTop: globalMargins.small}}>
+            <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          </Box>
         </Box>
       </Box>
       {props.showServiceFilter &&
@@ -40,7 +42,7 @@ const Search = (props: Props) => (
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
         {props.showSearchPending
           ? <Box style={styleSpinner}>
-              <ProgressIndicator style={{width: globalMargins.xlarge}} />
+              <ProgressIndicator style={{width: globalMargins.large}} />
             </Box>
           : <ResultsList
               items={props.searchResultIds}
@@ -60,7 +62,7 @@ const styleCatcher = {
   height: '100%',
   position: 'absolute',
   width: '100%',
-  zIndex: 10,
+  zIndex: 20,
 }
 
 const styleSearchContainer = {
@@ -93,8 +95,9 @@ const styleServiceRow = {
 }
 
 const styleSpinner = {
+  alignSelf: 'center',
   height: 256,
-  paddingTop: globalMargins.small,
+  marginTop: globalMargins.small,
 }
 
 export default Search

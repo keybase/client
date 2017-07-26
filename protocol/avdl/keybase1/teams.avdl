@@ -86,6 +86,7 @@ protocol teams {
   record TeamDetails {
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
+    map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
   }
 
   record TeamChangeReq {
@@ -157,6 +158,17 @@ protocol teams {
     TeamInviteID id;
     TeamInviteType type;
     TeamInviteName name;
+    UserVersion inviter;
+  }
+
+  record AnnotatedTeamInvite {
+    TeamRole role;
+    TeamInviteID id;
+    TeamInviteType type;
+    TeamInviteName name;
+    UserVersion inviter;
+    string inviterUsername;
+    string teamName;
   }
 
   // State of a parsed team sigchain.
@@ -354,6 +366,7 @@ protocol teams {
 
   record AnnotatedTeamList {
       array<AnnotatedMemberInfo> teams;
+      map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
   }
 
   record TeamAddMemberResult {
