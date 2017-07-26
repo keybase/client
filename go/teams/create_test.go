@@ -91,6 +91,10 @@ func TestCreateSubteam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, subteamFQName, subteam.Name())
 	require.Equal(t, keybase1.Seqno(1), subteam.chain().GetLatestSeqno())
+
+	// current behavior of this package is to make the creator the admin, so
+	// make sure that is the case until we change it
+	assertRole(tc, subteamFQName.String(), u.Username, keybase1.TeamRole_ADMIN)
 }
 
 func TestCreateSubSubteam(t *testing.T) {
@@ -111,7 +115,18 @@ func TestCreateSubSubteam(t *testing.T) {
 	subteamName, err := parentTeamName.Append(subteamBasename)
 	require.NoError(t, err)
 
+	// current behavior of this package is to make the creator the admin, so
+	// make sure that is the case until we change it
+	assertRole(tc, subteamName.String(), u.Username, keybase1.TeamRole_ADMIN)
+
 	subsubteamBasename := "ccc"
 	_, err = CreateSubteam(context.TODO(), tc.G, subsubteamBasename, subteamName)
 	require.NoError(t, err)
+
+	subsubteamName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+
+	// current behavior of this package is to make the creator the admin, so
+	// make sure that is the case until we change it
+	assertRole(tc, subsubteamName.String(), u.Username, keybase1.TeamRole_ADMIN)
 }
