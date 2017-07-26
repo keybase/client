@@ -91,6 +91,8 @@ func TestCreateSubteam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, subteamFQName, subteam.Name())
 	require.Equal(t, keybase1.Seqno(1), subteam.chain().GetLatestSeqno())
+
+	assertRole(tc, subteamFQName.String(), u.Username, keybase1.TeamRole_OWNER)
 }
 
 func TestCreateSubSubteam(t *testing.T) {
