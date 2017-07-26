@@ -716,7 +716,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		err = uninstallCommandLinePrivileged(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
 		if err != nil {
-			log.Errorf("Error uninstalling command line (privileged)", err)
+			log.Errorf("Error uninstalling command line (privileged): %s", err)
 		}
 	}
 
