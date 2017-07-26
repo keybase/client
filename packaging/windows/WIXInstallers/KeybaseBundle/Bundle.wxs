@@ -11,6 +11,8 @@
 
     <Variable Name="driver" bal:Overridable="yes" />
     
+    <Variable Name="modifyprompt" bal:Overridable="yes" Value="Modify Setup" />
+    
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
     <util:RegistrySearchRef Id='InnoCLIUninstall' />
