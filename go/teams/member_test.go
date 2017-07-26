@@ -370,6 +370,34 @@ func TestMemberAddEmail(t *testing.T) {
 
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List --all does not list invite.")
+	}
+
+	details, err := Details(context.TODO(), tc.G, name, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found = false
+	for _, invite := range details.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List team does not list invite.")
+	}
 }
 
 func TestLeave(t *testing.T) {
