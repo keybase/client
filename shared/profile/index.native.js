@@ -9,6 +9,7 @@ import moment from 'moment'
 import {
   BackButton,
   Box,
+  ClickableBox,
   Icon,
   PlatformIcon,
   PopupMenu,
@@ -214,10 +215,10 @@ class Profile extends Component<void, Props, State> {
               iconStyle={{color: globalColors.white}}
             />}
           {featureFlags.searchv3Enabled &&
-            <Box onClick={this.props.onSearch} style={styleSearchContainer}>
-              <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
-              <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
-            </Box>}
+            <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
+              <Icon style={styleSearch} type="iconfont-search" />
+              <Text style={styleSearchText} type="Body">Search people</Text>
+            </ClickableBox>}
         </Box>
         <Box style={globalStyles.flexGrow}>
           <Box style={globalStyles.fillAbsolute}>
