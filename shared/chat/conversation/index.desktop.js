@@ -1,7 +1,7 @@
 // @flow
 import Banner from './banner/container'
 import HeaderOrSearchHeader from './header-or-search-header'
-import SearchResultsList from '../../searchv3/results-list'
+import SearchResultsList from '../../search/results-list'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'

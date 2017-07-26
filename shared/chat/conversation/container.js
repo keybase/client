@@ -8,7 +8,7 @@ import Rekey from './rekey/container'
 import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
-import {selectedSearchIdHoc} from '../../searchv3/helpers'
+import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
 

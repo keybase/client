@@ -2,7 +2,7 @@
 import {Component} from 'react'
 
 import type {SearchResultId} from '../constants/searchv3'
-import type {UserDetails} from '../searchv3/user-input'
+import type {UserDetails} from '../search/user-input'
 
 export type Props = {
   ids: Array<SearchResultId>,
