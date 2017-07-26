@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, ProgressIndicator, Text} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {uninstallKBFS} from '../../actions/kbfs'
@@ -31,14 +31,6 @@ class InstalledBanner extends Component<void, Props, void> {
   }
 
   render() {
-    if (this.props.uninstalling) {
-      return (
-        <Box style={stylesContainer}>
-          <ProgressIndicator style={{width: 32}} />
-        </Box>
-      )
-    }
-
     return (
       <Box style={stylesContainer}>
         <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>

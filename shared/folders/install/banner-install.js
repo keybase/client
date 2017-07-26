@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, ProgressIndicator, Text} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {fuseStatus, installFuse} from '../../actions/kbfs'
@@ -12,7 +12,6 @@ type Props = {
   fuseInstalled: boolean,
   installing: boolean,
   installFuse: () => void,
-  loading: boolean,
 }
 
 class InstallBanner extends Component<void, Props, void> {
@@ -25,18 +24,6 @@ class InstallBanner extends Component<void, Props, void> {
   }
 
   render() {
-    if (this.props.fuseInstalled) {
-      return null
-    }
-
-    if (this.props.loading || this.props.installing) {
-      return (
-        <Box style={stylesContainer}>
-          <ProgressIndicator style={{width: 32}} white={true} />
-        </Box>
-      )
-    }
-
     return (
       <Box style={stylesContainer}>
         <Text type="BodySemibold" style={{textAlign: 'center'}} backgroundMode="HighRisk">
@@ -44,8 +31,8 @@ class InstallBanner extends Component<void, Props, void> {
           <br />
           <Text
             type="BodySemiboldLink"
-            style={{color: globalColors.white}}
-            onClick={this._onSubmit}
+            style={{color: !this.props.installing ? globalColors.white : globalColors.white_75}}
+            onClick={!this.props.installing ? this._onSubmit : null}
             underline={true}
           >
             Display in Finder
@@ -70,7 +57,6 @@ const stylesContainer = {
 const mapStateToProps = (state: TypedState) => {
   return {
     installing: state.favorite.fuseInstalling,
-    loading: state.favorite.fuseStatusLoading,
   }
 }
 
