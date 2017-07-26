@@ -29,7 +29,9 @@ const Search = (props: Props) => (
               onCancel={props.onClose}
             />
           </Box>
-          <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          <Box style={{marginTop: globalMargins.small}}>
+            <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          </Box>
         </Box>
       </Box>
       {props.showServiceFilter &&

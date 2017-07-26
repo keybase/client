@@ -127,7 +127,7 @@ class ConversationInput extends Component<void, InputProps, void> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <input
             type="file"
             style={{display: 'none'}}
