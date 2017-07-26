@@ -339,6 +339,10 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   let curKey: ?Constants.MessageKey = null
   let outboxID = null
 
+  // When we receive the attachment placeholder message from the server, the
+  // local message key basis will change from the outboxID to the messageID.
+  // We need to watch for this so that the uploadProgress gets set on the
+  // right message key.
   const getCurKey = () => curKey
   const getOutboxIdKey = () => outboxID
 
@@ -357,7 +361,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   const keyChangedTask = yield Saga.safeTakeEvery(
     action => action.type === 'chat:outboxMessageBecameReal' && action.payload.oldMessageKey === getCurKey(),
     function*(action) {
-      curKey = action.payload.newMessageKey
+      yield call(setCurKey, action.payload.newMessageKey)
     }
   )
 
