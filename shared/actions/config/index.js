@@ -11,6 +11,7 @@ import {
 } from '../../constants/types/flow-types'
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
+import {fuseStatus} from '../../actions/kbfs'
 import {navBasedOnLoginState} from '../../actions/login/creators'
 import {
   checkReachabilityOnConnect,
@@ -75,6 +76,8 @@ function isFollowing(getState: () => any, username: string): boolean {
 
 const waitForKBFS = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
+    dispatch(fuseStatus())
+
     let timedOut = false
 
     // The rpc timeout doesn't seem to work correctly (not that we should trust that anyways) so we have our own local timeout
