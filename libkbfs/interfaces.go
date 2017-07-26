@@ -933,9 +933,9 @@ type DiskBlockCache interface {
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
-	// UpdateMetadata updates the LRU time to Now() for a given block.
+	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		hasPrefetched bool) error
+		hasPrefetched, donePrefetch bool) error
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Status returns the current status of the disk cache.

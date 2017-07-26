@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
@@ -393,4 +394,98 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	t.Log("Ensure that the directory block is in the cache.")
 	testPrefetcherCheckGet(
 		t, config.BlockCache(), ptr1, dir1, true, TransientEntry)
+}
+
+func notifyContinueCh(ch chan<- error, wg *sync.WaitGroup) {
+	go func() {
+		ch <- nil
+		wg.Done()
+	}()
+}
+
+func TestPrefetcherForSyncedTLF(t *testing.T) {
+	t.Log("Test direct dir block prefetching.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+
+	kmd := makeKMD()
+	config.SetTlfSyncState(kmd.TlfID(), true)
+
+	t.Log("Initialize a direct dir block with entries pointing to 2 files " +
+		"and 1 directory. The directory has an entry pointing to another " +
+		"file, which has 2 indirect blocks.")
+	file1 := makeFakeFileBlock(t, true)
+	file2 := makeFakeFileBlock(t, true)
+	ptr1 := makeRandomBlockPointer(t)
+	dir1 := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 100, "a"),
+		"b": makeRandomDirEntry(t, Dir, 60, "b"),
+		"c": makeRandomDirEntry(t, Exec, 20, "c"),
+	}}
+	dir2 := &DirBlock{Children: map[string]DirEntry{
+		"d": makeRandomDirEntry(t, File, 100, "d"),
+	}}
+	file3Ptrs := []IndirectFilePtr{
+		makeFakeIndirectFilePtr(t, 0),
+		makeFakeIndirectFilePtr(t, 150),
+	}
+	file3 := &FileBlock{IPtrs: file3Ptrs}
+	file3.IsInd = true
+	file3block1 := makeFakeFileBlock(t, true)
+	file3block2 := makeFakeFileBlock(t, true)
+
+	_, continueCh1 := bg.setBlockToReturn(ptr1, dir1)
+	_, continueCh2 := bg.setBlockToReturn(dir1.Children["a"].BlockPointer, file1)
+	_, continueCh3 := bg.setBlockToReturn(dir1.Children["b"].BlockPointer, dir2)
+	_, continueCh4 := bg.setBlockToReturn(dir1.Children["c"].BlockPointer, file2)
+	_, continueCh5 := bg.setBlockToReturn(dir2.Children["d"].BlockPointer, file3)
+
+	_, continueCh6 := bg.setBlockToReturn(file3Ptrs[0].BlockPointer, file3block1)
+	_, continueCh7 := bg.setBlockToReturn(file3Ptrs[1].BlockPointer, file3block2)
+
+	var block Block = &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd, ptr1, block, TransientEntry)
+	continueCh1 <- nil
+	err := <-ch
+	require.NoError(t, err)
+	require.Equal(t, dir1, block)
+
+	t.Log("Release all the blocks.")
+	continueCh4 <- nil
+	continueCh3 <- nil
+	// After this, the prefetch worker can either pick up the third child of
+	// dir1 (continueCh2), or the first child of dir2 (continueCh5).
+	// TODO: The prefetcher should have a "global" prefetch priority
+	// reservation system that goes down with each next set of prefetches.
+	wg := &sync.WaitGroup{}
+	wg.Add(4)
+	notifyContinueCh(continueCh2, wg)
+	notifyContinueCh(continueCh5, wg)
+	notifyContinueCh(continueCh6, wg)
+	notifyContinueCh(continueCh7, wg)
+	wg.Wait()
+	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
+	<-q.Prefetcher().Shutdown()
+
+	t.Log("Ensure that the prefetched blocks are all in the cache.")
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), ptr1, dir1, true, TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["c"].BlockPointer, file2, true,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["b"].BlockPointer, dir2, true,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir1.Children["a"].BlockPointer, file1, true,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), dir2.Children["d"].BlockPointer, file3, true,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), file3Ptrs[0].BlockPointer, file3block1, true,
+		TransientEntry)
+	testPrefetcherCheckGet(
+		t, config.BlockCache(), file3Ptrs[1].BlockPointer, file3block2, true,
+		TransientEntry)
 }

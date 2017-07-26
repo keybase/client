@@ -91,15 +91,18 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, hasPrefetched bool) error {
+	blockID kbfsblock.ID, hasPrefetched, donePrefetch bool) error {
+	// Try to update metadata for both caches.
 	if cache.syncCache != nil {
-		err := cache.syncCache.UpdateMetadata(ctx, blockID, hasPrefetched)
+		err := cache.syncCache.UpdateMetadata(ctx, blockID, hasPrefetched,
+			donePrefetch)
 		_, isNoSuchBlockError := err.(NoSuchBlockError)
 		if !isNoSuchBlockError {
 			return err
 		}
 	}
-	return cache.workingSetCache.UpdateMetadata(ctx, blockID, hasPrefetched)
+	return cache.workingSetCache.UpdateMetadata(ctx, blockID, hasPrefetched,
+		donePrefetch)
 }
 
 // Size implements the DiskBlockCache interface for diskBlockCacheWrapped.

@@ -135,6 +135,8 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	}
 }
 
+// calculatePriority returns either a base priority for an unsynced TLF or a
+// high priority for a synced TLF.
 func (p *blockPrefetcher) calculatePriority(basePriority int,
 	tlfID tlf.ID) int {
 	if p.config.IsSyncedTlf(tlfID) {

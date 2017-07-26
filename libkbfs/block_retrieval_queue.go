@@ -215,6 +215,8 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, hasPrefetched bool) (err error) {
+	didUpdateCh := make(chan struct{})
+	donePrefetch := hasPrefetched
 	defer func() {
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
@@ -223,7 +225,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		dbc := brq.config.DiskBlockCache()
 		if dbc != nil {
 			go func() {
-				err := dbc.UpdateMetadata(ctx, ptr.ID, hasPrefetched)
+				err := dbc.UpdateMetadata(ctx, ptr.ID, hasPrefetched, donePrefetch)
+				close(didUpdateCh)
 				switch err.(type) {
 				case nil:
 				case NoSuchBlockError:
@@ -231,6 +234,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 					brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
 				}
 			}()
+		} else {
+			close(didUpdateCh)
 		}
 	}()
 	if hasPrefetched {
@@ -246,6 +251,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	// To prevent any other Gets from prefetching, we must let the cache know
 	// at this point that we've prefetched.
 	hasPrefetched = true
+	donePrefetch = false
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, hasPrefetched)
 	switch err.(type) {
@@ -263,8 +269,17 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	go func() {
 		<-brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
 			ptr, kmd)
-		// TODO: here we know that the above prefetches are done.
-		// We can now do things like notify the disk cache.
+		// Make sure we've already updated the metadata once to avoid a race.
+		<-didUpdateCh
+		// Prefetches are done. Update the disk cache metadata.
+		dbc := brq.config.DiskBlockCache()
+		if dbc != nil {
+			err := dbc.UpdateMetadata(ctx, ptr.ID, true, true)
+			if err != nil {
+				brq.log.CWarningf(ctx, "Error updating metadata after "+
+					"prefetch: %+v", err)
+			}
+		}
 	}()
 	return nil
 }
@@ -307,8 +322,6 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		return err
 	}
 
-	// TODO: once the DiskBlockCache knows about hasPrefetched, pipe that
-	// through here.
 	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
 		hasPrefetched)
 }

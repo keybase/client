@@ -26,8 +26,8 @@ type diskBlockCacheMetadata struct {
 	BlockSize uint32
 	// whether the block has triggered prefetches
 	HasPrefetched bool
-	// list of child blocks if applicable
-	ChildBlocks []kbfsblock.ID `codec:"cb,omitempty"`
+	// whether the block's triggered prefetches are complete
+	DonePrefetch bool
 }
 
 // lruEntry is an entry for sorting LRU times

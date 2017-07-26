@@ -394,14 +394,14 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
-	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched bool,
-	childBlocks []kbfsblock.ID) error {
+	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched,
+	donePrefetch bool) error {
 	metadata := diskBlockCacheMetadata{
 		TlfID:         tlfID,
 		LRUTime:       cache.config.Clock().Now(),
 		BlockSize:     uint32(encodeLen),
 		HasPrefetched: hasPrefetched,
-		ChildBlocks:   childBlocks,
+		DonePrefetch:  donePrefetch,
 	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
@@ -516,7 +516,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
 	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry),
-		md.HasPrefetched, md.ChildBlocks)
+		md.HasPrefetched, md.DonePrefetch)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
@@ -615,20 +615,19 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				"Error writing to TLF cache database: %+v", err)
 		}
 	}
-	// Initially set HasPrefetched to false; rely on UpdateMetadata to fix it.
+	// Initially set HasPrefetched and DonePrefetch to false; rely on
+	// UpdateMetadata to fix it.
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen),
-		false, nil)
+		false, false)
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, hasPrefetched bool) (err error) {
+	blockID kbfsblock.ID, hasPrefetched, donePrefetch bool) (err error) {
 
-	// Only obtain a read lock because `UpdateMetadata` only happens during a
-	// `Get` from the cache.
-	cache.shutdownLock.RLock()
-	defer cache.shutdownLock.RUnlock()
+	cache.shutdownLock.Lock()
+	defer cache.shutdownLock.Unlock()
 	err = cache.checkCacheLocked("UpdateMetadata")
 	if err != nil {
 		return errors.WithStack(err)
@@ -644,7 +643,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 		return NoSuchBlockError{blockID}
 	}
 	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
-		int(md.BlockSize), hasPrefetched, md.ChildBlocks)
+		int(md.BlockSize), hasPrefetched, donePrefetch)
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
