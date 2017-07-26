@@ -281,8 +281,8 @@ class Profile extends Component<void, Props, State> {
               iconStyle={{color: globalColors.white}}
             />}
           <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
-            <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
+            <Icon style={styleSearch} type="iconfont-search" />
+            <Text style={styleSearchText} type="Body">Search people</Text>
           </ClickableBox>
         </Box>
       )
