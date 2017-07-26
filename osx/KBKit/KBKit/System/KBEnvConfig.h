@@ -24,7 +24,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionKBFS = 1 << 4,
   KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
-  KBInstallOptionEtcPaths = 1 << 10,
+  KBInstallOptionCLI = 1 << 10,
   KBInstallOptionAppBundle = 1 << 11,
   KBInstallOptionKBNM = 1 << 12,
 };

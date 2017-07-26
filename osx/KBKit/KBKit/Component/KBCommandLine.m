@@ -1,19 +1,19 @@
 //
-//  KBCommandLineEtcPaths.m
+//  KBCommandLine.m
 //  KBKit
 //
 //  Created by Gabriel on 1/18/16.
 //  Copyright © 2016 Gabriel Handford. All rights reserved.
 //
 
-#import "KBCommandLineEtcPaths.h"
+#import "KBCommandLine.h"
 
-@interface KBCommandLineEtcPaths ()
+@interface KBCommandLine ()
 @property KBHelperTool *helperTool;
 @property NSString *servicePath;
 @end
 
-@implementation KBCommandLineEtcPaths
+@implementation KBCommandLine
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath {
   if ((self = [self initWithConfig:config name:@"CLI" info:@"Command Line" image:nil])) {
