@@ -3,7 +3,6 @@ package teams
 import (
 	"sort"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -331,27 +330,12 @@ func TestLoaderFillStubbed(t *testing.T) {
 	t.Logf("create a team")
 	parentName, parentID := createTeam2(*tcs[0])
 
-	// Hack to get around stale merkle root when creating subteam
-	// Michal's gonna fix this soon, then this line can go away.
-	_, err := tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
-	require.NoError(t, err)
-
 	t.Logf("create a subteam")
 	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
 	require.NoError(t, err)
 
-	// Hack to get around stale merkle root when creating subteam
-	// Michal's gonna fix this soon, then this line can go away.
-	_, err = tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
-	require.NoError(t, err)
-
 	t.Logf("add U1 to the parent")
 	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
-
-	// Hack to get around stale merkle root when creating subteam
-	// Michal's gonna fix this soon, then this line can go away.
-	_, err = tcs[0].G.GetMerkleClient().FetchRootFromServer(context.TODO(), time.Duration(-1))
-	require.NoError(t, err)
 
 	t.Logf("U1 loads the parent")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
