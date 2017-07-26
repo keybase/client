@@ -1,7 +1,6 @@
 // @flow
 // This is a temp proxy for the searchv3 box to show the logic of it and the chat
 import React from 'react'
-import flags from '../util/feature-flags'
 import {Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {connect} from 'react-redux'
@@ -9,7 +8,7 @@ import * as Creators from '../actions/chat/creators'
 
 import type {TypedState} from '../constants/reducer'
 
-const _DummySearchV3 = ({inboxSearch, setInboxFilter}) => {
+const _DummySearch = ({inboxSearch, setInboxFilter}) => {
   return (
     <Box
       style={{
@@ -67,8 +66,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const DummySearchV3 = flags.searchv3Enabled
-  ? connect(mapStateToProps, mapDispatchToProps)(_DummySearchV3)
-  : () => null
+const DummySearch = connect(mapStateToProps, mapDispatchToProps)(_DummySearch)
 
-export default DummySearchV3
+export default DummySearch
