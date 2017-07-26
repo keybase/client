@@ -153,12 +153,20 @@ build_one_architecture() {
 # resinit_nix.go and fail the i386 build
 export CGO_ENABLED=1
 
-export GOARCH=amd64
-export debian_arch=amd64
-export electron_arch=x64
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  export GOARCH=amd64
+  export debian_arch=amd64
+  export electron_arch=x64
+  build_one_architecture
+else
+  echo SKIPPING 64-bit build
+fi
 
-export GOARCH=386
-export debian_arch=i386
-export electron_arch=ia32
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  export GOARCH=386
+  export debian_arch=i386
+  export electron_arch=ia32
+  build_one_architecture
+else
+  echo SKIPPING 32-bit build
+fi

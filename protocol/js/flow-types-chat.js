@@ -92,6 +92,8 @@ export const CommonMessageType = {
   tlfname: 6,
   headline: 7,
   attachmentuploaded: 8,
+  join: 9,
+  leave: 10,
 }
 
 export const CommonNotificationKind = {
@@ -1611,6 +1613,8 @@ export type MessageBody =
   | { messageType: 5, metadata: ?MessageConversationMetadata }
   | { messageType: 7, headline: ?MessageHeadline }
   | { messageType: 8, attachmentuploaded: ?MessageAttachmentUploaded }
+  | { messageType: 9, join: ?MessageJoin }
+  | { messageType: 10, leave: ?MessageLeave }
 
 export type MessageBoxed = {
   version: MessageBoxedVersion,
@@ -1674,6 +1678,10 @@ export type MessageHeadline = {
 
 export type MessageID = uint
 
+export type MessageJoin = {}
+
+export type MessageLeave = {}
+
 export type MessagePlaintext = {
   clientHeader: MessageClientHeader,
   messageBody: MessageBody,
@@ -1712,6 +1720,8 @@ export type MessageType =
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
   | 8 // ATTACHMENTUPLOADED_8
+  | 9 // JOIN_9
+  | 10 // LEAVE_10
 
 export type MessageUnboxed =
     { state: 1, valid: ?MessageUnboxedValid }

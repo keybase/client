@@ -29,7 +29,9 @@ const Search = (props: Props) => (
               onCancel={props.onClose}
             />
           </Box>
-          <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          <Box style={{marginTop: globalMargins.small}}>
+            <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+          </Box>
         </Box>
       </Box>
       {props.showServiceFilter &&
@@ -40,7 +42,7 @@ const Search = (props: Props) => (
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
         {props.showSearchPending
           ? <Box style={styleSpinner}>
-              <ProgressIndicator style={{width: globalMargins.xlarge}} />
+              <ProgressIndicator style={{width: globalMargins.large}} />
             </Box>
           : <ResultsList
               items={props.searchResultIds}
@@ -93,8 +95,9 @@ const styleServiceRow = {
 }
 
 const styleSpinner = {
+  alignSelf: 'center',
   height: 256,
-  paddingTop: globalMargins.small,
+  marginTop: globalMargins.small,
 }
 
 export default Search

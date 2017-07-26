@@ -674,7 +674,7 @@ func TestDeletionHeaders(t *testing.T) {
 	}
 }
 
-func TestAtMentions(t *testing.T) {
+func TestAtMentionsText(t *testing.T) {
 	ctx, world, ri, _, blockingSender, _ := setupTest(t, 3)
 	defer world.Cleanup()
 
@@ -714,6 +714,74 @@ func TestAtMentions(t *testing.T) {
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: text,
+		}),
+	}, chat1.ConversationMembersType_KBFS, &conv)
+	require.NoError(t, err)
+	require.Zero(t, len(atMentions))
+	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
+}
+
+func TestAtMentionsEdit(t *testing.T) {
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 3)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	u1 := world.GetUsers()[1]
+	u2 := world.GetUsers()[2]
+	uid := u.User.GetUID().ToBytes()
+	uid1 := u1.User.GetUID().ToBytes()
+	uid2 := u2.User.GetUID().ToBytes()
+	tc := userTc(t, world, u)
+	conv := newBlankConv(ctx, t, tc, uid, ri, blockingSender, u.Username)
+
+	text := fmt.Sprintf("%s hello! From %s. @ksjdskj", u1.Username, u2.Username)
+	t.Logf("text: %s", text)
+	_, firstMessageBoxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: text,
+		}),
+	}, 0)
+	require.NoError(t, err)
+
+	// edit that message and add atMentions
+	text = fmt.Sprintf("@%s hello! From @%s. @ksjdskj", u1.Username, u2.Username)
+	firstMessageID := firstMessageBoxed.GetMessageID()
+	_, _, atMentions, chanMention, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: firstMessageID,
+			Body:      text,
+		}),
+	}, chat1.ConversationMembersType_KBFS, &conv)
+	require.NoError(t, err)
+	require.Equal(t, []gregor1.UID{uid1, uid2}, atMentions)
+	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
+
+	// edit the message and add channel mention
+	text = "Hello @channel!"
+	_, _, atMentions, chanMention, err = blockingSender.Prepare(ctx, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        conv.Metadata.IdTriple,
+			Sender:      uid,
+			TlfName:     u.Username,
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  firstMessageID,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: firstMessageID,
+			Body:      text,
 		}),
 	}, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)

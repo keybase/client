@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -28,6 +29,8 @@ import (
 var G = libkb.G
 
 var cmd libcmdline.Command
+
+var errParseArgs = errors.New("failed to parse command line arguments")
 
 func handleQuickVersion() bool {
 	if len(os.Args) == 3 && os.Args[1] == "version" && os.Args[2] == "-S" {
@@ -76,7 +79,11 @@ func main() {
 		// in Windows.
 		// Had to change from Error to Errorf because of go vet because of:
 		// https://github.com/golang/go/issues/6407
-		g.Log.Errorf("%s", err.Error())
+
+		// if errParseArgs, the error was already output (along with usage)
+		if err != errParseArgs {
+			g.Log.Errorf("%s", stripFieldsFromAppStatusError(err).Error())
+		}
 		if g.ExitCode == keybase1.ExitCode_OK {
 			g.ExitCode = keybase1.ExitCode_NOTOK
 		}
@@ -109,8 +116,12 @@ func mainInner(g *libkb.GlobalContext) error {
 	var err error
 	cmd, err = cl.Parse(os.Args)
 	if err != nil {
-		err = fmt.Errorf("Error parsing command line arguments: %s\n", err)
-		return err
+		g.Log.Errorf("Error parsing command line arguments: %s\n\n", err)
+		if _, isHelp := cmd.(*libcmdline.CmdSpecificHelp); isHelp {
+			// Parse returned the help command for this command, so run it:
+			cmd.Run()
+		}
+		return errParseArgs
 	}
 
 	if cmd == nil {
@@ -331,4 +342,17 @@ func HandleSignals() {
 			os.Exit(3)
 		}
 	}
+}
+
+// stripFieldsFromAppStatusError is an error prettifier. By default, AppStatusErrors print optional
+// fields that were problematic. But they make for pretty ugly error messages spit back to the user.
+// So strip that out, but still leave in an error-code integer, since those are quite helpful.
+func stripFieldsFromAppStatusError(e error) error {
+	if e == nil {
+		return e
+	}
+	if ase, ok := e.(libkb.AppStatusError); ok {
+		return fmt.Errorf("%s (code %d)", ase.Desc, ase.Code)
+	}
+	return e
 }
