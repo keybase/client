@@ -2965,15 +2965,15 @@ func (_mr *MockDiskBlockCacheMockRecorder) Delete(arg0, arg1 interface{}) *gomoc
 }
 
 // UpdateMetadata mocks base method
-func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, hasPrefetched)
+func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, hasPrefetched bool, donePrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, hasPrefetched, donePrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMetadata indicates an expected call of UpdateMetadata
-func (_mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), arg0, arg1, arg2)
+func (_mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), arg0, arg1, arg2, arg3)
 }
 
 // Size mocks base method
