@@ -10,7 +10,7 @@ import type {Props} from './search'
 
 const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
-    <Box style={styleSearchContainer}>
+    <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
           <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
@@ -62,7 +62,7 @@ const styleCatcher = {
   height: '100%',
   position: 'absolute',
   width: '100%',
-  zIndex: 10,
+  zIndex: 20,
 }
 
 const styleSearchContainer = {
