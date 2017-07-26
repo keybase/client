@@ -5,5 +5,6 @@ import type {SagaGenerator} from '../../constants/types/saga'
 export function* fuseStatusSaga(): SagaGenerator<any, any> {}
 export function* installFuseSaga(): SagaGenerator<any, any> {}
 export function* installKBFSSaga(): SagaGenerator<any, any> {}
+export function* uninstallKBFSSaga(): SagaGenerator<any, any> {}
 export function* openSaga(action: FSOpen): SagaGenerator<any, any> {}
 export function* openInFileUISaga(action: OpenInFileUI): SagaGenerator<any, any> {}

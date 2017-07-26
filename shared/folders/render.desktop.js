@@ -7,7 +7,7 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {connect} from 'react-redux'
 import {fuseStatus} from '../actions/kbfs'
-import InstallBanner from './install/banner'
+import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
 
 import type {TypedState} from '../constants/reducer'
@@ -63,13 +63,12 @@ class FoldersRender extends Component<void, Props, void> {
           minHeight: 32,
         }}
       >
-        {!this.props.fuseInstalled && <InstallBanner />}
+        <Banner />
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
             backgroundColor: globalColors.white,
             minHeight: this.props.smallMode ? 32 : 48,
-            paddingTop: this.props.smallMode ? 0 : 8,
           }}
         >
           {[false, true].map(isPublic => (
@@ -131,10 +130,10 @@ const tabBarStyle = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kextStarted = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   return {
-    fuseInstalled: kextStarted,
-    showSecurityPrefs: !kextStarted && state.favorite.fuseInstall.kextPermissionError,
+    installed,
+    showSecurityPrefs: !installed && state.favorite.fuseInstall.kextPermissionError,
   }
 }
 

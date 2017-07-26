@@ -6,15 +6,16 @@ import {
   installFuseStatusRpcPromise,
   installInstallFuseRpcPromise,
   installInstallKBFSRpcPromise,
+  installUninstallKBFSRpcPromise,
   kbfsMountGetCurrentMountDirRpcPromise,
 } from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {shell} from 'electron'
+import electron, {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
 
 import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {InstallResult} from '../../constants/types/flow-types'
+import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -137,6 +138,16 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   yield call(fuseStatusSaga)
 }
 
+function* uninstallKBFSSaga(): SagaGenerator<any, any> {
+  const result: UninstallResult = yield call(installUninstallKBFSRpcPromise)
+  yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
+
+  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+  const app = electron.app || electron.remote.app
+  app.relaunch()
+  app.exit(0)
+}
+
 function* openInWindows(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
@@ -186,4 +197,4 @@ function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, 
   yield call(_open, path)
 }
 
-export {fuseStatusSaga, installFuseSaga, installKBFSSaga, openInFileUISaga, openSaga}
+export {fuseStatusSaga, installFuseSaga, installKBFSSaga, openInFileUISaga, openSaga, uninstallKBFSSaga}
