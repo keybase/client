@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 
@@ -210,6 +211,24 @@ func (k NaclDHKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 	out := append(prefix, k[:]...)
 	out = append(out, suffix)
 	return keybase1.BinaryKID(out)
+}
+
+// MakeNaclDHKeyPublicFromKID makes a NaclDHKeyPublic from kid. It errors if
+// kid is in wrong format, or is empty.
+func MakeNaclDHKeyPublicFromKID(
+	kid keybase1.KID) (public NaclDHKeyPublic, err error) {
+	binary := kid.ToBinaryKID()
+	if len(binary) != NaclDHKeysize+3 ||
+		binary[0] != KeybaseKIDV1 ||
+		binary[1] != KIDNaclDH ||
+		binary[len(binary)-1] != IDSuffixKID {
+		return public, errors.New("invalid kid")
+	}
+	copy(public[:], binary[2:len(binary)-1])
+	if public == (NaclDHKeyPublic{}) {
+		return public, errors.New("empty public key")
+	}
+	return public, nil
 }
 
 func (k NaclDHKeyPair) GetFingerprintP() *PGPFingerprint {
@@ -689,13 +708,11 @@ func (k NaclDHKeyPair) CanEncrypt() bool { return true }
 func (k NaclDHKeyPair) CanDecrypt() bool { return k.Private != nil }
 
 func (k NaclDHKeyPair) IsNil() bool {
-	var empty NaclDHKeyPublic
-	return bytes.Equal(k.Public[:], empty[:])
+	return k.Public == NaclDHKeyPublic{}
 }
 
 func (k NaclSigningKeyPair) IsNil() bool {
-	var empty NaclSigningKeyPublic
-	return bytes.Equal(k.Public[:], empty[:])
+	return k.Public == NaclSigningKeyPublic{}
 }
 
 // Encrypt a message to the key `k` from the given `sender`. If sender is nil, an ephemeral
