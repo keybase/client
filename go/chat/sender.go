@@ -321,11 +321,10 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 	return assets, nil
 }
 
-func (s *BlockingSender) getTopicNameState(ctx context.Context, msg chat1.MessagePlaintext,
+func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
 	conv *chat1.Conversation) (topicNameState *chat1.TopicNameState, err error) {
 	if conv != nil {
 		if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
-
 			newTopicName := msg.MessageBody.Metadata().ConversationTitle
 			convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
 				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
@@ -386,7 +385,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
 	// server
-	topicNameState, err := s.getTopicNameState(ctx, msg, conv)
+	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, conv)
 	if err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
