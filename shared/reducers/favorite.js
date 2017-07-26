@@ -15,11 +15,7 @@ const initialState: Constants.State = {
     },
     publicBadge: 0,
   },
-  fuseInstall: {
-    installing: false,
-    kextPermissionError: false,
-    result: null,
-  },
+  fuseInstalling: false,
   fuseStatus: null,
   fuseStatusLoading: false,
   kbfsInstall: {
@@ -29,6 +25,7 @@ const initialState: Constants.State = {
   kbfsStatus: {
     isAsyncWriteHappening: false,
   },
+  kextPermissionError: false,
   viewState: {
     privateIgnoredOpen: false,
     publicIgnoredOpen: false,
@@ -135,11 +132,8 @@ export default function(
     case 'fs:installFuse':
       return {
         ...state,
-        fuseInstall: {
-          installing: true,
-          kextPermissionError: false,
-          result: null,
-        },
+        fuseInstalling: true,
+        kextPermissionError: false,
       }
     case 'fs:installFuseResult':
       const result = action.payload.result
@@ -148,20 +142,18 @@ export default function(
         fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
       return {
         ...state,
-        fuseInstall: {
-          installing: false,
-          kextPermissionError,
-          result: action.payload.result,
-        },
+        kextPermissionError,
+      }
+    case 'fs:installFuseFinished':
+      return {
+        ...state,
+        fuseInstalling: false,
       }
     case 'fs:clearFuseInstall':
       return {
         ...state,
-        fuseInstall: {
-          installing: false,
-          kextPermissionError: false,
-          result: null,
-        },
+        fuseInstalling: false,
+        kextPermissionError: false,
       }
     case 'fs:installKBFS':
       return {

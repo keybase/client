@@ -118,8 +118,8 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   yield put(action)
 
   // If our kextStarted status changed, finish KBFS install
-  console.log('Installing KBFS (kextStarted changed)')
   if (status.kextStarted && prevFuseStatus && !prevFuseStatus.kextStarted) {
+    console.log('Installing KBFS (kextStarted changed)')
     yield call(installKBFSSaga)
   }
 }
@@ -129,6 +129,8 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   yield put({payload: {result}, type: 'fs:installFuseResult'})
 
   yield call(fuseStatusSaga)
+
+  yield put({type: 'fs:installFuseFinished'})
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
