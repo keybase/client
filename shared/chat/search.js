@@ -74,7 +74,7 @@ const SearchHeader = props => (
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
     {props.showSearchPending
-      ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+      ? <ProgressIndicator style={{width: globalMargins.large}} />
       : <SearchResultsList
           style={{flex: 1}}
           items={props.searchResultIds}
