@@ -855,11 +855,11 @@
           "name": "role"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "ImplicitRole"
-          },
-          "name": "implicits"
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
         }
       ]
     },
@@ -909,11 +909,11 @@
           "name": "role"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "ImplicitRole"
-          },
-          "name": "implicits"
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
         }
       ]
     },

@@ -926,11 +926,11 @@ func (o ImplicitRole) DeepCopy() ImplicitRole {
 }
 
 type MemberInfo struct {
-	UserID    UID            `codec:"userID" json:"uid"`
-	TeamID    TeamID         `codec:"teamID" json:"team_id"`
-	FqName    string         `codec:"fqName" json:"fq_name"`
-	Role      TeamRole       `codec:"role" json:"role"`
-	Implicits []ImplicitRole `codec:"implicits" json:"implicits"`
+	UserID   UID           `codec:"userID" json:"uid"`
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	FqName   string        `codec:"fqName" json:"fq_name"`
+	Role     TeamRole      `codec:"role" json:"role"`
+	Implicit *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 }
 
 func (o MemberInfo) DeepCopy() MemberInfo {
@@ -939,14 +939,13 @@ func (o MemberInfo) DeepCopy() MemberInfo {
 		TeamID: o.TeamID.DeepCopy(),
 		FqName: o.FqName,
 		Role:   o.Role.DeepCopy(),
-		Implicits: (func(x []ImplicitRole) []ImplicitRole {
-			var ret []ImplicitRole
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+		Implicit: (func(x *ImplicitRole) *ImplicitRole {
+			if x == nil {
+				return nil
 			}
-			return ret
-		})(o.Implicits),
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Implicit),
 	}
 }
 
@@ -968,13 +967,13 @@ func (o TeamList) DeepCopy() TeamList {
 }
 
 type AnnotatedMemberInfo struct {
-	UserID    UID            `codec:"userID" json:"uid"`
-	TeamID    TeamID         `codec:"teamID" json:"team_id"`
-	Username  string         `codec:"username" json:"username"`
-	FullName  string         `codec:"fullName" json:"full_name"`
-	FqName    string         `codec:"fqName" json:"fq_name"`
-	Role      TeamRole       `codec:"role" json:"role"`
-	Implicits []ImplicitRole `codec:"implicits" json:"implicits"`
+	UserID   UID           `codec:"userID" json:"uid"`
+	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	Username string        `codec:"username" json:"username"`
+	FullName string        `codec:"fullName" json:"full_name"`
+	FqName   string        `codec:"fqName" json:"fq_name"`
+	Role     TeamRole      `codec:"role" json:"role"`
+	Implicit *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -985,14 +984,13 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 		FullName: o.FullName,
 		FqName:   o.FqName,
 		Role:     o.Role.DeepCopy(),
-		Implicits: (func(x []ImplicitRole) []ImplicitRole {
-			var ret []ImplicitRole
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
+		Implicit: (func(x *ImplicitRole) *ImplicitRole {
+			if x == nil {
+				return nil
 			}
-			return ret
-		})(o.Implicits),
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Implicit),
 	}
 }
 

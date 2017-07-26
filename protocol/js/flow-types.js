@@ -4263,7 +4263,7 @@ export type AnnotatedMemberInfo = {
   fullName: string,
   fqName: string,
   role: TeamRole,
-  implicits?: ?Array<ImplicitRole>,
+  implicit?: ?ImplicitRole,
 }
 
 export type AnnotatedTeamInvite = {
@@ -5041,7 +5041,7 @@ export type MemberInfo = {
   teamID: TeamID,
   fqName: string,
   role: TeamRole,
-  implicits?: ?Array<ImplicitRole>,
+  implicit?: ?ImplicitRole,
 }
 
 export type MerkleRoot = {

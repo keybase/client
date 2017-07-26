@@ -156,11 +156,11 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	for _, t := range list.Teams {
 		var role string
-		if len(t.Implicits) != 0 {
+		if t.Implicit != nil {
 			role += "implied admin"
 		}
 		if t.Role != keybase1.TeamRole_NONE {
-			if len(t.Implicits) != 0 {
+			if t.Implicit != nil {
 				role += ", "
 			}
 			role += strings.ToLower(t.Role.String())

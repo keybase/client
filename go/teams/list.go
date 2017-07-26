@@ -68,7 +68,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	administeredTeams := make(map[string]bool)
 	for idx, memberInfo := range teams {
 		teamNames[memberInfo.FqName] = true
-		if memberInfo.UserID == me.GetUID() && (memberInfo.Role.IsAdminOrAbove() || len(memberInfo.Implicits) > 0) {
+		if memberInfo.UserID == me.GetUID() && (memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
 			administeredTeams[memberInfo.FqName] = true
 		}
 
@@ -82,13 +82,13 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			return nil, err
 		}
 		annotatedTeams[idx] = keybase1.AnnotatedMemberInfo{
-			TeamID:    memberInfo.TeamID,
-			FqName:    memberInfo.FqName,
-			UserID:    memberInfo.UserID,
-			Role:      memberInfo.Role,
-			Implicits: memberInfo.Implicits,
-			Username:  username.String(),
-			FullName:  fullName,
+			TeamID:   memberInfo.TeamID,
+			FqName:   memberInfo.FqName,
+			UserID:   memberInfo.UserID,
+			Role:     memberInfo.Role,
+			Implicit: memberInfo.Implicit,
+			Username: username.String(),
+			FullName: fullName,
 		}
 	}
 
@@ -176,7 +176,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		if info.Role.IsAdminOrAbove() {
 			admin = true
 		}
-		if len(info.Implicits) > 0 {
+		if info.Implicit != nil && info.Implicit.Role.IsAdminOrAbove() {
 			admin = true
 		}
 		entryMap[team.Name().String()] = keybase1.TeamTreeEntry{
