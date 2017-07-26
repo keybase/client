@@ -41,7 +41,7 @@ class InstallSecurityPrefs extends Component<void, Props, State> {
     return (
       <Box style={stylesContainer}>
         <Icon style={stylesCloseIcon} type="iconfont-close" onClick={this.props.clearFuseInstall} />
-        <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 32}}>
+        <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 10}}>
           Ghhh. Try this.
         </Text>
         <Text type="Body" style={{paddingBottom: 24}}>
@@ -67,13 +67,6 @@ class InstallSecurityPrefs extends Component<void, Props, State> {
             </Text>
           </Box>
           <Box style={{...globalStyles.flexBoxColumn, marginTop: 30}}>
-            <Text
-              type="BodySemiboldLink"
-              style={{fontSize: 14, paddingBottom: 20}}
-              onClick={this._openSecurityPrefs}
-            >
-              Open Security & Privacy Settings
-            </Text>
             <Box style={{...globalStyles.flexBoxRow}}>
               <Text type="BodySemibold" style={stylesNumberList}>
                 1
@@ -88,6 +81,13 @@ class InstallSecurityPrefs extends Component<void, Props, State> {
               </Text>
               <Text type="BodySemibold" style={styleListText}>Click "Allow"</Text>
             </Box>
+            <Text
+              type="BodySemiboldLink"
+              style={{fontSize: 14, paddingTop: 20}}
+              onClick={this._openSecurityPrefs}
+            >
+              Open Security & Privacy Settings
+            </Text>
           </Box>
         </Box>
       </Box>

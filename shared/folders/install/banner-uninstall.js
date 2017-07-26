@@ -18,8 +18,8 @@ class InstalledBanner extends Component<void, Props, void> {
     dialog.showMessageBox(
       {
         buttons: ['Uninstall & Restart', 'Cancel'],
-        detail: 'Are you sure you want to uninstall KBFS and restart the app?',
-        message: 'Uninstall KBFS',
+        detail: 'Are you sure you want to uninstall Keybase from the Finder and restart the app?',
+        message: 'Uninstall in Finder',
         type: 'question',
       },
       resp => {
@@ -46,7 +46,7 @@ class InstalledBanner extends Component<void, Props, void> {
           <Text type="Terminal" style={{color: globalColors.blue, fontSize: 11}}>/keybase</Text>.
           <br />
           <Text type="BodySmallInlineLink" style={{color: globalColors.black_60}} onClick={this._onSubmit}>
-            Do not show them in finder
+            Do not show them in Finder
           </Text>
         </Text>
       </Box>
