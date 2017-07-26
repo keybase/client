@@ -128,6 +128,7 @@ class Conversation extends Component<void, Props, State> {
           onAddNewParticipant={this.props.onAddNewParticipant}
           addNewParticipant={this.props.addNewParticipant}
         />
+        {this.props.inSearch && !this.props.showSearchResults && <Box style={styleSearchBottom} />}
         {this.props.showSearchPending
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
@@ -201,6 +202,10 @@ const styleSpinner = {
   alignSelf: 'center',
   marginTop: globalMargins.small,
   width: globalMargins.large,
+}
+
+const styleSearchBottom = {
+  borderBottom: `1px solid ${globalColors.black_10}`,
 }
 
 export default Conversation
