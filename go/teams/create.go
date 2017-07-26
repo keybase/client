@@ -389,7 +389,6 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 }
 
 func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.TeamID, parentTeam *TeamSigChainState, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, admin *SCTeamAdmin) (SCTeamSection, error) {
-	ownerUserVersion := owner.ToUserVersion()
 
 	subteamName2 := subteamName.String()
 	teamSection := SCTeamSection{
@@ -406,10 +405,10 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 			EncKID:     perTeamEncryptionKID,
 		},
 		Members: &SCTeamMembers{
-			// Only root teams can have owners. Make the current user an admin by default.
+			// Only root teams can have owners. Do not make the current user an admin by default.
 			// TODO: Plumb through more control over the initial set of admins.
 			Owners:  &[]SCTeamMember{},
-			Admins:  &[]SCTeamMember{SCTeamMember(ownerUserVersion)},
+			Admins:  &[]SCTeamMember{},
 			Writers: &[]SCTeamMember{},
 			Readers: &[]SCTeamMember{},
 		},
