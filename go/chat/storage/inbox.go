@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 11
+const inboxVersion = 12
 
 type queryHash []byte
 

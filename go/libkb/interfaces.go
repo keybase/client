@@ -581,6 +581,7 @@ type ConnectivityMonitor interface {
 
 type TeamLoader interface {
 	VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error
+	ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error)
 	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)

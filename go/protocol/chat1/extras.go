@@ -102,6 +102,10 @@ func (t MessageType) String() string {
 		return "TLFNAME"
 	case MessageType_ATTACHMENTUPLOADED:
 		return "ATTACHMENTUPLOADED"
+	case MessageType_JOIN:
+		return "JOIN"
+	case MessageType_LEAVE:
+		return "LEAVE"
 	default:
 		return "UNKNOWN"
 	}

@@ -34,6 +34,7 @@ func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdTeamCreate) Run() (err error) {
+
 	if v.TeamName.IsRootTeam() && v.Subteam {
 		return fmt.Errorf("Leave off --subteam when creating a root team")
 	}
