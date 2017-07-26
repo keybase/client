@@ -63,12 +63,12 @@ export type SearchResult = {|
 
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
-  'searchv3:search',
+  'search:search',
   {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
 >
 
 export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
-  'searchv3:searchSuggestions',
+  'search:searchSuggestions',
   {actionTypeToFire: TypeToFire, maxUsers: number}
 >
 

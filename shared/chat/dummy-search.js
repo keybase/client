@@ -1,5 +1,5 @@
 // @flow
-// This is a temp proxy for the searchv3 box to show the logic of it and the chat
+// This is a temp proxy for the search box to show the logic of it and the chat
 import React from 'react'
 import {Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'

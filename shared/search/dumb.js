@@ -250,28 +250,28 @@ const servicesResultsListMap: DumbComponentMap<ResultsList> = {
       onShowTracker: () => console.log('onShowTracker'),
       onClick: () => console.log('onClick'),
       items: ['chris', 'cjb', 'jzila'],
-      keyPath: ['searchv3Chat'],
+      keyPath: ['searchChat'],
     },
     keybaseResultsOne: {
       ...servicesResultsListMapCommon,
       onShowTracker: () => console.log('onShowTracker'),
       onClick: () => console.log('onClick'),
       items: ['chris'],
-      keyPath: ['searchv3Chat'],
+      keyPath: ['searchChat'],
     },
     facebookResults: {
       ...servicesResultsListMapCommon,
       onShowTracker: () => console.log('onShowTracker'),
       onClick: () => console.log('onClick'),
       items: ['chris-fb', 'cjb-fb', 'jzila-fb'],
-      keyPath: ['searchv3Chat'],
+      keyPath: ['searchChat'],
     },
     noResults: {
       ...servicesResultsListMapCommon,
       onShowTracker: () => console.log('onShowTracker'),
       onClick: () => console.log('onClick'),
       items: [],
-      keyPath: ['searchv3Chat'],
+      keyPath: ['searchChat'],
     },
   },
 }
@@ -442,9 +442,9 @@ const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
 }
 
 export default {
-  'SearchV3 resultsList': servicesResultsListMap,
-  'SearchV3 filter': servicesFilterMap,
-  'SearchV3 user input': userInputMap,
-  'SearchV3 user input (editable)': userInputEditableMap,
-  'SearchV3 result': servicesResultMap,
+  'Search resultsList': servicesResultsListMap,
+  'Search filter': servicesFilterMap,
+  'Search user input': userInputMap,
+  'Search user input (editable)': userInputEditableMap,
+  'Search result': servicesResultMap,
 }

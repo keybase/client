@@ -18,7 +18,6 @@ export type Props = {|
   rekeyInfo: ?Constants.RekeyInfo,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   threadLoadedOffline: boolean,
-  searchV3Enabled: boolean,
   inSearch: boolean,
   onExitSearch: () => void,
   showSearchPending: boolean,
