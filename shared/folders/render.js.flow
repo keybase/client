@@ -18,7 +18,7 @@ export type Props = {
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
-  fuseInstalled: boolean,
+  installed: boolean,
   fuseStatus: () => void,
   showSecurityPrefs?: boolean,
 }
