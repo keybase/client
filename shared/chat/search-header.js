@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/search/creators'
-import * as SearchConstants from '../constants/searchv3'
+import * as SearchConstants from '../constants/search'
 import * as Constants from '../constants/chat'
 import UserInput from '../search/user-input'
 import ServiceFilter from '../search/services-filter'

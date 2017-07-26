@@ -35,7 +35,7 @@ import {
   previousConversationSelector,
   searchResultMapSelector,
 } from '../../constants/selectors'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'

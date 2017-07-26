@@ -1,7 +1,7 @@
 // @flow
 
 import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
-import * as Constants from '../constants/searchv3'
+import * as Constants from '../constants/search'
 import debounce from 'lodash/debounce'
 
 const debounceTimeout = 1e3

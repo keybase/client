@@ -1,6 +1,6 @@
 // @flow
 // The filter bar for search. Lets you select a search provider
-import * as Constants from '../../constants/searchv3'
+import * as Constants from '../../constants/search'
 import React, {Component} from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'

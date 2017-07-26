@@ -1,7 +1,7 @@
 // @flow
 import {clearSearchResults, onUserClick} from '../actions/profile'
 import * as SearchCreators from '../actions/search/creators'
-import * as SearchConstants from '../constants/searchv3'
+import * as SearchConstants from '../constants/search'
 import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'

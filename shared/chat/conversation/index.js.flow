@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 import * as Constants from '../../constants/chat'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 
 export type Props = {|
   editLastMessageCounter: number,

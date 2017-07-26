@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/searchv3'
+import * as Constants from '../../constants/search'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
 import {

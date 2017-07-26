@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import Conversation from './index'
 import NoConversation from './no-conversation'

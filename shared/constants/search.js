@@ -1,129 +1,134 @@
 // @flow
+import {List} from 'immutable'
+import {amIFollowing, usernameSelector} from './selectors'
+
+import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
-import type {TypedAction} from '../constants/types/flux'
-import type {OnClickFollowers, OnClickFollowing, OnClickAvatar} from './profile'
-import type {StartConversation} from './chat'
+import type {TypedState} from './reducer'
 
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
-
-export type ExtraInfo =
-  | {
-      service: 'external',
-      icon: ?IconType,
-      serviceUsername: string, // i.e. with twitter it would be malgorithms
-      serviceAvatar: string, // i.e. with twitter it would be their twitter avatar url
-      fullNameOnService: string, // Say with twitter we know malgorithms is "Chris Coyne"
-    }
-  | {
-      service: 'keybase',
-      username: string,
-      fullName: string,
-      isFollowing: boolean,
-    }
-  | {
-      service: 'none',
-      fullName: string,
-    }
-
-export type SearchResult =
-  | {|
-      service: 'keybase',
-      username: string,
-      isFollowing: boolean,
-      extraInfo: ExtraInfo,
-    |}
-  | {|
-      service: 'external',
-      icon: IconType,
-      username: string,
-      serviceName: SearchPlatforms,
-      serviceAvatar: string, // i.e. with twitter it would be their twitter avatar url
-      profileUrl: string,
-      extraInfo: ExtraInfo,
-      keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
-    |}
-
-// Keys for service+username to use in cross referencing things
-export function searchResultKeys(result: SearchResult): Array<string> {
-  const results = []
-  if (result.service === 'keybase') {
-    results.push('Keybase' + result.username)
-  } else if (result.service === 'external') {
-    if (result.keybaseSearchResult) {
-      results.push('Keybase' + result.keybaseSearchResult.username)
-    }
-    results.push(result.serviceName + result.username)
-  }
-
-  return results
+const services: {[service: string]: true} = {
+  Facebook: true,
+  GitHub: true,
+  'Hacker News': true,
+  Keybase: true,
+  Reddit: true,
+  Twitter: true,
 }
 
-export function fullName(extraInfo: ExtraInfo): string {
-  switch (extraInfo.service) {
-    case 'keybase':
-    case 'none':
-      return extraInfo.fullName
-    case 'external':
-      return extraInfo.fullNameOnService
-  }
-  return ''
-}
+export type Service = $Keys<typeof services>
 
-export function searchResultToAssertion(r: SearchResult): string {
-  if (r.service === 'external') {
-    return `${r.username}@${r.serviceName.toLowerCase()}`
-  }
+export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-  return r.username
-}
+// This is what the api expects/returns
+export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
 
-export const search = 'search:search'
-export type Search = TypedAction<'search:search', {term: string}, void>
+export type SearchResultId = string // i.e. marcopolo or marcopolo@github
+export type SearchQuery = string
 
-export const results = 'search:results'
-export type Results = TypedAction<
-  'search:results',
-  {term: string, results: Array<SearchResult>, requestTimestamp: Date},
-  void
+export type RowProps = {|
+  id: SearchResultId,
+
+  leftFollowingState: FollowingState,
+  leftIcon: ?IconType, // If service is keybase this can be null
+  leftService: Service,
+  leftUsername: string,
+
+  rightFollowingState: FollowingState,
+  rightFullname: ?string,
+  rightIcon: ?IconType,
+  rightService: ?Service,
+  rightUsername: ?string,
+
+  showTrackerButton: boolean,
+  onShowTracker: () => void,
+  onClick: () => void,
+  onMouseOver?: () => void,
+  selected: boolean,
+|}
+
+// A normalized version of the row props above.
+// The connector should fill in the missing pieces like the following state
+export type SearchResult = {|
+  id: SearchResultId,
+
+  leftIcon: ?IconType, // If service is keybase this can be null
+  leftService: Service,
+  leftUsername: string,
+
+  rightFullname: ?string,
+  rightIcon: ?IconType,
+  rightService: ?Service,
+  rightUsername: ?string,
+|}
+
+// Actions
+export type Search<TypeToFire> = NoErrorTypedAction<
+  'searchv3:search',
+  {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
 >
 
-export const selectPlatform = 'search:selectPlatform'
-export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
+export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
+  'searchv3:searchSuggestions',
+  {actionTypeToFire: TypeToFire, maxUsers: number}
+>
 
-export const selectUserForInfo = 'search:selectUserForInfo'
-export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
+export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
 
-export const addUsersToGroup = 'search:addUsersToGroup'
-export type AddUsersToGroup = TypedAction<'search:addUsersToGroup', {users: Array<SearchResult>}, void>
+export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
+  TypeToFire,
+  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service}
+>
 
-export const removeUserFromGroup = 'search:removeUserFromGroup'
-export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {user: SearchResult}, void>
+// Generic so others can make their own version
+export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<
+  T,
+  {searchResultTerm: string, searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
+>
+export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 
-export const toggleUserGroup = 'search:toggleUserGroup'
-export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
+function serviceIdToService(serviceId: string): Service {
+  return {
+    keybase: 'Keybase',
+    twitter: 'Twitter',
+    github: 'GitHub',
+    reddit: 'Reddit',
+    hackernews: 'Hacker News',
+    facebook: 'Facebook',
+  }[serviceId]
+}
 
-export const reset = 'search:reset'
-export type Reset = TypedAction<'search:reset', {}, void>
+function followStateHelper(state: TypedState, username: string, service: Service) {
+  const me = usernameSelector(state)
+  if (service === 'Keybase') {
+    if (username === me) {
+      return 'You'
+    } else {
+      return amIFollowing(state, username) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
+}
 
-export const waiting = 'search:waiting'
-export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
+function maybeUpgradeSearchResultIdToKeybaseId(
+  searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
+  id: SearchResultId
+): SearchResultId {
+  if (!searchResultMap.get(id)) {
+    console.warn('search result id not found in enitites.', id)
+    return id
+  }
 
-export type Actions =
-  | Search
-  | Results
-  | SelectPlatform
-  | SelectUserForInfo
-  | AddUsersToGroup
-  | RemoveUserFromGroup
-  | ToggleUserGroup
-  | Reset
-  | Waiting
-  | OnClickFollowers
-  | OnClickFollowing
-  | OnClickAvatar
-  | StartConversation
+  const searchResult = searchResultMap.get(id)
+  if (searchResult.get('leftService') === 'Keybase') {
+    return searchResult.get('leftUsername')
+  } else if (searchResult.get('rightService') === 'Keybase') {
+    return searchResult.get('rightUsername') || id
+  }
 
-export function platformToIcon(platform: SearchPlatforms): IconType {
+  return id
+}
+
+function platformToIcon(service: Service): IconType {
   return {
     Keybase: 'iconfont-identity-devices',
     Twitter: 'iconfont-identity-twitter',
@@ -132,10 +137,10 @@ export function platformToIcon(platform: SearchPlatforms): IconType {
     Hackernews: 'iconfont-identity-hn',
     Pgp: 'iconfont-identity-pgp',
     Facebook: 'iconfont-identity-facebook',
-  }[platform]
+  }[service]
 }
 
-export function platformToLogo32(platform: SearchPlatforms): IconType {
+function platformToLogo32(service: Service): IconType {
   return {
     Keybase: 'icon-keybase-logo-32',
     Twitter: 'icon-twitter-logo-32',
@@ -144,10 +149,10 @@ export function platformToLogo32(platform: SearchPlatforms): IconType {
     Hackernews: 'icon-hacker-news-logo-32',
     Pgp: 'icon-pgp-key-32',
     Facebook: 'icon-facebook-logo-32',
-  }[platform]
+  }[service]
 }
 
-export function platformToLogo24(platform: SearchPlatforms): IconType {
+function platformToLogo24(service: Service): IconType {
   return {
     Keybase: 'icon-keybase-logo-24',
     Twitter: 'icon-twitter-logo-24',
@@ -156,10 +161,10 @@ export function platformToLogo24(platform: SearchPlatforms): IconType {
     Hackernews: 'icon-hacker-news-logo-24',
     Pgp: 'icon-pgp-key-24',
     Facebook: 'icon-facebook-logo-24',
-  }[platform]
+  }[service]
 }
 
-export function platformToLogo16(platform: SearchPlatforms): IconType {
+function platformToLogo16(service: Service): IconType {
   return {
     Keybase: 'icon-keybase-logo-16',
     Twitter: 'icon-twitter-logo-16',
@@ -168,31 +173,15 @@ export function platformToLogo16(platform: SearchPlatforms): IconType {
     Hackernews: 'icon-hacker-news-logo-16',
     Pgp: 'icon-pgp-key-16',
     Facebook: 'icon-facebook-logo-16',
-  }[platform]
+  }[service]
 }
 
-export function platformToNiceName(platform: SearchPlatforms): string {
-  const niceNames: {[key: SearchPlatforms]: ?string} = {
-    Hackernews: 'Hacker News',
-  }
-
-  return niceNames[platform] || platform
-}
-
-export function equalSearchResult(a: SearchResult, b: SearchResult): boolean {
-  return a.service === b.service && a.username === b.username
-}
-
-export type State = {
-  requestTimestamp: ?Date,
-  results: Array<SearchResult>,
-  searchHintText: string,
-  searchIcon: IconType,
-  searchPlatform: SearchPlatforms,
-  searchText: ?string,
-  searchTextClearTrigger: number,
-  selectedUsers: Array<SearchResult>,
-  showUserGroup: boolean,
-  userForInfoPane: ?SearchResult,
-  waiting: boolean,
+export {
+  serviceIdToService,
+  followStateHelper,
+  maybeUpgradeSearchResultIdToKeybaseId,
+  platformToIcon,
+  platformToLogo32,
+  platformToLogo24,
+  platformToLogo16,
 }

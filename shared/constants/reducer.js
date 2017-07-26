@@ -15,7 +15,6 @@ import * as Pinentry from '../constants/pinentry'
 import * as Profile from '../constants/profile'
 import * as Push from '../constants/push'
 import * as RouteTree from '../constants/route-tree'
-import * as Search from '../constants/search'
 import * as Settings from '../constants/settings'
 import * as Signup from '../constants/signup'
 import * as Tracker from '../constants/tracker'
@@ -42,7 +41,6 @@ export type TypedState = {
   profile: Profile.State,
   push: Push.State,
   routeTree: RouteTree.State,
-  search: Search.State,
   settings: Settings.State,
   signup: Signup.State,
   tracker: Tracker.State,

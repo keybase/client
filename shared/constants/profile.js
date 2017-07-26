@@ -1,5 +1,5 @@
 // @flow
-import * as SearchConstants from './searchv3'
+import * as SearchConstants from './search'
 import {List} from 'immutable'
 import type {PlatformsExpandedType} from './types/more'
 import type {ProofStatus, SigID, KID} from './types/flow-types'

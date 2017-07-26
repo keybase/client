@@ -1,7 +1,7 @@
 // @flow
 
 import {Component} from 'react'
-import type {SearchPlatforms} from '../constants/search'
+import type {Service} from '../constants/search'
 
 export type Props = {
   avatar: ?string,
@@ -10,7 +10,7 @@ export type Props = {
   onOpenPrivateFolder: () => void,
   onStartChat: () => void,
   profileUrl: string,
-  serviceName: SearchPlatforms,
+  serviceName: Service,
   username: string,
 }
 
