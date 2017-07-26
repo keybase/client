@@ -52,10 +52,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		uid = res.GetUID()
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
-	if err != nil {
-		return nil, err
-	}
+	meUID := g.ActiveDevice.UID()
 
 	teams, err := getTeamsListFromServer(ctx, g, uid, arg.All)
 	if err != nil {
@@ -68,7 +65,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	administeredTeams := make(map[string]bool)
 	for idx, memberInfo := range teams {
 		teamNames[memberInfo.FqName] = true
-		if memberInfo.UserID == me.GetUID() && (memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
+		if memberInfo.UserID == meUID && (memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
 			administeredTeams[memberInfo.FqName] = true
 		}
 
