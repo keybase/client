@@ -133,7 +133,7 @@ const mapStateToProps = (state: TypedState) => {
   const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   return {
     installed,
-    showSecurityPrefs: !installed && state.favorite.fuseInstall.kextPermissionError,
+    showSecurityPrefs: !installed && state.favorite.kextPermissionError,
   }
 }
 
