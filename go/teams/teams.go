@@ -341,7 +341,7 @@ func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, e
 		return false, err
 	}
 
-	if role == keybase1.TeamRole_OWNER || role == keybase1.TeamRole_ADMIN {
+	if role.IsAdminOrAbove() {
 		reqs := keybase1.TeamChangeReq{Writers: []keybase1.UserVersion{uv}}
 		if err := t.ChangeMembership(ctx, reqs); err != nil {
 			return false, err
