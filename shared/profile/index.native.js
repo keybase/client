@@ -35,7 +35,7 @@ import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 64
+export const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
