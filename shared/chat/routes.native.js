@@ -1,12 +1,13 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import ConvListOrSearch from './conversation-list-or-search'
+import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
+import InfoPanel from './conversation/info-panel/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -26,6 +27,16 @@ const conversationRoute = new RouteDefNode({
       tags: {layerOnTop: true},
       children: {},
     },
+    infoPanel: {
+      component: InfoPanel,
+      children: {
+        showBlockConversationDialog: {
+          component: BlockConversationWarning,
+          tags: {hideStatusBar: true},
+          children: {},
+        },
+      },
+    },
     enterPaperkey: {
       component: EnterPaperkey,
     },
@@ -33,18 +44,13 @@ const conversationRoute = new RouteDefNode({
       component: MessagePopup,
       tags: {keepKeyboardOnLeave: true, layerOnTop: true},
     },
-    showBlockConversationDialog: {
-      component: BlockConversationWarning,
-      tags: {layerOnTop: true},
-      children: {},
-    },
   },
 })
 
 const routeTree = new RouteDefNode({
   component: ConvListOrSearch,
   children: () => conversationRoute,
-  tags: {persistChildren: true, underStatusBar: true},
+  tags: {persistChildren: true},
 })
 
 export default routeTree

@@ -1,10 +1,12 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
-import ConversationList from './index'
-import {connect} from 'react-redux'
+import Inbox from './index'
+import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
+import {compose, lifecycle} from 'recompose'
+import throttle from 'lodash/throttle'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -27,30 +29,46 @@ const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean 
 const filteredInbox = createImmutableEqualSelector(
   [getInbox, getSupersededByState, getAlwaysShow, getFilter],
   (inbox, supersededByState, alwaysShow, filter) => {
-    return inbox
-      .filter(
-        i =>
-          (!i.isEmpty || alwaysShow.has(i.conversationIDKey)) &&
-          !supersededByState.get(i.conversationIDKey) &&
-          passesFilter(i, filter)
-      )
-      .map(i => i.conversationIDKey)
+    const ids = []
+    // Building a list using forEach for performance reason, only call i.conversationIDKey once
+    inbox.forEach(i => {
+      const id = i.conversationIDKey
+      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
+        ids.push(id)
+      }
+    })
+    return I.List(ids)
   }
 )
 const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
   return I.List(pending.keys()).concat(inbox)
 })
 
-export default connect(
-  (state: TypedState) => ({
-    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
-    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
-    rows: getRows(state),
-  }),
-  (dispatch: Dispatch) => ({
-    loadInbox: () => dispatch(loadInbox()),
-    onNewChat: () => dispatch(newChat([])),
-    onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-      dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
+  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+  rows: getRows(state),
+  isActiveRoute,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  loadInbox: () => dispatch(loadInbox()),
+  onNewChat: () => dispatch(newChat([])),
+  onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
+    dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+})
+
+// Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
+// to not call loadInbox multiple times
+const throttleHelper = throttle(cb => cb(), 60 * 1000)
+
+export default compose(
+  pausableConnect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentDidMount: function() {
+      throttleHelper(() => {
+        this.props.loadInbox()
+      })
+    },
   })
-)(ConversationList)
+)(Inbox)

@@ -90,22 +90,25 @@ function generateConditions(matchers)  {
   return conditions;
 }
 
-// Register browser_action icon state
-// Via: https://developer.chrome.com/extensions/examples/api/pageAction/pageaction_by_url/background.js
-const pageMatchRules = [
-  {
-    conditions: generateConditions(identityMatchers),
-    actions: [
-      new chrome.declarativeContent.SetIcon({
-        path: "images/icon-keybase-logo-16@2x.png"
-      })
-    ]
-  }
-];
 
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-    chrome.declarativeContent.onPageChanged.addRules(pageMatchRules);
+if (typeof chrome.declarativeContent !== 'undefined') {
+  // Register browser_action icon state
+  // Via: https://developer.chrome.com/extensions/examples/api/pageAction/pageaction_by_url/background.js
+  // Not available in Firefox yet.
+  const pageMatchRules = [
+    {
+      conditions: generateConditions(identityMatchers),
+      actions: [
+        new chrome.declarativeContent.SetIcon({
+          path: "images/icon-keybase-logo-16@2x.png"
+        })
+      ]
+    }
+  ];
+
+  chrome.runtime.onInstalled.addListener(function() {
+    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
+      chrome.declarativeContent.onPageChanged.addRules(pageMatchRules);
+    });
   });
-});
-
+}

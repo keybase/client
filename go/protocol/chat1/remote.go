@@ -294,6 +294,35 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 	}
 }
 
+type ChannelMention int
+
+const (
+	ChannelMention_NONE ChannelMention = 0
+	ChannelMention_ALL  ChannelMention = 1
+	ChannelMention_HERE ChannelMention = 2
+)
+
+func (o ChannelMention) DeepCopy() ChannelMention { return o }
+
+var ChannelMentionMap = map[string]ChannelMention{
+	"NONE": 0,
+	"ALL":  1,
+	"HERE": 2,
+}
+
+var ChannelMentionRevMap = map[ChannelMention]string{
+	0: "NONE",
+	1: "ALL",
+	2: "HERE",
+}
+
+func (e ChannelMention) String() string {
+	if v, ok := ChannelMentionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UnreadUpdateFull struct {
 	Ignore    bool           `codec:"ignore" json:"ignore"`
 	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -585,6 +614,63 @@ func (o SyncAllResult) DeepCopy() SyncAllResult {
 	}
 }
 
+type JoinLeaveConversationRemoteRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o JoinLeaveConversationRemoteRes) DeepCopy() JoinLeaveConversationRemoteRes {
+	return JoinLeaveConversationRemoteRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type GetTLFConversationsRes struct {
+	Conversations []Conversation `codec:"conversations" json:"conversations"`
+	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
+	return GetTLFConversationsRes{
+		Conversations: (func(x []Conversation) []Conversation {
+			var ret []Conversation
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Conversations),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type SetAppNotificationSettingsRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetAppNotificationSettingsRes) DeepCopy() SetAppNotificationSettingsRes {
+	return SetAppNotificationSettingsRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -654,12 +740,23 @@ func (o GetPublicConversationsArg) DeepCopy() GetPublicConversationsArg {
 type PostRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions     []gregor1.UID  `codec:"atMentions" json:"atMentions"`
+	ChannelMention ChannelMention `codec:"channelMention" json:"channelMention"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 	return PostRemoteArg{
 		ConversationID: o.ConversationID.DeepCopy(),
 		MessageBoxed:   o.MessageBoxed.DeepCopy(),
+		AtMentions: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
 	}
 }
 
@@ -907,6 +1004,54 @@ func (o UpdateTypingRemoteArg) DeepCopy() UpdateTypingRemoteArg {
 	}
 }
 
+type JoinConversationArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o JoinConversationArg) DeepCopy() JoinConversationArg {
+	return JoinConversationArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type LeaveConversationArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
+	return LeaveConversationArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type GetTLFConversationsArg struct {
+	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType               `codec:"topicType" json:"topicType"`
+	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
+	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+}
+
+func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
+	return GetTLFConversationsArg{
+		TlfID:            o.TlfID.DeepCopy(),
+		TopicType:        o.TopicType.DeepCopy(),
+		MembersType:      o.MembersType.DeepCopy(),
+		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
+	}
+}
+
+type SetAppNotificationSettingsArg struct {
+	ConvID   ConversationID               `codec:"convID" json:"convID"`
+	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg {
+	return SetAppNotificationSettingsArg{
+		ConvID:   o.ConvID.DeepCopy(),
+		Settings: o.Settings.DeepCopy(),
+	}
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -929,6 +1074,10 @@ type RemoteInterface interface {
 	PublishReadMessage(context.Context, PublishReadMessageArg) error
 	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
+	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
+	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
+	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
+	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1271,6 +1420,70 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"joinConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]JoinConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]JoinConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]JoinConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.JoinConversation(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"leaveConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]LeaveConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LeaveConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LeaveConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.LeaveConversation(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getTLFConversations": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTLFConversationsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTLFConversationsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTLFConversationsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTLFConversations(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setAppNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetAppNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetAppNotificationSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetAppNotificationSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.SetAppNotificationSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1387,5 +1600,27 @@ func (c RemoteClient) PublishSetConversationStatus(ctx context.Context, __arg Pu
 
 func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTypingRemoteArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
+	__arg := JoinConversationArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
+	__arg := LeaveConversationArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res)
 	return
 }

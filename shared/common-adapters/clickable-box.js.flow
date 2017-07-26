@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 export type Props = {|
   hoverColor?: any,
   children?: any,
-  style?: Object,
+  style?: ?Object,
   onClick?: ?(event: SyntheticEvent) => void,
   onPress?: void,
   onLongPress?: ?(event: SyntheticEvent) => void,
@@ -14,6 +14,12 @@ export type Props = {|
   feedback?: boolean,
   // mobile only
   activeOpacity?: number,
+  // desktop only
+  onMouseOver?: ?(event: SyntheticEvent) => void,
+  onMouseEnter?: ?() => void,
+  onMouseLeave?: ?() => void,
+  onMouseDown?: ?() => void,
+  onMouseUp?: ?() => void,
 |}
 
 declare export default class ClickableBox extends Component<void, Props, void> {}

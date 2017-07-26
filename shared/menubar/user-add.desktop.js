@@ -15,7 +15,7 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
   <Box
     style={{
       ...stylesButtonContainer,
-      backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue,
+      backgroundColor: globalColors.white,
     }}
   >
     <Button
@@ -38,18 +38,17 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
     <Box
       style={{
         ...stylesInputContainer,
-        backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
+        backgroundColor: globalColors.white,
       }}
     >
       <Input
         small={true}
         smallLabel={isPublic ? '' : `${username},`}
-        smallLabelStyle={{marginRight: 0, color: isPublic ? globalColors.black_75 : globalColors.white}}
+        smallLabelStyle={{marginRight: 0}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
         style={{flex: 1}}
-        inputStyle={{color: isPublic ? globalColors.black_75 : globalColors.white}}
         onChangeText={onUpdateText}
         value={text}
         onKeyDown={event => {

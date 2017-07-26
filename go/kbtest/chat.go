@@ -69,7 +69,6 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	}
 	for i := 0; i < numUsers; i++ {
 		kbTc := externals.SetupTest(t, "chat_"+name, 0)
-		kbTc.Tp.UpgradePerUserKey = true
 		tc := ChatTestContext{
 			TestContext: kbTc,
 			ChatG:       &globals.ChatContext{},
@@ -325,6 +324,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 		}
 		convToAppend := *conv
 		convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
+		convToAppend.Notifications = new(chat1.ConversationNotificationInfo)
 
 		ibfull.Conversations = append(ibfull.Conversations, convToAppend)
 		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(ibfull.Conversations) {
@@ -563,6 +563,11 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
+	arg chat1.SetAppNotificationSettingsArg) (res chat1.SetAppNotificationSettingsRes, err error) {
+	return res, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {
 	return nil
 }
@@ -618,6 +623,18 @@ func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res
 
 func (m *ChatRemoteMock) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateTypingRemoteArg) error {
 	return nil
+}
+
+func (m *ChatRemoteMock) GetTLFConversations(ctx context.Context, arg chat1.GetTLFConversationsArg) (chat1.GetTLFConversationsRes, error) {
+	return chat1.GetTLFConversationsRes{}, nil
+}
+
+func (m *ChatRemoteMock) JoinConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
 
 type convByNewlyUpdated struct {

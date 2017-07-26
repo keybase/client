@@ -162,8 +162,9 @@ func (o SwitchToGPGSignOKArg) DeepCopy() SwitchToGPGSignOKArg {
 }
 
 type ChooseDeviceArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Devices   []Device `codec:"devices" json:"devices"`
+	SessionID         int      `codec:"sessionID" json:"sessionID"`
+	Devices           []Device `codec:"devices" json:"devices"`
+	CanSelectNoDevice bool     `codec:"canSelectNoDevice" json:"canSelectNoDevice"`
 }
 
 func (o ChooseDeviceArg) DeepCopy() ChooseDeviceArg {
@@ -177,6 +178,7 @@ func (o ChooseDeviceArg) DeepCopy() ChooseDeviceArg {
 			}
 			return ret
 		})(o.Devices),
+		CanSelectNoDevice: o.CanSelectNoDevice,
 	}
 }
 

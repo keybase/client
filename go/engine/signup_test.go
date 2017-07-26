@@ -27,7 +27,7 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 	defer tc.Cleanup()
 	var err error
 
-	tc.Tp.UpgradePerUserKey = upgradePerUserKey
+	tc.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	fu := CreateAndSignupFakeUser(tc, "se")
 
@@ -113,8 +113,6 @@ func subTestSignupEngine(t *testing.T, upgradePerUserKey bool) {
 func TestSignupLocalDelegatePerUserKey(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
-
-	tc.Tp.UpgradePerUserKey = true
 
 	_, signupEngine := CreateAndSignupFakeUser2(tc, "se")
 

@@ -3,7 +3,7 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
-import Main from '../../main.desktop'
+import Main from '../../app/main.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -12,19 +12,18 @@ import configureStore from '../../store/configure-store'
 import electron, {ipcRenderer} from 'electron'
 import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
-import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
-import routeDefs from '../../routes'
+import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
-import {GlobalEscapeHandler} from '../../util/escape-handler'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
-import {merge, throttle} from 'lodash'
-import {reduxDevToolsEnable, resetEngineOnHMR} from '../../local-debug.desktop'
+import merge from 'lodash/merge'
+import throttle from 'lodash/throttle'
+import {resetEngineOnHMR} from '../../local-debug.desktop'
 import {selector as menubarSelector} from '../../menubar/selector'
 import {selector as pineentrySelector} from '../../pinentry/selector'
 import {selector as remotePurgeMessageSelector} from '../../pgp/selector'
@@ -66,16 +65,6 @@ function setupApp(store) {
   }
 
   setupContextMenu(electron.remote.getCurrentWindow())
-
-  // Used by material-ui widgets.
-  if (module.hot) {
-    // Don't reload this thing if we're hot reloading
-    if (module.hot.data === undefined) {
-      injectTapEventPlugin()
-    }
-  } else {
-    injectTapEventPlugin()
-  }
 
   ipcRenderer.on('dispatchAction', (event, action) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
@@ -164,24 +153,14 @@ const FontLoader = () => (
 )
 
 function render(store, MainComponent) {
-  let dt
-  if (__DEV__ && reduxDevToolsEnable) {
-    // eslint-disable-line no-undef
-    const DevTools = require('./redux-dev-tools').default
-    dt = <DevTools />
-  }
-
   ReactDOM.render(
     <AppContainer>
       <Root store={store}>
-        <GlobalEscapeHandler>
-          <div style={{display: 'flex', flex: 1}}>
-            <RemoteManager />
-            <FontLoader />
-            <MainComponent />
-            {dt}
-          </div>
-        </GlobalEscapeHandler>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteManager />
+          <FontLoader />
+          <MainComponent />
+        </div>
       </Root>
     </AppContainer>,
     document.getElementById('root')
@@ -198,11 +177,11 @@ function setupHMR(store) {
   }
 
   module.hot &&
-    module.hot.accept(['../../main.desktop', '../../routes'], () => {
-      store.dispatch(setRouteDef(require('../../routes').default))
+    module.hot.accept(['../../app/main.desktop', '../../app/routes'], () => {
+      store.dispatch(setRouteDef(require('../../app/routes').default))
       try {
         store.dispatch({type: updateReloading, payload: {reloading: true}})
-        const NewMain = require('../../main.desktop').default
+        const NewMain = require('../../app/main.desktop').default
         render(store, NewMain)
         if (resetEngineOnHMR) {
           engine().reset()

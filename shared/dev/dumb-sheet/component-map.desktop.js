@@ -20,7 +20,7 @@ import SearchV3Map from '../../searchv3/dumb'
 import SearchUserPaneMap from '../../search/user-pane/dumb'
 import SettingsMap from '../../settings/dumb.desktop'
 import SignupMap from '../../login/signup/dumb'
-import TabBarMap from '../../tab-bar/dumb.desktop'
+import TabBarMap from '../../app/tab-bar/dumb.desktop'
 import TrackerMap from '../../tracker/dumb.desktop'
 import UnlockFoldersMap from '../../unlock-folders/dumb'
 

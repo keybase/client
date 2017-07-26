@@ -27,7 +27,7 @@ li.keybase-reply form, form.keybase-reply {
 }
 
 .keybase-reply label {
-  width: 100%;
+  width: 100% !important;
   display: inline-block;
 }
 

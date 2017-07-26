@@ -1,7 +1,7 @@
 // @flow
 // Handles sending requests to the daemon
 import * as Creators from './creators'
-import {mapValues} from 'lodash'
+import mapValues from 'lodash/mapValues'
 import {RPCTimeoutError} from '../../util/errors'
 import engine, {EngineChannel} from '../../engine'
 

@@ -15,8 +15,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState}) => {
         alignItems: 'center',
         height: '100%',
         paddingLeft: globalMargins.tiny,
-        // TODO we might want to change this for the mobile version. Will play around with it more
-        width: 215,
+        width: isMobile ? 170 : 215,
       }}
     >
       <Box style={{...globalStyles.flexBoxCenter, width: 32}}>
@@ -83,7 +82,10 @@ const Right = ({showTrackerButton, onShowTracker}) => {
     ? <Icon
         type="iconfont-usercard"
         onClick={onShowTracker}
-        style={{marginLeft: globalMargins.small, marginRight: globalMargins.small}}
+        style={{
+          marginLeft: globalMargins.small,
+          marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+        }}
       />
     : null
 }
@@ -101,33 +103,32 @@ const Line = () => (
   />
 )
 
-const SearchResultRow = (props: Constants.RowProps) => {
-  return (
-    <ClickableBox
-      style={_clickableBoxStyle[(!!props.selected).toString()]}
-      underlayColor={globalColors.blue4}
-      onClick={props.onClick}
-    >
-      <Box style={_rowStyle}>
-        <Left
-          leftFollowingState={props.leftFollowingState}
-          leftIcon={props.leftIcon}
-          leftService={props.leftService}
-          leftUsername={props.leftUsername}
-        />
-        <Middle
-          rightFollowingState={props.rightFollowingState}
-          rightFullname={props.rightFullname}
-          rightIcon={props.rightIcon}
-          rightService={props.rightService}
-          rightUsername={props.rightUsername}
-        />
-        <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
-        <Line />
-      </Box>
-    </ClickableBox>
-  )
-}
+const SearchResultRow = (props: Constants.RowProps) => (
+  <ClickableBox
+    style={_clickableBoxStyle[(!!props.selected).toString()]}
+    underlayColor={globalColors.blue4}
+    onClick={props.onClick}
+    onMouseOver={props.onMouseOver}
+  >
+    <Box style={_rowStyle}>
+      <Left
+        leftFollowingState={props.leftFollowingState}
+        leftIcon={props.leftIcon}
+        leftService={props.leftService}
+        leftUsername={props.leftUsername}
+      />
+      <Middle
+        rightFollowingState={props.rightFollowingState}
+        rightFullname={props.rightFullname}
+        rightIcon={props.rightIcon}
+        rightService={props.rightService}
+        rightUsername={props.rightUsername}
+      />
+      <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+      <Line />
+    </Box>
+  </ClickableBox>
+)
 
 const _clickableBoxStyleCommon = {
   ...globalStyles.flexBoxRow,

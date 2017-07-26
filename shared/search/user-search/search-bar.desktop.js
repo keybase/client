@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
+import debounce from 'lodash/debounce'
 
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'
@@ -81,7 +81,7 @@ class SearchBar extends Component<void, Props, State> {
     this.props.onSearch(term, this.state.overridePlatform)
   }
 
-  _onDebouncedSearch = _.debounce(this._onSearch, 500)
+  _onDebouncedSearch = debounce(this._onSearch, 500)
 
   _onClickService = (overridePlatform: SearchPlatforms) => {
     this.setState({overridePlatform}, () => {

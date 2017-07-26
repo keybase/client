@@ -82,13 +82,36 @@ func TestCreateSubteam(t *testing.T) {
 	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
 	require.NoError(t, err)
 
-	// TODO: Uncomment the rest here when Get() supports subteams.
+	// Fetch the subteam we just created, to make sure it's there.
+	subteamFQName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+	subteam, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name: subteamFQName.String(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, subteamFQName, subteam.Name())
+	require.Equal(t, keybase1.Seqno(1), subteam.chain().GetLatestSeqno())
+}
 
-	// // Fetch the subteam we just created, to make sure it's there.
-	// subteamFQName := parentTeamName + "." + subteamBasename
-	// subteam, err := Get(context.TODO(), tc.G, subteamFQName)
-	// require.NoError(t, err)
+func TestCreateSubSubteam(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
 
-	// require.Equal(t, subteamFQName, subteam.GetName())
-	// require.Equal(t, 1, subteam.GetLatestSeqno())
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
+	require.NoError(t, err)
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
+	require.NoError(t, err)
+
+	subteamBasename := "bbb"
+	_, err = CreateSubteam(context.TODO(), tc.G, subteamBasename, parentTeamName)
+	require.NoError(t, err)
+	subteamName, err := parentTeamName.Append(subteamBasename)
+	require.NoError(t, err)
+
+	subsubteamBasename := "ccc"
+	_, err = CreateSubteam(context.TODO(), tc.G, subsubteamBasename, subteamName)
+	require.NoError(t, err)
 }

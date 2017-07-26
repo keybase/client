@@ -25,7 +25,7 @@ export type NavigateUp = NoErrorTypedAction<'routeTree:navigateUp', null>
 export const putActionIfOnPath = 'routeTree:putActionIfOnPath'
 export type PutActionIfOnPath<T: TypedAction<*, *, *>> = NoErrorTypedAction<
   'routeTree:putActionIfOnPath',
-  {expectedPath: Path, otherAction: T}
+  {expectedPath: Path, parentPath?: Path, otherAction: T}
 >
 
 export const setRouteState = 'routeTree:setRouteState'

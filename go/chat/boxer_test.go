@@ -1328,6 +1328,19 @@ func (k *KeyFinderMock) Find(ctx context.Context, tlfName string,
 	return res, nil
 }
 
+func (k *KeyFinderMock) FindForEncryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
+	return k.Find(ctx, tlfName, membersType, public)
+}
+
+func (k *KeyFinderMock) FindForDecryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int) (res types.NameInfo, err error) {
+	return k.Find(ctx, tlfName, membersType, public)
+}
+
 func (k *KeyFinderMock) SetNameInfoSourceOverride(ni types.NameInfoSource) {}
 
 func remarshalBoxed(t *testing.T, v chat1.MessageBoxed) *chat1.MessageBoxed {

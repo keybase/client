@@ -1,10 +1,10 @@
 // @flow
 import {Component} from 'react'
 
-import type {Reachability} from '../constants/types/flow-types'
+import type {Reachable} from '../constants/types/flow-types'
 
 export type Props = {
-  reachability: ?Reachability,
+  reachable: Reachable,
   appFocused: boolean,
 }
 

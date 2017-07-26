@@ -23,7 +23,7 @@ export type MarkdownCreateComponent = (
 export type Props = {
   children?: string,
   preview?: boolean, // if true render a simplified version
-  style?: Object,
+  style?: any,
   allowFontScaling?: boolean,
 }
 

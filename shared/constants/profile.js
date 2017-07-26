@@ -37,7 +37,9 @@ export type State = {
   username: string,
   usernameValid: boolean,
   waiting: boolean,
+  searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
 }
 
 export const addProof = 'profile:addProof'
@@ -129,11 +131,13 @@ export type UpdateUsername = TypedAction<'profile:updateUsername', {username: st
 export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
 export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
+export type PendingSearch = SearchConstants.PendingSearchGeneric<'profile:searchPending'>
 export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'profile:updateSearchResults'>
 
 export type Actions =
   | CleanupUsername
   | FinishRevokeProof
+  | PendingSearch
   | UpdateErrorText
   | UpdatePlatform
   | UpdateProofStatus

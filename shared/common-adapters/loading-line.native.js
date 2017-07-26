@@ -10,24 +10,37 @@ class LoadingLine extends Component<void, Props, {fadeAnim: any}> {
   state = {
     fadeAnim: new NativeAnimated.Value(0),
   }
+  _keepAnimating: boolean = false
   _animate = () => {
+    if (!this._keepAnimating) {
+      return
+    }
+
     NativeAnimated.timing(this.state.fadeAnim, {
       duration: 600,
       easing: NativeEasing.ease,
       toValue: 1,
       useNativeDriver: true,
     }).start(() => {
-      NativeAnimated.timing(this.state.fadeAnim, {
-        duration: 600,
-        easing: NativeEasing.ease,
-        toValue: 0,
-        useNativeDriver: true,
-      }).start(() => this._animate())
+      if (this._keepAnimating) {
+        NativeAnimated.timing(this.state.fadeAnim, {
+          duration: 600,
+          easing: NativeEasing.ease,
+          toValue: 0,
+          useNativeDriver: true,
+        }).start(() => this._animate())
+      }
     })
   }
   componentDidMount() {
+    this._keepAnimating = true
     this._animate()
   }
+
+  componentWillUnmount() {
+    this._keepAnimating = false
+  }
+
   render() {
     return (
       <Box style={{position: 'relative', height: 1}}>

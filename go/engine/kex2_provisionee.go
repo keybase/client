@@ -81,6 +81,9 @@ func (e *Kex2Provisionee) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Kex2Provisionee) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "Kex2Provisionee")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Kex2Provisionee")
+
 	// check device struct:
 	if len(e.device.Type) == 0 {
 		return errors.New("provisionee device requires Type to be set")
@@ -464,10 +467,8 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs, per
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
 
 	// Post the per-user-secret encrypted for the provisionee device by the provisioner.
-	if e.G().Env.GetSupportPerUserKey() {
-		if perUserKeyBox != nil {
-			libkb.AddPerUserKeyServerArg(payload, perUserKeyBox.Generation, []keybase1.PerUserKeyBox{*perUserKeyBox}, nil)
-		}
+	if perUserKeyBox != nil {
+		libkb.AddPerUserKeyServerArg(payload, perUserKeyBox.Generation, []keybase1.PerUserKeyBox{*perUserKeyBox}, nil)
 	}
 
 	arg := libkb.APIArg{

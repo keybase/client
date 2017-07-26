@@ -16,13 +16,6 @@ protocol Kex2Provisionee2 {
     union { null, PerUserKeyBox } pukBox
   );
 
-  // PerUserKeyGeneration describes which generation of secret we're talking about.
-  // The sequence starts at 1, and should increment every time the per-user-secret
-  // rotates, which is everytime a device is revoked.
-  @typedef("int")
-  @lint("ignore")
-  record PerUserKeyGeneration {}
-
   @lint("ignore")
   record PerUserKeyBox {
     PerUserKeyGeneration generation;

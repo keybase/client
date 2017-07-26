@@ -13,7 +13,6 @@ export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
 export type AvatarLookup = (username: string) => ?URLMap
 export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
 export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
-
 export type Props = {
   borderColor?: string,
   children?: any,
@@ -23,6 +22,7 @@ export type Props = {
   onAvatarLoaded?: () => void,
   onClick?: ?() => void,
   opacity?: number,
+  skipBackground?: boolean,
   size: AvatarSize,
   style?: ?Object,
   // TODO flow type to allow one or the other, not both url and username etc

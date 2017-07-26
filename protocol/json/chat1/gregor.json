@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -145,6 +150,29 @@
     },
     {
       "type": "record",
+      "name": "SetAppNotificationSettingsPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action",
+          "lint": "ignore"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "ConversationNotificationInfo",
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnreadUpdate",
       "fields": [
         {
@@ -153,8 +181,15 @@
         },
         {
           "type": "int",
-          "name": "UnreadMessages",
-          "lint": "ignore"
+          "name": "unreadMessages"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int",
+            "keys": "keybase1.DeviceType"
+          },
+          "name": "unreadNotifyingMessages"
         }
       ]
     },
@@ -226,16 +261,23 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "joined"
         },
         {
           "type": {
             "type": "array",
-            "items": "ConversationID"
+            "items": "ConversationMember"
           },
           "name": "removed"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     }

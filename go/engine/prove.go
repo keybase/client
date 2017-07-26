@@ -347,6 +347,8 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	if err = p.doWarnings(ctx); err != nil {
 		return
 	}
+	p.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "Prove")
+	defer p.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Prove")
 	stage("GenerateProof")
 	if err = p.generateProof(ctx); err != nil {
 		return
@@ -355,6 +357,7 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	if err = p.postProofToServer(); err != nil {
 		return
 	}
+	p.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Prove")
 	stage("CheckProofText")
 	if err = p.checkProofText(); err != nil {
 		return

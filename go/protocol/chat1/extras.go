@@ -10,7 +10,16 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+type ByUID []gregor1.UID
+
+func (b ByUID) Len() int      { return len(b) }
+func (b ByUID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByUID) Less(i, j int) bool {
+	return bytes.Compare(b[i].Bytes(), b[j].Bytes()) < 0
+}
 
 // Eq compares two TLFIDs
 func (id TLFID) Eq(other TLFID) bool {
@@ -93,6 +102,10 @@ func (t MessageType) String() string {
 		return "TLFNAME"
 	case MessageType_ATTACHMENTUPLOADED:
 		return "ATTACHMENTUPLOADED"
+	case MessageType_JOIN:
+		return "JOIN"
+	case MessageType_LEAVE:
+		return "LEAVE"
 	default:
 		return "UNKNOWN"
 	}
@@ -180,12 +193,16 @@ func (m MessageBoxed) GetMessageType() MessageType {
 }
 
 func (m MessageBoxed) Summary() MessageSummary {
-	return MessageSummary{
+	s := MessageSummary{
 		MsgID:       m.GetMessageID(),
 		MessageType: m.GetMessageType(),
 		TlfName:     m.ClientHeader.TlfName,
 		TlfPublic:   m.ClientHeader.TlfPublic,
 	}
+	if m.ServerHeader != nil {
+		s.Ctime = m.ServerHeader.Ctime
+	}
+	return s
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -380,6 +397,15 @@ func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
 }
 
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+	for _, msg := range c.MaxMessages {
+		if msg.GetMessageType() == typ {
+			return msg, nil
+		}
+	}
+	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -557,6 +583,18 @@ func (r *FindConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *JoinLeaveConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetTLFConversationsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
@@ -567,4 +605,15 @@ func (o TLFConvOrdinal) Int() int {
 
 func (o TLFConvOrdinal) IsFirst() bool {
 	return o.Int() == 1
+}
+
+func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
+	counts := make(map[keybase1.DeviceType]int)
+	counts[keybase1.DeviceType_DESKTOP] = 0
+	counts[keybase1.DeviceType_MOBILE] = 0
+	return UnreadUpdate{
+		ConvID:                  convID,
+		UnreadMessages:          0,
+		UnreadNotifyingMessages: counts,
+	}
 }

@@ -92,6 +92,10 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
+  record MessageJoin {}
+
+  record MessageLeave {}
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -100,6 +104,8 @@ protocol local {
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
     case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
+    case JOIN: MessageJoin;
+    case LEAVE: MessageLeave;
   }
 
   enum OutboxStateType {
@@ -395,6 +401,7 @@ protocol local {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
+    union { null, ConversationNotificationInfo } notifications;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
@@ -644,4 +651,27 @@ protocol local {
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing);
 
+  // Channel management
+  record JoinLeaveConversationLocalRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, TLFVisibility visibility, string topicName);
+  JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
+  JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  
+  record GetTLFConversationsLocalRes {
+    array<ConversationLocal> convs;
+    boolean offline;
+    array<RateLimit> rateLimits; 
+  }
+  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
+
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
+  // currently configured settings. 
+  record SetAppNotificationSettingsLocalRes {
+    boolean offline;
+    array<RateLimit> rateLimits; 
+  } 
+  SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, ConversationNotificationInfo settings); 
 }

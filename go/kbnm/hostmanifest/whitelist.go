@@ -28,13 +28,13 @@ func (w *whitelistPath) Install(u User, app AppManifest) error {
 
 	// Make the path if it doesn't exist
 	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
-		return err
+		return wrapWriteErr(err, parentDir)
 	}
 
 	// Write the file
 	fp, err := os.OpenFile(jsonPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return wrapWriteErr(err, jsonPath)
 	}
 	defer fp.Close()
 

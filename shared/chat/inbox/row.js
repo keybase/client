@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {connect} from 'react-redux'
+import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
@@ -23,21 +23,19 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
   const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
 
-  const hasUnread = !!unreadCount
+  const hasUnread = !participantNeedToRekey && !youNeedToRekey && !!unreadCount
   const subColor = isError
     ? globalColors.red
-    : isSelected ? globalColors.black_40 : hasUnread ? globalColors.white : globalColors.blue3_40
+    : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
-  const backgroundColor = isSelected
-    ? globalColors.white
-    : hasUnread ? globalColors.darkBlue : globalColors.darkBlue4
-  const usernameColor = isSelected
-    ? globalColors.black_75
-    : hasUnread ? globalColors.white : globalColors.blue3_60
+  const backgroundColor = isSelected ? globalColors.blue : globalColors.white
+  const marginRight = isSelected ? 0 : 1
+  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {
     backgroundColor,
     hasUnread,
+    marginRight,
     participantNeedToRekey,
     showBold,
     subColor,
@@ -117,7 +115,7 @@ const makeSelector = conversationIDKey => {
 }
 
 // $FlowIssue
-const RowConnector = connect(
+const RowConnector = pausableConnect(
   (state: TypedState, {conversationIDKey}) => {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)

@@ -28,10 +28,12 @@ func newBaseBox(g *globals.Context) *baseBox {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return getSecretBoxKey(ctx, g.ExternalG(), DefaultSecretUI)
 	}
-
+	dbFn := func(g *libkb.GlobalContext) *libkb.JSONLocalDb {
+		return g.LocalChatDb
+	}
 	return &baseBox{
 		Contextified: globals.NewContextified(g),
-		encryptedDB:  encrypteddb.New(g.ExternalG(), g.LocalChatDb, keyFn),
+		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }
 

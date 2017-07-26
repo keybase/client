@@ -110,11 +110,9 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.User.GetUID())
 	}
 
-	if e.G().Env.GetSupportPerUserKey() {
-		e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
-		if err != nil {
-			return err
-		}
+	e.perUserKeyring, err = libkb.NewPerUserKeyring(e.G(), e.User.GetUID())
+	if err != nil {
+		return err
 	}
 
 	// Make new device keys and sign them with this paper key

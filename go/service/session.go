@@ -38,7 +38,7 @@ func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandl
 func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keybase1.Session, error) {
 	var s keybase1.Session
 
-	status, err := h.G().LoginState().APIServerSession()
+	status, err := h.G().LoginState().APIServerSession(true /* force session check with server */)
 	if err != nil {
 		if _, ok := err.(libkb.LoginRequiredError); ok {
 			return s, libkb.NoSessionError{}

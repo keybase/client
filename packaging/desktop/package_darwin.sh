@@ -15,6 +15,7 @@ bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
 platform="darwin"
 s3host=${S3HOST:-}
+istest=${TEST:-}
 
 if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
@@ -237,6 +238,7 @@ sign() {(
 # Create dmg from Keybase.app
 package_dmg() {(
   cd "$out_dir"
+  echo "Packaging dmg in $out_dir"
   appdmg="appdmg.json"
 
   osx_scripts="$client_dir/osx/Scripts"
@@ -286,6 +288,9 @@ save() {(
   mkdir -p $save_dir
   cd "$save_dir"
   platform_dir="$save_dir/$platform"
+  if [ "$istest" = "1" ]; then
+    platform_dir="$save_dir/${platform}-test"
+  fi
   echo "Saving files to $platform_dir"
   # DMG
   mkdir -p "$platform_dir"

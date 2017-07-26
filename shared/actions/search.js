@@ -2,7 +2,8 @@
 import * as Constants from '../constants/search'
 import type {TypedAsyncAction} from '../constants/types/flux'
 import {apiserverGetWithSessionRpc} from '../constants/types/flow-types'
-import {capitalize, trim} from 'lodash'
+import capitalize from 'lodash/capitalize'
+import trim from 'lodash/trim'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
 

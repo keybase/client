@@ -9,8 +9,10 @@ MAINTAINER Keybase <admin@keybase.io>
 #   - 'curl' and 'wget' are for downloading Go and Node
 #   - 'build-essential' pulls in gcc etc., which Go requires.
 #   - python and pip for recent versions of s3cmd
+#   - libc6-dev-i386 for the i386 cgo part of the build
 RUN apt-get update
-RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl python python-pip
+RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
+  build-essential curl python python-pip libc6-dev-i386
 
 # Install s3cmd. See this issue for why we need a version newer than what's in
 # the Debian repos: https://github.com/s3tools/s3cmd/issues/437

@@ -6,8 +6,13 @@ const bel = bundle.bel;
 const morphdom = bundle.morphdom;
 const asset = chrome.runtime.getURL;
 
+
 function init() {
   chrome.storage.sync.get(function(options) {
+    if (options === undefined) {
+      // Backfill for Firefox
+      options = {};
+    }
     if (location.hostname.endsWith('twitter.com')) {
       // Twitter hack: Monitor location for changes and re-init. Twitter does
       // weird single-page-app stuff that makes it difficult to hook into.
@@ -331,6 +336,7 @@ function renderError(chatForm, closeCallback, msg) {
 
   switch (msg) {
     case "Specified native messaging host not found.":
+    case "Attempt to postMessage on disconnected port":
       return renderErrorFull(chatForm, closeCallback, bel`
         <div>
           <p>You need the Keybase app to send chat messages.</p>

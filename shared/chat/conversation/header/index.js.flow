@@ -8,8 +8,8 @@ export type Props = {|
   onBack: () => void,
   onOpenFolder: () => void,
   onShowProfile: (user: string) => void,
-  onToggleSidePanel: () => void,
-  sidePanelOpen: boolean,
+  onToggleInfoPanel: () => void,
+  infoPanelOpen: boolean,
   users: UserList,
 |}
 

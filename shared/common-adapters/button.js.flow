@@ -9,7 +9,7 @@ export type Props = {
   label: ?string,
   style?: ?Object,
   labelStyle?: ?Object,
-  type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
+  type: 'Primary' | 'PrimaryPrivate' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
   disabled?: ?boolean,
   waiting?: ?boolean,
   small?: boolean,

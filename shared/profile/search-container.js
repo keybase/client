@@ -6,7 +6,7 @@ import {compose, withState, withHandlers, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import {profileSearchResultArray} from '../constants/selectors'
 import Search from './search'
-import {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc} from '../searchv3/helpers'
+import * as HocHelpers from '../searchv3/helpers'
 
 import type {Props} from './search'
 import type {TypedState} from '../constants/reducer'
@@ -24,12 +24,16 @@ type HocIntermediateProps = {
 
 const mapStateToProps = (state: TypedState) => ({
   searchResultIds: profileSearchResultArray(state),
+  showSearchPending: state.profile.searchPending,
+  showSearchSuggestions: state.profile.searchShowingSuggestions,
 })
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleSidePanel}: Props) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInfoPanel}: Props) => ({
   _clearSearchResults: () => dispatch(clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'profile:updateSearchResults', service))
+      dispatch(
+        SearchCreators.search(term, 'profile:pendingSearchResults', 'profile:updateSearchResults', service)
+      )
     } else {
       dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
     }
@@ -57,22 +61,33 @@ export default compose(
   }),
   withState('searchText', '_onChangeText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
-  selectedSearchIdHoc,
-  onChangeSelectedSearchResultHoc,
-  showServiceLogicHoc,
-  withHandlers({
-    onChangeText: (props: Props & HocIntermediateProps) => nextText => {
-      props._onChangeText(nextText)
-      props.search(nextText, props.selectedService)
-    },
-    onClick: (props: Props & HocIntermediateProps) => id => {
-      props._onClick(id)
-      props._onChangeText('')
-      props._clearSearchResults()
-    },
-    onSelectService: (props: Props & HocIntermediateProps) => nextService => {
-      props._onSelectService(nextService)
-      props.search(props.searchText, nextService)
-    },
+  HocHelpers.selectedSearchIdHoc,
+  HocHelpers.onChangeSelectedSearchResultHoc,
+  HocHelpers.showServiceLogicHoc,
+  HocHelpers.placeholderServiceHoc,
+  withHandlers(() => {
+    let input
+    return {
+      setInputRef: () => el => {
+        input = el
+      },
+      onChangeText: (props: Props & HocIntermediateProps) => nextText => {
+        props._onChangeText(nextText)
+        props.search(nextText, props.selectedService)
+      },
+      onClick: (props: Props & HocIntermediateProps) => id => {
+        props._onClick(id)
+        props._onChangeText('')
+        props._clearSearchResults()
+      },
+      onMouseOverSearchResult: (props: Props) => id => {
+        props.onUpdateSelectedSearchResult(id)
+      },
+      onSelectService: (props: Props & HocIntermediateProps) => nextService => {
+        props._onSelectService(nextService)
+        props.search(props.searchText, nextService)
+        input && input.focus()
+      },
+    }
   })
 )(Search)

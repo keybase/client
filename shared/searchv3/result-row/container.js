@@ -9,7 +9,12 @@ import type {SearchResultId} from '../../constants/searchv3'
 
 const mapStateToProps = (
   state: TypedState,
-  {id, onClick, onShowTracker}: {id: SearchResultId, onClick: () => void, onShowTracker: () => void}
+  {
+    id,
+    onClick,
+    onMouseOver,
+    onShowTracker,
+  }: {id: SearchResultId, onClick: () => void, onMouseOver: () => void, onShowTracker: () => void}
 ) => {
   const result = state.entities.getIn(['searchResults', id], Map()).toObject()
 
@@ -19,6 +24,7 @@ const mapStateToProps = (
   return {
     ...result,
     onClick,
+    onMouseOver,
     onShowTracker,
     showTrackerButton: !!onShowTracker,
     leftFollowingState,

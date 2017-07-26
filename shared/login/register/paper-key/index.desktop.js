@@ -47,7 +47,7 @@ const styles = {
   },
   input: {
     marginBottom: 55,
-    height: '4em',
+    height: '5em',
   },
 }
 

@@ -36,8 +36,6 @@ export type Folder = {
   isPublic: boolean,
   ignored: boolean,
   hasData: boolean,
-  groupAvatar: boolean,
-  userAvatar: ?string,
   recentFiles: Array<FileSection>, // TODO make pure
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,

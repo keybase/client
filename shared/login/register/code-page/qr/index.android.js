@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import type {Props} from './index'
 import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
-import {throttle} from 'lodash'
+import throttle from 'lodash/throttle'
 
 type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 

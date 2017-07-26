@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -52,7 +53,7 @@ func (c *CmdChatRead) SetTeamChatForTest(n string) {
 		},
 		resolvingRequest: chatConversationResolvingRequest{
 			TlfName:     n,
-			TopicName:   "#general",
+			TopicName:   chat.DefaultTeamTopic,
 			MembersType: chat1.ConversationMembersType_TEAM,
 			TopicType:   chat1.TopicType_CHAT,
 			Visibility:  chat1.TLFVisibility_PRIVATE,

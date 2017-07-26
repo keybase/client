@@ -1,5 +1,8 @@
 // @flow
-import _ from 'lodash'
+import mapValues from 'lodash/mapValues'
+import isEqual from 'lodash/isEqual'
+import map from 'lodash/map'
+import forEach from 'lodash/forEach'
 import {buffers, channel} from 'redux-saga'
 import {
   actionChannel,
@@ -22,7 +25,7 @@ type SagaMap = {[key: string]: any}
 type Effect = any
 
 function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return _.mapValues(channelConfig, v => {
+  return mapValues(channelConfig, v => {
     return channel(v())
   })
 }
@@ -57,16 +60,16 @@ function mapSagasToChanMap<T>(
   channelMap: ChannelMap<T>
 ): Array<Effect> {
   // Check that all method names are accounted for
-  if (!_.isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap).sort())) {
+  if (!isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap).sort())) {
     console.warn('Missing or extraneous saga handlers')
   }
-  return _.map(sagaMap, (saga, methodName) =>
+  return map(sagaMap, (saga, methodName) =>
     effectOnChannelMap(c => effectFn(c, saga), channelMap, methodName)
   )
 }
 
 function closeChannelMap<T>(channelMap: ChannelMap<T>): void {
-  _.forEach(channelMap, c => c.close())
+  forEach(channelMap, c => c.close())
 }
 
 function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {

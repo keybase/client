@@ -27,7 +27,7 @@ const identityMatchers = [
     getUsername: function(loc) { return loc.pathname.split('/')[1]; },
     locationMatches: new RegExp('\.keybase\.(?:io|pub)/([\\w]+)[/]?'),
     originAndPathMatches: '\.keybase\.(io|pub)/[\\w]+[/]?',
-    css: ['a[rel="me"]']
+    css: ['.profile-heading']
   },
   {
     service: "reddit",

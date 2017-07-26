@@ -3,9 +3,8 @@ import * as Constants from '../../../constants/chat'
 import React, {Component} from 'react'
 import {withPropsOnChange} from 'recompose'
 import messageFactory from '../messages'
-import {Box, NativeScrollView, NativeKeyboard} from '../../../common-adapters/index.native'
-// $FlowIssue
-import FlatList from '../../../fixme/Lists/FlatList'
+import {Box, NativeScrollView, NativeKeyboard, NativeFlatList} from '../../../common-adapters/index.native'
+import {globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
@@ -27,7 +26,7 @@ class ConversationList extends Component<void, Props, void> {
     const prevMessageKey = this.props.messageKeys.get(index + 1) // adding instead of subtracting because of reversed index
     const isSelected = false
     return (
-      // We ahve to invert transform the message or else it will look flipped
+      // We have to invert transform the message or else it will look flipped
       (
         <Box style={verticallyInvertedStyle}>
           {messageFactory(
@@ -70,30 +69,29 @@ class ConversationList extends Component<void, Props, void> {
 
   render() {
     return (
-      <FlatList
-        data={this.props.messageKeys.toArray()}
-        renderItem={this._renderItem}
-        renderScrollComponent={this._renderScrollComponent}
-        onEndReached={this._onEndReached}
-        onEndReachedThreshold={0}
-        initialNumToRender={30}
-        keyExtractor={this._keyExtractor}
-        // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
-        windowSize={5}
-      />
+      <Box style={globalStyles.fillAbsolute}>
+        <NativeFlatList
+          data={this.props.messageKeys.toArray()}
+          renderItem={this._renderItem}
+          renderScrollComponent={this._renderScrollComponent}
+          onEndReached={this._onEndReached}
+          onEndReachedThreshold={0}
+          keyExtractor={this._keyExtractor}
+          // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
+          windowSize={5}
+        />
+      </Box>
     )
   }
 }
 
 const verticallyInvertedStyle = {
-  flex: 1,
   transform: [{scaleY: -1}],
 }
 
 // Reverse the order of messageKeys to compensate for vertically reversed display
-const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys, ...rest}) => ({
+const withReversedMessageKeys = withPropsOnChange(['messageKeys'], ({messageKeys}) => ({
   messageKeys: messageKeys.reverse(),
-  ...rest,
 }))
 
 export default withReversedMessageKeys(ConversationList)

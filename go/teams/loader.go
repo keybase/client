@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"golang.org/x/net/context"
@@ -16,11 +17,11 @@ const freshnessLimit = time.Duration(1) * time.Hour
 // Load a Team from the TeamLoader.
 // Can be called from inside the teams package.
 func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg) (*Team, error) {
-	// teamData, err := g.GetTeamLoader().Load(ctx, lArg)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return nil, fmt.Errorf("TODO: implement team loader")
+	teamData, err := g.GetTeamLoader().Load(ctx, lArg)
+	if err != nil {
+		return nil, err
+	}
+	return NewTeam(ctx, g, teamData), nil
 }
 
 // Loader of keybase1.TeamData objects. Handles caching.
@@ -34,6 +35,8 @@ type TeamLoader struct {
 	// Single-flight locks per team ID.
 	locktab libkb.LockTable
 }
+
+var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
 func NewTeamLoader(g *libkb.GlobalContext, storage *Storage) *TeamLoader {
 	return &TeamLoader{
@@ -51,10 +54,6 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 }
 
 func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
-	return nil, fmt.Errorf("TODO: implement team loader")
-}
-
-func (l *TeamLoader) LoadTODO(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
 	me, err := l.getMe(ctx)
 	if err != nil {
 		return nil, err
@@ -90,8 +89,18 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	if !teamID.Exists() {
 		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			return nil, err
 		}
+	}
+
+	mungedForceRepoll := lArg.ForceRepoll
+	mungedWantMembers, err := l.mungeWantMembers(ctx, lArg.Refreshers.WantMembers)
+	if err != nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader munge failed: %v", err)
+		// drop the error and just force a repoll.
+		mungedForceRepoll = true
+		mungedWantMembers = nil
 	}
 
 	var ret *keybase1.TeamData
@@ -100,12 +109,14 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 
 		needAdmin:         lArg.NeedAdmin,
 		needKeyGeneration: lArg.Refreshers.NeedKeyGeneration,
-		wantMembers:       lArg.Refreshers.WantMembers,
+		wantMembers:       mungedWantMembers,
+		wantMembersRole:   lArg.Refreshers.WantMembersRole,
 		forceFullReload:   lArg.ForceFullReload,
-		forceRepoll:       lArg.ForceRepoll,
+		forceRepoll:       mungedForceRepoll,
 		staleOK:           lArg.StaleOK,
 
-		needSeqnos: nil,
+		needSeqnos:    nil,
+		readSubteamID: nil,
 
 		me: me,
 	})
@@ -116,13 +127,20 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
+	// Sanity check that secretless teams never escape.
+	// They are meant only to be returned by recursively called load2's
+	// and used internally by ImplicitAdmins.
+	if ret.Secretless {
+		return nil, fmt.Errorf("team loader fault: got secretless team")
+	}
+
 	// Check team name on the way out
 	// The snapshot may have already been written to cache, but that should be ok,
 	// because the cache is keyed by ID.
 	if teamName != nil {
 		// (TODO: this won't work for renamed level 3 teams or above. There's work on this in miles/teamloader-names)
-		if !teamName.Eq(ret.Chain.Name) {
-			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Chain.Name.String(), teamName.String())
+		if !teamName.Eq(ret.Name) {
+			return nil, fmt.Errorf("team name mismatch: %v != %v", ret.Name, teamName.String())
 		}
 	}
 
@@ -130,9 +148,14 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 }
 
 func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) error {
-	// TODO: stricter check on team ID format.
 	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
+	if hasID {
+		_, err := keybase1.TeamIDFromString(lArg.ID.String())
+		if err != nil {
+			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+		}
+	}
 	if !hasID && !hasName {
 		return fmt.Errorf("team load arg must have either ID or Name")
 	}
@@ -173,12 +196,21 @@ type load2ArgT struct {
 
 	needAdmin         bool
 	needKeyGeneration keybase1.PerTeamKeyGeneration
-	wantMembers       []keybase1.UserVersion
-	forceFullReload   bool
-	forceRepoll       bool
-	staleOK           bool
+	// wantMembers here is different from wantMembers on LoadTeamArg:
+	// The EldestSeqno's should not be 0.
+	wantMembers     []keybase1.UserVersion
+	wantMembersRole keybase1.TeamRole
+	forceFullReload bool
+	forceRepoll     bool
+	staleOK         bool
 
 	needSeqnos []keybase1.Seqno
+	// Non-nil if we are loading an ancestor for the greater purpose of
+	// loading a subteam. This parameter helps the server figure out whether
+	// to give us a subteam-reader version of the team.
+	// If and only if this is set, load2 is allowed to return a secret-less TeamData.
+	// Load1 should never ever return a secret-less TeamData.
+	readSubteamID *keybase1.TeamID
 
 	me keybase1.UserVersion
 }
@@ -186,6 +218,7 @@ type load2ArgT struct {
 // Load2 does the rest of the work loading a team.
 // It is `playchain` described in the pseudocode in teamplayer.txt
 func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *keybase1.TeamData, err error) {
+	ctx = libkb.WithLogTag(ctx, "LT")
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID), func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
@@ -205,6 +238,25 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		ret = l.storage.Get(ctx, arg.teamID)
 	}
 
+	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
+		// Check that we are the same person as when this team was last loaded as a courtesy.
+		// This should never happen. We shouldn't be able to decrypt someone else's snapshot.
+		l.G().Log.CWarningf(ctx, "TeamLoader discarding snapshot for wrong user: (%v, %v) != (%v, %v)",
+			arg.me.Uid, arg.me.EldestSeqno, ret.Chain.Reader.Uid, ret.Chain.Reader.EldestSeqno)
+		ret = nil
+	}
+
+	var cachedName *keybase1.TeamName
+	if ret != nil && !ret.Name.IsNil() {
+		cachedName = &ret.Name
+	}
+
+	// Throw out the cache result if it is secretless and this is not a recursive load
+	if ret != nil && arg.readSubteamID == nil && ret.Secretless {
+		l.G().Log.CDebugf(ctx, "TeamLoader discarding secretless snapshot")
+		ret = nil
+	}
+
 	// Determine whether to repoll merkle.
 	discardCache, repoll := l.load2DecideRepoll(ctx, arg, ret)
 	if discardCache {
@@ -219,12 +271,19 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	var lastSeqno keybase1.Seqno
 	var lastLinkID keybase1.LinkID
 	if (ret == nil) || repoll {
-		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf")
+		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
 		lastSeqno, lastLinkID, err = l.lookupMerkle(ctx, arg.teamID)
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
 		lastLinkID = ret.Chain.LastLinkID
+	}
+
+	// For child calls to load2, the subteam reader ID is carried up
+	// or if it doesn't exist, start at this team.
+	readSubteamID := arg.teamID
+	if arg.readSubteamID != nil {
+		readSubteamID = *arg.readSubteamID
 	}
 
 	proofSet := newProofSet()
@@ -233,7 +292,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	// Backfill stubbed links that need to be filled now.
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
-			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, proofSet, parentChildOperations)
+			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +309,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (lowSeqno:%v, lowGen:%v)",
 			lowSeqno, lowGen)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen)
+		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -279,7 +338,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
 		}
 
-		_, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, link, proofSet)
+		var signer *keybase1.UserVersion
+		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -292,7 +352,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			parentChildOperations = append(parentChildOperations, pco)
 		}
 
-		ret, err = l.applyNewLink(ctx, ret, link, arg.me)
+		ret, err = l.applyNewLink(ctx, ret, link, signer, arg.me)
 		if err != nil {
 			return nil, err
 		}
@@ -308,7 +368,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
-	err = l.checkParentChildOperations(ctx, arg.me, ret.Chain.ParentID, parentChildOperations)
+	err = l.checkParentChildOperations(ctx,
+		arg.me, arg.teamID, ret.Chain.ParentID, readSubteamID, parentChildOperations)
 	if err != nil {
 		return nil, err
 	}
@@ -319,9 +380,22 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 
 	if teamUpdate != nil {
-		ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
-		if err != nil {
-			return nil, fmt.Errorf("loading team secrets: %v", err)
+		if teamUpdate.SubteamReader {
+			// Only allow subteam-reader results if we are in a recursive load.
+			if arg.readSubteamID == nil {
+				return nil, fmt.Errorf("unexpected subteam reader result")
+			}
+			// This is now a secretless team. This TeamData will never again contain up to date secrets.
+			// A full reload is required to get secrets back into sync.
+			ret.Secretless = true
+		} else {
+			// Add the secrets unless this is a secretless team.
+			if !ret.Secretless {
+				ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+				if err != nil {
+					return nil, fmt.Errorf("loading team secrets: %v", err)
+				}
+			}
 		}
 	}
 
@@ -330,13 +404,34 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		return nil, fmt.Errorf("team id mismatch: %v != %v", ret.Chain.Id.String(), arg.teamID.String())
 	}
 
-	// TODO check that the name matches the subteam-ness
+	// Recalculate the team name.
+	// This must always run to pick up changes in chain and off-chain with ancestor renames.
+	// Also because without this a subteam could claim any parent in its name.
+	newName, err := l.calculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
+	if err != nil {
+		return nil, fmt.Errorf("error recalculating name for %v: %v", ret.Name, err)
+	}
+	if !ret.Name.Eq(newName) {
+		// This deep copy is an absurd price to pay, but these mid-team renames should be quite rare.
+		copy := ret.DeepCopy()
+		ret = &copy
+		ret.Name = newName
+	}
 
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
 	// while holding the single-flight lock reads or writes this field.
 	ret.CachedAt = keybase1.ToTime(l.G().Clock().Now())
 	l.storage.Put(ctx, ret)
+
+	if cachedName != nil && !cachedName.Eq(newName) {
+		chain := TeamSigChainState{inner: ret.Chain}
+		// Send a notification if we used to have the name cached and it has changed at all.
+		go l.G().NotifyRouter.HandleTeamChanged(context.Background(), chain.GetID(), newName.String(), chain.GetLatestSeqno(),
+			keybase1.TeamChangeSet{
+				Renamed: true,
+			})
+	}
 
 	// Check request constraints
 	err = l.load2CheckReturn(ctx, arg, ret)
@@ -384,7 +479,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 
 	// Repoll because it might help get the wanted members
 	if len(arg.wantMembers) > 0 {
-		if l.satisfiesWantMembers(ctx, arg.wantMembers, fromCache) != nil {
+		if l.satisfiesWantMembers(ctx, arg.wantMembers, arg.wantMembersRole, fromCache) != nil {
 			repoll = true
 		}
 	}
@@ -486,9 +581,14 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	return nil
 }
 
-// Whether the snapshot has all of `wantMembers` as a member.
+// Whether the snapshot has each of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
-	wantMembers []keybase1.UserVersion, state *keybase1.TeamData) error {
+	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state *keybase1.TeamData) error {
+
+	if wantMembersRole == keybase1.TeamRole_NONE {
+		// Default to writer.
+		wantMembersRole = keybase1.TeamRole_WRITER
+	}
 	if len(wantMembers) == 0 {
 		return nil
 	}
@@ -500,11 +600,8 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 		if err != nil {
 			return fmt.Errorf("could not get wanted user role: %v", err)
 		}
-		switch role {
-		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-			// pass
-		default:
-			return fmt.Errorf("wanted user %v is not a priveleged member", uv)
+		if !role.IsOrAbove(wantMembersRole) {
+			return fmt.Errorf("wanted user %v is a %v which is not at least %v", uv, role, wantMembersRole)
 		}
 	}
 	return nil
@@ -522,6 +619,24 @@ func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (
 		return r1, r2, fmt.Errorf("merkle returned nil leaf")
 	}
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
+}
+
+func (l *TeamLoader) mungeWantMembers(ctx context.Context, wantMembers []keybase1.UserVersion) (res []keybase1.UserVersion, err error) {
+	for _, uv1 := range wantMembers {
+		uv2 := uv1
+		if uv2.EldestSeqno == 0 {
+			// Lookup the latest eldest seqno for that uid.
+			// This value may come from a cache.
+			upak, err := loadUPAK2(ctx, l.G(), uv2.Uid, false /*forcePoll */)
+			if err != nil {
+				return res, err
+			}
+			uv2.EldestSeqno = upak.Current.EldestSeqno
+			l.G().Log.CDebugf(ctx, "TeamLoader resolved wantMember %v -> %v", uv2.Uid, uv2.EldestSeqno)
+		}
+		res = append(res, uv2)
+	}
+	return res, err
 }
 
 // Whether y is in xs.
@@ -564,10 +679,150 @@ func (l *TeamLoader) OnLogout() {
 }
 
 func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {
-	l.G().Log.Warning("Using stubbed out VerifyTeamName - INSECURE -- please implement")
+	if name.IsRootTeam() {
+		if !name.ToTeamID().Eq(id) {
+			return NewResolveError(name, id)
+		}
+		return nil
+	}
+	teamData, err := l.Load(ctx, keybase1.LoadTeamArg{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	gotName := teamData.Name
+	if !gotName.Eq(name) {
+		return NewResolveError(name, id)
+	}
 	return nil
+}
+
+// List all the admins of ancestor teams.
+// Includes admins of the specified team only if they are also admins of ancestor teams.
+// The specified team must be a subteam, or an error is returned.
+// Always sends a flurry of RPCs to get the most up to date info.
+func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
+	me, err := l.getMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load the argument team
+	team, err := l.load1(ctx, me, keybase1.LoadTeamArg{
+		ID:      teamID,
+		StaleOK: true, // We only use immutable fields.
+	})
+	if err != nil {
+		return nil, err
+	}
+	teamChain := TeamSigChainState{inner: team.Chain}
+	if !teamChain.IsSubteam() {
+		return nil, fmt.Errorf("cannot get implicit admins of a root team: %v", teamID)
+	}
+
+	// Load up the ancestral line, gathering admins.
+	impAdminsMap := make(map[string]keybase1.UserVersion) // map to remove dups
+	ancestorID := teamChain.GetParentID()
+	i := 0
+	for {
+		i++
+		if i >= 100 {
+			// Break in case there's a bug in this loop.
+			return nil, fmt.Errorf("stuck in a loop while getting implicit admins: %v", teamID)
+		}
+
+		// Use load2 so that we can use subteam-reader and get secretless teams.
+		ancestor, err := l.load2(ctx, load2ArgT{
+			teamID:        *ancestorID,
+			me:            me,
+			forceRepoll:   true, // Get the latest info.
+			readSubteamID: &teamID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		// Be wary, `ancestor` could be, and is likely, a secretless team.
+		// Do not let it out of sight.
+		ancestorChain := TeamSigChainState{inner: ancestor.Chain}
+
+		// Gather the admins.
+		adminRoles := []keybase1.TeamRole{keybase1.TeamRole_OWNER, keybase1.TeamRole_ADMIN}
+		for _, role := range adminRoles {
+			uvs, err := ancestorChain.GetUsersWithRole(role)
+			if err != nil {
+				return nil, err
+			}
+			for _, uv := range uvs {
+				impAdminsMap[uv.String()] = uv
+			}
+		}
+
+		if !ancestorChain.IsSubteam() {
+			break
+		}
+		// Get the next level up.
+		ancestorID = ancestorChain.GetParentID()
+	}
+
+	for _, uv := range impAdminsMap {
+		impAdmins = append(impAdmins, uv)
+	}
+	return impAdmins, nil
 }
 
 func (l *TeamLoader) MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error) {
 	return keybase1.TeamName{}, nil
+}
+
+func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error {
+	// ignore newName from the server
+
+	// Load up the ancestor chain with ForceRepoll.
+	// Then load down the ancestor chain without it (expect cache hits).
+	// Not the most elegant way, but it will get the job done.
+	// Each load on the way down will recalculate that team's name.
+
+	var ancestorIDs []keybase1.TeamID
+
+	me, err := l.getMe(ctx)
+	if err != nil {
+		return err
+	}
+
+	loopID := &id
+	if loopID != nil {
+		team, err := l.load2(ctx, load2ArgT{
+			teamID:        *loopID,
+			forceRepoll:   true,
+			readSubteamID: &id,
+			me:            me,
+		})
+		if err != nil {
+			return err
+		}
+		ancestorIDs = append(ancestorIDs, *loopID)
+		chain := TeamSigChainState{inner: team.Chain}
+		if chain.IsSubteam() {
+			loopID = chain.GetParentID()
+		} else {
+			loopID = nil
+		}
+	}
+
+	// reverse ancestorIDs so the root team appears first
+	sort.SliceStable(ancestorIDs, func(i, j int) bool { return i > j })
+
+	for _, loopID := range ancestorIDs {
+		_, err := l.load2(ctx, load2ArgT{
+			teamID:        loopID,
+			readSubteamID: &id,
+			me:            me,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

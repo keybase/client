@@ -8,12 +8,16 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"golang.org/x/net/context"
 )
 
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
 	Find(ctx context.Context, name string, membersType chat1.ConversationMembersType, public bool) (types.NameInfo, error)
+	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool) (types.NameInfo, error)
+	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID, membersType chat1.ConversationMembersType, public bool, keyGeneration int) (types.NameInfo, error)
 	SetNameInfoSourceOverride(types.NameInfoSource)
 }
 
@@ -90,6 +94,74 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 	return nameInfo, nil
 }
 
+// Find keys up-to-date enough for encrypting.
+// Ignores tlfName or teamID based on membersType.
+func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
+
+	switch membersType {
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		teamID, err := tlfIDToTeamdID(teamID)
+		if err != nil {
+			return res, err
+		}
+		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		if err != nil {
+			return res, err
+		}
+		vis := chat1.TLFVisibility_PRIVATE
+		if public {
+			vis = chat1.TLFVisibility_PUBLIC
+		}
+		return teamToNameInfo(ctx, team, vis)
+	default:
+		return k.Find(ctx, tlfName, membersType, public)
+	}
+}
+
+// Ignores tlfName or teamID based on membersType.
+func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
+	tlfName string, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool,
+	keyGeneration int) (res types.NameInfo, err error) {
+
+	switch membersType {
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		teamID, err := tlfIDToTeamdID(teamID)
+		if err != nil {
+			return res, err
+		}
+		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
+			ID: teamID,
+			Refreshers: keybase1.TeamRefreshers{
+				NeedKeyGeneration: keybase1.PerTeamKeyGeneration(keyGeneration),
+			},
+			StaleOK: true,
+		})
+		if err != nil {
+			return res, err
+		}
+		vis := chat1.TLFVisibility_PRIVATE
+		if public {
+			vis = chat1.TLFVisibility_PUBLIC
+		}
+		return teamToNameInfo(ctx, team, vis)
+	default:
+		return k.Find(ctx, tlfName, membersType, public)
+	}
+}
+
 func (k *KeyFinderImpl) SetNameInfoSourceOverride(ni types.NameInfoSource) {
 	k.testingNameInfoSource = ni
+}
+
+func tlfIDToTeamdID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
+	return keybase1.TeamIDFromString(tlfID.String())
+}
+
+func teamIDToTLFID(teamID keybase1.TeamID) (chat1.TLFID, error) {
+	return chat1.MakeTLFID(teamID.String())
 }

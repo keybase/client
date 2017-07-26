@@ -11,6 +11,7 @@ import (
 
 type SCTeamName string
 type SCTeamID string
+type SCTeamInviteID string
 
 func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
 
@@ -20,13 +21,15 @@ func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFr
 type SCTeamMember keybase1.UserVersion
 
 type SCTeamSection struct {
-	ID         SCTeamID       `json:"id"`
-	Name       *SCTeamName    `json:"name,omitempty"`
-	Members    *SCTeamMembers `json:"members,omitempty"`
-	Parent     *SCTeamParent  `json:"parent,omitempty"`
-	Subteam    *SCSubteam     `json:"subteam,omitempty"`
-	PerTeamKey *SCPerTeamKey  `json:"per_team_key,omitempty"`
-	Admin      *SCTeamAdmin   `json:"admin,omitempty"`
+	ID               SCTeamID                               `json:"id"`
+	Name             *SCTeamName                            `json:"name,omitempty"`
+	Members          *SCTeamMembers                         `json:"members,omitempty"`
+	Parent           *SCTeamParent                          `json:"parent,omitempty"`
+	Subteam          *SCSubteam                             `json:"subteam,omitempty"`
+	PerTeamKey       *SCPerTeamKey                          `json:"per_team_key,omitempty"`
+	Admin            *SCTeamAdmin                           `json:"admin,omitempty"`
+	Invites          *SCTeamInvites                         `json:"invites,omitempty"`
+	CompletedInvites map[keybase1.TeamInviteID]keybase1.UID `json:"completed_invites,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -35,6 +38,19 @@ type SCTeamMembers struct {
 	Writers *[]SCTeamMember `json:"writer,omitempty"`
 	Readers *[]SCTeamMember `json:"reader,omitempty"`
 	None    *[]SCTeamMember `json:"none,omitempty"`
+}
+
+type SCTeamInvites struct {
+	Admins  *[]SCTeamInvite   `json:"admin,omitempty"`
+	Writers *[]SCTeamInvite   `json:"writer,omitempty"`
+	Readers *[]SCTeamInvite   `json:"reader,omitempty"`
+	Cancel  *[]SCTeamInviteID `json:"cancel,omitempty"`
+}
+
+type SCTeamInvite struct {
+	Type string         `json:"type"`
+	Name string         `json:"name"`
+	ID   SCTeamInviteID `json:"id"`
 }
 
 type SCTeamParent struct {
@@ -181,4 +197,26 @@ func (s SCChainLinkPayload) TeamID() (keybase1.TeamID, error) {
 		return keybase1.TeamID(""), errors.New("no team section")
 	}
 	return t.ID.ToTeamID()
+}
+
+func (i SCTeamInviteID) TeamInviteID() (keybase1.TeamInviteID, error) {
+	return keybase1.TeamInviteIDFromString(string(i))
+}
+
+func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {
+	id, err := i.ID.TeamInviteID()
+	if err != nil {
+		return keybase1.TeamInvite{}, err
+	}
+	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type), g.Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		return keybase1.TeamInvite{}, err
+	}
+	return keybase1.TeamInvite{
+		Id:      id,
+		Role:    r,
+		Type:    typ,
+		Name:    keybase1.TeamInviteName(i.Name),
+		Inviter: inviter,
+	}, nil
 }

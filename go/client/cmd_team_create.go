@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -13,22 +15,34 @@ import (
 )
 
 type CmdTeamCreate struct {
-	TeamName  string
+	TeamName  keybase1.TeamName
+	Subteam   bool
 	SessionID int
 	libkb.Contextified
 }
 
 func (v *CmdTeamCreate) ParseArgv(ctx *cli.Context) error {
 	var err error
-	v.TeamName, err = ParseOneTeamName(ctx)
+	v.TeamName, err = ParseOneTeamNameK1(ctx)
 	if err != nil {
 		return err
 	}
+
+	v.Subteam = ctx.Bool("subteam")
 
 	return nil
 }
 
 func (v *CmdTeamCreate) Run() (err error) {
+
+	if v.TeamName.IsRootTeam() && v.Subteam {
+		return fmt.Errorf("Leave off --subteam when creating a root team")
+	}
+
+	if !v.TeamName.IsRootTeam() && !v.Subteam {
+		return fmt.Errorf("Use --subteam to create a subteam. Team names with dots are subteams.")
+	}
+
 	cli, err := GetTeamsClient(v.G())
 	if err != nil {
 		return err
@@ -41,10 +55,25 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
-	return cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-		Name:      v.TeamName,
-		SessionID: v.SessionID,
-	})
+	if v.TeamName.IsRootTeam() {
+		err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+			Name:      v.TeamName,
+			SessionID: v.SessionID,
+		})
+	} else {
+		err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
+			Name:      v.TeamName,
+			SessionID: v.SessionID,
+		})
+	}
+	if err != nil {
+		return err
+	}
+
+	dui := v.G().UI.GetDumbOutputUI()
+	dui.Printf("Success!\n")
+
+	return nil
 }
 
 func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -52,7 +81,12 @@ func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Name:         "create",
 		ArgumentHelp: "teamname",
 		Usage:        "Create a team or a subteam.",
-		Flags:        []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "subteam",
+				Usage: "Create a subteam",
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdTeamCreateRunner(g), "teamcreate", c)
 		},

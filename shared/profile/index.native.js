@@ -1,22 +1,24 @@
 // @flow
 import * as shared from './index.shared'
 import ErrorComponent from '../common-adapters/error-profile'
-import Friendships from './friendships'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
-import _ from 'lodash'
+import orderBy from 'lodash/orderBy'
+import chunk from 'lodash/chunk'
 import moment from 'moment'
 import {
+  Avatar,
   BackButton,
   Box,
+  ClickableBox,
   Icon,
   PlatformIcon,
   PopupMenu,
+  NativeSectionList,
   Text,
   UserActions,
   UserBio,
   UserProofs,
-  NativeScrollView,
 } from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {
@@ -27,14 +29,13 @@ import {
 } from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
-import featureFlags from '../util/feature-flags'
 
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 64
+export const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
@@ -45,14 +46,9 @@ type State = {
 }
 
 class Profile extends Component<void, Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      currentFriendshipsTab: 'Followers',
-      activeMenuProof: null,
-    }
+  state = {
+    currentFriendshipsTab: 'Followers',
+    activeMenuProof: null,
   }
 
   _handleToggleMenu(idx: number) {
@@ -162,13 +158,8 @@ class Profile extends Component<void, Props, State> {
     }
   }
 
-  render() {
-    if (this.props.error) {
-      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
-    }
-
+  _renderProfile = ({item}) => {
     const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
-
     let proofNotice
     if (
       !this.props.loading &&
@@ -179,126 +170,228 @@ class Profile extends Component<void, Props, State> {
       proofNotice = `Some of ${this.props.isYou ? 'your' : this.props.username + "'s"} proofs are broken.`
     }
 
-    let folders = _.chain(this.props.tlfs)
-      .orderBy('isPublic', 'asc')
-      .map(folder => (
-        <Box key={folder.path} style={styleFolderLine}>
-          <Icon
-            {...shared.folderIconProps(folder, styleFolderIcon)}
-            onClick={() => this.props.onFolderClick(folder)}
-          />
-          <Text
-            type="Body"
-            style={{...styleFolderTextLine, ...styleFolderText}}
-            onClick={() => this.props.onFolderClick(folder)}
-          >
-            {folder.isPublic ? 'public/' : 'private/'}
-            {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
-          </Text>
-        </Box>
-      ))
-      .value()
+    let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
+      <Box key={folder.path} style={styleFolderLine}>
+        <Icon
+          {...shared.folderIconProps(folder, styleFolderIcon)}
+          onClick={() => this.props.onFolderClick(folder)}
+        />
+        <Text
+          type="Body"
+          style={{...styleFolderTextLine, ...styleFolderText}}
+          onClick={() => this.props.onFolderClick(folder)}
+        >
+          {folder.isPublic ? 'public/' : 'private/'}
+          {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
+        </Text>
+      </Box>
+    ))
 
     const missingProofs = !this.props.isYou
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
-
-    const activeMenuProof = this.state.activeMenuProof
-
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Box>
+        {proofNotice &&
+          <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
+            <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+              {proofNotice}
+            </Text>
+          </Box>}
+        <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
+          <Box
+            style={{
+              ...globalStyles.fillAbsolute,
+              backgroundColor: trackerStateColors.header.background,
+              height: 56,
+              bottom: undefined,
+            }}
+          />
+          <LoadingWrapper
+            style={{minHeight: this.props.loading ? 420 : 0}}
+            duration={500}
+            loading={this.props.loading}
+            loadingComponent={this._makeUserBio(true)}
+            doneLoadingComponent={this._makeUserBio(false)}
+          />
+        </Box>
+        {!this.props.isYou &&
+          !this.props.loading &&
+          <UserActions
+            style={styleActions}
+            trackerState={this.props.trackerState}
+            currentlyFollowing={this.props.currentlyFollowing}
+            onChat={this.props.onChat}
+            onFollow={this.props.onFollow}
+            onUnfollow={this.props.onUnfollow}
+            onAcceptProofs={this.props.onAcceptProofs}
+          />}
+        <Box style={styleProofsAndFolders}>
+          <LoadingWrapper
+            duration={500}
+            style={{marginTop: globalMargins.medium}}
+            loading={this.props.loading}
+            loadingComponent={this._makeUserProofs(true)}
+            doneLoadingComponent={this._makeUserProofs(false)}
+          />
+          {!this.props.loading &&
+            <UserProofs
+              type={'missingProofs'}
+              username={this.props.username}
+              missingProofs={missingProofs}
+              currentlyFollowing={false}
+            />}
+          {!this.props.loading && folders}
+        </Box>
+      </Box>
+    )
+  }
+  _renderFriends = ({item}) => {
+    return (
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
+        {item.map(
+          user =>
+            user.dummy
+              ? <Text key={user.dummy} type="BodySmall" style={{color: globalColors.black_40, padding: 40}}>
+                  {user.dummy}
+                </Text>
+              : <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+        )}
+      </Box>
+    )
+  }
+
+  _renderSections = ({section}) => {
+    if (section.title === 'profile') {
+      const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
+      return (
         <Box
           style={{
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
-            paddingTop: statusBarHeight,
+            paddingBottom: globalMargins.tiny,
+            paddingTop: globalMargins.tiny + statusBarHeight,
           }}
         >
           {this.props.onBack &&
             <BackButton
               title={null}
               onClick={this.props.onBack}
-              style={{marginLeft: 16}}
+              style={styleBack}
               iconStyle={{color: globalColors.white}}
             />}
-          {featureFlags.searchv3Enabled &&
-            <Box onClick={this.props.onSearch} style={styleSearchContainer}>
-              <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
-              <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
-            </Box>}
+          <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
+            <Icon style={styleSearch} type="iconfont-search" />
+            <Text style={styleSearchText} type="Body">Search people</Text>
+          </ClickableBox>
         </Box>
-        <NativeScrollView
-          style={{flex: 1, backgroundColor: trackerStateColors.header.background}}
-          contentContainerStyle={{
-            height: this.props.loading ? '100%' : undefined,
+      )
+    } else {
+      return (
+        <Box
+          style={{
+            ...globalStyles.flexBoxRow,
             backgroundColor: globalColors.white,
+            paddingTop: globalMargins.tiny + statusBarHeight,
           }}
         >
-          {proofNotice &&
-            <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-              <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
-                {proofNotice}
-              </Text>
-            </Box>}
-          <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>
-            <Box
-              style={{
-                position: 'absolute',
-                backgroundColor: trackerStateColors.header.background,
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 56,
+          {['Followers', 'Following'].map(f => (
+            <ClickableBox
+              key={f}
+              style={{...globalStyles.flexBoxColumn, width: '50%', alignItems: 'center'}}
+              onClick={() => {
+                this.setState({currentFriendshipsTab: f}, () => {
+                  this._list &&
+                    this._list.scrollToLocation({
+                      sectionIndex: 1,
+                      itemIndex: 0,
+                      viewOffset: statusBarHeight + globalMargins.tiny + 40,
+                    })
+                })
               }}
-            />
-            <LoadingWrapper
-              style={{minHeight: this.props.loading ? 220 : 0}}
-              duration={500}
-              loading={this.props.loading}
-              loadingComponent={this._makeUserBio(true)}
-              doneLoadingComponent={this._makeUserBio(false)}
-            />
-          </Box>
-          {!this.props.isYou &&
-            !this.props.loading &&
-            <UserActions
-              style={styleActions}
-              trackerState={this.props.trackerState}
-              currentlyFollowing={this.props.currentlyFollowing}
-              onChat={this.props.onChat}
-              onFollow={this.props.onFollow}
-              onUnfollow={this.props.onUnfollow}
-              onAcceptProofs={this.props.onAcceptProofs}
-            />}
-          <Box style={styleProofsAndFolders}>
-            <LoadingWrapper
-              duration={500}
-              style={{marginTop: globalMargins.medium}}
-              loading={this.props.loading}
-              loadingComponent={this._makeUserProofs(true)}
-              doneLoadingComponent={this._makeUserProofs(false)}
-            />
-            {!this.props.loading &&
-              <UserProofs
-                type={'missingProofs'}
-                username={this.props.username}
-                missingProofs={missingProofs}
-                currentlyFollowing={false}
-              />}
-            {!this.props.loading && folders}
-          </Box>
-          {!this.props.loading &&
-            <Friendships
-              username={this.props.username}
-              isYou={this.props.isYou}
-              currentTab={this.state.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
-              onUserClick={this.props.onUserClick}
-              followersLoaded={this.props.followersLoaded}
-              followers={this.props.followers}
-              following={this.props.following}
-            />}
-        </NativeScrollView>
+            >
+              <Text
+                type="BodySmallSemibold"
+                style={{
+                  padding: 10,
+                  color: this.state.currentFriendshipsTab === f
+                    ? globalColors.black_75
+                    : globalColors.black_60,
+                }}
+              >
+                {`${f.toUpperCase()} (${f === 'Followers' ? this.props.followers.length : this.props.following.length})`}
+              </Text>
+              <Box
+                style={{
+                  width: '100%',
+                  minHeight: 3,
+                  backgroundColor: this.state.currentFriendshipsTab === f
+                    ? globalColors.blue
+                    : globalColors.transparent,
+                }}
+              />
+            </ClickableBox>
+          ))}
+        </Box>
+      )
+    }
+  }
+
+  _keyExtractor = (item, index) => index
+  _list: any
+  _setRef = r => (this._list = r)
+
+  render() {
+    if (this.props.error) {
+      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
+    }
+
+    const activeMenuProof = this.state.activeMenuProof
+
+    // TODO move this kind of stuff to connect and make this waaaaay dumber
+    const friends = this.state.currentFriendshipsTab === 'Followers'
+      ? this.props.followers
+      : this.props.following
+    let friendData = chunk(friends || [], 3)
+    if (!friendData.length) {
+      let type
+      if (this.props.isYou) {
+        type = this.state.currentFriendshipsTab === 'Followers'
+          ? `You have no followers.`
+          : `You are not following anyone.`
+      } else {
+        type = this.state.currentFriendshipsTab === 'Followers'
+          ? `${this.props.username} has no followers.`
+          : `${this.props.username} is not following anyone.`
+      }
+
+      friendData = [[{dummy: type}]]
+    }
+
+    return (
+      <Box style={globalStyles.fullHeight}>
+        <NativeSectionList
+          stickySectionHeadersEnabled={true}
+          style={globalStyles.fullHeight}
+          ref={this._setRef}
+          initialNumToRender={2}
+          renderSectionHeader={this._renderSections}
+          keyExtractor={this._keyExtractor}
+          forceRenderProofs={this.props.proofs}
+          forceRenderBio={this.props.userInfo}
+          sections={[
+            {
+              renderItem: this._renderProfile,
+              title: 'profile',
+              data: [{key: 'profile'}],
+            },
+            {
+              renderItem: this._renderFriends,
+              title: 'friends',
+              data: friendData,
+            },
+          ]}
+        />
         {!!activeMenuProof &&
           <PopupMenu
             {...this._proofMenuContent(activeMenuProof)}
@@ -309,10 +402,61 @@ class Profile extends Component<void, Props, State> {
   }
 }
 
+const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}) => (
+  <ClickableBox
+    onClick={() => {
+      onClick && onClick(username)
+    }}
+    style={userEntryContainerStyle}
+  >
+    <Box style={userEntryInnerContainerStyle}>
+      <Avatar
+        style={userEntryAvatarStyle}
+        size={64}
+        url={thumbnailUrl}
+        followsYou={followsYou}
+        following={following}
+      />
+      <Text type="BodySemibold" style={userEntryUsernameStyle(following)}>{username}</Text>
+    </Box>
+  </ClickableBox>
+)
+
+const userEntryContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  paddingBottom: globalMargins.small,
+  paddingTop: globalMargins.small,
+  width: 105,
+}
+
+const userEntryInnerContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: 108,
+  justifyContent: 'flex-start',
+}
+
+const userEntryAvatarStyle = {
+  marginBottom: globalMargins.xtiny,
+  marginTop: 2,
+}
+
+const userEntryUsernameStyle = following => ({
+  color: following ? globalColors.green : globalColors.blue,
+  textAlign: 'center',
+})
+const styleBack = {
+  left: globalMargins.tiny,
+  position: 'absolute',
+  top: 30,
+}
+
 const styleHeader = {
   ...globalStyles.flexBoxRow,
-  height: HEADER_TOP_SPACE,
   alignItems: 'center',
+  justifyContent: 'center',
 }
 
 const styleProofNotice = {
@@ -330,10 +474,8 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
-  flex: 1,
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-  paddingBottom: globalMargins.medium,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 
 const styleFolderLine = {
@@ -363,12 +505,8 @@ const styleSearchContainer = {
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  left: 64,
   minHeight: 24,
-  minWidth: 273,
-  position: 'absolute',
-  top: 30,
-  zIndex: SEARCH_CONTAINER_ZINDEX,
+  minWidth: 233,
 }
 
 const styleSearch = {
@@ -379,7 +517,7 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default Profile

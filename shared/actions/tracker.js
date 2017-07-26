@@ -2,11 +2,12 @@
 import * as Constants from '../constants/tracker'
 import * as RPCTypes from '../constants/types/flow-types'
 import Session from '../engine/session'
-import _ from 'lodash'
+import get from 'lodash/get'
 import engine from '../engine'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {showAllTrackers} from '../local-debug'
+import {isMobile} from '../constants/platform'
 
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CancelHandlerType} from '../engine/session'
@@ -184,6 +185,10 @@ function registerIdentifyUi(): TrackerActionCreator {
         let trackerTimeoutError = 0
 
         const onStart = username => {
+          // Don't do this on mobile
+          if (isMobile) {
+            return
+          }
           trackerTimeoutError = setTimeout(() => {
             dispatch({
               type: Constants.identifyFinished,
@@ -523,7 +528,7 @@ function _serverCallMap(
 
         dispatch({
           type: Constants.updateReason,
-          payload: {username, reason: reason && reason.reason},
+          payload: {username, reason: reason && reason.reason !== profileFromUI && reason.reason},
         })
 
         dispatch({
@@ -802,10 +807,10 @@ function _fillFolders(username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const state: TypedState = getState()
     const root = state.favorite
-    const pubIg = _.get(root, 'public.ignored', [])
-    const pubTlf = _.get(root, 'public.tlfs', [])
-    const privIg = _.get(root, 'private.ignored', [])
-    const privTlf = _.get(root, 'private.tlfs', [])
+    const pubIg = get(root, 'public.ignored', [])
+    const pubTlf = get(root, 'public.tlfs', [])
+    const privIg = get(root, 'private.ignored', [])
+    const privTlf = get(root, 'private.tlfs', [])
 
     const tlfs = []
       .concat(pubIg, pubTlf, privIg, privTlf)

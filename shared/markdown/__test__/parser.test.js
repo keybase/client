@@ -1,90 +1,98 @@
 // @flow
 /* eslint-env jest */
-import parser from '../parser'
+import parser, {isPlainText} from '../parser'
+
+function check(md) {
+  const ast = parser.parse(md)
+  expect(ast).toMatchSnapshot()
+
+  const plainText = isPlainText(md)
+  if (plainText) {
+    const astIsEmpty = ast.children.length === 0
+    const astIsOnlyText = ast.children.every(
+      child =>
+        child.type === 'text-block' &&
+        (child.children.length === 0 ||
+          (child.children.length === 1 && typeof child.children[0] === 'string'))
+    )
+    expect(astIsEmpty || astIsOnlyText).toBe(true)
+
+    const text = ast.children.map(child => child.children[0]).join('\n')
+    expect(text).toBe(plainText)
+  }
+}
 
 describe('Markdown parser', () => {
   it('parses an empty line correctly', () => {
-    const ast = parser.parse('')
-    expect(ast).toMatchSnapshot()
+    check('')
   })
 
   it('parses a single delimiter correctly', () => {
-    const ast = parser.parse('.')
-    expect(ast).toMatchSnapshot()
+    check('.')
   })
 
   it('parses a line with just whitespace correctly', () => {
-    const ast = parser.parse('    ')
-    expect(ast).toMatchSnapshot()
+    check('    ')
   })
 
   it('eats multiple empty lines at start', () => {
-    const ast = parser.parse('    \n\n\n\nstart')
-    expect(ast).toMatchSnapshot()
+    check('    \n\n\n\nstart')
   })
 
   it('eats multiple empty lines at end', () => {
-    const ast = parser.parse('end\n\n\n\n   ')
-    expect(ast).toMatchSnapshot()
+    check('end\n\n\n\n   ')
   })
 
   it('preserves multiple empty lines', () => {
-    const ast = parser.parse('be\n\n   \n\ntween')
-    expect(ast).toMatchSnapshot()
+    check('be\n\n   \n\ntween')
+  })
+
+  it('parses plaintext correctly', () => {
+    check("hello, there! how are you? this shouldn't be markdown.")
   })
 
   it('parses multiple adjacent emoji correctly', () => {
-    const ast = parser.parse(':ok_hand::skin-tone-2::smile::wink:')
-    expect(ast).toMatchSnapshot()
+    check(':ok_hand::skin-tone-2::smile::wink:')
   })
 
   it('parses invalid bold correctly', () => {
-    const ast = parser.parse('*not bold**')
-    expect(ast).toMatchSnapshot()
+    check('*not bold**')
   })
 
   it('parses formatting adjacent to punctuation', () => {
-    const ast = parser.parse('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
-    expect(ast).toMatchSnapshot()
+    check('thisis(*bold*) and(_italic_) and,~striked~! (*woot*) another.*test*.case')
   })
 
   it('parses invalid emoji fragments correctly', () => {
-    const ast = parser.parse('one::\n::two\n:three?::\n::four:\n::')
-    expect(ast).toMatchSnapshot()
+    check('one::\n::two\n:three?::\n::four:\n::')
   })
 
   it('parses numbers and some symbols emoji', () => {
-    const ast = parser.parse(':+1: :100:')
-    expect(ast).toMatchSnapshot()
+    check(':+1: :100:')
   })
 
   it('parses kitchen sink demo correctly', () => {
-    const ast = parser.parse(
+    check(
       'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_'
     )
-    expect(ast).toMatchSnapshot()
   })
 
   it('parses escaped chars correctly', () => {
-    const ast = parser.parse('I \\*should\\* see asterisks')
-    expect(ast).toMatchSnapshot()
+    check('I \\*should\\* see asterisks')
   })
 
   it('parses special characters within words correctly', () => {
-    const ast = parser.parse('not*bolded* *also*notbolded')
-    expect(ast).toMatchSnapshot()
+    check('not*bolded* *also*notbolded')
   })
 
   it('parses native emoji correctly', () => {
-    const ast = parser.parse('hello there 🌸😎👍🏿!')
-    expect(ast).toMatchSnapshot()
+    check('hello there 🌸😎👍🏿!')
   })
   it('parses native zwj emoji correctly', () => {
-    const ast = parser.parse('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
-    expect(ast).toMatchSnapshot()
+    check('👩‍❤️‍💋‍👩 👩‍👩‍👧‍👧!')
   })
   it('parses quote blocks correctly', () => {
-    const ast = parser.parse(`
+    check(`
 > this is quoted
 > this is _italics_ inside of a quote. This is *bold* inside of a quote.
 > outside code: \`This is an inline block of code in a quote\` outside again
@@ -94,10 +102,9 @@ line
 code in quote
 \`\`\`
 `)
-    expect(ast).toMatchSnapshot()
   })
   it('parses more code blocks correctly', () => {
-    const ast = parser.parse(`
+    check(`
         \`\`\`this is a code block\`\`\`
 \`\`\`
 this is a code block that starts with a newline\`\`\`
@@ -108,16 +115,14 @@ this is a code block that starts with a newline and ends with a newline
 
 this is a code block with two newline above\`\`\`
 `)
-    expect(ast).toMatchSnapshot()
   })
   it('parses incomplete code blocks correctly', () => {
     for (let i = 1; i <= 7; i++) {
-      const ast = parser.parse('`'.repeat(i))
-      expect(ast).toMatchSnapshot()
+      check('`'.repeat(i))
     }
   })
   it('parses urls correctly', () => {
-    const ast = parser.parse(`
+    check(`
   Ignore:
     a...b,
     ftp://blah.com,
@@ -149,6 +154,5 @@ this is a code block with two newline above\`\`\`
     *http://keybase.io/*.
     *http://keybase.io/~_*
 `)
-    expect(ast).toMatchSnapshot()
   })
 })

@@ -11,13 +11,13 @@ import {
   checkProof,
 } from '../actions/profile'
 import {searchSuggestions} from '../actions/searchv3/creators'
-import {connect} from 'react-redux'
+import pausableConnect from '../util/pausable-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {openInKBFS} from '../actions/kbfs'
-import {profileTab} from '../constants/tabs'
+import {peopleTab, profileTab} from '../constants/tabs'
 import {startConversation} from '../actions/chat'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -55,7 +55,7 @@ class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   }
 }
 
-export default connect(
+export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
     const username = routeProps.username ? routeProps.username : myUsername
@@ -63,7 +63,8 @@ export default connect(
     return {
       currentFriendshipsTab: routeState.currentFriendshipsTab,
       myUsername,
-      profileIsRoot: routePath.size === 1 && routePath.first() === profileTab,
+      profileIsRoot: routePath.size === 1 &&
+        (routePath.first() === profileTab || routePath.first() === peopleTab),
       trackerState: state.tracker.trackers[username],
       username,
     }

@@ -7,8 +7,8 @@ import {ignoreDisconnectOverlay} from '../local-debug.desktop.js'
 
 import type {Props} from './index'
 
-const Offline = ({reachability, appFocused}: Props) => {
-  if (reachability && reachability.reachable !== ReachabilityReachable.no) {
+const Offline = ({reachable, appFocused}: Props) => {
+  if (reachable !== ReachabilityReachable.no) {
     return null
   }
 

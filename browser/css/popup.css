@@ -17,3 +17,7 @@ body {
 .keybase-nudge {
   min-height: 40px;
 }
+
+textarea {
+  font-family: inherit;
+}

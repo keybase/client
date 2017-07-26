@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -16,7 +17,7 @@ import (
 )
 
 func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, ph *PushHandler,
-	sender Sender, conv chat1.Conversation, user *kbtest.FakeUser,
+	sender types.Sender, conv chat1.Conversation, user *kbtest.FakeUser,
 	iboxXform func(chat1.InboxVers) chat1.InboxVers) {
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 	convID := conv.GetConvID()
@@ -48,7 +49,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 	newVers := iboxXform(vers)
 	t.Logf("newVers: %d vers: %d", newVers, vers)
 	nm := chat1.NewMessagePayload{
-		Action:    "newMessage",
+		Action:    types.ActionNewMessage,
 		ConvID:    conv.GetConvID(),
 		Message:   *boxed,
 		InboxVers: iboxXform(vers),

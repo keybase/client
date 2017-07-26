@@ -2,7 +2,10 @@
 import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props} from './form-with-checkbox'
-import {Checkbox, Input, Box, Text} from './index'
+import Checkbox from './checkbox'
+import Input from './input'
+import Box from './box'
+import Text from './text'
 import {globalStyles, globalMargins} from '../styles'
 
 class FormWithCheckbox extends Component<void, Props, void> {

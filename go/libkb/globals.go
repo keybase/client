@@ -107,6 +107,7 @@ type GlobalContext struct {
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
+	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -114,6 +115,8 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
+	// But don't access its members directly.
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
@@ -196,6 +199,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.teamLoader = newNullTeamLoader(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
+	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
 	return g
 }
@@ -224,7 +228,9 @@ func (g *GlobalContext) createLoginStateLocked() {
 		g.loginState.Shutdown()
 	}
 	g.loginState = NewLoginState(g)
-	g.ActiveDevice = new(ActiveDevice)
+	g.loginState.Account(func(a *Account) {
+		g.ActiveDevice.clear(a)
+	}, "ActiveDevice.clear")
 }
 
 func (g *GlobalContext) createLoginState() {
@@ -240,11 +246,6 @@ func (g *GlobalContext) LoginState() *LoginState {
 	return g.loginState
 }
 
-// ResetLoginState is mainly used for testing...
-func (g *GlobalContext) ResetLoginState() {
-	g.createLoginStateLocked()
-}
-
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
@@ -255,11 +256,11 @@ func (g *GlobalContext) Logout() error {
 		return err
 	}
 
+	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
+
 	g.CallLogoutHooks()
 
-	if g.Env.GetSupportPerUserKey() {
-		g.ClearPerUserKeyring()
-	}
+	g.ClearPerUserKeyring()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -783,10 +784,8 @@ func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
-	if g.Env.GetSupportPerUserKey() {
-		// Trigger the creation of a per-user-keyring
-		_, _ = g.GetPerUserKeyring()
-	}
+	// Trigger the creation of a per-user-keyring
+	_, _ = g.GetPerUserKeyring()
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -972,15 +971,10 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 }
 
 // GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
-// Using this during provisioning is nigh impossible because GetMyUID
-// routes through LoginSession and deadlocks.
 func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
-	if !g.Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-key support disabled")
-	}
 
-	myUID := g.GetMyUID()
+	myUID := g.ActiveDevice.UID()
 	if myUID.IsNil() {
 		return nil, errors.New("PerUserKeyring unavailable with no UID")
 	}
@@ -1014,10 +1008,12 @@ func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 
 func (g *GlobalContext) ClearPerUserKeyring() {
 	defer g.Trace("G#ClearPerUserKeyring", func() error { return nil })()
-	if !g.Env.GetSupportPerUserKey() {
-		return
-	}
+
 	g.perUserKeyringMu.Lock()
 	defer g.perUserKeyringMu.Unlock()
 	g.perUserKeyring = nil
+}
+
+func (g *GlobalContext) LocalSigchainGuard() *LocalSigchainGuard {
+	return g.localSigchainGuard
 }

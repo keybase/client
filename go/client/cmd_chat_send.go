@@ -12,7 +12,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -41,7 +43,7 @@ func (c *CmdChatSend) SetTeamChatForTest(n string) {
 	c.team = true
 	c.resolvingRequest = chatConversationResolvingRequest{
 		TlfName:     n,
-		TopicName:   "#general",
+		TopicName:   chat.DefaultTeamTopic,
 		MembersType: chat1.ConversationMembersType_TEAM,
 		TopicType:   chat1.TopicType_CHAT,
 		Visibility:  chat1.TLFVisibility_PRIVATE,
@@ -105,8 +107,9 @@ func (c *CmdChatSend) Run() (err error) {
 	// Do one of set topic name, set headline, or send message
 	switch {
 	case c.setTopicName != "":
-		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<\n")
+		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
+			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet (except on team chats). Ignoring --set-topic-name >.<\n")
 			return nil
 		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
@@ -164,7 +167,7 @@ func (c *CmdChatSend) Run() (err error) {
 }
 
 func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = ctx.String("set-topic-name")
+	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-topic-name"))
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())

@@ -10,12 +10,15 @@ protocol NotifyChat {
     READ_MESSAGE_2,
     NEW_CONVERSATION_3,
     SET_STATUS_4,
-    FAILED_MESSAGE_5
+    FAILED_MESSAGE_5,
+    MEMBERS_UPDATE_6,
+    SET_APP_NOTIFICATION_SETTINGS_7
   } 
 
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
+    boolean displayDesktopNotification;
     union { null, ConversationLocal } conv;
     union { null, Pagination } pagination;
   }
@@ -36,8 +39,19 @@ protocol NotifyChat {
     union { null, ConversationLocal } conv;
   }
 
+  record SetAppNotificationSettingsInfo {
+    ConversationID convID;
+    ConversationNotificationInfo settings;
+  }
+
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
+  }
+
+  record MembersUpdateInfo {
+    ConversationID convID;
+    string member;
+    boolean joined;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -46,6 +60,8 @@ protocol NotifyChat {
     case NEW_CONVERSATION: NewConversationInfo;
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
+    case MEMBERS_UPDATE: MembersUpdateInfo;
+    case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
   }
 
   record TyperInfo {
@@ -59,6 +75,16 @@ protocol NotifyChat {
   record ConvTypingUpdate {
     ConversationID convID;
     array<TyperInfo> typers;
+  }
+
+  enum StaleUpdateType {
+    CLEAR_0,
+    NEWACTIVITY_1
+  }
+
+  record ConversationStaleUpdate {
+    ConversationID convID;
+    StaleUpdateType updateType;
   }
 
   @notify("")
@@ -84,9 +110,18 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatThreadsStale(keybase1.UID uid, array<ConversationID> convIDs);
+  void ChatThreadsStale(keybase1.UID uid, array<ConversationStaleUpdate> updates);
 
   @notify("")
   @lint("ignore")
   void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
+
+  @notify("")
+  @lint("ignore")
+  void ChatJoinedConversation(keybase1.UID uid, ConversationLocal conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatLeftConversation(keybase1.UID uid, ConversationID convID); 
+
 }

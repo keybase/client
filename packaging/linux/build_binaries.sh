@@ -112,22 +112,11 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
-  # Whitelist for NativeMessaging
-  kbnm_bin="/usr/bin/kbnm"
-
-  # ... for Chrome:
-  kbnm_file="$layout_dir/etc/opt/chrome/native-messaging-hosts/io.keybase.kbnm.json"
-  mkdir -p "$(dirname "$kbnm_file")"
-  cat "$here/host_json.template" \
-    | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
-    > "$kbnm_file"
-
-  # ... for Chromium:
-  kbnm_file="$layout_dir/etc/chromium/native-messaging-hosts/io.keybase.kbnm.json"
-  mkdir -p "$(dirname "$kbnm_file")"
-  cat "$here/host_json.template" \
-    | sed "s|@@HOST_PATH@@|$kbnm_bin|g" \
-    > "$kbnm_file"
+  # Write whitelists into the overlay. Note that we have to explicitly set USER
+  # here, because docker doesn't do it by default, and so otherwise the
+  # CGO-disabled i386 cross platform build will fail because it's unable to
+  # find the current user.
+  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
@@ -160,12 +149,24 @@ build_one_architecture() {
   fi
 }
 
-export GOARCH=amd64
-export debian_arch=amd64
-export electron_arch=x64
-build_one_architecture
+# required for cross-compiling, or else the Go compiler will skip over
+# resinit_nix.go and fail the i386 build
+export CGO_ENABLED=1
 
-export GOARCH=386
-export debian_arch=i386
-export electron_arch=ia32
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  export GOARCH=amd64
+  export debian_arch=amd64
+  export electron_arch=x64
+  build_one_architecture
+else
+  echo SKIPPING 64-bit build
+fi
+
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  export GOARCH=386
+  export debian_arch=i386
+  export electron_arch=ia32
+  build_one_architecture
+else
+  echo SKIPPING 32-bit build
+fi

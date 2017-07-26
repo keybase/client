@@ -38,6 +38,12 @@ export type SubmitDeviceName = TypedAction<
   {deviceNameError: string}
 >
 
+export const setDeviceNameError = 'signup:setDeviceNameError'
+export type SetDeviceNameError = TypedAction<'signup:setDeviceNameError', {deviceNameError: string}, {}>
+
+export const clearDeviceNameError = 'signup:clearDeviceNameError'
+export type ClearDeviceNameError = TypedAction<'signup:clearDeviceNameError', {}, {}>
+
 export const signup = 'signup:signup'
 export type Signup = TypedAction<'signup:signup', {}, {signupError: HiddenString}>
 

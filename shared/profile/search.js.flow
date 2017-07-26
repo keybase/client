@@ -13,6 +13,7 @@ export type Props = {
   onChangeText: (s: string) => void,
   onChangeSearchText: (s: string) => void,
   onAddSelectedUser: () => void,
+  onMouseOverSearchResult?: (id: SearchResultId) => void,
   onMoveSelectUp: () => void,
   onMoveSelectDown: () => void,
   onRemoveUser: () => void,
@@ -23,7 +24,9 @@ export type Props = {
   searchText: string,
   selectedSearchId: ?SearchResultId,
   selectedService: string,
+  setInputRef: () => void,
   showAddButton: boolean,
+  showSearchSuggestions: boolean,
   userItems: Array<UserDetails>,
 }
 

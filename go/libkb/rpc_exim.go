@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -219,6 +220,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return nil
 	case SCGeneric:
 		return errors.New(s.Desc)
+	case SCBadSession:
+		return BadSessionError{s.Desc}
 	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
 	case SCKeyBadGen:
@@ -370,6 +373,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ret
 	case SCDevicePrevProvisioned:
 		return DeviceAlreadyProvisionedError{}
+	case SCDeviceProvisionViaDevice:
+		return ProvisionViaDeviceRequiredError{}
 	case SCDeviceNoProvision:
 		return ProvisionUnavailableError{}
 	case SCGPGUnavailable:
@@ -447,6 +452,21 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return ChatNotInConvError{
+			UID: uid,
+		}
+	case SCChatNotInTeam:
+		var uid gregor1.UID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "UID":
+				val, err := hex.DecodeString(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat not in conv UID")
+				}
+				uid = gregor1.UID(val)
+			}
+		}
+		return ChatNotInTeamError{
 			UID: uid,
 		}
 	case SCChatTLFFinalized:
@@ -542,6 +562,22 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return ret
+	case SCLoginStateTimeout:
+		var e LoginStateTimeoutError
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "ActiveRequest":
+				e.ActiveRequest = field.Value
+			case "AttemptedRequest":
+				e.AttemptedRequest = field.Value
+			case "Duration":
+				dur, err := time.ParseDuration(field.Value)
+				if err == nil {
+					e.Duration = dur
+				}
+			}
+		}
+		return e
 
 	default:
 		ase := AppStatusError{
@@ -753,6 +789,15 @@ func (c CanceledError) ToStatus() (s keybase1.Status) {
 	s.Name = "CANCELED"
 	s.Desc = c.M
 	return
+}
+
+//=============================================================================
+
+func (e BadSessionError) ToStatus() (s keybase1.Status) {
+	s.Code = SCBadSession
+	s.Name = "BAD_SESSION"
+	s.Desc = e.Desc
+	return s
 }
 
 //=============================================================================
@@ -1254,6 +1299,7 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 		PastIncarnations: pastIncarnations,
 		Uvv:              u.ExportToVersionVector(),
 		SeqnoLinkIDs:     linkIDs,
+		MinorVersion:     UPK2MinorVersionCurrent,
 	}, nil
 }
 
@@ -1625,6 +1671,14 @@ func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e ProvisionViaDeviceRequiredError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceProvisionViaDevice,
+		Name: "SC_DEVICE_PROVISION_VIA_DEVICE",
+		Desc: e.Error(),
+	}
+}
+
 func ExportTrackIDComponentToRevokedProof(tidc TrackIDComponent) keybase1.RevokedProof {
 	key, value := tidc.ToKeyValuePair()
 	ret := keybase1.RevokedProof{
@@ -1751,6 +1805,20 @@ func (e ChatNotInConvError) ToStatus() keybase1.Status {
 		Fields: []keybase1.StringKVPair{kv},
 	}
 }
+
+func (e ChatNotInTeamError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "UID",
+		Value: e.UID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatNotInTeam,
+		Name:   "SC_CHAT_NOT_IN_TEAM",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
 func (e ChatBadMsgError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatBadMsg,
@@ -1908,6 +1976,19 @@ func (e AccountResetError) ToStatus() keybase1.Status {
 			{Key: "e_uid", Value: string(e.expected.Uid)},
 			{Key: "e_version", Value: fmt.Sprintf("%d", e.expected.EldestSeqno)},
 			{Key: "r_version", Value: fmt.Sprintf("%d", e.received)},
+		},
+	}
+}
+
+func (e LoginStateTimeoutError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCLoginStateTimeout,
+		Name: "LOGIN_STATE_TIMEOUT",
+		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "ActiveRequest", Value: e.ActiveRequest},
+			{Key: "AttemptedRequest", Value: e.AttemptedRequest},
+			{Key: "Duration", Value: e.Duration.String()},
 		},
 	}
 }

@@ -14,7 +14,7 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
 
 const UserAvatar = ({author, showImage}) => (
   <Box style={_userAvatarStyle}>
-    {showImage && <Avatar size={24} username={author} />}
+    {showImage && <Avatar size={24} username={author} skipBackground={true} />}
   </Box>
 )
 
@@ -116,17 +116,17 @@ const _containerNoHeaderStyle = {
 
 const _containerWithHeaderStyle = {
   ..._containerNoHeaderStyle,
-  marginTop: globalMargins.tiny,
 }
 
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
   paddingRight: globalMargins.tiny,
+  paddingBottom: 2,
 }
 
 const _rightSideWithHeaderStyle = {
   ..._rightSideNoHeaderStyle,
-  paddingTop: globalMargins.xtiny,
+  paddingTop: 6,
 }
 
 const _stylesFirstNewMessage = {

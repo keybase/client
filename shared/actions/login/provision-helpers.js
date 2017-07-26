@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../constants/login'
-import QRCodeGen from 'qrcode-generator'
 
 import type {DeviceRole, Mode} from '../../constants/login'
 
@@ -34,6 +33,7 @@ export function defaultModeForDeviceRoles(
 }
 
 export function qrGenerate(code: string): string {
+  const QRCodeGen = require('qrcode-generator')
   const qr = QRCodeGen(4, 'L')
   qr.addData(code)
   qr.make()

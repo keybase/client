@@ -50,6 +50,9 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	e.G().Log.Debug("+ DeviceAdd.Run()")
 	defer func() { e.G().Log.Debug("- DeviceAdd.Run() -> %s", libkb.ErrToOk(err)) }()
 
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "DeviceAdd")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "DeviceAdd")
+
 	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_NEW_DEVICE}
 	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {

@@ -2,17 +2,19 @@
 
 import {compose, withHandlers, withPropsOnChange, withState, lifecycle} from 'recompose'
 import * as Constants from '../constants/searchv3'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
+
+const debounceTimeout = 1e3
 
 type OwnProps = {
   onChangeSearchText: (s: string) => void,
   search: (term: string, service: Constants.Service) => void,
   selectedService: Constants.Service,
-
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
   onAddSelectedUser: (id: Constants.SearchResultId) => void,
+  searchResultTerm: string,
 }
 
 // Which search result is highlighted
@@ -46,32 +48,13 @@ type OutProps = {
 }
 */
 const clearSearchHoc = withHandlers({
-  onClearSearch: ({
-    onRemoveUser,
-    onExitSearch,
-    userItems,
-    searchText,
-    onChangeSearchText,
-    clearSearchResults,
-    search,
-  }) => () => {
-    if (userItems.count() === 0 && !searchText) {
-      onExitSearch()
-    } else {
-      userItems.forEach(({id}) => onRemoveUser(id))
-      onChangeSearchText('')
-      clearSearchResults()
-      search('', 'Keybase')
-    }
-  },
+  onClearSearch: ({onExitSearch}) => () => onExitSearch(),
 })
+
+type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
 
 const onChangeSelectedSearchResultHoc = compose(
   withHandlers({
-    onAddSelectedUser: ({onChangeSearchText, onAddSelectedUser, selectedSearchId}: OwnProps) => () => {
-      selectedSearchId && onAddSelectedUser(selectedSearchId)
-      onChangeSearchText('')
-    },
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
     ) => {
@@ -85,26 +68,53 @@ const onChangeSelectedSearchResultHoc = compose(
     },
   }),
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
-    _searchDebounced: debounce(search, 1e3),
+    _searchDebounced: debounce(search, debounceTimeout),
   })),
-  withHandlers({
-    onMoveSelectUp: ({onMove}) => () => onMove('up'),
-    onMoveSelectDown: ({onMove}) => () => onMove('down'),
-    onChangeText: (props: OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}) => nextText => {
-      props.onChangeSearchText(nextText)
-      if (nextText === '') {
-        // In case we have a search that would fire after our other search
-        props._searchDebounced.cancel()
-        props.search(nextText, props.selectedService)
-      } else {
-        props._searchDebounced(nextText, props.selectedService)
-      }
-    },
+  withHandlers(() => {
+    let lastSearchTerm
+    return {
+      // onAddSelectedUser happens on desktop when tab, enter or comma
+      // is typed, so we expedite the current search, if any
+      onAddSelectedUser: (props: OwnPropsWithSearchDebounced) => () => {
+        props._searchDebounced.flush()
+        // See whether the current search result term matches the last one submitted
+        if (lastSearchTerm === props.searchResultTerm) {
+          props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
+          props.onChangeSearchText('')
+        }
+      },
+      onMoveSelectUp: ({onMove}) => () => onMove('up'),
+      onMoveSelectDown: ({onMove}) => () => onMove('down'),
+      onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
+        lastSearchTerm = nextText
+        props.onChangeSearchText(nextText)
+        if (nextText === '') {
+          // In case we have a search that would fire after our other search
+          props._searchDebounced.cancel()
+          props.search(nextText, props.selectedService)
+        } else {
+          props._searchDebounced(nextText, props.selectedService)
+        }
+      },
+    }
   })
 )
 
-const showServiceLogicHoc = withPropsOnChange(['searchText', 'userItems'], ({searchText, userItems}) => ({
-  showServiceFilter: !!searchText || userItems.length === 0,
+const showServiceLogicHoc = withPropsOnChange(
+  ['addNewParticipant', 'searchText', 'userItems'],
+  ({addNewParticipant, searchText, userItems}) => ({
+    showServiceFilter: !!searchText || userItems.length === 0 || addNewParticipant,
+  })
+)
+
+const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedService}) => ({
+  placeholder: `Search ${selectedService}`,
 }))
 
-export {onChangeSelectedSearchResultHoc, selectedSearchIdHoc, showServiceLogicHoc, clearSearchHoc}
+export {
+  clearSearchHoc,
+  onChangeSelectedSearchResultHoc,
+  placeholderServiceHoc,
+  selectedSearchIdHoc,
+  showServiceLogicHoc,
+}

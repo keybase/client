@@ -14,12 +14,12 @@ import {
   ListItem,
   Button,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
-const Divider = ({theme, backgroundColor, color}) => (
-  <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
-    <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />
+const Divider = ({theme}) => (
+  <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor: globalColors.white}}>
+    <Box style={{marginLeft: 48 + 8, backgroundColor: globalColors.black_05, flex: 1}} />
   </Box>
 )
 
@@ -35,16 +35,7 @@ const Section = ({section, theme}) => (
         <Text type="BodySmallSemibold" style={styleSectionTextThemed[theme]}>{section.name}</Text>
       </Box>
     </Box>
-    {intersperseFn(
-      i => (
-        <Divider
-          key={i}
-          backgroundColor={styleDividerThemed[theme].backgroundColor}
-          color={styleDividerThemed[theme].color}
-        />
-      ),
-      section.files.map(f => <File key={f.name} {...f} />)
-    )}
+    {intersperseFn(i => <Divider key={i} />, section.files.map(f => <File key={f.name} {...f} />))}
   </Box>
 )
 
@@ -63,13 +54,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
         }}
       >
         {intersperseFn(
-          i => (
-            <Divider
-              key={i}
-              color={isPrivate ? globalColors.black_10 : globalColors.black_05}
-              backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}
-            />
-          ),
+          i => <Divider key={i} />,
           waitingForParticipantUnlock.map(p => (
             <ListItem
               key={p.name}
@@ -92,17 +77,10 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
 
 const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) =>
   ({
-    private: {
-      backup: 'icon-paper-key-dark-blue-32',
-      desktop: 'icon-computer-dark-blue-32',
-      mobile: 'icon-phone-dark-blue-32',
-    },
-    public: {
-      backup: 'icon-paper-key-32',
-      desktop: 'icon-computer-32',
-      mobile: 'icon-phone-32',
-    },
-  }[isPrivate ? 'private' : 'public'][type])
+    backup: 'icon-paper-key-32',
+    desktop: 'icon-computer-32',
+    mobile: 'icon-phone-32',
+  }[type])
 
 const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
@@ -119,7 +97,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
         }}
       >
         {intersperseFn(
-          i => <Divider key={i} theme={theme} backgroundColor={null} color={null} />,
+          i => <Divider key={i} />,
           youCanUnlock.map(device => (
             <ListItem
               key={device.name}
@@ -152,7 +130,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
 
 class FilesRender extends Component<void, Props, void> {
   _renderContents(hasReadOnlyUsers: boolean, isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
-    const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+    const backgroundMode = 'Normal'
 
     if (this.props.youCanUnlock.length) {
       return (
@@ -185,7 +163,10 @@ class FilesRender extends Component<void, Props, void> {
             type="Primary"
             onClick={this.props.openCurrentFolder}
             label="Open folder"
-            style={{marginBottom: globalMargins.small}}
+            style={{
+              marginBottom: globalMargins.small,
+              backgroundColor: isPrivate ? globalColors.darkBlue2 : globalColors.yellowGreen,
+            }}
           />
           {isPrivate &&
             !hasReadOnlyUsers &&
@@ -239,7 +220,6 @@ class FilesRender extends Component<void, Props, void> {
   render() {
     const isPrivate = this.props.theme === 'private'
     const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
-    const backButtonColor = backButtonColorThemed[this.props.theme]
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
@@ -248,16 +228,11 @@ class FilesRender extends Component<void, Props, void> {
           ...globalStyles.flexBoxColumn,
           flex: 1,
           position: 'relative',
-          backgroundColor: backgroundColorThemed[this.props.theme],
+          backgroundColor: globalColors.white,
         }}
       >
         <Box style={{...globalStyles.flexBoxRow, ...styleHeaderThemed[this.props.theme], height: 48}}>
-          <BackButton
-            onClick={this.props.onBack}
-            style={{marginLeft: 16}}
-            iconStyle={{color: backButtonColor}}
-            textStyle={{color: backButtonColor}}
-          />
+          <BackButton onClick={this.props.onBack} style={{marginLeft: 16}} />
           {this.props.recentFilesEnabled &&
             <Icon
               style={{
@@ -290,7 +265,7 @@ class FilesRender extends Component<void, Props, void> {
           >
             {this.props.users.map(u => (
               <Box key={u.username} style={{height: 32, width: 28}}>
-                <Avatar username={u.username} size={32} />
+                <Avatar username={u.username} size={32} borderColor={globalColors.white} />
               </Box>
             ))}
           </Box>
@@ -318,11 +293,10 @@ class FilesRender extends Component<void, Props, void> {
 
 const styleHeaderThemed = {
   private: {
-    background: `${backgroundURL('icons', 'icon-damier-pattern-good-open.png')} ${globalColors.darkBlue3} repeat`,
+    backgroundColor: globalColors.white,
   },
-
   public: {
-    backgroundColor: globalColors.yellowGreen,
+    backgroundColor: globalColors.white,
   },
 }
 
@@ -342,20 +316,9 @@ const styleTLFNameContainer = {
   paddingBottom: 20,
 }
 
-const styleDividerThemed = {
-  private: {
-    color: globalColors.black_10,
-    backgroundColor: globalColors.darkBlue,
-  },
-
-  public: {
-    color: globalColors.black_05,
-    backgroundColor: globalColors.white,
-  },
-}
 const styleTLFHeaderThemed = {
   private: {
-    backgroundColor: globalColors.darkBlue,
+    backgroundColor: globalColors.white,
   },
 
   public: {
@@ -365,11 +328,11 @@ const styleTLFHeaderThemed = {
 
 const styleTLFTextThemed = {
   private: {
-    color: globalColors.white,
+    color: globalColors.darkBlue,
   },
 
   public: {
-    color: globalColors.yellowGreen,
+    color: globalColors.yellowGreen2,
   },
 }
 
@@ -391,11 +354,6 @@ const styleMenu = {
   ...globalStyles.clickable,
   marginLeft: 'auto',
   fontSize: 24,
-}
-
-const backButtonColorThemed = {
-  private: globalColors.white,
-  public: globalColors.white,
 }
 
 const styleRecentFilesNotEnabled = {

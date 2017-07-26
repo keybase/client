@@ -90,7 +90,10 @@ const followingMap = {
   other: true,
 }
 const metaDataMap = Map({
-  cecileb: new ChatConstants.MetaDataRecord({fullname: 'Cecile Bee', brokenTracker: false}),
+  cecileb: new ChatConstants.MetaDataRecord({
+    fullname: 'Cecile Bee',
+    brokenTracker: false,
+  }),
 })
 
 const mocks = followStates.reduce(
@@ -129,7 +132,10 @@ const mocks = followStates.reduce(
               you: 'cecileb',
               followingMap,
               metaDataMap: Map({
-                other: new ChatConstants.MetaDataRecord({fullname: 'other person', brokenTracker: true}),
+                other: new ChatConstants.MetaDataRecord({
+                  fullname: 'other person',
+                  brokenTracker: true,
+                }),
               }),
             },
           }
@@ -152,7 +158,9 @@ const mocks = followStates.reduce(
 
 mocks['from revoked device'] = {
   ...baseMock,
-  message: textMessageMock('sent', 'cecileb', 'other', {senderDeviceRevokedAt: 123456}),
+  message: textMessageMock('sent', 'cecileb', 'other', {
+    senderDeviceRevokedAt: 123456,
+  }),
   you: 'other',
   followingMap: {cecileb: true},
   metaDataMap,
@@ -174,7 +182,9 @@ mocks['first new message'] = {
 }
 mocks['failure reason'] = {
   ...baseMock,
-  message: textMessageMock('failed', 'cecileb', 'cecileb', {failureDescription: 'the flurble glurbled'}),
+  message: textMessageMock('failed', 'cecileb', 'cecileb', {
+    failureDescription: 'the flurble glurbled',
+  }),
   you: 'cecileb',
   followingMap: {},
   metaDataMap,
@@ -383,8 +393,12 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
 */
 
 let mockState = new ChatConstants.StateRecord()
-const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Can you bring the lentils tomorrow?'})
-const secondMsg = textMessageMock('sent', 'cecileb', 'cecileb', {text: 'Thanks!'})
+const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
+  text: 'Can you bring the lentils tomorrow?',
+})
+const secondMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
+  text: 'Thanks!',
+})
 const pendingMessage = textMessageMock('pending', 'cecileb', 'cecileb', {
   text: 'Sorry, my internet is kinda slow.',
 })
@@ -397,7 +411,8 @@ mockState = chatReducer(
     convID, // conv id
     true, // isSelected
     true, // isAppFocused
-    [firstMsg, secondMsg, pendingMessage, failedMessage] //  messages: Array<Constants.Message>
+    [firstMsg, secondMsg, pendingMessage, failedMessage], //  messages: Array<Constants.Message>
+    false
   )
 )
 
@@ -447,17 +462,29 @@ const stackedMessagesMap = {
     'Stacked - two messages, one edited': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(secondMsg.key, {includeHeader: false, isEdited: true, isYou: true}),
+      mock2: textContainerMock(secondMsg.key, {
+        includeHeader: false,
+        isEdited: true,
+        isYou: true,
+      }),
     },
     'Stacked - one sent, one pending': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(pendingMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
+      mock2: textContainerMock(pendingMessage.key, {
+        includeHeader: false,
+        isEdited: false,
+        isYou: true,
+      }),
     },
     'Stacked - one sent, one failed': {
       mockStore,
       mock1: textContainerMock(firstMsg.key, {isYou: true}),
-      mock2: textContainerMock(failedMessage.key, {includeHeader: false, isEdited: false, isYou: true}),
+      mock2: textContainerMock(failedMessage.key, {
+        includeHeader: false,
+        isEdited: false,
+        isYou: true,
+      }),
     },
     'Stacked - someone else. two sent': {
       mockStore,

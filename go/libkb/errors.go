@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -1090,6 +1091,7 @@ const (
 	merkleErrorSkipHashMismatch
 	merkleErrorNoLeftBookend
 	merkleErrorNoRightBookend
+	merkleErrorHashMeta
 )
 
 type MerkleClientError struct {
@@ -1433,6 +1435,12 @@ func (e PassphraseProvisionImpossibleError) Error() string {
 	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
 }
 
+type ProvisionViaDeviceRequiredError struct{}
+
+func (e ProvisionViaDeviceRequiredError) Error() string {
+	return "You must select an existing device to provision a new device"
+}
+
 type ProvisionUnavailableError struct{}
 
 func (e ProvisionUnavailableError) Error() string {
@@ -1487,9 +1495,18 @@ func (e UnmetAssertionError) Error() string {
 
 //=============================================================================
 
+type ResolutionErrorKind int
+
+const (
+	ResolutionErrorGeneral ResolutionErrorKind = iota
+	ResolutionErrorNotFound
+	ResolutionErrorAmbiguous
+)
+
 type ResolutionError struct {
 	Input string
 	Msg   string
+	Kind  ResolutionErrorKind
 }
 
 func (e ResolutionError) Error() string {
@@ -1741,6 +1758,24 @@ func (e ChatNotInConvError) Error() string {
 	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
 }
 
+func (e ChatNotInConvError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
+//=============================================================================
+
+type ChatNotInTeamError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInTeamError) Error() string {
+	return fmt.Sprintf("user is not in team: uid: %s", e.UID.String())
+}
+
+func (e ChatNotInTeamError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, true
+}
+
 //=============================================================================
 
 type ChatBadMsgError struct {
@@ -1978,4 +2013,22 @@ func (e AccountResetError) Error() string {
 		return fmt.Sprintf("Account reset, and not reestablished (for user %s)", e.expected.String())
 	}
 	return fmt.Sprintf("Account reset, reestablished at %d (for user %s)", e.received, e.expected.String())
+}
+
+type BadSessionError struct {
+	Desc string
+}
+
+func (e BadSessionError) Error() string {
+	return fmt.Sprintf("bad session: %s", e.Desc)
+}
+
+type LoginStateTimeoutError struct {
+	ActiveRequest    string
+	AttemptedRequest string
+	Duration         time.Duration
+}
+
+func (e LoginStateTimeoutError) Error() string {
+	return fmt.Sprintf("LoginState request timeout - attempted: %s, active request: %s, duration: %s", e.ActiveRequest, e.AttemptedRequest, e.Duration)
 }

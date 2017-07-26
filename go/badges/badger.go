@@ -148,9 +148,11 @@ func (b *Badger) log(state1 keybase1.BadgeState) {
 			// Don't let this leave this method.
 			c2id = chat1.ConversationID([]byte(c1.ConvID)).DbShortForm()
 		}
+
 		c2 := keybase1.BadgeConversationInfo{
 			ConvID:         c2id,
 			UnreadMessages: c1.UnreadMessages,
+			BadgeCounts:    c1.BadgeCounts,
 		}
 		state2.Conversations = append(state2.Conversations, c2)
 	}

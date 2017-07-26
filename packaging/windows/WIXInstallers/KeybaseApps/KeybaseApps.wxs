@@ -37,10 +37,12 @@
       <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="StopMainAppRoaming" Before="StopGUI"><![CDATA[Installed]]></Custom>
       <Custom Action="StopMainApp" Before="StopGUI"><![CDATA[Installed]]></Custom>
+      <Custom Action="RemoveBrowserExtension" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="StopGUI" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <Custom Action="RunMainAppDummyForRepair" Before="RunMainApp"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -212,14 +214,6 @@
         </RegistryKey>
         <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.json" Checksum="yes"/>
       </Component>
-      
-      <Component Id="RegistryEntriesKbnm" Guid="{87D8FCB8-F6CE-4A24-A629-A382FAFCED76}">
-        <RegistryKey Root="HKCU"
-                     Key="SOFTWARE\Google\Chrome\NativeMessagingHosts\io.keybase.kbnm"
-              Action="createAndRemoveOnUninstall">
-          <RegistryValue Type="string" Value="[INSTALLFOLDER]kbnm.json"/>
-        </RegistryKey>
-      </Component>
 
     </ComponentGroup>
   </Fragment>
@@ -310,4 +304,18 @@
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
-  </Wix>
+  <Fragment>
+    <CustomAction Id="AddBrowserExtension"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; install"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveBrowserExtension"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; uninstall"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+</Wix>

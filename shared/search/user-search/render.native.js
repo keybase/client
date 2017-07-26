@@ -117,7 +117,7 @@ function Result({
 }
 
 const UserSearchRender = ({results, onClickResult, searchText, waiting}: Props) => (
-  <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+  <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
     {!!waiting && <ProgressIndicator white={false} />}
     {results.map(r => (
       <Result

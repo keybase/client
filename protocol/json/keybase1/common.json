@@ -382,6 +382,13 @@
     },
     {
       "type": "record",
+      "name": "PerUserKeyGeneration",
+      "fields": [],
+      "typedef": "int",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "PerUserKey",
       "fields": [
         {
@@ -399,6 +406,10 @@
         {
           "type": "KID",
           "name": "encKID"
+        },
+        {
+          "type": "KID",
+          "name": "signedByKID"
         }
       ],
       "lint": "ignore"

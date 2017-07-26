@@ -2,6 +2,10 @@ package systests
 
 import (
 	"context"
+	"io"
+	"testing"
+	"time"
+
 	client "github.com/keybase/client/go/client"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -10,9 +14,6 @@ import (
 	clockwork "github.com/keybase/clockwork"
 	rpc "github.com/keybase/go-framed-msgpack-rpc/rpc"
 	contextOld "golang.org/x/net/context"
-	"io"
-	"testing"
-	"time"
 )
 
 // Tests for systests with multiuser, multidevice situations.
@@ -45,8 +46,8 @@ func newSMUContext(t *testing.T) *smuContext {
 	return ret
 }
 
-func (t *smuContext) cleanup() {
-	for _, v := range t.users {
+func (smc *smuContext) cleanup() {
+	for _, v := range smc.users {
 		v.cleanup()
 	}
 }
@@ -82,7 +83,6 @@ func (d *smuDeviceWrapper) startService(numClones int) {
 		d.clones = append(d.clones, cloneContext(d.tctx))
 	}
 	d.stopCh = make(chan error)
-	d.tctx.Tp.UpgradePerUserKey = true
 	svc := service.NewService(d.tctx.G, false)
 	d.service = svc
 	startCh := svc.GetStartChannel()
@@ -156,29 +156,30 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	ret.G.SetUI(&ui)
 	return ret
 }
-func (ctx *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
-	tctx := setupTest(ctx.t, u.usernamePrefix)
-	tctx.G.SetClock(ctx.fakeClock)
-	ret := &smuDeviceWrapper{ctx: ctx, tctx: tctx}
+
+func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
+	tctx := setupTest(smc.t, u.usernamePrefix)
+	tctx.G.SetClock(smc.fakeClock)
+	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
 	u.devices = append(u.devices, ret)
 	if u.primary == nil {
 		u.primary = ret
 	}
-	if ctx.log == nil {
-		ctx.log = tctx.G.Log
+	if smc.log == nil {
+		smc.log = tctx.G.Log
 	}
 	return ret
 }
 
-func (ctx *smuContext) installKeybaseForUser(usernamePrefix string, numClones int) *smuUser {
-	user := &smuUser{ctx: ctx, usernamePrefix: usernamePrefix}
-	ctx.users[usernamePrefix] = user
-	ctx.newDevice(user, numClones)
+func (smc *smuContext) installKeybaseForUser(usernamePrefix string, numClones int) *smuUser {
+	user := &smuUser{ctx: smc, usernamePrefix: usernamePrefix}
+	smc.users[usernamePrefix] = user
+	smc.newDevice(user, numClones)
 	return user
 }
 
-func (ctx *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
-	ret := ctx.setupDevice(u)
+func (smc *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
+	ret := smc.setupDevice(u)
 	ret.startService(numClones)
 	ret.startClient()
 	return ret
@@ -305,13 +306,17 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	name := u.username + "t"
+	nameK1, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
 	cli := u.getTeamsClient()
-	err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: name})
+	err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
 	for _, w := range writers {
-		err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 			Name:     name,
 			Username: w.username,
 			Role:     keybase1.TeamRole_WRITER,
@@ -325,7 +330,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
 	cli := u.getTeamsClient()
-	err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
 		Name:     team.name,
 		Username: w.username,
 		Role:     keybase1.TeamRole_WRITER,

@@ -368,6 +368,20 @@ func (o MessageAttachmentUploaded) DeepCopy() MessageAttachmentUploaded {
 	}
 }
 
+type MessageJoin struct {
+}
+
+func (o MessageJoin) DeepCopy() MessageJoin {
+	return MessageJoin{}
+}
+
+type MessageLeave struct {
+}
+
+func (o MessageLeave) DeepCopy() MessageLeave {
+	return MessageLeave{}
+}
+
 type MessageBody struct {
 	MessageType__        MessageType                  `codec:"messageType" json:"messageType"`
 	Text__               *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
@@ -377,6 +391,8 @@ type MessageBody struct {
 	Metadata__           *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 	Headline__           *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
 	Attachmentuploaded__ *MessageAttachmentUploaded   `codec:"attachmentuploaded,omitempty" json:"attachmentuploaded,omitempty"`
+	Join__               *MessageJoin                 `codec:"join,omitempty" json:"join,omitempty"`
+	Leave__              *MessageLeave                `codec:"leave,omitempty" json:"leave,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -414,6 +430,16 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_ATTACHMENTUPLOADED:
 		if o.Attachmentuploaded__ == nil {
 			err = errors.New("unexpected nil value for Attachmentuploaded__")
+			return ret, err
+		}
+	case MessageType_JOIN:
+		if o.Join__ == nil {
+			err = errors.New("unexpected nil value for Join__")
+			return ret, err
+		}
+	case MessageType_LEAVE:
+		if o.Leave__ == nil {
+			err = errors.New("unexpected nil value for Leave__")
 			return ret, err
 		}
 	}
@@ -490,6 +516,26 @@ func (o MessageBody) Attachmentuploaded() (res MessageAttachmentUploaded) {
 	return *o.Attachmentuploaded__
 }
 
+func (o MessageBody) Join() (res MessageJoin) {
+	if o.MessageType__ != MessageType_JOIN {
+		panic("wrong case accessed")
+	}
+	if o.Join__ == nil {
+		return
+	}
+	return *o.Join__
+}
+
+func (o MessageBody) Leave() (res MessageLeave) {
+	if o.MessageType__ != MessageType_LEAVE {
+		panic("wrong case accessed")
+	}
+	if o.Leave__ == nil {
+		return
+	}
+	return *o.Leave__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -536,6 +582,20 @@ func NewMessageBodyWithAttachmentuploaded(v MessageAttachmentUploaded) MessageBo
 	return MessageBody{
 		MessageType__:        MessageType_ATTACHMENTUPLOADED,
 		Attachmentuploaded__: &v,
+	}
+}
+
+func NewMessageBodyWithJoin(v MessageJoin) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_JOIN,
+		Join__:        &v,
+	}
+}
+
+func NewMessageBodyWithLeave(v MessageLeave) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_LEAVE,
+		Leave__:       &v,
 	}
 }
 
@@ -591,6 +651,20 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Attachmentuploaded__),
+		Join__: (func(x *MessageJoin) *MessageJoin {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Join__),
+		Leave__: (func(x *MessageLeave) *MessageLeave {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Leave__),
 	}
 }
 
@@ -2107,6 +2181,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
@@ -2125,6 +2200,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.Error),
 		Info:       o.Info.DeepCopy(),
 		ReaderInfo: o.ReaderInfo.DeepCopy(),
+		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Notifications),
 		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
 			var ret []ConversationMetadata
 			for _, v := range x {
@@ -2880,6 +2962,72 @@ func (o FindConversationsLocalRes) DeepCopy() FindConversationsLocalRes {
 	}
 }
 
+type JoinLeaveConversationLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes {
+	return JoinLeaveConversationLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type GetTLFConversationsLocalRes struct {
+	Convs      []ConversationLocal `codec:"convs" json:"convs"`
+	Offline    bool                `codec:"offline" json:"offline"`
+	RateLimits []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
+	return GetTLFConversationsLocalRes{
+		Convs: (func(x []ConversationLocal) []ConversationLocal {
+			var ret []ConversationLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Convs),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
+type SetAppNotificationSettingsLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o SetAppNotificationSettingsLocalRes) DeepCopy() SetAppNotificationSettingsLocalRes {
+	return SetAppNotificationSettingsLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -3407,6 +3555,68 @@ func (o UpdateTypingArg) DeepCopy() UpdateTypingArg {
 	}
 }
 
+type JoinConversationLocalArg struct {
+	TlfName    string        `codec:"tlfName" json:"tlfName"`
+	TopicType  TopicType     `codec:"topicType" json:"topicType"`
+	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
+	TopicName  string        `codec:"topicName" json:"topicName"`
+}
+
+func (o JoinConversationLocalArg) DeepCopy() JoinConversationLocalArg {
+	return JoinConversationLocalArg{
+		TlfName:    o.TlfName,
+		TopicType:  o.TopicType.DeepCopy(),
+		Visibility: o.Visibility.DeepCopy(),
+		TopicName:  o.TopicName,
+	}
+}
+
+type JoinConversationByIDLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o JoinConversationByIDLocalArg) DeepCopy() JoinConversationByIDLocalArg {
+	return JoinConversationByIDLocalArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type LeaveConversationLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
+	return LeaveConversationLocalArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type GetTLFConversationsLocalArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
+func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
+	return GetTLFConversationsLocalArg{
+		TlfName:     o.TlfName,
+		TopicType:   o.TopicType.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+	}
+}
+
+type SetAppNotificationSettingsLocalArg struct {
+	ConvID   ConversationID               `codec:"convID" json:"convID"`
+	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+}
+
+func (o SetAppNotificationSettingsLocalArg) DeepCopy() SetAppNotificationSettingsLocalArg {
+	return SetAppNotificationSettingsLocalArg{
+		ConvID:   o.ConvID.DeepCopy(),
+		Settings: o.Settings.DeepCopy(),
+	}
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3433,6 +3643,11 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
+	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
+	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -3839,6 +4054,86 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"joinConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]JoinConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]JoinConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]JoinConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.JoinConversationLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"joinConversationByIDLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]JoinConversationByIDLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]JoinConversationByIDLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]JoinConversationByIDLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.JoinConversationByIDLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"leaveConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]LeaveConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LeaveConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LeaveConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.LeaveConversationLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getTLFConversationsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTLFConversationsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTLFConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTLFConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTLFConversationsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"setAppNotificationSettingsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetAppNotificationSettingsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetAppNotificationSettingsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetAppNotificationSettingsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SetAppNotificationSettingsLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3973,5 +4268,32 @@ func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConve
 
 func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) JoinConversationLocal(ctx context.Context, __arg JoinConversationLocalArg) (res JoinLeaveConversationLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.joinConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) JoinConversationByIDLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
+	__arg := JoinConversationByIDLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.joinConversationByIDLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) LeaveConversationLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
+	__arg := LeaveConversationLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.leaveConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetTLFConversationsLocal(ctx context.Context, __arg GetTLFConversationsLocalArg) (res GetTLFConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getTLFConversationsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetAppNotificationSettingsLocal(ctx context.Context, __arg SetAppNotificationSettingsLocalArg) (res SetAppNotificationSettingsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setAppNotificationSettingsLocal", []interface{}{__arg}, &res)
 	return
 }

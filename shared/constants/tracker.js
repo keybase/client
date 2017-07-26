@@ -1,5 +1,5 @@
 // @flow
-import {mapValues} from 'lodash'
+import mapValues from 'lodash/mapValues'
 
 import type {Folder} from '../folders/list'
 import type {FriendshipUserInfo} from '../profile/friendships'

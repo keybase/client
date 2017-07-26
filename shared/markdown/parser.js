@@ -2640,4 +2640,12 @@ module.exports = {
 
     module.exports.emojiIndexByChar = emojiIndexByChar
     module.exports.emojiIndexByName = emojiIndexByName
+
+    // quick check to avoid markdown parsing overhead
+    // only chars, numbers, whitespace, some common punctuation and periods
+    // that end sentences (not domains)
+    const plaintextExp = /^([A-Za-z0-9!?=+@#$%^&()[\],'"\s]|\.\B)*$/
+    module.exports.isPlainText = function(markdown) {
+      return markdown && markdown.match(plaintextExp) ? markdown.trim() : null
+    }
   

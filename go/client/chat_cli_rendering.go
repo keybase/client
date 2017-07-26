@@ -72,7 +72,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 type conversationListView []chat1.ConversationLocal
 
 func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.ConversationLocal) string {
-	return fmt.Sprintf("%s [%s]", conv.Info.TlfName, conv.Info.TopicName)
+	return fmt.Sprintf("%s [#%s]", conv.Info.TlfName, conv.Info.TopicName)
 }
 
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
@@ -217,10 +217,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		// show the last TEXT message
 		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
-				unread = "*"
-			}
 			if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
+				if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
+					unread = "*"
+				}
 				if msg == nil || m.GetMessageID() > msg.GetMessageID() {
 					mCopy := m
 					msg = &mCopy
@@ -475,6 +475,12 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 		mv.Renderable = false
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
+	case chat1.MessageType_JOIN:
+		mv.Renderable = true
+		mv.Body = "<joined the channel>"
+	case chat1.MessageType_LEAVE:
+		mv.Renderable = true
+		mv.Body = "<left the channel>"
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

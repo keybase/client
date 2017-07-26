@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './render'
-import _ from 'lodash'
+import some from 'lodash/some'
+import get from 'lodash/get'
 import flags from '../../util/feature-flags'
 import type {Folder} from '../list'
 import {bindActionCreators} from 'redux'
@@ -84,7 +85,7 @@ class Files extends Component<void, Props, State> {
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
-        hasReadOnlyUsers={folder.users && _.some(folder.users, 'readOnly')}
+        hasReadOnlyUsers={folder.users && some(folder.users, 'readOnly')}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
         onBack={() => this.props.navigateUp()}
@@ -103,10 +104,10 @@ class Files extends Component<void, Props, State> {
 const ConnectedFiles = connect(
   (state: any, {routeProps: {path}}) => {
     const folders: Array<Folder> = [].concat(
-      _.get(state, 'favorite.folderState.private.tlfs', []),
-      _.get(state, 'favorite.folderState.public.tlfs', []),
-      _.get(state, 'favorite.folderState.private.ignored', []),
-      _.get(state, 'favorite.folderState.public.ignored', [])
+      get(state, 'favorite.folderState.private.tlfs', []),
+      get(state, 'favorite.folderState.public.tlfs', []),
+      get(state, 'favorite.folderState.private.ignored', []),
+      get(state, 'favorite.folderState.public.ignored', [])
     )
 
     const folder = folders.find(f => f.path === path)

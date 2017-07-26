@@ -76,12 +76,11 @@ function* _backgroundUnboxLoop() {
 // Update inboxes that have been reset
 function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   const finalizedState: Constants.FinalizedState = Map(
-    (inbox.conversationsUnverified || []).reduce((map, convoUnverified) => {
-      return map.set(
-        Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
-        convoUnverified.metadata.finalizeInfo
-      )
-    }, Map())
+    (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
+      Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
+      // $FlowIssue doesn't understand this is non-null
+      convoUnverified.metadata.finalizeInfo,
+    ])
   )
 
   if (finalizedState.count()) {
@@ -132,6 +131,16 @@ function* onInboxStale(): SagaGenerator<any, any> {
             return null
           }
 
+          const times = (c.maxMsgSummaries || [])
+            .filter(m =>
+              [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
+                m.messageType
+              )
+            )
+            .map((message: {ctime: number}) => message.ctime)
+            .sort()
+          const time = times && times.length > 0 && times[times.length - 1]
+
           return new Constants.InboxStateRecord({
             conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
             info: null,
@@ -139,7 +148,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             snippet: ' ',
             state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-            time: c.readerInfo && c.readerInfo.mtime,
+            time,
           })
         })
         .filter(Boolean)
@@ -275,6 +284,20 @@ function* _chatInboxFailedSubSaga(params) {
   })
 
   yield put(Creators.updateInbox(conversation))
+
+  // Mark the conversation as read, to avoid a state where there's a
+  // badged conversation that can't be unbadged by clicking on it.
+  const {maxMsgid} = error.remoteConv.readerInfo
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  if (maxMsgid && selectedConversation === conversationIDKey) {
+    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      param: {
+        conversationID: convID,
+        msgID: maxMsgid,
+      },
+    })
+  }
+
   switch (error.typ) {
     case ChatTypes.LocalConversationErrorType.selfrekeyneeded: {
       yield put(Creators.updateInboxRekeySelf(conversationIDKey))
@@ -355,9 +378,10 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
 
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
-  const toShow = List(c.maxMessages || [])
+  const validMaxMsgs = List(c.maxMessages || [])
     .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
     .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
+  const toShow = validMaxMsgs
     .filter(m =>
       [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(m.body.messageType)
     )
@@ -368,11 +392,23 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
     }))
     .first() || {}
 
+  // Temporary hack to make team convos easier to parse in inbox view
+  let parts = List(c.info.writerNames || [])
+  if (c.info.membersType === ChatTypes.CommonConversationMembersType.team) {
+    const topicName = validMaxMsgs
+      .filter(m => [ChatTypes.CommonMessageType.metadata].includes(m.body && m.body.messageType))
+      .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
+        title: Constants.makeTeamTitle(message.body) || '<none>',
+      }))
+      .first() || {}
+    parts = List([`${topicName.title} ${c.info.tlfName}`])
+  }
+
   return new Constants.InboxStateRecord({
     conversationIDKey,
     info: c.info,
     isEmpty: c.isEmpty,
-    participants: List(c.info.writerNames || []),
+    participants: parts || [],
     snippet: toShow.snippet,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.info ? c.info.status : 0],

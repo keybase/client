@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -388,6 +390,72 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
+var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
+
+func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
+	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+	for _, m := range matches {
+		if len(m) >= 2 {
+			res = append(res, m[1])
+		}
+	}
+	return res
+}
+
+func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+	names := ParseAtMentionsNames(ctx, body)
+	chanRes = chat1.ChannelMention_NONE
+	for _, name := range names {
+
+		switch name {
+		case "channel", "everyone":
+			chanRes = chat1.ChannelMention_ALL
+			continue
+		case "here":
+			if chanRes != chat1.ChannelMention_ALL {
+				chanRes = chat1.ChannelMention_HERE
+			}
+			continue
+		default:
+		}
+
+		kuid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(name))
+		if err != nil {
+			if debug != nil {
+				debug.Debug(ctx, "ParseAtMentionedUIDs: failed to lookup UID for: %s msg: %s",
+					name, err.Error())
+			}
+			continue
+		}
+		atRes = append(atRes, kuid.ToBytes())
+	}
+	return atRes, chanRes
+}
+
+func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (newBody string, atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+	atRes, chanRes = ParseAtMentionedUIDs(ctx, body, upak, debug)
+	newBody = atMentionRegExp.ReplaceAllStringFunc(body, func(m string) string {
+		replace := false
+		switch m {
+		case "@channel", "@here", "@everyone":
+			replace = true
+		default:
+			toks := strings.Split(m, "@")
+			if len(toks) == 2 {
+				_, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(toks[1]))
+				if err == nil {
+					replace = true
+				}
+			}
+		}
+		if replace {
+			return fmt.Sprintf("`%s`", m)
+		}
+		return m
+	})
+	return newBody, atRes, chanRes
+}
+
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 	res := make([]chat1.MessageID, len(msgs))
 	for i, m := range msgs {
@@ -419,6 +487,10 @@ func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
 	return res
 }
 
+func SanitizeTopicName(topicName string) string {
+	return strings.TrimPrefix(topicName, "#")
+}
+
 type ConvLocalByConvID []chat1.ConversationLocal
 
 func (c ConvLocalByConvID) Len() int      { return len(c) }
@@ -433,4 +505,43 @@ func (c ConvByConvID) Len() int      { return len(c) }
 func (c ConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
+}
+
+type ConvLocalByTopicName []chat1.ConversationLocal
+
+func (c ConvLocalByTopicName) Len() int      { return len(c) }
+func (c ConvLocalByTopicName) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ConvLocalByTopicName) Less(i, j int) bool {
+	return GetTopicName(c[i]) < GetTopicName(c[j])
+}
+
+type ByConvID []chat1.ConversationID
+
+func (c ByConvID) Len() int      { return len(c) }
+func (c ByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByConvID) Less(i, j int) bool {
+	return c[i].Less(c[j])
+}
+
+func GetTopicName(conv chat1.ConversationLocal) string {
+	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
+	if err != nil {
+		return ""
+	}
+	if !maxTopicMsg.IsValid() {
+		return ""
+	}
+	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
+}
+
+func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
+	apptype keybase1.DeviceType,
+	kind chat1.NotificationKind, enabled bool) {
+	if settings.Settings == nil {
+		settings.Settings = make(map[keybase1.DeviceType]map[chat1.NotificationKind]bool)
+	}
+	if settings.Settings[apptype] == nil {
+		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
+	}
+	settings.Settings[apptype][kind] = enabled
 }

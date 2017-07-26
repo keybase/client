@@ -4,7 +4,7 @@
 import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text'
-import {NativeTextInput} from './index.native'
+import {NativeTextInput} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
 import {isIOS} from '../constants/platform'
 
@@ -222,7 +222,7 @@ class Input extends Component<void, Props, State> {
       returnKeyType: this.props.returnKeyType,
       value: this.state.value,
       secureTextEntry: this.props.type === 'password',
-      underlineColorAndroid: globalColors.transparent,
+      underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
 

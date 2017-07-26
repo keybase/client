@@ -6,7 +6,7 @@ import Input from '.'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
-import {throttle} from 'lodash'
+import throttle from 'lodash/throttle'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {OwnProps} from './container'

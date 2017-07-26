@@ -1,6 +1,6 @@
 // @flow
 /* global Notification */ // tell lint this exists
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 
 const rateLimit: {[key: string]: () => void} = {}
 const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}

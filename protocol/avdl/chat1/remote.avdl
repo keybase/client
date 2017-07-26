@@ -104,7 +104,13 @@ protocol remote {
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
   GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
-  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
+  enum ChannelMention {
+    NONE_0,
+    ALL_1,
+    HERE_2
+  }
+
+  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed, array<gregor1.UID> atMentions, ChannelMention channelMention);
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
@@ -212,4 +218,25 @@ protocol remote {
 
   // Typing endpoints
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
+
+  // Channel endpoints
+  record JoinLeaveConversationRemoteRes {
+    union { null, RateLimit } rateLimit; 
+  }
+  JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
+  JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
+
+  record GetTLFConversationsRes {
+    array<Conversation> conversations; 
+    union { null, RateLimit } rateLimit;
+  }
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, ConversationMembersType membersType, boolean summarizeMaxMsgs);
+
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
+  // currently configured settings.
+  record SetAppNotificationSettingsRes {
+    union { null, RateLimit } rateLimit; 
+  }
+  SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
+
 }

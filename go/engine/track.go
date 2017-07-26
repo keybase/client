@@ -57,6 +57,9 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "TrackEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "TrackEngine")
+
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:         e.arg.UserAssertion,
 		ForceRemoteCheck:      e.arg.ForceRemoteCheck,

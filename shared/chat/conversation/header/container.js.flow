@@ -3,8 +3,8 @@ import {Component} from 'react'
 
 export type OwnProps = {|
   onBack: () => void,
-  onToggleSidePanel: () => void,
-  sidePanelOpen: boolean,
+  onToggleInfoPanel: () => void,
+  infoPanelOpen: boolean,
 |}
 
 export default class HeaderContainer extends Component<void, OwnProps, void> {}

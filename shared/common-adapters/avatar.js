@@ -3,7 +3,7 @@
 import * as I from 'immutable'
 import React, {Component} from 'react'
 import Render from './avatar.render'
-import _ from 'lodash'
+import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 import shallowEqual from 'shallowequal'
@@ -144,7 +144,7 @@ class Avatar extends Component<void, Props, State> {
       return this._noAvatar()
     }
 
-    return urlsToImgSet(_.pickBy(urlMap, value => value), this.props.size)
+    return urlsToImgSet(pickBy(urlMap, value => value), this.props.size)
   }
 
   _loadUsername(username: string) {

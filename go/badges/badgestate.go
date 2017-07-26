@@ -154,5 +154,6 @@ func (b *BadgeState) updateWithChat(update chat1.UnreadUpdate) {
 	b.chatUnreadMap[update.ConvID.String()] = keybase1.BadgeConversationInfo{
 		ConvID:         keybase1.ChatConversationID(update.ConvID),
 		UnreadMessages: update.UnreadMessages,
+		BadgeCounts:    update.UnreadNotifyingMessages,
 	}
 }

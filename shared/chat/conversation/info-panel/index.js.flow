@@ -1,0 +1,21 @@
+// @flow
+import {Component} from 'react'
+import {List} from 'immutable'
+
+export type Props = {
+  muted: boolean,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowBlockConversationDialog: () => void,
+  onShowProfile: (username: string) => void,
+  onToggleInfoPanel: () => void,
+  participants: List<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  }>,
+}
+
+export default class InfoPanel extends Component<void, Props, void> {}

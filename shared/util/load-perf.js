@@ -1,6 +1,6 @@
 // @flow
 import {reactPerf} from '../local-debug'
-import {keys as fetchKeys} from 'lodash'
+import fetchKeys from 'lodash/keys'
 import Perf from './react-perf'
 
 function print(...rest) {

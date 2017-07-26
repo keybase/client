@@ -99,9 +99,6 @@ func (p CommandLine) GetDebug() (bool, bool) {
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
 }
-func (p CommandLine) GetSupportPerUserKey() (bool, bool) {
-	return p.GetBool("support-per-user-key", true)
-}
 func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
 	return p.GetBool("upgrade-per-user-key", true)
 }
@@ -248,6 +245,14 @@ func (p CommandLine) GetUserCacheMaxAge() (time.Duration, bool) {
 
 func (p CommandLine) GetProofCacheSize() (int, bool) {
 	ret := p.GetGInt("proof-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
+	ret := p.GetGInt("leveldb-num-files")
 	if ret != 0 {
 		return ret, true
 	}
@@ -417,6 +422,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "home, H",
 			Usage: "Specify an (alternate) home directory.",
+		},
+		cli.IntFlag{
+			Name:  "leveldb-num-files",
+			Usage: "Specify the max number of files LevelDB may open",
 		},
 		cli.StringFlag{
 			Name:  "local-rpc-debug-unsafe",

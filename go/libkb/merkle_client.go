@@ -1521,6 +1521,10 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 		return nil, err
 	}
 
+	if !path.root.HashMeta().Eq(hm) {
+		return nil, MerkleClientError{"hash meta failed to match", merkleErrorHashMeta}
+	}
+
 	err = mc.verifySkipSequenceAndRootHistorical(ctx, ss, path.root, currentRoot, apiRes)
 	if err != nil {
 		return nil, err

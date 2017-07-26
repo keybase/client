@@ -2,13 +2,20 @@
 import React, {PureComponent} from 'react'
 import Emoji from './emoji'
 import Text from './text'
-import parser, {emojiIndexByName} from '../markdown/parser'
+import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
 import type {MarkdownCreateComponent} from './markdown'
 
 function processAST(ast, createComponent) {
   const stack = [ast]
+  if (
+    ast.children.length === 1 &&
+    ast.children[0].type === 'text-block' &&
+    ast.children[0].children.every(child => child.type === 'emoji' || child.type === 'native-emoji')
+  ) {
+    ast.children[0].children.forEach(child => (child.bigEmoji = true))
+  }
 
   let index = 0
   while (stack.length > 0) {
@@ -31,6 +38,10 @@ function processAST(ast, createComponent) {
 }
 
 export function parseMarkdown(markdown: ?string, markdownCreateComponent: MarkdownCreateComponent) {
+  const plainText = isPlainText(markdown)
+  if (plainText) {
+    return plainText
+  }
   try {
     return processAST(parser.parse(markdown || ''), markdownCreateComponent)
   } catch (err) {

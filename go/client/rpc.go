@@ -118,12 +118,13 @@ func GetIdentifyClient(g *libkb.GlobalContext) (cli keybase1.IdentifyClient, err
 	return
 }
 
-func GetProveClient() (cli keybase1.ProveClient, err error) {
-	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
-		cli = keybase1.ProveClient{Cli: rcli}
+func GetProveClient(g *libkb.GlobalContext) (cli keybase1.ProveClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
 	}
-	return
+	cli = keybase1.ProveClient{Cli: rcli}
+	return cli, nil
 }
 
 func GetTrackClient(g *libkb.GlobalContext) (cli keybase1.TrackClient, err error) {

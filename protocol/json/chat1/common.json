@@ -5,6 +5,11 @@
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -86,7 +91,9 @@
         "METADATA_5",
         "TLFNAME_6",
         "HEADLINE_7",
-        "ATTACHMENTUPLOADED_8"
+        "ATTACHMENTUPLOADED_8",
+        "JOIN_9",
+        "LEAVE_10"
       ],
       "go": "nostring"
     },
@@ -97,6 +104,15 @@
         "NONE_0",
         "CHAT_1",
         "DEV_2"
+      ],
+      "go": "nostring"
+    },
+    {
+      "type": "enum",
+      "name": "NotificationKind",
+      "symbols": [
+        "GENERIC_0",
+        "ATMENTION_1"
       ],
       "go": "nostring"
     },
@@ -113,12 +129,27 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ConversationMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [
         "ACTIVE_0",
         "REMOVED_1",
-        "LEFT_2"
+        "LEFT_2",
+        "PREVIEW_3"
       ]
     },
     {
@@ -361,6 +392,35 @@
             "items": "gregor1.UID"
           },
           "name": "activeList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "allList"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationNotificationInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "channelWide"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "boolean",
+              "keys": "NotificationKind"
+            },
+            "keys": "keybase1.DeviceType"
+          },
+          "name": "settings"
         }
       ]
     },
@@ -379,6 +439,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgid"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -396,6 +460,13 @@
             "ConversationReaderInfo"
           ],
           "name": "readerInfo"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
         },
         {
           "type": {

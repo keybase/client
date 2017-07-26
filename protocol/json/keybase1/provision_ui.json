@@ -117,6 +117,10 @@
             "type": "array",
             "items": "Device"
           }
+        },
+        {
+          "name": "canSelectNoDevice",
+          "type": "boolean"
         }
       ],
       "response": "DeviceID"

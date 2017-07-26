@@ -9,7 +9,7 @@ import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import {clipboard} from 'electron'
-import {debounce} from 'lodash'
+import debounce from 'lodash/debounce'
 import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles} from '../../../styles'
 

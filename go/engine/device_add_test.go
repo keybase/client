@@ -65,12 +65,12 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	tcX.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
-	tcY.Tp.UpgradePerUserKey = upgradePerUserKey
+	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")

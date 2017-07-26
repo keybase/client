@@ -11,8 +11,9 @@ export type RowProps = {
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: (key: ConversationIDKey) => void,
+  marginRight: number,
   participantNeedToRekey: boolean,
-  participants: any,
+  participants: List<string>,
   rekeyInfo: any,
   showBold: boolean,
   snippet: string,
@@ -25,6 +26,7 @@ export type RowProps = {
 
 export type Props = {
   isLoading: boolean,
+  isActiveRoute: boolean,
   nowOverride?: number, // just for dumb rendering
   rows: List<ConversationIDKey>,
   onNewChat: () => void,
@@ -33,4 +35,4 @@ export type Props = {
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
 }
 
-export default class ConversationList extends Component<void, Props, void> {}
+export default class Inbox extends Component<void, Props, void> {}

@@ -32,7 +32,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -183,6 +183,10 @@ func (f failingRemote) SetConversationStatus(context.Context, chat1.SetConversat
 	require.Fail(f.t, "SetConversationStatus call")
 	return chat1.SetConversationStatusRes{}, nil
 }
+func (f failingRemote) SetAppNotificationSettings(context.Context, chat1.SetAppNotificationSettingsArg) (chat1.SetAppNotificationSettingsRes, error) {
+	require.Fail(f.t, "SetAppNotificationSettings call")
+	return chat1.SetAppNotificationSettingsRes{}, nil
+}
 func (f failingRemote) GetUnreadUpdateFull(context.Context, chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
 
 	require.Fail(f.t, "GetUnreadUpdateFull call")
@@ -243,6 +247,21 @@ func (f failingRemote) UpdateTypingRemote(ctx context.Context, arg chat1.UpdateT
 	return nil
 }
 
+func (f failingRemote) GetTLFConversations(ctx context.Context, arg chat1.GetTLFConversationsArg) (chat1.GetTLFConversationsRes, error) {
+	require.Fail(f.t, "GetTLFConversations")
+	return chat1.GetTLFConversationsRes{}, nil
+}
+
+func (f failingRemote) JoinConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	require.Fail(f.t, "JoinConversation")
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (f failingRemote) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
+	require.Fail(f.t, "LeaveConversation")
+	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -294,9 +313,9 @@ func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2
 	require.Fail(f.t, "LoadV2 call")
 	return nil, nil, nil
 }
-func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, error) {
+func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error) {
 	require.Fail(f.t, "LoadKeyV2")
-	return nil, nil, nil
+	return nil, nil, nil, nil
 }
 func (f failingUpak) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
 	require.Fail(f.t, "ChceckKIDForUID call")
@@ -316,6 +335,10 @@ func (f failingUpak) LoadDeviceKey(ctx context.Context, uid keybase1.UID, device
 func (f failingUpak) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	require.Fail(f.t, "LookupUsername call")
 	return "", nil
+}
+func (f failingUpak) LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error) {
+	require.Fail(f.t, "LookupUID call")
+	return keybase1.UID(""), nil
 }
 func (f failingUpak) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
 	require.Fail(f.t, "LookupUsernameAndDevice call")
@@ -346,7 +369,7 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -459,7 +482,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		msg, _, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
 

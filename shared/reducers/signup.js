@@ -113,7 +113,17 @@ export default function(state: Constants.State = initialState, action: Constants
           phase: 'deviceName',
         }
       }
-
+    case Constants.setDeviceNameError:
+      const {deviceNameError} = action.payload
+      return {
+        ...state,
+        deviceNameError,
+      }
+    case Constants.clearDeviceNameError:
+      return {
+        ...state,
+        deviceNameError: null,
+      }
     case Constants.submitDeviceName:
       if (action.error) {
         const {deviceNameError} = action.payload

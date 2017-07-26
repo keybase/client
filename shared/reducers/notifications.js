@@ -2,6 +2,8 @@
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
 import {chatTab, folderTab} from '../constants/tabs'
+import * as RPCTypes from '../constants/types/flow-types'
+import {isMobile} from '../constants/platform'
 
 const initialState: Constants.State = new Constants.StateRecord()
 
@@ -24,17 +26,19 @@ export default function(state: Constants.State = initialState, action: Constants
     case 'notifications:receivedBadgeState': {
       const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
 
+      const deviceType = isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop
+      const totalMessages = (conversations || [])
+        .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total), 0)
+
       const navBadges = state.get('navBadges').withMutations(n => {
-        const totalMessages = (conversations || []).reduce((total, c) => total + c.UnreadMessages, 0)
         n.set(chatTab, totalMessages)
         n.set(folderTab, newTlfs + rekeysNeeded)
       })
-
       // $FlowIssue withMutations
       let newState = state.withMutations(s => {
         s.set('navBadges', navBadges)
         s.set('desktopAppBadgeCount', navBadges.reduce((total, val) => total + val, 0))
-        s.set('mobileAppBadgeCount', navBadges.get(chatTab, 0))
+        s.set('mobileAppBadgeCount', totalMessages)
       })
 
       newState = _updateWidgetBadge(newState)

@@ -3,7 +3,7 @@ package msgchecker
 const (
 	TextMessageMaxLength = 4000
 	HeadlineMaxLength    = 280
-	TopicMaxLength       = 100
+	TopicMaxLength       = 20
 )
 
 const (
@@ -11,4 +11,6 @@ const (
 	BoxedEditMessageBodyMaxLength     = 5000
 	BoxedHeadlineMessageBodyMaxLength = 380
 	BoxedMetadataMessageBodyMaxLength = 200
+	BoxedJoinMessageBodyMaxLength     = 200
+	BoxedLeaveMessageBodyMaxLength    = 200
 )

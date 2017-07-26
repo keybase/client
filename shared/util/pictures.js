@@ -1,6 +1,7 @@
 // @flow
 import {apiserverGetRpc} from '../constants/types/flow-types'
-import {throttle, partition} from 'lodash'
+import throttle from 'lodash/throttle'
+import partition from 'lodash/partition'
 
 type URLMap = {[key: string]: string}
 type Info = {

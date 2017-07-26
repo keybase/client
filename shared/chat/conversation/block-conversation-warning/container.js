@@ -1,7 +1,8 @@
 // @flow
 import RenderBlockConversationWarning from './'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../../actions/route-tree'
+import {navigateTo, navigateUp} from '../../../actions/route-tree'
+import {chatTab} from '../../../constants/tabs'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
@@ -33,6 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       }: BlockConversation)
     ),
   onBack: () => dispatch(navigateUp()),
+  navToRootChat: () => dispatch(navigateTo([], [chatTab])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -41,11 +43,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   onBlockAndReport: () => {
     dispatchProps.onBlock(stateProps.conversationIDKey, true)
-    dispatchProps.onBack()
+    dispatchProps.navToRootChat()
   },
   onBlock: () => {
     dispatchProps.onBlock(stateProps.conversationIDKey, false)
-    dispatchProps.onBack()
+    dispatchProps.navToRootChat()
   },
 })
 

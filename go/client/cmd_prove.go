@@ -75,15 +75,14 @@ func (p *CmdProve) Run() error {
 
 	protocols := []rpc.Protocol{
 		proveUIProtocol,
-		NewLoginUIProtocol(p.G()),
 		NewSecretUIProtocol(p.G()),
 	}
 
-	cli, err := GetProveClient()
+	cli, err := GetProveClient(p.G())
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, p.G()); err != nil {
 		return err
 	}
 
@@ -127,6 +126,18 @@ func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 	}
 	cmd.Flags = append(cmd.Flags, restrictedProveFlags...)
 	return cmd
+}
+
+// NewCmdProveRooterRunner creates a CmdProve for proving rooter in tests.
+func NewCmdProveRooterRunner(g *libkb.GlobalContext, username string) *CmdProve {
+	return &CmdProve{
+		Contextified: libkb.NewContextified(g),
+		arg: keybase1.StartProofArg{
+			Service:  "rooter",
+			Username: username,
+			Auto:     true,
+		},
+	}
 }
 
 // GetUsage specifics the library features that the prove command needs.

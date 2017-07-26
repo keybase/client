@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
+	"github.com/stretchr/testify/require"
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
@@ -399,4 +400,32 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	}
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
+}
+
+func ForcePUK(tc libkb.TestContext) {
+	arg := &PerUserKeyUpgradeArgs{}
+	eng := NewPerUserKeyUpgrade(tc.G, arg)
+	ctx := &Context{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+	if err := RunEngine(eng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+}
+
+func getUserSeqno(tc *libkb.TestContext, uid keybase1.UID) keybase1.Seqno {
+	res, err := tc.G.API.Get(libkb.APIArg{
+		Endpoint: "user/lookup",
+		Args: libkb.HTTPArgs{
+			"uid": libkb.UIDArg(uid),
+		},
+	})
+	require.NoError(tc.T, err)
+	seqno, err := res.Body.AtKey("them").AtKey("sigs").AtKey("last").AtKey("seqno").GetInt()
+	require.NoError(tc.T, err)
+	return keybase1.Seqno(seqno)
+}
+
+func checkUserSeqno(tc *libkb.TestContext, uid keybase1.UID, expected keybase1.Seqno) {
+	require.Equal(tc.T, expected, getUserSeqno(tc, uid))
 }

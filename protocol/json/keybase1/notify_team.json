@@ -6,9 +6,28 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "TeamChangeSet",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "membershipChanged"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated"
+        },
+        {
+          "type": "boolean",
+          "name": "renamed"
+        }
+      ]
+    }
+  ],
   "messages": {
-    "teamKeyRotated": {
+    "teamChanged": {
       "request": [
         {
           "name": "teamID",
@@ -17,6 +36,14 @@
         {
           "name": "teamName",
           "type": "string"
+        },
+        {
+          "name": "latestSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "changes",
+          "type": "TeamChangeSet"
         }
       ],
       "response": null,

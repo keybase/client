@@ -17,6 +17,8 @@ type Props = {
   trackers: {[key: string]: TrackerOrNonUserState},
 }
 
+const MAX_TRACKERS = 5
+
 class RemoteTracker extends Component<void, Props, void> {
   shouldComponentUpdate(nextProps, nextState) {
     return nextProps.trackers !== this.props.trackers
@@ -30,6 +32,7 @@ class RemoteTracker extends Component<void, Props, void> {
       <div>
         {Object.keys(trackers)
           .filter(username => !trackers[username].closed)
+          .slice(0, MAX_TRACKERS)
           .map(username => (
             <RemoteComponent
               positionBottomRight={true}

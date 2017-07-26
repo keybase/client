@@ -275,6 +275,15 @@ func RandBytes(length int) ([]byte, error) {
 	return buf, nil
 }
 
+func RandBytesWithSuffix(length int, suffix byte) ([]byte, error) {
+	buf, err := RandBytes(length)
+	if err != nil {
+		return nil, err
+	}
+	buf[len(buf)-1] = suffix
+	return buf, nil
+}
+
 func XORBytes(dst, a, b []byte) int {
 	n := len(a)
 	if len(b) < n {
@@ -611,17 +620,17 @@ func MakeByte32Soft(a []byte) ([32]byte, error) {
 	return b, nil
 }
 
-// Sleep for `duration` or until `ctx` is canceled, whichever occurs first.
+// Sleep until `deadline` or until `ctx` is canceled, whichever occurs first.
 // Returns an error BUT the error is not really an error.
 // It is nil if the sleep finished, and the non-nil result of Context.Err()
-func SleepWithContext(ctx context.Context, clock clockwork.Clock, duration time.Duration) error {
+func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline time.Time) error {
 	if ctx == nil {
 		// should not happen
-		clock.Sleep(duration)
+		clock.AfterTime(deadline)
 		return nil
 	}
 	select {
-	case <-clock.After(duration):
+	case <-clock.AfterTime(deadline):
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()

@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -74,6 +75,16 @@ func (c *Context) WithNetContext(netCtx context.Context) *Context {
 	c2 := *c
 	c2.NetContext = netCtx
 	return &c2
+}
+
+func (c *Context) WithCancel() (*Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(c.GetNetContext())
+	return c.WithNetContext(ctx), cancel
+}
+
+func (c *Context) WithTimeout(timeout time.Duration) (*Context, context.CancelFunc) {
+	ctx, cancel := context.WithTimeout(c.GetNetContext(), timeout)
+	return c.WithNetContext(ctx), cancel
 }
 
 func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {

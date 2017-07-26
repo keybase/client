@@ -28,6 +28,7 @@ const (
 	SigchainV2TypeSibkey                      SigchainV2Type = 11
 	SigchainV2TypeSubkey                      SigchainV2Type = 12
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
+	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 
 	// teams link types
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
@@ -219,6 +220,8 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 		ret = SigchainV2TypeSubkey
 	case "pgp_update":
 		ret = SigchainV2TypePGPUpdate
+	case "per_user_key":
+		ret = SigchainV2TypePerUserKey
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {
@@ -237,21 +240,25 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations bool) (ret 
 }
 
 func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
-	switch s {
-	case "team.root":
+	switch LinkType(s) {
+	case LinkTypeTeamRoot:
 		ret = SigchainV2TypeTeamRoot
-	case "team.new_subteam":
+	case LinkTypeNewSubteam:
 		ret = SigchainV2TypeTeamNewSubteam
-	case "team.change_membership":
+	case LinkTypeChangeMembership:
 		ret = SigchainV2TypeTeamChangeMembership
-	case "team.rotate_key":
+	case LinkTypeRotateKey:
 		ret = SigchainV2TypeTeamRotateKey
-	case "team.leave":
+	case LinkTypeLeave:
 		ret = SigchainV2TypeTeamLeave
-	case "team.subteam_head":
+	case LinkTypeSubteamHead:
 		ret = SigchainV2TypeTeamSubteamHead
-	case "team.rename_subteam":
+	case LinkTypeRenameSubteam:
 		ret = SigchainV2TypeTeamRenameSubteam
+	case LinkTypeInvite:
+		ret = SigchainV2TypeTeamInvite
+	case LinkTypeRenameUpPointer:
+		ret = SigchainV2TypeTeamRenameUpPointer
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

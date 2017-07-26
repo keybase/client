@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import Row from './row'
-import _ from 'lodash'
+import some from 'lodash/some'
 import type {IconType} from '../common-adapters/icon'
 import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
@@ -21,7 +21,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
         <Text type="BodySmallSemibold" style={stylesDividerText}>Ignored folders</Text>
-        <Icon type={caretIcon} style={{color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
+        <Icon type={caretIcon} style={{color: globalColors.black_40}} />
       </Box>
       {showIgnored &&
         <Box style={styles.bottomBox}>
@@ -51,7 +51,7 @@ const Rows = ({
           {...tlf}
           key={rowKey(tlf.users)}
           isPublic={isPublic}
-          hasReadOnlyUsers={tlf.users && _.some(tlf.users, 'readOnly')}
+          hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
           ignored={isIgnored}
           onChat={onChat}
           onClick={onClick}
@@ -128,7 +128,6 @@ const stylesIgnoreDivider = {
 
 const stylesDividerText = {
   ...globalStyles.clickable,
-  color: 'inherit',
   marginRight: 7,
 }
 
@@ -136,19 +135,18 @@ const stylesDividerBodyText = {
   width: 360,
   padding: 7,
   textAlign: 'center',
-  color: 'inherit',
 }
 
 const stylesPrivate = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.white,
     color: globalColors.white_75,
     borderBottom: 'solid 1px rgba(255, 255, 255, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.white,
     color: globalColors.white_40,
   },
 }
@@ -156,13 +154,13 @@ const stylesPrivate = {
 const stylesPublic = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
     color: globalColors.black_40,
     borderBottom: 'solid 1px rgba(0, 0, 0, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
     color: globalColors.black_40,
   },
 }

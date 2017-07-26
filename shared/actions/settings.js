@@ -12,7 +12,8 @@ import {
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
-import {mapValues, trim} from 'lodash'
+import mapValues from 'lodash/mapValues'
+import trim from 'lodash/trim'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {setDeletedSelf} from '../actions/login/creators'
 import {delay} from 'redux-saga'

@@ -712,24 +712,48 @@ func TestInboxServerVersion(t *testing.T) {
 }
 
 func TestMembershipUpdate(t *testing.T) {
-	_, inbox, _ := setupInboxTest(t, "membership")
+	ctc, inbox, uid := setupInboxTest(t, "membership")
+
+	u2, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
+	require.NoError(t, err)
+	uid2 := gregor1.UID(u2.User.GetUID().ToBytes())
+
+	u3, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
+	require.NoError(t, err)
+	uid3 := gregor1.UID(u3.User.GetUID().ToBytes())
+
+	t.Logf("uid: %s uid2: %s uid3: %s", uid, uid2, uid3)
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
 	var convs []chat1.Conversation
 	for i := numConvs - 1; i >= 0; i-- {
-		convs = append(convs, makeConvo(gregor1.Time(i), 1, 1))
+		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Metadata.AllList = []gregor1.UID{uid, uid3}
+		convs = append(convs, conv)
 	}
 
 	require.NoError(t, inbox.Merge(context.TODO(), 1, convs, nil, nil))
 	var joinedConvs []chat1.Conversation
 	numJoinedConvs := 5
 	for i := 0; i < numJoinedConvs; i++ {
-		joinedConvs = append(joinedConvs, makeConvo(gregor1.Time(i), 1, 1))
+		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Metadata.AllList = []gregor1.UID{uid, uid3}
+		joinedConvs = append(joinedConvs, conv)
 	}
 
+	otherJoinConvID := convs[0].GetConvID()
+	otherJoinedConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid2,
+		ConvID: otherJoinConvID,
+	}}
+	otherRemovedConvID := convs[1].GetConvID()
+	otherRemovedConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid3,
+		ConvID: otherRemovedConvID,
+	}}
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), 2, joinedConvs,
-		[]chat1.ConversationID{convs[5].GetConvID()}))
+		[]chat1.ConversationID{convs[5].GetConvID()}, otherJoinedConvs, otherRemovedConvs))
 
 	vers, res, err := inbox.ReadAll(context.TODO())
 	require.NoError(t, err)
@@ -743,5 +767,21 @@ func TestMembershipUpdate(t *testing.T) {
 	sort.Sort(utils.ConvByConvID(expected))
 	sort.Sort(utils.ConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
-	require.Equal(t, expected, res)
+	for i := 0; i < len(res); i++ {
+		sort.Sort(chat1.ByUID(res[i].Metadata.AllList))
+		sort.Sort(chat1.ByUID(expected[i].Metadata.AllList))
+		if res[i].GetConvID().Eq(otherJoinConvID) {
+			allUsers := []gregor1.UID{uid, uid2, uid3}
+			sort.Sort(chat1.ByUID(allUsers))
+			require.Equal(t, allUsers, res[i].Metadata.AllList)
+		} else if res[i].GetConvID().Eq(otherRemovedConvID) {
+			allUsers := []gregor1.UID{uid}
+			require.Equal(t, allUsers, res[i].Metadata.AllList)
+		} else {
+			allUsers := []gregor1.UID{uid, uid3}
+			sort.Sort(chat1.ByUID(allUsers))
+			require.Equal(t, allUsers, res[i].Metadata.AllList)
+			require.Equal(t, expected[i], res[i])
+		}
+	}
 }

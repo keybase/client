@@ -286,6 +286,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageJoin",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "MessageLeave",
+      "fields": []
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -341,6 +351,20 @@
             "def": false
           },
           "body": "MessageAttachmentUploaded"
+        },
+        {
+          "label": {
+            "name": "JOIN",
+            "def": false
+          },
+          "body": "MessageJoin"
+        },
+        {
+          "label": {
+            "name": "LEAVE",
+            "def": false
+          },
+          "body": "MessageLeave"
         }
       ]
     },
@@ -1114,6 +1138,13 @@
           "name": "readerInfo"
         },
         {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationMetadata"
@@ -1806,6 +1837,64 @@
           "name": "identifyFailures"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "JoinLeaveConversationLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFConversationsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "convs"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetAppNotificationSettingsLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2427,6 +2516,75 @@
         }
       ],
       "response": null
+    },
+    "joinConversationLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "joinConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "leaveConversationLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "JoinLeaveConversationLocalRes"
+    },
+    "getTLFConversationsLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        }
+      ],
+      "response": "GetTLFConversationsLocalRes"
+    },
+    "setAppNotificationSettingsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "settings",
+          "type": "ConversationNotificationInfo"
+        }
+      ],
+      "response": "SetAppNotificationSettingsLocalRes"
     }
   },
   "namespace": "chat.1"

@@ -1,9 +1,0 @@
-{
-  "name": "io.keybase.kbnm",
-  "description": "Keybase Native Messaging API",
-  "path": "@@HOST_PATH@@",
-  "type": "stdio",
-  "allowed_extensions": [
-    "keybase@keybase.io"
-  ]
-}

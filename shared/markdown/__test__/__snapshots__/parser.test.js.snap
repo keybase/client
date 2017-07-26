@@ -523,6 +523,20 @@ Object {
 }
 `;
 
+exports[`Markdown parser parses plaintext correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello, there! how are you? this shouldn't be markdown.",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses quote blocks correctly 1`] = `
 Object {
   "children": Array [

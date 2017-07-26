@@ -125,10 +125,8 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 
 	ds := []libkb.Delegator{}
 
-	if e.G().Env.GetSupportPerUserKey() {
-		e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK(support:%v, upgrade:%v)",
-			e.G().Env.GetSupportPerUserKey(), e.G().Env.GetUpgradePerUserKey())
-	}
+	e.G().Log.CDebugf(ctx.NetContext, "DeviceKeygen#Push PUK(upgrade:%v)",
+		e.G().Env.GetUpgradePerUserKey())
 
 	var pukBoxes = []keybase1.PerUserKeyBox{}
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
@@ -146,7 +144,7 @@ func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	if e.G().Env.GetSupportPerUserKey() && !e.args.IsEldest {
+	if !e.args.IsEldest {
 		boxes, err := e.preparePerUserKeyBoxFromPaperkey(ctx)
 		if err != nil {
 			return err
@@ -369,9 +367,6 @@ func (e *DeviceKeygen) device() *libkb.Device {
 
 // Can return no boxes if there are no per-user-keys.
 func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(ctx *Context) ([]keybase1.PerUserKeyBox, error) {
-	if !e.G().Env.GetSupportPerUserKey() {
-		return nil, errors.New("per-user-keys disabled")
-	}
 	// Assuming this is a paperkey provision.
 
 	upak := e.args.Me.ExportToUserPlusAllKeys()

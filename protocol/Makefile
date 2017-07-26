@@ -11,7 +11,7 @@ json/%.json: avdl/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
 config:
-	npm i
+	yarn --pure-lockfile
 
 # By default, all avdl/*.avdl are considered and made into outputs
 # as long as they have messages in them. BUT you can override this

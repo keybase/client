@@ -6,8 +6,8 @@ import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import React, {Component} from 'react'
-import SidePanel from './side-panel/container'
-import {Box, Icon, Text, LoadingLine} from '../../common-adapters'
+import InfoPanel from './info-panel/container'
+import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
 
@@ -15,15 +15,21 @@ import type {Props} from '.'
 
 type State = {
   showDropOverlay: boolean,
+  infoPanelOpen: boolean,
 }
 
 class Conversation extends Component<void, Props, State> {
   state = {
     showDropOverlay: false,
+    infoPanelOpen: false,
   }
 
   componentWillReceiveProps(nextProps: Props) {
     const convoChanged = this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+    if (convoChanged) {
+      this.setState({infoPanelOpen: false})
+    }
+
     const inSearchChanged = this.props.inSearch !== nextProps.inSearch
     if ((convoChanged || inSearchChanged) && !nextProps.inSearch) {
       this.props.onFocusInput()
@@ -75,6 +81,10 @@ class Conversation extends Component<void, Props, State> {
     })
   }
 
+  _onToggleInfoPanel = () => {
+    this.setState({infoPanelOpen: !this.state.infoPanelOpen})
+  }
+
   render() {
     const dropOverlay =
       this.state.showDropOverlay &&
@@ -107,55 +117,63 @@ class Conversation extends Component<void, Props, State> {
         {offline}
         <HeaderOrSearchHeader
           inSearch={this.props.inSearch}
-          sidePanelOpen={this.props.sidePanelOpen}
-          onToggleSidePanel={this.props.onToggleSidePanel}
+          infoPanelOpen={this.state.infoPanelOpen}
+          onToggleInfoPanel={this._onToggleInfoPanel}
           onBack={this.props.onBack}
           onChangeSearchText={this.props.onChangeSearchText}
           searchText={this.props.searchText}
           selectedConversationIDKey={this.props.selectedConversationIDKey}
           selectedSearchId={this.props.selectedSearchId}
           onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
+          onAddNewParticipant={this.props.onAddNewParticipant}
+          addNewParticipant={this.props.addNewParticipant}
         />
-        {this.props.showSearchResults
-          ? <SearchResultsList
-              items={this.props.searchResultIds}
-              onClick={this.props.onClickSearchResult}
-              onShowTracker={this.props.onShowTrackerInSearch}
-              selectedId={this.props.selectedSearchId}
-            />
-          : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <List
-                focusInputCounter={this.props.focusInputCounter}
-                listScrollDownCounter={this.props.listScrollDownCounter}
-                onEditLastMessage={this.props.onEditLastMessage}
-                onScrollDown={this.props.onScrollDown}
-                onFocusInput={this.props.onFocusInput}
-                editLastMessageCounter={this.props.editLastMessageCounter}
-              />
-              <Banner />
-              {this.props.showLoader && <LoadingLine />}
-              {this.props.finalizeInfo
-                ? <OldProfileResetNotice />
-                : <Input
+        {this.props.inSearch && !this.props.showSearchResults && <Box style={styleSearchBottom} />}
+        {this.props.showSearchPending
+          ? <ProgressIndicator style={styleSpinner} />
+          : this.props.showSearchResults
+              ? <SearchResultsList
+                  items={this.props.searchResultIds}
+                  onClick={this.props.onClickSearchResult}
+                  onMouseOver={this.props.onMouseOverSearchResult}
+                  onShowTracker={this.props.onShowTrackerInSearch}
+                  selectedId={this.props.selectedSearchId}
+                  showSearchSuggestions={this.props.showSearchSuggestions}
+                  style={{...globalStyles.scrollable, flexGrow: 1}}
+                />
+              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  <List
                     focusInputCounter={this.props.focusInputCounter}
+                    listScrollDownCounter={this.props.listScrollDownCounter}
                     onEditLastMessage={this.props.onEditLastMessage}
                     onScrollDown={this.props.onScrollDown}
-                  />}
-              {this.props.sidePanelOpen &&
-                <div
-                  style={{
-                    ...globalStyles.flexBoxColumn,
-                    bottom: 0,
-                    position: 'absolute',
-                    right: 0,
-                    top: 35,
-                    width: 320,
-                  }}
-                >
-                  <SidePanel onToggleSidePanel={this.props.onToggleSidePanel} />
+                    onFocusInput={this.props.onFocusInput}
+                    editLastMessageCounter={this.props.editLastMessageCounter}
+                  />
+                  <Banner />
+                  {this.props.showLoader && <LoadingLine />}
+                  {this.props.finalizeInfo
+                    ? <OldProfileResetNotice />
+                    : <Input
+                        focusInputCounter={this.props.focusInputCounter}
+                        onEditLastMessage={this.props.onEditLastMessage}
+                        onScrollDown={this.props.onScrollDown}
+                      />}
+                  {this.state.infoPanelOpen &&
+                    <div
+                      style={{
+                        ...globalStyles.flexBoxColumn,
+                        bottom: 0,
+                        position: 'absolute',
+                        right: 0,
+                        top: 35,
+                        width: 320,
+                      }}
+                    >
+                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
+                    </div>}
+                  {dropOverlay}
                 </div>}
-              {dropOverlay}
-            </div>}
       </Box>
     )
   }
@@ -178,6 +196,16 @@ const dropOverlayStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
+}
+
+const styleSpinner = {
+  alignSelf: 'center',
+  marginTop: globalMargins.small,
+  width: globalMargins.large,
+}
+
+const styleSearchBottom = {
+  borderBottom: `1px solid ${globalColors.black_10}`,
 }
 
 export default Conversation

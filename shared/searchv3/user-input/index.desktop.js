@@ -1,5 +1,6 @@
 // @flow
-import {last, trim} from 'lodash'
+import last from 'lodash/last'
+import trim from 'lodash/trim'
 import React, {Component} from 'react'
 import {AutosizeInput, Box, Text, Icon} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
@@ -85,10 +86,17 @@ class UserInput extends Component<void, Props, State> {
     } else if (ev.key === 'ArrowDown') {
       this.props.onMoveSelectDown()
       ev.preventDefault()
-    } else if (ev.key === 'Enter' && !trim(this.props.usernameText) && this.props.onEnterEmptyText) {
+    } else if (
+      (ev.key === 'Enter' || ev.key === 'Tab') &&
+      !trim(this.props.usernameText) &&
+      this.props.onEnterEmptyText
+    ) {
       this.props.onEnterEmptyText()
     } else if (ev.key === 'Enter' || ev.key === 'Tab' || ev.key === ',') {
       this.props.onAddSelectedUser()
+      ev.preventDefault()
+    } else if (ev.key === 'Escape') {
+      this.props.onCancel && this.props.onCancel()
       ev.preventDefault()
     }
   }
@@ -112,7 +120,7 @@ class UserInput extends Component<void, Props, State> {
     } = this.props
     const {isFocused} = this.state
 
-    const showAddButton = !!userItems.length && !usernameText.length
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
     const inputLeftPadding = !!userItems.length && (!!usernameText.length || isFocused)
       ? globalMargins.xtiny
       : 0
@@ -139,6 +147,7 @@ class UserInput extends Component<void, Props, State> {
               onBlur={this._onBlur}
             />
             {showAddButton &&
+              onClickAddButton &&
               <Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"
@@ -153,7 +162,7 @@ class UserInput extends Component<void, Props, State> {
         </Box>
         {onClearSearch &&
           <Icon
-            type="iconfont-close"
+            type="iconfont-remove"
             style={{height: 16, width: 16, marginRight: 10}}
             onClick={onClearSearch}
           />}

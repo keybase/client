@@ -225,6 +225,7 @@ class Input extends Component<void, Props, State> {
 
     const commonProps = {
       autoFocus: this.props.autoFocus,
+      className: this.props.className,
       onBlur: this._onBlur,
       onClick: this.props.onClick,
       onChange: this._onChange,

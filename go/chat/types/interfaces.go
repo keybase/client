@@ -56,6 +56,12 @@ type MessageDeliverer interface {
 	ForceDeliverLoop(ctx context.Context)
 }
 
+type Sender interface {
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error)
+	Prepare(ctx context.Context, msg chat1.MessagePlaintext, membersType chat1.ConversationMembersType,
+		conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error)
+}
+
 type ChatLocalizer interface {
 	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
 	Name() string
@@ -78,10 +84,12 @@ type InboxSource interface {
 		msgID chat1.MessageID) (*chat1.ConversationLocal, error)
 	SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		status chat1.ConversationStatus) (*chat1.ConversationLocal, error)
+	SetAppNotificationSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (*chat1.ConversationLocal, error)
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		joinedConvs []chat1.ConversationID, removedConvs []chat1.ConversationID) error
+		joined []chat1.ConversationMember, removed []chat1.ConversationMember) (MembershipUpdateRes, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
@@ -104,8 +112,8 @@ type Syncer interface {
 	Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 		syncRes *chat1.SyncChatRes) error
 	RegisterOfflinable(offlinable Offlinable)
-	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
-		immediate bool)
+	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
+		updates []chat1.ConversationStaleUpdate, immediate bool)
 	Shutdown()
 }
 

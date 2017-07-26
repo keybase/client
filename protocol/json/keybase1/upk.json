@@ -23,6 +23,15 @@
       "typedef": "bytes"
     },
     {
+      "type": "enum",
+      "name": "UPK2MinorVersion",
+      "symbols": [
+        "V0_0",
+        "V1_1",
+        "V2_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "MerkleRootV2",
       "fields": [
@@ -287,6 +296,10 @@
             "keys": "Seqno"
           },
           "name": "seqnoLinkIDs"
+        },
+        {
+          "type": "UPK2MinorVersion",
+          "name": "minorVersion"
         }
       ]
     },

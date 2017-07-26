@@ -73,7 +73,7 @@ func (c *CmdTeamEditMember) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Success! %s's role in %s is now %s.", c.username, c.team, c.role)
+	dui.Printf("Success! %s's role in %s is now %s.\n", c.username, c.team, c.role)
 
 	return nil
 }

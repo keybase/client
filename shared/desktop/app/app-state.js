@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
 import jsonfile from 'jsonfile'
-import {isEqual} from 'lodash'
+import isEqual from 'lodash/isEqual'
 
 export type State = {
   x: ?number,

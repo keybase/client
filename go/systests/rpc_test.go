@@ -45,6 +45,7 @@ func TestRPCs(t *testing.T) {
 	testCheckDevicesForUser(t, tc2.G)
 	testIdentify2(t, tc2.G)
 	testMerkle(t, tc2.G)
+	testIdentifyLite(t)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -278,5 +279,71 @@ func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 	}
 	if root.Root.Seqno <= keybase1.Seqno(0) {
 		t.Fatalf("Failed basic sanity check")
+	}
+}
+
+func testIdentifyLite(t *testing.T) {
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	teamName := tt.users[0].createTeam()
+	g := tt.users[0].tc.G
+
+	team, err := GetTeamForTestByStringName(context.Background(), g, teamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cli, err := client.GetIdentifyClient(g)
+	if err != nil {
+		t.Fatalf("failed to get new identifyclient: %v", err)
+	}
+
+	// test ok assertions
+	var assertions = []string{"team:" + teamName, "tid:" + team.ID.String(), "t_alice"}
+	for _, assertion := range assertions {
+		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
+		if err != nil {
+			t.Fatalf("IdentifyLite (%s) failed: %v\n", assertion, err)
+		}
+	}
+
+	// test identify by assertion and id
+	assertions = []string{"team:" + teamName, "tid:" + team.ID.String()}
+	for _, assertion := range assertions {
+		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam(), Assertion: assertion})
+		if err != nil {
+			t.Fatalf("IdentifyLite by assertion and id (%s) failed: %v\n", assertion, err)
+		}
+	}
+
+	// test identify by id only
+	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()})
+	if err != nil {
+		t.Fatalf("IdentifyLite id only failed: %v\n", err)
+	}
+
+	// test team read error
+	assertions = []string{"team:jwkj22111z"}
+	for _, assertion := range assertions {
+		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
+		aerr, ok := err.(libkb.AppStatusError)
+		if !ok {
+			t.Fatalf("Expected an AppStatusError for %s, but got: %v (%T)", assertion, err, err)
+		}
+		if aerr.Code != libkb.SCTeamReadError {
+			t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamReadError)
+		}
+	}
+
+	// test not found assertions
+	assertions = []string{"t_weriojweroi"}
+	for _, assertion := range assertions {
+		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
+		if _, ok := err.(libkb.NotFoundError); !ok {
+			t.Fatalf("assertion %s, error: %s (%T), expected libkb.NotFoundError", assertion, err, err)
+		}
 	}
 }

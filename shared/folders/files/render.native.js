@@ -13,7 +13,7 @@ import {
   ListItem,
   NativeStyleSheet,
 } from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -23,12 +23,7 @@ import type {Props} from './render'
 const RenderIgnore = ({isPrivate, ignored, unIgnoreCurrentFolder, ignoreCurrentFolder}) =>
   ignored
     ? <Button type="Secondary" onClick={unIgnoreCurrentFolder} label="Unignore folder" />
-    : <Button
-        backgroundMode={isPrivate ? 'Terminal' : 'Normal'}
-        type="Secondary"
-        onClick={ignoreCurrentFolder}
-        label="Ignore folder"
-      />
+    : <Button type="Secondary" onClick={ignoreCurrentFolder} label="Ignore folder" />
 
 const RenderNotImplemented = ({
   isPrivate,
@@ -37,14 +32,10 @@ const RenderNotImplemented = ({
   unIgnoreCurrentFolder,
   ignoreCurrentFolder,
 }) => {
-  const privateStyle = isPrivate ? {color: globalColors.blue3_40} : {}
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center'}}>
-      <Text style={{...privateStyle, textAlign: 'center'}} type="BodySmall">Mobile files coming soon!</Text>
-      <Text
-        style={{...privateStyle, textAlign: 'center', marginBottom: globalMargins.large}}
-        type="BodySmall"
-      >
+      <Text style={{textAlign: 'center'}} type="BodySmall">Mobile files coming soon!</Text>
+      <Text style={{textAlign: 'center', marginBottom: globalMargins.large}} type="BodySmall">
         For now you can browse this folder on your computer.
       </Text>
       {allowIgnore &&
@@ -58,9 +49,9 @@ const RenderNotImplemented = ({
   )
 }
 
-const Divider = ({theme, backgroundColor, color}) => (
-  <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
-    <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />
+const Divider = () => (
+  <Box style={{...globalStyles.flexBoxRow, height: 1}}>
+    <Box style={{marginLeft: 48 + 8, backgroundColor: globalColors.black_05, flex: 1}} />
   </Box>
 )
 
@@ -79,13 +70,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
           }}
         >
           {intersperseFn(
-            i => (
-              <Divider
-                key={i}
-                color={isPrivate ? globalColors.black_10 : globalColors.black_05}
-                backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey}
-              />
-            ),
+            i => <Divider key={i} />,
             waitingForParticipantUnlock.map(p => (
               <ListItem
                 key={p.name}
@@ -94,8 +79,8 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
                 icon={<Avatar size={40} username={p.name} />}
                 body={
                   <Box style={globalStyles.flexBoxColumn}>
-                    <Text type="BodySemibold" backgroundMode={backgroundMode}>{p.name}</Text>
-                    <Text type="BodySmall" backgroundMode={backgroundMode}>{p.devices}</Text>
+                    <Text type="BodySemibold">{p.name}</Text>
+                    <Text type="BodySmall">{p.devices}</Text>
                   </Box>
                 }
               />
@@ -120,7 +105,7 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, t
     },
   }[isPrivate ? 'private' : 'public'][type])
 
-const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
+const YouCanUnlock = ({youCanUnlock, isPrivate, onClickPaperkey, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Text type="BodySemibold" style={styleWarningBanner}>
@@ -136,7 +121,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
         }}
       >
         {intersperseFn(
-          i => <Divider key={i} theme={theme} backgroundColor={null} color={null} />,
+          i => <Divider key={i} />,
           youCanUnlock.map(device => (
             <ListItem
               key={device.name}
@@ -147,16 +132,14 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
                       label="Enter paper key"
                       onClick={() => onClickPaperkey(device)}
                       type="Secondary"
-                      backgroundMode={backgroundMode}
                     />
                   : <Box />
               }
               icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
               body={
-                <Box style={globalStyles.flexBoxColumn}>
-                  <Text type="Body" backgroundMode={backgroundMode}>{device.name}</Text>
-                  {device.type !== 'backup' &&
-                    <Text type="BodySmall" backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+                <Box style={{...globalStyles.flexBoxColumn}}>
+                  <Text type="Body">{device.name}</Text>
+                  {device.type !== 'backup' && <Text type="BodySmall">Open the Keybase app</Text>}
                 </Box>
               }
             />
@@ -170,10 +153,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
 class FilesRender extends Component<void, Props, void> {
   _renderSection(section: FileSection) {
     return (
-      <Box
-        key={section.name}
-        style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[this.props.theme]}}
-      >
+      <Box key={section.name} style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
           <Box key={section.name} style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>
             {section.modifiedMarker &&
@@ -201,38 +181,27 @@ class FilesRender extends Component<void, Props, void> {
 
   // TODO render checkerboard pattern for private mode
   _renderHeader() {
-    const backButtonColor = backButtonColorThemed[this.props.theme]
-
     const contents = (
       <Box
         style={{
           ...globalStyles.flexBoxRow,
           justifyContent: 'space-between',
-          ...styleHeaderThemed[this.props.theme],
+          backgroundColor: globalColors.white,
           height: 48,
         }}
       >
-        <BackButton
-          title={null}
-          onClick={this.props.onBack}
-          style={{marginLeft: globalMargins.small}}
-          iconStyle={{color: backButtonColor}}
-          textStyle={{color: backButtonColor}}
-        />
+        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} />
       </Box>
     )
     return contents
   }
 
   _renderContents(isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
-    const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
-
     if (this.props.youCanUnlock.length) {
       return (
         <YouCanUnlock
           youCanUnlock={this.props.youCanUnlock}
           isPrivate={isPrivate}
-          backgroundMode={backgroundMode}
           theme={this.props.theme}
           onClickPaperkey={this.props.onClickPaperkey}
         />
@@ -245,7 +214,6 @@ class FilesRender extends Component<void, Props, void> {
           waitingForParticipantUnlock={this.props.waitingForParticipantUnlock}
           isPrivate={isPrivate}
           theme={this.props.theme}
-          backgroundMode={backgroundMode}
         />
       )
     }
@@ -273,26 +241,23 @@ class FilesRender extends Component<void, Props, void> {
 
   render() {
     const isPrivate = this.props.theme === 'private'
-    const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          flex: 1,
+          flexGrow: 1,
           position: 'relative',
-          backgroundColor: backgroundColorThemed[this.props.theme],
-          paddingTop: statusBarHeight,
         }}
       >
         {this._renderHeader()}
-        <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
+        <Box style={{...styleTLFHeader}}>
           <Usernames
             prefix={isPrivate ? 'private/' : 'public/'}
             users={this.props.users}
             type="BodySemibold"
-            style={tlfTextStyle}
             containerStyle={{textAlign: 'center'}}
+            style={{color: isPrivate ? globalColors.darkBlue : globalColors.yellowGreen2}}
           />
         </Box>
         {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
@@ -301,48 +266,16 @@ class FilesRender extends Component<void, Props, void> {
   }
 }
 
-const styleHeaderThemed = {
-  private: {
-    backgroundColor: globalColors.darkBlue3,
-  },
-
-  public: {
-    backgroundColor: globalColors.yellowGreen,
-  },
-}
-
 const styleTLFHeader = {
   ...globalStyles.flexBoxColumn,
-  minHeight: 56,
   alignItems: 'stretch',
-  justifyContent: 'center',
-  flexGrow: 0,
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: NativeStyleSheet.hairlineWidth,
-  paddingTop: globalMargins.tiny,
+  flexGrow: 0,
+  justifyContent: 'center',
+  minHeight: 56,
   paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-}
-
-const styleTLFHeaderThemed = {
-  private: {
-    backgroundColor: globalColors.darkBlue,
-  },
-
-  public: {
-    backgroundColor: globalColors.white,
-  },
-}
-
-const styleTLFTextThemed = {
-  private: {
-    color: globalColors.white,
-  },
-
-  public: {
-    color: globalColors.yellowGreen2,
-  },
+  paddingTop: globalMargins.tiny,
 }
 
 const styleSectionTextThemed = {
@@ -354,16 +287,6 @@ const styleSectionTextThemed = {
   },
 }
 
-const backgroundColorThemed = {
-  public: globalColors.white,
-  private: globalColors.darkBlue3,
-}
-
-const backButtonColorThemed = {
-  private: globalColors.white,
-  public: globalColors.white,
-}
-
 const styleWarningBanner = {
   backgroundColor: globalColors.red,
   color: globalColors.white,
@@ -373,6 +296,7 @@ const styleWarningBanner = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   textAlign: 'center',
+  width: '100%',
 }
 
 export default FilesRender

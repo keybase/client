@@ -119,7 +119,7 @@ export default function UserGroup({
 }: Props) {
   return (
     <NativeScrollView
-      style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flex: 1}}
+      style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.lightGrey, flexGrow: 1}}
     >
       {selectedUsers.map(u => (
         <User

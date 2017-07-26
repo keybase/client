@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -140,7 +141,7 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 }
 
 func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
-	req.TopicName = ctx.String("topic-name")
+	req.TopicName = utils.SanitizeTopicName(ctx.String("topic-name"))
 	req.TlfName = tlfName
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
@@ -161,6 +162,11 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 		return chatConversationResolvingRequest{}, errors.New("multiple topics only supported for teams and dev channels")
 	}
 
+	// Set the default topic name to #general if none is specified
+	if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
+		req.TopicName = chat.DefaultTeamTopic
+	}
+
 	return req, nil
 }
 
@@ -168,6 +174,8 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 	fetcher.query.MessageTypes = []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_JOIN,
+		chat1.MessageType_LEAVE,
 	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,

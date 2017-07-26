@@ -1,5 +1,5 @@
 // @flow
-import _ from 'lodash'
+import capitalize from 'lodash/capitalize'
 import {
   KbfsCommonFSErrorType,
   KbfsCommonFSNotificationType,
@@ -58,7 +58,7 @@ export function decodeKBFSError(user: string, notification: FSNotification): Dec
 
     case KbfsCommonFSErrorType.timeout:
       return {
-        title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
+        title: `Keybase: ${capitalize(notification.params.mode)} timeout in ${tlf}`,
         body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
       }
 

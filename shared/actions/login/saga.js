@@ -17,12 +17,13 @@ import openURL from '../../util/open-url'
 import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
+import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
-import {call, put, take, race, select} from 'redux-saga/effects'
+import {call, put, take, race, select, all} from 'redux-saga/effects'
 import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
@@ -136,7 +137,7 @@ function* navBasedOnLoginState() {
     }
   } else if (registered) {
     // relogging in
-    yield [put.resolve(getExtendedStatus()), put.resolve(getAccounts())]
+    yield all([put.resolve(getExtendedStatus()), put.resolve(getAccounts())])
     yield put(navigateTo(['login'], [loginTab]))
   } else if (loginError) {
     // show error on login screen
@@ -268,12 +269,12 @@ const displayAndPromptSecretSaga = onBackSaga =>
 
 const promptNewDeviceNameSaga = onBackSaga =>
   function*({existingDevices, errorMessage}) {
+    yield put(setDeviceNameError(errorMessage))
     yield put(
       navigateAppend(
         [
           {
             props: {
-              deviceNameError: errorMessage,
               existingDevices,
             },
             selected: 'setPublicName',
@@ -299,12 +300,12 @@ const promptNewDeviceNameSaga = onBackSaga =>
 
 // TODO change types in flow-types to generate this
 const chooseDeviceSaga = onBackSaga =>
-  function*({devices}: {devices: Array<Types.Device>}) {
+  function*({devices, canSelectNoDevice}: {devices: Array<Types.Device>, canSelectNoDevice: boolean}) {
     yield put(
       navigateAppend(
         [
           {
-            props: {devices},
+            props: {devices, canSelectNoDevice},
             selected: 'selectOtherDevice',
           },
         ],

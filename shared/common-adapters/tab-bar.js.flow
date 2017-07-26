@@ -37,6 +37,8 @@ export type TabBarButtonSource =
 export type TabBadgePosition = 'top-right'
 
 export type TabBarButtonProps = Exact<{
+  className?: string,
+  isNav?: boolean,
   selected: boolean,
   onClick?: () => void,
   source: TabBarButtonSource,

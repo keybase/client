@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './render'
-import {connect} from 'react-redux'
+import pausableConnect from '../util/pausable-connect'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
@@ -52,37 +52,25 @@ class Folders extends Component<void, Props, void> {
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
-const ConnectedFolders = connect(
-  (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
-    username: state.config.username,
-    folderState: state.favorite ? state.favorite.folderState : null,
-    showingPrivate: !!state.favorite && showingPrivate,
-    showingIgnored: !!state.favorite && routeState.showingIgnored,
-  }),
-  (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
-    favoriteList: () => {
-      dispatch(favoriteList())
-    },
-    onOpenFolder: path => {
-      dispatch(navigateAppend([{selected: 'files', props: {path}}]))
-    },
-    onRekeyFolder: path => {
-      dispatch(navigateAppend([{selected: 'files', props: {path}}]))
-    },
-    openInKBFS: path => {
-      dispatch(openInKBFS(path))
-    },
-    openTlfInChat: tlf => {
-      dispatch(openTlfInChat(tlf))
-    },
-    switchTab: showingPrivate => {
-      dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public')))
-    },
-    onToggleShowIgnored: () => {
-      setRouteState({showingIgnored: !routeState.showingIgnored})
-    },
-  })
-)(Folders)
+const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
+  username: state.config.username,
+  folderState: state.favorite ? state.favorite.folderState : null,
+  showingPrivate: !!state.favorite && showingPrivate,
+  showingIgnored: !!state.favorite && routeState.showingIgnored,
+})
+
+const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
+  favoriteList: () => dispatch(favoriteList()),
+  onOpenFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
+  onRekeyFolder: path => dispatch(navigateAppend([{selected: 'files', props: {path}}])),
+  openInKBFS: path => dispatch(openInKBFS(path)),
+  openTlfInChat: tlf => dispatch(openTlfInChat(tlf)),
+  switchTab: showingPrivate =>
+    dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))),
+  onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
+})
+
+const ConnectedFolders = pausableConnect(mapStateToProps, mapDispatchToProps)(Folders)
 
 export function PrivateFolders(props: FoldersRouteProps) {
   return <ConnectedFolders showingPrivate={true} {...props} />

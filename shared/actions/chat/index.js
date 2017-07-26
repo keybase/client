@@ -29,9 +29,15 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/con
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
 import {searchTab, chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
-import {some} from 'lodash'
+import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector, inboxSearchSelector} from '../../constants/selectors'
+import {
+  usernameSelector,
+  inboxSearchSelector,
+  previousConversationSelector,
+  searchResultMapSelector,
+} from '../../constants/selectors'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -117,6 +123,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
         if (pagination) {
@@ -183,7 +190,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               conversationIDKey,
               conversationIDKey === selectedConversationIDKey,
               appFocused,
-              [message]
+              [message],
+              svcShouldDisplayNotification
             )
           )
         }
@@ -239,9 +247,9 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
       dispatch(Creators.inboxStale())
     })
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({convIDs}) => {
-      if (convIDs) {
-        dispatch(Creators.markThreadsStale(convIDs.map(Constants.conversationIDToKey)))
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+      if (updates) {
+        dispatch(Creators.markThreadsStale(updates))
       }
     })
   })
@@ -347,7 +355,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
 
-      if (!oldConversationState.get('moreToLoad')) {
+      if (oldConversationState.get('moreToLoad') === false) {
         console.log('Bailing on chat load more due to no more to load')
         return
       }
@@ -709,8 +717,16 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
-  // TODO handle participants from action into the new chat
   if (featureFlags.searchv3Enabled) {
+    const inboxSearch = yield select(inboxSearchSelector)
+    if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+      // Ignore 'New Chat' attempts when we're already building a chat
+      return
+    }
+    yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
+    for (const username of action.payload.existingParticipants) {
+      yield put(Creators.stageUserForSearch(username))
+    }
     yield put(Creators.selectConversation(null, false))
     yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     return
@@ -741,7 +757,8 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
   // Don't send sharing before signup values
   const metaData = yield select(Shared.metaDataSelector)
   const usernames = action.payload.users.filter(
-    name => metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1
+    name =>
+      metaData.getIn([name, 'fullname']) === undefined && name.indexOf('@') === -1 && name.indexOf('#') === -1
   )
   if (!usernames.length) {
     return
@@ -789,11 +806,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
-    // Don't navigate into errored conversations
-    if (inbox.get('state') === 'error') {
-      return
-    }
-
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
@@ -875,10 +887,10 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const conversations = action.payload
   let conversationsWithKeys = {}
   conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('UnreadMessages')
+    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
   })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('UnreadMessages')
+    const count = conv.get('unreadMessages')
     if (!count) {
       return map
     } else {
@@ -893,10 +905,17 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = selectedTab === chatTab
   const convoIsSelected = action.payload.isSelected
+  const svcDisplay = action.payload.svcShouldDisplayNotification
 
-  console.log('Deciding whether to notify new message:', convoIsSelected, appFocused, chatTabSelected)
-  // Only send if you're not looking at it
-  if (!convoIsSelected || !appFocused || !chatTabSelected) {
+  console.log(
+    'Deciding whether to notify new message:',
+    svcDisplay,
+    convoIsSelected,
+    appFocused,
+    chatTabSelected
+  )
+  // Only send if you're not looking at it and service wants us to
+  if (svcDisplay && (!convoIsSelected || !appFocused || !chatTabSelected)) {
     const me = yield select(usernameSelector)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
@@ -919,7 +938,8 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
 
 function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
-  const {convIDs} = action.payload
+  const {updates} = action.payload
+  const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
   yield call(Inbox.unboxConversations, convIDs)
 
   // Selected is stale?
@@ -981,16 +1001,18 @@ function* _updateTempSearchConversation(
   action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
 ) {
   const {payload: {user}} = action
+  const searchResultMap = yield select(searchResultMapSelector)
+  const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
   const me = yield select(usernameSelector)
 
   const inboxSearch = yield select(inboxSearchSelector)
   if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.push(user)
+    const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
     yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.filterNot(u => u === user)
+    const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
     if (!nextTempSearchConv.isEmpty()) {
       yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     } else {
@@ -1006,10 +1028,14 @@ function* _updateTempSearchConversation(
 }
 
 function* _exitSearch() {
+  const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
+  if (inboxSearch.count() === 0) {
+    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
+  }
 }
 
 function* chatSaga(): SagaGenerator<any, any> {

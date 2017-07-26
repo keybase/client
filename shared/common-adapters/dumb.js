@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import _ from 'lodash'
+import keyBy from 'lodash/keyBy'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {
@@ -19,7 +19,6 @@ import {
   StandardScreen,
   TabBar,
   Text,
-  Dropdown,
 } from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
@@ -32,31 +31,6 @@ const onClick = () => console.log('on click!')
 // So we can share this between mobile and desktop
 const display = type => (isMobile ? {} : {display: type})
 
-const dropdownMap: DumbComponentMap<Dropdown> = {
-  component: Dropdown,
-  mocks: {
-    Normal: {
-      type: 'General',
-      options: ['one', 'two', 'three'],
-      value: 'one',
-      onOther: onClick,
-      onClick: onClick,
-    },
-    'Not selected': {
-      type: 'General',
-      options: ['one', 'two', 'three'],
-      onOther: onClick,
-      onClick: onClick,
-    },
-    Username: {
-      type: 'Username',
-      options: ['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb'],
-      value: 'cjb',
-      onOther: onClick,
-      onClick: onClick,
-    },
-  },
-}
 const colorMocks = {}
 
 Object.keys(globalColors).sort().forEach(c => {
@@ -786,7 +760,9 @@ const listItemMap: DumbComponentMap<ListItem> = {
 }
 
 const popupCommon = {
-  parentProps: isMobile ? {} : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  parentProps: isMobile
+    ? {style: {height: 300}}
+    : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
 }
@@ -831,10 +807,10 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
 
 const avatarSizes = [176, 112, 80, 64, 48, 40, 32, 24, 16]
 const mockAvatarSizes = (title, modifiers) =>
-  _.chain(avatarSizes)
-    .map(size => ({size, username: 'awendland', ...modifiers}))
-    .keyBy(props => `${title} x${props.size}`)
-    .value()
+  keyBy(
+    avatarSizes.map(size => ({size, username: 'awendland', ...modifiers})),
+    props => `${title} x${props.size}`
+  )
 
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
@@ -1092,7 +1068,6 @@ export default {
   Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
   Colors: colorsMap,
-  Dropdown: dropdownMap,
   Icon: iconMap,
   Input: inputMap,
   ListItem: listItemMap,

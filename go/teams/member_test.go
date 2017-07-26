@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -23,16 +24,16 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 	return tc, u, name
 }
 
-func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other_a, other_b *kbtest.FakeUser, name string) {
+func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name string) {
 	tc = SetupTest(t, "team", 1)
 
-	other_a, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
 
-	other_b, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, other_a, ot
 
 	name = createTeam(tc)
 
-	return tc, owner, other_a, other_b, name
+	return tc, owner, otherA, otherB, name
 }
 
 func TestMemberOwner(t *testing.T) {
@@ -87,20 +88,24 @@ func testMemberSetRole(t *testing.T, test setRoleTest) {
 	assertRole(tc, name, other.Username, test.afterRole)
 }
 
-func TestMemberAdd(t *testing.T) {
+func TestMemberAddOK(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER); err != nil {
+	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
+	if err != nil {
 		t.Fatal(err)
+	}
+	if res.User.Username != other.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, other.Username)
 	}
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second AddMember succeeded, should have failed since user already a member")
 	}
 
@@ -111,7 +116,7 @@ func TestMemberAddInvalidRole(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888)); err == nil {
+	if _, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole(8888)); err == nil {
 		t.Errorf("AddMember worked with invalid role")
 	}
 
@@ -167,7 +172,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 	// this change request should generate boxes since other.Username
 	// is not a member
 	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
-	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	tm, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +205,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 
 	// this change request shouldn't generate any new boxes
 	req := keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{other.GetUserVersion()}}
-	tm, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	tm, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,12 +223,12 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	before, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	before, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if before.Box.Generation != 1 {
-		t.Fatalf("initial team generation: %d, expected 1", before.Box.Generation)
+	if before.Generation() != 1 {
+		t.Fatalf("initial team generation: %d, expected 1", before.Generation())
 	}
 
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -236,32 +241,178 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
-	after, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if after.Box.Generation != 2 {
-		t.Errorf("after member remove: team generation: %d, expected 2", after.Box.Generation)
+	if after.Generation() != 2 {
+		t.Errorf("after member remove: team generation: %d, expected 2", after.Generation())
 	}
 
-	if after.Box.Ctext == before.Box.Ctext {
-		t.Error("TeamBox.Ctext did not change when member removed")
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Error("Team secret did not change when member removed")
+	}
+}
+
+func TestMemberAddNotAUser(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	_, err := AddMember(context.TODO(), tc.G, name, "not_a_kb_user", keybase1.TeamRole_READER)
+	if err == nil {
+		t.Fatal("Added a non-keybase username to a team")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Errorf("error: %s (%T), expected libkb.NotFoundError", err, err)
+	}
+}
+
+func TestMemberAddSocial(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+
+	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
+
+	// second AddMember should return err
+	if _, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
+
+	// existing invite should be untouched
+	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
+}
+
+// add user without puk to a team, should create invite link
+func TestMemberAddNoPUK(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_alice"
+	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+	if res.User.Username != username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	}
+
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+
+	// second AddMember should return err
+	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
+
+	// existing invite should be untouched
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+}
+
+// add user without keys to a team, should create invite link
+func TestMemberAddNoKeys(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_ellen"
+	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+	if res.User.Username != username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	}
+
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
+
+	// second AddMember should return err
+	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second AddMember succeeded, should have failed since user already invited")
+	}
+
+	// existing invite should be untouched
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
+}
+
+func TestMemberAddEmail(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	address := "noone@keybase.io"
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+
+	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	// second InviteEmailMember should return err
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_WRITER); err == nil {
+		t.Errorf("second InviteEmailMember succeeded, should have failed since user already invited")
+	}
+
+	// existing invite should be untouched
+	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List --all does not list invite.")
+	}
+
+	details, err := Details(context.TODO(), tc.G, name, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found = false
+	for _, invite := range details.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List team does not list invite.")
 	}
 }
 
 func TestLeave(t *testing.T) {
-	tc, owner, other_a, other_b, name := memberSetupMultiple(t)
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, other_a.Username); err != nil {
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other_b.Username); err != nil {
+	if err := SetRoleWriter(context.TODO(), tc.G, name, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
 
-	if err := other_a.Login(tc.G); err != nil {
+	if err := otherA.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
@@ -269,7 +420,7 @@ func TestLeave(t *testing.T) {
 	}
 	tc.G.Logout()
 
-	if err := other_b.Login(tc.G); err != nil {
+	if err := otherB.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	if err := Leave(context.TODO(), tc.G, name, false); err != nil {
@@ -280,24 +431,67 @@ func TestLeave(t *testing.T) {
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
-	team, err := GetForTeamManagementByStringName(context.TODO(), tc.G, name)
+	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if team.IsMember(context.TODO(), other_a.GetUserVersion()) {
+	if team.IsMember(context.TODO(), otherA.GetUserVersion()) {
 		t.Fatal("Admin user is still member after leave.")
 	}
-	if team.IsMember(context.TODO(), other_b.GetUserVersion()) {
+	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
 		t.Fatal("Writer user is still member after leave.")
 	}
+}
+
+func TestMemberAddResolveCache(t *testing.T) {
+	tc, _, other, _, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
+
+	// load user so it is fully cached
+	_, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, other.Username))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// clear the memory cache so it will come from disk
+	tc.G.Resolver.EnableCaching()
+
+	// add the member
+	res, err := AddMember(context.TODO(), tc.G, name, other.Username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.User.Username != other.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, other.Username)
+	}
+
+	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
 
 func assertRole(tc libkb.TestContext, name, username string, expected keybase1.TeamRole) {
 	role, err := MemberRole(context.TODO(), tc.G, name, username)
 	if err != nil {
+		if err == errInviteRequired && expected == keybase1.TeamRole_NONE {
+			return
+		}
 		tc.T.Fatal(err)
 	}
 	if role != expected {
 		tc.T.Fatalf("role: %s, expected %s", role, expected)
+	}
+}
+
+func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
+	invite, err := MemberInvite(context.TODO(), tc.G, name, username, typ)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	if invite == nil {
+		tc.T.Fatalf("no invite found for team %s %s/%s", name, username, typ)
+	}
+	if invite.Role != role {
+		tc.T.Fatalf("invite role: %s, expected %s", invite.Role, role)
 	}
 }

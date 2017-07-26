@@ -4,7 +4,8 @@ import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, Record} from 'immutable'
-import {clamp, invert} from 'lodash'
+import clamp from 'lodash/clamp'
+import invert from 'lodash/invert'
 import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
@@ -25,6 +26,7 @@ import type {
   OutboxID as RPCOutboxID,
   ConversationID as RPCConversationID,
   TyperInfo,
+  ConversationStaleUpdate,
 } from './types/flow-types-chat'
 import type {DeviceType, KBRecord} from './types/more'
 import type {TypedState} from './reducer'
@@ -231,7 +233,7 @@ export const ConversationStateRecord = Record({
   messageKeys: List(),
   messages: List(),
   seenMessages: Set(),
-  moreToLoad: true,
+  moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
   isStale: false,
@@ -248,7 +250,7 @@ export type ConversationState = KBRecord<{
   // TODO del
   messages: List<Message>,
   seenMessages: Set<MessageID>,
-  moreToLoad: boolean,
+  moreToLoad: ?boolean,
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
@@ -261,12 +263,12 @@ export type ConversationState = KBRecord<{
 
 export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
-  UnreadMessages: number,
+  unreadMessages: number,
 }>
 
 export const ConversationBadgeStateRecord = Record({
   convID: undefined,
-  UnreadMessages: 0,
+  unreadMessages: 0,
 })
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
@@ -377,10 +379,14 @@ export const StateRecord: KBRecord<T> = Record({
   editingMessage: null,
   initialConversation: null,
   inboxUntrustedState: 'unloaded',
+  previousConversation: null,
+  searchPending: false,
   searchResults: null,
+  searchShowingSuggestions: false,
   selectedUsersInSearch: List(),
   inSearch: false,
   tempPendingConversations: Map(),
+  searchResultTerm: '',
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -407,9 +413,13 @@ export type State = KBRecord<{
   editingMessage: ?Message,
   initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
+  previousConversation: ?ConversationIDKey,
+  searchPending: boolean,
   searchResults: ?List<SearchConstants.SearchResultId>,
+  searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
+  searchResultTerm: string,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -427,12 +437,22 @@ export type AddPendingConversation = NoErrorTypedAction<
 
 export type AppendMessages = NoErrorTypedAction<
   'chat:appendMessages',
-  {conversationIDKey: ConversationIDKey, isAppFocused: boolean, isSelected: boolean, messages: Array<Message>}
+  {
+    conversationIDKey: ConversationIDKey,
+    isAppFocused: boolean,
+    isSelected: boolean,
+    messages: Array<Message>,
+    svcShouldDisplayNotification: boolean,
+  }
 >
 export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<
   'chat:blockConversation',
-  {blocked: boolean, conversationIDKey: ConversationIDKey, reportUser: boolean}
+  {
+    blocked: boolean,
+    conversationIDKey: ConversationIDKey,
+    reportUser: boolean,
+  }
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
@@ -463,7 +483,7 @@ export type LoadingMessages = NoErrorTypedAction<
 >
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
-  {convIDs: Array<ConversationIDKey>}
+  {updates: Array<ConversationStaleUpdate>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
@@ -523,6 +543,10 @@ export type SetInboxUntrustedState = NoErrorTypedAction<
 >
 export type SetInitialConversation = NoErrorTypedAction<
   'chat:setInitialConversation',
+  {conversationIDKey: ?ConversationIDKey}
+>
+export type SetPreviousConversation = NoErrorTypedAction<
+  'chat:setPreviousConversation',
   {conversationIDKey: ?ConversationIDKey}
 >
 export type SetLoaded = NoErrorTypedAction<
@@ -799,6 +823,18 @@ function makeSnippet(messageBody: ?MessageBody): ?string {
   }
 }
 
+function makeTeamTitle(messageBody: ?MessageBody): ?string {
+  if (!messageBody) {
+    return null
+  }
+  switch (messageBody.messageType) {
+    case ChatTypes.CommonMessageType.metadata:
+      return messageBody.metadata ? `#${messageBody.metadata.conversationTitle}` : '<none>'
+    default:
+      return null
+  }
+}
+
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function textSnippet(message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
@@ -965,7 +1001,11 @@ function messageKey(
 
 function splitMessageIDKey(
   key: MessageKey
-): {conversationIDKey: ConversationIDKey, keyKind: string, messageID: MessageID} {
+): {
+  conversationIDKey: ConversationIDKey,
+  keyKind: string,
+  messageID: MessageID,
+} {
   const [conversationIDKey, keyKind, messageIDStr] = key.split(':')
   const messageID: MessageID = Number(messageIDStr)
   return {conversationIDKey, keyKind, messageID}
@@ -1052,8 +1092,9 @@ const getSupersedes = (state: TypedState): ?SupersedeInfo => {
   return selectedConversationIDKey ? convSupersedesInfo(selectedConversationIDKey, state.chat) : null
 }
 
+const imageFileNameRegex = /[^/]+\.(jpg|png|gif|jpeg|bmp)$/
 function isImageFileName(filename: string): boolean {
-  return filename.match(/[^/]+\.(jpg|png|gif|jpeg|bmp)$/) == null
+  return imageFileNameRegex.test(filename)
 }
 
 const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
@@ -1130,6 +1171,7 @@ export {
   keyToConversationID,
   keyToOutboxID,
   makeSnippet,
+  makeTeamTitle,
   messageKey,
   messageKeyKind,
   messageKeyValue,

@@ -5,7 +5,7 @@ import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
 import {Box, Text, Icon, ClickableBox} from '../common-adapters/index'
 import {NativeListView} from '../common-adapters/index.native'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
@@ -64,23 +64,25 @@ class ListRender extends Component<void, Props, State> {
   _renderIgnoredToggleRow = (row: any) => {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
     const caretIcon: IconType = row.enabled ? 'iconfont-caret-down' : 'iconfont-caret-right'
+    const headingColor = row.enabled ? globalColors.black_60 : globalColors.black_40
     return (
       <Box style={stylesIgnoreContainer}>
         <ClickableBox onClick={this._onIgnoredToggle}>
           <Box style={styles.topBox}>
-            <Text type="BodySmallSemibold" style={styles.dividerText}>Ignored folders</Text>
+            <Text type="BodySmallSemibold" style={{color: headingColor}}>Ignored folders</Text>
             <Icon
               type={caretIcon}
               style={{
                 ...stylesIgnoreCaret,
-                color: this.props.isPublic ? globalColors.black_40 : globalColors.white_40,
+                color: headingColor,
+                marginLeft: globalMargins.xtiny,
               }}
             />
           </Box>
         </ClickableBox>
         {row.enabled &&
           <Box style={styles.bottomBox}>
-            <Text type="BodySmallSemibold" style={styles.dividerBodyText}>
+            <Text type="BodySmall" style={{textAlign: 'center'}}>
               Ignored folders won't show up on your computer and you won't receive alerts about them.
             </Text>
           </Box>}
@@ -121,6 +123,8 @@ const stylesIgnoreContainer = {
 const stylesIgnoreDesc = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  marginLeft: globalMargins.large,
+  marginRight: globalMargins.large,
 }
 
 const stylesIgnoreDivider = {
@@ -141,49 +145,40 @@ const stylesDividerBodyText = {
 }
 
 const stylesIgnoreCaret = {
-  width: 8,
-  height: 8,
+  fontSize: 10,
 }
 
 const stylesPrivate = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.darkBlue3,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: globalColors.white,
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.white_75,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.white_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.white,
   },
 }
 
 const stylesPublic = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.lightGrey,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: globalColors.white,
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.black_40,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.black_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.lightGrey,
+    backgroundColor: globalColors.white,
   },
 }
 export default ListRender

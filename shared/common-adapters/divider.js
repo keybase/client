@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {Box} from '../common-adapters/index'
-import type {Props} from './divider'
+import Box from './box'
 import {globalColors} from '../styles'
+
+import type {Props} from './divider'
 
 class Divider extends Component<void, Props, void> {
   render() {

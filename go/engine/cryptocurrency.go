@@ -45,6 +45,9 @@ func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
+	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "CryptocurrencyEngine")
+	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "CryptocurrencyEngine")
+
 	defer e.G().Trace("CryptocurrencyEngine", func() error { return err })()
 
 	var typ libkb.CryptocurrencyType
@@ -69,8 +72,14 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		return libkb.ExistsError{Msg: string(family)}
 	}
 	var sigIDToRevoke keybase1.SigID
+	var lease *libkb.Lease
+	var merkleRoot *libkb.MerkleRoot
 	if cryptocurrencyLink != nil {
 		sigIDToRevoke = cryptocurrencyLink.GetSigID()
+		lease, merkleRoot, err = libkb.RequestDowngradeLeaseBySigIDs(ctx.NetContext, e.G(), []keybase1.SigID{sigIDToRevoke})
+		if err != nil {
+			return err
+		}
 	}
 
 	ska := libkb.SecretKeyArg{
@@ -85,7 +94,7 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke)
+	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -94,15 +103,20 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 	kid := sigKey.GetKID()
+	args := libkb.HTTPArgs{
+		"sig":             libkb.S{Val: sig},
+		"signing_kid":     libkb.S{Val: kid.String()},
+		"is_remote_proof": libkb.B{Val: false},
+		"type":            libkb.S{Val: "cryptocurrency"},
+	}
+	if lease != nil {
+		args["downgrade_lease_id"] = libkb.S{Val: string(lease.LeaseID)}
+	}
+
 	_, err = e.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/post",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"sig":             libkb.S{Val: sig},
-			"signing_kid":     libkb.S{Val: kid.String()},
-			"is_remote_proof": libkb.B{Val: false},
-			"type":            libkb.S{Val: "cryptocurrency"},
-		},
+		Args:        args,
 	})
 	if err != nil {
 		return err
