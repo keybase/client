@@ -96,4 +96,9 @@ protocol install {
     Uninstalls KBFS (and Fuse, mount).
    */
   UninstallResult uninstallKBFS();
+
+  /*
+    Install command line via privileged helper.
+   */
+  InstallResult installCommandLinePrivileged();
 }

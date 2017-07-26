@@ -46,3 +46,9 @@ func (h *InstallHandler) UninstallKBFS(context.Context) (keybase1.UninstallResul
 	result := install.Uninstall(h.G(), components, h.G().Log)
 	return result, nil
 }
+
+func (h *InstallHandler) InstallCommandLinePrivileged(context.Context) (keybase1.InstallResult, error) {
+	components := []string{"clipaths"}
+	result := install.Install(h.G(), "", "", components, false, 120, h.G().Log)
+	return result, nil
+}

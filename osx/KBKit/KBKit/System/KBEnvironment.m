@@ -12,7 +12,7 @@
 #import "KBFuseComponent.h"
 #import "KBRunOver.h"
 #import "KBDefines.h"
-#import "KBCommandLineEtcPaths.h"
+#import "KBCommandLine.h"
 #import "KBUpdaterService.h"
 #import "KBMountDir.h"
 #import "KBAppBundle.h"
@@ -81,10 +81,10 @@
       [_installables addObject:_kbfs];
     }
 
-    if (config.installOptions&KBInstallOptionEtcPaths) {
+    _cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
+    if (config.installOptions&KBInstallOptionCLI) {
       helperRequired = YES;
-      KBCommandLineEtcPaths *cli = [[KBCommandLineEtcPaths alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
-      [_installables addObject:cli];
+      [_installables addObject:_cli];
     }
 
     if (config.installOptions&KBInstallOptionKBNM) {

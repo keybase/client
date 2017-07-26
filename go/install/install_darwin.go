@@ -498,6 +498,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
+	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
+		err = installCommandLinePrivileged(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
+		if err != nil {
+			log.Errorf("Error installing command line (privileged): %s", err)
+		}
+	}
+
 	return newInstallResult(componentResults)
 }
 
@@ -688,14 +696,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = uninstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
-		if err != nil {
-			log.Errorf("Error uninstalling helper: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
 		err = UninstallKBNM(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
@@ -709,6 +709,22 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
 		if err != nil {
 			log.Errorf("Error uninstalling command line: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
+		err = uninstallCommandLinePrivileged(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
+		if err != nil {
+			log.Errorf("Error uninstalling command line (privileged)", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = uninstallHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		if err != nil {
+			log.Errorf("Error uninstalling helper: %s", err)
 		}
 	}
 
@@ -816,9 +832,14 @@ func installAppBundle(context Context, sourcePath string, log Log) error {
 	return execNativeInstallerWithArg([]string{"--install-app-bundle", fmt.Sprintf("--source-path=%s", sourcePath)}, context.GetRunMode(), log)
 }
 
-func installEtcPaths(runMode libkb.RunMode, log Log) error {
-	log.Info("Installing in /etc/paths.d")
-	return execNativeInstallerWithArg([]string{"--install-etc-paths"}, runMode, log)
+func installCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing command line (privileged)")
+	return execNativeInstallerWithArg([]string{"--install-cli"}, runMode, log)
+}
+
+func uninstallCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing command line (privileged)")
+	return execNativeInstallerWithArg([]string{"--uninstall-cli"}, runMode, log)
 }
 
 func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {

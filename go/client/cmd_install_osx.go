@@ -168,6 +168,7 @@ var defaultUninstallComponents = []string{
 	install.ComponentNameFuse.String(),
 	install.ComponentNameHelper.String(),
 	install.ComponentNameCLI.String(),
+	install.ComponentNameCLIPaths.String(),
 }
 
 func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
