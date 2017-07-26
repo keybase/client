@@ -410,6 +410,14 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 		if !obr.ConvID.Eq(convID) {
 			continue
 		}
+		st, err := obr.State.State()
+		if err != nil {
+			continue
+		}
+		if st == chat1.OutboxStateType_ERROR && obr.State.Error().Typ == chat1.OutboxErrorType_DUPLICATE {
+			o.Debug(ctx, "skipping sprinkle on duplicate message error: %s", obr.OutboxID)
+			continue
+		}
 		if err := o.insertMessage(ctx, thread, obr); err != nil {
 			return err
 		}
