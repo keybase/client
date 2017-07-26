@@ -321,6 +321,36 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 	return assets, nil
 }
 
+func (s *BlockingSender) getTopicNameState(ctx context.Context, msg chat1.MessagePlaintext,
+	conv *chat1.Conversation) (topicNameState *chat1.TopicNameState, err error) {
+	if conv != nil {
+		if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
+
+			newTopicName := msg.MessageBody.Metadata().ConversationTitle
+			convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
+				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
+				conv.GetMembersType())
+			if err != nil {
+				return topicNameState, err
+			}
+			for _, conv := range convs {
+				if utils.GetTopicName(conv) == newTopicName {
+					return nil, errors.New("channel name already in use")
+				}
+			}
+
+			ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, convs,
+				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
+				conv.GetMembersType())
+			if err != nil {
+				return topicNameState, err
+			}
+			topicNameState = &ts
+		}
+	}
+	return topicNameState, nil
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
@@ -356,17 +386,9 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
 	// server
-	var topicNameState *chat1.TopicNameState
-	if conv != nil {
-		if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
-			ts, _, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, s.getRi,
-				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
-				conv.GetMembersType())
-			if err != nil {
-				return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
-			}
-			topicNameState = &ts
-		}
+	topicNameState, err := s.getTopicNameState(ctx, msg, conv)
+	if err != nil {
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// encrypt the message
@@ -486,17 +508,22 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
-			s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
-			if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
-				s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+			switch msg.ClientHeader.MessageType {
+			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 				return chat1.OutboxID{}, nil, nil, err
-			}
-			// Force hit the remote here, so there is no race condition against the local
-			// inbox
-			conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
-			if err != nil {
-				s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
-				return chat1.OutboxID{}, nil, nil, err
+			default:
+				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
+				if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
+					s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+					return chat1.OutboxID{}, nil, nil, err
+				}
+				// Force hit the remote here, so there is no race condition against the local
+				// inbox
+				conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
+				if err != nil {
+					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
+					return chat1.OutboxID{}, nil, nil, err
+				}
 			}
 		} else {
 			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
@@ -543,6 +570,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
 
+	// Keep trying if we get an error on topicNameState for a fixed number of times
 	rarg := chat1.PostRemoteArg{
 		ConversationID: convID,
 		MessageBoxed:   *boxed,

@@ -245,6 +245,7 @@ const (
 	SCChatAlreadyDeleted       = int(keybase1.StatusCode_SCChatAlreadyDeleted)
 	SCChatTLFFinalized         = int(keybase1.StatusCode_SCChatTLFFinalized)
 	SCChatCollision            = int(keybase1.StatusCode_SCChatCollision)
+	SCChatStalePreviousState   = int(keybase1.StatusCode_SCChatStalePreviousState)
 	SCBadEmail                 = int(keybase1.StatusCode_SCBadEmail)
 	SCIdentifySummaryError     = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey            = int(keybase1.StatusCode_SCNeedSelfRekey)

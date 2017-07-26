@@ -291,19 +291,12 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 }
 
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface,
+	convs []chat1.ConversationLocal,
 	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, rl []chat1.RateLimit, err error) {
-
-	var convs []chat1.ConversationLocal
-	convs, rl, err = GetTLFConversations(ctx, g, debugger, ri, uid, tlfID, topicType, membersType)
-	if err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to get TLF conversations: %s", err.Error())
-		return res, rl, err
-	}
-	sort.Sort(utils.ConvLocalByConvID(convs))
+	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, err error) {
 
 	var pairs chat1.ConversationIDMessageIDPairs
+	sort.Sort(utils.ConvLocalByConvID(convs))
 	for _, conv := range convs {
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
@@ -324,8 +317,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 
 	if res, err = utils.CreateTopicNameState(pairs); err != nil {
 		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
-		return res, rl, err
+		return res, err
 	}
 
-	return res, rl, nil
+	return res, nil
 }
