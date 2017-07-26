@@ -336,6 +336,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 
 	t.Logf("add U1 to the parent")
 	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
 
 	t.Logf("U1 loads the parent")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
