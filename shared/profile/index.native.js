@@ -378,7 +378,7 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default Profile
