@@ -149,10 +149,7 @@ function* installFuseSaga(): SagaGenerator<any, any> {
 
   yield call(fuseStatusSaga)
 
-  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
   yield put({type: 'fs:installFuseFinished'})
-
-  yield call(waitForMountAndOpenSaga)
 }
 
 function waitForMount(attempt: number): Promise<*> {
@@ -194,6 +191,10 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   yield put({payload: {result}, type: 'fs:installKBFSResult'})
 
   yield call(fuseStatusSaga)
+
+  yield put({type: 'fs:installKBSFinished'})
+
+  yield call(waitForMountAndOpenSaga)
 }
 
 function* uninstallKBFSSaga(): SagaGenerator<any, any> {

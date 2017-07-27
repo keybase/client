@@ -18,6 +18,7 @@ const initialState: Constants.State = {
   fuseInstalling: false,
   fuseStatus: null,
   fuseStatusLoading: false,
+  kbfsInstalling: false,
   kbfsOpening: false,
   kbfsStatus: {
     isAsyncWriteHappening: false,
@@ -148,6 +149,17 @@ export default function(
         ...state,
         fuseInstalling: false,
         kextPermissionError: false,
+      }
+    case 'fs:installKBS':
+      return {
+        ...state,
+        kbfsInstalling: true,
+      }
+
+    case 'fs:installKBSFinished':
+      return {
+        ...state,
+        kbfsInstalling: false,
       }
     case 'fs:openDefaultPath':
       const {opening} = action.payload
