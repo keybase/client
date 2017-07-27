@@ -301,15 +301,9 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	// Pull new links from the server
 	var teamUpdate *rawTeam
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
-		lowSeqno := keybase1.Seqno(0)
-		lowGen := keybase1.PerTeamKeyGeneration(0)
-		if ret != nil {
-			lowSeqno = ret.Chain.LastSeqno
-			lowGen = TeamSigChainState{inner: ret.Chain}.GetLatestGeneration()
-		}
-		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (lowSeqno:%v, lowGen:%v)",
-			lowSeqno, lowGen)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lowSeqno, lowGen, arg.readSubteamID)
+		lows := l.lows(ctx, ret)
+		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
+		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -391,7 +385,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		} else {
 			// Add the secrets unless this is a secretless team.
 			if !ret.Secretless {
-				ret, err = l.addSecrets(ctx, ret, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
+				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
@@ -672,6 +666,21 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 		l.G().Log.CDebugf(ctx, "TeamLoader cached snapshot is old: %v", diff)
 	}
 	return fresh
+}
+
+func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLinksLows {
+	var lows getLinksLows
+	if state != nil {
+		chain := TeamSigChainState{inner: state.Chain}
+		lows.Seqno = chain.GetLatestSeqno()
+		lows.PerTeamKey = chain.GetLatestGeneration()
+		// Use an arbitrary application to get the number of known RKMs.
+		rkms, ok := state.ReaderKeyMasks[keybase1.TeamApplication_CHAT]
+		if ok {
+			lows.ReaderKeyMask = keybase1.PerTeamKeyGeneration(len(rkms))
+		}
+	}
+	return lows
 }
 
 func (l *TeamLoader) OnLogout() {

@@ -84,18 +84,29 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 
 }
 
+type getLinksLows struct {
+	// Latest seqno on file
+	Seqno keybase1.Seqno
+	// Latest PTK generation on file
+	PerTeamKey keybase1.PerTeamKeyGeneration
+	// Latest RKM generation on file
+	ReaderKeyMask keybase1.PerTeamKeyGeneration
+}
+
 // Get new links from the server.
 func (l *TeamLoader) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, lowSeqno keybase1.Seqno, lowGen keybase1.PerTeamKeyGeneration,
+	teamID keybase1.TeamID, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	arg := libkb.NewRetryAPIArg("team/get")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"id":               libkb.S{Val: teamID.String()},
-		"low":              libkb.I{Val: int(lowSeqno)},
-		"per_team_key_low": libkb.I{Val: int(lowGen)},
+		"id":  libkb.S{Val: teamID.String()},
+		"low": libkb.I{Val: int(lows.Seqno)},
+		// These don't really work yet on the client or server.
+		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
+		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
 	}
 	if readSubteamID != nil {
 		arg.Args["read_subteam_id"] = libkb.S{Val: readSubteamID.String()}
@@ -128,6 +139,9 @@ func (l *TeamLoader) getLinksFromServer(ctx context.Context,
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
 		"seqnos": libkb.S{Val: seqnoCommas},
+		// These don't really work yet on the client or server.
+		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
+		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
 	}
 	if readSubteamID != nil {
 		arg.Args["read_subteam_id"] = libkb.S{Val: readSubteamID.String()}
@@ -553,7 +567,7 @@ func (l *TeamLoader) checkProofs(ctx context.Context,
 // Checks that the team keys match the published values on the chain.
 // Checks that the off-chain data ends up exactly in sync with the chain, generation-wise.
 func (l *TeamLoader) addSecrets(ctx context.Context,
-	state *keybase1.TeamData, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
+	state *keybase1.TeamData, me keybase1.UserVersion, box *TeamBox, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded,
 	readerKeyMasks []keybase1.ReaderKeyMask) (*keybase1.TeamData, error) {
 
 	latestReceivedGen, seeds, err := l.unboxPerTeamSecrets(ctx, box, prevs)
@@ -600,37 +614,55 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 		}
 	}
 
-	// Insert all reader key masks
-	// Then scan to make sure there are no gaps in generations and no missing application masks.
-	checkMaskGens := make(map[keybase1.PerTeamKeyGeneration]bool)
-	for _, rkm := range readerKeyMasks {
-		if rkm.Generation < 1 {
-			return nil, fmt.Errorf("reader key mask has generation: %v < 0", rkm.Generation)
-		}
-		if _, ok := ret.ReaderKeyMasks[rkm.Application]; !ok {
-			ret.ReaderKeyMasks[rkm.Application] = make(
-				map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
-		}
-		ret.ReaderKeyMasks[rkm.Application][rkm.Generation] = rkm.Mask
-
-		checkMaskGens[rkm.Generation] = true
-		if rkm.Generation > 1 {
-			// Check for the previous rkm to make sure there are no gaps
-			checkMaskGens[rkm.Generation-1] = true
-		}
+	chain := TeamSigChainState{inner: state.Chain}
+	role, err := chain.GetUserRole(me)
+	if err != nil {
+		role = keybase1.TeamRole_NONE
 	}
-	// Check that we are all the way up to date
-	checkMaskGens[latestChainGen] = true
-	for gen := range checkMaskGens {
-		err = l.checkReaderKeyMaskCoverage(ctx, &ret, gen)
-		if err != nil {
-			return nil, err
+	if role.IsReaderOrAbove() {
+		// Insert all reader key masks
+		// Then scan to make sure there are no gaps in generations and no missing application masks.
+		checkMaskGens := make(map[keybase1.PerTeamKeyGeneration]bool)
+		for _, rkm := range readerKeyMasks {
+			if rkm.Generation < 1 {
+				return nil, fmt.Errorf("reader key mask has generation: %v < 0", rkm.Generation)
+			}
+			if _, ok := ret.ReaderKeyMasks[rkm.Application]; !ok {
+				ret.ReaderKeyMasks[rkm.Application] = make(
+					map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
+			}
+			ret.ReaderKeyMasks[rkm.Application][rkm.Generation] = rkm.Mask
+
+			checkMaskGens[rkm.Generation] = true
+			if rkm.Generation > 1 {
+				// Check for the previous rkm to make sure there are no gaps
+				checkMaskGens[rkm.Generation-1] = true
+			}
+		}
+		// Check that we are all the way up to date
+		checkMaskGens[latestChainGen] = true
+		for gen := range checkMaskGens {
+			err = l.checkReaderKeyMaskCoverage(ctx, &ret, gen)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+	} else {
+		// Discard all cached reader key masks if we are not an explicit member of the team.
+		ret.ReaderKeyMasks = make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
+
+		// Also we shouldn't have gotten any from the server.
+		if len(readerKeyMasks) > 0 {
+			l.G().Log.CWarningf(ctx, "TeamLoader got %v reader-key-masks but not an explicit member",
+				len(readerKeyMasks))
 		}
 	}
 
 	return &ret, nil
 }
 
+// Check that the RKMs for a generation are covered for all apps.
 func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
