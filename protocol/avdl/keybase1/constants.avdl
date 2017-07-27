@@ -96,11 +96,11 @@ protocol constants {
     SCChatDuplicateMessage_2515,
     SCChatClientError_2516,
     SCChatNotInTeam_2517,
+    SCTeamNotFound_2614,
     SCTeamExists_2619,
     SCTeamReadError_2623,
     SCTeamTarDuplicate_2663,
     SCTeamTarNotFound_2664,
     SCTeamMemberExists_2665
   }
-
 }
