@@ -18,9 +18,9 @@ class InstalledBanner extends Component<void, Props, void> {
     const dialog = electron.dialog || electron.remote.dialog
     dialog.showMessageBox(
       {
-        buttons: ['Uninstall & Restart', 'Cancel'],
-        detail: 'Are you sure you want to uninstall Keybase from the Finder and restart the app?',
-        message: 'Uninstall in Finder',
+        buttons: ['Remove & Restart', 'Cancel'],
+        detail: 'Are you sure you want to remove Keybase from the Finder and restart the app?',
+        message: 'Remove Keybase from the Finder',
         type: 'question',
       },
       resp => {
