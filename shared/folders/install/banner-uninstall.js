@@ -66,7 +66,7 @@ const stylesContainer = {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  inProgress: state.favorite.fuseInstalling || state.favorite.kbfsOpening,
+  inProgress: state.favorite.fuseInstalling || state.favorite.kbfsInstalling || state.favorite.kbfsOpening,
 })
 
 const mapDispatchToProps = (dispatch: any) => ({

@@ -48,6 +48,7 @@ export type State = Exact<{
   fuseInstalling: boolean,
   fuseStatus: ?FuseStatus,
   fuseStatusLoading: boolean,
+  kbfsInstalling: boolean,
   kbfsOpening: boolean,
   kbfsStatus: KBFSStatus,
   kextPermissionError: boolean,
