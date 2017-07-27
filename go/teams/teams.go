@@ -742,6 +742,19 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
+
+	if t.chain().IsSubteam() {
+		// rotate needs to be keyed for all admins above it
+		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, *t.chain().GetParentID())
+		if err != nil {
+			return nil, nil, err
+		}
+		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, true, true)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	t.rotated = true
 
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)

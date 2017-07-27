@@ -311,25 +311,11 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		return
 	}
 
-	/*
-		ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
-		if ownerLatest == nil {
-			err = errors.New("can't create a new team without having provisioned a per-user key")
-			return
-		}
-	*/
-
 	memSet := newMemberSet()
 	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true, true)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	/*
-		secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
-			me.ToUserVersion(): *ownerLatest,
-		}
-	*/
 
 	// These boxes will get posted along with the sig below.
 	m, err := NewTeamKeyManager(g)
