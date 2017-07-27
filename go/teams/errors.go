@@ -167,14 +167,6 @@ func NewResolveError(name keybase1.TeamName, id keybase1.TeamID) ResolveError {
 	return ResolveError{name, id}
 }
 
-type TeamGetError struct {
-	msg string
-}
-
-func (e TeamGetError) Error() string {
-	return e.msg
-}
-
 func fixupTeamGetError(e error, n string) error {
 	if e == nil {
 		return nil
@@ -185,12 +177,10 @@ func fixupTeamGetError(e error, n string) error {
 	}
 	switch keybase1.StatusCode(ase.Code) {
 	case keybase1.StatusCode_SCTeamReadError:
-		msg := fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
-		return TeamGetError{msg}
+		ase.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
 	case keybase1.StatusCode_SCTeamNotFound:
-		msg := fmt.Sprintf("Team %q does not exist", n)
-		return TeamGetError{msg}
+		ase.Desc = fmt.Sprintf("Team %q does not exist", n)
 	default:
-		return e
 	}
+	return ase
 }
