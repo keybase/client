@@ -124,6 +124,14 @@ export class RouteStateNode extends _RouteStateNode {
   }
 }
 
+// Converts plain old objects into route state nodes. Useful for testing
+export function dataToRouteState(data: Object) {
+  const {children, ...params} = data
+  const root = new RouteStateNode(params)
+  const parsedChildren = Object.keys(children).map(k => ({name: k, op: () => dataToRouteState(children[k])}))
+  return parsedChildren.reduce((acc, {name, op}) => acc.updateChild(name, op), root)
+}
+
 export class InvalidRouteError extends Error {}
 
 // Explicit list of iterable types to accept. We don't want to allow strings
