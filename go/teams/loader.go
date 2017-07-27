@@ -543,13 +543,31 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 	if teamData == nil {
 		return false
 	}
-	role, err := TeamSigChainState{inner: teamData.Chain}.GetUserRole(me)
+	state := TeamSigChainState{inner: teamData.Chain}
+	role, err := state.GetUserRole(me)
 	if err != nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader error getting my role: %v", err)
 		return false
 	}
 	if !(role == keybase1.TeamRole_OWNER || role == keybase1.TeamRole_ADMIN) {
-		return false
+		if !state.IsSubteam() {
+			return false
+		}
+		implicitAdmins, err := l.implicitAdminsAncestor(ctx, state.GetID(), state.GetParentID())
+		if err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader error getting implicit admins: %s", err)
+			return false
+		}
+		found := false
+		for _, ia := range implicitAdmins {
+			if ia == me {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
 	}
 	if (TeamSigChainState{inner: teamData.Chain}.HasAnyStubbedLinks()) {
 		return false
@@ -730,15 +748,23 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 		return nil, fmt.Errorf("cannot get implicit admins of a root team: %v", teamID)
 	}
 
-	// Load up the ancestral line, gathering admins.
+	return l.implicitAdminsAncestor(ctx, teamID, teamChain.GetParentID())
+}
+
+func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID) ([]keybase1.UserVersion, error) {
+	me, err := l.getMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	impAdminsMap := make(map[string]keybase1.UserVersion) // map to remove dups
-	ancestorID := teamChain.GetParentID()
+
 	i := 0
 	for {
 		i++
 		if i >= 100 {
 			// Break in case there's a bug in this loop.
-			return nil, fmt.Errorf("stuck in a loop while getting implicit admins: %v", teamID)
+			return nil, fmt.Errorf("stuck in a loop while getting implicit admins: %v", ancestorID)
 		}
 
 		// Use load2 so that we can use subteam-reader and get secretless teams.
@@ -774,9 +800,11 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 		ancestorID = ancestorChain.GetParentID()
 	}
 
+	var impAdmins []keybase1.UserVersion
 	for _, uv := range impAdminsMap {
 		impAdmins = append(impAdmins, uv)
 	}
+
 	return impAdmins, nil
 }
 
