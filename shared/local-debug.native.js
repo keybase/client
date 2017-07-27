@@ -7,7 +7,7 @@ import {NativeModules} from 'react-native'
 import {updateDebugConfig} from './actions/dev'
 import noop from 'lodash/noop'
 
-const nativeBridge = NativeModules.KeybaseEngine
+const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
 // console.disableYellowBox = true
