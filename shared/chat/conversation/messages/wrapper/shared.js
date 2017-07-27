@@ -12,11 +12,41 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
   <Box style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
 )
 
-const UserAvatar = ({author, showImage}) => (
-  <Box style={_userAvatarStyle}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} />}
-  </Box>
-)
+type UserAvatarProps = {
+  author: string,
+  showImage: boolean,
+  onClick: (author: string) => void,
+}
+
+class UserAvatar extends PureComponent<void, UserAvatarProps, void> {
+  _onClick: () => void
+
+  constructor(props: UserAvatarProps) {
+    super(props)
+
+    this._updateOnClick(props)
+  }
+
+  _updateOnClick(p: UserAvatarProps) {
+    const {onClick, author} = p
+    this._onClick = () => {
+      onClick && onClick(author)
+    }
+  }
+
+  componentWillReceiveProps(nextProps: UserAvatarProps) {
+    this._updateOnClick(nextProps)
+  }
+
+  render() {
+    const {author, showImage} = this.props
+    return (
+      <Box style={_userAvatarStyle} onClick={this._onClick}>
+        {showImage && <Avatar size={24} username={author} skipBackground={true} />}
+      </Box>
+    )
+  }
+}
 
 type UsernameEntryProps = {
   author: string,
@@ -70,18 +100,6 @@ const usernameEntryContainerStyle = {
   display: 'inline-flex',
 }
 
-/*
-const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
-  if (!includeHeader) return null
-  const style = {
-    color: colorForAuthor(author, isYou, isFollowing, isBroken),
-    ...(isYou ? globalStyles.italic : null),
-    marginBottom: 2,
-  }
-  return <Text type="BodySmallSemibold" style={style}>{author}</Text>
-}
-*/
-
 const ActionButton = ({onAction}) => (
   <Box className="action-button">
     {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
@@ -122,7 +140,7 @@ const MessageWrapper = (props: Props) => (
         isBroken={props.isBroken}
       />
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar author={props.author} showImage={props.includeHeader} />
+        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onUsernameClick} />
         <Box style={_flexOneColumn} className="message-wrapper">
           <UsernameEntry
             author={props.author}
@@ -232,6 +250,7 @@ const _leftMarkerStyle = {
 
 const _userAvatarStyle = {
   width: 32,
+  ...globalStyles.clickable,
 }
 
 const _failStyle = {
