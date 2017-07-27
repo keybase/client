@@ -60,10 +60,18 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	hasPrefetched bool, err error) {
 	// TODO: add mutex to guard sync state
+	var primaryCache DiskBlockCache = cache.workingSetCache
+	var secondaryCache DiskBlockCache = cache.syncCache
 	if cache.config.IsSyncedTlf(tlfID) {
-		return cache.syncCache.Get(ctx, tlfID, blockID)
+		primaryCache = cache.syncCache
+		secondaryCache = cache.workingSetCache
 	}
-	return cache.workingSetCache.Get(ctx, tlfID, blockID)
+	// Check both caches if the primary cache doesn't have the block.
+	buf, serverHalf, hasPrefetched, err = primaryCache.Get(ctx, tlfID, blockID)
+	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError {
+		return secondaryCache.Get(ctx, tlfID, blockID)
+	}
+	return buf, serverHalf, hasPrefetched, err
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -89,9 +97,14 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	if cache.config.IsSyncedTlf(tlfID) {
+		cache.workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
+	} else {
+		// TODO: Allow more intelligent transitioning from the sync cache to
+		// the working set cache.
+		cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+		return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 	}
-	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
 
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
