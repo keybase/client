@@ -3,18 +3,19 @@ import React, {Component} from 'react'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
-import {uninstallKBFS} from '../../actions/kbfs'
+import {openInKBFS, uninstallKBFS} from '../../actions/kbfs'
 import electron from 'electron'
 
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   inProgress: boolean,
+  openInKBFS: () => void,
   uninstallKBFSAndRestart: () => void,
 }
 
 class InstalledBanner extends Component<void, Props, void> {
-  _onSubmit = () => {
+  _onUninstall = () => {
     const dialog = electron.dialog || electron.remote.dialog
     dialog.showMessageBox(
       {
@@ -31,6 +32,10 @@ class InstalledBanner extends Component<void, Props, void> {
     )
   }
 
+  _onOpen = () => {
+    this.props.openInKBFS()
+  }
+
   render() {
     if (this.props.inProgress) {
       return (
@@ -44,9 +49,12 @@ class InstalledBanner extends Component<void, Props, void> {
       <Box style={stylesContainer}>
         <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
           Your Keybase folders currently appear in your Finder under&nbsp;
-          <Text type="Terminal" style={{color: globalColors.blue, fontSize: 11}}>/keybase</Text>.
+          <Text type="BodySmallPrimaryLink" style={globalStyles.fontTerminal} onClick={this._onOpen}>
+            /keybase
+          </Text>
+          .
           <br />
-          <Text type="BodySmallInlineLink" style={{color: globalColors.black_60}} onClick={this._onSubmit}>
+          <Text type="BodySmallInlineLink" style={{color: globalColors.black_60}} onClick={this._onUninstall}>
             Do not show them in Finder
           </Text>
         </Text>
@@ -70,6 +78,7 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
+  openInKBFS: () => dispatch(openInKBFS()),
   uninstallKBFSAndRestart: () => dispatch(uninstallKBFS()),
 })
 
