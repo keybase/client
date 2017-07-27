@@ -1426,9 +1426,6 @@ export function installFuseStatusRpc (request: Exact<requestCommon & {callback?:
 export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 }
-export function installFuseStatusRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.fuseStatus', request, callback, incomingCallMap) })
-}
 
 export function installFuseStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}>): Promise<installFuseStatusResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1440,9 +1437,6 @@ export function installInstallCommandLinePrivilegedRpc (request: Exact<requestCo
 
 export function installInstallCommandLinePrivilegedRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
-}
-export function installInstallCommandLinePrivilegedRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, callback, incomingCallMap) })
 }
 
 export function installInstallCommandLinePrivilegedRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void}>): Promise<installInstallCommandLinePrivilegedResult> {
@@ -1456,9 +1450,6 @@ export function installInstallFuseRpc (request: Exact<requestCommon & {callback?
 export function installInstallFuseRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
 }
-export function installInstallFuseRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installFuse', request, callback, incomingCallMap) })
-}
 
 export function installInstallFuseRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void}>): Promise<installInstallFuseResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installFuse', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1471,9 +1462,6 @@ export function installInstallKBFSRpc (request: Exact<requestCommon & {callback?
 export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
 }
-export function installInstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.installKBFS', request, callback, incomingCallMap) })
-}
 
 export function installInstallKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}>): Promise<installInstallKBFSResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
@@ -1485,9 +1473,6 @@ export function installUninstallKBFSRpc (request: Exact<requestCommon & {callbac
 
 export function installUninstallKBFSRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
-}
-export function installUninstallKBFSRpcChannelMapOld (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => { engineRpcOutgoing('keybase.1.install.uninstallKBFS', request, callback, incomingCallMap) })
 }
 
 export function installUninstallKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}>): Promise<installUninstallKBFSResult> {
