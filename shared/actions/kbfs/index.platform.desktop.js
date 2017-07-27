@@ -131,6 +131,33 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   yield call(fuseStatusSaga)
 
   yield put({type: 'fs:installFuseFinished'})
+
+  yield call(waitForMountAndOpen)
+}
+
+function waitForMount(attempt: number): Promise<*> {
+  return new Promise((resolve, reject) => {
+    // Read the KBFS path waiting for files to exist, which means it's mounted
+    fs.readdir(Constants.defaultKBFSPath, (err, files) => {
+      if (!err && files.length > 0) {
+        resolve(true)
+      } else if (attempt > 15) {
+        reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
+      } else {
+        setTimeout(() => {
+          waitForMount(attempt + 1).then(resolve, reject)
+        }, 1000)
+      }
+    })
+  })
+}
+
+function openDefaultPath(): Promise<*> {
+  return openInDefault(Constants.defaultKBFSPath)
+}
+
+function waitForMountAndOpen(): Promise<*> {
+  return waitForMount(0).then(openDefaultPath)
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
