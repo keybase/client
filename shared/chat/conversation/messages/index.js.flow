@@ -6,6 +6,7 @@ declare function factory(
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onShowEditor: (message: Constants.ServerMessage, event: any) => void,
+  onUsernameClick: (author: string) => void,
   isSelectd: boolean,
   measure: () => void
 ): React$Element<*>

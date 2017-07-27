@@ -130,6 +130,7 @@ class BaseList extends Component<void, Props, State> {
             prevMessageKey,
             this._onAction,
             this._onShowEditor,
+            (author: string) => {} /* onUsernameClick */,
             isSelected,
             measure
           )
