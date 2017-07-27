@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import ServiceFilter from '../searchv3/services-filter'
-import ResultsList from '../searchv3/results-list'
-import UserInput from '../searchv3/user-input'
+import ServiceFilter from '../search/services-filter'
+import ResultsList from '../search/results-list'
+import UserInput from '../search/user-input'
 import {Box, ProgressIndicator, StandardScreen, Text} from '../common-adapters'
 import {globalMargins, globalStyles} from '../styles'
 

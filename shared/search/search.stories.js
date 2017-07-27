@@ -137,7 +137,7 @@ const serviceRow = {
 }
 
 const load = () => {
-  storiesOf('SearchV3', module)
+  storiesOf('Search', module)
     .add('Filter', () => {
       const common = {
         onSelectService: action('Selected service'),
@@ -273,7 +273,7 @@ const load = () => {
     .add('Results List', () => {
       const common = {
         items: ['chris'],
-        keyPath: ['searchv3Chat'],
+        keyPath: ['searchChat'],
         onClick: action('On click'),
         onShowTracker: action('Show tracker'),
         selectedId: null,

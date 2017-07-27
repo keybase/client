@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../constants/searchv3'
+import * as Constants from '../constants/search'
 import React from 'react'
 import {Avatar, Icon} from '../common-adapters'
 
