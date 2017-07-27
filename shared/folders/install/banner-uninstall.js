@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text} from '../../common-adapters'
+import {Box, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {uninstallKBFS} from '../../actions/kbfs'
@@ -9,6 +9,7 @@ import electron from 'electron'
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
+  inProgress: boolean,
   uninstallKBFSAndRestart: () => void,
 }
 
@@ -31,6 +32,14 @@ class InstalledBanner extends Component<void, Props, void> {
   }
 
   render() {
+    if (this.props.inProgress) {
+      return (
+        <Box style={stylesContainer}>
+          <ProgressIndicator style={{width: 32}} />
+        </Box>
+      )
+    }
+
     return (
       <Box style={stylesContainer}>
         <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
@@ -56,7 +65,9 @@ const stylesContainer = {
   paddingRight: globalMargins.medium,
 }
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => ({
+  inProgress: state.favorite.fuseInstalling || state.favorite.kbfsOpening,
+})
 
 const mapDispatchToProps = (dispatch: any) => ({
   uninstallKBFSAndRestart: () => dispatch(uninstallKBFS()),

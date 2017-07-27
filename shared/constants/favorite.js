@@ -4,7 +4,7 @@ import {FavoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 
 import type {Exact} from '../constants/types/more'
-import type {Folder as FolderRPC, FuseStatus, InstallResult} from '../constants/types/flow-types'
+import type {Folder as FolderRPC, FuseStatus} from '../constants/types/flow-types'
 import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
@@ -48,10 +48,7 @@ export type State = Exact<{
   fuseInstalling: boolean,
   fuseStatus: ?FuseStatus,
   fuseStatusLoading: boolean,
-  kbfsInstall: {
-    installing: boolean,
-    result: ?InstallResult,
-  },
+  kbfsOpening: boolean,
   kbfsStatus: KBFSStatus,
   kextPermissionError: boolean,
   viewState: ViewState,

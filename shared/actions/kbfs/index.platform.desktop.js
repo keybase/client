@@ -12,6 +12,7 @@ import {
 import {call, put, select} from 'redux-saga/effects'
 import electron, {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
+import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 
 import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -124,15 +125,34 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   }
 }
 
+function sleep(d: number): Promise<*> {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, d)
+  })
+}
+
 function* installFuseSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallFuseRpcPromise)
-  yield put({payload: {result}, type: 'fs:installFuseResult'})
+  const fuseResults = result && result.componentResults
+    ? result.componentResults.filter(c => c.name === 'fuse')
+    : []
+  const kextPermissionError =
+    fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
+
+  if (kextPermissionError) {
+    // Add a small delay here, since on 10.13 the OS will be a little laggy
+    // when showing a kext permission error.
+    yield call(sleep, 1000)
+  }
+
+  yield put({payload: {kextPermissionError}, type: 'fs:installFuseResult'})
 
   yield call(fuseStatusSaga)
 
+  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
   yield put({type: 'fs:installFuseFinished'})
 
-  yield call(waitForMountAndOpen)
+  yield call(waitForMountAndOpenSaga)
 }
 
 function waitForMount(attempt: number): Promise<*> {
@@ -158,6 +178,15 @@ function openDefaultPath(): Promise<*> {
 
 function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
+}
+
+function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
+  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
+  try {
+    yield call(waitForMountAndOpen)
+  } finally {
+    yield put({payload: {opening: false}, type: 'fs:openDefaultPath'})
+  }
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
