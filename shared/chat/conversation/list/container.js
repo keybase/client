@@ -8,6 +8,7 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
+import {onUserClick} from '../../../actions/profile'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
 import type {OwnProps, StateProps, DispatchProps} from './container'
@@ -105,6 +106,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}]))
   },
   onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
+  onUsernameClick: (username: string) => dispatch(onUserClick(username)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => {
@@ -135,6 +137,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     },
     onMessageAction: dispatchProps.onMessageAction,
     onOpenInFileUI: dispatchProps.onOpenInFileUI,
+    onUsernameClick: dispatchProps.onUsernameClick,
     selectedConversation: stateProps.selectedConversation,
     validated: stateProps.validated,
     you: stateProps.you,
