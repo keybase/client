@@ -524,6 +524,38 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	return buf, serverHalf, md.HasPrefetched, err
 }
 
+func (cache *DiskBlockCacheStandard) evictUntilBytesAvailable(
+	ctx context.Context, encodedLen int64) (hasEnoughSpace bool, err error) {
+	for i := 0; i < maxEvictionsPerPut; i++ {
+		select {
+		// Ensure we don't loop infinitely
+		case <-ctx.Done():
+			return false, ctx.Err()
+		default:
+		}
+		bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
+			ctx, cache.cacheType, encodedLen)
+		if err != nil {
+			cache.log.CWarningf(ctx, "Error obtaining space for the disk "+
+				"block cache: %+v", err)
+			return false, err
+		}
+		if bytesAvailable >= 0 {
+			return true, nil
+		}
+		cache.log.CDebugf(ctx, "Need more bytes. Available: %d", bytesAvailable)
+		numRemoved, _, err := cache.evictLocked(ctx, defaultNumBlocksToEvict)
+		if err != nil {
+			return false, err
+		}
+		if numRemoved == 0 {
+			return false, errors.New("couldn't evict any more blocks from " +
+				"the disk block cache")
+		}
+	}
+	return false, nil
+}
+
 // Put implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
@@ -555,14 +587,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasKey {
-		i := 0
-		for ; i < maxEvictionsPerPut; i++ {
-			select {
-			// Ensure we don't loop infinitely
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
+		if cache.config.IsSyncedTlf(tlfID) {
 			bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
 				ctx, cache.cacheType, encodedLen)
 			if err != nil {
@@ -570,23 +595,17 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 					"block cache: %+v", err)
 				return err
 			}
-			if bytesAvailable >= 0 {
-				break
+			if bytesAvailable < 0 {
+				return cachePutCacheFullError{blockID}
 			}
-			cache.log.CDebugf(ctx, "Need more bytes. Available: %d",
-				bytesAvailable)
-			numRemoved, _, err := cache.evictLocked(ctx,
-				defaultNumBlocksToEvict)
+		} else {
+			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
 			if err != nil {
 				return err
 			}
-			if numRemoved == 0 {
-				return errors.New("couldn't evict any more blocks from the " +
-					"disk block cache")
+			if !hasEnoughSpace {
+				return cachePutCacheFullError{blockID}
 			}
-		}
-		if i == maxEvictionsPerPut {
-			return cachePutCacheFullError{blockID}
 		}
 		err = cache.blockDb.Put(blockKey, entry, nil)
 		if err != nil {
