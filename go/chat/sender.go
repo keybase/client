@@ -545,43 +545,57 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// do nothing
 	}
 
-	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
-		conv.GetMembersType(), &conv)
-	if err != nil {
-		s.Debug(ctx, "error in Prepare: %s", err.Error())
-		return chat1.OutboxID{}, nil, nil, err
-	}
-
-	// Delete assets associated with a delete operation.
-	// Logs instead of returning an error. Assets can be left undeleted.
-	if len(pendingAssetDeletes) > 0 {
-		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+	var plres chat1.PostRemoteRes
+	for i := 0; i < 5; i++ {
+		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
+		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
+			conv.GetMembersType(), &conv)
 		if err != nil {
+			s.Debug(ctx, "error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, nil, err
 		}
-	}
+		boxed = b
 
-	// Log some useful information about the message we are sending
-	obidstr := "(none)"
-	if boxed.ClientHeader.OutboxID != nil {
-		obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
-	}
-	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+		// Delete assets associated with a delete operation.
+		// Logs instead of returning an error. Assets can be left undeleted.
+		if len(pendingAssetDeletes) > 0 {
+			err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+			if err != nil {
+				s.Debug(ctx, "failure in deleteAssets (charging forward): %s", err.Error())
+			}
+		}
 
-	// Keep trying if we get an error on topicNameState for a fixed number of times
-	rarg := chat1.PostRemoteArg{
-		ConversationID: convID,
-		MessageBoxed:   *boxed,
-		AtMentions:     atMentions,
-		ChannelMention: chanMention,
-		TopicNameState: topicNameState,
+		// Log some useful information about the message we are sending
+		obidstr := "(none)"
+		if boxed.ClientHeader.OutboxID != nil {
+			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+		}
+		s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+
+		// Keep trying if we get an error on topicNameState for a fixed number of times
+		rarg := chat1.PostRemoteArg{
+			ConversationID: convID,
+			MessageBoxed:   *boxed,
+			AtMentions:     atMentions,
+			ChannelMention: chanMention,
+			TopicNameState: topicNameState,
+		}
+		plres, err = ri.PostRemote(ctx, rarg)
+		if err != nil {
+			switch err.(type) {
+			case libkb.ChatStalePreviousStateError:
+				// If we hit the stale previous state error, that means we should try again, since our view is
+				// out of date.
+				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
+				continue
+			default:
+				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
+				return chat1.OutboxID{}, nil, nil, err
+			}
+		}
+		boxed.ServerHeader = &plres.MsgHeader
+		break
 	}
-	plres, err := ri.PostRemote(ctx, rarg)
-	if err != nil {
-		return chat1.OutboxID{}, nil, nil, err
-	}
-	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
 	s.Debug(ctx, "sending local updates to chat sources")

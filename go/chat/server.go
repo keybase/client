@@ -514,7 +514,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		TopicID:   make(chat1.TopicID, 16),
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5; i++ {
 		h.Debug(ctx, "NewConversationLocal: attempt: %v", i)
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
@@ -525,7 +525,6 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
 		}
-
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:       triple,
@@ -539,6 +538,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		convID := ncrres.ConvID
 		if reserr != nil {
 			switch cerr := reserr.(type) {
+			case libkb.ChatStalePreviousStateError:
+				h.Debug(ctx, "NewConversationLocal: stale topic name state, trying again")
+				continue
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
 				h.Debug(ctx, "NewConversationLocal: conv exists: %v", cerr.ConvID)
