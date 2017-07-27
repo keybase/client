@@ -789,6 +789,42 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
+func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
+	set := make(map[keybase1.UserVersion]bool)
+
+	owners, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range owners {
+		set[m] = true
+	}
+
+	admins, err := t.UsersWithRole(keybase1.TeamRole_ADMIN)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range admins {
+		set[m] = true
+	}
+
+	if t.chain().IsSubteam() {
+		imp, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range imp {
+			set[m] = true
+		}
+	}
+
+	var all []keybase1.UserVersion
+	for uv := range set {
+		all = append(all, uv)
+	}
+	return all, nil
+}
+
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
 	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
 

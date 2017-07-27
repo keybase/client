@@ -177,7 +177,13 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
+	// subteam needs to be keyed for all admins above it
+	allParentAdmins, err := parentTeam.AllAdmins(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin, allParentAdmins)
 	if err != nil {
 		return nil, err
 	}
@@ -299,26 +305,38 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	return
 }
 
-func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
+func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return
 	}
 
-	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
-	if ownerLatest == nil {
-		err = errors.New("can't create a new team without having provisioned a per-user key")
-		return
+	/*
+		ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
+		if ownerLatest == nil {
+			err = errors.New("can't create a new team without having provisioned a per-user key")
+			return
+		}
+	*/
+
+	memSet := newMemberSet()
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true, true)
+	if err != nil {
+		return nil, nil, err
 	}
-	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
-		me.ToUserVersion(): *ownerLatest,
-	}
+
+	/*
+		secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+			me.ToUserVersion(): *ownerLatest,
+		}
+	*/
+
 	// These boxes will get posted along with the sig below.
 	m, err := NewTeamKeyManager(g)
 	if err != nil {
 		return nil, nil, err
 	}
-	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
+	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return
 	}
