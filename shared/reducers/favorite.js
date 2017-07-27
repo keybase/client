@@ -18,10 +18,7 @@ const initialState: Constants.State = {
   fuseInstalling: false,
   fuseStatus: null,
   fuseStatusLoading: false,
-  kbfsInstall: {
-    installing: false,
-    result: null,
-  },
+  kbfsOpening: false,
   kbfsStatus: {
     isAsyncWriteHappening: false,
   },
@@ -136,10 +133,7 @@ export default function(
         kextPermissionError: false,
       }
     case 'fs:installFuseResult':
-      const result = action.payload.result
-      const fuseResults = result.componentResults.filter(c => c.name === 'fuse')
-      const kextPermissionError =
-        fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
+      const {kextPermissionError} = action.payload
       return {
         ...state,
         kextPermissionError,
@@ -155,21 +149,11 @@ export default function(
         fuseInstalling: false,
         kextPermissionError: false,
       }
-    case 'fs:installKBFS':
+    case 'fs:openDefaultPath':
+      const {opening} = action.payload
       return {
         ...state,
-        kbfsInstall: {
-          installing: true,
-          result: null,
-        },
-      }
-    case 'fs:installKBFSResult':
-      return {
-        ...state,
-        kbfsInstall: {
-          installing: false,
-          result: action.payload.result,
-        },
+        kbfsOpening: opening,
       }
 
     default:
