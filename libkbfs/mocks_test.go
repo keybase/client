@@ -2976,6 +2976,19 @@ func (_mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(arg0, arg1, arg2, arg3
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), arg0, arg1, arg2, arg3)
 }
 
+// GetMetadata mocks base method
+func (_m *MockDiskBlockCache) GetMetadata(ctx context.Context, blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetMetadata", ctx, blockID)
+	ret0, _ := ret[0].(DiskBlockCacheMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMetadata indicates an expected call of GetMetadata
+func (_mr *MockDiskBlockCacheMockRecorder) GetMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).GetMetadata), arg0, arg1)
+}
+
 // Size mocks base method
 func (_m *MockDiskBlockCache) Size() int64 {
 	ret := _m.ctrl.Call(_m, "Size")
