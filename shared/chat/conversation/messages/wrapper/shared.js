@@ -57,7 +57,7 @@ class UsernameEntry extends PureComponent<void, UsernameEntryProps, void> {
     }
     return (
       <Box style={usernameEntryContainerStyle} onClick={this._onClick}>
-        <Text type="BodySmallSemibold" style={style}>blah {author} blah</Text>
+        <Text type="BodySmallSemibold" style={style}>{author}</Text>
       </Box>
     )
   }
