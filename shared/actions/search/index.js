@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/searchv3'
+import * as Constants from '../../constants/search'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
 import {
@@ -226,9 +226,9 @@ function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constant
   yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase', true))
 }
 
-function* searchV3Saga(): SagaGenerator<any, any> {
-  yield Saga.safeTakeLatest('searchv3:search', search)
-  yield Saga.safeTakeLatest('searchv3:searchSuggestions', searchSuggestions)
+function* searchSaga(): SagaGenerator<any, any> {
+  yield Saga.safeTakeLatest('search:search', search)
+  yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
 }
 
-export default searchV3Saga
+export default searchSaga

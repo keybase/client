@@ -3,6 +3,7 @@ package teams
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -164,4 +165,22 @@ func (e ResolveError) Error() string {
 
 func NewResolveError(name keybase1.TeamName, id keybase1.TeamID) ResolveError {
 	return ResolveError{name, id}
+}
+
+func fixupTeamGetError(e error, n string) error {
+	if e == nil {
+		return nil
+	}
+	ase, ok := e.(libkb.AppStatusError)
+	if !ok {
+		return e
+	}
+	switch keybase1.StatusCode(ase.Code) {
+	case keybase1.StatusCode_SCTeamReadError:
+		ase.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
+	case keybase1.StatusCode_SCTeamNotFound:
+		ase.Desc = fmt.Sprintf("Team %q does not exist", n)
+	default:
+	}
+	return ase
 }

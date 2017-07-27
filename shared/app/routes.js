@@ -5,20 +5,10 @@ import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
 import foldersRoutes from '../folders/routes'
 import profileRoutes from '../profile/routes'
-import searchRoutes from '../search/routes'
 import settingsRoutes from '../settings/routes'
 import Nav from './nav'
 import {isMobile} from '../constants/platform'
-import {
-  chatTab,
-  devicesTab,
-  folderTab,
-  loginTab,
-  peopleTab,
-  profileTab,
-  searchTab,
-  settingsTab,
-} from '../constants/tabs'
+import {chatTab, devicesTab, folderTab, loginTab, peopleTab, profileTab, settingsTab} from '../constants/tabs'
 
 const routeTree = new RouteDefNode({
   defaultSelected: loginTab,
@@ -34,7 +24,6 @@ const routeTree = new RouteDefNode({
         }),
     [peopleTab]: profileRoutes,
     [profileTab]: profileRoutes,
-    [searchTab]: searchRoutes,
     [settingsTab]: settingsRoutes,
   },
 })

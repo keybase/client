@@ -12,7 +12,7 @@ import pgpSaga from '../actions/pgp'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
-import searchV3Saga from '../actions/searchv3'
+import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
 import pushSaga from '../actions/push'
 import {fork} from 'redux-saga/effects'
@@ -36,7 +36,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(profileSaga)
   yield fork(pushSaga)
   yield fork(routeSaga)
-  yield fork(searchV3Saga)
+  yield fork(searchSaga)
   yield fork(settingsSaga)
   yield fork(appStateSaga)
 }

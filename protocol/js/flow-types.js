@@ -208,6 +208,7 @@ export const ConstantsStatusCode = {
   scchatduplicatemessage: 2515,
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
+  scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
   scteamtarduplicate: 2663,
@@ -5322,6 +5323,7 @@ export type StatusCode =
   | 2515 // SCChatDuplicateMessage_2515
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
+  | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623
   | 2663 // SCTeamTarDuplicate_2663

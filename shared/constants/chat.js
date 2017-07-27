@@ -1,5 +1,5 @@
 // @flow
-import * as SearchConstants from './searchv3'
+import * as SearchConstants from './search'
 import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'

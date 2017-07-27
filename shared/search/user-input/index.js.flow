@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import * as Constants from '../../constants/searchv3'
+import * as Constants from '../../constants/search'
 import type {IconType} from '../../common-adapters/icon'
 
 export type UserDetails = {

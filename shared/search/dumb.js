@@ -1,191 +1,450 @@
 // @flow
-import React from 'react'
-import Search from '.'
-import UserPane from './user-pane/render'
-import userPaneMocks from './user-pane/dumb'
+import {compose, withHandlers, withState} from 'recompose'
+import ServicesFilter from './services-filter'
+import ResultRow from './result-row'
+import ResultsList from './results-list'
+import UserInput from './user-input'
+import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {Map} from 'immutable'
+import {isMobile} from '../constants/platform'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
-const results = [
-  {
-    extraInfo: {
-      fullName: 'Chris Coyne',
-      isFollowing: true,
-      service: 'keybase',
-      username: 'chris',
-    },
-    icon: 'icon-twitter-logo-32',
-    keybaseSearchResult: null,
-    profileUrl: 'https://twitter.com/malgorithms',
-    service: 'external',
-    serviceAvatar: '',
-    serviceName: 'Twitter',
-    username: 'malgorithms',
-  },
-  {
-    extraInfo: {
-      fullName: 'John Malg',
-      service: 'none',
-    },
-    isFollowing: false,
-    service: 'keybase',
-    username: 'malg',
-  },
-  {
-    extraInfo: {
-      fullName: 'Malgo Malg',
-      service: 'none',
-    },
-    isFollowing: false,
-    service: 'keybase',
-    username: 'malgomalg',
-  },
-  {
-    extraInfo: {
-      fullNameOnService: 'Chris Coyne',
-      icon: 'iconfont-identity-twitter',
-      service: 'external',
-      serviceAvatar: '',
-      serviceUsername: 'malgorithms',
-    },
-    isFollowing: true,
-    service: 'keybase',
-    username: 'chris',
-  },
-  {
-    extraInfo: {
-      fullName: 'Chris Coyne',
-      isFollowing: true,
-      service: 'keybase',
-      username: 'chris',
-    },
-    isFollowing: true,
-    service: 'keybase',
-    username: 'chris2',
-  },
-]
-
-const commonUsers = [
-  {
-    extraInfo: {
-      fullName: 'Max Krohn',
-      service: 'none',
-    },
-    isFollowing: false,
-    service: 'keybase',
-    username: 'max',
-  },
-  {
-    extraInfo: {
-      fullName: 'John Malg',
-      service: 'none',
-    },
-    isFollowing: false,
-    service: 'keybase',
-    username: 'malg',
-  },
-  {
-    extraInfo: {
-      fullNameOnService: 'Chris Coyne',
-      icon: 'icon-twitter-logo-32',
-      service: 'external',
-      serviceAvatar: '',
-      serviceUsername: 'malgorithms',
-    },
-    icon: 'icon-twitter-logo-32',
-    keybaseSearchResult: null,
-    profileUrl: 'https://twitter.com/malgorithms',
-    service: 'external',
-    serviceAvatar: '',
-    serviceName: 'Twitter',
-    username: 'malgorithms',
-  },
-]
-
-const commonProps = {
-  chatEnabled: false,
-  onAddUser: () => console.log('onAddUser'),
-  onClickResult: () => console.log('onClickResult'),
-  onClickService: () => console.log('onClickService'),
-  onClickUserInGroup: u => console.log('onClickUser', u),
-  onGroupChat: () => console.log('onGroupChat'),
-  onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
-  onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
-  onRemoveUserFromGroup: u => console.log('onRemoveUser', u),
-  onReset: () => console.log('onReset'),
-  onSearch: text => console.log('OnSearch: ', text),
-  results,
-  searchHintText: 'Search Keybase',
-  searchIcon: 'icon-keybase-logo-32',
-  searchText: 'malg',
-  searchTextClearTrigger: 1,
-  selectedService: 'Keybase',
-  selectedUsers: commonUsers,
-  showUserGroup: false,
-  userForInfoPane: commonUsers[0],
-  // prettier-ignore
-  // $FlowIssue
-  userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
-  username: 'bob',
-  waiting: false,
+const commonServicesFilterMapProps = {
+  onSelectService: service => console.log(`Clicked ${service}`),
 }
 
-const searchMap: DumbComponentMap<Search> = {
-  component: Search,
+const servicesFilterMap: DumbComponentMap<ServicesFilter> = {
+  component: ServicesFilter,
   mocks: {
-    'Chat enabled': {
-      ...commonProps,
-      chatEnabled: true,
-      showUserGroup: true,
+    Keybase: {
+      ...commonServicesFilterMapProps,
+      selectedService: 'Keybase',
     },
-    Group: {
-      ...commonProps,
-      showUserGroup: true,
+    Twitter: {
+      ...commonServicesFilterMapProps,
+      selectedService: 'Twitter',
     },
-    'Group non-user': {
-      ...commonProps,
-      showUserGroup: true,
-      userForInfoPane: commonUsers[2],
-      // prettier-ignore
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Normal']} />,
+    Facebook: {
+      ...commonServicesFilterMapProps,
+      selectedService: 'Facebook',
     },
-    'Group non-user Has Invite': {
-      ...commonProps,
-      showUserGroup: true,
-      userForInfoPane: commonUsers[2],
-      // prettier-ignore
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Has Invite']} />,
+    GitHub: {
+      ...commonServicesFilterMapProps,
+      selectedService: 'GitHub',
     },
-    'Group non-user No Avatar': {
-      ...commonProps,
-      showUserGroup: true,
-      userForInfoPane: commonUsers[2],
-      // prettier-ignore
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
+    Reddit: {
+      ...commonServicesFilterMapProps,
+      selectedService: 'Reddit',
     },
-    'Group non-user Out of invites': {
-      ...commonProps,
-      showUserGroup: true,
-      userForInfoPane: commonUsers[2],
-      // prettier-ignore
-      // $FlowIssue
-      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
+    'Hacker News': {
+      ...commonServicesFilterMapProps,
+      selectedService: 'Hacker News',
     },
-    Searching: {
-      ...commonProps,
+  },
+}
+
+const commonServicesResultMapProps = {
+  parentProps: {
+    style: isMobile
+      ? {}
+      : {
+          width: 480,
+        },
+  },
+  showTrackerButton: false,
+  id: 0,
+  onShowTracker: () => console.log('onShowTracker clicked'),
+}
+
+const commonServicesResultMapPropsKB = {
+  ...commonServicesResultMapProps,
+  leftFollowingState: 'NoState',
+  leftIcon: 'jzila',
+  leftService: 'Keybase',
+  leftUsername: 'jzila',
+  rightFollowingState: 'NoState',
+  rightFullname: 'John Zila',
+  rightIcon: null,
+  rightService: null,
+  rightUsername: null,
+}
+
+const commonServicesResultMapPropsService = {
+  ...commonServicesResultMapProps,
+  leftFollowingState: 'NoState',
+  leftUsername: 'jzila',
+  rightFollowingState: 'NoState',
+  rightFullname: 'John Zila',
+  rightIcon: null,
+  rightService: null,
+  rightUsername: null,
+}
+
+// $FlowIssue doesn't like stateless components
+const servicesResultMap: DumbComponentMap<ResultRow> = {
+  component: ResultRow,
+  mocks: {
+    KeybaseNoService: {
+      ...commonServicesResultMapPropsKB,
     },
-    Waiting: {
-      ...commonProps,
-      results: [],
-      showUserGroup: true,
-      waiting: true,
+    KeybaseNoServiceFollowing: {
+      ...commonServicesResultMapPropsKB,
+      leftFollowingState: 'Following',
+    },
+    KeybaseNoServiceNotFollowing: {
+      ...commonServicesResultMapPropsKB,
+      leftFollowingState: 'NotFollowing',
+    },
+    KeybaseNoServiceYou: {
+      ...commonServicesResultMapPropsKB,
+      leftFollowingState: 'You',
+    },
+    KeybaseNoServiceNoFollow: {
+      ...commonServicesResultMapPropsKB,
+      leftFollowing: false,
+    },
+    KeybaseNoServiceShowTracker: {
+      ...commonServicesResultMapPropsKB,
+      showTrackerButton: true,
+    },
+    KeybaseGitHub: {
+      ...commonServicesResultMapPropsKB,
+      rightFullname: 'John Zila on GitHub',
+      rightIcon: 'iconfont-identity-github',
+      rightService: 'GitHub',
+      rightUsername: 'jzilagithub',
+    },
+    KeybaseGitHubNoFullname: {
+      ...commonServicesResultMapPropsKB,
+      rightIcon: 'iconfont-identity-github',
+      rightService: 'GitHub',
+      rightUsername: 'jzilagithub',
+    },
+    Twitter: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-twitter-logo-24',
+      leftService: 'Twitter',
+    },
+    TwitterKeybase: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-twitter-logo-24',
+      leftService: 'Twitter',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseFollowing: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-twitter-logo-24',
+      leftService: 'Twitter',
+      rightFollowingState: 'Following',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseNotFollowing: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-twitter-logo-24',
+      leftService: 'Twitter',
+      rightFollowingState: 'NotFollowing',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    TwitterKeybaseYou: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-twitter-logo-24',
+      leftService: 'Twitter',
+      rightFollowingState: 'You',
+      rightService: 'Keybase',
+      rightUsername: 'jzila',
+    },
+    Facebook: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-facebook-logo-24',
+      leftService: 'Facebook',
+    },
+    GitHub: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-github-logo-24',
+      leftService: 'GitHub',
+    },
+    Reddit: {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-reddit-logo-24',
+      leftService: 'Reddit',
+    },
+    'Hacker News': {
+      ...commonServicesResultMapPropsService,
+      leftIcon: 'icon-hacker-news-logo-24',
+      leftService: 'Hacker News',
+    },
+  },
+}
+
+const servicesResultsListMapCommonRows = {
+  chris: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'Following',
+    leftUsername: 'chris',
+    rightFullname: 'chris on GitHub',
+    rightIcon: 'iconfont-identity-github',
+    rightService: 'GitHub',
+    rightUsername: 'chrisname',
+  },
+  cjb: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'NotFollowing',
+    leftUsername: 'cjb',
+    rightFullname: 'cjb on facebook',
+    rightIcon: 'iconfont-identity-facebook',
+    rightService: 'Facebook',
+    rightUsername: 'cjbname',
+  },
+  jzila: {
+    ...commonServicesResultMapPropsKB,
+    leftFollowingState: 'NoState',
+    leftUsername: 'jzila',
+    rightFullname: 'jzila on twitter',
+    rightIcon: 'iconfont-identity-twitter',
+    rightService: 'Twitter',
+    rightUsername: 'jzilatwit',
+  },
+}
+
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name + '-fb'] = {
+    ...servicesResultsListMapCommonRows[name],
+    leftFollowingState: 'NoState',
+    leftIcon: 'icon-facebook-logo-24',
+    leftService: 'Facebook',
+  }
+})
+
+Object.keys(servicesResultsListMapCommonRows).forEach(name => {
+  servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+})
+
+const servicesResultsListMapCommon = {
+  mockStore: {
+    config: {
+      username: 'tester',
+      following: {},
+    },
+    entities: new EntitiesStateRecord({
+      searchResults: Map(servicesResultsListMapCommonRows),
+    }),
+  },
+  parentProps: {
+    style: {
+      width: 420,
+    },
+  },
+  selectedId: null,
+  showSearchSuggestions: false,
+}
+
+const servicesResultsListMap: DumbComponentMap<ResultsList> = {
+  component: ResultsList,
+  mocks: {
+    keybaseResults: {
+      ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
+      items: ['chris', 'cjb', 'jzila'],
+      keyPath: ['searchChat'],
+    },
+    keybaseResultsOne: {
+      ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
+      items: ['chris'],
+      keyPath: ['searchChat'],
+    },
+    facebookResults: {
+      ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
+      items: ['chris-fb', 'cjb-fb', 'jzila-fb'],
+      keyPath: ['searchChat'],
+    },
+    noResults: {
+      ...servicesResultsListMapCommon,
+      onShowTracker: () => console.log('onShowTracker'),
+      onClick: () => console.log('onClick'),
+      items: [],
+      keyPath: ['searchChat'],
+    },
+  },
+}
+
+const commonUserInputMapProps = {
+  placeholder: 'Type someone',
+  onChangeText: text => console.log(`username text change: ${text}`),
+  onRemoveUser: username => console.log(`user removed: ${username}`),
+  onClickAddButton: () => console.log('username input add button clicked'),
+  onMoveSelectUp: () => console.log('username input moveSelectUp'),
+  onMoveSelectDown: () => console.log('username input moveSelectDown'),
+  onCancel: () => console.log('username cancel'),
+  onAddSelectedUser: () => console.log('on add selected user'),
+}
+
+const maxUsers = [
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'max', id: 'max'},
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'denormalize',
+    id: 'denormalize@twitter',
+  },
+]
+
+const chrisUsers = [
+  {followingState: 'You', icon: null, service: 'Keybase', username: 'chromakode', id: 'chromakode'},
+  {followingState: 'Following', icon: null, service: 'Keybase', username: 'chris', id: 'chris'},
+  {
+    followingState: 'Following',
+    icon: 'icon-hacker-news-logo-16',
+    service: 'Hacker News',
+    username: 'cnojima',
+    id: 'cnojima@hackernews',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-twitter-logo-16',
+    service: 'Twitter',
+    username: 'chriscoyier',
+    id: 'chriscoyier@twitter',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-facebook-logo-16',
+    service: 'Facebook',
+    username: 'chrisevans',
+    id: 'chrisevans@facebook',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-github-logo-16',
+    service: 'GitHub',
+    username: 'defunkt',
+    id: 'defunkt@github',
+  },
+  {
+    followingState: 'NotFollowing',
+    icon: 'icon-reddit-logo-16',
+    service: 'Reddit',
+    username: 'KeyserSosa',
+    id: 'KeyserSosa@reddit',
+  },
+]
+
+const userInputMap: DumbComponentMap<UserInput> = {
+  component: UserInput,
+  mocks: {
+    'Empty + Placeholder': {
+      ...commonUserInputMapProps,
+      userItems: [],
+      usernameText: '',
+    },
+    'Users + Add': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: '',
+    },
+    'Users + Text': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: 'ma',
+    },
+    'Users + Text + Clear Search': {
+      ...commonUserInputMapProps,
+      userItems: maxUsers,
+      usernameText: 'ma',
+      onClearSearch: () => console.log('on clear search'),
+    },
+    'Users (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 480,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
+      usernameText: '',
+    },
+    'Users (Wrap Add Button)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 370,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: maxUsers,
+      usernameText: '',
+    },
+    'Users + Text (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: 460,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
+      usernameText: 'Chris Hemswor',
+    },
+  },
+}
+
+const UserInputEditable = compose(
+  withState('usernameText', 'onChangeText', ''),
+  withState('userItems', 'setUserItems', ({userItems}) => userItems),
+  withHandlers({
+    onRemoveUser: ({setUserItems, userItems}) => (id: string) => {
+      setUserItems(userItems.filter(i => i.id !== id))
+    },
+  })
+)(UserInput)
+
+const userInputEditableMap: DumbComponentMap<UserInputEditable> = {
+  component: UserInputEditable,
+  mocks: {
+    Empty: {
+      ...commonUserInputMapProps,
+      userItems: [],
+    },
+    'Users + Add (Wrap)': {
+      ...commonUserInputMapProps,
+      parentProps: {
+        style: {
+          width: isMobile ? 300 : 480,
+          padding: 4,
+          borderWidth: 2,
+          borderColor: 'gray',
+          borderStyle: 'solid',
+        },
+      },
+      userItems: chrisUsers,
     },
   },
 }
 
 export default {
-  Search: searchMap,
+  'Search resultsList': servicesResultsListMap,
+  'Search filter': servicesFilterMap,
+  'Search user input': userInputMap,
+  'Search user input (editable)': userInputEditableMap,
+  'Search result': servicesResultMap,
 }

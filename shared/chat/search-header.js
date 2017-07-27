@@ -1,17 +1,17 @@
 // @flow
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
-import * as SearchCreators from '../actions/searchv3/creators'
-import * as SearchConstants from '../constants/searchv3'
+import * as SearchCreators from '../actions/search/creators'
+import * as SearchConstants from '../constants/search'
 import * as Constants from '../constants/chat'
-import UserInput from '../searchv3/user-input'
-import ServiceFilter from '../searchv3/services-filter'
+import UserInput from '../search/user-input'
+import ServiceFilter from '../search/services-filter'
 import {Box} from '../common-adapters'
 import {compose, withState, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {globalStyles, globalMargins} from '../styles'
 import {chatSearchResultArray, chatSearchResultTerm} from '../constants/selectors'
-import * as HocHelpers from '../searchv3/helpers'
+import * as HocHelpers from '../search/helpers'
 import {createSelector} from 'reselect'
 
 type OwnProps = {

@@ -1,5 +1,5 @@
 // @flow
-import * as Constants from '../../constants/searchv3'
+import * as Constants from '../../constants/search'
 import React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
 import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'

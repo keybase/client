@@ -2,10 +2,10 @@
 import {Map} from 'immutable'
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
-import {followStateHelper} from '../../constants/searchv3'
+import {followStateHelper} from '../../constants/search'
 
 import type {TypedState} from '../../constants/reducer'
-import type {SearchResultId} from '../../constants/searchv3'
+import type {SearchResultId} from '../../constants/search'
 
 const mapStateToProps = (
   state: TypedState,

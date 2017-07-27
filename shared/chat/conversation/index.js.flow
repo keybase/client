@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 import * as Constants from '../../constants/chat'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 
 export type Props = {|
   editLastMessageCounter: number,
@@ -18,7 +18,6 @@ export type Props = {|
   rekeyInfo: ?Constants.RekeyInfo,
   selectedConversationIDKey: ?Constants.ConversationIDKey,
   threadLoadedOffline: boolean,
-  searchV3Enabled: boolean,
   inSearch: boolean,
   onExitSearch: () => void,
   showSearchPending: boolean,
