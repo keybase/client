@@ -192,6 +192,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
 
   yield call(fuseStatusSaga)
 
+  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
   yield put({type: 'fs:installKBSFinished'})
 
   yield call(waitForMountAndOpenSaga)
