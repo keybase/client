@@ -56,13 +56,13 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 				link, "filling stubbed link")
 		}
 
-		var signer *keybase1.UserVersion
+		var signer *signerX
 		signer, proofSet, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
 
-		if signer == nil || !signer.Uid.Exists() {
+		if signer == nil || !signer.signer.Uid.Exists() {
 			return state, proofSet, parentChildOperations, fmt.Errorf("blank signer for full link: %v", signer)
 		}
 
@@ -226,7 +226,7 @@ func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keyba
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
-	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*keybase1.UserVersion, *proofSetT, error) {
+	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, *proofSetT, error) {
 
 	if link.isStubbed() {
 		return nil, proofSet, nil
@@ -250,7 +250,6 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	if err != nil {
 		return nil, proofSet, err
 	}
-	uv := user.ToUserVersion()
 
 	if !kid.Equal(key.Base.Kid) {
 		return nil, proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
@@ -263,18 +262,21 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 
 	proofSet = addProofsForKeyInUserSigchain(teamID, teamLinkMap, link, user.Uid, key, linkMap, proofSet)
 
+	signer := signerX{signer: user.ToUserVersion()}
+
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
 	if state == nil {
-		return &uv, proofSet, nil
+		return &signer, proofSet, nil
 	}
 
 	if link.outerLink.LinkType.RequiresAdminPermission() {
-		proofSet, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, user.ToUserVersion(), proofSet)
+		// Reassign signer, might set implicitAdmin
+		proofSet, signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, user.ToUserVersion(), proofSet)
 	} else {
 		err = l.verifyWriterOrReaderPermissions(ctx, state, link, user.ToUserVersion())
 	}
-	return &uv, proofSet, err
+	return &signer, proofSet, err
 }
 
 func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
@@ -331,30 +333,32 @@ func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUn
 
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
-	uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, error) {
+	uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, signerX, error) {
 
+	signer := signerX{signer: uv}
 	explicitAdmin := link.inner.TeamAdmin()
 
 	// In the simple case, we don't ask for explicit adminship, so we have to be admins of
 	// the current chain at or before the signature in question.
 	if explicitAdmin == nil {
 		err := (TeamSigChainState{inner: state.Chain}).AssertWasAdminAt(uv, link.SigChainLocation())
-		return proofSet, err
+		return proofSet, signer, err
 	}
 
 	// The more complicated case is that there's an explicit admin permssion given, perhaps
 	// of a parent team.
 	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin)
 	if err != nil {
-		return proofSet, err
+		return proofSet, signer, err
 	}
 	adminBookends, err := adminTeam.AssertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
 	if err != nil {
-		return proofSet, err
+		return proofSet, signer, err
 	}
 
+	signer.implicitAdmin = true
 	proofSet = addProofsForAdminPermission(state.Chain, link, adminBookends, proofSet)
-	return proofSet, nil
+	return proofSet, signer, nil
 }
 
 // Whether the chain link is of a (child-half) type
@@ -421,7 +425,7 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 // `signer` may be nil iff link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
-	signer *keybase1.UserVersion, me keybase1.UserVersion) (*keybase1.TeamData, error) {
+	signer *signerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {
 
 	l.G().Log.CDebugf(ctx, "TeamLoader applying link seqno:%v", link.Seqno())
 
@@ -464,7 +468,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 // Inflate a link that was stubbed with its non-stubbed data.
 func (l *TeamLoader) inflateLink(ctx context.Context,
 	state *keybase1.TeamData, link *chainLinkUnpacked,
-	signer keybase1.UserVersion, me keybase1.UserVersion) (
+	signer signerX, me keybase1.UserVersion) (
 	*keybase1.TeamData, error) {
 
 	l.G().Log.CDebugf(ctx, "TeamLoader inflating link seqno:%v", link.Seqno())

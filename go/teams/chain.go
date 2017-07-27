@@ -492,7 +492,7 @@ func (t *TeamSigChainPlayer) GetState() (res TeamSigChainState, err error) {
 // It must have already been partially verified by TeamLoader.
 // `signer` may be nil iff link is stubbed.
 // If this returns an error, the TeamSigChainPlayer was not modified.
-func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLinkUnpacked, signer *keybase1.UserVersion) error {
+func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLinkUnpacked, signer *signerX) error {
 	t.Lock()
 	defer t.Unlock()
 
@@ -519,7 +519,7 @@ func (t *TeamSigChainPlayer) AppendChainLink(ctx context.Context, link *chainLin
 // Does not modify self or any arguments.
 // The `prevState` argument is nil if this is the first chain link. `prevState` must not be modified in this function.
 func (t *TeamSigChainPlayer) appendChainLinkHelper(
-	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *keybase1.UserVersion) (
+	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *signerX) (
 	res TeamSigChainState, err error) {
 
 	err = t.checkOuterLink(ctx, prevState, link)
@@ -535,7 +535,7 @@ func (t *TeamSigChainPlayer) appendChainLinkHelper(
 		newState2 := prevState.DeepCopy()
 		newState = &newState2
 	} else {
-		if signer == nil || !signer.Uid.Exists() {
+		if signer == nil || !signer.signer.Uid.Exists() {
 			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
 		iRes, err := t.addInnerLink(prevState, link, *signer, false)
@@ -593,7 +593,7 @@ func (t *TeamSigChainPlayer) checkOuterLink(ctx context.Context, prevState *Team
 // which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
 func (t *TeamSigChainPlayer) addInnerLink(
-	prevState *TeamSigChainState, link *chainLinkUnpacked, signer keybase1.UserVersion,
+	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX,
 	isInflate bool) (
 	res checkInnerLinkResult, err error) {
 
@@ -602,7 +602,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	}
 	payload := *link.inner
 
-	if !signer.Uid.Exists() {
+	if !signer.signer.Uid.Exists() {
 		return res, NewInvalidLink(link, "empty link signer")
 	}
 
@@ -765,7 +765,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 
 		// check that the signer is an owner
-		if res.newState.getUserRole(signer) != keybase1.TeamRole_OWNER {
+		if res.newState.getUserRole(signer.signer) != keybase1.TeamRole_OWNER {
 			return res, fmt.Errorf("signer is not an owner: %v (%v)", signer, team.Members.Owners)
 		}
 
@@ -784,14 +784,20 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		// Check that the signer is an admin or owner to have permission to make this link.
-		signerRole, err := prevState.GetUserRole(signer)
-		if err != nil {
-			return res, err
-		}
-		if !signerRole.IsAdminOrAbove() {
-			return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v",
-				signer, signerRole)
+		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
+		var signerIsExplicitOwner bool
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return res, err
+			}
+			if !signerRole.IsAdminOrAbove() {
+				return res, fmt.Errorf("link signer does not have permission to change membership: %v is a %v",
+					signer, signerRole)
+			}
+			if signerRole == keybase1.TeamRole_OWNER {
+				signerIsExplicitOwner = true
+			}
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
@@ -803,12 +809,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		// Only owners can add more owners.
-		if (len(roleUpdates[keybase1.TeamRole_OWNER]) > 0) && (signerRole != keybase1.TeamRole_OWNER) {
+		if (len(roleUpdates[keybase1.TeamRole_OWNER]) > 0) && !signerIsExplicitOwner {
 			return res, fmt.Errorf("non-owner cannot add owners")
 		}
 
 		// Only owners can remove owners.
-		if t.roleUpdatesDemoteOwners(prevState, roleUpdates) && (signerRole != keybase1.TeamRole_OWNER) {
+		if t.roleUpdatesDemoteOwners(prevState, roleUpdates) && !signerIsExplicitOwner {
 			return res, fmt.Errorf("non-owner cannot demote owners")
 		}
 
@@ -849,15 +855,17 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		// Check that the signer is at least a writer to have permission to make this link.
-		signerRole, err := prevState.GetUserRole(signer)
-		if err != nil {
-			return res, err
-		}
-		switch signerRole {
-		case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-			// ok
-		default:
-			return res, fmt.Errorf("link signer does not have permission to rotate key: %v is a %v", signer, signerRole)
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return res, err
+			}
+			switch signerRole {
+			case keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+				// ok
+			default:
+				return res, fmt.Errorf("link signer does not have permission to rotate key: %v is a %v", signer, signerRole)
+			}
 		}
 
 		lastKey, err := prevState.GetLatestPerTeamKey()
@@ -892,7 +900,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
-		signerRole, err := prevState.GetUserRole(signer)
+		signerRole, err := prevState.GetUserRole(signer.signer)
 		if err != nil {
 			return res, err
 		}
@@ -907,7 +915,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// But that's really up to them and the server. We're just reading what has happened.
 
 		res.newState = prevState.DeepCopy()
-		res.newState.inform(signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
+		res.newState.inform(signer.signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
 
 		return res, nil
 	case libkb.LinkTypeNewSubteam:
@@ -1128,19 +1136,21 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		// Check that the signer is an admin or owner to have permission to make this link.
-		signerRole, err := prevState.GetUserRole(signer)
-		if err != nil {
-			return res, err
-		}
-		switch signerRole {
-		case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
-			// ok
-		default:
-			return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
+		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return res, err
+			}
+			switch signerRole {
+			case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+				// ok
+			default:
+				return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
+			}
 		}
 
-		additions, cancelations, err := t.sanityCheckInvites(signer, *team.Invites)
+		additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites)
 		if err != nil {
 			return res, err
 		}
@@ -1156,7 +1166,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 }
 
 // Add the full inner link for a link that has already been added in stubbed form.
-func (t *TeamSigChainPlayer) InflateLink(link *chainLinkUnpacked, signer keybase1.UserVersion) error {
+func (t *TeamSigChainPlayer) InflateLink(link *chainLinkUnpacked, signer signerX) error {
 	t.Lock()
 	defer t.Unlock()
 
@@ -1171,7 +1181,7 @@ func (t *TeamSigChainPlayer) InflateLink(link *chainLinkUnpacked, signer keybase
 }
 
 func (t *TeamSigChainPlayer) inflateLinkHelper(
-	prevState *TeamSigChainState, link *chainLinkUnpacked, signer keybase1.UserVersion) (
+	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX) (
 	*TeamSigChainState, error) {
 
 	if prevState == nil {
