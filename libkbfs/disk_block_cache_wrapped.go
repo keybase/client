@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 const (
@@ -35,6 +36,8 @@ type diskBlockCacheWrapped struct {
 	workingSetCache DiskBlockCache
 	syncCache       DiskBlockCache
 }
+
+var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 
 func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	cache *diskBlockCacheWrapped, err error) {
@@ -63,6 +66,24 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	return cache.workingSetCache.Get(ctx, tlfID, blockID)
 }
 
+// GetMetadata implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
+	blockID kbfsblock.ID) (metadata DiskBlockCacheMetadata, err error) {
+	// TODO: add mutex to guard sync state
+	if cache.syncCache != nil {
+		md, err := cache.syncCache.GetMetadata(ctx, blockID)
+		switch err {
+		case nil:
+			return md, nil
+		case errors.ErrNotFound:
+		default:
+			return md, err
+		}
+	}
+	return cache.workingSetCache.GetMetadata(ctx, blockID)
+}
+
 // Put implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
@@ -77,11 +98,8 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
 	numRemoved, sizeRemoved, err = cache.workingSetCache.Delete(ctx, blockIDs)
-	if err != nil {
+	if cache.syncCache == nil || err != nil {
 		return numRemoved, sizeRemoved, err
-	}
-	if cache.syncCache == nil {
-		return numRemoved, sizeRemoved, nil
 	}
 	syncNumRemoved, syncSizeRemoved, err :=
 		cache.syncCache.Delete(ctx, blockIDs)

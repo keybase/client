@@ -367,7 +367,7 @@ func (cache *DiskBlockCacheStandard) syncBlockCountsFromDb() error {
 	iter := cache.metaDb.NewIterator(nil, nil)
 	defer iter.Release()
 	for iter.Next() {
-		metadata := diskBlockCacheMetadata{}
+		metadata := DiskBlockCacheMetadata{}
 		err := cache.config.Codec().Decode(iter.Value(), &metadata)
 		if err != nil {
 			return err
@@ -396,7 +396,7 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched,
 	donePrefetch bool) error {
-	metadata := diskBlockCacheMetadata{
+	metadata := DiskBlockCacheMetadata{
 		TlfID:         tlfID,
 		LRUTime:       cache.config.Clock().Now(),
 		BlockSize:     uint32(encodeLen),
@@ -415,10 +415,10 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	return err
 }
 
-// getMetadata retrieves the metadata for a block in the cache, or returns
-// leveldb.ErrNotFound and a zero-valued metadata otherwise.
-func (cache *DiskBlockCacheStandard) getMetadata(blockID kbfsblock.ID) (
-	metadata diskBlockCacheMetadata, err error) {
+// getMetadataLocked retrieves the metadata for a block in the cache, or
+// returns leveldb.ErrNotFound and a zero-valued metadata otherwise.
+func (cache *DiskBlockCacheStandard) getMetadataLocked(blockID kbfsblock.ID) (
+	metadata DiskBlockCacheMetadata, err error) {
 	metadataBytes, err := cache.metaDb.Get(blockID.Bytes(), nil)
 	if err != nil {
 		return metadata, err
@@ -427,11 +427,11 @@ func (cache *DiskBlockCacheStandard) getMetadata(blockID kbfsblock.ID) (
 	return metadata, err
 }
 
-// getLRU retrieves the LRU time for a block in the cache, or returns
+// getLRULocked retrieves the LRU time for a block in the cache, or returns
 // leveldb.ErrNotFound and a zero-valued time.Time otherwise.
-func (cache *DiskBlockCacheStandard) getLRU(blockID kbfsblock.ID) (
+func (cache *DiskBlockCacheStandard) getLRULocked(blockID kbfsblock.ID) (
 	time.Time, error) {
-	metadata, err := cache.getMetadata(blockID)
+	metadata, err := cache.getMetadataLocked(blockID)
 	if err != nil {
 		return time.Time{}, err
 	}
@@ -511,7 +511,7 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false,
 			NoSuchBlockError{blockID}
 	}
-	md, err := cache.getMetadata(blockID)
+	md, err := cache.getMetadataLocked(blockID)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
@@ -587,7 +587,12 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		return err
 	}
 	if !hasKey {
-		if cache.config.IsSyncedTlf(tlfID) {
+		if cache.cacheType == syncCacheLimitTrackerType {
+			if !cache.config.IsSyncedTlf(tlfID) {
+				// TODO: Make better error type
+				return errors.New("Attempted to add an unsynced block to " +
+					"the sync cache.")
+			}
 			bytesAvailable, err := cache.config.DiskLimiter().reserveBytes(
 				ctx, cache.cacheType, encodedLen)
 			if err != nil {
@@ -599,6 +604,11 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				return cachePutCacheFullError{blockID}
 			}
 		} else {
+			if cache.config.IsSyncedTlf(tlfID) {
+				// TODO: Make better error type
+				return errors.New("Attempted to add a synced block to " +
+					"the working set disk cache.")
+			}
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
 			if err != nil {
 				return err
@@ -640,6 +650,15 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		false, false)
 }
 
+// GetMetadata implements the DiskBlockCache interface for
+// DiskBlockCacheStandard.
+func (cache *DiskBlockCacheStandard) GetMetadata(ctx context.Context,
+	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
+	cache.shutdownLock.RLock()
+	defer cache.shutdownLock.RUnlock()
+	return cache.getMetadataLocked(blockID)
+}
+
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
@@ -657,7 +676,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 			cache.updateMeter.Mark(1)
 		}
 	}()
-	md, err := cache.getMetadata(blockID)
+	md, err := cache.getMetadataLocked(blockID)
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
@@ -704,7 +723,7 @@ func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 			// don't account for its non-presence.
 			continue
 		}
-		metadata := diskBlockCacheMetadata{}
+		metadata := DiskBlockCacheMetadata{}
 		err = cache.config.Codec().Decode(metadataBytes, &metadata)
 		if err != nil {
 			return 0, 0, err
@@ -835,7 +854,7 @@ func (cache *DiskBlockCacheStandard) evictFromTLFLocked(ctx context.Context,
 			continue
 		}
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
-		lru, err := cache.getLRU(blockID)
+		lru, err := cache.getLRULocked(blockID)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s",
 				blockID)
@@ -883,7 +902,7 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 			continue
 		}
 		blockID, err := kbfsblock.IDFromBytes(key)
-		metadata := diskBlockCacheMetadata{}
+		metadata := DiskBlockCacheMetadata{}
 		err = cache.config.Codec().Decode(iter.Value(), &metadata)
 		if err != nil {
 			cache.log.CWarningf(ctx, "Error decoding metadata for block %s",

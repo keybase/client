@@ -17,7 +17,7 @@ type diskBlockCacheEntry struct {
 
 // diskBlockCacheMetadata packages the metadata needed to make decisions on
 // cache eviction.
-type diskBlockCacheMetadata struct {
+type DiskBlockCacheMetadata struct {
 	// the TLF ID for the block
 	TlfID tlf.ID
 	// the last time the block was used
