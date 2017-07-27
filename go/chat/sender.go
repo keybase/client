@@ -322,30 +322,28 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
-	conv *chat1.Conversation) (topicNameState *chat1.TopicNameState, err error) {
-	if conv != nil {
-		if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
-			newTopicName := msg.MessageBody.Metadata().ConversationTitle
-			convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
-				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
-				conv.GetMembersType())
-			if err != nil {
-				return topicNameState, err
-			}
-			for _, conv := range convs {
-				if utils.GetTopicName(conv) == newTopicName {
-					return nil, errors.New("channel name already in use")
-				}
-			}
-
-			ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, convs,
-				msg.ClientHeader.Sender, conv.Metadata.IdTriple.Tlfid, conv.GetTopicType(),
-				conv.GetMembersType())
-			if err != nil {
-				return topicNameState, err
-			}
-			topicNameState = &ts
+	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, err error) {
+	if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
+		tlfID := msg.ClientHeader.Conv.Tlfid
+		topicType := msg.ClientHeader.Conv.TopicType
+		newTopicName := msg.MessageBody.Metadata().ConversationTitle
+		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+		if err != nil {
+			return topicNameState, err
 		}
+		for _, conv := range convs {
+			if utils.GetTopicName(conv) == newTopicName {
+				return nil, DuplicateTopicNameError{TopicName: newTopicName}
+			}
+		}
+
+		ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, convs,
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+		if err != nil {
+			return topicNameState, err
+		}
+		topicNameState = &ts
 	}
 	return topicNameState, nil
 }
@@ -385,7 +383,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
 	// server
-	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, conv)
+	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
 	if err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
@@ -546,6 +544,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var plres chat1.PostRemoteRes
+	// Try this up to 5 times in case we ar trying to set the topic name, and the topic name
+	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,

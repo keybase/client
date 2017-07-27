@@ -965,7 +965,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
-		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
+		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
+		return chat1.PostLocalRes{}, err
 	}
 
 	return chat1.PostLocalRes{

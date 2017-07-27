@@ -2240,3 +2240,98 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 	})
 
 }
+
+func TestChatSrvTopicNameState(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvTopicNameState", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		ctx := ctc.as(t, users[0]).startCtx
+		tc := ctc.world.Tcs[users[0].Username]
+		uid := users[0].User.GetUID().ToBytes()
+		ri := ctc.as(t, users[0]).ri
+		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		require.NoError(t, err)
+
+		// Creating a conversation with same topic name just returns the matching one
+		topicName := "random"
+		ncarg := chat1.NewConversationLocalArg{
+			TlfName:       conv.TlfName,
+			TopicName:     &topicName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			MembersType:   chat1.ConversationMembersType_TEAM,
+		}
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
+		require.NoError(t, err)
+		randomConvID := ncres.Conv.GetConvID()
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
+		require.NoError(t, err)
+		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
+
+		// Try to change topic name to one that exists
+		plarg := chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_METADATA,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+					ConversationTitle: topicName,
+				}),
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
+		require.Error(t, err)
+		require.IsType(t, DuplicateTopicNameError{}, err)
+		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+			ConversationTitle: "EULALIA",
+		})
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, plarg)
+		require.NoError(t, err)
+
+		// Create race with topic name state, and make sure we do the right thing
+		plarg.Msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+			ConversationTitle: "ANOTHERONE",
+		})
+		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()), nil,
+			func() chat1.RemoteInterface { return ri })
+		msg1, _, _, _, ts1, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		require.NoError(t, err)
+		msg2, _, _, _, ts2, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		require.NoError(t, err)
+		require.True(t, ts1.Eq(*ts2))
+
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   *msg1,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.ChatClientError{}, err)
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   *msg1,
+			TopicNameState: ts1,
+		})
+		require.NoError(t, err)
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   *msg2,
+			TopicNameState: ts2,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.ChatStalePreviousStateError{}, err)
+
+	})
+}
