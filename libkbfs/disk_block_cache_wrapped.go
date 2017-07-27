@@ -60,8 +60,8 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	hasPrefetched bool, err error) {
 	// TODO: add mutex to guard sync state
-	var primaryCache DiskBlockCache = cache.workingSetCache
-	var secondaryCache DiskBlockCache = cache.syncCache
+	primaryCache := cache.workingSetCache
+	secondaryCache := cache.syncCache
 	if cache.config.IsSyncedTlf(tlfID) {
 		primaryCache = cache.syncCache
 		secondaryCache = cache.workingSetCache
@@ -99,12 +99,11 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	if cache.config.IsSyncedTlf(tlfID) {
 		cache.workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
-	} else {
-		// TODO: Allow more intelligent transitioning from the sync cache to
-		// the working set cache.
-		cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
-		return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 	}
+	// TODO: Allow more intelligent transitioning from the sync cache to
+	// the working set cache.
+	cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
 
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
