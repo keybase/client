@@ -666,17 +666,14 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 func (l *TeamLoader) checkReaderKeyMaskCoverage(ctx context.Context,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
-	// doesn't work for implied admins
-	/*
-		for _, app := range keybase1.TeamApplicationMap {
-			if _, ok := state.ReaderKeyMasks[app]; !ok {
-				return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
-			}
-			if _, ok := state.ReaderKeyMasks[app][gen]; !ok {
-				return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
-			}
+	for _, app := range keybase1.TeamApplicationMap {
+		if _, ok := state.ReaderKeyMasks[app]; !ok {
+			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
 		}
-	*/
+		if _, ok := state.ReaderKeyMasks[app][gen]; !ok {
+			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
+		}
+	}
 
 	return nil
 }
