@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Icon, Text} from '../../common-adapters'
+import {BackButton, Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {shell} from 'electron'
 import {connect} from 'react-redux'
@@ -40,7 +40,7 @@ class InstallSecurityPrefs extends Component<void, Props, State> {
   render() {
     return (
       <Box style={stylesContainer}>
-        <Icon style={stylesCloseIcon} type="iconfont-close" onClick={this.props.clearFuseInstall} />
+        <BackButton key="back" onClick={this.props.clearFuseInstall} style={stylesClose} />
         <Text type="HeaderBig" style={{paddingBottom: 13, paddingTop: 10}}>
           Ghhh. Try this.
         </Text>
@@ -130,9 +130,7 @@ const styleHighlight = {
   borderWidth: 2,
 }
 
-const stylesCloseIcon = {
-  ...globalStyles.windowDraggingClickable,
-  ...globalStyles.clickable,
+const stylesClose = {
   left: 10,
   position: 'absolute',
   top: 10,
