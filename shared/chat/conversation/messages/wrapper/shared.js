@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -18,6 +18,59 @@ const UserAvatar = ({author, showImage}) => (
   </Box>
 )
 
+type UsernameEntryProps = {
+  author: string,
+  isYou: boolean,
+  isFollowing: boolean,
+  isBroken: boolean,
+  includeHeader: boolean,
+  onClick: (author: string) => void,
+}
+
+class UsernameEntry extends PureComponent<void, UsernameEntryProps, void> {
+  _onClick: () => void
+
+  constructor(props: UsernameEntryProps) {
+    super(props)
+
+    this._updateOnClick(props)
+  }
+
+  _updateOnClick(p: UsernameEntryProps) {
+    const {onClick, author} = p
+    this._onClick = () => {
+      onClick && onClick(author)
+    }
+  }
+
+  componentWillReceiveProps(nextProps: UsernameEntryProps) {
+    this._updateOnClick(nextProps)
+  }
+
+  render() {
+    const {author, isYou, isFollowing, isBroken, includeHeader} = this.props
+    if (!includeHeader) return null
+    const style = {
+      color: colorForAuthor(author, isYou, isFollowing, isBroken),
+      ...(isYou ? globalStyles.italic : null),
+      marginBottom: 2,
+    }
+    return (
+      <Box style={usernameEntryContainerStyle} onClick={this._onClick}>
+        <Text type="BodySmallSemibold" style={style}>blah {author} blah</Text>
+      </Box>
+    )
+  }
+}
+
+const usernameEntryContainerStyle = {
+  ...globalStyles.clickable,
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'flex-start',
+  display: 'inline-flex',
+}
+
+/*
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   if (!includeHeader) return null
   const style = {
@@ -27,6 +80,7 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
   }
   return <Text type="BodySmallSemibold" style={style}>{author}</Text>
 }
+*/
 
 const ActionButton = ({onAction}) => (
   <Box className="action-button">
@@ -70,12 +124,13 @@ const MessageWrapper = (props: Props) => (
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
         <UserAvatar author={props.author} showImage={props.includeHeader} />
         <Box style={_flexOneColumn} className="message-wrapper">
-          <Username
-            includeHeader={props.includeHeader}
+          <UsernameEntry
             author={props.author}
             isYou={props.isYou}
             isFollowing={props.isFollowing}
             isBroken={props.isBroken}
+            includeHeader={props.includeHeader}
+            onClick={props.onUsernameClick}
           />
           <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>
