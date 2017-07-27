@@ -329,7 +329,43 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
+func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	uv := me.ToUserVersion()
+	role, err := t.MemberRole(ctx, uv)
+	if err != nil {
+		return false, err
+	}
+
+	if role.IsAdminOrAbove() {
+		reqs := keybase1.TeamChangeReq{Writers: []keybase1.UserVersion{uv}}
+		if err := t.ChangeMembership(ctx, reqs); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
+	// If we are owner or admin, we have to downgrade ourselves first.
+	needsReload, err := t.downgradeIfOwnerOrAdmin(ctx)
+	if err != nil {
+		return err
+	}
+	if needsReload {
+		t, err = Load(ctx, t.G(), keybase1.LoadTeamArg{ID: t.ID, ForceRepoll: true})
+		if err != nil {
+			return err
+		}
+	}
+
 	section, err := newMemberSet().Section(t.chain().GetID(), nil)
 	if err != nil {
 		return err
