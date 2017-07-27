@@ -15,7 +15,7 @@ type diskBlockCacheEntry struct {
 	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
-// diskBlockCacheMetadata packages the metadata needed to make decisions on
+// DiskBlockCacheMetadata packages the metadata needed to make decisions on
 // cache eviction.
 type DiskBlockCacheMetadata struct {
 	// the TLF ID for the block
