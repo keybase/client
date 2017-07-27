@@ -28,6 +28,8 @@ import type {
 } from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
+import regedit from 'regedit'
+import {execFile} from 'child_process'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -137,6 +139,57 @@ function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpda
   }
 }
 
+
+function installCachedDokan(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
+      if (err) {
+        reject(err)
+      } else {
+        var programKeyNames =
+          programKeys['HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'].keys
+
+        for (var keyName of programKeyNames) {
+          var programKey = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName
+
+          regedit.list(programKey, (err, program) => {
+            if (err) {
+              reject(err)
+            } else {
+              for (var p in program) {
+                var vals = program[p]
+                var displayName, publisher
+                var modifyPath = ''
+                for (var v in vals) {
+                  if (vals[v]['DisplayName']) {
+                    displayName = vals[v]['DisplayName'].value
+                  }
+                  if (vals[v]['Publisher']) {
+                    publisher = vals[v]['Publisher'].value
+                  }
+                  if (vals[v]['ModifyPath']) {
+                    modifyPath = vals[v]['ModifyPath'].value
+                  }
+                }
+                if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
+                  modifyPath = modifyPath.replace(/"/g, '')
+                  modifyPath = modifyPath.replace(' /modify', '')
+                  console.log(modifyPath)
+                  execFile(modifyPath, [
+                    '/modify',
+                    'driver=1',
+                    'modifyprompt=Click "Repair" to view files in Explorer',
+                  ])
+                  resolve()
+                }
+              }
+            }
+          })
+        }
+      }
+    })
+  })
+}
 function* installFuseSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallFuseRpcPromise)
   const fuseResults = result && result.componentResults
@@ -180,24 +233,21 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
+
 function openDefaultPath(): Promise<*> {
   return openInDefault(Constants.defaultKBFSPath)
-}
-
-// Wait for /keybase to exist with files in it and then opens in Finder
+  })
 function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
-}
-
 function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
-  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  if (isWindows) {
   yield put(openAction)
   try {
-    yield call(waitForMountAndOpen)
-  } finally {
+    yield call(installCachedDokan)
+  } else {
     const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
     yield put(openFinishedAction)
-  }
+
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {

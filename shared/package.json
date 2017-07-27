@@ -106,6 +106,7 @@
     "redux-batched-subscribe": "0.1.6",
     "redux-saga": "0.15.3",
     "redux-thunk": "2.2.0",
+    "regedit": "^2.2.7",
     "reselect": "3.0.1",
     "semver": "5.3.0",
     "shallowequal": "1.0.1",

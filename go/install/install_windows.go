@@ -74,7 +74,7 @@ func installDokan(_ libkb.RunMode, log Log) error {
 	command = strings.Replace(command, "\"", "", 2)
 
 	log.Info("Starting %#v", command)
-	cmd := exec.Command(command, "driver=1", "/modify", `modifyprompt="Press 'Repair' to view files in Explorer"`)
+	cmd := exec.Command(command, "driver=1", "/modify", `modifyprompt=Press 'Repair' to view files in Explorer`)
 	err = cmd.Run()
 	if err != nil {
 		return err
