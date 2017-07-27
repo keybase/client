@@ -102,6 +102,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
       dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
     }
   },
+  onUsernameClick: ownProps.onUsernameClick,
   timestamp: stateProps.timestamp,
 })
 
