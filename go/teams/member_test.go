@@ -400,6 +400,62 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
+func TestMemberAddAsImplicitAdmin(t *testing.T) {
+	tc, owner, otherA, otherB, rootName := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	// add otherA and otherB as admins to rootName
+	_, err := AddMember(context.TODO(), tc.G, rootName, otherA.Username, keybase1.TeamRole_ADMIN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = AddMember(context.TODO(), tc.G, rootName, otherB.Username, keybase1.TeamRole_ADMIN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, rootName, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, rootName, otherA.Username, keybase1.TeamRole_ADMIN)
+	assertRole(tc, rootName, otherB.Username, keybase1.TeamRole_ADMIN)
+
+	// create a subteam
+	rootTeamName, err := keybase1.TeamNameFromString(rootName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub := "sub"
+	_, err = CreateSubteam(context.TODO(), tc.G, sub, rootTeamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	subteamName := rootName + "." + sub
+
+	// make sure owner, otherA, otherB are not members
+	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_NONE)
+
+	// switch to `otherA` user
+	tc.G.Logout()
+	if err := otherA.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	// otherA has the power to add otherB to the subteam
+	res, err := AddMember(context.TODO(), tc.G, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.User.Username != otherB.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, otherB.Username)
+	}
+	// otherB should now be a writer
+	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
+
+	// owner, otherA should still be non-members
+	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
+}
+
 func TestLeave(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
