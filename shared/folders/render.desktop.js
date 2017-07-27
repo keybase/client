@@ -63,7 +63,7 @@ class FoldersRender extends Component<void, Props, void> {
           minHeight: 32,
         }}
       >
-        <Banner />
+        {!this.props.smallMode && <Banner />}
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
