@@ -447,6 +447,10 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return err
 }
 
+func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+	return errors.New("not implemented yet")
+}
+
 func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
 	arg := libkb.NewAPIArgWithNetContext(ctx, endpoint)
 	arg.Args = libkb.NewHTTPArgs()

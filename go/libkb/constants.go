@@ -295,6 +295,9 @@ const (
 	LinkTypeInvite           LinkType = "team.invite"
 	LinkTypeRenameSubteam    LinkType = "team.rename_subteam"
 	LinkTypeRenameUpPointer  LinkType = "team.rename_up_pointer"
+	LinkTypeDeleteRoot       LinkType = "team.delete_root"
+	LinkTypeDeleteSubteam    LinkType = "team.delete_subteam"
+	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

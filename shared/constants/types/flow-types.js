@@ -3024,6 +3024,18 @@ export function teamsTeamCreateSubteamRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamDeleteRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamDelete', request)
+}
+
+export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
+}
+
+export function teamsTeamDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamDelete', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
 }
@@ -6662,6 +6674,10 @@ export type teamsTeamCreateSubteamRpcParam = Exact<{
   name: TeamName
 }>
 
+export type teamsTeamDeleteRpcParam = Exact<{
+  name: string
+}>
+
 export type teamsTeamEditMemberRpcParam = Exact<{
   name: string,
   username: string,
@@ -7185,6 +7201,7 @@ export type rpc =
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
   | teamsTeamCreateSubteamRpc
+  | teamsTeamDeleteRpc
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
   | teamsTeamIgnoreRequestRpc

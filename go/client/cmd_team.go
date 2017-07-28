@@ -17,6 +17,7 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			newCmdTeamCreate(cl, g),
+			newCmdTeamDelete(cl, g),
 			newCmdTeamListMemberships(cl, g),
 			newCmdTeamAddMember(cl, g),
 			newCmdTeamRemoveMember(cl, g),
