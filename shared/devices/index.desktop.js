@@ -1,10 +1,10 @@
 // @flow
-import React from 'react'
-import {Box, Text, Icon, PopupMenu} from '../common-adapters'
+import React, {PureComponent} from 'react'
+import {Box, Text, Icon, PopupMenu, List} from '../common-adapters'
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-import type {Props} from './'
+import type {Props} from '.'
 
 type RevokedHeaderProps = {children?: Array<any>, onToggleExpanded: () => void, expanded: boolean}
 
@@ -65,7 +65,13 @@ const RevokedDescription = () => (
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box
-    style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: 48}}
+    style={{
+      ...stylesCommonRow,
+      ...globalStyles.clickable,
+      backgroundColor: globalColors.white,
+      height: 48,
+      flexShrink: 0,
+    }}
     onClick={addNewDevice}
   >
     <Icon type="iconfont-new" style={{color: globalColors.blue}} />
@@ -74,34 +80,45 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   </Box>
 )
 
-const DevicesRender = ({
-  deviceIDs,
-  revokedDeviceIDs,
-  showingRevoked,
-  onToggleShowRevoked,
-  menuItems,
-  showingMenu,
-  setShowingMenu,
-}: Props) => (
-  <Box style={stylesContainer}>
-    <DeviceHeader
-      menuItems={menuItems}
-      addNewDevice={() => setShowingMenu(true)}
-      showingMenu={showingMenu}
-      onHidden={() => setShowingMenu(false)}
-    />
-    {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-    {!!revokedDeviceIDs.length &&
-      <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-        <RevokedDescription />
-        {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-      </RevokedHeader>}
-  </Box>
-)
+class DevicesRender extends PureComponent<void, Props, void> {
+  _renderRow = (index, item, key) => {
+    if (item.dummy) {
+      if (item.dummy === 'revokedHeader') {
+        return (
+          <RevokedHeader
+            key={key}
+            expanded={this.props.showingRevoked}
+            onToggleExpanded={this.props.onToggleShowRevoked}
+          >
+            <RevokedDescription />
+          </RevokedHeader>
+        )
+      }
+    }
 
-const stylesContainer = {
-  ...globalStyles.scrollable,
-  flexGrow: 1,
+    return <DeviceRow key={key} deviceID={item} />
+  }
+
+  render() {
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, height: '100%', width: '100%'}}>
+        <DeviceHeader
+          menuItems={this.props.menuItems}
+          addNewDevice={() => this.props.setShowingMenu(true)}
+          showingMenu={this.props.showingMenu}
+          onHidden={() => this.props.setShowingMenu(false)}
+        />
+        <List
+          items={[
+            ...this.props.deviceIDs,
+            {dummy: 'revokedHeader'},
+            ...(this.props.showingRevoked ? this.props.revokedDeviceIDs : []),
+          ]}
+          renderItem={this._renderRow}
+        />
+      </Box>
+    )
+  }
 }
 
 const stylesCommonRow = {
