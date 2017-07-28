@@ -19,7 +19,7 @@ type proofTerm struct {
 	linkMap map[keybase1.Seqno]keybase1.LinkID
 }
 
-type proofTermBookends struct {
+type ProofTermBookends struct {
 	left  proofTerm
 	right *proofTerm
 }
