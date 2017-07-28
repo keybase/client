@@ -21,7 +21,7 @@ func (app App) ID() string {
 	return app.Name
 }
 
-// Bin returns the path of the binary for the NativeMessaging app target.
+// BinPath returns the path of the binary for the NativeMessaging app target.
 func (app App) BinPath() string {
 	return app.Path
 }

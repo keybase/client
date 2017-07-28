@@ -49,7 +49,7 @@ func UninstallKBNM() error {
 	return nil
 }
 
-// UninstallKBNM writes NativeMessaging whitelisting for KBNM.
+// InstallKBNM writes NativeMessaging whitelisting for KBNM.
 func InstallKBNM(path string) error {
 	u, err := CurrentUser()
 	if err != nil {
