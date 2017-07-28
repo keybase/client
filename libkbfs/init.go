@@ -169,7 +169,9 @@ func DefaultInitParams(ctx Context) InitParams {
 		StorageRoot:                    ctx.GetDataDir(),
 		BGFlushPeriod:                  bgFlushPeriodDefault,
 		BGFlushDirOpBatchSize:          bgFlushDirOpBatchSizeDefault,
-		Mode: InitDefaultString,
+		EnableJournal:                  true,
+		EnableDiskCache:                true,
+		Mode:                           InitDefaultString,
 	}
 }
 
@@ -217,11 +219,11 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.StringVar(&params.StorageRoot, "storage-root",
 		defaultParams.StorageRoot, "Specifies where Keybase will store its "+
 			"local databases for the journal and disk cache.")
-	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache", true,
-		"Enables the disk cache for the directory specified "+
-			"by -storage-root.")
-	flags.BoolVar(&params.EnableJournal, "enable-journal", true, "Enables "+
-		"write journaling for TLFs.")
+	flags.BoolVar(&params.EnableDiskCache, "enable-disk-cache",
+		defaultParams.EnableDiskCache,
+		"Enables the disk cache for the directory specified by -storage-root.")
+	flags.BoolVar(&params.EnableJournal, "enable-journal",
+		defaultParams.EnableJournal, "Enables write journaling for TLFs.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
