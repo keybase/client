@@ -57,8 +57,8 @@ func checkUsernameQuery(s string) (string, error) {
 }
 
 // Handler returns a request handler.
-func Handler() *handler {
-	return &handler{
+func GetHandler() *Handler {
+	return &Handler{
 		Run: execRunner,
 		FindKeybaseBinary: func() (string, error) {
 			return findKeybaseBinary(keybaseBinary)
@@ -66,7 +66,7 @@ func Handler() *handler {
 	}
 }
 
-type handler struct {
+type Handler struct {
 	// Run wraps the equivalent of cmd.Run(), allowing for mocking
 	Run func(cmd *exec.Cmd) error
 	// FindCmd returns the path of the keybase binary if it can find it
@@ -74,7 +74,7 @@ type handler struct {
 }
 
 // Handle accepts a request, handles it, and returns an optional result if there was no error
-func (h *handler) Handle(req *Request) (interface{}, error) {
+func (h *Handler) Handle(req *Request) (interface{}, error) {
 	switch req.Method {
 	case "chat":
 		return nil, h.handleChat(req)
@@ -85,7 +85,7 @@ func (h *handler) Handle(req *Request) (interface{}, error) {
 }
 
 // handleChat sends a chat message to a user.
-func (h *handler) handleChat(req *Request) error {
+func (h *Handler) handleChat(req *Request) error {
 	if req.Body == "" {
 		return errMissingField
 	}
@@ -201,7 +201,7 @@ func parseError(r io.Reader, fallback error) error {
 }
 
 // handleQuery searches whether a user is present in Keybase.
-func (h *handler) handleQuery(req *Request) (*resultQuery, error) {
+func (h *Handler) handleQuery(req *Request) (*resultQuery, error) {
 	idQuery, err := checkUsernameQuery(req.To)
 	if err != nil {
 		return nil, err

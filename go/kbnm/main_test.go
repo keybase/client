@@ -10,7 +10,7 @@ import (
 )
 
 func TestProcess(t *testing.T) {
-	h := Handler()
+	h := GetHandler()
 
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
