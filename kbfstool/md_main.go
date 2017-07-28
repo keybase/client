@@ -36,7 +36,7 @@ func mdMain(ctx context.Context, config libkbfs.Config, args []string) (exitStat
 	case "force-qr":
 		return mdForceQR(ctx, config, args)
 	default:
-		printError("md", fmt.Errorf("unknown command '%s'", cmd))
+		printError("md", fmt.Errorf("unknown command %q", cmd))
 		return 1
 	}
 }

@@ -16,7 +16,7 @@ import (
 
 func maybePrintPath(path string, err error, verbose bool) {
 	if err == nil && verbose {
-		fmt.Fprintf(os.Stderr, "mkdir: created directory '%s'\n", path)
+		fmt.Fprintf(os.Stderr, "mkdir: created directory %q\n", path)
 	}
 }
 

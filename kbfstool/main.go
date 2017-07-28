@@ -71,11 +71,9 @@ func realMain() (exitStatus int) {
 
 	log := logger.NewWithCallDepth("", 1)
 
-	// Pause journal background work, since it may interfere with
-	// an existing kbfs daemon instance.
-	kbfsParams.TLFJournalBackgroundWorkStatus =
-		libkbfs.TLFJournalBackgroundWorkPaused
-	// TODO: Turn off the rekey queue and other background tasks.
+	// Turn these off to not interfere with a running kbfs daemon.
+	kbfsParams.EnableJournal = false
+	kbfsParams.EnableDiskCache = false
 
 	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, nil, log)
 	if err != nil {
@@ -108,7 +106,7 @@ func realMain() (exitStatus int) {
 	case "md":
 		return mdMain(ctx, config, args)
 	default:
-		printError("kbfs", fmt.Errorf("unknown command '%s'", cmd))
+		printError("kbfs", fmt.Errorf("unknown command %q", cmd))
 		return 1
 	}
 }
