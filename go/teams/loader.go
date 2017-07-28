@@ -450,7 +450,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(ctx, arg.me, fromCache) {
+		if !l.satisfiesNeedAdmin(ctx, arg.me, fromCache, false /*needLatest*/) {
 			// Start from scratch if we are newly admin
 			return true, true
 		}
@@ -513,7 +513,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 // - NeedSeqnos
 func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *keybase1.TeamData) error {
 	if arg.needAdmin {
-		if !l.satisfiesNeedAdmin(ctx, arg.me, res) {
+		if !l.satisfiesNeedAdmin(ctx, arg.me, res, true /*needLatest*/) {
 			l.G().Log.CDebugf(ctx, "user %v is not an admin of team %v at seqno:%v",
 				arg.me, arg.teamID, res.Chain.LastSeqno)
 			return fmt.Errorf("user %v is not an admin of the team", arg.me)
@@ -539,7 +539,7 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 }
 
 // Whether the user is an admin at the snapshot and there are no stubbed links.
-func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
+func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVersion, teamData *keybase1.TeamData, needLatest bool) bool {
 	if teamData == nil {
 		return false
 	}
@@ -553,7 +553,7 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 		if !state.IsSubteam() {
 			return false
 		}
-		implicitAdmins, err := l.implicitAdminsAncestor(ctx, state.GetID(), state.GetParentID())
+		implicitAdmins, err := l.implicitAdminsAncestor(ctx, state.GetID(), state.GetParentID(), needLatest)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader error getting implicit admins: %s", err)
 			return false
@@ -748,10 +748,10 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 		return nil, fmt.Errorf("cannot get implicit admins of a root team: %v", teamID)
 	}
 
-	return l.implicitAdminsAncestor(ctx, teamID, teamChain.GetParentID())
+	return l.implicitAdminsAncestor(ctx, teamID, teamChain.GetParentID(), true /*needLatest*/)
 }
 
-func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID) ([]keybase1.UserVersion, error) {
+func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID, needLatest bool) ([]keybase1.UserVersion, error) {
 	me, err := l.getMe(ctx)
 	if err != nil {
 		return nil, err
@@ -771,7 +771,8 @@ func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1
 		ancestor, err := l.load2(ctx, load2ArgT{
 			teamID:        *ancestorID,
 			me:            me,
-			forceRepoll:   true, // Get the latest info.
+			forceRepoll:   needLatest,
+			staleOK:       !needLatest,
 			readSubteamID: &teamID,
 		})
 		if err != nil {
