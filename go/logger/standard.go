@@ -72,6 +72,8 @@ func LogTagsFromContextRPC(ctx context.Context) (map[interface{}]string, bool) {
 	return map[interface{}]string(tags), ok
 }
 
+type rpcTagKey string
+
 // ConvertRPCTagsToLogTags takes any RPC tags in the context and makes
 // them log tags.  It uses the string representation of the tag key,
 // rather than the original uniquely typed key, since the latter isn't
@@ -85,9 +87,9 @@ func ConvertRPCTagsToLogTags(ctx context.Context) context.Context {
 	tags := make(CtxLogTags)
 	for key, value := range rpcTags {
 		// The map key should be a proper unique type, but that's not
-		// passed along in the RPC so just use the string key.
-		tags[key] = key
-		ctx = context.WithValue(ctx, key, value)
+		// passed along in the RPC so just use our own string-like type.
+		tags[rpcTagKey(key)] = key
+		ctx = context.WithValue(ctx, rpcTagKey(key), value)
 	}
 	ctx = context.WithValue(ctx, rpc.CtxRpcTagsKey, nil)
 	return NewContextWithLogTags(ctx, tags)

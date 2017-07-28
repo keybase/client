@@ -119,7 +119,7 @@ func main() {
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
 	}
 
-	h := Handler()
+	h := newHandler()
 
 	for {
 		err := process(h, in, out)
