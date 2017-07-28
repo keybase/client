@@ -312,7 +312,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	memSet := newMemberSet()
-	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true, true)
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -410,7 +410,6 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 		},
 		Members: &SCTeamMembers{
 			// Only root teams can have owners. Do not make the current user an admin by default.
-			// TODO: Plumb through more control over the initial set of admins.
 			Owners:  &[]SCTeamMember{},
 			Admins:  &[]SCTeamMember{},
 			Writers: &[]SCTeamMember{},
