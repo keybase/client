@@ -81,23 +81,13 @@ class UsernameEntry extends PureComponent<void, UsernameEntryProps, void> {
     const {author, isYou, isFollowing, isBroken, includeHeader} = this.props
     if (!includeHeader) return null
     const style = {
+      ...globalStyles.clickable,
       color: colorForAuthor(author, isYou, isFollowing, isBroken),
       ...(isYou ? globalStyles.italic : null),
       marginBottom: 2,
     }
-    return (
-      <Box style={usernameEntryContainerStyle} onClick={this._onClick}>
-        <Text type="BodySmallSemibold" style={style}>{author}</Text>
-      </Box>
-    )
+    return <Text type="BodySmallSemibold" style={style} onClick={this._onClick}>{author}</Text>
   }
-}
-
-const usernameEntryContainerStyle = {
-  ...globalStyles.clickable,
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-start',
-  display: 'inline-flex',
 }
 
 const ActionButton = ({onAction}) => (
