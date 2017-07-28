@@ -63,7 +63,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
+			mustGetChatFlags("set-channel", "set-headline", "clear-headline", "nonblock")...,
 		),
 	}
 }
@@ -109,7 +109,7 @@ func (c *CmdChatSend) Run() (err error) {
 	case c.setTopicName != "":
 		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
 			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet (except on team chats). Ignoring --set-topic-name >.<\n")
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring --set-channel >.<\n")
 			return nil
 		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
@@ -167,7 +167,7 @@ func (c *CmdChatSend) Run() (err error) {
 }
 
 func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-topic-name"))
+	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-channel"))
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
@@ -192,10 +192,10 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	if c.setTopicName != "" {
 		nActions++
 		if !c.hasTTY {
-			return fmt.Errorf("stdin not supported when setting topic name")
+			return fmt.Errorf("stdin not supported when setting channel")
 		}
 		if len(ctx.Args()) > 1 {
-			return fmt.Errorf("cannot send message and set topic name simultaneously")
+			return fmt.Errorf("cannot send text message and set channel name simultaneously")
 		}
 	}
 
@@ -253,7 +253,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if nActions > 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return fmt.Errorf("only one of message, --set-headline, --clear-headline, or --set-topic-name allowed")
+		return fmt.Errorf("only one of message, --set-headline, --clear-headline, or --set-channel allowed")
 	}
 
 	return nil
