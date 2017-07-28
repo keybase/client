@@ -5,7 +5,7 @@ export type Props<Item> = {
   items: Array<Item>,
   style?: any,
   fixedHeight?: ?number,
-  renderItem: (index: number, item: Item, key: any) => React$Element<any>,
+  renderItem: (index: number, item: Item) => React$Element<any>,
 }
 
 export default class List<Item> extends Component<void, Props<Item>, void> {}

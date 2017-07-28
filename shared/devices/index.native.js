@@ -1,13 +1,13 @@
 // @flow
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {
   Box,
   Text,
+  List,
   PopupMenu,
   Icon,
   ClickableBox,
   ProgressIndicator,
-  NativeScrollView,
   HeaderHoc,
 } from '../common-adapters/index.native'
 import {RowConnector} from './row'
@@ -91,29 +91,46 @@ const RevokedDescription = () => (
   </Box>
 )
 
-const DevicesRender = ({
-  deviceIDs,
-  revokedDeviceIDs,
-  showingRevoked,
-  onToggleShowRevoked,
-  menuItems,
-  showingMenu,
-  setShowingMenu,
-  waitingForServer,
-}: Props) => (
-  <Box style={stylesContainer}>
-    <DeviceHeader onAddNew={() => setShowingMenu(true)} waitingForServer={waitingForServer} />
-    <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}}>
-      {deviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-      {!!revokedDeviceIDs.length &&
-        <RevokedHeader expanded={showingRevoked} onToggleExpanded={onToggleShowRevoked}>
-          <RevokedDescription />
-          {revokedDeviceIDs.map(id => <DeviceRow key={id} deviceID={id} />)}
-        </RevokedHeader>}
-    </NativeScrollView>
-    {showingMenu && <PopupMenu items={menuItems} onHidden={() => setShowingMenu(false)} />}
-  </Box>
-)
+class DevicesRender extends PureComponent<void, Props, void> {
+  _renderRow = (index, item, key) => {
+    if (item.dummy) {
+      if (item.dummy === 'revokedHeader') {
+        return (
+          <RevokedHeader
+            key={key}
+            expanded={this.props.showingRevoked}
+            onToggleExpanded={this.props.onToggleShowRevoked}
+          >
+            <RevokedDescription />
+          </RevokedHeader>
+        )
+      }
+    }
+
+    return <DeviceRow key={key} deviceID={item} />
+  }
+
+  render() {
+    return (
+      <Box style={stylesContainer}>
+        <DeviceHeader
+          onAddNew={() => this.props.setShowingMenu(true)}
+          waitingForServer={this.props.waitingForServer}
+        />
+        <List
+          items={[
+            ...this.props.deviceIDs,
+            {dummy: 'revokedHeader'},
+            ...(this.props.showingRevoked ? this.props.revokedDeviceIDs : []),
+          ]}
+          renderItem={this._renderRow}
+        />
+        {this.props.showingMenu &&
+          <PopupMenu items={this.props.menuItems} onHidden={() => this.props.setShowingMenu(false)} />}
+      </Box>
+    )
+  }
+}
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

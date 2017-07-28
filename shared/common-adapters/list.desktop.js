@@ -6,9 +6,9 @@ import {globalStyles} from '../styles'
 import type {Props} from './list'
 
 class List extends PureComponent<void, Props<*>, void> {
-  _itemRender = (index, key) => {
+  _itemRender = index => {
     const item = this.props.items[index]
-    return this.props.renderItem(index, item, key)
+    return this.props.renderItem(index, item)
   }
 
   render() {
