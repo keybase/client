@@ -56,6 +56,7 @@ func checkUsernameQuery(s string) (string, error) {
 	return s, nil
 }
 
+// newHandler returns a request handler.
 func newHandler() *handler {
 	return &handler{
 		Run: execRunner,
