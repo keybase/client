@@ -67,7 +67,7 @@ function checkErrors(result: any): Array<string> {
           // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
         }
       } else if (cr.name === 'cli') {
-        // Handle CLI error
+        // This isn't a fatal error and we'll handle this later in the app.
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)
       }
