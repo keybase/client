@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"sort"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	context "golang.org/x/net/context"
 )
 
@@ -489,6 +491,23 @@ func PluckConvIDs(convs []chat1.Conversation) (res []chat1.ConversationID) {
 
 func SanitizeTopicName(topicName string) string {
 	return strings.TrimPrefix(topicName, "#")
+}
+
+func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNameState, error) {
+	var data []byte
+	var err error
+	mh := codec.MsgpackHandle{WriteExt: true}
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err = enc.Encode(cmp); err != nil {
+		return chat1.TopicNameState{}, err
+	}
+
+	h := sha256.New()
+	if _, err = h.Write(data); err != nil {
+		return chat1.TopicNameState{}, err
+	}
+
+	return h.Sum(nil), nil
 }
 
 type ConvLocalByConvID []chat1.ConversationLocal

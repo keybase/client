@@ -1859,6 +1859,14 @@ func (e ChatClientError) Error() string {
 
 //=============================================================================
 
+type ChatStalePreviousStateError struct{}
+
+func (e ChatStalePreviousStateError) Error() string {
+	return "stale previous state error"
+}
+
+//=============================================================================
+
 type InvalidAddressError struct {
 	Msg string
 }

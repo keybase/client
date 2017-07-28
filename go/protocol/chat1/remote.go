@@ -738,10 +738,11 @@ func (o GetPublicConversationsArg) DeepCopy() GetPublicConversationsArg {
 }
 
 type PostRemoteArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
-	AtMentions     []gregor1.UID  `codec:"atMentions" json:"atMentions"`
-	ChannelMention ChannelMention `codec:"channelMention" json:"channelMention"`
+	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
+	MessageBoxed   MessageBoxed    `codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions     []gregor1.UID   `codec:"atMentions" json:"atMentions"`
+	ChannelMention ChannelMention  `codec:"channelMention" json:"channelMention"`
+	TopicNameState *TopicNameState `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
@@ -757,6 +758,13 @@ func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		TopicNameState: (func(x *TopicNameState) *TopicNameState {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TopicNameState),
 	}
 }
 
@@ -771,9 +779,10 @@ func (o NewConversationRemoteArg) DeepCopy() NewConversationRemoteArg {
 }
 
 type NewConversationRemote2Arg struct {
-	IdTriple    ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
-	TLFMessage  MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	IdTriple       ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
+	TLFMessage     MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
+	MembersType    ConversationMembersType `codec:"membersType" json:"membersType"`
+	TopicNameState *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 }
 
 func (o NewConversationRemote2Arg) DeepCopy() NewConversationRemote2Arg {
@@ -781,6 +790,13 @@ func (o NewConversationRemote2Arg) DeepCopy() NewConversationRemote2Arg {
 		IdTriple:    o.IdTriple.DeepCopy(),
 		TLFMessage:  o.TLFMessage.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		TopicNameState: (func(x *TopicNameState) *TopicNameState {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TopicNameState),
 	}
 }
 

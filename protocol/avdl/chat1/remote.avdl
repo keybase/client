@@ -96,7 +96,7 @@ protocol remote {
   }
 
   record GetPublicConversationsRes {
-    array<Conversation> conversations; 
+    array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
 
@@ -110,12 +110,12 @@ protocol remote {
     HERE_2
   }
 
-  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed, array<gregor1.UID> atMentions, ChannelMention channelMention);
+  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed, array<gregor1.UID> atMentions, ChannelMention channelMention, union { null, TopicNameState } topicNameState);
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
   @lint("ignore")
-  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage, ConversationMembersType membersType);
+  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage, ConversationMembersType membersType, union { null, TopicNameState } topicNameState);
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
@@ -152,18 +152,18 @@ protocol remote {
   bytes s3Sign(int version, bytes payload);
 
   // Get the inbox version for a user
-  InboxVers getInboxVersion(gregor1.UID uid); 
+  InboxVers getInboxVersion(gregor1.UID uid);
 
   enum SyncInboxResType {
     CURRENT_0,
     INCREMENTAL_1,
     CLEAR_2
   }
-  
+
   record SyncIncrementalRes {
     InboxVers vers;
     array<Conversation> convs;
-  } 
+  }
 
   record ServerCacheVers {
     int inboxVers;
@@ -197,7 +197,7 @@ protocol remote {
   }
 
   record SyncAllResult {
-    gregor1.AuthResult auth; 
+    gregor1.AuthResult auth;
     SyncChatRes chat;
     SyncAllNotificationRes notification;
     UnreadUpdateFull badge;
@@ -221,21 +221,21 @@ protocol remote {
 
   // Channel endpoints
   record JoinLeaveConversationRemoteRes {
-    union { null, RateLimit } rateLimit; 
+    union { null, RateLimit } rateLimit;
   }
   JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
   JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
 
   record GetTLFConversationsRes {
-    array<Conversation> conversations; 
+    array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
   GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, ConversationMembersType membersType, boolean summarizeMaxMsgs);
 
-  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
   record SetAppNotificationSettingsRes {
-    union { null, RateLimit } rateLimit; 
+    union { null, RateLimit } rateLimit;
   }
   SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
 

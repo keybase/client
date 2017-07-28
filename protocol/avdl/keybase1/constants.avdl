@@ -96,6 +96,7 @@ protocol constants {
     SCChatDuplicateMessage_2515,
     SCChatClientError_2516,
     SCChatNotInTeam_2517,
+    SCChatStalePreviousState_2518,
     SCTeamNotFound_2614,
     SCTeamExists_2619,
     SCTeamReadError_2623,

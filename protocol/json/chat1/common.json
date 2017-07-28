@@ -71,6 +71,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "TopicNameState",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
@@ -139,6 +145,33 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIDMessageIDPair",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIDMessageIDPairs",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationIDMessageIDPair"
+          },
+          "name": "pairs"
         }
       ]
     },
