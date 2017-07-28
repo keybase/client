@@ -268,10 +268,11 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            tlfID,
-		TopicType:        topicType,
-		MembersType:      membersType,
-		SummarizeMaxMsgs: false,
+		TlfID:                tlfID,
+		TopicType:            topicType,
+		MembersType:          membersType,
+		SummarizeMaxMsgs:     false,
+		IncludeAuxiliaryInfo: true,
 	})
 	if tlfRes.RateLimit != nil {
 		rl = append(rl, *tlfRes.RateLimit)

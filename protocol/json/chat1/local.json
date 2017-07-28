@@ -1140,6 +1140,13 @@
         {
           "type": [
             null,
+            "ConversationAuxiliaryInfo"
+          ],
+          "name": "auxiliaryInfo"
+        },
+        {
+          "type": [
+            null,
             "ConversationNotificationInfo"
           ],
           "name": "notifications"

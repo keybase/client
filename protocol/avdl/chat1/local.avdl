@@ -401,6 +401,7 @@ protocol local {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
+    union { null, ConversationAuxiliaryInfo } auxiliaryInfo;
     union { null, ConversationNotificationInfo } notifications;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;

@@ -639,12 +639,33 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 	}
 }
 
+type ConversationAuxiliaryInfo struct {
+	ConversationCtime   gregor1.Time `codec:"conversationCtime" json:"conversationCtime"`
+	ConversationCreator gregor1.UID  `codec:"conversationCreator" json:"conversationCreator"`
+	HeadlineMtime       gregor1.Time `codec:"headlineMtime" json:"headlineMtime"`
+	HeadlineModifier    gregor1.UID  `codec:"headlineModifier" json:"headlineModifier"`
+	HeadlineMessageID   MessageID    `codec:"headlineMessageID" json:"headlineMessageID"`
+	ReaderCount         int          `codec:"readerCount" json:"readerCount"`
+}
+
+func (o ConversationAuxiliaryInfo) DeepCopy() ConversationAuxiliaryInfo {
+	return ConversationAuxiliaryInfo{
+		ConversationCtime:   o.ConversationCtime.DeepCopy(),
+		ConversationCreator: o.ConversationCreator.DeepCopy(),
+		HeadlineMtime:       o.HeadlineMtime.DeepCopy(),
+		HeadlineModifier:    o.HeadlineModifier.DeepCopy(),
+		HeadlineMessageID:   o.HeadlineMessageID.DeepCopy(),
+		ReaderCount:         o.ReaderCount,
+	}
+}
+
 type Conversation struct {
 	Metadata        ConversationMetadata          `codec:"metadata" json:"metadata"`
 	ReaderInfo      *ConversationReaderInfo       `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
 	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
+	AuxiliaryInfo   *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -680,6 +701,13 @@ func (o Conversation) DeepCopy() Conversation {
 			}
 			return ret
 		})(o.MaxMsgSummaries),
+		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AuxiliaryInfo),
 	}
 }
 

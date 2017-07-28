@@ -2181,6 +2181,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	AuxiliaryInfo    *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -2200,6 +2201,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.Error),
 		Info:       o.Info.DeepCopy(),
 		ReaderInfo: o.ReaderInfo.DeepCopy(),
+		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AuxiliaryInfo),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil

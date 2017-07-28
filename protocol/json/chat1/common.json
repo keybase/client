@@ -481,6 +481,36 @@
     },
     {
       "type": "record",
+      "name": "ConversationAuxiliaryInfo",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "conversationCtime"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "conversationCreator"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "headlineMtime"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "headlineModifier"
+        },
+        {
+          "type": "MessageID",
+          "name": "headlineMessageID"
+        },
+        {
+          "type": "int",
+          "name": "readerCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -514,6 +544,13 @@
             "items": "MessageSummary"
           },
           "name": "maxMsgSummaries"
+        },
+        {
+          "type": [
+            null,
+            "ConversationAuxiliaryInfo"
+          ],
+          "name": "auxiliaryInfo"
         }
       ]
     },

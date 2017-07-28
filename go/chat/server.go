@@ -2272,10 +2272,11 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// List all the conversations on the team
 	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		MembersType:      chat1.ConversationMembersType_TEAM,
-		TopicType:        arg.TopicType,
-		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
+		TlfID:                nameInfo.ID,
+		MembersType:          chat1.ConversationMembersType_TEAM,
+		TopicType:            arg.TopicType,
+		SummarizeMaxMsgs:     false, // tough call here, depends on if we are in most of convos on the team
+		IncludeAuxiliaryInfo: false,
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
