@@ -134,8 +134,9 @@ export default compose(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
   ),
-  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
+  // Ordering of branch() is important here -- rekey should come before error.
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
