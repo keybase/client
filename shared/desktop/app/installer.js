@@ -100,7 +100,6 @@ function checkErrors(result: any): InstallResult {
       }
     }
   }
-  hasCLIError = true
   return {errors, hasCLIError}
 }
 
