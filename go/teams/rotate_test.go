@@ -156,14 +156,21 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	}
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
+	t.Logf("ttt rotate subteam")
+
 	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation()); err != nil {
 		t.Fatal(err)
 	}
+
+	t.Logf("ttt rotate complete")
 
 	after, err := GetForTestByStringName(context.TODO(), tc.G, sub)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	t.Logf("ttt get complete")
+
 	if after.Generation() != 2 {
 		t.Fatalf("rotated subteam generation: %d, expected 2", after.Generation())
 	}
@@ -173,6 +180,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	}
 
 	// make sure the roles are ok after rotate
+	t.Logf("ttt checking roles")
 	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, root, otherA.Username, keybase1.TeamRole_ADMIN)
 	assertRole(tc, root, otherB.Username, keybase1.TeamRole_NONE)
