@@ -110,3 +110,69 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	})
 	require.NoError(t, err, "load subsubteam")
 }
+
+// This was a bug that I expect once got the loader stuck.
+// It is a dance with the subteam log of a user that makes
+// it look like there is a subteam name collision when
+// there is not.
+// U1 is a member of R
+// U1 gets added to R.B and caches that subteam log entry
+// U1 gets removed from R.B
+// A.B gets renames to R.C
+// A new R.B gets created (different subteam ID)
+// U1 gets added to R.B and loads.
+//   They see a name conflict and fail to load, but it's not real.
+func TestRenameIntoMovedSubteam(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates R")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to R as a WRITER")
+	_, err := AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	subteamNameB := createTeamName(t, parentName.String(), "bbb")
+	subteamNameC := createTeamName(t, parentName.String(), "ccc")
+
+	t.Logf("U0 creates R.B (subteam 1)")
+	subteamID1, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	require.NoError(t, err)
+	_ = subteamID1
+
+	t.Logf("U0 adds U1 to R.B (1) as a WRITER")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads R")
+	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:          parentName.ToTeamID(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U0 removes U1 from R.B (1)")
+	err = RemoveMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username)
+	require.NoError(t, err)
+
+	t.Logf("U0 renames R.B (1) to R.C")
+	err = RenameSubteam(context.TODO(), tcs[0].G, subteamNameB, subteamNameC)
+	require.NoError(t, err)
+
+	t.Logf("U0 creates R.B (subteam 2) which is the SECOND R.B to be created")
+	subteamID2, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	require.NoError(t, err)
+	_ = subteamID2
+
+	t.Logf("U0 adds U1 to R.B (2) as a WRITER")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads R")
+	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:          parentName.ToTeamID(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
