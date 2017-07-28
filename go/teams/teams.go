@@ -745,7 +745,7 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 
 	if t.chain().IsSubteam() {
 		// rotate needs to be keyed for all admins above it
-		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, *t.chain().GetParentID())
+		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
 		if err != nil {
 			return nil, nil, err
 		}

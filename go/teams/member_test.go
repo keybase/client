@@ -49,6 +49,40 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	return tc, owner, otherA, otherB, name
 }
 
+// creates a root team and a subteam.  owner is the owner of root, otherA is an admin, otherB is just a user.
+// no members in subteam.
+func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, root, sub string) {
+	tc, owner, otherA, otherB, root = memberSetupMultiple(t)
+
+	// add otherA and otherB as admins to rootName
+	_, err := AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	assertRole(tc, root, otherB.Username, keybase1.TeamRole_NONE)
+
+	// create a subteam
+	rootTeamName, err := keybase1.TeamNameFromString(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	subPart := "sub"
+	_, err = CreateSubteam(context.TODO(), tc.G, subPart, rootTeamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub = root + "." + subPart
+
+	// make sure owner, otherA, otherB are not members
+	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherB.Username, keybase1.TeamRole_NONE)
+
+	return tc, owner, otherA, otherB, root, sub
+}
+
 func TestMemberOwner(t *testing.T) {
 	tc, u, name := memberSetup(t)
 	defer tc.Cleanup()

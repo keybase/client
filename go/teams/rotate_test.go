@@ -142,3 +142,41 @@ func TestHandleRotateRequest(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 }
+
+func TestImplicitAdminAfterRotateRequest(t *testing.T) {
+	tc, owner, otherA, otherB, root, sub := memberSetupSubteam(t)
+	defer tc.Cleanup()
+
+	team, err := GetForTestByStringName(context.TODO(), tc.G, sub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if team.Generation() != 1 {
+		t.Fatalf("initial subteam generation: %d, expected 1", team.Generation())
+	}
+	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
+
+	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation()); err != nil {
+		t.Fatal(err)
+	}
+
+	after, err := GetForTestByStringName(context.TODO(), tc.G, sub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Generation() != 2 {
+		t.Fatalf("rotated subteam generation: %d, expected 2", after.Generation())
+	}
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Fatal("team secret did not change when rotated")
+	}
+
+	// make sure the roles are ok after rotate
+	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	assertRole(tc, root, otherB.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherB.Username, keybase1.TeamRole_NONE)
+}
