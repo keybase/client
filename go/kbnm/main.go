@@ -38,7 +38,7 @@ var plainFlag = flag.Bool("plain", false, "newline-delimited JSON IO, no length 
 var versionFlag = flag.Bool("version", false, "print the version and exit")
 
 // process consumes a single message
-func process(h *Handler, in nativemessaging.JSONDecoder, out nativemessaging.JSONEncoder) error {
+func process(h *handler, in nativemessaging.JSONDecoder, out nativemessaging.JSONEncoder) error {
 	var resp Response
 	var req Request
 
@@ -119,7 +119,7 @@ func main() {
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
 	}
 
-	h := GetHandler()
+	h := newHandler()
 
 	for {
 		err := process(h, in, out)

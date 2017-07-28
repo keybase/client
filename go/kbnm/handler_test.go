@@ -8,7 +8,7 @@ import (
 )
 
 func TestHandlerChat(t *testing.T) {
-	h := GetHandler()
+	h := newHandler()
 
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
@@ -51,7 +51,7 @@ const queryResponseErrUnexpected = `[INFO] 001 Random progress message
 `
 
 func TestHandlerQueryError(t *testing.T) {
-	h := GetHandler()
+	h := newHandler()
 
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
@@ -80,7 +80,7 @@ func TestHandlerQueryError(t *testing.T) {
 }
 
 func TestHandlerQueryErrorUnexpected(t *testing.T) {
-	h := GetHandler()
+	h := newHandler()
 
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
@@ -109,7 +109,7 @@ func TestHandlerQueryErrorUnexpected(t *testing.T) {
 }
 
 func TestHandlerQuery(t *testing.T) {
-	h := GetHandler()
+	h := newHandler()
 
 	var ranCmd string
 	h.Run = func(cmd *exec.Cmd) error {
