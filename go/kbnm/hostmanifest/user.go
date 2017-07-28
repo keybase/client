@@ -11,21 +11,21 @@ type User interface {
 	PrefixPath() string
 }
 
-type userPath struct {
+type UserPath struct {
 	Admin bool
 	Path  string
 }
 
-func (u *userPath) IsAdmin() bool      { return u.Admin }
-func (u *userPath) PrefixPath() string { return u.Path }
+func (u *UserPath) IsAdmin() bool      { return u.Admin }
+func (u *UserPath) PrefixPath() string { return u.Path }
 
 // CurrentUser returns a User representing the current user.
-func CurrentUser() (*userPath, error) {
+func CurrentUser() (*UserPath, error) {
 	current, err := user.Current()
 	if err != nil {
 		return nil, err
 	}
-	u := &userPath{
+	u := &UserPath{
 		Admin: current.Uid == "0",
 	}
 	if !u.IsAdmin() {
