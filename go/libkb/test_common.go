@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -24,42 +25,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
-
-// TestConfig tracks libkb config during a test
-type TestConfig struct {
-	configFileName string
-}
-
-func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
-
-func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
-	G.Log = logger.NewTestLogger(t)
-	G.Init()
-
-	var f *os.File
-	var err error
-	if f, err = ioutil.TempFile(os.TempDir(), "testconfig"); err != nil {
-		t.Fatalf("couldn't create temp file: %s", err)
-	}
-	c.configFileName = f.Name()
-	if _, err = f.WriteString(initConfig); err != nil {
-		t.Fatalf("couldn't write config file: %s", err)
-	}
-	f.Close()
-
-	// XXX: The global G prevents us from running tests in parallel
-	G.Env.Test.ConfigFilename = c.configFileName
-
-	if err = G.ConfigureConfig(); err != nil {
-		t.Fatalf("couldn't configure the config: %s", err)
-	}
-}
-
-func (c *TestConfig) CleanTest() {
-	if c.configFileName != "" {
-		os.Remove(c.configFileName)
-	}
-}
 
 // TestOutput is a mock interface for capturing and testing output
 type TestOutput struct {
@@ -194,7 +159,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	// In debugging mode, dump all log, don't use the test logger.
 	// We only use the environment variable to discover debug mode
 	if val, _ := getEnvBool("KEYBASE_DEBUG"); !val {
-		g.Log = logger.NewTestLogger(tb)
+		g.Log = logger.NewTestLogger(tb, time.Now())
 	}
 
 	buf := make([]byte, 5)
