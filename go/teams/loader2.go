@@ -270,11 +270,16 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return &signer, proofSet, nil
 	}
 
-	if link.outerLink.LinkType.RequiresAdminPermission() {
-		// Reassign signer, might set implicitAdmin
-		proofSet, signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, user.ToUserVersion(), proofSet)
-	} else {
+	var isReaderOrAbove bool
+	if !link.outerLink.LinkType.RequiresAdminPermission() {
 		err = l.verifyWriterOrReaderPermissions(ctx, state, link, user.ToUserVersion())
+		isReaderOrAbove = (err == nil)
+	}
+	if link.outerLink.LinkType.RequiresAdminPermission() || !isReaderOrAbove {
+		// Check for admin permissions if they are not an on-chain reader/writer
+		// because they might be an implicit admin.
+		// Reassigns signer, might set implicitAdmin.
+		proofSet, signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, user.ToUserVersion(), proofSet)
 	}
 	return &signer, proofSet, err
 }
