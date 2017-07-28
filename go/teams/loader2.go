@@ -337,11 +337,12 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 
 	signer := signerX{signer: uv}
 	explicitAdmin := link.inner.TeamAdmin()
+	teamChain := TeamSigChainState{inner: state.Chain}
 
 	// In the simple case, we don't ask for explicit adminship, so we have to be admins of
 	// the current chain at or before the signature in question.
 	if explicitAdmin == nil {
-		err := (TeamSigChainState{inner: state.Chain}).AssertWasAdminAt(uv, link.SigChainLocation())
+		err := teamChain.AssertWasAdminAt(uv, link.SigChainLocation())
 		return proofSet, signer, err
 	}
 
@@ -356,7 +357,12 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		return proofSet, signer, err
 	}
 
-	signer.implicitAdmin = true
+	// This was an implicit admin action if the team from which admin-power was derived (adminTeam)
+	// is not the link's team (state).
+	if !adminTeam.GetID().Eq(teamChain.GetID()) {
+		signer.implicitAdmin = true
+	}
+
 	proofSet = addProofsForAdminPermission(state.Chain, link, adminBookends, proofSet)
 	return proofSet, signer, nil
 }
