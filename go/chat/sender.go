@@ -426,7 +426,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)
 	if err != nil {
-		return nil, nil, nil, chanMention, topicNameState, err
+		return nil, nil, nil, chanMention, nil, err
 	}
 
 	return boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, nil
@@ -544,7 +544,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	var plres chat1.PostRemoteRes
-	// Try this up to 5 times in case we ar trying to set the topic name, and the topic name
+	// Try this up to 5 times in case we are trying to set the topic name, and the topic name
 	// state is moving around underneath us.
 	for i := 0; i < 5; i++ {
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
