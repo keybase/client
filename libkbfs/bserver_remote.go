@@ -129,10 +129,20 @@ func (b *blockServerRemoteClientHandler) getClient() keybase1.BlockInterface {
 	return b.client
 }
 
+type ctxBServerResetKeyType int
+
+const (
+	// ctxBServerResetKey identifies whether the current context has
+	// already passed through `BServerRemote.resetAuth`.
+	ctxBServerResetKey ctxBServerResetKeyType = iota
+)
+
 // resetAuth is called to reset the authorization on a BlockServer
 // connection.
 func (b *blockServerRemoteClientHandler) resetAuth(
 	ctx context.Context, c keybase1.BlockInterface) (err error) {
+	ctx = context.WithValue(ctx, ctxBServerResetKey, b.name)
+
 	defer func() {
 		b.deferLog.CDebugf(
 			ctx, "BlockServerRemote: resetAuth called, err: %#v", err)
@@ -164,6 +174,11 @@ func (b *blockServerRemoteClientHandler) resetAuth(
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *blockServerRemoteClientHandler) RefreshAuthToken(
 	ctx context.Context) {
+	if v := ctx.Value(ctxBServerResetKey); v == b.name {
+		b.log.CDebugf(ctx, "Avoiding resetAuth recursion")
+		return
+	}
+
 	if err := b.resetAuth(ctx, b.client); err != nil {
 		b.log.CDebugf(ctx, "%s: error refreshing auth token: %v", b.name, err)
 	}
