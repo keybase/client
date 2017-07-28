@@ -4,6 +4,7 @@ import (
 	"os/user"
 )
 
+// User is an interface for an OS user.
 type User interface {
 	// IsAdmin returns true if the user is root, usually uid == 0
 	IsAdmin() bool
@@ -11,6 +12,7 @@ type User interface {
 	PrefixPath() string
 }
 
+// UserPath is a straightforward implementation of UserPath.
 type UserPath struct {
 	Admin bool
 	Path  string
@@ -19,7 +21,7 @@ type UserPath struct {
 func (u *UserPath) IsAdmin() bool      { return u.Admin }
 func (u *UserPath) PrefixPath() string { return u.Path }
 
-// CurrentUser returns a User representing the current user.
+// CurrentUser returns a UserPath representing the current user.
 func CurrentUser() (*UserPath, error) {
 	current, err := user.Current()
 	if err != nil {
