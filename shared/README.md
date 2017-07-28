@@ -74,7 +74,25 @@ yarn run rn-gobuild-android
 react-native run-android
 ```
 
+### Debugging with React Developer Tools extension
 
+1) Install the [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) in your regular Chrome browser.
+2) Run a yarn command (e.g. `yarn run start`) with the
+`KEYBASE_LOCAL_DEBUG` and `KEYBASE_DEV_TOOL_EXTENSIONS` environment
+variables set appropriately. An example for macOS would be
+
+```
+env KEYBASE_SHOW_DEVTOOLS=1 KEYBASE_LOCAL_DEBUG=1 KEYBASE_DEV_TOOL_EXTENSIONS="$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/2.5.0_0" yarn run start
+```
+
+If you're running Chromium instead of Google Chrome, or if you've
+installed the extension in your non-default browser, you'll have to
+change the path passed to `KEYBASE_DEV_TOOL_EXTENSIONS` (also if the
+extension gets
+updated). See
+[this code](https://github.com/keybase/client/blob/7e9ad67c0f86a82649f2e81586986892adcdf6fa/shared/desktop/app/dev-tools.js) and
+[the Electron docs](https://electron.atom.io/docs/tutorial/devtools-extension/) for
+details.
 
 ### Troubleshooting
 
