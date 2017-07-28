@@ -360,6 +360,5 @@ func (v *cmdInstallAuto) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
-	exitOnError(result)
 	return nil
 }
