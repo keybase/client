@@ -318,7 +318,7 @@ func (l *TeamLoader) walkUpToAdmin(
 	return &TeamSigChainState{inner: team.Chain}, nil
 }
 
-func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends ProofTermBookends, proofSet *proofSetT) *proofSetT {
+func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
 	a := bookends.left
 	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
 	c := bookends.right
@@ -348,7 +348,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	if err != nil {
 		return proofSet, err
 	}
-	adminBookends, err := adminTeam.AssertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
+	adminBookends, err := adminTeam.assertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
 	if err != nil {
 		return proofSet, err
 	}

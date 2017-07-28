@@ -142,11 +142,11 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 	return role
 }
 
-// AssertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
+// assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return
 // a bookend object, in the success case, to convey when the adminship was downgraded, if at all.
-func (t TeamSigChainState) AssertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret ProofTermBookends, err error) {
+func (t TeamSigChainState) assertBecameAdminAt(uv keybase1.UserVersion, scl keybase1.SigChainLocation) (ret proofTermBookends, err error) {
 	points := t.inner.UserLog[uv]
 	linkMap := t.inner.LinkIDs
 	for i := len(points) - 1; i >= 0; i-- {
