@@ -32,11 +32,44 @@ open Keybase.xcworkspace
 
 Then select the target ```Keybase``` and run.
 
-### Building
+## Building
 
 To build the installer, view instructions at [Scripts/README.md](Scripts/README.md).
 
 ## macOS Installer Overview
+
+```
+┌────────────────────────┐
+│desktop/app/installer.js│
+└────────────────────────┘
+             │
+             │
+             ▼
+┌────────────────────────────────┐
+│keybase install-auto            │
+│keybase install --components=...│
+└────────────────────────────────┘
+             │
+             │
+             ▼
+  ┌────────────────────┐
+  │ go/install package │
+  └────────────────────┘
+             │
+             ▼
+ ┌──────────────────────┐
+ │ non-privileged tasks │
+ └──────────────────────┘
+ ┌──────────────────────┐
+ │   privileged tasks   │
+ └──────────────────────┘
+             │
+             │
+             ▼
+  ┌─────────────────────┐
+  │KeybaseInstaller.app │
+  └─────────────────────┘
+```
 
 ### Go Install Package
 
