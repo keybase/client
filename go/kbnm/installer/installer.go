@@ -3,6 +3,7 @@ package installer
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/keybase/client/go/kbnm/hostmanifest"
 )
@@ -54,6 +55,23 @@ func InstallKBNM(path string) error {
 	u, err := CurrentUser()
 	if err != nil {
 		return err
+	}
+
+	// If we're installing in an overlay, we need to strip it as a prefix from
+	// the path we detect.
+	overlay := os.Getenv("KBNM_INSTALL_OVERLAY")
+	if overlay != "" {
+		// This is a bit arcane because filepath.HasPrefix deprecated due to
+		// being broken, but what it does is it attempts to map path as
+		// relative to overlay. If it succeeds and they're both absolute paths
+		// (which means the relative path won't start with "../"), then make
+		// path an absolute path with the overlay removed
+		// filepath.Rel takes care of normalizing paths which is an advantage
+		// over direct string comparisons which would be simpler.
+		rel, err := filepath.Rel(overlay, path)
+		if err == nil && !strings.HasPrefix(rel, ".") {
+			path = "/" + rel
+		}
 	}
 
 	app := hostmanifest.App{
