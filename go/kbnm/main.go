@@ -13,7 +13,7 @@ import (
 )
 
 // internalVersion is the logical version of this code (rather than build).
-const internalVersion = "1.4"
+const internalVersion = "1.4.1"
 
 // Version is the build version of kbnm, overwritten during build with metadata.
 var Version = "dev"
@@ -119,7 +119,7 @@ func main() {
 		out = nativemessaging.NewNativeJSONEncoder(os.Stdout)
 	}
 
-	h := Handler()
+	h := newHandler()
 
 	for {
 		err := process(h, in, out)

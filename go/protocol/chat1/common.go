@@ -94,6 +94,17 @@ func (o OutboxID) DeepCopy() OutboxID {
 	})(o)
 }
 
+type TopicNameState []byte
+
+func (o TopicNameState) DeepCopy() TopicNameState {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte(nil), x...)
+	})(o)
+}
+
 type ConversationMembersType int
 
 const (
@@ -257,6 +268,35 @@ func (o ConversationMember) DeepCopy() ConversationMember {
 	return ConversationMember{
 		Uid:    o.Uid.DeepCopy(),
 		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
+type ConversationIDMessageIDPair struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
+func (o ConversationIDMessageIDPair) DeepCopy() ConversationIDMessageIDPair {
+	return ConversationIDMessageIDPair{
+		ConvID: o.ConvID.DeepCopy(),
+		MsgID:  o.MsgID.DeepCopy(),
+	}
+}
+
+type ConversationIDMessageIDPairs struct {
+	Pairs []ConversationIDMessageIDPair `codec:"pairs" json:"pairs"`
+}
+
+func (o ConversationIDMessageIDPairs) DeepCopy() ConversationIDMessageIDPairs {
+	return ConversationIDMessageIDPairs{
+		Pairs: (func(x []ConversationIDMessageIDPair) []ConversationIDMessageIDPair {
+			var ret []ConversationIDMessageIDPair
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Pairs),
 	}
 }
 

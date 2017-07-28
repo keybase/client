@@ -617,3 +617,11 @@ func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
 		UnreadNotifyingMessages: counts,
 	}
 }
+
+func (s TopicNameState) Bytes() []byte {
+	return []byte(s)
+}
+
+func (s TopicNameState) Eq(o TopicNameState) bool {
+	return bytes.Equal(s.Bytes(), o.Bytes())
+}

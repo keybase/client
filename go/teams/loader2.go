@@ -348,7 +348,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	if err != nil {
 		return proofSet, err
 	}
-	adminBookends, err := adminTeam.AssertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
+	adminBookends, err := adminTeam.assertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
 	if err != nil {
 		return proofSet, err
 	}

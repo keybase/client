@@ -236,3 +236,13 @@ func (e OfflineClient) Call(ctx context.Context, method string, arg interface{},
 func (e OfflineClient) Notify(ctx context.Context, method string, arg interface{}) error {
 	return OfflineError{}
 }
+
+//=============================================================================
+
+type DuplicateTopicNameError struct {
+	TopicName string
+}
+
+func (e DuplicateTopicNameError) Error() string {
+	return fmt.Sprintf("channel name %s is already in use", e.TopicName)
+}

@@ -409,6 +409,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		}
 	case SCChatInternal:
 		return ChatInternalError{}
+	case SCChatStalePreviousState:
+		return ChatStalePreviousStateError{}
 	case SCChatConvExists:
 		var convID chat1.ConversationID
 		for _, field := range s.Fields {
@@ -1763,6 +1765,14 @@ func (e ChatInternalError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatInternal,
 		Name: "SC_CHAT_INTERNAL",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatStalePreviousState,
+		Name: "SC_CHAT_STALE_PREVIOUS_STATE",
 		Desc: e.Error(),
 	}
 }
