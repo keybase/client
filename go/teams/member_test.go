@@ -435,38 +435,11 @@ func TestMemberAddEmail(t *testing.T) {
 }
 
 func TestMemberAddAsImplicitAdmin(t *testing.T) {
-	tc, owner, otherA, otherB, rootName := memberSetupMultiple(t)
+	tc, owner, otherA, otherB, _, subteamName := memberSetupSubteam(t)
 	defer tc.Cleanup()
 
-	// add otherA and otherB as admins to rootName
-	_, err := AddMember(context.TODO(), tc.G, rootName, otherA.Username, keybase1.TeamRole_ADMIN)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = AddMember(context.TODO(), tc.G, rootName, otherB.Username, keybase1.TeamRole_ADMIN)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assertRole(tc, rootName, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, rootName, otherA.Username, keybase1.TeamRole_ADMIN)
-	assertRole(tc, rootName, otherB.Username, keybase1.TeamRole_ADMIN)
-
-	// create a subteam
-	rootTeamName, err := keybase1.TeamNameFromString(rootName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sub := "sub"
-	_, err = CreateSubteam(context.TODO(), tc.G, sub, rootTeamName)
-	if err != nil {
-		t.Fatal(err)
-	}
-	subteamName := rootName + "." + sub
-
-	// make sure owner, otherA, otherB are not members
-	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
-	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
-	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_NONE)
+	// owner created a subteam, otherA is implicit admin, otherB is nobody
+	// (all of that tested in memberSetupSubteam)
 
 	// switch to `otherA` user
 	tc.G.Logout()
