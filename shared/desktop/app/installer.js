@@ -34,39 +34,62 @@ export default (callback: (err: any) => void): void => {
   const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
 
   exec(keybaseBin, args, 'darwin', 'prod', true, function(err, attempted, stdout, stderr) {
+    let errors = []
     if (err) {
-      let errorDetail = `There was an error trying to install (${err.code}). Please run \`keybase log send\` to report the error.`
-      if (stdout !== '') {
-        const result = JSON.parse(stdout)
-        const fuseResults = result ? result.componentResults.filter(c => c.name === 'fuse') : []
-        if (fuseResults.length > 0) {
-          if (fuseResults[0].exitCode === ExitCodeFuseKextError) {
-            errorDetail = `We were unable to load KBFS (${err.code}). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
-          } else if (fuseResults[0].exitCode === ExitCodeFuseKextPermissionError) {
-            // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
-            // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
-            callback(err)
-            return
-          }
-        }
+      errors = [`There was an error trying to run the install (${err.code}).`]
+    } else if (stdout !== '') {
+      const result = JSON.parse(stdout)
+      if (result) {
+        errors = checkErrors(result)
       }
+    }
 
-      dialog.showMessageBox(
-        {
-          buttons: ['Ignore', 'Quit'],
-          detail: errorDetail,
-          message: 'Keybase Install Error',
-        },
-        resp => {
-          if (resp === 1) {
-            quit()
-          } else {
-            callback(err)
-          }
-        }
-      )
+    if (errors.length > 0) {
+      showError(errors, callback)
       return
     }
+
     callback(null)
   })
+}
+
+function checkErrors(result: any): Array<string> {
+  let errors = []
+  for (let cr of result.componentResults) {
+    if (cr.status.code !== 0) {
+      if (cr.name === 'fuse') {
+        if (cr.exitCode === ExitCodeFuseKextError) {
+          errors.push(
+            `We were unable to load KBFS (Fuse kext). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
+          )
+        } else if (cr.exitCode === ExitCodeFuseKextPermissionError) {
+          // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
+          // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
+        }
+      } else if (cr.name === 'cli') {
+        // Handle CLI error
+      } else {
+        errors.push(`There was an error trying to install the ${cr.name}.`)
+      }
+    }
+  }
+  return errors
+}
+
+function showError(errors: Array<string>, callback: () => void) {
+  const detail = errors.join('\n') + `Please run \`keybase log send\` to report the error.`
+  dialog.showMessageBox(
+    {
+      buttons: ['Ignore', 'Quit'],
+      detail: detail,
+      message: 'Keybase Install Error',
+    },
+    resp => {
+      if (resp === 1) {
+        quit()
+      } else {
+        callback()
+      }
+    }
+  )
 }
