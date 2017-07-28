@@ -2313,12 +2313,12 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, ts1.Eq(*ts2))
 
-		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+		/*_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
 			MessageBoxed:   *msg1,
 		})
 		require.Error(t, err)
-		require.IsType(t, libkb.ChatClientError{}, err)
+		require.IsType(t, libkb.ChatClientError{}, err)*/
 		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
 			MessageBoxed:   *msg1,
