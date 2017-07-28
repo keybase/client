@@ -69,7 +69,9 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, hasPrefetched, err = primaryCache.Get(ctx, tlfID, blockID)
 	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError {
-		return secondaryCache.Get(ctx, tlfID, blockID)
+		if secondaryCache != nil {
+			return secondaryCache.Get(ctx, tlfID, blockID)
+		}
 	}
 	return buf, serverHalf, hasPrefetched, err
 }
@@ -102,7 +104,9 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	// TODO: Allow more intelligent transitioning from the sync cache to
 	// the working set cache.
-	cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+	if cache.syncCache != nil {
+		cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+	}
 	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
 
