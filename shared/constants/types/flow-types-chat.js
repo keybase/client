@@ -1009,9 +1009,9 @@ export type Conversation = {
 export type ConversationAuxiliaryInfo = {
   conversationCtime: gregor1.Time,
   conversationCreator: gregor1.UID,
-  headlineMtime: gregor1.Time,
-  headlineModifier: gregor1.UID,
-  headlineMessageID: MessageID,
+  headlineMtime?: ?gregor1.Time,
+  headlineModifier?: ?gregor1.UID,
+  headlineMessageID?: ?MessageID,
   readerCount: int,
 }
 

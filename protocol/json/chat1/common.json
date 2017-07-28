@@ -492,15 +492,24 @@
           "name": "conversationCreator"
         },
         {
-          "type": "gregor1.Time",
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
           "name": "headlineMtime"
         },
         {
-          "type": "gregor1.UID",
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
           "name": "headlineModifier"
         },
         {
-          "type": "MessageID",
+          "type": [
+            null,
+            "MessageID"
+          ],
           "name": "headlineMessageID"
         },
         {
