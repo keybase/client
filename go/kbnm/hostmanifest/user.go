@@ -12,13 +12,16 @@ type User interface {
 	PrefixPath() string
 }
 
-// UserPath is a straightforward implementation of UserPath.
+// UserPath is a straightforward implementation of User.
 type UserPath struct {
 	Admin bool
 	Path  string
 }
 
-func (u *UserPath) IsAdmin() bool      { return u.Admin }
+// IsAdmin implements User.
+func (u *UserPath) IsAdmin() bool { return u.Admin }
+
+// PrefixPath implements User.
 func (u *UserPath) PrefixPath() string { return u.Path }
 
 // CurrentUser returns a UserPath representing the current user.
