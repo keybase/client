@@ -865,21 +865,13 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 }
 
 func (l *TeamLoader) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
-	teamID := id
-	for {
-		team, err := l.load2(ctx, load2ArgT{
-			teamID: teamID,
-		})
+	team, err := l.load2(ctx, load2ArgT{
+		teamID: id,
+	})
 
-		if err != nil {
-			return keybase1.TeamID(""), err
-		}
-
-		chain := TeamSigChainState{inner: team.Chain}
-		if chain.IsSubteam() && chain.GetParentID() != nil {
-			teamID = *chain.GetParentID()
-		} else {
-			return chain.GetID(), nil
-		}
+	if err != nil {
+		return keybase1.TeamID(""), err
 	}
+
+	return team.Name.RootAncestorName().ToTeamID(), nil
 }
