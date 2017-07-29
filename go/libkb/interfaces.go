@@ -586,4 +586,5 @@ type TeamLoader interface {
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	OnLogout()
+	GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error)
 }

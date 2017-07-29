@@ -46,3 +46,7 @@ func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.T
 }
 
 func (n nullTeamLoader) OnLogout() {}
+
+func (n nullTeamLoader) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
+	return keybase1.TeamID(""), fmt.Errorf("null team loader")
+}

@@ -415,4 +415,5 @@ protocol teams {
    * of the refreshers aren't met.
    */
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
+  TeamID getTeamRootID(TeamID id);
 }

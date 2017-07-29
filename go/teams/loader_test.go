@@ -520,3 +520,33 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	t.Logf("U0 sees the 3 implicit admins")
 	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[0].GetUserVersion(), fus[1].GetUserVersion(), fus[2].GetUserVersion()})
 }
+
+func TestGetTeamRootID(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	loader := tcs[0].G.GetTeamLoader()
+
+	t.Logf("create a team")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	t.Logf("create a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "mysubteam", parentName)
+	require.NoError(t, err)
+
+	subteamName, err := parentName.Append("mysubteam")
+
+	t.Logf("create a sub-subteam")
+	subteamID2, err := CreateSubteam(context.TODO(), tcs[0].G, "teamofsubs", subteamName)
+	require.NoError(t, err)
+
+	getAndCompare := func(id keybase1.TeamID) {
+		retID, err := loader.GetTeamRootID(context.TODO(), id)
+		require.NoError(t, err)
+		require.Equal(t, parentID, retID)
+	}
+
+	getAndCompare(*subteamID)
+	getAndCompare(*subteamID2)
+	getAndCompare(parentID)
+}
