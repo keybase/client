@@ -82,6 +82,18 @@ func handleTLFSpecialFile(name string, folder *Folder) dokan.File {
 			folder: folder,
 			action: libfs.JournalDisable,
 		}
+
+	case libfs.EnableSyncFileName:
+		return &SyncControlFile{
+			folder: folder,
+			action: libfs.SyncEnable,
+		}
+
+	case libfs.DisableSyncFileName:
+		return &SyncControlFile{
+			folder: folder,
+			action: libfs.SyncDisable,
+		}
 	}
 
 	return nil
