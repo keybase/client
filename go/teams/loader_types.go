@@ -23,6 +23,14 @@ type parentChildOperation struct {
 
 // --------------------------------------------------
 
+type signerX struct {
+	signer keybase1.UserVersion
+	// Whether the user is definitely an implicit admin
+	implicitAdmin bool
+}
+
+// --------------------------------------------------
+
 type chainLinkUnpacked struct {
 	source    *SCChainLink
 	outerLink *libkb.OuterLinkV2WithMetadata
