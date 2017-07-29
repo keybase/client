@@ -66,7 +66,7 @@ func (c *CmdTeamLeave) Run() error {
 	if c.permanent {
 		dui.Printf("Success! You have left %s permanently.", c.team)
 	} else {
-		dui.Printf("Success! You have left %s non-permanently.", c.team)
+		dui.Printf("Success! You have left %s.", c.team)
 	}
 
 	return nil
