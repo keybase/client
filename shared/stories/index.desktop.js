@@ -3,15 +3,12 @@
 import React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import {configure, addDecorator} from '@storybook/react'
+import stories from './stories'
 
 // Load css
 import '../desktop/renderer/style.css'
 
 const load = () => {
-  // Load all stories
-  // $FlowIssue
-  const req = require.context('..', true, /\.stories\.js$/)
-
   addDecorator(story => (
     <ScrollView key="scrollview" style={{flex: 1}}>
       {story()}
@@ -19,9 +16,7 @@ const load = () => {
   ))
 
   configure(() => {
-    req.keys().forEach(filename => {
-      req(filename).default()
-    })
+    Object.keys(stories).forEach(s => stories[s]())
   }, module)
 }
 
