@@ -150,9 +150,15 @@ func (cache *diskBlockCacheWrapped) Size() int64 {
 
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Status(
-	ctx context.Context) *DiskBlockCacheStatus {
-	// TODO: include syncCache
-	return cache.workingSetCache.Status(ctx)
+	ctx context.Context) map[string]DiskBlockCacheStatus {
+	statuses := make(map[string]DiskBlockCacheStatus, 2)
+	for name, status := range cache.workingSetCache.Status(ctx) {
+		statuses[name] = status
+	}
+	for name, status := range cache.syncCache.Status(ctx) {
+		statuses[name] = status
+	}
+	return statuses
 }
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.

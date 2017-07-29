@@ -41,6 +41,8 @@ const (
 	versionFilename               string = "version"
 	initialDiskCacheVersion       uint64 = 1
 	currentDiskCacheVersion       uint64 = initialDiskCacheVersion
+	syncCacheName                 string = "SyncBlockCache"
+	workingSetCacheName           string = "WorkingSetBlockCache"
 )
 
 // DiskBlockCacheStandard is the standard implementation for DiskBlockCache.
@@ -917,11 +919,18 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Status(
-	ctx context.Context) *DiskBlockCacheStatus {
+	ctx context.Context) map[string]DiskBlockCacheStatus {
+	var name string
+	switch cache.cacheType {
+	case syncCacheLimitTrackerType:
+		name = syncCacheName
+	case workingSetCacheLimitTrackerType:
+		name = workingSetCacheName
+	}
 	select {
 	case <-cache.startedCh:
 	default:
-		return &DiskBlockCacheStatus{IsStarting: true}
+		return map[string]DiskBlockCacheStatus{name: {IsStarting: true}}
 	}
 	cache.shutdownLock.RLock()
 	defer cache.shutdownLock.RUnlock()
@@ -930,18 +939,20 @@ func (cache *DiskBlockCacheStandard) Status(
 	limiterStatus :=
 		cache.config.DiskLimiter().getStatus(
 			ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
-	return &DiskBlockCacheStatus{
-		NumBlocks:       uint64(cache.numBlocks),
-		BlockBytes:      cache.currBytes,
-		CurrByteLimit:   uint64(limiterStatus.DiskCacheByteStatus.Max),
-		Hits:            rateMeterToStatus(cache.hitMeter),
-		Misses:          rateMeterToStatus(cache.missMeter),
-		Puts:            rateMeterToStatus(cache.putMeter),
-		MetadataUpdates: rateMeterToStatus(cache.updateMeter),
-		NumEvicted:      rateMeterToStatus(cache.evictCountMeter),
-		SizeEvicted:     rateMeterToStatus(cache.evictSizeMeter),
-		NumDeleted:      rateMeterToStatus(cache.deleteCountMeter),
-		SizeDeleted:     rateMeterToStatus(cache.deleteSizeMeter),
+	return map[string]DiskBlockCacheStatus{
+		name: {
+			NumBlocks:       uint64(cache.numBlocks),
+			BlockBytes:      cache.currBytes,
+			CurrByteLimit:   uint64(limiterStatus.DiskCacheByteStatus.Max),
+			Hits:            rateMeterToStatus(cache.hitMeter),
+			Misses:          rateMeterToStatus(cache.missMeter),
+			Puts:            rateMeterToStatus(cache.putMeter),
+			MetadataUpdates: rateMeterToStatus(cache.updateMeter),
+			NumEvicted:      rateMeterToStatus(cache.evictCountMeter),
+			SizeEvicted:     rateMeterToStatus(cache.evictSizeMeter),
+			NumDeleted:      rateMeterToStatus(cache.deleteCountMeter),
+			SizeDeleted:     rateMeterToStatus(cache.deleteSizeMeter),
+		},
 	}
 }
 

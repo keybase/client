@@ -943,7 +943,7 @@ type DiskBlockCache interface {
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Status returns the current status of the disk cache.
-	Status(ctx context.Context) *DiskBlockCacheStatus
+	Status(ctx context.Context) map[string]DiskBlockCacheStatus
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
