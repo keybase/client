@@ -51,7 +51,7 @@ func New(g *globals.Context) *Storage {
 		engine:       newBlockEngine(g),
 		idtracker:    newMsgIDTracker(g),
 		breakTracker: newBreakTracker(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Storage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Storage", false),
 	}
 }
 

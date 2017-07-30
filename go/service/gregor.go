@@ -190,7 +190,7 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:      globals.NewContextified(g),
-		chatLog:           utils.NewDebugLabeler(g, "PushHandler", false),
+		chatLog:           utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
 		firstConnect:      true,
 		pushStateFilter:   func(m gregor.Message) bool { return true },
 		badger:            nil,

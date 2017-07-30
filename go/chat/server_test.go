@@ -46,7 +46,7 @@ var _ rpc.ConnectionHandler = (*gregorTestConnection)(nil)
 func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken string) *gregorTestConnection {
 	return &gregorTestConnection{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "gregorTestConnection", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorTestConnection", false),
 		uid:          uid,
 		sessionToken: sessionToken,
 	}

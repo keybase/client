@@ -36,7 +36,7 @@ func (b boxedLocalMessage) GetMessageType() chat1.MessageType {
 func newMsgEngine(g *globals.Context) *msgEngine {
 	return &msgEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "MessageEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MessageEngine", true),
 	}
 }
 
