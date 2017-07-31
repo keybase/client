@@ -30,7 +30,7 @@ type baseConversationSource struct {
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
 	return &baseConversationSource{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "baseConversationSource", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseConversationSource", false),
 		ri:           ri,
 		boxer:        boxer,
 	}
@@ -223,7 +223,7 @@ type conversationLockTab struct {
 func newConversationLockTab(g *globals.Context) *conversationLockTab {
 	return &conversationLockTab{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "conversationLockTab", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "conversationLockTab", false),
 		convLocks:    make(map[string]*conversationLock),
 	}
 }
@@ -320,7 +320,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified:           globals.NewContextified(g),
-		DebugLabeler:           utils.NewDebugLabeler(g, "HybridConversationSource", false),
+		DebugLabeler:           utils.NewDebugLabeler(g.GetLog(), "HybridConversationSource", false),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 		lockTab:                newConversationLockTab(g),

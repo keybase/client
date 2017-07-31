@@ -198,7 +198,7 @@ type recentConversationParticipants struct {
 func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
 	return &recentConversationParticipants{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "recentConversationParticipants", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "recentConversationParticipants", false),
 	}
 }
 

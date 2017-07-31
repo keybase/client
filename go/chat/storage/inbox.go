@@ -81,7 +81,7 @@ type Inbox struct {
 func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	return &Inbox{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}

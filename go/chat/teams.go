@@ -20,7 +20,7 @@ type TeamsNameInfoSource struct {
 func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	return &TeamsNameInfoSource{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "TeamsNameInfoSource", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamsNameInfoSource", false),
 	}
 }
 
