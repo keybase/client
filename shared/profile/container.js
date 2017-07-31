@@ -10,7 +10,7 @@ import {
   onClickFollowing,
   checkProof,
 } from '../actions/profile'
-import {searchSuggestions} from '../actions/searchv3/creators'
+import {searchSuggestions} from '../actions/search/creators'
 import pausableConnect from '../util/pausable-connect'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'

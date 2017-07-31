@@ -9,9 +9,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/keybase/client/go/logger"
+
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
-	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -54,7 +56,7 @@ func (u *UploadTask) Nonce() signencrypt.Nonce {
 }
 
 type AttachmentStore struct {
-	log      logger.Logger
+	utils.DebugLabeler
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
@@ -70,9 +72,9 @@ type AttachmentStore struct {
 // S3 connection.
 func NewAttachmentStore(log logger.Logger, runtimeDir string) *AttachmentStore {
 	return &AttachmentStore{
-		log:   log,
-		s3c:   &s3.AWS{},
-		stash: NewFileStash(runtimeDir),
+		DebugLabeler: utils.NewDebugLabeler(log, "AttachmentStore", false),
+		s3c:          &s3.AWS{},
+		stash:        NewFileStash(runtimeDir),
 	}
 }
 
@@ -82,11 +84,11 @@ func NewAttachmentStore(log logger.Logger, runtimeDir string) *AttachmentStore {
 // the number of blocks uploaded.
 func newAttachmentStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *AttachmentStore {
 	return &AttachmentStore{
-		log:       log,
-		s3c:       &s3.Mem{},
-		stash:     NewFileStash(os.TempDir()),
-		keyTester: kt,
-		testing:   true,
+		DebugLabeler: utils.NewDebugLabeler(log, "AttachmentStore", false),
+		s3c:          &s3.Mem{},
+		stash:        NewFileStash(os.TempDir()),
+		keyTester:    kt,
+		testing:      true,
 	}
 }
 
@@ -100,7 +102,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 		if !a.testing {
 			return chat1.Asset{}, errors.New("task.plaintextHash not nil")
 		}
-		a.log.Warning("skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
+		a.Debug(ctx, "UploadAsset: skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
 	}
 
 	// encrypt the stream
@@ -118,7 +120,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 
 	// if the upload is aborted, reset the stream and start over to get new keys
 	if err == ErrAbortOnPartMismatch && previous != nil {
-		a.log.Debug("uploadAsset resume call aborted, resetting stream and starting from scratch")
+		a.Debug(ctx, "UploadAsset: resume call aborted, resetting stream and starting from scratch")
 		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
@@ -136,7 +138,8 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	var err error
 	var encReader io.Reader
 	if previous != nil {
-		a.log.Debug("found previous upload for %s in conv %s", task.Filename, task.ConversationID)
+		a.Debug(ctx, "uploadAsset: found previous upload for %s in conv %s", task.Filename,
+			task.ConversationID)
 		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey, previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
@@ -152,7 +155,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	}
 
 	if a.testing && a.keyTester != nil {
-		a.log.Warning("AttachmentStore.keyTester exists, reporting keys")
+		a.Debug(ctx, "uploadAsset: AttachmentStore.keyTester exists, reporting keys")
 		a.keyTester(enc.EncryptKey(), enc.VerifyKey())
 	}
 
@@ -170,11 +173,11 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		}
 		ew, ok := err.(*ErrorWrapper)
 		if ok {
-			a.log.Debug("PutS3 error details: %s", ew.Details())
+			a.Debug(ctx, "uploadAsset: PutS3 error details: %s", ew.Details())
 		}
 		return chat1.Asset{}, err
 	}
-	a.log.Debug("chat attachment upload: %+v", upRes)
+	a.Debug(ctx, "uploadAsset: chat attachment upload: %+v", upRes)
 
 	asset := chat1.Asset{
 		Filename:  filepath.Base(task.Filename),
@@ -204,7 +207,7 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 	region := a.regionFromAsset(asset)
 	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
 
-	a.log.Debug("downloading %s from s3", asset.Path)
+	a.Debug(ctx, "DownloadAsset: downloading %s from s3", asset.Path)
 	body, err := b.GetReader(ctx, asset.Path)
 	defer func() {
 		if body != nil {
@@ -239,14 +242,14 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 		return err
 	}
 
-	a.log.Debug("downloaded and decrypted to %d plaintext bytes", n)
+	a.Debug(ctx, "DownloasAsset: downloaded and decrypted to %d plaintext bytes", n)
 	progWriter.Finish()
 
 	// validate the EncHash
 	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {
 		return fmt.Errorf("invalid attachment content hash")
 	}
-	a.log.Debug("attachment content hash is valid")
+	a.Debug(ctx, "DownloadAsset: attachment content hash is valid")
 
 	return nil
 }
@@ -259,20 +262,20 @@ func (a *AttachmentStore) startUpload(ctx context.Context, task *UploadTask, enc
 		VerifyKey: encrypter.verifyKey,
 	}
 	if err := a.stash.Start(task.stashKey(), info); err != nil {
-		a.log.Debug("StashStart error: %s", err)
+		a.Debug(ctx, "startUpload: StashStart error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) finishUpload(ctx context.Context, task *UploadTask) {
 	if err := a.stash.Finish(task.stashKey()); err != nil {
-		a.log.Debug("StashFinish error: %s", err)
+		a.Debug(ctx, "finishUpload: StashFinish error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
 	info, found, err := a.stash.Lookup(task.stashKey())
 	if err != nil {
-		a.log.Debug("StashLookup error: %s", err)
+		a.Debug(ctx, "previousUpload: StashLookup error: %s", err)
 		return nil
 	}
 	if !found {
@@ -306,13 +309,13 @@ func (a *AttachmentStore) DeleteAssets(ctx context.Context, params chat1.S3Param
 	var errs []error
 	for _, asset := range assets {
 		if err := a.DeleteAsset(ctx, params, signer, asset); err != nil {
-			a.log.Debug("DeleteAsset error: %s", err)
+			a.Debug(ctx, "DeleteAssets: DeleteAsset error: %s", err)
 			errs = append(errs, err)
 		}
 	}
 
 	if len(errs) > 0 {
-		a.log.Debug("DeleteAssets errors: %d, returning first one", len(errs))
+		a.Debug(ctx, "DeleteAssets: errors: %d, returning first one", len(errs))
 		return errs[0]
 	}
 	return nil

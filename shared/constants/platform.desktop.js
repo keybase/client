@@ -7,6 +7,7 @@ const isAndroid = false
 const isIOS = false
 const isLargeScreen = true
 const isSimulator = false
+const isStoryBook: boolean = false
 
 const isElectron = true
 const isDarwin = process.platform === 'darwin'
@@ -164,6 +165,7 @@ export {
   isLinux,
   isMobile,
   isSimulator,
+  isStoryBook,
   isWindows,
   jsonDebugFileName,
   logFileName,

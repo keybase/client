@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import ServiceFilter from '../searchv3/services-filter'
-import ResultsList from '../searchv3/results-list'
-import UserInput from '../searchv3/user-input'
+import ServiceFilter from '../search/services-filter'
+import ResultsList from '../search/results-list'
+import UserInput from '../search/user-input'
 import {Box, Icon, ProgressIndicator, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
@@ -10,7 +10,7 @@ import type {Props} from './search'
 
 const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
-    <Box style={styleSearchContainer}>
+    <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
           <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
@@ -62,7 +62,7 @@ const styleCatcher = {
   height: '100%',
   position: 'absolute',
   width: '100%',
-  zIndex: 10,
+  zIndex: 20,
 }
 
 const styleSearchContainer = {

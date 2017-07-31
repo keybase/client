@@ -42,7 +42,7 @@ type gregorMessageOrderer struct {
 func newGregorMessageOrderer(g *globals.Context) *gregorMessageOrderer {
 	return &gregorMessageOrderer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "gregorMessageOrderer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorMessageOrderer", false),
 		waiters:      make(map[string][]messageWaiterEntry),
 		clock:        clockwork.NewRealClock(),
 	}
@@ -187,7 +187,7 @@ type PushHandler struct {
 func NewPushHandler(g *globals.Context) *PushHandler {
 	return &PushHandler{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "PushHandler", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
 		identNotifier: NewIdentifyNotifier(g),
 		orderer:       newGregorMessageOrderer(g),
 		typingMonitor: NewTypingMonitor(g),

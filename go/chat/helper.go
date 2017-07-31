@@ -2,14 +2,12 @@ package chat
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
-	"time"
-
-	"encoding/hex"
-
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -140,15 +138,16 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 
 	boxer := NewBoxer(s.G())
 	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, _, _, err := sender.Prepare(ctx, first, s.membersType, nil)
+	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}
 
 	ncrres, reserr := s.ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-		IdTriple:    s.triple,
-		TLFMessage:  *mbox,
-		MembersType: s.membersType,
+		IdTriple:       s.triple,
+		TLFMessage:     *mbox,
+		MembersType:    s.membersType,
+		TopicNameState: topicNameState,
 	})
 	convID := ncrres.ConvID
 	if reserr != nil {
@@ -199,7 +198,7 @@ type recentConversationParticipants struct {
 func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
 	return &recentConversationParticipants{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "recentConversationParticipants", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "recentConversationParticipants", false),
 	}
 }
 
@@ -289,4 +288,37 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 	sort.Sort(utils.ConvLocalByTopicName(res))
 	rl = utils.AggRateLimits(rl)
 	return res, rl, nil
+}
+
+func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	convs []chat1.ConversationLocal,
+	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType) (res chat1.TopicNameState, err error) {
+
+	var pairs chat1.ConversationIDMessageIDPairs
+	sort.Sort(utils.ConvLocalByConvID(convs))
+	for _, conv := range convs {
+		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
+		if err != nil {
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, no metadata message",
+				conv.GetConvID())
+			continue
+		}
+		if !msg.IsValid() {
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message",
+				conv.GetConvID())
+			continue
+		}
+		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
+			ConvID: conv.GetConvID(),
+			MsgID:  msg.GetMessageID(),
+		})
+	}
+
+	if res, err = utils.CreateTopicNameState(pairs); err != nil {
+		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
+		return res, err
+	}
+
+	return res, nil
 }

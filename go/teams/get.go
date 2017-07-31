@@ -40,11 +40,12 @@ func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
 
 // needAdmin must be set when interacting with links that have a possibility of being stubbed.
 func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContext, name string, needAdmin bool) (*Team, error) {
-	return Load(ctx, g, keybase1.LoadTeamArg{
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
 		NeedAdmin:   needAdmin,
 	})
+	return team, fixupTeamGetError(err, name)
 }
 
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't

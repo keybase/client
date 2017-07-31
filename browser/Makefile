@@ -9,10 +9,10 @@ release: clean bundle
 	jq 'del(.key,.applications)' build/manifest.json > build/manifest.chrome.json
 	@echo "Packaging Chrome..."
 	cp build/manifest.chrome.json build/manifest.json
-	cd build && zip -q -r ../keybase-firefox-$(shell jq -r ".version" manifest.json).zip .
+	cd build && zip -q -r ../keybase-chrome-$(shell jq -r ".version" manifest.json).zip .
 	@echo "Packaging Firefox..."
 	cp build/manifest.firefox.json build/manifest.json
-	cd build && zip -q -r ../keybase-chrome-$(shell jq -r ".version" manifest.json).zip .
+	cd build && zip -q -r ../keybase-firefox-$(shell jq -r ".version" manifest.json).zip .
 
 clean:
 	rm -rf build/

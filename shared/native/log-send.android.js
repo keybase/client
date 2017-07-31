@@ -1,3 +1,4 @@
 // @flow
 import {NativeModules} from 'react-native'
-export default NativeModules.KBLogSend.logSend
+import {isStoryBook} from '../constants/platform'
+export default (isStoryBook ? () => {} : NativeModules.KBLogSend.logSend)

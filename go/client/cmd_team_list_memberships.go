@@ -155,7 +155,20 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 
 	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	for _, t := range list.Teams {
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, strings.ToLower(t.Role.String()), t.Username, t.FullName)
+		var role string
+		if t.Implicit != nil {
+			role += "implied admin"
+		}
+		if t.Role != keybase1.TeamRole_NONE {
+			if t.Implicit != nil {
+				role += ", "
+			}
+			role += strings.ToLower(t.Role.String())
+		}
+		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
+	}
+	if c.showAll {
+		c.outputInvites(list.AnnotatedActiveInvites)
 	}
 
 	c.tabw.Flush()
@@ -190,6 +203,7 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 	c.outputRole("admin", details.Members.Admins)
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
+	c.outputInvites(details.AnnotatedActiveInvites)
 	c.tabw.Flush()
 
 	if c.verbose {
@@ -206,6 +220,13 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 			reset = " (inactive due to account reset)"
 		}
 		fmt.Fprintf(c.tabw, "%s\t%s\t%s%s\n", c.team, role, member.Username, reset)
+	}
+}
+
+func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
+	for _, invite := range invites {
+		fmtstring := "%s\t%s*\t%s\t(* invited by %s; awaiting acceptance)\n"
+		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()), invite.Name, invite.InviterUsername)
 	}
 }
 

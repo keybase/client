@@ -55,7 +55,7 @@ func (c *CmdTeamRequestAccess) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("An email has been sent to the admins of %s.\n", c.Team)
+	dui.Printf("If %q exists, an email has been sent to its admins, notifying of your request for access.\n", c.Team)
 
 	return nil
 }

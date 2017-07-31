@@ -329,7 +329,43 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	return nil
 }
 
+func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	uv := me.ToUserVersion()
+	role, err := t.MemberRole(ctx, uv)
+	if err != nil {
+		return false, err
+	}
+
+	if role.IsAdminOrAbove() {
+		reqs := keybase1.TeamChangeReq{Writers: []keybase1.UserVersion{uv}}
+		if err := t.ChangeMembership(ctx, reqs); err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (t *Team) Leave(ctx context.Context, permanent bool) error {
+	// If we are owner or admin, we have to downgrade ourselves first.
+	needsReload, err := t.downgradeIfOwnerOrAdmin(ctx)
+	if err != nil {
+		return err
+	}
+	if needsReload {
+		t, err = Load(ctx, t.G(), keybase1.LoadTeamArg{ID: t.ID, ForceRepoll: true})
+		if err != nil {
+			return err
+		}
+	}
+
 	section, err := newMemberSet().Section(t.chain().GetID(), nil)
 	if err != nil {
 		return err
@@ -706,6 +742,19 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
+
+	if t.chain().IsSubteam() {
+		// rotate needs to be keyed for all admins above it
+		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, true, true)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	t.rotated = true
 
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
@@ -751,6 +800,42 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	_, err := t.G().GetMerkleClient().LookupTeam(ctx, t.ID)
 	return err
+}
+
+func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
+	set := make(map[keybase1.UserVersion]bool)
+
+	owners, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range owners {
+		set[m] = true
+	}
+
+	admins, err := t.UsersWithRole(keybase1.TeamRole_ADMIN)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range admins {
+		set[m] = true
+	}
+
+	if t.chain().IsSubteam() {
+		imp, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range imp {
+			set[m] = true
+		}
+	}
+
+	var all []keybase1.UserVersion
+	for uv := range set {
+		all = append(all, uv)
+	}
+	return all, nil
 }
 
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,

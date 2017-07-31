@@ -49,6 +49,40 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	return tc, owner, otherA, otherB, name
 }
 
+// creates a root team and a subteam.  owner is the owner of root, otherA is an admin, otherB is just a user.
+// no members in subteam.
+func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, root, sub string) {
+	tc, owner, otherA, otherB, root = memberSetupMultiple(t)
+
+	// add otherA and otherB as admins to rootName
+	_, err := AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, root, otherA.Username, keybase1.TeamRole_ADMIN)
+	assertRole(tc, root, otherB.Username, keybase1.TeamRole_NONE)
+
+	// create a subteam
+	rootTeamName, err := keybase1.TeamNameFromString(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	subPart := "sub"
+	_, err = CreateSubteam(context.TODO(), tc.G, subPart, rootTeamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sub = root + "." + subPart
+
+	// make sure owner, otherA, otherB are not members
+	assertRole(tc, sub, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, sub, otherB.Username, keybase1.TeamRole_NONE)
+
+	return tc, owner, otherA, otherB, root, sub
+}
+
 func TestMemberOwner(t *testing.T) {
 	tc, u, name := memberSetup(t)
 	defer tc.Cleanup()
@@ -370,6 +404,63 @@ func TestMemberAddEmail(t *testing.T) {
 
 	// existing invite should be untouched
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List --all does not list invite.")
+	}
+
+	details, err := Details(context.TODO(), tc.G, name, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found = false
+	for _, invite := range details.AnnotatedActiveInvites {
+		if invite.TeamName == name && string(invite.Name) == address {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("List team does not list invite.")
+	}
+}
+
+func TestMemberAddAsImplicitAdmin(t *testing.T) {
+	tc, owner, otherA, otherB, _, subteamName := memberSetupSubteam(t)
+	defer tc.Cleanup()
+
+	// owner created a subteam, otherA is implicit admin, otherB is nobody
+	// (all of that tested in memberSetupSubteam)
+
+	// switch to `otherA` user
+	tc.G.Logout()
+	if err := otherA.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	// otherA has the power to add otherB to the subteam
+	res, err := AddMember(context.TODO(), tc.G, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.User.Username != otherB.Username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, otherB.Username)
+	}
+	// otherB should now be a writer
+	assertRole(tc, subteamName, otherB.Username, keybase1.TeamRole_WRITER)
+
+	// owner, otherA should still be non-members
+	assertRole(tc, subteamName, owner.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, subteamName, otherA.Username, keybase1.TeamRole_NONE)
 }
 
 func TestLeave(t *testing.T) {

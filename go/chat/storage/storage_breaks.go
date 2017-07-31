@@ -19,7 +19,7 @@ type breakTracker struct {
 func newBreakTracker(g *globals.Context) *breakTracker {
 	return &breakTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BreakTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BreakTracker", false),
 	}
 }
 

@@ -117,6 +117,16 @@ android {
         }
     }
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+
+        }
+
+        storyBook.initWith(buildTypes.debug)
+        storyBook {
+            applicationIdSuffix ".storybook"
+        }
+
         release {
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
@@ -127,7 +137,6 @@ android {
         releaseUnsigned {
             signingConfig buildTypes.debug.signingConfig
         }
-
     }
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->

@@ -1,7 +1,6 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
-import featureFlags from '../util/feature-flags'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
@@ -650,10 +649,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
     }
     case 'chat:newChat': {
-      if (featureFlags.searchv3Enabled) {
-        return state.set('inSearch', true)
-      }
-      return state
+      return state.set('inSearch', true)
     }
     case 'chat:exitSearch': {
       return state.set('inSearch', false)

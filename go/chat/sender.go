@@ -36,7 +36,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:        getRi,
 		boxer:        boxer,
 		store:        store,
@@ -321,26 +321,53 @@ func (s *BlockingSender) assetsForMessage(ctx context.Context, msgBody chat1.Mes
 	return assets, nil
 }
 
+func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
+	membersType chat1.ConversationMembersType) (topicNameState *chat1.TopicNameState, err error) {
+	if msg.ClientHeader.MessageType == chat1.MessageType_METADATA {
+		tlfID := msg.ClientHeader.Conv.Tlfid
+		topicType := msg.ClientHeader.Conv.TopicType
+		newTopicName := msg.MessageBody.Metadata().ConversationTitle
+		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+		if err != nil {
+			return topicNameState, err
+		}
+		for _, conv := range convs {
+			if utils.GetTopicName(conv) == newTopicName {
+				return nil, DuplicateTopicNameError{TopicName: newTopicName}
+			}
+		}
+
+		ts, err := GetTopicNameState(ctx, s.G(), s.DebugLabeler, convs,
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+		if err != nil {
+			return topicNameState, err
+		}
+		topicNameState = &ts
+	}
+	return topicNameState, nil
+}
+
 // Prepare a message to be sent.
 // Returns (boxedMessage, pendingAssetDeletes, error)
 func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
 
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(plaintext); err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// convID will be nil in makeFirstMessage
 	if conv != nil {
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 	}
 
@@ -350,14 +377,21 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
 		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *conv)
 		if err != nil {
-			return nil, nil, nil, chat1.ChannelMention_NONE, err
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
+	}
+
+	// Get topic name state if this is a METADATA message, so that we avoid any races to the
+	// server
+	topicNameState, err := s.checkTopicNameAndGetState(ctx, msg, membersType)
+	if err != nil {
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair(ctx)
 	if err != nil {
-		return nil, nil, nil, chat1.ChannelMention_NONE, err
+		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
 
 	// find @ mentions
@@ -392,10 +426,10 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// it a bit to do it here.
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp)
 	if err != nil {
-		return nil, nil, nil, chanMention, err
+		return nil, nil, nil, chanMention, nil, err
 	}
 
-	return boxed, pendingAssetDeletes, atMentions, chanMention, nil
+	return boxed, pendingAssetDeletes, atMentions, chanMention, topicNameState, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
@@ -471,17 +505,22 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
-			s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
-			if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
-				s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+			switch msg.ClientHeader.MessageType {
+			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 				return chat1.OutboxID{}, nil, nil, err
-			}
-			// Force hit the remote here, so there is no race condition against the local
-			// inbox
-			conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
-			if err != nil {
-				s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
-				return chat1.OutboxID{}, nil, nil, err
+			default:
+				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
+				if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
+					s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+					return chat1.OutboxID{}, nil, nil, err
+				}
+				// Force hit the remote here, so there is no race condition against the local
+				// inbox
+				conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
+				if err != nil {
+					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
+					return chat1.OutboxID{}, nil, nil, err
+				}
 			}
 		} else {
 			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
@@ -504,41 +543,59 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// do nothing
 	}
 
-	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, pendingAssetDeletes, atMentions, chanMention, err := s.Prepare(ctx, msg,
-		conv.GetMembersType(), &conv)
-	if err != nil {
-		s.Debug(ctx, "error in Prepare: %s", err.Error())
-		return chat1.OutboxID{}, nil, nil, err
-	}
-
-	// Delete assets associated with a delete operation.
-	// Logs instead of returning an error. Assets can be left undeleted.
-	if len(pendingAssetDeletes) > 0 {
-		err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+	var plres chat1.PostRemoteRes
+	// Try this up to 5 times in case we are trying to set the topic name, and the topic name
+	// state is moving around underneath us.
+	for i := 0; i < 5; i++ {
+		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
+		b, pendingAssetDeletes, atMentions, chanMention, topicNameState, err := s.Prepare(ctx, msg,
+			conv.GetMembersType(), &conv)
 		if err != nil {
+			s.Debug(ctx, "error in Prepare: %s", err.Error())
 			return chat1.OutboxID{}, nil, nil, err
 		}
-	}
+		boxed = b
 
-	// Log some useful information about the message we are sending
-	obidstr := "(none)"
-	if boxed.ClientHeader.OutboxID != nil {
-		obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
-	}
-	s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+		// Delete assets associated with a delete operation.
+		// Logs instead of returning an error. Assets can be left undeleted.
+		if len(pendingAssetDeletes) > 0 {
+			err = s.deleteAssets(ctx, convID, pendingAssetDeletes)
+			if err != nil {
+				s.Debug(ctx, "failure in deleteAssets (charging forward): %s", err.Error())
+			}
+		}
 
-	rarg := chat1.PostRemoteArg{
-		ConversationID: convID,
-		MessageBoxed:   *boxed,
-		AtMentions:     atMentions,
-		ChannelMention: chanMention,
+		// Log some useful information about the message we are sending
+		obidstr := "(none)"
+		if boxed.ClientHeader.OutboxID != nil {
+			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+		}
+		s.Debug(ctx, "sending message: convID: %s outboxID: %s", convID, obidstr)
+
+		// Keep trying if we get an error on topicNameState for a fixed number of times
+		rarg := chat1.PostRemoteArg{
+			ConversationID: convID,
+			MessageBoxed:   *boxed,
+			AtMentions:     atMentions,
+			ChannelMention: chanMention,
+			TopicNameState: topicNameState,
+		}
+		plres, err = ri.PostRemote(ctx, rarg)
+		if err != nil {
+			switch err.(type) {
+			case libkb.ChatStalePreviousStateError:
+				// If we hit the stale previous state error, that means we should try again, since our view is
+				// out of date.
+				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
+				continue
+			default:
+				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
+				return chat1.OutboxID{}, nil, nil, err
+			}
+		}
+		boxed.ServerHeader = &plres.MsgHeader
+		break
 	}
-	plres, err := ri.PostRemote(ctx, rarg)
-	if err != nil {
-		return chat1.OutboxID{}, nil, nil, err
-	}
-	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
 	s.Debug(ctx, "sending local updates to chat sources")
@@ -583,7 +640,7 @@ var _ types.MessageDeliverer = (*Deliverer)(nil)
 func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
@@ -834,14 +891,14 @@ var _ types.Sender = (*NonblockingSender)(nil)
 func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingSender {
 	s := &NonblockingSender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingSender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingSender", false),
 		sender:       sender,
 	}
 	return s
 }
 
 func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext,
-	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, error) {
+	membersType chat1.ConversationMembersType, conv *chat1.Conversation) (*chat1.MessageBoxed, []chat1.Asset, []gregor1.UID, chat1.ChannelMention, *chat1.TopicNameState, error) {
 	return s.sender.Prepare(ctx, msg, membersType, conv)
 }
 

@@ -1,7 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'

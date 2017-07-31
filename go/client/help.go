@@ -53,7 +53,8 @@ On signup - When you signup, you can also "select" a PGP key for use with keybas
   keybase will save the secret key locally, and will push the public half to the
   server, after it's been signed and provisioned with your local device key.
   Additionally, this command will export the secret and public keys to your local
-  GPG keyring.
+  GPG keyring. There will be no passphrase protecting this exported secret
+  key, so if this is important to you, run 'gpg edit-key' to supply one.
 
 'keybase pgp pull' - All PGP keys pulled as a result of 'keybase pgp pull' are
   exported as public keys to your local gpg keyring.

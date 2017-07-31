@@ -4,7 +4,7 @@ package hostmanifest
 type AppManifest interface {
 	// ID returns the app identifier, usually the same as the name.
 	ID() string
-	// Bin returns the path of the binary for the NativeMessaging app target.
+	// BinPath returns the path of the binary for the NativeMessaging app target.
 	BinPath() string
 }
 
@@ -21,7 +21,7 @@ func (app App) ID() string {
 	return app.Name
 }
 
-// Bin returns the path of the binary for the NativeMessaging app target.
+// BinPath returns the path of the binary for the NativeMessaging app target.
 func (app App) BinPath() string {
 	return app.Path
 }
@@ -32,7 +32,7 @@ type ChromeApp struct {
 	AllowedOrigins []string `json:"allowed_origins"`
 }
 
-// ChromeApp is the App metadata but includes Firefox-specific fields.
+// FirefoxApp is the App metadata but includes Firefox-specific fields.
 type FirefoxApp struct {
 	App
 	AllowedExtensions []string `json:"allowed_extensions"`
