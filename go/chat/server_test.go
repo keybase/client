@@ -1487,6 +1487,32 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			require.Fail(t, "no event received")
 		}
 
+		t.Logf("post text message with prefetched outbox ID")
+		genOutboxID, err := ctc.as(t, users[0]).chatLocalHandler().GenerateOutboxID(context.TODO())
+		require.NoError(t, err)
+		arg = chat1.PostTextNonblockArg{
+			ConversationID:   created.Id,
+			Conv:             created.Triple,
+			TlfName:          created.TlfName,
+			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			Body:             "hi",
+			OutboxID:         &genOutboxID,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+		require.NoError(t, err)
+		select {
+		case info := <-listener.newMessage:
+			unboxed = info.Message
+			require.True(t, unboxed.IsValid(), "invalid message")
+			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+			require.Equal(t, genOutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no event received")
+		}
+
 		t.Logf("edit the message")
 		earg := chat1.PostEditNonblockArg{
 			ConversationID:   created.Id,
