@@ -704,14 +704,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameCLI), components, false) {
-		err = uninstallCommandLine(log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
-		if err != nil {
-			log.Errorf("Error uninstalling command line: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
 		err = uninstallCommandLinePrivileged(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
@@ -725,6 +717,14 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
 		if err != nil {
 			log.Errorf("Error uninstalling helper: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameCLI), components, false) {
+		err = uninstallCommandLine(log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
+		if err != nil {
+			log.Errorf("Error uninstalling command line: %s", err)
 		}
 	}
 
