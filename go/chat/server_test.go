@@ -1248,7 +1248,7 @@ func TestChatSrvGetOutbox(t *testing.T) {
 					Prev: 10,
 				},
 			},
-		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 
 		thread, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{

@@ -50,7 +50,7 @@ func TestChatOutbox(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintext("hi", uid),
-			keybase1.TLFIdentifyBehavior_CHAT_CLI)
+			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 		obrs = append(obrs, obr)
 		cl.Advance(time.Millisecond)
