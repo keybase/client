@@ -3002,9 +3002,9 @@ func (_mr *MockDiskBlockCacheMockRecorder) Size() *gomock.Call {
 }
 
 // Status mocks base method
-func (_m *MockDiskBlockCache) Status(ctx context.Context) *DiskBlockCacheStatus {
+func (_m *MockDiskBlockCache) Status(ctx context.Context) map[string]DiskBlockCacheStatus {
 	ret := _m.ctrl.Call(_m, "Status", ctx)
-	ret0, _ := ret[0].(*DiskBlockCacheStatus)
+	ret0, _ := ret[0].(map[string]DiskBlockCacheStatus)
 	return ret0
 }
 
