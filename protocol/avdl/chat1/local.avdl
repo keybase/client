@@ -666,7 +666,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits; 
   }
-  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
+  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType, boolean includeAuxiliaryInfo);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
   // currently configured settings. 

@@ -2102,7 +2102,8 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType
+  membersType: ConversationMembersType,
+  includeAuxiliaryInfo: boolean
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{

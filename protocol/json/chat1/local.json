@@ -2576,6 +2576,10 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
+        },
+        {
+          "name": "includeAuxiliaryInfo",
+          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsLocalRes"

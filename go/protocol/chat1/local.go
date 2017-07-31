@@ -3600,16 +3600,18 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 }
 
 type GetTLFConversationsLocalArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	TopicType   TopicType               `codec:"topicType" json:"topicType"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfName              string                  `codec:"tlfName" json:"tlfName"`
+	TopicType            TopicType               `codec:"topicType" json:"topicType"`
+	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
+	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
 }
 
 func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
 	return GetTLFConversationsLocalArg{
-		TlfName:     o.TlfName,
-		TopicType:   o.TopicType.DeepCopy(),
-		MembersType: o.MembersType.DeepCopy(),
+		TlfName:              o.TlfName,
+		TopicType:            o.TopicType.DeepCopy(),
+		MembersType:          o.MembersType.DeepCopy(),
+		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
 	}
 }
 
