@@ -852,7 +852,7 @@ func TestWriteThenRename(t *testing.T) {
 	p1 := filepath.Join(mnt.Dir, PrivateName, "jdoe", "old")
 	p2 := filepath.Join(mnt.Dir, PrivateName, "jdoe", "new")
 
-	f, err := os.Create(p1)
+	f, err := Create(p1)
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -914,7 +914,7 @@ func TestWriteThenRenameCrossDir(t *testing.T) {
 	p1 := filepath.Join(mnt.Dir, PrivateName, "jdoe", "one", "old")
 	p2 := filepath.Join(mnt.Dir, PrivateName, "jdoe", "two", "new")
 
-	f, err := os.Create(p1)
+	f, err := Create(p1)
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1053,7 +1053,7 @@ func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	defer cancelFn()
 
 	p := filepath.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
-	f, err := os.Create(p)
+	f, err := Create(p)
 	if err != nil {
 		t.Fatalf("cannot create file: %v", err)
 	}
@@ -1096,7 +1096,7 @@ func TestRemoveFileWhileOpenReading(t *testing.T) {
 	}
 	syncFilename(t, p)
 
-	f, err := os.Open(p)
+	f, err := Open(p)
 	if err != nil {
 		t.Fatalf("cannot open file: %v", err)
 	}
