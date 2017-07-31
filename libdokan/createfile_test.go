@@ -5,13 +5,12 @@ import (
 	"syscall"
 )
 
-func Open(filename string) (*os.File, error) {
-	return OpenFile(filename, os.O_RDONLY, 0666)
-}
-func Create(filename string) (*os.File, error) {
-	return OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+func isSet(bit, value int) bool {
+	return value&bit == bit
 }
 
+// OpenFile opens a file with FILE_SHARE_DELETE set.
+// This means that the file can be renamed or deleted while it is open.
 func OpenFile(filename string, mode, perm int) (*os.File, error) {
 	path, err := syscall.UTF16PtrFromString(filename)
 	if err != nil {
@@ -41,6 +40,9 @@ func OpenFile(filename string, mode, perm int) (*os.File, error) {
 	return os.NewFile(uintptr(h), filename), nil
 }
 
-func isSet(bit, value int) bool {
-	return value&bit == bit
+func Open(filename string) (*os.File, error) {
+	return OpenFile(filename, os.O_RDONLY, 0666)
+}
+func Create(filename string) (*os.File, error) {
+	return OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 }
