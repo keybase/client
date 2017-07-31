@@ -1996,7 +1996,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
-		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: "The headline is foobar!"}))
+
+		headline := "The headline is foobar!"
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: headline}))
 		require.NoError(t, err)
 		select {
 		case conv := <-listener1.joinedConv:
@@ -2042,6 +2044,17 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		require.Equal(t, aux.ReaderCount, 2)
 		require.Equal(t, aux.ConversationCreator, gregor1.UID(users[0].User.GetUID().ToBytes()))
 		require.Equal(t, *aux.HeadlineModifier, gregor1.UID(users[1].User.GetUID().ToBytes()))
+
+		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: getTLFRes.Convs[2].GetConvID(),
+		})
+		if err != nil {
+			t.Fatalf("GetThreadLocal error: %v", err)
+		}
+		tv := tvres.Thread
+		if tv.Messages[0].Valid().MessageBody.Headline().Headline != headline {
+			t.Fatalf("unexpected response from GetThreadLocal . expected '%s' got %#+v\n", headline, tv.Messages[0])
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
