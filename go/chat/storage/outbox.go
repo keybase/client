@@ -121,9 +121,9 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	}
 
 	// Generate new outbox ID (unless the caller supplied it for us already)
-	var ierr error
 	var outboxID chat1.OutboxID
 	if suppliedOutboxID == nil {
+		var ierr error
 		outboxID, ierr = NewOutboxID()
 		if ierr != nil {
 			return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
