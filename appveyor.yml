@@ -15,18 +15,16 @@ install:
   - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
   - set Path=c:\go\bin;%Path%
   # Keybase-built and signed v1.0.0-RC4
-  - appveyor DownloadFile https://github.com/keybase/dokany/files/321479/dokan.zip
-  - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
-  - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
-  - pushd C:\dokan\Win32\Release
+  - appveyor DownloadFile https://github.com/keybase/dokany/releases/download/v1.0.4.84/dokany.zip
+  - 7z x dokany.zip -o"C:\" -y -aoa > nul
+  - copy C:\dokany\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
+  - pushd C:\dokany\Win32\Release
   - copy dokan1.dll C:\windows\syswow64\
   - Bcdedit.exe -set TESTSIGNING ON
   - ps: Restart-Computer -Force
   - ps: Start-Sleep -s 10
-  - cd C:\dokan\Win32\Release
-  - dokanctl /i a
-  - sc create dokan1 type= kernel binPath= system32\drivers\dokan1.sys
-  - sc start dokan1
+  - cd C:\dokany\Win32\Release
+  - dokanctl /i d
   - sc query dokan1
 
 # clone directory
