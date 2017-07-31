@@ -23,30 +23,6 @@ func NewIdentifyTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.IdentifyUiProtocol(&IdentifyUIServer{ui})
 }
 
-func cliIsLoggedIn(g *libkb.GlobalContext) bool {
-	configCli, err := GetConfigClient(g)
-	if err != nil {
-		return false
-	}
-
-	currentStatus, err := configCli.GetCurrentStatus(context.TODO(), 0)
-	if err != nil {
-		return false
-	}
-
-	return currentStatus.LoggedIn
-}
-
-// NewIdentifyMaybeTrackUIProtocol returns either IdentifyUiProtocol with
-// IdentifyTrackUI or IdentifyUI depending if user is logged in or not.
-func NewIdentifyMaybeTrackUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
-	if !cliIsLoggedIn(g) {
-		return NewIdentifyUIProtocol(g)
-	}
-
-	return NewIdentifyTrackUIProtocol(g)
-}
-
 func (i *IdentifyUIServer) DelegateIdentifyUI(_ context.Context) (int, error) {
 	return 0, libkb.UIDelegationUnavailableError{}
 }
