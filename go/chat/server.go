@@ -55,7 +55,7 @@ func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConn
 	uiSource UISource) *Server {
 	return &Server{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "Server", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Server", false),
 		serverConn:    serverConn,
 		uiSource:      uiSource,
 		store:         store,
@@ -1029,7 +1029,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 }
 
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
-
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
@@ -1143,6 +1142,8 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1180,6 +1181,8 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
 func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1557,6 +1560,8 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	darg := downloadAttachmentArg{
@@ -1636,6 +1641,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 }
 
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -1651,6 +1657,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 }
 
 func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err

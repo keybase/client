@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -296,16 +297,16 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 }
 
 type DebugLabeler struct {
-	globals.Contextified
+	log     logger.Logger
 	label   string
 	verbose bool
 }
 
-func NewDebugLabeler(g *globals.Context, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		Contextified: globals.NewContextified(g),
-		label:        label,
-		verbose:      verbose,
+		log:     log,
+		label:   label,
+		verbose: verbose,
 	}
 }
 
@@ -322,16 +323,16 @@ func (d DebugLabeler) showLog() bool {
 
 func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}) {
 	if d.showLog() {
-		d.G().Log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
+		d.log.CDebugf(ctx, "++Chat: | "+d.label+": "+msg, args...)
 	}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, msg string) func() {
 	if d.showLog() {
 		start := time.Now()
-		d.G().Log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
+		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.G().Log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}

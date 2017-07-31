@@ -36,7 +36,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, store *AttachmentStore,
 	getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BlockingSender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:        getRi,
 		boxer:        boxer,
 		store:        store,
@@ -640,7 +640,7 @@ var _ types.MessageDeliverer = (*Deliverer)(nil)
 func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "Deliverer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
 		shutdownCh:    make(chan chan struct{}, 1),
 		msgSentCh:     make(chan struct{}, 100),
 		reconnectCh:   make(chan struct{}, 100),
@@ -891,7 +891,7 @@ var _ types.Sender = (*NonblockingSender)(nil)
 func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingSender {
 	s := &NonblockingSender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingSender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingSender", false),
 		sender:       sender,
 	}
 	return s

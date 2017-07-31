@@ -34,7 +34,7 @@ type diskOutbox struct {
 func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 	return &Outbox{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
