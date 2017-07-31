@@ -155,6 +155,9 @@ func (cache *diskBlockCacheWrapped) Status(
 	for name, status := range cache.workingSetCache.Status(ctx) {
 		statuses[name] = status
 	}
+	if cache.syncCache == nil {
+		return statuses
+	}
 	for name, status := range cache.syncCache.Status(ctx) {
 		statuses[name] = status
 	}
