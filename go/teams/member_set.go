@@ -100,7 +100,6 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 
 	if upak != nil {
 		nun = libkb.NewNormalizedUsername(upak.Current.Username)
-		g.Log.CDebugf(ctx, "upak: %+v\n", *upak)
 	}
 
 	if err != nil {
