@@ -74,7 +74,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
     dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
-  onUsernameClick: (username: string) => dispatch(onUserClick(username)),
+  _onUsernameClick: (username: string) => dispatch(onUserClick(username)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
@@ -83,6 +83,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   _localMessageState: stateProps._localMessageState,
   _onAction: ownProps.onAction,
   _onShowEditor: ownProps.onShowEditor,
+  _onUsernameClick: dispatchProps._onUsernameClick,
   author: stateProps.author,
   failureDescription: stateProps.failureDescription,
   includeHeader: stateProps.includeHeader,
@@ -104,7 +105,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
       dispatchProps._onRetryText(stateProps._selectedConversationIDKey, stateProps._message.outboxID)
     }
   },
-  onUsernameClick: dispatchProps.onUsernameClick,
   timestamp: stateProps.timestamp,
 })
 
@@ -113,7 +113,7 @@ export default compose(
   withHandlers({
     onAction: props => event => props._onAction(props._message, props._localMessageState, event),
     onShowEditor: props => event => props._onShowEditor(props._message, event),
-    onClick: props => event => props.onUsernameClick(props.author, event),
+    onClick: props => event => props._onUsernameClick(props.author, event),
   }),
   lifecycle({
     componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
