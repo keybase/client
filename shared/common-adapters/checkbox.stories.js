@@ -11,7 +11,7 @@ const commonProps = {
 }
 
 const load = () => {
-  storiesOf('Checkbox', module).add('Checkbox', () => (
+  storiesOf('Common', module).add('Checkbox', () => (
     <Box style={{flex: 1}}>
       <Checkbox {...commonProps} label="Checkbox Unchecked Enabled" checked={false} />
       <Checkbox {...commonProps} label="Checkbox Checked Enabled" checked={true} />

@@ -109,7 +109,7 @@ const mapText = (secondary: boolean) => {
 }
 
 const load = () => {
-  storiesOf('Text', module).add('Text', () => (
+  storiesOf('Common', module).add('Text', () => (
     <Box style={outerStyle}>
       <Container backgroundColor={globalColors.white}>
         {mapText(false)}
