@@ -4,6 +4,7 @@ import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
 import {
   fuseStatusSaga,
+  fuseStatusUpdateSaga,
   installFuseSaga,
   installKBFSSaga,
   openSaga,
@@ -64,6 +65,7 @@ function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
   yield safeTakeLatest('fs:fuseStatus', fuseStatusSaga)
+  yield safeTakeLatest('fs:fuseStatusUpdate', fuseStatusUpdateSaga)
   yield safeTakeLatest('fs:installFuse', installFuseSaga)
   yield safeTakeLatest('fs:installKBFS', installKBFSSaga)
   yield safeTakeLatest('fs:uninstallKBFS', uninstallKBFSSaga)
