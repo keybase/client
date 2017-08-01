@@ -7,13 +7,15 @@ import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextError, ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import UserData from './user-data'
 
+import type {InstallResult} from '../../constants/types/flow-types'
+
 type State = {
   promptedForCLI: boolean,
 }
 class InstallerData extends UserData<State> {}
 const installerState = new InstallerData('installer.json', {promptedForCLI: false})
 
-type InstallResult = {
+type CheckErrorsResult = {
   errors: Array<string>,
   hasCLIError: boolean,
 }
@@ -45,32 +47,32 @@ export default (callback: (err: any) => void): void => {
   const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
 
   exec(keybaseBin, args, 'darwin', 'prod', true, (err, attempted, stdout, stderr) => {
-    let installResult: InstallResult = {errors: [], hasCLIError: false}
+    let errorsResult: CheckErrorsResult = {errors: [], hasCLIError: false}
     if (err) {
-      installResult.errors = [`There was an error trying to run the install (${err.code}).`]
+      errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
     } else if (stdout !== '') {
       try {
         const result = JSON.parse(stdout)
         if (result) {
-          installResult = checkErrors(result)
+          errorsResult = checkErrors(result)
         } else {
-          installResult.errors = [`There was an error trying to run the install. No output.`]
+          errorsResult.errors = [`There was an error trying to run the install. No output.`]
         }
       } catch (err) {
-        installResult.errors = [
+        errorsResult.errors = [
           `There was an error trying to run the install. We were unable to parse the output of keybase install-auto.`,
         ]
       }
     }
 
-    if (installResult.errors.length > 0) {
-      showError(installResult.errors, callback)
+    if (errorsResult.errors.length > 0) {
+      showError(errorsResult.errors, callback)
       return
     }
 
     // If we had an error install CLI, let's prompt and try to do it via
     // privileged install.
-    if (installResult.hasCLIError && !installerState.state.promptedForCLI) {
+    if (errorsResult.hasCLIError && !installerState.state.promptedForCLI) {
       promptForInstallCLIPrivileged(keybaseBin, callback)
       return
     }
@@ -79,10 +81,11 @@ export default (callback: (err: any) => void): void => {
   })
 }
 
-function checkErrors(result: any): InstallResult {
+function checkErrors(result: InstallResult): CheckErrorsResult {
   let errors = []
   let hasCLIError = false
-  for (let cr of result.componentResults) {
+  const crs = (result && result.componentResults) || []
+  for (let cr of crs) {
     if (cr.status.code !== 0) {
       if (cr.name === 'fuse') {
         if (cr.exitCode === ExitCodeFuseKextError) {
