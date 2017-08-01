@@ -8,7 +8,7 @@ import {fuseStatus, installFuse} from '../../actions/kbfs'
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
-  fuseStatus: () => void,
+  getFuseStatus: () => void,
   fuseInstalled: boolean,
   installing: boolean,
   installFuse: () => void,
@@ -16,7 +16,7 @@ type Props = {
 
 class InstallBanner extends Component<void, Props, void> {
   componentDidMount() {
-    this.props.fuseStatus()
+    this.props.getFuseStatus()
   }
 
   _onSubmit = () => {
@@ -61,7 +61,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: any) => ({
-  fuseStatus: () => dispatch(fuseStatus()),
+  getFuseStatus: () => dispatch(fuseStatus()),
   installFuse: () => dispatch(installFuse()),
 })
 

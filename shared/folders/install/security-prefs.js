@@ -11,7 +11,7 @@ import type {TypedState} from '../../constants/reducer'
 type Props = {
   appFocusedCount: number,
   clearFuseInstall: () => void,
-  fuseStatus: () => void,
+  getFuseStatus: () => void,
 }
 
 type State = {
@@ -29,7 +29,7 @@ class InstallSecurityPrefs extends Component<void, Props, State> {
       this.setState({
         appFocusedCount: nextProps.appFocusedCount,
       })
-      this.props.fuseStatus()
+      this.props.getFuseStatus()
     }
   }
 
@@ -144,7 +144,7 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: any) => ({
   clearFuseInstall: () => dispatch(clearFuseInstall()),
-  fuseStatus: () => dispatch(fuseStatus()),
+  getFuseStatus: () => dispatch(fuseStatus()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(InstallSecurityPrefs)

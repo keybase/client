@@ -149,8 +149,8 @@ const onToggleShowIgnored = () => console.log('toggle')
 
 const commonFolders = {
   smallMode: false,
+  getFuseStatus: () => {},
   installed: true,
-  fuseStatus: () => {},
   onRekey: path => console.log(`open rekey page: ${path}`),
   onChat: tlf => console.log(`open chat with tlf ${tlf}`),
   onToggleShowIgnored,
