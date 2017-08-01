@@ -828,7 +828,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	}
 
 	loopID := &id
-	if loopID != nil {
+	for loopID != nil {
 		team, err := l.load2(ctx, load2ArgT{
 			teamID:        *loopID,
 			forceRepoll:   true,
