@@ -155,7 +155,7 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   }
   yield put(resultAction)
 
-  yield put(fuseStatus())
+  yield call(fuseStatusSaga)
 
   const finishedAction: FSInstallFuseFinished = {payload: undefined, type: 'fs:installFuseFinished'}
   yield put(finishedAction)
@@ -203,7 +203,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
   yield put(resultAction)
 
-  yield put(fuseStatus())
+  yield call(fuseStatusSaga)
 
   const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
   yield put(openAction)
