@@ -76,8 +76,6 @@ function isFollowing(getState: () => any, username: string): boolean {
 
 const waitForKBFS = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    dispatch(fuseStatus())
-
     let timedOut = false
 
     // The rpc timeout doesn't seem to work correctly (not that we should trust that anyways) so we have our own local timeout
@@ -163,7 +161,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS())])
+    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS()), dispatch(fuseStatus())])
       .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
