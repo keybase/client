@@ -73,10 +73,7 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	m.None, err = m.loadGroup(ctx, g, req.None, false, false)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {

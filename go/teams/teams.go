@@ -827,10 +827,7 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // ForceMerkleRootUpdate will call LookupTeam on MerkleClient to
