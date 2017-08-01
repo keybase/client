@@ -25,10 +25,18 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 	var writers []keybase1.UserVersion
 	var onlyReaders []keybase1.UserVersion
 
-	writers = append(writers, members.Writers...)
-	writers = append(writers, members.Admins...)
-	writers = append(writers, members.Owners...)
-	onlyReaders = append(onlyReaders, members.Readers...)
+	for _, writer := range members.Writers {
+		writers = append(writers, writer)
+	}
+	for _, writer := range members.Admins {
+		writers = append(writers, writer)
+	}
+	for _, writer := range members.Owners {
+		writers = append(writers, writer)
+	}
+	for _, reader := range members.Readers {
+		onlyReaders = append(onlyReaders, reader)
+	}
 
 	ret = keybase1.TeamPlusApplicationKeys{
 		Id:              t.chain().GetID(),

@@ -62,9 +62,6 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 	}
 
 	admin, err := parent.getAdminPermission(ctx, true)
-	if err != nil {
-		return err
-	}
 
 	err = parent.ForceMerkleRootUpdate(ctx)
 	if err != nil {

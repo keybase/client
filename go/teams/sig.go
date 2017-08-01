@@ -150,9 +150,6 @@ func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigC
 
 func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigChainState, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
 	prev, err := subteam.GetLatestLibkbLinkID()
-	if err != nil {
-		return nil, err
-	}
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeRenameUpPointer,
