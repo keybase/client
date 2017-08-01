@@ -863,15 +863,3 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 
 	return nil
 }
-
-func (l *TeamLoader) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
-	team, err := l.load2(ctx, load2ArgT{
-		teamID: id,
-	})
-
-	if err != nil {
-		return keybase1.TeamID(""), err
-	}
-
-	return team.Name.RootAncestorName().ToTeamID(), nil
-}
