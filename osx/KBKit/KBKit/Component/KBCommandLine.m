@@ -52,22 +52,46 @@
   }];
 }
 
-- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  // Also consider us installed if there is a file in /usr/local/bin/keybase
+- (BOOL)linkExists:(NSString *)linkPath {
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    return NO;
+  }
+  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
+}
+
+- (NSString *)resolveLinkPath:(NSString *)linkPath {
+  if (![self linkExists:linkPath]) {
+    return nil;
+  }
+  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
+}
+
+// Check if we're linked properly at /usr/local/bin
+- (BOOL)linkedToServicePath {
   NSString *linkDir = @"/usr/local/bin";
   NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
-  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
-
-  BOOL found = NO;
-  NSArray *paths = @[linkPath, pathsdPath];
-  for (NSString *path in paths) {
-    if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
-      found = YES;
-      break;
+  NSString *shouldResolveToPath = [NSString stringWithFormat:@"%@/%@", self.servicePath, self.config.serviceBinName];
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
+    NSString *resolved = [self resolveLinkPath:linkPath];
+    DDLogInfo(@"Link resolved to path: %@ <=> %@", resolved, shouldResolveToPath);
+    if ([resolved isEqualToString:shouldResolveToPath]) {
+      return YES;
     }
   }
+  return NO;
+}
 
-  if (found) {
+- (BOOL)etcPathsExists {
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
+  BOOL exists = [NSFileManager.defaultManager fileExistsAtPath:pathsdPath];
+  DDLogInfo(@"%@ exists? %@", pathsdPath, @(exists));
+  return exists;
+}
+
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  BOOL installed = [self linkedToServicePath] || [self etcPathsExists];
+  if (installed) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
   } else {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:nil error:nil];
