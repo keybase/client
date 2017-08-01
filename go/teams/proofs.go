@@ -120,7 +120,7 @@ func (p *proofSetT) AllProofs() []proof {
 		if cs > 0 {
 			return false
 		}
-		cs = ret[i].b.sigMeta.SigChainLocation.Seqno - ret[i].b.sigMeta.SigChainLocation.Seqno
+		cs = ret[i].b.sigMeta.SigChainLocation.Seqno - ret[j].b.sigMeta.SigChainLocation.Seqno
 		if cs < 0 {
 			return true
 		}

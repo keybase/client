@@ -102,7 +102,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 		return err
 	}
 
-	ui.Printf("Success! %s removed from team %s.", c.username, c.team)
+	ui.Printf("Success! %s removed from team %s.\n", c.username, c.team)
 
 	return nil
 }

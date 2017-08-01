@@ -504,16 +504,17 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  OutboxID generateOutboxID();
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
   @lint("ignore")

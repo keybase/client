@@ -219,7 +219,7 @@ func TestNonblockChannel(t *testing.T) {
 			TlfName:   u.Username,
 			TlfPublic: false,
 		},
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 
 	select {
@@ -299,7 +299,7 @@ func TestNonblockTimer(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}),
-		}, 0)
+		}, 0, nil)
 		require.NoError(t, err)
 		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
@@ -320,7 +320,7 @@ func TestNonblockTimer(t *testing.T) {
 					Prev: msgID,
 				},
 			},
-		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
@@ -348,7 +348,7 @@ func TestNonblockTimer(t *testing.T) {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "hi",
 			}),
-		}, 0)
+		}, 0, nil)
 		require.NoError(t, err)
 		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
@@ -394,7 +394,7 @@ type FailingSender struct {
 var _ types.Sender = (*FailingSender)(nil)
 
 func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
 	return chat1.OutboxID{}, nil, nil, fmt.Errorf("I always fail!!!!")
 }
 
@@ -443,7 +443,7 @@ func TestFailingSender(t *testing.T) {
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
-		}, 0)
+		}, 0, nil)
 		require.NoError(t, err)
 		obids = append(obids, obid)
 	}
@@ -493,7 +493,7 @@ func TestDisconnectedFailure(t *testing.T) {
 			TlfName:   u.Username,
 			TlfPublic: false,
 		},
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	cl.Advance(time.Millisecond)
 	select {
@@ -525,7 +525,7 @@ func TestDisconnectedFailure(t *testing.T) {
 				TlfName:   u.Username,
 				TlfPublic: false,
 			},
-		}, 0)
+		}, 0, nil)
 		require.NoError(t, err)
 		obids = append(obids, obid)
 		cl.Advance(time.Millisecond)
@@ -612,7 +612,7 @@ func TestDeletionHeaders(t *testing.T) {
 			MessageType: chat1.MessageType_TEXT,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	firstMessageID := firstMessageBoxed.GetMessageID()
 	_, editBoxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
@@ -624,7 +624,7 @@ func TestDeletionHeaders(t *testing.T) {
 			Supersedes:  firstMessageID,
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "bar"}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	editID := editBoxed.GetMessageID()
 	_, editBoxed2, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
@@ -636,7 +636,7 @@ func TestDeletionHeaders(t *testing.T) {
 			Supersedes:  firstMessageID,
 		},
 		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: firstMessageID, Body: "baz"}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	editID2 := editBoxed2.GetMessageID()
 
@@ -746,7 +746,7 @@ func TestAtMentionsEdit(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: text,
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 
 	// edit that message and add atMentions
@@ -808,7 +808,7 @@ func TestPrevPointerAddition(t *testing.T) {
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
-		}, 0)
+		}, 0, nil)
 		require.NoError(t, err)
 	}
 
@@ -873,7 +873,7 @@ func TestDeletionAssets(t *testing.T) {
 			Preview:  &tmp1,
 			Previews: []chat1.Asset{mkAsset(), mkAsset()},
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	firstMessageID := firstMessageBoxed.GetMessageID()
 
@@ -891,7 +891,7 @@ func TestDeletionAssets(t *testing.T) {
 			Object:    mkAsset(),
 			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	edit1ID := edit1Boxed.GetMessageID()
 	_, edit2Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
@@ -901,7 +901,7 @@ func TestDeletionAssets(t *testing.T) {
 			Object:    mkAsset(),
 			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
 		}),
-	}, 0)
+	}, 0, nil)
 	edit2ID := edit2Boxed.GetMessageID()
 	_, edit3Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: editHeader,
@@ -910,7 +910,7 @@ func TestDeletionAssets(t *testing.T) {
 			Object:    chat1.Asset{},
 			Previews:  nil,
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	edit3ID := edit3Boxed.GetMessageID()
 

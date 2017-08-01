@@ -33,7 +33,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)

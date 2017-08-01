@@ -489,7 +489,7 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (obid chat1.OutboxID, boxed *chat1.MessageBoxed, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Send(%s)", convID))()
 
 	ri := s.getRi()
@@ -732,11 +732,12 @@ func (s *Deliverer) IsOffline() bool {
 }
 
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
+	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Queue")()
 
 	// Push onto outbox and immediatley return
-	obr, err = s.outbox.PushMessage(ctx, convID, msg, identifyBehavior)
+	obr, err = s.outbox.PushMessage(ctx, convID, msg, outboxID, identifyBehavior)
 	if err != nil {
 		return obr, err
 	}
@@ -850,7 +851,7 @@ func (s *Deliverer) deliverLoop() {
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
 			} else {
-				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0)
+				_, _, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
 			}
 			if err != nil {
 				s.Debug(bgctx, "failed to send msg: uid: %s convID: %s obid: %s err: %s attempts: %d",
@@ -903,14 +904,12 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
-
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, *chat1.RateLimit, error) {
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev:        clientPrev,
 		ComposeTime: gregor1.ToTime(time.Now()),
 	}
-
 	identifyBehavior, _, _ := IdentifyMode(ctx)
-	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, identifyBehavior)
+	obr, err := s.G().MessageDeliverer.Queue(ctx, convID, msg, outboxID, identifyBehavior)
 	return obr.OutboxID, nil, &chat1.RateLimit{}, err
 }
