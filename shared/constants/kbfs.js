@@ -12,7 +12,10 @@ export type FSOpen = NoErrorTypedAction<'fs:open', {path: string}>
 
 export type OpenInFileUI = NoErrorTypedAction<'fs:openInFileUI', {path: string}>
 
-export type FuseStatusUpdate = NoErrorTypedAction<'fs:fuseStatusUpdate', {status: FuseStatus}>
+export type FuseStatusUpdate = NoErrorTypedAction<
+  'fs:fuseStatusUpdate',
+  {prevStatus: ?FuseStatus, status: FuseStatus}
+>
 
 export type FSInstallFuseResult = NoErrorTypedAction<'fs:installFuseResult', {kextPermissionError: boolean}>
 

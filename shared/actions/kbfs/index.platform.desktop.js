@@ -123,14 +123,16 @@ function openInDefault(openPath: string): Promise<*> {
 }
 
 function* fuseStatusSaga(): SagaGenerator<any, any> {
-  const prevFuseStatus = yield select(state => state.favorite.fuseStatus)
+  const prevStatus = yield select(state => state.favorite.fuseStatus)
 
   const status = yield call(installFuseStatusRpcPromise)
-  const action: FuseStatusUpdate = {payload: {status}, type: 'fs:fuseStatusUpdate'}
+  const action: FuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
+}
 
+function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FuseStatusUpdate): SagaGenerator<any, any> {
   // If our kextStarted status changed, finish KBFS install
-  if (status.kextStarted && prevFuseStatus && !prevFuseStatus.kextStarted) {
+  if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     yield call(installKBFSSaga)
   }
 }
@@ -155,7 +157,7 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   }
   yield put(resultAction)
 
-  yield call(fuseStatusSaga)
+  yield put(fuseStatus())
 
   const finishedAction: FSInstallFuseFinished = {payload: undefined, type: 'fs:installFuseFinished'}
   yield put(finishedAction)
@@ -203,7 +205,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
   yield put(resultAction)
 
-  yield call(fuseStatusSaga)
+  yield put(fuseStatus())
 
   const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
   yield put(openAction)
@@ -272,4 +274,12 @@ function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, 
   yield call(_open, path)
 }
 
-export {fuseStatusSaga, installFuseSaga, installKBFSSaga, openInFileUISaga, openSaga, uninstallKBFSSaga}
+export {
+  fuseStatusSaga,
+  fuseStatusUpdateSaga,
+  installFuseSaga,
+  installKBFSSaga,
+  openInFileUISaga,
+  openSaga,
+  uninstallKBFSSaga,
+}
