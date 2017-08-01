@@ -199,10 +199,7 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			},
 			AlwaysBlock: true,
 		}
-		to := keybase1.TrackOptions{
-			LocalOnly: true,
-		}
-		eng := NewResolveThenIdentify2WithTrack(e.G(), &arg, to)
+		eng := NewResolveThenIdentify2(e.G(), &arg)
 		if err := RunEngine(eng, ctx); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
