@@ -23,7 +23,7 @@ export type Props = {
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onDownloadAttachment: () => void,
-  onAction: (event: SyntheticEvent) => void,
+  onAction: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: () => void,
 }

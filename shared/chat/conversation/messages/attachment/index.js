@@ -42,7 +42,7 @@ function PreviewImage({
 }: {
   message: Constants.AttachmentMessage,
   localMessageState: Constants.LocalMessageState,
-  onMessageAction: ?(event: SyntheticEvent) => void,
+  onMessageAction: ?() => void,
   onOpenInPopup: ?() => void,
 }) {
   if (previewType === 'Image' || previewType === 'Video') {
@@ -183,7 +183,7 @@ function PreviewImageWithInfo({
 }: {
   message: Constants.AttachmentMessage,
   localMessageState: Constants.LocalMessageState,
-  onMessageAction: ?(event: SyntheticEvent) => void,
+  onMessageAction: ?() => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
 }) {
@@ -260,7 +260,7 @@ function AttachmentMessageGeneric({
 }: {
   message: Constants.AttachmentMessage,
   localMessageState: Constants.LocalMessageState,
-  onMessageAction: (event: SyntheticEvent) => void,
+  onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onDownloadAttachment: () => void,
   onOpenInPopup: ?() => void,
@@ -304,7 +304,7 @@ function AttachmentMessagePreviewImage({
 }: {
   message: Constants.AttachmentMessage,
   localMessageState: Constants.LocalMessageState,
-  onMessageAction: (event: SyntheticEvent) => void,
+  onMessageAction: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: ?() => void,
 }) {
