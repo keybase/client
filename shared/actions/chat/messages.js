@@ -121,17 +121,16 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   if (sent && author) {
     const outboxID = Constants.outboxIDToKey(sent.outboxID)
-    const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxID)
     const message: Constants.Message = {
       author,
       conversationIDKey: action.payload.conversationIDKey,
       deviceName: '',
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
-      failureDescription: hasPendingFailure,
+      failureDescription: '',
       key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
-      messageState: hasPendingFailure ? 'failed' : 'pending',
+      messageState: 'pending',
       outboxID,
       senderDeviceRevokedAt: null,
       timestamp: Date.now(),
@@ -151,9 +150,6 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
         false
       )
     )
-    if (hasPendingFailure) {
-      yield put(Creators.removePendingFailure(outboxID))
-    }
   }
 }
 
