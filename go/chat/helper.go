@@ -174,7 +174,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := sender.Send(ctx, s.convID, msg, 0)
+	_, _, _, err := sender.Send(ctx, s.convID, msg, 0, nil)
 	return err
 }
 

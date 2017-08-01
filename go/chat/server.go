@@ -963,7 +963,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 
-	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
+	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return chat1.PostLocalRes{}, err
@@ -982,6 +982,7 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
@@ -997,6 +998,7 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
@@ -1016,6 +1018,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
@@ -1026,6 +1029,12 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 
 	return h.PostLocalNonblock(ctx, parg)
 
+}
+
+func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GenerateOutboxID")()
+	return storage.NewOutboxID()
 }
 
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
@@ -1068,7 +1077,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev)
+	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
 	if err != nil {
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
@@ -2200,7 +2209,7 @@ func (h *Server) postJoinLeave(ctx context.Context, uid gregor1.UID, convID chat
 	// Send with a blocking sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 	h.Debug(ctx, "postJoinLeave sending")
-	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0)
+	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0, nil)
 	return rl, err
 }
 
