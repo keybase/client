@@ -13,7 +13,16 @@ import {
 } from './index.platform'
 import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
-import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
+import type {
+  FSClearFuseInstall,
+  FSFuseStatus,
+  FSInstallFuse,
+  FSInstallKBFS,
+  FSList,
+  FSListed,
+  FSOpen,
+  FSUninstallKBFS,
+} from '../../constants/kbfs'
 import type {ListResult} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -40,23 +49,23 @@ function* _listSaga(action: FSList): SagaGenerator<any, any> {
   }
 }
 
-function fuseStatus() {
+function fuseStatus(): FSFuseStatus {
   return {payload: undefined, type: 'fs:fuseStatus'}
 }
 
-function installFuse() {
+function installFuse(): FSInstallFuse {
   return {payload: undefined, type: 'fs:installFuse'}
 }
 
-function installKBFS() {
+function installKBFS(): FSInstallKBFS {
   return {payload: undefined, type: 'fs:installKBFS'}
 }
 
-function uninstallKBFS() {
+function uninstallKBFS(): FSUninstallKBFS {
   return {payload: undefined, type: 'fs:uninstallKBFS'}
 }
 
-function clearFuseInstall() {
+function clearFuseInstall(): FSClearFuseInstall {
   return {payload: undefined, type: 'fs:clearFuseInstall'}
 }
 
