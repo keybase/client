@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
+import {Avatar, Icon, Text, Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 import {marginColor, colorForAuthor} from '../shared'
@@ -12,41 +12,11 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
   <Box style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
 )
 
-type UserAvatarProps = {
-  author: string,
-  showImage: boolean,
-  onClick: (author: string) => void,
-}
-
-class UserAvatar extends PureComponent<void, UserAvatarProps, void> {
-  _onClick: () => void
-
-  constructor(props: UserAvatarProps) {
-    super(props)
-
-    this._updateOnClick(props)
-  }
-
-  _updateOnClick(p: UserAvatarProps) {
-    const {onClick, author} = p
-    this._onClick = () => {
-      onClick && onClick(author)
-    }
-  }
-
-  componentWillReceiveProps(nextProps: UserAvatarProps) {
-    this._updateOnClick(nextProps)
-  }
-
-  render() {
-    const {author, showImage} = this.props
-    return (
-      <Box style={_userAvatarStyle} onClick={this._onClick}>
-        {showImage && <Avatar size={24} username={author} skipBackground={true} />}
-      </Box>
-    )
-  }
-}
+const UserAvatar = ({author, showImage, onClick}) => (
+  <ClickableBox style={_userAvatarStyle} onClick={onClick}>
+    {showImage && <Avatar size={24} username={author} skipBackground={true} />}
+  </ClickableBox>
+)
 
 type UsernameEntryProps = {
   author: string,
@@ -130,7 +100,7 @@ const MessageWrapper = (props: Props) => (
         isBroken={props.isBroken}
       />
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onUsernameClick} />
+        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
         <Box style={_flexOneColumn} className="message-wrapper">
           <UsernameEntry
             author={props.author}
@@ -138,7 +108,7 @@ const MessageWrapper = (props: Props) => (
             isFollowing={props.isFollowing}
             isBroken={props.isBroken}
             includeHeader={props.includeHeader}
-            onClick={props.onUsernameClick}
+            onClick={props.onClick}
           />
           <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>

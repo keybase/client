@@ -113,6 +113,7 @@ export default compose(
   withHandlers({
     onAction: props => event => props._onAction(props._message, props._localMessageState, event),
     onShowEditor: props => event => props._onShowEditor(props._message, event),
+    onClick: props => event => props.onUsernameClick(props.author, event),
   }),
   lifecycle({
     componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {
