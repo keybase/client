@@ -207,6 +207,7 @@ export const ConstantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scteamselfnotowner: 2607,
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
@@ -5284,6 +5285,7 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2518 // SCChatStalePreviousState_2518
+  | 2607 // SCTeamSelfNotOwner_2607
   | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623

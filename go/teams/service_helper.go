@@ -448,7 +448,11 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
-	return errors.New("not implemented yet")
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+	return t.Delete(ctx)
 }
 
 func apiArg(ctx context.Context, endpoint string) libkb.APIArg {

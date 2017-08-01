@@ -379,6 +379,51 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, libkb.LinkTypeLeave, nil, sigPayloadArgs)
 }
 
+func (t *Team) Delete(ctx context.Context) error {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		// return err
+		return fmt.Errorf("e0: %s", err)
+	}
+
+	uv := me.ToUserVersion()
+	role, err := t.MemberRole(ctx, uv)
+	if err != nil {
+		// return err
+		return fmt.Errorf("e1: %s", err)
+	}
+
+	if role != keybase1.TeamRole_OWNER {
+		return libkb.AppStatusError{
+			Code: int(keybase1.StatusCode_SCTeamSelfNotOwner),
+			Name: "SELF_NOT_ONWER",
+			Desc: "You must be an owner to delete a team",
+		}
+	}
+
+	teamSection := SCTeamSection{
+		ID: SCTeamID(t.ID),
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		// return err
+		return fmt.Errorf("e2: %s", err)
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for team invite")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeDeleteRoot, mr)
+	if err != nil {
+		// return err
+		return fmt.Errorf("e3: %s", err)
+	}
+
+	payload := t.sigPayload(sigMultiItem, nil, nil, make(libkb.JSONPayload))
+	return t.postMulti(payload)
+}
+
 func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
 	return t.chain().HasActiveInvite(name, typ)
 }
@@ -617,6 +662,8 @@ func usesPerTeamKeys(linkType libkb.LinkType) bool {
 	case libkb.LinkTypeLeave:
 		return false
 	case libkb.LinkTypeInvite:
+		return false
+	case libkb.LinkTypeDeleteRoot:
 		return false
 	}
 
