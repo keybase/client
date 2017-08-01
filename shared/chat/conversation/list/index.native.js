@@ -11,13 +11,13 @@ import type {Props} from '.'
 class ConversationList extends Component<void, Props, void> {
   _scrollRef: ?any
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage, event: SyntheticEvent) => {
     NativeKeyboard.dismiss()
     this.props.onMessageAction(message)
   }
 
   // This is handled slightly differently on mobile, leave this blank
-  _onShowEditor = (message: Constants.Message, event: any) => {}
+  _onShowEditor = (message: Constants.Message, event: SyntheticEvent) => {}
 
   // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}

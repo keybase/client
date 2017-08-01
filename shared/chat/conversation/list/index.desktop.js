@@ -40,10 +40,10 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage, event: SyntheticEvent) => {
     throw new Error('_onAction Implemented in PopupEnabledList')
   }
-  _onShowEditor = (message: Constants.Message, event: any) => {
+  _onShowEditor = (message: Constants.Message, event: SyntheticEvent) => {
     throw new Error('_onShowEditor Implemented in PopupEnabledList')
   }
   _onEditLastMessage = () => {
@@ -360,11 +360,12 @@ class PopupEnabledList extends BaseList {
   _showPopup(
     message: Constants.TextMessage | Constants.AttachmentMessage,
     localMessageState: Constants.LocalMessageState,
-    event: any
+    event: SyntheticEvent
   ) {
-    const clientRect = event.target.getBoundingClientRect()
+    const target = (event.target: any)
+    const clientRect = target.getBoundingClientRect()
 
-    const messageNode = this._findMessageFromDOMNode(event.target)
+    const messageNode = this._findMessageFromDOMNode(target)
     const messageRect = messageNode && this._domNodeToRect(messageNode)
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
@@ -390,14 +391,14 @@ class PopupEnabledList extends BaseList {
   _onAction = (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: any
+    event: SyntheticEvent
   ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, localMessageState, event)
     }
   }
 
-  _onShowEditor = (message: Constants.Message, event: any) => {
+  _onShowEditor = (message: Constants.Message, event: SyntheticEvent) => {
     if (message.type === 'Text') {
       const messageNode = this._findMessageFromDOMNode(event.target)
       const messageRect = messageNode && this._domNodeToRect(messageNode)
