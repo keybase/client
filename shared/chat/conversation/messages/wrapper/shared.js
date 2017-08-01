@@ -182,7 +182,6 @@ const _leftMarkerStyle = {
 
 const _userAvatarStyle = {
   width: 32,
-  ...globalStyles.clickable,
 }
 
 const _failStyle = {
