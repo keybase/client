@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import React from 'react'
 import {Avatar, Icon, Text, Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -18,46 +18,18 @@ const UserAvatar = ({author, showImage, onClick}) => (
   </ClickableBox>
 )
 
-type UsernameEntryProps = {
-  author: string,
-  isYou: boolean,
-  isFollowing: boolean,
-  isBroken: boolean,
-  includeHeader: boolean,
-  onClick: (author: string) => void,
-}
-
-class UsernameEntry extends PureComponent<void, UsernameEntryProps, void> {
-  _onClick: () => void
-
-  constructor(props: UsernameEntryProps) {
-    super(props)
-
-    this._updateOnClick(props)
+const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}) => {
+  if (!includeHeader) return null
+  const style = {
+    color: colorForAuthor(author, isYou, isFollowing, isBroken),
+    ...(isYou ? globalStyles.italic : null),
+    marginBottom: 2,
   }
-
-  _updateOnClick(p: UsernameEntryProps) {
-    const {onClick, author} = p
-    this._onClick = () => {
-      onClick && onClick(author)
-    }
-  }
-
-  componentWillReceiveProps(nextProps: UsernameEntryProps) {
-    this._updateOnClick(nextProps)
-  }
-
-  render() {
-    const {author, isYou, isFollowing, isBroken, includeHeader} = this.props
-    if (!includeHeader) return null
-    const style = {
-      ...globalStyles.clickable,
-      color: colorForAuthor(author, isYou, isFollowing, isBroken),
-      ...(isYou ? globalStyles.italic : null),
-      marginBottom: 2,
-    }
-    return <Text type="BodySmallSemibold" style={style} onClick={this._onClick}>{author}</Text>
-  }
+  return (
+    <ClickableBox onClick={onClick}>
+      <Text type="BodySmallSemibold" style={style}>{author}</Text>
+    </ClickableBox>
+  )
 }
 
 const ActionButton = ({onAction}) => (
@@ -102,7 +74,7 @@ const MessageWrapper = (props: Props) => (
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
         <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
         <Box style={_flexOneColumn} className="message-wrapper">
-          <UsernameEntry
+          <Username
             author={props.author}
             isYou={props.isYou}
             isFollowing={props.isFollowing}
