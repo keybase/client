@@ -264,6 +264,10 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamRenameUpPointer
 	case LinkTypeDeleteRoot:
 		ret = SigchainV2TypeTeamDeleteRoot
+	case LinkTypeDeleteSubteam:
+		ret = SigchainV2TypeTeamDeleteSubteam
+	case LinkTypeDeleteUpPointer:
+		ret = SigchainV2TypeTeamDeleteUpPointer
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

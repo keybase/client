@@ -233,6 +233,18 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	return t.Leave(ctx, permanent)
 }
 
+func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	if t.chain().IsSubteam() {
+		return t.deleteSubteam(ctx)
+	}
+	return t.deleteRoot(ctx)
+}
+
 func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
 	arg := apiArg(ctx, "team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
@@ -445,14 +457,6 @@ func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	arg.Args.Add("uid", libkb.S{Val: uv.Uid.String()})
 	_, err = g.API.Post(arg)
 	return err
-}
-
-func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
-	return t.Delete(ctx)
 }
 
 func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
