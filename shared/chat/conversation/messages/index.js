@@ -15,7 +15,6 @@ const factory = (
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onShowEditor: (message: Constants.ServerMessage, event: any) => void,
-  onUsernameClick: (author: string) => void,
   isSelected: boolean,
   measure: () => void
 ) => {
@@ -33,7 +32,6 @@ const factory = (
           messageKey={messageKey}
           onAction={onAction}
           onShowEditor={onShowEditor}
-          onUsernameClick={onUsernameClick}
           prevMessageKey={prevMessageKey}
         />
       )
@@ -51,7 +49,6 @@ const factory = (
           messageKey={messageKey}
           onAction={onAction}
           onShowEditor={onShowEditor}
-          onUsernameClick={onUsernameClick}
           prevMessageKey={prevMessageKey}
         />
       )

@@ -23,7 +23,6 @@ export type DispatchProps = {|
   onEditMessage: (message: Constants.Message, body: string) => void,
   onMessageAction: (message: Constants.Message) => void,
   onOpenInFileUI: (path: string) => void,
-  onUsernameClick: (username: string) => void,
 |}
 
 export type OwnProps = {|

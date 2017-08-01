@@ -34,7 +34,6 @@ class ConversationList extends Component<void, Props, void> {
             prevMessageKey,
             this._onAction,
             this._onShowEditor,
-            this.props.onUsernameClick,
             isSelected,
             this._measure
           )}

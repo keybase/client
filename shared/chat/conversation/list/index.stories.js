@@ -87,7 +87,6 @@ const propCommon = {
   onLoadMoreMessages: action('onLoadMoreMessages'),
   onMessageAction: action('onMessageAction'),
   onOpenInFileUI: action('onOpenInFileUI'),
-  onUsernameClick: action('onUsernameClick'),
   getMessageFromMessageKey: (messageKey: Constants.MessageKey) => messageMap[messageKey],
   selectedConversation: conversationIDKey,
   validated: true,

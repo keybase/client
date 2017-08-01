@@ -18,7 +18,7 @@ export type Props = {|
   onAction: (event: any) => void,
   onRetry: () => void,
   onShowEditor: (event: any) => void,
-  onUsernameClick: (author: string) => void,
+  onUsernameClick: (username: string) => void,
   timestamp: ?string,
 |}
 

@@ -7,7 +7,6 @@ export type OwnProps = {|
   prevMessageKey: ?Constants.MessageKey,
   onAction: (message: Constants.ServerMessage, event: any) => void,
   onShowEditor: (message: Constants.ServerMessage, event: any) => void,
-  onUsernameClick: (author: string) => void,
   isSelected: boolean,
   innerClass: ReactClass<*>,
   measure: ?() => void,
