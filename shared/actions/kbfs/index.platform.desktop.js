@@ -205,8 +205,6 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
   yield put(resultAction)
 
-  yield put(fuseStatus())
-
   const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
   yield put(openAction)
   const finishedAction: FSInstallKBFSFinished = {payload: undefined, type: 'fs:installKBSFinished'}
