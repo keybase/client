@@ -539,6 +539,10 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool, l
 	}
 	isLink := (fi.Mode()&os.ModeSymlink != 0)
 	if !isLink {
+		if force {
+			log.Warning("Path is not a symlink: %s, forcing overwrite", linkPath)
+			return createCommandLine(binPath, linkPath, log)
+		}
 		return fmt.Errorf("Path is not a symlink: %s", linkPath)
 	}
 
@@ -549,6 +553,7 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool, l
 	}
 	if err != nil {
 		if force {
+			log.Warning("We are not symlinked to %s, forcing overwrite", linkPath)
 			return createCommandLine(binPath, linkPath, log)
 		}
 		return fmt.Errorf("We are not symlinked to %s", linkPath)
