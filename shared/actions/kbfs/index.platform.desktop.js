@@ -9,12 +9,23 @@ import {
   installUninstallKBFSRpcPromise,
   kbfsMountGetCurrentMountDirRpcPromise,
 } from '../../constants/types/flow-types'
+import {delay} from 'redux-saga'
 import {call, put, select} from 'redux-saga/effects'
 import electron, {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
+import {fuseStatus} from './index'
 
-import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
+import type {
+  FSInstallFuseFinished,
+  FSInstallFuseResult,
+  FSInstallKBFSResult,
+  FSInstallKBFSFinished,
+  FSOpen,
+  FSOpenDefaultPath,
+  FuseStatusUpdate,
+  OpenInFileUI,
+} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
 
@@ -115,20 +126,13 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   const prevFuseStatus = yield select(state => state.favorite.fuseStatus)
 
   const status = yield call(installFuseStatusRpcPromise)
-  const action = {payload: {status}, type: 'fs:fuseStatusUpdate'}
+  const action: FuseStatusUpdate = {payload: {status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
 
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevFuseStatus && !prevFuseStatus.kextStarted) {
-    console.log('Installing KBFS (kextStarted changed)')
     yield call(installKBFSSaga)
   }
-}
-
-function sleep(d: number): Promise<*> {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, d)
-  })
 }
 
 function* installFuseSaga(): SagaGenerator<any, any> {
@@ -142,14 +146,19 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   if (kextPermissionError) {
     // Add a small delay here, since on 10.13 the OS will be a little laggy
     // when showing a kext permission error.
-    yield call(sleep, 1000)
+    yield delay(1e3)
   }
 
-  yield put({payload: {kextPermissionError}, type: 'fs:installFuseResult'})
+  const resultAction: FSInstallFuseResult = {
+    payload: {kextPermissionError},
+    type: 'fs:installFuseResult',
+  }
+  yield put(resultAction)
 
-  yield call(fuseStatusSaga)
+  yield put(fuseStatus)
 
-  yield put({type: 'fs:installFuseFinished'})
+  const finishedAction: FSInstallFuseFinished = {payload: undefined, type: 'fs:installFuseFinished'}
+  yield put(finishedAction)
 }
 
 function waitForMount(attempt: number): Promise<*> {
@@ -173,27 +182,33 @@ function openDefaultPath(): Promise<*> {
   return openInDefault(Constants.defaultKBFSPath)
 }
 
+// Wait for /keybase to exist with files in it and then opens in Finder
 function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
 }
 
 function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
-  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
+  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  yield put(openAction)
   try {
     yield call(waitForMountAndOpen)
   } finally {
-    yield put({payload: {opening: false}, type: 'fs:openDefaultPath'})
+    const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
+    yield put(openFinishedAction)
   }
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallKBFSRpcPromise)
-  yield put({payload: {result}, type: 'fs:installKBFSResult'})
+  const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
+  yield put(resultAction)
 
-  yield call(fuseStatusSaga)
+  yield put(fuseStatus)
 
-  yield put({payload: {opening: true}, type: 'fs:openDefaultPath'})
-  yield put({type: 'fs:installKBSFinished'})
+  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  yield put(openAction)
+  const finishedAction: FSInstallKBFSFinished = {payload: undefined, type: 'fs:installKBSFinished'}
+  yield put(finishedAction)
 
   yield call(waitForMountAndOpenSaga)
 }
@@ -203,7 +218,7 @@ function* uninstallKBFSSaga(): SagaGenerator<any, any> {
   yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
 
   // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-  const app = electron.app || electron.remote.app
+  const app = electron.remote.app
   app.relaunch()
   app.exit(0)
 }
