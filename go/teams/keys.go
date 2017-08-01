@@ -41,11 +41,6 @@ type TeamKeyManager struct {
 	signingKey    *libkb.NaclSigningKeyPair
 }
 
-type SharedSecretAllGenerations struct {
-	currentGeneration keybase1.PerTeamKeyGeneration
-	secrets           map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed
-}
-
 func NewTeamKeyManager(g *libkb.GlobalContext) (*TeamKeyManager, error) {
 	sharedSecret, err := newSharedSecret()
 	if err != nil {
@@ -298,47 +293,6 @@ func newSharedSecret() (ret keybase1.PerTeamKeySeed, err error) {
 		return ret, errors.New("short random read in newSharedSecret")
 	}
 	return ret, nil
-}
-
-func newSharedSecretAllGenerations(ctx context.Context, currentGeneration keybase1.PerTeamKeyGeneration,
-	curr keybase1.PerTeamKeySeed, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (*SharedSecretAllGenerations, error) {
-
-	ret := &SharedSecretAllGenerations{
-		currentGeneration: currentGeneration,
-		secrets:           make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
-	}
-	ret.secrets[ret.currentGeneration] = curr
-	return ret.decryptPrevs(ctx, prevs)
-}
-
-func (s *SharedSecretAllGenerations) decryptPrevs(ctx context.Context, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (*SharedSecretAllGenerations, error) {
-	for g := s.currentGeneration - 1; g >= 1; g-- {
-		if err := s.decryptPrev(ctx, g, prevs); err != nil {
-			return nil, err
-		}
-	}
-	return s, nil
-}
-
-func (s *SharedSecretAllGenerations) decryptPrev(ctx context.Context, g keybase1.PerTeamKeyGeneration, prevs map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded) (err error) {
-	key, ok := s.secrets[g+1]
-	if !ok {
-		return fmt.Errorf("in decyrpting prevs, couldn't find decrypted key @ %d", g+1)
-	}
-	encoded := prevs[g+1]
-	if len(encoded) == 0 {
-		return fmt.Errorf("can't find encrypted prev key at generation %d", g)
-	}
-	ret, err := decryptPrevSingle(ctx, encoded, key)
-	if err != nil {
-		return fmt.Errorf("at generation %d: %v", g, err)
-	}
-	s.secrets[g] = *ret
-	return nil
-}
-
-func (s *SharedSecretAllGenerations) At(k keybase1.PerTeamKeyGeneration) keybase1.PerTeamKeySeed {
-	return s.secrets[k]
 }
 
 func derivedSecret(secret keybase1.PerTeamKeySeed, context string) []byte {

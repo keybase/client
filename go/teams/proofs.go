@@ -94,9 +94,7 @@ func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proof
 func (p *proofSetT) AllProofs() []proof {
 	var ret []proof
 	for _, v := range p.proofs {
-		for _, proof := range v {
-			ret = append(ret, proof)
-		}
+		ret = append(ret, v...)
 	}
 	sort.Slice(ret, func(i, j int) bool {
 		cmp := ret[i].a.leafID.Compare(ret[j].a.leafID)
