@@ -101,7 +101,7 @@
     self.sourcePath = [self.settings objectForKey:@"source-path"];
   }
   if ([[self.settings objectForKey:@"install-cli"] boolValue]) {
-    self.installOptions |= UninstallOptionCLI;
+    self.installOptions |= KBInstallOptionCLI;
   }
 
   self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
