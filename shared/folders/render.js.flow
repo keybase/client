@@ -19,7 +19,7 @@ export type Props = {
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
   installed: boolean,
-  fuseStatus: () => void,
+  getFuseStatus: () => void,
   showSecurityPrefs?: boolean,
 }
 
