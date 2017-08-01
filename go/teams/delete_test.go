@@ -33,8 +33,11 @@ func TestDeleteRoot(t *testing.T) {
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {
-	tc, owner, admin, _, _, sub := memberSetupSubteam(t)
+	tc, owner, admin, _, root, sub := memberSetupSubteam(t)
 	defer tc.Cleanup()
+
+	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
+	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
 
 	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN)
 	if err != nil {
