@@ -26,7 +26,7 @@ and the "Bundle version string, short" (CFBundleShortVersionString) in [Installe
 Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the s3://prerelease.keybase.io/darwin-package folder.
 
 Update the scripts that reference the older version such to include this version:
-- [packaging/desktop/package_darwin.sh](packaging/desktop/package_darwin.sh)
-- [packaging/desktop/kbfuse.sh](packaging/desktop/kbfuse.sh)
+- [packaging/desktop/package_darwin.sh](/packaging/desktop/package_darwin.sh)
+- [packaging/desktop/kbfuse.sh](/packaging/desktop/kbfuse.sh)
 
 The installer is bundled into the Keybase.app, in `Keybase.app/Contents/Resources/KeybaseInstaller.app`.
