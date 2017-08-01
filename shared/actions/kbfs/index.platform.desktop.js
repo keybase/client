@@ -23,7 +23,7 @@ import type {
   FSInstallKBFSFinished,
   FSOpen,
   FSOpenDefaultPath,
-  FuseStatusUpdate,
+  FSFuseStatusUpdate,
   OpenInFileUI,
 } from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -126,11 +126,11 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   const prevStatus = yield select(state => state.favorite.fuseStatus)
 
   const status = yield call(installFuseStatusRpcPromise)
-  const action: FuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
+  const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
 }
 
-function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FuseStatusUpdate): SagaGenerator<any, any> {
+function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpdate): SagaGenerator<any, any> {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     yield call(installKBFSSaga)
