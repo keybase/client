@@ -157,6 +157,7 @@
     "null-loader": "0.1.1",
     "pegjs": "0.10.0",
     "react-hot-loader": "3.0.0-beta.7",
+    "react-split-pane": "0.1.65",
     "redux-logger": "3.0.6",
     "source-map-support": "0.4.15",
     "style-loader": "0.18.1",
