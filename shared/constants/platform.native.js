@@ -8,7 +8,7 @@ NativeModules.ObjcEngine || {
   appVersionCode: 'fallback',
   usingSimulator: 'fallback',
 }
-const isStoryBook = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
+const isStoryBook = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || true
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
