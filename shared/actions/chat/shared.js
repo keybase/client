@@ -180,10 +180,27 @@ function* getPostingIdentifyBehavior(
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
+  switch (typ) {
+    case ChatTypes.LocalOutboxErrorType.misc:
+      return 'unknown error'
+    case ChatTypes.LocalOutboxErrorType.offline:
+      return 'disconnected from chat server'
+    case ChatTypes.LocalOutboxErrorType.identify:
+      return 'proofs failed for recipient user'
+    case ChatTypes.LocalOutboxErrorType.toolong:
+      return 'message is too long'
+    case ChatTypes.LocalOutboxErrorType.duplicate:
+      return 'message is a duplicate'
+  }
+  return `unknown error type ${typ}`
+}
+
 export {
   alwaysShowSelector,
   clientHeader,
   conversationStateSelector,
+  decodeFailureDescription,
   devicenameSelector,
   focusedSelector,
   followingSelector,

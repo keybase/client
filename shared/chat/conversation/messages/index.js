@@ -35,8 +35,9 @@ const factory = (
           prevMessageKey={prevMessageKey}
         />
       )
+    case 'errorInvisible':
+      return <Box data-unhandled={true} data-messageKey={messageKey} />
     case 'error': // fallthrough
-    case 'errorInvisible': // fallthrough
     case 'messageIDError':
       return <ErrorMessage messageKey={messageKey} />
     case 'outboxIDText': // fallthrough

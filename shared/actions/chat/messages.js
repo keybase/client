@@ -122,13 +122,14 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   if (sent && author) {
     const outboxID = Constants.outboxIDToKey(sent.outboxID)
     const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxID)
+    const failureDescription = hasPendingFailure && hasPendingFailure.failureDescription
     const message: Constants.Message = {
       author,
       conversationIDKey: action.payload.conversationIDKey,
       deviceName: '',
       deviceType: isMobile ? 'mobile' : 'desktop',
       editedCount: 0,
-      failureDescription: hasPendingFailure,
+      failureDescription,
       key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
       message: new HiddenString(action.payload.text.stringValue()),
       messageState: hasPendingFailure ? 'failed' : 'pending',
@@ -142,15 +143,23 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     const selectedConversation = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield put(
-      Creators.appendMessages(
-        conversationIDKey,
-        conversationIDKey === selectedConversation,
-        appFocused,
-        [message],
-        false
+    // We go ahead and add the message we just sent to our messages store for
+    // display locally, *unless* we've already been told that this message
+    // failed as a duplicate send, in which case we ignore adding it.
+    const failureIsDuplicate =
+      hasPendingFailure && hasPendingFailure.failureType === ChatTypes.LocalOutboxErrorType.duplicate
+    if (!failureIsDuplicate) {
+      yield put(
+        Creators.appendMessages(
+          conversationIDKey,
+          conversationIDKey === selectedConversation,
+          appFocused,
+          [message],
+          false
+        )
       )
-    )
+    }
+
     if (hasPendingFailure) {
       yield put(Creators.removePendingFailure(outboxID))
     }
