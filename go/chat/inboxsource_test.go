@@ -33,7 +33,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(), nil, true, nil, nil)
@@ -104,7 +104,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	t.Logf("add message but drop oobm")
 
-	boxed, _, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
+	boxed, _, _, _, _, err := sender.Prepare(ctx, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,
 			Sender:      u.User.GetUID().ToBytes(),
@@ -130,7 +130,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 	t.Logf("install fake sync")
 	syncCalled := 0
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		syncCalled += 1
+		syncCalled++
 		require.Equal(t, chat1.InboxVers(0), vers)
 
 		res, err := m.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{

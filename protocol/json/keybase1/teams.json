@@ -237,6 +237,14 @@
         {
           "type": "PerTeamKeyGeneration",
           "name": "keyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AnnotatedTeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "annotatedActiveInvites"
         }
       ]
     },
@@ -456,6 +464,44 @@
         {
           "type": "TeamInviteName",
           "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
+        },
+        {
+          "type": "string",
+          "name": "inviterUsername"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
         }
       ]
     },
@@ -881,6 +927,14 @@
             "items": "AnnotatedMemberInfo"
           },
           "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AnnotatedTeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "annotatedActiveInvites"
         }
       ]
     },
@@ -1219,6 +1273,15 @@
       ],
       "response": "TeamPlusApplicationKeys",
       "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
+    },
+    "getTeamRootID": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamID"
     }
   },
   "namespace": "keybase.1"

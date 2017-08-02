@@ -1,0 +1,16 @@
+// @flow
+import {Component} from 'react'
+
+import type {SearchResultId} from '../../constants/search'
+
+export type Props = {
+  style?: any,
+  items: Array<SearchResultId>,
+  onClick: (id: SearchResultId) => void,
+  onMouseOver?: (id: SearchResultId) => void,
+  onShowTracker?: (id: SearchResultId) => void,
+  selectedId: ?SearchResultId,
+  showSearchSuggestions: boolean,
+}
+
+export default class ResultsList extends Component<void, Props, void> {}

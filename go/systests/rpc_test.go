@@ -333,8 +333,8 @@ func testIdentifyLite(t *testing.T) {
 		if !ok {
 			t.Fatalf("Expected an AppStatusError for %s, but got: %v (%T)", assertion, err, err)
 		}
-		if aerr.Code != libkb.SCTeamReadError {
-			t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamReadError)
+		if aerr.Code != libkb.SCTeamNotFound {
+			t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
 		}
 	}
 

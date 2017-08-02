@@ -3,13 +3,12 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
-import * as SearchCreators from '../searchv3/creators'
+import * as SearchCreators from '../search/creators'
 import * as Inbox from './inbox'
 import * as Messages from './messages'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
-import featureFlags from '../../util/feature-flags'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {Map} from 'immutable'
@@ -26,8 +25,7 @@ import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
-import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from '../search'
-import {searchTab, chatTab} from '../../constants/tabs'
+import {chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
@@ -37,7 +35,7 @@ import {
   previousConversationSelector,
   searchResultMapSelector,
 } from '../../constants/selectors'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -63,16 +61,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           // $FlowIssue
           const errTyp = outboxRecord.state.error.typ
           const failureDescription = _decodeFailureDescription(errTyp)
-          // There's an RPC race condition here.  Two possibilities:
-          //
-          // Either we've already finished in _postMessage() and have recorded
-          // the outboxID pending message in the store, or we haven't.  If we
-          // have, just set it to failed.  If we haven't, record this as a
-          // pending failure, and pick up the pending failure at the bottom of
-          // _postMessage() instead.
-          //
-          // Do we have this conversation loaded?  If not, don't do anything -
-          // we'll pick up the failure when we load that thread.
           const isConversationLoaded = yield select(Shared.conversationStateSelector, conversationIDKey)
           if (!isConversationLoaded) return
 
@@ -90,7 +78,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               )
             )
           } else {
-            yield put(Creators.createPendingFailure(failureDescription, outboxID))
+            throw new Error("Pending message wasn't found!")
           }
         }
       }
@@ -717,40 +705,17 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
-  if (featureFlags.searchv3Enabled) {
-    const inboxSearch = yield select(inboxSearchSelector)
-    if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
-      // Ignore 'New Chat' attempts when we're already building a chat
-      return
-    }
-    yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-    for (const username of action.payload.existingParticipants) {
-      yield put(Creators.stageUserForSearch(username))
-    }
-    yield put(Creators.selectConversation(null, false))
-    yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
+  const inboxSearch = yield select(inboxSearchSelector)
+  if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+    // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
-
-  yield put(searchReset())
-
-  const metaData = (yield select(Shared.metaDataSelector): any)
-  const following = (yield select(Shared.followingSelector)) || {}
-
-  yield put(
-    searchAddUsersToGroup(
-      action.payload.existingParticipants.map(username => ({
-        service: 'keybase',
-        username,
-        isFollowing: !!following[username],
-        extraInfo: {
-          service: 'none',
-          fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
-        },
-      }))
-    )
-  )
-  yield put(switchTo([searchTab]))
+  yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
+  for (const username of action.payload.existingParticipants) {
+    yield put(Creators.stageUserForSearch(username))
+  }
+  yield put(Creators.selectConversation(null, false))
+  yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
 
 function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, any> {

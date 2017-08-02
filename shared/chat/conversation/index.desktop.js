@@ -1,7 +1,7 @@
 // @flow
 import Banner from './banner/container'
 import HeaderOrSearchHeader from './header-or-search-header'
-import SearchResultsList from '../../searchv3/results-list'
+import SearchResultsList from '../../search/results-list'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
@@ -128,8 +128,9 @@ class Conversation extends Component<void, Props, State> {
           onAddNewParticipant={this.props.onAddNewParticipant}
           addNewParticipant={this.props.addNewParticipant}
         />
+        {this.props.inSearch && !this.props.showSearchResults && <Box style={styleSearchBottom} />}
         {this.props.showSearchPending
-          ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+          ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
               ? <SearchResultsList
                   items={this.props.searchResultIds}
@@ -197,6 +198,16 @@ const dropOverlayStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
+}
+
+const styleSpinner = {
+  alignSelf: 'center',
+  marginTop: globalMargins.small,
+  width: globalMargins.large,
+}
+
+const styleSearchBottom = {
+  borderBottom: `1px solid ${globalColors.black_10}`,
 }
 
 export default Conversation

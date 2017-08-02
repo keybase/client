@@ -1,7 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
 import {List, Map} from 'immutable'
@@ -294,16 +294,6 @@ function updateSupersededByState(
 
 function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox {
   return {payload: {conversation}, type: 'chat:updateInbox'}
-}
-
-function createPendingFailure(
-  failureDescription: string,
-  outboxID: Constants.OutboxIDKey
-): Constants.CreatePendingFailure {
-  return {
-    payload: {failureDescription, outboxID},
-    type: 'chat:createPendingFailure',
-  }
 }
 
 function updatePaginationNext(
@@ -607,10 +597,6 @@ function removeOutboxMessage(
   }
 }
 
-function removePendingFailure(outboxID: Constants.OutboxIDKey): Constants.RemovePendingFailure {
-  return {payload: {outboxID}, type: 'chat:removePendingFailure'}
-}
-
 function openConversation(conversationIDKey: Constants.ConversationIDKey): Constants.OpenConversation {
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
@@ -706,7 +692,6 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
-  createPendingFailure,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -734,7 +719,6 @@ export {
   postMessage,
   prependMessages,
   removeOutboxMessage,
-  removePendingFailure,
   removeTempPendingConversations,
   replaceConversation,
   retryAttachment,

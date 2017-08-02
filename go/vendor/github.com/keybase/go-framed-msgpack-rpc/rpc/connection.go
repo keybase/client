@@ -72,6 +72,9 @@ func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc) Connec
 
 func (t *connTransport) Dial(context.Context) (Transporter, error) {
 	var err error
+	if t.conn != nil {
+		t.conn.Close()
+	}
 	t.conn, err = t.uri.Dial()
 	if err != nil {
 		// If we get a DNS error, it could be because glibc has cached an old
@@ -224,6 +227,9 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 
 	ct.mutex.Lock()
 	defer ct.mutex.Unlock()
+	if ct.conn != nil {
+		ct.conn.Close()
+	}
 	transport := NewTransport(conn, ct.logFactory, ct.wef)
 	ct.conn = conn
 	ct.stagedTransport = transport

@@ -1,19 +1,19 @@
 // @flow
 import React from 'react'
 import * as Creators from '../actions/chat/creators'
-import * as SearchCreators from '../actions/searchv3/creators'
+import * as SearchCreators from '../actions/search/creators'
 import {getProfile} from '../actions/tracker'
 import * as Constants from '../constants/chat'
-import UserInput from '../searchv3/user-input'
-import SearchResultsList from '../searchv3/results-list'
-import ServiceFilter from '../searchv3/services-filter'
+import UserInput from '../search/user-input'
+import SearchResultsList from '../search/results-list'
+import ServiceFilter from '../search/services-filter'
 import {Box, Icon, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {branch, compose, withState, defaultProps, withHandlers, withPropsOnChange} from 'recompose'
 import {connect} from 'react-redux'
 import {globalMargins, globalStyles} from '../styles'
 import {chatSearchPending, chatSearchResultArray, chatSearchShowingSuggestions} from '../constants/selectors'
 import {isMobile} from '../constants/platform'
-import {onChangeSelectedSearchResultHoc, showServiceLogicHoc, selectedSearchIdHoc} from '../searchv3/helpers'
+import {onChangeSelectedSearchResultHoc, showServiceLogicHoc, selectedSearchIdHoc} from '../search/helpers'
 import {createSelector} from 'reselect'
 
 const mapStateToProps = createSelector(
@@ -74,7 +74,7 @@ const SearchHeader = props => (
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
     {props.showSearchPending
-      ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
+      ? <ProgressIndicator style={{width: globalMargins.large}} />
       : <SearchResultsList
           style={{flex: 1}}
           items={props.searchResultIds}

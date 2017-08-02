@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/chat'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
 import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
@@ -9,7 +9,7 @@ import Rekey from './rekey/container'
 import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent, lifecycle} from 'recompose'
-import {selectedSearchIdHoc} from '../../searchv3/helpers'
+import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
 
@@ -150,8 +150,9 @@ export default compose(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
   ),
-  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
+  // Ordering of branch() is important here -- rekey should come before error.
   branch((props: Props) => !props.finalizeInfo && props.rekeyInfo, renderComponent(Rekey)),
+  branch((props: Props) => props.conversationIsError, renderComponent(ConversationError)),
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),

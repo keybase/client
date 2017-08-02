@@ -79,25 +79,8 @@ export type State = {
   deviceName: ?string,
 }
 
-const stateLoggerTransform = (state: State) => ({
-  appFocused: state.appFocused,
-  bootStatus: state.bootStatus,
-  pushLoaded: state.pushLoaded,
-  bootstrapTriesRemaining: state.bootstrapTriesRemaining,
-  config: state.config,
-  daemonError: state.daemonError,
-  error: state.error,
-  extendedConfig: state.extendedConfig,
-  globalError: state.globalError,
-  launchedViaPush: state.launchedViaPush,
-  loggedIn: state.loggedIn,
-  registered: state.registered,
-  readyForBootstrap: state.readyForBootstrap,
-})
-
 export {
   MAX_BOOTSTRAP_TRIES,
-  stateLoggerTransform,
   bootstrapAttemptFailed,
   bootstrapFailed,
   bootstrapSuccess,

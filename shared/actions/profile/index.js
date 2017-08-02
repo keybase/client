@@ -23,7 +23,7 @@ import * as Selectors from '../../constants/selectors'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/searchv3'
+import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}

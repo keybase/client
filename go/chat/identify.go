@@ -27,7 +27,7 @@ type IdentifyNotifier struct {
 func NewIdentifyNotifier(g *globals.Context) *IdentifyNotifier {
 	return &IdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g),
 	}
@@ -69,7 +69,7 @@ type IdentifyChangedHandler struct {
 func NewIdentifyChangedHandler(g *globals.Context) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "IdentifyChangedHandler", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyChangedHandler", false),
 	}
 }
 

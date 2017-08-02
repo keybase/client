@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 11
+const inboxVersion = 12
 
 type queryHash []byte
 
@@ -81,7 +81,7 @@ type Inbox struct {
 func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
 	return &Inbox{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Inbox", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}

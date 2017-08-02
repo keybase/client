@@ -30,8 +30,8 @@ func TestAccountDelete(t *testing.T) {
 	if err == nil {
 		t.Fatal("no error loading deleted user")
 	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Errorf("loading deleted user error type: %T, expected libkb.NotFoundError", err)
+	if _, ok := err.(libkb.DeletedError); !ok {
+		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
 	}
 }
 

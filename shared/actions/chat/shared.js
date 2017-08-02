@@ -25,10 +25,6 @@ function routeSelector(state: TypedState) {
 function focusedSelector(state: TypedState) {
   return state.config.appFocused
 }
-function pendingFailureSelector(state: TypedState, outboxID: Constants.OutboxIDKey) {
-  return state.chat.get('pendingFailures').get(outboxID)
-}
-
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
@@ -192,7 +188,6 @@ export {
   messageOutboxIDSelector,
   messageSelector,
   metaDataSelector,
-  pendingFailureSelector,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,

@@ -42,6 +42,13 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	if err != nil {
 		return res, err
 	}
+
+	activeInvites := t.chain().inner.ActiveInvites
+	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
+	if err != nil {
+		return res, err
+	}
+	res.AnnotatedActiveInvites = annotatedInvites
 	return res, nil
 }
 
@@ -445,4 +452,17 @@ func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
 	arg.Args = libkb.NewHTTPArgs()
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	return arg
+}
+
+func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (keybase1.TeamID, error) {
+	team, err := g.GetTeamLoader().Load(ctx, keybase1.LoadTeamArg{
+		ID:      id,
+		StaleOK: true,
+	})
+
+	if err != nil {
+		return keybase1.TeamID(""), err
+	}
+
+	return team.Name.RootAncestorName().ToTeamID(), nil
 }

@@ -3,7 +3,7 @@ import React from 'react'
 import Header from './header/container'
 import SearchHeader from '../search-header'
 import * as ChatConstants from '../../constants/chat'
-import * as SearchConstants from '../../constants/searchv3'
+import * as SearchConstants from '../../constants/search'
 
 type Props = {
   inSearch: boolean,

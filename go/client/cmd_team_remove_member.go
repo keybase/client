@@ -64,11 +64,11 @@ func (c *CmdTeamRemoveMember) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
 	if !c.force {
-		config_cli, err := GetConfigClient(c.G())
+		configCLI, err := GetConfigClient(c.G())
 		if err != nil {
 			return err
 		}
-		curStatus, err := config_cli.GetCurrentStatus(context.TODO(), 0)
+		curStatus, err := configCLI.GetCurrentStatus(context.TODO(), 0)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 		return err
 	}
 
-	ui.Printf("Success! %s removed from team %s.", c.username, c.team)
+	ui.Printf("Success! %s removed from team %s.\n", c.username, c.team)
 
 	return nil
 }

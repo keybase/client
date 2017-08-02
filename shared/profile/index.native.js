@@ -9,8 +9,8 @@ import moment from 'moment'
 import {
   Avatar,
   BackButton,
-  ClickableBox,
   Box,
+  ClickableBox,
   Icon,
   PlatformIcon,
   PopupMenu,
@@ -35,7 +35,7 @@ import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
 export const AVATAR_SIZE = 112
-export const HEADER_TOP_SPACE = 64
+export const HEADER_TOP_SPACE = 96
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
@@ -280,10 +280,10 @@ class Profile extends Component<void, Props, State> {
               style={styleBack}
               iconStyle={{color: globalColors.white}}
             />}
-          <Box onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Icon onClick={this.props.onSearch} style={styleSearch} type="iconfont-search" />
-            <Text onClick={this.props.onSearch} style={styleSearchText} type="Body">Search people</Text>
-          </Box>
+          <ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
+            <Icon style={styleSearch} type="iconfont-search" />
+            <Text style={styleSearchText} type="Body">Search people</Text>
+          </ClickableBox>
         </Box>
       )
     } else {
@@ -517,7 +517,7 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   position: 'relative',
-  top: 1,
+  top: -1,
 }
 
 export default Profile

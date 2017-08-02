@@ -16,8 +16,6 @@ import PinentryMap from '../../pinentry/dumb.desktop'
 import ProfileMap from '../../profile/dumb'
 import RegisterMap from '../../login/register/dumb'
 import SearchMap from '../../search/dumb'
-import SearchV3Map from '../../searchv3/dumb'
-import SearchUserPaneMap from '../../search/user-pane/dumb'
 import SettingsMap from '../../settings/dumb.desktop'
 import SignupMap from '../../login/signup/dumb'
 import TabBarMap from '../../app/tab-bar/dumb.desktop'
@@ -42,8 +40,6 @@ const map: any = {
   ...ProfileMap,
   ...RegisterMap,
   ...SearchMap,
-  ...SearchV3Map,
-  ...SearchUserPaneMap,
   ...SettingsMap,
   ...SignupMap,
   ...TabBarMap,

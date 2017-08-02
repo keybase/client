@@ -8,6 +8,6 @@ const lookupMessageProps = createCachedSelector(
     message,
     localMessageState,
   })
-)((state, messageKey) => messageKey)
+)((state, messageKey) => messageKey || 'null')
 
 export {lookupMessageProps}

@@ -30,6 +30,9 @@ cp "$here/keybase.install" "$keybase_bin_repo"
 pkgver="$(cat "$build_root/VERSION" | sed s/-/_/)"
 
 # Debian replaces the + with a . to avoid URL mangling.
+# Note that we've duplicated this logic in the PKGBUILD, to make our diffs
+# nicer, as per "Eschwartz commented on 2017-07-28 20:41" at
+# https://aur.archlinux.org/packages/keybase-bin.
 debver="$(cat "$build_root/VERSION" | sed s/+/./)"
 
 deb_i386="$(ls "$build_root"/deb/i386/*.deb)"
@@ -40,7 +43,6 @@ sum_amd64="$(sha256sum "$deb_amd64" | awk '{print $1}')"
 
 cat "$here/PKGBUILD.bin.in" \
   | sed "s/@@PKGVER@@/$pkgver/g" \
-  | sed "s/@@DEBVER@@/$debver/g" \
   | sed "s/@@SUM_i686@@/$sum_i386/g" \
   | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
   > "$keybase_bin_repo/PKGBUILD"
@@ -59,31 +61,5 @@ else
   echo No changes in keybase-bin. Skipping push.
 fi
 
-
-###
-### keybase-git
-###
-
-keybase_git_repo="$build_root/arch/keybase-git"
-clone_maybe "aur@aur.archlinux.org:keybase-git" "$keybase_git_repo"
-
-cp "$here/keybase.install" "$keybase_git_repo"
-
-# The git package avoids putting a timestamp in the version. See the comments
-# in keybase_git_version.sh.
-git_pkgver="$("$here/keybase_git_version.sh")"
-
-cat "$here/PKGBUILD.git.in" \
-  | sed "s/@@PKGVER@@/$git_pkgver/g" \
-  > "$keybase_git_repo/PKGBUILD"
-
-cat "$here/DOT_SRCINFO.git.in" \
-  | sed "s/@@PKGVER@@/$git_pkgver/g" \
-  > "$keybase_git_repo/.SRCINFO"
-
-if git -C "$keybase_git_repo" commit -am "version bump" ; then
-  echo Pushing keybase-git...
-  git -C "$keybase_git_repo" push origin master
-else
-  echo No changes in keybase-git. Skipping push.
-fi
+# We used to also update the keybase-git package here, but apparently that was
+# against AUR policy.

@@ -1,7 +1,14 @@
 // @flow
 import {Dimensions, Platform, NativeModules} from 'react-native'
 // Modules from the native part of the code. Differently named on android/ios
-const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+const nativeBridge = NativeModules.KeybaseEngine ||
+NativeModules.ObjcEngine || {
+  version: 'fallback',
+  appVersionName: 'fallback',
+  appVersionCode: 'fallback',
+  usingSimulator: 'fallback',
+}
+const isStoryBook = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
@@ -39,4 +46,5 @@ export {
   mobileOsVersion,
   runMode,
   version,
+  isStoryBook,
 }
