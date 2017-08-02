@@ -207,15 +207,14 @@ function* _appendAttachmentPlaceholder(
   uploadPath: string
 ) {
   const author = yield select(usernameSelector)
-  const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxIDKey)
   const message: Constants.AttachmentMessage = {
     author,
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
-    failureDescription: hasPendingFailure,
+    failureDescription: '',
     key: Constants.messageKey(conversationIDKey, 'outboxIDAttachment', outboxIDKey),
-    messageState: hasPendingFailure ? 'failed' : 'pending',
+    messageState: 'pending',
     outboxID: outboxIDKey,
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),
@@ -239,10 +238,6 @@ function* _appendAttachmentPlaceholder(
     )
   )
   yield put(Creators.attachmentLoaded(message.key, preview.filename, true))
-  if (hasPendingFailure) {
-    yield put(Creators.removePendingFailure(outboxIDKey))
-  }
-
   return message
 }
 

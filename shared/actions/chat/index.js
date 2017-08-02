@@ -61,16 +61,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           // $FlowIssue
           const errTyp = outboxRecord.state.error.typ
           const failureDescription = _decodeFailureDescription(errTyp)
-          // There's an RPC race condition here.  Two possibilities:
-          //
-          // Either we've already finished in _postMessage() and have recorded
-          // the outboxID pending message in the store, or we haven't.  If we
-          // have, just set it to failed.  If we haven't, record this as a
-          // pending failure, and pick up the pending failure at the bottom of
-          // _postMessage() instead.
-          //
-          // Do we have this conversation loaded?  If not, don't do anything -
-          // we'll pick up the failure when we load that thread.
           const isConversationLoaded = yield select(Shared.conversationStateSelector, conversationIDKey)
           if (!isConversationLoaded) return
 
@@ -88,7 +78,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               )
             )
           } else {
-            yield put(Creators.createPendingFailure(failureDescription, outboxID))
+            throw new Error("Pending message wasn't found!")
           }
         }
       }
