@@ -23,7 +23,6 @@ type ChatSendArg struct {
 	hasTTY        bool
 	nonBlock      bool
 	team          bool
-	create        bool
 }
 
 func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
@@ -66,14 +65,8 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	case c.setTopicName != "":
 		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
 			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
-			var ignoredFlag string
-			if c.create {
-				ignoredFlag = "--channel"
-			} else {
-				ignoredFlag = "--set-channel"
-			}
 			g.UI.GetTerminalUI().Printf(
-				"We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring %s >.<\n", ignoredFlag)
+				"We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring --set-channel >.<\n")
 			return nil
 		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA

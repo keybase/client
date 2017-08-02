@@ -49,7 +49,6 @@ func (c *CmdChatCreateChannel) Run() error {
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
-		create:           true,
 	})
 }
 
