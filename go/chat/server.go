@@ -1619,6 +1619,9 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 	}
 
 	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
 
 	obj := attachment.Object
 	if arg.Preview {
