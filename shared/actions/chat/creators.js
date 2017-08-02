@@ -306,13 +306,14 @@ function createPendingFailure(
   }
 }
 
-function updatePaginationNext(
+function updatePagination(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: Buffer
-): Constants.UpdatePaginationNext {
+  next: Buffer,
+  previous: Buffer
+): Constants.UpdatePagination {
   return {
-    payload: {conversationIDKey, paginationNext},
-    type: 'chat:updatePaginationNext',
+    payload: {conversationIDKey, next, previous},
+    type: 'chat:updatePagination',
   }
 }
 
@@ -622,6 +623,12 @@ function openAttachmentPopup(
   return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 
+function setHasNewerMessages(
+  conversationIDKey: ?Constants.ConversationIDKey,
+  hasNewer: boolean
+): Constants.SetHasNewerMessages {
+  return {payload: {conversationIDKey, hasNewer}, type: 'chat:setHasNewerMessages'}
+}
 function setInitialConversation(
   conversationIDKey: ?Constants.ConversationIDKey
 ): Constants.SetInitialConversation {
@@ -742,6 +749,7 @@ export {
   saveAttachment,
   selectAttachment,
   selectConversation,
+  setHasNewerMessages,
   setInboxFilter,
   setInboxSearch,
   setInboxUntrustedState,
@@ -769,7 +777,7 @@ export {
   updateLatestMessage,
   updateMessage,
   updateMetadata,
-  updatePaginationNext,
+  updatePagination,
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,

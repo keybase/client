@@ -18,7 +18,7 @@ import {
   TlfKeysTLFIdentifyBehavior,
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
-import {call, put, take, select, race} from 'redux-saga/effects'
+import {call, put, take, select, race, all} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -125,7 +125,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
 
         const pagination = incomingMessage.pagination
         if (pagination) {
-          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next))
+          yield put(Creators.updatePagination(conversationIDKey, pagination.next, pagination.previous))
         }
 
         // Is this message for the currently selected and focused conversation?
@@ -294,6 +294,8 @@ function* _updateThread({
     .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
     .reverse()
   const pagination = _threadToPagination(thread)
+  // TODO determine if its an append or prepend
+  yield put(Creators.updatePagination(conversationIDKey, pagination.next, pagination.previous))
   yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
 }
 
@@ -342,6 +344,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
     let next
+    let previous
     if (oldConversationState) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
@@ -353,14 +356,24 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
 
-      if (oldConversationState.get('moreToLoad') === false) {
-        console.log('Bailing on chat load more due to no more to load')
+      if (
+        oldConversationState.get('moreToLoad') === false &&
+        oldConversationState.get('hasNewerMessages') === false
+      ) {
+        console.log('Bailing on chat load more due to no more to load in either direction')
         return
       }
 
-      next = oldConversationState.get('paginationNext', undefined)
+      if (oldConversationState.get('hasNewerMessages') === true) {
+        next = undefined
+        previous = oldConversationState.get('paginationPrevious', undefined)
+      } else {
+        next = oldConversationState.get('paginationNext', undefined)
+        previous = null
+      }
     }
 
+    yield put(Creators.setHasNewerMessages(conversationIDKey, false))
     yield put(Creators.loadingMessages(conversationIDKey, true))
 
     const yourName = yield select(usernameSelector)
@@ -384,7 +397,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
             last: false,
             next,
             num: Constants.maxMessagesToLoadAtATime,
-            previous: null,
+            previous,
           },
           query: {
             disableResolveSupersedes: false,
@@ -426,12 +439,13 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
   }
 }
 
-function _threadToPagination(thread): {last: any, next: any} {
+function _threadToPagination(thread): {last: any, next: any, previous: any} {
   if (thread && thread.pagination) {
     return thread.pagination
   }
   return {
     last: undefined,
+    previous: undefined,
     next: undefined,
   }
 }
@@ -773,11 +787,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
   }
 
-  const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-  if (oldConversationState && oldConversationState.get('isStale') && conversationIDKey) {
-    yield put(Creators.clearMessages(conversationIDKey))
-  }
-
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inbox) {
@@ -914,24 +923,31 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
 function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
-  const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield call(Inbox.unboxConversations, convIDs)
+  const idToState = updates.reduce((map, u) => {
+    map[Constants.conversationIDToKey(u.convID)] = u.updateType
+    return map
+  }, {})
+  yield call(Inbox.unboxConversations, Object.keys(idToState))
+
+  // clear out all
+  yield all(
+    Object.keys(idToState)
+      .filter(id => idToState[id] === ChatTypes.NotifyChatStaleUpdateType.clear)
+      .map(id => put(Creators.clearMessages(id)))
+  )
+
+  // Mark if they have newer messages
+  yield all(
+    Object.keys(idToState)
+      .filter(id => idToState[id] === ChatTypes.NotifyChatStaleUpdateType.newactivity)
+      .map(id => put.resolve(Creators.setHasNewerMessages(id, true)))
+  )
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
-  if (!selectedConversation) {
-    return
+  if (selectedConversation) {
+    yield put(Creators.loadMoreMessages(selectedConversation, false))
   }
-  yield put(Creators.clearMessages(selectedConversation))
-  yield put(Creators.loadMoreMessages(selectedConversation, false))
-}
-
-function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {
-  return (
-    originalAction.type === 'chat:loadMoreMessages' &&
-    checkAction.type === 'chat:clearMessages' &&
-    originalAction.payload.conversationIDKey === checkAction.payload.conversationIDKey
-  )
 }
 
 function* _openConversation({
@@ -1024,7 +1040,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
-  yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
+  yield Saga.safeTakeEvery('chat:loadMoreMessages', _loadMoreMessages)
   yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
