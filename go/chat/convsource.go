@@ -188,6 +188,9 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv chat1.C
 		ConversationID: conv.GetConvID(),
 		MessageIDs:     msgIDs,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs, conv)
 	if err != nil {
