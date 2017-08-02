@@ -100,3 +100,32 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 		t.Errorf("error status code: %d, expected %d (%s)", aerr.Code, keybase1.StatusCode_SCTeamReadError, aerr)
 	}
 }
+
+func TestRecreateSubteam(t *testing.T) {
+	tc, _, admin, _, _, sub := memberSetupSubteam(t)
+	defer tc.Cleanup()
+
+	// switch to `admin` user
+	tc.G.Logout()
+	if err := admin.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Delete(context.Background(), tc.G, sub); err != nil {
+		t.Fatal(err)
+	}
+
+	// create the subteam again
+	name, err := keybase1.TeamNameFromString(sub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	parent, err := name.Parent()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = CreateSubteam(context.Background(), tc.G, string(name.LastPart()), parent)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
