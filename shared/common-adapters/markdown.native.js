@@ -61,7 +61,7 @@ function previewCreateComponent(style) {
       case 'native-emoji':
         return <Emoji emojiName={String(children)} size={12} key={key} />
       default:
-        return <Text type="Body" key={key} style={[neutralStyle, style]}>{children}</Text>
+        return <Text type="Body" key={key} lineClamp={1} style={[neutralStyle, style]}>{children}</Text>
     }
   }
 }
@@ -172,11 +172,15 @@ class Markdown extends PureComponent<void, Props, void> {
       : messageCreateComponent(this.props.style, this.props.allowFontScaling)
     const content = parseMarkdown(this.props.children, createComponent)
     if (typeof content === 'string') {
-      return (
-        <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
-          {content}
-        </Text>
-      )
+      if (this.props.preview) {
+        return createComponent('', '', content, {})
+      } else {
+        return (
+          <Text type="Body" style={this.props.style} allowFontScaling={this.props.allowFontScaling}>
+            {content}
+          </Text>
+        )
+      }
     }
     return content
   }
