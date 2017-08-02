@@ -191,7 +191,7 @@ class Profile extends Component<void, Props, State> {
       ? []
       : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
     return (
-      <Box>
+      <Box style={{backgroundColor: globalColors.white}}>
         {proofNotice &&
           <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
             <Text type="BodySemibold" style={{color: globalColors.white, textAlign: 'center'}}>
@@ -248,7 +248,15 @@ class Profile extends Component<void, Props, State> {
   }
   _renderFriends = ({item}) => {
     return (
-      <Box style={{...globalStyles.flexBoxRow, flex: 1, height: 108, justifyContent: 'space-around'}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          flex: 1,
+          height: 108,
+          justifyContent: 'space-around',
+          backgroundColor: globalColors.white,
+        }}
+      >
         {item.map(
           user =>
             user.dummy
@@ -368,11 +376,13 @@ class Profile extends Component<void, Props, State> {
       friendData = [[{dummy: type}]]
     }
 
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
+
     return (
       <Box style={globalStyles.fullHeight}>
         <NativeSectionList
           stickySectionHeadersEnabled={true}
-          style={globalStyles.fullHeight}
+          style={{...globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
           ref={this._setRef}
           initialNumToRender={2}
           renderSectionHeader={this._renderSections}
