@@ -90,7 +90,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signer)
+		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
 		require.NoError(t, err)
 	}
 
@@ -173,7 +173,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signer)
+		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
 		require.NoError(t, err)
 	}
 	require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		err = player.AppendChainLink(context.TODO(), link, signer)
+		err = player.AppendChainLink(context.TODO(), link, signerToX(signer))
 		require.NoError(t, err)
 	}
 	require.NoError(t, err)
@@ -307,4 +307,11 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 		require.Equal(t, i.Type.Sbs(), keybase1.TeamInviteSocialNetwork("twitter"))
 		require.Equal(t, i.Name, keybase1.TeamInviteName("u_8114060fcef4"))
 	})
+}
+
+func signerToX(uv *keybase1.UserVersion) *signerX {
+	if uv == nil {
+		return nil
+	}
+	return &signerX{signer: *uv}
 }

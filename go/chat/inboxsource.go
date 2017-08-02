@@ -30,7 +30,7 @@ type localizerPipeline struct {
 func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "localizerPipeline", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
 		superXform:   superXform,
 	}
 }
@@ -84,7 +84,7 @@ func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxRe
 	maxUnbox *int) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "NonblockingLocalizer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
 		pipeline:     newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
 		localizeCb:   localizeCb,
 		maxUnbox:     maxUnbox,
@@ -202,7 +202,7 @@ type baseInboxSource struct {
 func newBaseInboxSource(g *globals.Context, getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g, "baseInboxSource", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false),
 		getChatInterface: getChatInterface,
 	}
 }
@@ -293,7 +293,7 @@ var _ types.InboxSource = (*RemoteInboxSource)(nil)
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
 	return &RemoteInboxSource{
 		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g, "RemoteInboxSource", false),
+		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false),
 		baseInboxSource: newBaseInboxSource(g, ri),
 	}
 }
@@ -408,7 +408,7 @@ func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
 	return &HybridInboxSource{
 		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g, "HybridInboxSource", false),
+		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false),
 		baseInboxSource: newBaseInboxSource(g, getChatInterface),
 	}
 }
@@ -891,6 +891,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 	conversationLocal.Notifications = conversationRemote.Notifications
+	conversationLocal.AuxiliaryInfo = conversationRemote.AuxiliaryInfo
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"

@@ -370,7 +370,6 @@ export const StateRecord: KBRecord<T> = Record({
   finalizedState: Map(),
   supersedesState: Map(),
   supersededByState: Map(),
-  pendingFailures: Map(),
   conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
   alwaysShow: Set(),
@@ -403,7 +402,6 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  pendingFailures: Map<OutboxIDKey, ?string>,
   conversationUnreadCounts: Map<ConversationIDKey, number>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
@@ -457,10 +455,6 @@ export type BlockConversation = NoErrorTypedAction<
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
-export type CreatePendingFailure = NoErrorTypedAction<
-  'chat:createPendingFailure',
-  {failureDescription: string, outboxID: OutboxIDKey}
->
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
@@ -521,7 +515,6 @@ export type RemoveOutboxMessage = NoErrorTypedAction<
   'chat:removeOutboxMessage',
   {conversationIDKey: ConversationIDKey, outboxID: OutboxIDKey}
 >
-export type RemovePendingFailure = NoErrorTypedAction<'chat:removePendingFailure', {outboxID: OutboxIDKey}>
 export type ReplaceConversation = NoErrorTypedAction<
   'chat:replaceConversation',
   {oldKey: ConversationIDKey, newKey: ConversationIDKey}
@@ -1128,37 +1121,7 @@ const getUserItems = createShallowEqualSelector(
       .toArray()
 )
 
-const stateLoggerTransform = (state: State) => ({
-  alwaysShow: state.get('alwaysShow').join(','),
-  conversationUnreadCounts: state.get('conversationUnreadCounts').toObject(),
-  editingMessage: (state.get('editingMessage') || {}).key,
-  inbox: state
-    .get('inbox')
-    .take(10)
-    .map(i => ({
-      conversationIDKey: i.get('conversationIDKey'),
-      isEmpty: i.get('isEmpty'),
-      participants: i.get('participants').count(),
-      state: i.get('state'),
-      status: i.get('status'),
-      time: i.get('time'),
-    }))
-    .toArray(),
-  inboxUntrustedState: state.get('inboxUntrustedState'),
-  messageMap: state
-    .get('messageMap')
-    .takeLast(30)
-    .map(v => ({
-      messageState: v.messageState,
-      outboxID: v.outboxID,
-      timestampe: v.timestamp,
-      type: v.type,
-    }))
-    .toObject(),
-})
-
 export {
-  stateLoggerTransform,
   getBrokenUsers,
   getEditingMessage,
   getMessageFromMessageKey,

@@ -95,7 +95,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		if ok {
 			t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 			if err != nil {
-				return nil, err
+				g.Log.Warning("Error while getting team (%s): %v", teamName, err)
+				continue
 			}
 			teamAnnotatedInvites, err := AnnotateInvites(ctx, g, t.chain().inner.ActiveInvites, teamName)
 			if err != nil {

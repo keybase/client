@@ -30,6 +30,9 @@ cp "$here/keybase.install" "$keybase_bin_repo"
 pkgver="$(cat "$build_root/VERSION" | sed s/-/_/)"
 
 # Debian replaces the + with a . to avoid URL mangling.
+# Note that we've duplicated this logic in the PKGBUILD, to make our diffs
+# nicer, as per "Eschwartz commented on 2017-07-28 20:41" at
+# https://aur.archlinux.org/packages/keybase-bin.
 debver="$(cat "$build_root/VERSION" | sed s/+/./)"
 
 deb_i386="$(ls "$build_root"/deb/i386/*.deb)"
@@ -40,7 +43,6 @@ sum_amd64="$(sha256sum "$deb_amd64" | awk '{print $1}')"
 
 cat "$here/PKGBUILD.bin.in" \
   | sed "s/@@PKGVER@@/$pkgver/g" \
-  | sed "s/@@DEBVER@@/$debver/g" \
   | sed "s/@@SUM_i686@@/$sum_i386/g" \
   | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
   > "$keybase_bin_repo/PKGBUILD"

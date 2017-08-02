@@ -371,14 +371,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       )
     }
-    case 'chat:createPendingFailure': {
-      const {failureDescription, outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').set(outboxID, failureDescription))
-    }
-    case 'chat:removePendingFailure': {
-      const {outboxID} = action.payload
-      return state.set('pendingFailures', state.get('pendingFailures').delete(outboxID))
-    }
     case 'chat:attachmentLoaded': {
       const {messageKey, path, isPreview} = action.payload
       let toMerge

@@ -2181,6 +2181,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	AuxiliaryInfo    *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -2200,6 +2201,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.Error),
 		Info:       o.Info.DeepCopy(),
 		ReaderInfo: o.ReaderInfo.DeepCopy(),
+		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AuxiliaryInfo),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -3190,18 +3198,33 @@ func (o PostLocalArg) DeepCopy() PostLocalArg {
 	}
 }
 
+type GenerateOutboxIDArg struct {
+}
+
+func (o GenerateOutboxIDArg) DeepCopy() GenerateOutboxIDArg {
+	return GenerateOutboxIDArg{}
+}
+
 type PostLocalNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 func (o PostLocalNonblockArg) DeepCopy() PostLocalNonblockArg {
 	return PostLocalNonblockArg{
-		ConversationID:   o.ConversationID.DeepCopy(),
-		Msg:              o.Msg.DeepCopy(),
-		ClientPrev:       o.ClientPrev.DeepCopy(),
+		ConversationID: o.ConversationID.DeepCopy(),
+		Msg:            o.Msg.DeepCopy(),
+		ClientPrev:     o.ClientPrev.DeepCopy(),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
 }
@@ -3213,17 +3236,25 @@ type PostTextNonblockArg struct {
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Body             string                       `codec:"body" json:"body"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 func (o PostTextNonblockArg) DeepCopy() PostTextNonblockArg {
 	return PostTextNonblockArg{
-		ConversationID:   o.ConversationID.DeepCopy(),
-		Conv:             o.Conv.DeepCopy(),
-		TlfName:          o.TlfName,
-		TlfPublic:        o.TlfPublic,
-		Body:             o.Body,
-		ClientPrev:       o.ClientPrev.DeepCopy(),
+		ConversationID: o.ConversationID.DeepCopy(),
+		Conv:           o.Conv.DeepCopy(),
+		TlfName:        o.TlfName,
+		TlfPublic:      o.TlfPublic,
+		Body:           o.Body,
+		ClientPrev:     o.ClientPrev.DeepCopy(),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
 }
@@ -3235,17 +3266,25 @@ type PostDeleteNonblockArg struct {
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 func (o PostDeleteNonblockArg) DeepCopy() PostDeleteNonblockArg {
 	return PostDeleteNonblockArg{
-		ConversationID:   o.ConversationID.DeepCopy(),
-		Conv:             o.Conv.DeepCopy(),
-		TlfName:          o.TlfName,
-		TlfPublic:        o.TlfPublic,
-		Supersedes:       o.Supersedes.DeepCopy(),
-		ClientPrev:       o.ClientPrev.DeepCopy(),
+		ConversationID: o.ConversationID.DeepCopy(),
+		Conv:           o.Conv.DeepCopy(),
+		TlfName:        o.TlfName,
+		TlfPublic:      o.TlfPublic,
+		Supersedes:     o.Supersedes.DeepCopy(),
+		ClientPrev:     o.ClientPrev.DeepCopy(),
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
 }
@@ -3257,18 +3296,26 @@ type PostEditNonblockArg struct {
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
 	Body             string                       `codec:"body" json:"body"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 func (o PostEditNonblockArg) DeepCopy() PostEditNonblockArg {
 	return PostEditNonblockArg{
-		ConversationID:   o.ConversationID.DeepCopy(),
-		Conv:             o.Conv.DeepCopy(),
-		TlfName:          o.TlfName,
-		TlfPublic:        o.TlfPublic,
-		Supersedes:       o.Supersedes.DeepCopy(),
-		Body:             o.Body,
+		ConversationID: o.ConversationID.DeepCopy(),
+		Conv:           o.Conv.DeepCopy(),
+		TlfName:        o.TlfName,
+		TlfPublic:      o.TlfPublic,
+		Supersedes:     o.Supersedes.DeepCopy(),
+		Body:           o.Body,
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
 		ClientPrev:       o.ClientPrev.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
@@ -3592,16 +3639,18 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 }
 
 type GetTLFConversationsLocalArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	TopicType   TopicType               `codec:"topicType" json:"topicType"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfName              string                  `codec:"tlfName" json:"tlfName"`
+	TopicType            TopicType               `codec:"topicType" json:"topicType"`
+	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
+	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
 }
 
 func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
 	return GetTLFConversationsLocalArg{
-		TlfName:     o.TlfName,
-		TopicType:   o.TopicType.DeepCopy(),
-		MembersType: o.MembersType.DeepCopy(),
+		TlfName:              o.TlfName,
+		TopicType:            o.TopicType.DeepCopy(),
+		MembersType:          o.MembersType.DeepCopy(),
+		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
 	}
 }
 
@@ -3624,6 +3673,7 @@ type LocalInterface interface {
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
+	GenerateOutboxID(context.Context) (OutboxID, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
@@ -3746,6 +3796,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"generateOutboxID": {
+				MakeArg: func() interface{} {
+					ret := make([]GenerateOutboxIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GenerateOutboxID(ctx)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4169,6 +4230,11 @@ func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNo
 
 func (c LocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GenerateOutboxID(ctx context.Context) (res OutboxID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.generateOutboxID", []interface{}{GenerateOutboxIDArg{}}, &res)
 	return
 }
 

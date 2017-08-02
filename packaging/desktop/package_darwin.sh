@@ -22,6 +22,9 @@ if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   s3host="https://s3.amazonaws.com/$bucket_name"
 fi
 
+echo "Cleaning up packaging dir from previous runs"
+rm -rf "$dir/node_modules"
+
 # Ensure we have packaging tools
 yarn install --pure-lockfile
 node_bin="$dir/node_modules/.bin"
@@ -175,6 +178,9 @@ get_deps() {(
 # Build Keybase.app
 package_electron() {(
   cd "$shared_dir"
+
+  echo "Cleaning up main node_modules from previous runs"
+  rm -rf "$shared_dir/node_modules"
 
   yarn install --pure-lockfile
   yarn run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path" --outDir="$build_dir"

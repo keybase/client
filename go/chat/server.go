@@ -55,7 +55,7 @@ func NewServer(g *globals.Context, store *AttachmentStore, serverConn ServerConn
 	uiSource UISource) *Server {
 	return &Server{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "Server", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Server", false),
 		serverConn:    serverConn,
 		uiSource:      uiSource,
 		store:         store,
@@ -963,7 +963,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 
-	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
+	_, msgBoxed, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
 		return chat1.PostLocalRes{}, err
@@ -982,6 +982,7 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
@@ -997,6 +998,7 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
@@ -1016,6 +1018,7 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
@@ -1028,8 +1031,13 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 
 }
 
-func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
+func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GenerateOutboxID")()
+	return storage.NewOutboxID()
+}
 
+func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostLocalNonblock")()
@@ -1069,7 +1077,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev)
+	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
 	if err != nil {
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
@@ -1143,6 +1151,8 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1180,6 +1190,8 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
 func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (res chat1.PostLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
@@ -1557,6 +1569,8 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	darg := downloadAttachmentArg{
@@ -1636,6 +1650,7 @@ func (h *Server) downloadAttachmentLocal(ctx context.Context, arg downloadAttach
 }
 
 func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "CancelPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -1651,6 +1666,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 }
 
 func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "RetryPost")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -2030,7 +2046,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 			return res, err
 		}
 		tlfConvs, rl, err := GetTLFConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
-			uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+			uid, nameInfo.ID, arg.TopicType, arg.MembersType, false)
 		if err != nil {
 			h.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 			return res, err
@@ -2193,7 +2209,7 @@ func (h *Server) postJoinLeave(ctx context.Context, uid gregor1.UID, convID chat
 	// Send with a blocking sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
 	h.Debug(ctx, "postJoinLeave sending")
-	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0)
+	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0, nil)
 	return rl, err
 }
 
@@ -2272,10 +2288,11 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// List all the conversations on the team
 	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		MembersType:      chat1.ConversationMembersType_TEAM,
-		TopicType:        arg.TopicType,
-		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
+		TlfID:                nameInfo.ID,
+		MembersType:          chat1.ConversationMembersType_TEAM,
+		TopicType:            arg.TopicType,
+		SummarizeMaxMsgs:     false, // tough call here, depends on if we are in most of convos on the team
+		IncludeAuxiliaryInfo: false,
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
@@ -2357,7 +2374,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConverations(%s)",
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s)",
 		arg.TlfName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
@@ -2373,7 +2390,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 
 	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
-		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType, arg.IncludeAuxiliaryInfo)
 	if err != nil {
 		return res, err
 	}

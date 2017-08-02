@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
+import {Avatar, Icon, Text, Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 import {marginColor, colorForAuthor} from '../shared'
@@ -12,20 +12,24 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
   <Box style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
 )
 
-const UserAvatar = ({author, showImage}) => (
-  <Box style={_userAvatarStyle}>
+const UserAvatar = ({author, showImage, onClick}) => (
+  <ClickableBox style={_userAvatarStyle} onClick={onClick}>
     {showImage && <Avatar size={24} username={author} skipBackground={true} />}
-  </Box>
+  </ClickableBox>
 )
 
-const Username = ({author, isYou, isFollowing, isBroken, includeHeader}) => {
+const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}) => {
   if (!includeHeader) return null
   const style = {
     color: colorForAuthor(author, isYou, isFollowing, isBroken),
     ...(isYou ? globalStyles.italic : null),
     marginBottom: 2,
   }
-  return <Text type="BodySmallSemibold" style={style}>{author}</Text>
+  return (
+    <ClickableBox onClick={onClick}>
+      <Text type="BodySmallSemibold" style={style}>{author}</Text>
+    </ClickableBox>
+  )
 }
 
 const ActionButton = ({onAction}) => (
@@ -68,14 +72,15 @@ const MessageWrapper = (props: Props) => (
         isBroken={props.isBroken}
       />
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
-        <UserAvatar author={props.author} showImage={props.includeHeader} />
+        <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
         <Box style={_flexOneColumn} className="message-wrapper">
           <Username
-            includeHeader={props.includeHeader}
             author={props.author}
             isYou={props.isYou}
             isFollowing={props.isFollowing}
             isBroken={props.isBroken}
+            includeHeader={props.includeHeader}
+            onClick={props.onClick}
           />
           <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>

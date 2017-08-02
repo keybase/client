@@ -53,7 +53,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -77,7 +77,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 			MessageID: msgID,
 			Body:      "EDITED",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	editMsgID := editMsgBoxed.GetMessageID()
 
@@ -105,7 +105,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{msgID, editMsgID},
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
 	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -389,7 +389,7 @@ func TestGetThreadCaching(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 

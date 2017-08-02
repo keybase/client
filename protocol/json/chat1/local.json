@@ -1140,6 +1140,13 @@
         {
           "type": [
             null,
+            "ConversationAuxiliaryInfo"
+          ],
+          "name": "auxiliaryInfo"
+        },
+        {
+          "type": [
+            null,
             "ConversationNotificationInfo"
           ],
           "name": "notifications"
@@ -2057,6 +2064,10 @@
       ],
       "response": "PostLocalRes"
     },
+    "generateOutboxID": {
+      "request": [],
+      "response": "OutboxID"
+    },
     "postLocalNonblock": {
       "request": [
         {
@@ -2070,6 +2081,13 @@
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         },
         {
           "name": "identifyBehavior",
@@ -2105,6 +2123,13 @@
           "type": "MessageID"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -2138,6 +2163,13 @@
           "type": "MessageID"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -2169,6 +2201,13 @@
         {
           "name": "body",
           "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         },
         {
           "name": "clientPrev",
@@ -2569,6 +2608,10 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
+        },
+        {
+          "name": "includeAuxiliaryInfo",
+          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsLocalRes"

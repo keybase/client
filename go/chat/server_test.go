@@ -46,7 +46,7 @@ var _ rpc.ConnectionHandler = (*gregorTestConnection)(nil)
 func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken string) *gregorTestConnection {
 	return &gregorTestConnection{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "gregorTestConnection", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorTestConnection", false),
 		uid:          uid,
 		sessionToken: sessionToken,
 	}
@@ -1248,7 +1248,7 @@ func TestChatSrvGetOutbox(t *testing.T) {
 					Prev: 10,
 				},
 			},
-		}, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 
 		thread, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
@@ -1481,6 +1481,32 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no event received")
+		}
+
+		t.Logf("post text message with prefetched outbox ID")
+		genOutboxID, err := ctc.as(t, users[0]).chatLocalHandler().GenerateOutboxID(context.TODO())
+		require.NoError(t, err)
+		arg = chat1.PostTextNonblockArg{
+			ConversationID:   created.Id,
+			Conv:             created.Triple,
+			TlfName:          created.TlfName,
+			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			Body:             "hi",
+			OutboxID:         &genOutboxID,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		res, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+		require.NoError(t, err)
+		select {
+		case info := <-listener.newMessage:
+			unboxed = info.Message
+			require.True(t, unboxed.IsValid(), "invalid message")
+			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
+			require.Equal(t, genOutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
 			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
@@ -1996,6 +2022,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
+
+		headline := "The headline is foobar!"
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: headline}))
 		require.NoError(t, err)
 		select {
 		case conv := <-listener1.joinedConv:
@@ -2026,14 +2055,32 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
-				TlfName:     conv.TlfName,
-				TopicType:   chat1.TopicType_CHAT,
-				MembersType: chat1.ConversationMembersType_TEAM,
+				TlfName:              conv.TlfName,
+				TopicType:            chat1.TopicType_CHAT,
+				MembersType:          chat1.ConversationMembersType_TEAM,
+				IncludeAuxiliaryInfo: true,
 			})
 		require.NoError(t, err)
 		require.Equal(t, 3, len(getTLFRes.Convs))
 		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
 		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
+
+		aux := getTLFRes.Convs[2].AuxiliaryInfo
+		require.True(t, aux != nil)
+		require.Equal(t, aux.ReaderCount, 2)
+		require.Equal(t, aux.ConversationCreator, gregor1.UID(users[0].User.GetUID().ToBytes()))
+		require.Equal(t, *aux.HeadlineModifier, gregor1.UID(users[1].User.GetUID().ToBytes()))
+
+		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: getTLFRes.Convs[2].GetConvID(),
+		})
+		if err != nil {
+			t.Fatalf("GetThreadLocal error: %v", err)
+		}
+		tv := tvres.Thread
+		if tv.Messages[0].Valid().MessageBody.Headline().Headline != headline {
+			t.Fatalf("unexpected response from GetThreadLocal . expected '%s' got %#+v\n", headline, tv.Messages[0])
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,

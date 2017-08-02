@@ -893,6 +893,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "includeAuxiliaryInfo",
+          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsRes"

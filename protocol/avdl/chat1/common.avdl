@@ -192,6 +192,15 @@ protocol common {
     ConversationMemberStatus status; // The status of the membership to the convo
   }
 
+  record ConversationAuxiliaryInfo {
+    gregor1.Time conversationCtime;
+    gregor1.UID conversationCreator;
+    union { null, gregor1.Time } headlineMtime;
+    union { null, gregor1.UID } headlineModifier;
+    union { null, MessageID } headlineMessageID;
+    int readerCount;
+  }
+
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
@@ -203,6 +212,9 @@ protocol common {
     // maxMsgSummaries contains a subset of the full MessageBoxed for the maximum message for
     // each messageType in the conversation
     array<MessageSummary> maxMsgSummaries;
+
+    // miscellaneous metadata about the conversation
+    union { null, ConversationAuxiliaryInfo } auxiliaryInfo;
   }
 
   record MessageSummary {

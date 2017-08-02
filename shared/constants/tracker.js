@@ -1,6 +1,4 @@
 // @flow
-import mapValues from 'lodash/mapValues'
-
 import type {Folder} from '../folders/list'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -223,49 +221,4 @@ export type State = {
   }>,
 }
 
-const transformProof = p => ({
-  id: p.id,
-  isTracked: p.isTracked,
-  meta: p.meta,
-  state: p.state,
-  type: p.type,
-})
-
-const transformTracker = (state: TrackerOrNonUserState) => {
-  if (state.type === 'tracker') {
-    const s: TrackerState = state
-    return {
-      eldestKidChanged: s.eldestKidChanged,
-      closed: s.closed,
-      currentlyFollowing: s.currentlyFollowing,
-      error: s.error,
-      lastAction: s.lastAction,
-      needTrackTokenDismiss: s.needTrackTokenDismiss,
-      proofs: mapValues(s.proofs, transformProof),
-      reason: s.reason,
-      serverActive: s.serverActive,
-      type: s.type,
-      waiting: s.waiting,
-    }
-  } else {
-    const s: NonUserState = state
-    return {
-      type: s.type,
-      error: s.error,
-      closed: s.closed,
-      reason: s.reason,
-    }
-  }
-}
-
-const stateLoggerTransform = (state: State) => {
-  const out = {
-    ...state,
-    trackers: mapValues(state.trackers, transformTracker),
-    tracking: undefined,
-  }
-
-  return out
-}
-
-export {stateLoggerTransform, cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}
+export {cachedIdentifyGoodUntil, bufferToNiceHexString, isLoading}

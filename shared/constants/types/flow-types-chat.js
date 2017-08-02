@@ -274,6 +274,18 @@ export function localFindConversationsLocalRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.findConversationsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localGenerateOutboxIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGenerateOutboxIDResult) => void}>) {
+  engineRpcOutgoing('chat.1.local.generateOutboxID', request)
+}
+
+export function localGenerateOutboxIDRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGenerateOutboxIDResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.generateOutboxID', request)
+}
+
+export function localGenerateOutboxIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGenerateOutboxIDResult) => void}>): Promise<localGenerateOutboxIDResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.generateOutboxID', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localGetCachedThreadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetCachedThreadResult) => void} & {param: localGetCachedThreadRpcParam}>) {
   engineRpcOutgoing('chat.1.local.getCachedThread', request)
 }
@@ -1003,6 +1015,16 @@ export type Conversation = {
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
+  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+}
+
+export type ConversationAuxiliaryInfo = {
+  conversationCtime: gregor1.Time,
+  conversationCreator: gregor1.UID,
+  headlineMtime?: ?gregor1.Time,
+  headlineModifier?: ?gregor1.UID,
+  headlineMessageID?: ?MessageID,
+  readerCount: int,
 }
 
 export type ConversationErrorLocal = {
@@ -1071,6 +1093,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
+  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
   notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -2091,7 +2114,8 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType
+  membersType: ConversationMembersType,
+  includeAuxiliaryInfo: boolean
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -2159,6 +2183,7 @@ export type localPostDeleteNonblockRpcParam = Exact<{
   tlfPublic: boolean,
   supersedes: MessageID,
   clientPrev: MessageID,
+  outboxID?: ?OutboxID,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2169,6 +2194,7 @@ export type localPostEditNonblockRpcParam = Exact<{
   tlfPublic: boolean,
   supersedes: MessageID,
   body: string,
+  outboxID?: ?OutboxID,
   clientPrev: MessageID,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
@@ -2187,6 +2213,7 @@ export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext,
   clientPrev: MessageID,
+  outboxID?: ?OutboxID,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2203,6 +2230,7 @@ export type localPostTextNonblockRpcParam = Exact<{
   tlfPublic: boolean,
   body: string,
   clientPrev: MessageID,
+  outboxID?: ?OutboxID,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2255,7 +2283,8 @@ export type remoteGetTLFConversationsRpcParam = Exact<{
   tlfID: TLFID,
   topicType: TopicType,
   membersType: ConversationMembersType,
-  summarizeMaxMsgs: boolean
+  summarizeMaxMsgs: boolean,
+  includeAuxiliaryInfo: boolean
 }>
 
 export type remoteGetThreadRemoteRpcParam = Exact<{
@@ -2367,6 +2396,7 @@ export type remoteUpdateTypingRemoteRpcParam = Exact<{
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 type localFindConversationsLocalResult = FindConversationsLocalRes
+type localGenerateOutboxIDResult = OutboxID
 type localGetCachedThreadResult = GetThreadLocalRes
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -2417,6 +2447,7 @@ export type rpc =
   | localDownloadAttachmentLocalRpc
   | localDownloadFileAttachmentLocalRpc
   | localFindConversationsLocalRpc
+  | localGenerateOutboxIDRpc
   | localGetCachedThreadRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc

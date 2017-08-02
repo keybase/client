@@ -174,7 +174,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := sender.Send(ctx, s.convID, msg, 0)
+	_, _, _, err := sender.Send(ctx, s.convID, msg, 0, nil)
 	return err
 }
 
@@ -198,7 +198,7 @@ type recentConversationParticipants struct {
 func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
 	return &recentConversationParticipants{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "recentConversationParticipants", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "recentConversationParticipants", false),
 	}
 }
 
@@ -265,13 +265,14 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	membersType chat1.ConversationMembersType, includeAuxiliaryInfo bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            tlfID,
-		TopicType:        topicType,
-		MembersType:      membersType,
-		SummarizeMaxMsgs: false,
+		TlfID:                tlfID,
+		TopicType:            topicType,
+		MembersType:          membersType,
+		SummarizeMaxMsgs:     false,
+		IncludeAuxiliaryInfo: includeAuxiliaryInfo,
 	})
 	if tlfRes.RateLimit != nil {
 		rl = append(rl, *tlfRes.RateLimit)

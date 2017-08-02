@@ -2940,6 +2940,18 @@ export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.sigs.sigList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsGetTeamRootIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.getTeamRootID', request)
+}
+
+export function teamsGetTeamRootIDRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.getTeamRootID', request)
+}
+
+export function teamsGetTeamRootIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: teamsGetTeamRootIDResult) => void} & {param: teamsGetTeamRootIDRpcParam}>): Promise<teamsGetTeamRootIDResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.getTeamRootID', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsLoadTeamPlusApplicationKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request)
 }
@@ -6615,6 +6627,10 @@ export type streamUiWriteRpcParam = Exact<{
   buf: bytes
 }>
 
+export type teamsGetTeamRootIDRpcParam = Exact<{
+  id: TeamID
+}>
+
 export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   id: TeamID,
   application: TeamApplication,
@@ -6931,6 +6947,7 @@ type sigsSigListJSONResult = string
 type sigsSigListResult = ?Array<Sig>
 type streamUiReadResult = bytes
 type streamUiWriteResult = int
+type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
@@ -7161,6 +7178,7 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
+  | teamsGetTeamRootIDRpc
   | teamsLoadTeamPlusApplicationKeysRpc
   | teamsTeamAcceptInviteRpc
   | teamsTeamAddMemberRpc

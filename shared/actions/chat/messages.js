@@ -101,9 +101,43 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     }
   }
 
-  const sent = yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
+  const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
+  const author = yield select(usernameSelector)
+
+  const message: Constants.Message = {
+    author,
+    conversationIDKey: action.payload.conversationIDKey,
+    deviceName: '',
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    editedCount: 0,
+    failureDescription: '',
+    key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
+    message: new HiddenString(action.payload.text.stringValue()),
+    messageState: 'pending',
+    outboxID: Constants.outboxIDToKey(outboxID),
+    senderDeviceRevokedAt: null,
+    timestamp: Date.now(),
+    type: 'Text',
+    you: author,
+  }
+
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  const appFocused = yield select(Shared.focusedSelector)
+
+  yield put(
+    Creators.appendMessages(
+      conversationIDKey,
+      conversationIDKey === selectedConversation,
+      appFocused,
+      [message],
+      false
+    )
+  )
+
+  yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: Constants.keyToConversationID(conversationIDKey),
+      outboxID,
       identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
       clientPrev: lastMessageID,
       msg: {
@@ -117,44 +151,6 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
       },
     },
   })
-
-  const author = yield select(usernameSelector)
-  if (sent && author) {
-    const outboxID = Constants.outboxIDToKey(sent.outboxID)
-    const hasPendingFailure = yield select(Shared.pendingFailureSelector, outboxID)
-    const message: Constants.Message = {
-      author,
-      conversationIDKey: action.payload.conversationIDKey,
-      deviceName: '',
-      deviceType: isMobile ? 'mobile' : 'desktop',
-      editedCount: 0,
-      failureDescription: hasPendingFailure,
-      key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxID),
-      message: new HiddenString(action.payload.text.stringValue()),
-      messageState: hasPendingFailure ? 'failed' : 'pending',
-      outboxID,
-      senderDeviceRevokedAt: null,
-      timestamp: Date.now(),
-      type: 'Text',
-      you: author,
-    }
-
-    const selectedConversation = yield select(Constants.getSelectedConversation)
-    const appFocused = yield select(Shared.focusedSelector)
-
-    yield put(
-      Creators.appendMessages(
-        conversationIDKey,
-        conversationIDKey === selectedConversation,
-        appFocused,
-        [message],
-        false
-      )
-    )
-    if (hasPendingFailure) {
-      yield put(Creators.removePendingFailure(outboxID))
-    }
-  }
 }
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {

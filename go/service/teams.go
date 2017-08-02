@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
@@ -69,6 +70,56 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
+func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, user string) (res bool) {
+	var err error
+	defer func() {
+		if err != nil {
+			h.G().Log.CWarningf(ctx, "failed to send team welcome message: %s", err.Error())
+		}
+	}()
+	teamDetails, err := teams.Details(ctx, h.G().ExternalG(), team, true)
+	if err != nil {
+		return false
+	}
+
+	var ownerNames, adminNames, writerNames, readerNames []string
+	for _, owner := range teamDetails.Members.Owners {
+		ownerNames = append(ownerNames, owner.Username)
+	}
+	for _, admin := range teamDetails.Members.Admins {
+		adminNames = append(adminNames, admin.Username)
+	}
+	for _, writer := range teamDetails.Members.Writers {
+		writerNames = append(writerNames, writer.Username)
+	}
+	for _, reader := range teamDetails.Members.Readers {
+		readerNames = append(readerNames, reader.Username)
+	}
+	var lines []string
+	if len(ownerNames) > 0 {
+		lines = append(lines, fmt.Sprintf("  owners: %s", strings.Join(ownerNames, ",")))
+	}
+	if len(adminNames) > 0 {
+		lines = append(lines, fmt.Sprintf("  admins: %s", strings.Join(adminNames, ",")))
+	}
+	if len(writerNames) > 0 {
+		lines = append(lines, fmt.Sprintf("  writers: %s", strings.Join(writerNames, ",")))
+	}
+	if len(readerNames) > 0 {
+		lines = append(lines, fmt.Sprintf("  readers: %s", strings.Join(readerNames, ",")))
+	}
+	memberBody := strings.Join(lines, "\n")
+	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
+		user, memberBody)
+	gregorCli := h.gregor.GetClient()
+	if err = chat.SendTextByName(ctx, h.G(), team, chat1.ConversationMembersType_TEAM,
+		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli); err != nil {
+		return false
+	}
+
+	return true
+}
+
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (keybase1.TeamAddMemberResult, error) {
 	if arg.Email != "" {
 		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.Role); err != nil {
@@ -88,13 +139,8 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
-	body := fmt.Sprintf("Hi %s, I've added you to a new team, %s.", result.User.Username, arg.Name)
-	gregorCli := h.gregor.GetClient()
-	err = chat.SendTextByName(ctx, h.G(), result.User.Username, chat1.ConversationMembersType_KBFS, keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli)
-	if err == nil {
-		result.ChatSent = true
-	}
-	return result, err
+	result.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name, result.User.Username)
+	return result, nil
 }
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) error {
@@ -137,4 +183,8 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg k
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)
 	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
+}
+
+func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
+	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }

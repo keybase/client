@@ -248,8 +248,7 @@ func (t *Team) Rotate(ctx context.Context) error {
 	section.PerTeamKey = perTeamKeySection
 
 	// post the change to the server
-	payload := make(libkb.JSONPayload)
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeRotateKey, nil, nil, payload); err != nil {
+	if err := t.postChangeItem(ctx, section, libkb.LinkTypeRotateKey, nil, sigPayloadArgs{secretBoxes: secretBoxes}); err != nil {
 		return err
 	}
 
@@ -294,7 +293,7 @@ func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error
 
 func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
 	// create the change membership section + secretBoxes
-	section, secretBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
+	section, secretBoxes, implicitAdminBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -318,8 +317,12 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		}
 	}
 	// post the change to the server
-	payload := make(libkb.JSONPayload)
-	if err := t.postChangeItem(ctx, section, secretBoxes, libkb.LinkTypeChangeMembership, lease, merkleRoot, payload); err != nil {
+	sigPayloadArgs := sigPayloadArgs{
+		secretBoxes:        secretBoxes,
+		implicitAdminBoxes: implicitAdminBoxes,
+		lease:              lease,
+	}
+	if err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs); err != nil {
 		return err
 	}
 
@@ -370,9 +373,10 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if err != nil {
 		return err
 	}
-	payload := make(libkb.JSONPayload)
-	payload["permanent"] = permanent
-	return t.postChangeItem(ctx, section, nil, libkb.LinkTypeLeave, nil, nil, payload)
+	sigPayloadArgs := sigPayloadArgs{
+		prePayload: libkb.JSONPayload{"permanent": permanent},
+	}
+	return t.postChangeItem(ctx, section, libkb.LinkTypeLeave, nil, sigPayloadArgs)
 }
 
 func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
@@ -492,7 +496,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, nil, nil, make(libkb.JSONPayload))
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
 }
 
@@ -547,42 +551,42 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 	return &ret, nil
 }
 
-func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, *memberSet, error) {
+func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamChangeReq) (SCTeamSection, *PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *memberSet, error) {
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return SCTeamSection{}, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, err
 	}
 
 	admin, err := t.getAdminPermission(ctx, true)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, err
 	}
 
 	// load the member set specified in req
 	memSet, err := newMemberSetChange(ctx, t.G(), req)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, err
 	}
 
 	// create the team section of the signature
 	section, err := memSet.Section(t.chain().GetID(), admin)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, err
 	}
 
 	// create secret boxes for recipients, possibly rotating the key
-	secretBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
+	secretBoxes, implicitAdminBoxes, perTeamKeySection, err := t.recipientBoxes(ctx, memSet)
 	if err != nil {
-		return SCTeamSection{}, nil, nil, err
+		return SCTeamSection{}, nil, nil, nil, err
 	}
 	section.PerTeamKey = perTeamKeySection
 
 	section.CompletedInvites = req.CompletedInvites
 
-	return section, secretBoxes, memSet, nil
+	return section, secretBoxes, implicitAdminBoxes, memSet, nil
 }
 
-func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secretBoxes *PerTeamSharedSecretBoxes, linkType libkb.LinkType, lease *libkb.Lease, merkleRoot *libkb.MerkleRoot, prepayload libkb.JSONPayload) error {
+func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, sigPayloadArgs sigPayloadArgs) error {
 	// create the change item
 	sigMultiItem, err := t.sigTeamItem(ctx, section, linkType, merkleRoot)
 	if err != nil {
@@ -590,7 +594,7 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, secret
 	}
 
 	// make the payload
-	payload := t.sigPayload(sigMultiItem, secretBoxes, lease, prepayload)
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs)
 
 	// send it to the server
 	return t.postMulti(payload)
@@ -693,7 +697,33 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	return sigMultiItem, nil
 }
 
-func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, map[keybase1.TeamID]*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
+
+	// get device key
+	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	// First create all the subteam per-team-key boxes for new implicit admins.
+	// We'll return these whether or not we're doing a rotation below.
+	// TODO: Should we no-op this if the admins+owners aren't actually new?
+	var implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
+	adminAndOwnerRecipients := memSet.adminAndOwnerRecipients()
+	if len(adminAndOwnerRecipients) > 0 {
+		implicitAdminBoxes = map[keybase1.TeamID]*PerTeamSharedSecretBoxes{}
+		subteams, err := t.loadAllTransitiveSubteams(ctx)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, subteam := range subteams {
+			subteamBoxes, err := subteam.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, adminAndOwnerRecipients)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			implicitAdminBoxes[subteam.ID] = subteamBoxes
+		}
+	}
 
 	// if there are any removals happening, need to rotate the
 	// team key, and recipients will be all the users in the team
@@ -703,28 +733,23 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 		// of the team after the removal (and including any new members in this
 		// change)
 		t.G().Log.Debug("team change request contains removal, rotating team key")
-		return t.rotateBoxes(ctx, memSet)
+		boxes, perTeamKey, err := t.rotateBoxes(ctx, memSet)
+		return boxes, implicitAdminBoxes, perTeamKey, err
 	}
 
 	// don't need keys for existing members, so remove them from the set
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
-		return nil, nil, nil
-	}
-
-	// get device key
-	deviceEncryptionKey, err := t.G().ActiveDevice.EncryptionKey()
-	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil
 	}
 
 	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	// No SCPerTeamKey section when the key isn't rotated
-	return boxes, nil, err
+	return boxes, implicitAdminBoxes, nil, err
 }
 
 func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamSharedSecretBoxes, *SCPerTeamKey, error) {
@@ -742,18 +767,46 @@ func (t *Team) rotateBoxes(ctx context.Context, memSet *memberSet) (*PerTeamShar
 	if err := memSet.AddRemainingRecipients(ctx, t.G(), existing); err != nil {
 		return nil, nil, err
 	}
+
+	if t.chain().IsSubteam() {
+		// rotate needs to be keyed for all admins above it
+		allParentAdmins, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+		_, err = memSet.loadGroup(ctx, t.G(), allParentAdmins, true, true)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	t.rotated = true
 
 	return t.keyManager.RotateSharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
 }
 
-func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, secretBoxes *PerTeamSharedSecretBoxes, lease *libkb.Lease, payload libkb.JSONPayload) libkb.JSONPayload {
-	payload["sigs"] = []interface{}{sigMultiItem}
-	if secretBoxes != nil {
-		payload["per_team_key"] = secretBoxes
+type sigPayloadArgs struct {
+	secretBoxes        *PerTeamSharedSecretBoxes
+	implicitAdminBoxes map[keybase1.TeamID]*PerTeamSharedSecretBoxes
+	lease              *libkb.Lease
+	prePayload         libkb.JSONPayload
+}
+
+func (t *Team) sigPayload(sigMultiItem libkb.SigMultiItem, args sigPayloadArgs) libkb.JSONPayload {
+	payload := libkb.JSONPayload{}
+	// copy the prepayload so we don't mutate it
+	for k, v := range args.prePayload {
+		payload[k] = v
 	}
-	if lease != nil {
-		payload["downgrade_lease_id"] = lease.LeaseID
+	payload["sigs"] = []interface{}{sigMultiItem}
+	if args.secretBoxes != nil {
+		payload["per_team_key"] = args.secretBoxes
+	}
+	if args.implicitAdminBoxes != nil {
+		payload["implicit_team_keys"] = args.implicitAdminBoxes
+	}
+	if args.lease != nil {
+		payload["downgrade_lease_id"] = args.lease.LeaseID
 	}
 
 	if t.G().VDL.DumpPayload() {
@@ -789,6 +842,42 @@ func (t *Team) ForceMerkleRootUpdate(ctx context.Context) error {
 	return err
 }
 
+func (t *Team) AllAdmins(ctx context.Context) ([]keybase1.UserVersion, error) {
+	set := make(map[keybase1.UserVersion]bool)
+
+	owners, err := t.UsersWithRole(keybase1.TeamRole_OWNER)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range owners {
+		set[m] = true
+	}
+
+	admins, err := t.UsersWithRole(keybase1.TeamRole_ADMIN)
+	if err != nil {
+		return nil, err
+	}
+	for _, m := range admins {
+		set[m] = true
+	}
+
+	if t.chain().IsSubteam() {
+		imp, err := t.G().GetTeamLoader().ImplicitAdmins(ctx, t.ID)
+		if err != nil {
+			return nil, err
+		}
+		for _, m := range imp {
+			set[m] = true
+		}
+	}
+
+	var all []keybase1.UserVersion
+	for uv := range set {
+		all = append(all, uv)
+	}
+	return all, nil
+}
+
 func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
 	application keybase1.TeamApplication, refreshers keybase1.TeamRefreshers) (res keybase1.TeamPlusApplicationKeys, err error) {
 
@@ -800,4 +889,40 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 		return res, err
 	}
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application)
+}
+
+// Restriction inherited from ListSubteams:
+// Only call this on a Team that has been loaded with NeedAdmin.
+// Otherwise, you might get incoherent answers due to links that
+// were stubbed over the life of the cached object.
+func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
+	subteams := []*Team{}
+	for _, idAndName := range t.chain().ListSubteams() {
+		// Load each subteam...
+		subteam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
+			ID:          idAndName.ID,
+			NeedAdmin:   true,
+			ForceRepoll: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Force loading the key manager.
+		// TODO: Should this be the default, so that we don't need to do it here?
+		_, err = subteam.SharedSecret(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		subteams = append(subteams, subteam)
+
+		// ...and then recursively load each subteam's children.
+		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx)
+		if err != nil {
+			return nil, err
+		}
+		subteams = append(subteams, recursiveSubteams...)
+	}
+	return subteams, nil
 }
