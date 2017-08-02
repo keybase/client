@@ -768,6 +768,7 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 	outcome := e.state.Result()
 	outcome.TrackOptions = e.trackOptions
 	e.confirmResult, err = iui.Confirm(outcome.Export())
+	e.G().Log.CDebugf(netContext, "identify2_with_uid.go confirm result %+v", e.confirmResult)
 	if err != nil {
 		e.G().Log.CDebugf(netContext, "| Failure in iui.Confirm")
 		return err

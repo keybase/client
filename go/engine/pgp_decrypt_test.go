@@ -38,6 +38,7 @@ func TestPGPDecrypt(t *testing.T) {
 		Sink:         sink,
 		NoSign:       true,
 		BinaryOutput: true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
@@ -80,6 +81,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 		Source: strings.NewReader(msg),
 		Sink:   sink,
 		NoSign: true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
@@ -140,6 +142,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 		Source:       strings.NewReader(msg),
 		Sink:         sink,
 		BinaryOutput: true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {
@@ -183,10 +186,11 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	ctx := decengctx(signer, tcSigner)
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{recipient.Username},
-		Source:       strings.NewReader(msg),
-		Sink:         sink,
-		BinaryOutput: true,
+		Recips:        []string{recipient.Username},
+		Source:        strings.NewReader(msg),
+		Sink:          sink,
+		BinaryOutput:  true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tcSigner.G)
 	if err := RunEngine(enc, ctx); err != nil {
@@ -250,6 +254,7 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 		Source:       strings.NewReader(msg),
 		Sink:         sink,
 		BinaryOutput: true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tcSigner.G)
 	if err := RunEngine(enc, ctx); err != nil {
@@ -317,6 +322,7 @@ func TestPGPDecryptLong(t *testing.T) {
 		Sink:         sink,
 		NoSign:       true,
 		BinaryOutput: true,
+		BypassConfirm: true,
 	}
 	enc := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(enc, ctx); err != nil {

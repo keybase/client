@@ -77,7 +77,7 @@ func (c *CmdPGPEncrypt) Run() error {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
-		NewIdentifyMaybeTrackUIProtocol(c.G()),
+		NewIdentifyTrackUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err

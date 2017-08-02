@@ -147,9 +147,12 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 	iarg := keybase1.Identify2Arg{
 		UserAssertion:    u,
 		ForceRemoteCheck: true,
+		AlwaysBlock:      true,
+		NeedProofSet:     true,
 	}
 	topts := keybase1.TrackOptions{
-		LocalOnly: true,
+		LocalOnly:  true,
+		ForPGPPull: true,
 	}
 	ieng := NewResolveThenIdentify2WithTrack(e.G(), &iarg, topts)
 	if err := RunEngine(ieng, ctx); err != nil {

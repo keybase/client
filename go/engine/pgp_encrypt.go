@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"io"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -13,13 +14,15 @@ import (
 )
 
 type PGPEncryptArg struct {
-	Recips       []string // user assertions
-	Source       io.Reader
-	Sink         io.WriteCloser
-	NoSign       bool
-	NoSelf       bool
-	BinaryOutput bool
-	KeyQuery     string
+	Recips        []string // user assertions
+	Source        io.Reader
+	Sink          io.WriteCloser
+	NoSign        bool
+	NoSelf        bool
+	BinaryOutput  bool
+	KeyQuery      string
+	BypassConfirm bool
+	NoTrack       bool
 }
 
 // PGPEncrypt encrypts data read from a source into a sink
@@ -190,20 +193,51 @@ func (e *PGPEncrypt) loadSelfKey() (*libkb.PGPKeyBundle, error) {
 }
 
 func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn bool) ([]string, error) {
+	// Get current user for tracking. Ignore errors, but look out for
+	// me == nil, e.g. when user is not logged in (pgp encrypt can be
+	// used without Keybase account).
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		if _, ok := err.(libkb.SelfNotFoundError); !ok {
+			return nil, err
+		}
+	}
+
+
 	var names []string
 	for _, userAssert := range assertions {
 		arg := keybase1.Identify2Arg{
 			UserAssertion: userAssert,
-			Reason: keybase1.IdentifyReason{
-				Type: keybase1.IdentifyReasonType_ENCRYPT,
-			},
-			AlwaysBlock: true,
+			AlwaysBlock:   true,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		topts := keybase1.TrackOptions{
+			LocalOnly: me == nil,
+			BypassConfirm: e.arg.BypassConfirm,
+		}
+		ieng := NewResolveThenIdentify2WithTrack(e.G(), &arg, topts)
+		if err := RunEngine(ieng, ctx); err != nil {
 			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: err.Error()}
 		}
-		res := eng.Result()
+
+		_ = fmt.Printf
+
+		res := ieng.Result()
+		confirmResult := ieng.ConfirmResult()
+		fmt.Printf("%+v\n", confirmResult)
+		if !confirmResult.IdentityConfirmed {
+			return nil, libkb.IdentifyFailedError{Assertion: userAssert, Reason: "Not confirmed by user."}
+		}
+
+		if !e.arg.NoTrack && me != nil && confirmResult.RemoteConfirmed {
+			targ := &TrackTokenArg{
+				Token:   ieng.TrackToken(),
+				Me:      me,
+				Options: keybase1.TrackOptions{},
+			}
+			teng := NewTrackToken(targ, e.G())
+			RunEngine(teng, ctx)
+		}
+
 		names = append(names, res.Upk.Username)
 	}
 	return names, nil
