@@ -13,21 +13,16 @@ export type OwnProps = {|
 |}
 
 export type StateProps = {|
-  _editedCount: number,
-  _message: Constants.AttachmentMessage | Constants.TextMessage,
+  _conversationState: ?Constants.ConversationState,
   _localMessageState: Constants.LocalMessageState,
+  _message: Constants.AttachmentMessage | Constants.TextMessage,
+  _prevMessage: Constants.AttachmentMessage | Constants.TextMessage | null,
   _selectedConversationIDKey: ?Constants.ConversationIDKey,
   author: string,
-  failureDescription: ?string,
-  includeHeader: boolean,
   isBroken: boolean,
-  isEdited: boolean,
   isEditing: boolean,
-  isFirstNewMessage: boolean,
   isFollowing: boolean,
-  isRevoked: boolean,
   isYou: boolean,
-  timestamp: ?string,
 |}
 
 export type DispatchProps = {|
