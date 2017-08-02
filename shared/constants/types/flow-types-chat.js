@@ -1015,6 +1015,16 @@ export type Conversation = {
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
+  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+}
+
+export type ConversationAuxiliaryInfo = {
+  conversationCtime: gregor1.Time,
+  conversationCreator: gregor1.UID,
+  headlineMtime?: ?gregor1.Time,
+  headlineModifier?: ?gregor1.UID,
+  headlineMessageID?: ?MessageID,
+  readerCount: int,
 }
 
 export type ConversationErrorLocal = {
@@ -1083,6 +1093,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
+  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
   notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -2103,7 +2114,8 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType
+  membersType: ConversationMembersType,
+  includeAuxiliaryInfo: boolean
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -2271,7 +2283,8 @@ export type remoteGetTLFConversationsRpcParam = Exact<{
   tlfID: TLFID,
   topicType: TopicType,
   membersType: ConversationMembersType,
-  summarizeMaxMsgs: boolean
+  summarizeMaxMsgs: boolean,
+  includeAuxiliaryInfo: boolean
 }>
 
 export type remoteGetThreadRemoteRpcParam = Exact<{

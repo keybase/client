@@ -1041,18 +1041,20 @@ func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
 }
 
 type GetTLFConversationsArg struct {
-	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
-	TopicType        TopicType               `codec:"topicType" json:"topicType"`
-	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
-	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	TlfID                TLFID                   `codec:"tlfID" json:"tlfID"`
+	TopicType            TopicType               `codec:"topicType" json:"topicType"`
+	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
+	SummarizeMaxMsgs     bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
 }
 
 func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
 	return GetTLFConversationsArg{
-		TlfID:            o.TlfID.DeepCopy(),
-		TopicType:        o.TopicType.DeepCopy(),
-		MembersType:      o.MembersType.DeepCopy(),
-		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
+		TlfID:                o.TlfID.DeepCopy(),
+		TopicType:            o.TopicType.DeepCopy(),
+		MembersType:          o.MembersType.DeepCopy(),
+		SummarizeMaxMsgs:     o.SummarizeMaxMsgs,
+		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
 	}
 }
 

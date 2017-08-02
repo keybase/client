@@ -2046,7 +2046,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 			return res, err
 		}
 		tlfConvs, rl, err := GetTLFConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
-			uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+			uid, nameInfo.ID, arg.TopicType, arg.MembersType, false)
 		if err != nil {
 			h.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 			return res, err
@@ -2288,10 +2288,11 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// List all the conversations on the team
 	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            nameInfo.ID,
-		MembersType:      chat1.ConversationMembersType_TEAM,
-		TopicType:        arg.TopicType,
-		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
+		TlfID:                nameInfo.ID,
+		MembersType:          chat1.ConversationMembersType_TEAM,
+		TopicType:            arg.TopicType,
+		SummarizeMaxMsgs:     false, // tough call here, depends on if we are in most of convos on the team
+		IncludeAuxiliaryInfo: false,
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
@@ -2373,7 +2374,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConverations(%s)",
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s)",
 		arg.TlfName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
@@ -2389,7 +2390,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 
 	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
-		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType, arg.IncludeAuxiliaryInfo)
 	if err != nil {
 		return res, err
 	}
