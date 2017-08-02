@@ -12,7 +12,7 @@ import (
 )
 
 type CmdChatRenameChannel struct {
-	libkb.Contextified
+	g *libkb.GlobalContext
 
 	resolvingRequest chatConversationResolvingRequest
 	setTopicName     string
@@ -22,7 +22,7 @@ type CmdChatRenameChannel struct {
 
 func NewCmdChatRenameChannelRunner(g *libkb.GlobalContext) *CmdChatRenameChannel {
 	return &CmdChatRenameChannel{
-		Contextified: libkb.NewContextified(g),
+		g: g,
 	}
 }
 
@@ -40,7 +40,7 @@ func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatRenameChannel) Run() error {
-	return chatSend(context.TODO(), ChatSendArg{
+	return chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		setTopicName:     c.setTopicName,
 		nonBlock:         c.nonBlock,

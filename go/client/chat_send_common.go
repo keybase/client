@@ -14,7 +14,6 @@ import (
 )
 
 type ChatSendArg struct {
-	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
@@ -26,13 +25,13 @@ type ChatSendArg struct {
 	team          bool
 }
 
-func chatSend(ctx context.Context, c ChatSendArg) error {
-	chatClient, err := GetChatLocalClient(c.G())
+func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
+	chatClient, err := GetChatLocalClient(g)
 	if err != nil {
 		return err
 	}
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
+	resolver := &chatConversationResolver{G: g, ChatClient: chatClient}
+	resolver.TlfClient, err = GetTlfClient(g)
 	if err != nil {
 		return err
 	}
@@ -66,7 +65,7 @@ func chatSend(ctx context.Context, c ChatSendArg) error {
 	case c.setTopicName != "":
 		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
 			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring --set-channel >.<\n")
+			g.UI.GetTerminalUI().Printf("We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring --set-channel >.<\n")
 			return nil
 		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
@@ -84,7 +83,7 @@ func chatSend(ctx context.Context, c ChatSendArg) error {
 			if !confirmed {
 				promptText = fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter message content to send: ", conversationInfo.TlfName)
 			}
-			c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+			c.message, err = g.UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
 			if err != nil {
 				return err
 			}
@@ -97,7 +96,7 @@ func chatSend(ctx context.Context, c ChatSendArg) error {
 
 	if !confirmed {
 		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
-		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+		_, err = g.UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
 		if err != nil {
 			return err
 		}

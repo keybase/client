@@ -21,7 +21,7 @@ import (
 )
 
 type CmdChatSend struct {
-	libkb.Contextified
+	g                *libkb.GlobalContext
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
@@ -33,7 +33,7 @@ type CmdChatSend struct {
 }
 
 func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
-	return &CmdChatSend{Contextified: libkb.NewContextified(g)}
+	return &CmdChatSend{g: g}
 }
 
 func (c *CmdChatSend) SetTeamChatForTest(n string) {
@@ -66,7 +66,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	return chatSend(context.TODO(), ChatSendArg{
+	return chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,
 		setHeadline:      c.setHeadline,
