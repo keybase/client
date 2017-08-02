@@ -62,7 +62,16 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 }
 
 func (l *TeamLoader) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
-	return loadUserVersionByUID(ctx, l.G(), l.G().Env.GetUID())
+	loadMeArg := libkb.NewLoadUserArgBase(l.G()).
+		WithNetContext(ctx).
+		WithUID(l.G().Env.GetUID()).
+		WithSelf(true).
+		WithPublicKeyOptional()
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(*loadMeArg)
+	if err != nil {
+		return keybase1.UserVersion{}, err
+	}
+	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
