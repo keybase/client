@@ -57,6 +57,7 @@ type Shutdowner interface {
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	chatG := globals.NewChatContextified(&globals.ChatContext{})
+	allG := globals.NewContext(g, chatG.ChatG())
 	return &Service{
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: chatG,
@@ -65,9 +66,9 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
+		attachmentstore:  chat.NewAttachmentStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
-		gregor:           newGregorHandler(globals.NewContext(g, chatG.ChatG())),
+		gregor:           newGregorHandler(allG),
 	}
 }
 

@@ -203,7 +203,7 @@ func (i SCTeamInviteID) TeamInviteID() (keybase1.TeamInviteID, error) {
 	return keybase1.TeamInviteIDFromString(string(i))
 }
 
-func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole) (keybase1.TeamInvite, error) {
+func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole, inviter keybase1.UserVersion) (keybase1.TeamInvite, error) {
 	id, err := i.ID.TeamInviteID()
 	if err != nil {
 		return keybase1.TeamInvite{}, err
@@ -213,9 +213,10 @@ func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole) (k
 		return keybase1.TeamInvite{}, err
 	}
 	return keybase1.TeamInvite{
-		Id:   id,
-		Role: r,
-		Type: typ,
-		Name: keybase1.TeamInviteName(i.Name),
+		Id:      id,
+		Role:    r,
+		Type:    typ,
+		Name:    keybase1.TeamInviteName(i.Name),
+		Inviter: inviter,
 	}, nil
 }

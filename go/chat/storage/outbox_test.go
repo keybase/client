@@ -34,7 +34,8 @@ func setupOutboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Outbox
 func makeMsgPlaintext(body string, uid gregor1.UID) chat1.MessagePlaintext {
 	return chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Sender: uid,
+			Sender:     uid,
+			OutboxInfo: &chat1.OutboxInfo{},
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
 	}
@@ -49,7 +50,7 @@ func TestChatOutbox(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(), makeMsgPlaintext("hi", uid),
-			keybase1.TLFIdentifyBehavior_CHAT_CLI)
+			nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 		require.NoError(t, err)
 		obrs = append(obrs, obr)
 		cl.Advance(time.Millisecond)
@@ -118,4 +119,15 @@ func TestChatOutbox(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res), "wrong len")
 	require.Equal(t, obrs[3].OutboxID, res[0].OutboxID, "wrong element")
+
+	var tv chat1.ThreadView
+	require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+	require.Equal(t, 1, len(tv.Messages))
+	require.NoError(t, ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
+		Message: "failed",
+		Typ:     chat1.OutboxErrorType_DUPLICATE,
+	}))
+	tv.Messages = nil
+	require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+	require.Zero(t, len(tv.Messages))
 }

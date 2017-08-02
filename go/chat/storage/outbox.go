@@ -31,10 +31,18 @@ type diskOutbox struct {
 	Records []chat1.OutboxRecord `codec:"O"`
 }
 
+func NewOutboxID() (chat1.OutboxID, error) {
+	rbs, err := libkb.RandBytes(8)
+	if err != nil {
+		return nil, err
+	}
+	return chat1.OutboxID(rbs), nil
+}
+
 func NewOutbox(g *globals.Context, uid gregor1.UID) *Outbox {
 	return &Outbox{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "Outbox", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 		clock:        clockwork.NewRealClock(),
@@ -82,14 +90,6 @@ func (o *Outbox) clear(ctx context.Context) Error {
 	return nil
 }
 
-func (o *Outbox) newOutboxID() (chat1.OutboxID, error) {
-	rbs, err := libkb.RandBytes(8)
-	if err != nil {
-		return nil, err
-	}
-	return chat1.OutboxID(rbs), nil
-}
-
 type ByCtimeOrder []chat1.OutboxRecord
 
 func (a ByCtimeOrder) Len() int      { return len(a) }
@@ -103,7 +103,8 @@ func (o *Outbox) SetClock(cl clockwork.Clock) {
 }
 
 func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext, identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
+	msg chat1.MessagePlaintext, suppliedOutboxID *chat1.OutboxID,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (rec chat1.OutboxRecord, err Error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
@@ -119,12 +120,17 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 		}
 	}
 
-	// Generate new outbox ID
-	var ierr error
-	outboxID, ierr := o.newOutboxID()
-	if ierr != nil {
-		return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
-			"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
+	// Generate new outbox ID (unless the caller supplied it for us already)
+	var outboxID chat1.OutboxID
+	if suppliedOutboxID == nil {
+		var ierr error
+		outboxID, ierr = NewOutboxID()
+		if ierr != nil {
+			return rec, o.maybeNuke(NewInternalError(ctx, o.DebugLabeler,
+				"error getting outboxID: err: %s", ierr.Error()), o.dbKey())
+		}
+	} else {
+		outboxID = *suppliedOutboxID
 	}
 
 	// Append record
@@ -408,6 +414,14 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 	// Sprinkle each outbox message in
 	for _, obr := range obox.Records {
 		if !obr.ConvID.Eq(convID) {
+			continue
+		}
+		st, err := obr.State.State()
+		if err != nil {
+			continue
+		}
+		if st == chat1.OutboxStateType_ERROR && obr.State.Error().Typ == chat1.OutboxErrorType_DUPLICATE {
+			o.Debug(ctx, "skipping sprinkle on duplicate message error: %s", obr.OutboxID)
 			continue
 		}
 		if err := o.insertMessage(ctx, thread, obr); err != nil {

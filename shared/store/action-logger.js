@@ -1,7 +1,6 @@
 // @flow
 import {forwardLogs, enableActionLogging, immediateStateLogging} from '../local-debug'
 import {noPayloadTransformer} from '../constants/types/flux'
-import {stateLogTransformer} from '../constants/reducer'
 import {setupLogger, immutableToJS} from '../util/periodic-logger'
 
 function makeActionToLog(action, oldState) {
@@ -34,8 +33,5 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
   console.log(log1)
   logger.log('Action:', log1)
 
-  const result = next(action)
-  const logState = stateLogTransformer(store.getState())
-  logger.log('State:', logState)
-  return result
+  return next(action)
 }

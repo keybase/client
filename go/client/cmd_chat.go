@@ -20,6 +20,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdChatHide(cl, g),
 			newCmdChatJoinChannel(cl, g),
 			newCmdChatLeaveChannel(cl, g),
+			newCmdChatRenameChannel(cl, g),
 			newCmdChatList(cl, g),
 			newCmdChatListChannels(cl, g),
 			newCmdChatListMembers(cl, g),

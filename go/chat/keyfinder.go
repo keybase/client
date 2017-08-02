@@ -36,7 +36,7 @@ type KeyFinderImpl struct {
 func NewKeyFinder(g *globals.Context) KeyFinder {
 	return &KeyFinderImpl{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "KeyFinder", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
 		keys:         make(map[string]types.NameInfo),
 	}
 }

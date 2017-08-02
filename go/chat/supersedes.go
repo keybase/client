@@ -37,7 +37,7 @@ type basicSupersedesTransform struct {
 func newBasicSupersedesTransform(g *globals.Context) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "supersedesTransform", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "supersedesTransform", false),
 		messagesFunc: g.ConvSource.GetMessages,
 	}
 }

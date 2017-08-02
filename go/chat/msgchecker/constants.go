@@ -11,4 +11,6 @@ const (
 	BoxedEditMessageBodyMaxLength     = 5000
 	BoxedHeadlineMessageBodyMaxLength = 380
 	BoxedMetadataMessageBodyMaxLength = 200
+	BoxedJoinMessageBodyMaxLength     = 200
+	BoxedLeaveMessageBodyMaxLength    = 200
 )

@@ -17,7 +17,6 @@ import profile from './profile'
 import push from './push'
 import routeTree from './route-tree'
 import settings from './settings'
-import search from './search'
 import signup from './signup'
 import tracker from './tracker'
 import type {State} from '../constants/reducer'
@@ -42,7 +41,6 @@ const reducer = combineReducers({
   profile,
   push,
   routeTree,
-  search,
   settings,
   signup,
   tracker,

@@ -286,6 +286,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageJoin",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "MessageLeave",
+      "fields": []
+    },
+    {
       "type": "variant",
       "name": "MessageBody",
       "switch": {
@@ -341,6 +351,20 @@
             "def": false
           },
           "body": "MessageAttachmentUploaded"
+        },
+        {
+          "label": {
+            "name": "JOIN",
+            "def": false
+          },
+          "body": "MessageJoin"
+        },
+        {
+          "label": {
+            "name": "LEAVE",
+            "def": false
+          },
+          "body": "MessageLeave"
         }
       ]
     },
@@ -1112,6 +1136,13 @@
         {
           "type": "ConversationReaderInfo",
           "name": "readerInfo"
+        },
+        {
+          "type": [
+            null,
+            "ConversationAuxiliaryInfo"
+          ],
+          "name": "auxiliaryInfo"
         },
         {
           "type": [
@@ -2033,6 +2064,10 @@
       ],
       "response": "PostLocalRes"
     },
+    "generateOutboxID": {
+      "request": [],
+      "response": "OutboxID"
+    },
     "postLocalNonblock": {
       "request": [
         {
@@ -2046,6 +2081,13 @@
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         },
         {
           "name": "identifyBehavior",
@@ -2081,6 +2123,13 @@
           "type": "MessageID"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -2114,6 +2163,13 @@
           "type": "MessageID"
         },
         {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
           "name": "identifyBehavior",
           "type": "keybase1.TLFIdentifyBehavior"
         }
@@ -2145,6 +2201,13 @@
         {
           "name": "body",
           "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
         },
         {
           "name": "clientPrev",
@@ -2545,6 +2608,10 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
+        },
+        {
+          "name": "includeAuxiliaryInfo",
+          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsLocalRes"

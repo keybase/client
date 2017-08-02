@@ -92,6 +92,10 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
+  record MessageJoin {}
+
+  record MessageLeave {}
+
   variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
@@ -100,6 +104,8 @@ protocol local {
     case METADATA: MessageConversationMetadata;
     case HEADLINE: MessageHeadline;
     case ATTACHMENTUPLOADED: MessageAttachmentUploaded;
+    case JOIN: MessageJoin;
+    case LEAVE: MessageLeave;
   }
 
   enum OutboxStateType {
@@ -395,6 +401,7 @@ protocol local {
     union { null, ConversationErrorLocal } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
+    union { null, ConversationAuxiliaryInfo } auxiliaryInfo;
     union { null, ConversationNotificationInfo } notifications;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
@@ -498,16 +505,17 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  OutboxID generateOutboxID();
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
   @lint("ignore")
@@ -659,7 +667,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits; 
   }
-  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
+  GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType, boolean includeAuxiliaryInfo);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the 
   // currently configured settings. 

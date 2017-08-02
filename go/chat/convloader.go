@@ -47,7 +47,7 @@ var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g, "BackgroundConvLoader", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
 		stop:          make(chan bool),
 		identNotifier: NewIdentifyNotifier(g),
 	}

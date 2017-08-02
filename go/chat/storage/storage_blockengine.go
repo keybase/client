@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const blockIndexVersion = 7
+const blockIndexVersion = 8
 const blockSize = 100
 
 type blockEngine struct {
@@ -23,7 +23,7 @@ type blockEngine struct {
 func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "BlockEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
 	}
 }
 

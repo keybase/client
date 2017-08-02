@@ -3,7 +3,7 @@ import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import isEqualWith from 'lodash/isEqualWith'
 
 import type {TypedState} from './reducer'
-import type {SearchQuery} from './searchv3'
+import type {SearchQuery} from './search'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn

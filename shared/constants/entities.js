@@ -1,6 +1,6 @@
 // @flow
 import {Map, Record, List} from 'immutable'
-import * as SearchConstants from './searchv3'
+import * as SearchConstants from './search'
 
 import type {KBRecord} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'

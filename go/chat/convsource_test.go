@@ -32,7 +32,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -53,7 +53,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 	thread, _, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -77,7 +77,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 			MessageID: msgID,
 			Body:      "EDITED",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	editMsgID := editMsgBoxed.GetMessageID()
 
@@ -105,7 +105,7 @@ func TestGetThreadSupersedes(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
 			MessageIDs: []chat1.MessageID{msgID, editMsgID},
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	deleteMsgID := deleteMsgBoxed.GetMessageID()
 	thread, _, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
@@ -369,7 +369,7 @@ func TestGetThreadCaching(t *testing.T) {
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
+	firstMessageBoxed, _, _, _, _, err := sender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
@@ -389,7 +389,7 @@ func TestGetThreadCaching(t *testing.T) {
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HIHI",
 		}),
-	}, 0)
+	}, 0, nil)
 	require.NoError(t, err)
 	msgID := msgBoxed.GetMessageID()
 
@@ -482,7 +482,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 		pt.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("MIKE: %d", i),
 		})
-		msg, _, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
+		msg, _, _, _, _, err = sender.Prepare(ctx, pt, chat1.ConversationMembersType_KBFS, &conv)
 		require.NoError(t, err)
 		require.NotNil(t, msg)
 

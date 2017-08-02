@@ -71,6 +71,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "TopicNameState",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
@@ -91,7 +97,9 @@
         "METADATA_5",
         "TLFNAME_6",
         "HEADLINE_7",
-        "ATTACHMENTUPLOADED_8"
+        "ATTACHMENTUPLOADED_8",
+        "JOIN_9",
+        "LEAVE_10"
       ],
       "go": "nostring"
     },
@@ -137,6 +145,33 @@
         {
           "type": "ConversationID",
           "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIDMessageIDPair",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationIDMessageIDPairs",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationIDMessageIDPair"
+          },
+          "name": "pairs"
         }
       ]
     },
@@ -446,6 +481,45 @@
     },
     {
       "type": "record",
+      "name": "ConversationAuxiliaryInfo",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "conversationCtime"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "conversationCreator"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "headlineMtime"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "headlineModifier"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "headlineMessageID"
+        },
+        {
+          "type": "int",
+          "name": "readerCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -479,6 +553,13 @@
             "items": "MessageSummary"
           },
           "name": "maxMsgSummaries"
+        },
+        {
+          "type": [
+            null,
+            "ConversationAuxiliaryInfo"
+          ],
+          "name": "auxiliaryInfo"
         }
       ]
     },

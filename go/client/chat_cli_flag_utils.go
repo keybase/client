@@ -20,13 +20,13 @@ var chatFlags = map[string]cli.Flag{
 		Value: "chat",
 		Usage: `Specify topic type of the conversation. Has to be chat or dev`,
 	},
-	"topic-name": cli.StringFlag{
-		Name:  "topic-name",
-		Usage: `Specify topic name of the conversation.`,
+	"channel": cli.StringFlag{
+		Name:  "channel",
+		Usage: `Specify the conversation channel.`,
 	},
-	"set-topic-name": cli.StringFlag{
-		Name:  "set-topic-name",
-		Usage: `Set topic name for the conversation`,
+	"set-channel": cli.StringFlag{
+		Name:  "set-channel",
+		Usage: `Rename a channel in a conversation`,
 	},
 	"set-headline": cli.StringFlag{
 		Name:  "set-headline",
@@ -113,7 +113,7 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 }
 
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "topic-name", "public", "private", "team")
+	return mustGetChatFlags("topic-type", "channel", "public", "private", "team")
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -141,7 +141,7 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 }
 
 func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
-	req.TopicName = utils.SanitizeTopicName(ctx.String("topic-name"))
+	req.TopicName = utils.SanitizeTopicName(ctx.String("channel"))
 	req.TlfName = tlfName
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
@@ -174,6 +174,8 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 	fetcher.query.MessageTypes = []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_JOIN,
+		chat1.MessageType_LEAVE,
 	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,

@@ -14,20 +14,17 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
 )
 
 type CmdChatSend struct {
-	libkb.Contextified
+	g                *libkb.GlobalContext
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
-	setTopicName  string
 	setHeadline   string
 	clearHeadline bool
 	hasTTY        bool
@@ -36,7 +33,7 @@ type CmdChatSend struct {
 }
 
 func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
-	return &CmdChatSend{Contextified: libkb.NewContextified(g)}
+	return &CmdChatSend{g: g}
 }
 
 func (c *CmdChatSend) SetTeamChatForTest(n string) {
@@ -63,111 +60,25 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
+			mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
 		),
 	}
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	chatClient, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return err
-	}
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
-	if err != nil {
-		return err
-	}
-
-	ctx := context.TODO()
-	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: true,
-		Interactive:       c.hasTTY,
-		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	return chatSend(context.TODO(), c.g, ChatSendArg{
+		resolvingRequest: c.resolvingRequest,
+		message:          c.message,
+		setHeadline:      c.setHeadline,
+		clearHeadline:    c.clearHeadline,
+		hasTTY:           c.hasTTY,
+		nonBlock:         c.nonBlock,
+		team:             c.team,
+		setTopicName:     "",
 	})
-	if err != nil {
-		return err
-	}
-	conversationInfo := conversation.Info
-
-	var args chat1.PostLocalArg
-	args.ConversationID = conversationInfo.Id
-	args.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
-
-	var msg chat1.MessagePlaintext
-	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
-	msg.ClientHeader.Conv = conversationInfo.Triple
-	msg.ClientHeader.TlfName = conversationInfo.TlfName
-	msg.ClientHeader.TlfPublic = (conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC)
-
-	// Whether the user is really sure they want to send to the selected conversation.
-	// We require an additional confirmation if the choose menu was used.
-	confirmed := !userChosen
-
-	// Do one of set topic name, set headline, or send message
-	switch {
-	case c.setTopicName != "":
-		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
-			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet (except on team chats). Ignoring --set-topic-name >.<\n")
-			return nil
-		}
-		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
-		msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
-	case c.setHeadline != "":
-		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
-		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: c.setHeadline})
-	case c.clearHeadline:
-		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
-		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
-	default:
-		// Ask for message contents
-		if len(c.message) == 0 {
-			promptText := "Please enter message content: "
-			if !confirmed {
-				promptText = fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter message content to send: ", conversationInfo.TlfName)
-			}
-			c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
-			if err != nil {
-				return err
-			}
-			confirmed = true
-		}
-
-		msg.ClientHeader.MessageType = chat1.MessageType_TEXT
-		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
-	}
-
-	if !confirmed {
-		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
-		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
-		if err != nil {
-			return err
-		}
-		confirmed = true
-	}
-
-	args.Msg = msg
-
-	if c.nonBlock {
-		var nbarg chat1.PostLocalNonblockArg
-		nbarg.ConversationID = args.ConversationID
-		nbarg.Msg = args.Msg
-		nbarg.IdentifyBehavior = args.IdentifyBehavior
-		if _, err = chatClient.PostLocalNonblock(ctx, nbarg); err != nil {
-			return err
-		}
-	} else {
-		if _, err = chatClient.PostLocal(ctx, args); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-topic-name"))
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
@@ -188,16 +99,6 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	nActions := 0
-
-	if c.setTopicName != "" {
-		nActions++
-		if !c.hasTTY {
-			return fmt.Errorf("stdin not supported when setting topic name")
-		}
-		if len(ctx.Args()) > 1 {
-			return fmt.Errorf("cannot send message and set topic name simultaneously")
-		}
-	}
 
 	if c.setHeadline != "" {
 		nActions++
@@ -253,7 +154,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if nActions > 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return fmt.Errorf("only one of message, --set-headline, --clear-headline, or --set-topic-name allowed")
+		return fmt.Errorf("only one of message, --set-headline, --clear-headline allowed")
 	}
 
 	return nil

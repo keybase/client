@@ -64,7 +64,7 @@ type Boxer struct {
 
 func NewBoxer(g *globals.Context) *Boxer {
 	return &Boxer{
-		DebugLabeler:   utils.NewDebugLabeler(g, "Boxer", false),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Boxer", false),
 		boxWithVersion: CurrentMessageBoxedVersion,
 		hashV1:         hashSha256V1,
 		Contextified:   globals.NewContextified(g),

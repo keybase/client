@@ -7,6 +7,9 @@ import {connect} from 'react-redux'
 import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
+import {onUserClick} from '../../../../actions/profile'
+import {getProfile} from '../../../../actions/tracker'
+import {isMobile} from '../../../../constants/platform'
 
 import type {Props} from '.'
 import type {TypedState} from '../../../../constants/reducer'
@@ -46,6 +49,9 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryAttachment: (message: Constants.AttachmentMessage) => dispatch(Creators.retryAttachment(message)),
   _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
     dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
+  _onUsernameClick: (username: string) => {
+    isMobile ? dispatch(onUserClick(username)) : dispatch(getProfile(username, true, true))
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
@@ -114,6 +120,7 @@ export default compose(
   withHandlers({
     onAction: props => event => props._onAction(props._message, props._localMessageState, event),
     onShowEditor: props => event => props._onShowEditor(props._message, event),
+    onClick: props => event => props._onUsernameClick(props.author, event),
   }),
   lifecycle({
     componentDidUpdate: function(prevProps: Props & {_editedCount: number}) {

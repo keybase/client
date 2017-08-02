@@ -16,13 +16,10 @@ const ff: FeatureFlags = {
   admin: false,
   plansEnabled: false,
   recentFilesEnabled: false,
-  searchv3Enabled: true,
   tabPeopleEnabled: true,
 }
 
-const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-  searchv3Enabled: true,
-}
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {}
 
 // load overrides
 Object.keys(ff).forEach(k => {
