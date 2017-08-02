@@ -45,6 +45,7 @@ const quoteBlockStyle = {borderLeftColor: globalColors.lightGrey2, borderLeftWid
 // to unset the default color applied by <Text type="body"> so that
 // <Markdown style={{color: ...}}> works.
 const neutralStyle = {color: undefined, fontWeight: undefined}
+const bigStyle = {fontSize: 32, lineHeight: 36}
 const linkStyle = {fontWeight: undefined}
 const boldStyle = {color: undefined}
 const italicStyle = {color: undefined, fontStyle: 'italic', fontWeight: undefined}
@@ -113,7 +114,12 @@ function messageCreateComponent(style, allowFontScaling) {
         )
       case 'text-block':
         return (
-          <Text type="Body" key={key} style={[neutralStyle, style]} allowFontScaling={allowFontScaling}>
+          <Text
+            type="Body"
+            key={key}
+            style={[neutralStyle, style, ...(options.big ? [bigStyle] : [])]}
+            allowFontScaling={allowFontScaling}
+          >
             {children.length ? children : '\u200b'}
           </Text>
         )
