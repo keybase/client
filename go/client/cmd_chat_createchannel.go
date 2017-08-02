@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type CmdChatRenameChannel struct {
+type CmdChatCreateChannel struct {
 	g *libkb.GlobalContext
 
 	resolvingRequest chatConversationResolvingRequest
@@ -20,26 +20,26 @@ type CmdChatRenameChannel struct {
 	team             bool
 }
 
-func NewCmdChatRenameChannelRunner(g *libkb.GlobalContext) *CmdChatRenameChannel {
-	return &CmdChatRenameChannel{
+func NewCmdChatCreateChannelRunner(g *libkb.GlobalContext) *CmdChatCreateChannel {
+	return &CmdChatCreateChannel{
 		g: g,
 	}
 }
 
-func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "rename-channel",
-		Usage:        "Rename a conversation channel",
+		Name:         "create-channel",
+		Usage:        "Create a conversation channel",
 		ArgumentHelp: "[conversation [new channel name]]",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdChatRenameChannelRunner(g), "rename-channel", c)
+			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-channel", "nonblock")...),
+			mustGetChatFlags("nonblock")...),
 	}
 }
 
-func (c *CmdChatRenameChannel) Run() error {
+func (c *CmdChatCreateChannel) Run() error {
 	return chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		setTopicName:     c.setTopicName,
@@ -49,12 +49,12 @@ func (c *CmdChatRenameChannel) Run() error {
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
-		create:           false,
+		create:           true,
 	})
 }
 
-func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-channel"))
+func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) (err error) {
+	c.setTopicName = utils.SanitizeTopicName(ctx.String("channel"))
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
@@ -70,7 +70,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
 	if c.setTopicName == "" {
-		return fmt.Errorf("Must supply non-epty channel name.")
+		return fmt.Errorf("Must supply non-empty channel name.")
 	}
 	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("cannot send text message and set channel name simultaneously")
@@ -79,7 +79,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *CmdChatRenameChannel) GetUsage() libkb.Usage {
+func (c *CmdChatCreateChannel) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

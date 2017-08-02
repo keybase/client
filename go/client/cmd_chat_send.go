@@ -75,6 +75,7 @@ func (c *CmdChatSend) Run() (err error) {
 		nonBlock:         c.nonBlock,
 		team:             c.team,
 		setTopicName:     "",
+		create:           false,
 	})
 }
 
