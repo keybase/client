@@ -424,7 +424,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 		return err
 	}
 
-	payload := t.sigPayload(sigMultiItem, nil, nil, make(libkb.JSONPayload))
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
 }
 
