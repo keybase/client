@@ -379,7 +379,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, libkb.LinkTypeLeave, nil, sigPayloadArgs)
 }
 
-func (t *Team) deleteRoot(ctx context.Context) error {
+func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return err
@@ -397,6 +397,14 @@ func (t *Team) deleteRoot(ctx context.Context) error {
 			Name: "SELF_NOT_ONWER",
 			Desc: "You must be an owner to delete a team",
 		}
+	}
+
+	confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return errors.New("team delete not confirmed")
 	}
 
 	teamSection := SCTeamSection{

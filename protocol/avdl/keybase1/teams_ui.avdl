@@ -1,0 +1,4 @@
+@namespace("keybase.1")
+protocol teamsUi {
+  boolean confirmRootTeamDelete(int sessionID, string teamName);
+}

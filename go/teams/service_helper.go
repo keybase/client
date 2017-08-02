@@ -233,7 +233,7 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	return t.Leave(ctx, permanent)
 }
 
-func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
@@ -242,7 +242,7 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, teamname string) error 
 	if t.chain().IsSubteam() {
 		return t.deleteSubteam(ctx)
 	}
-	return t.deleteRoot(ctx)
+	return t.deleteRoot(ctx, ui)
 }
 
 func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {

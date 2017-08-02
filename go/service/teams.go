@@ -180,7 +180,8 @@ func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (
 }
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) error {
-	return teams.Delete(ctx, h.G().ExternalG(), arg.Name)
+	ui := h.getTeamsUI(arg.SessionID)
+	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

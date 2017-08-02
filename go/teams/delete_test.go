@@ -15,7 +15,7 @@ func TestDeleteRoot(t *testing.T) {
 
 	assertRole(tc, teamname, u.Username, keybase1.TeamRole_OWNER)
 
-	if err := Delete(context.Background(), tc.G, teamname); err != nil {
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, teamname); err != nil {
 		t.Fatal(err)
 	}
 
@@ -52,7 +52,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Delete(context.Background(), tc.G, sub); err != nil {
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Delete(context.Background(), tc.G, sub); err != nil {
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
 
@@ -111,7 +111,7 @@ func TestRecreateSubteam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Delete(context.Background(), tc.G, sub); err != nil {
+	if err := Delete(context.Background(), tc.G, &teamsUI{}, sub); err != nil {
 		t.Fatal(err)
 	}
 
@@ -128,4 +128,10 @@ func TestRecreateSubteam(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+type teamsUI struct{}
+
+func (t *teamsUI) ConfirmRootTeamDelete(context.Context, keybase1.ConfirmRootTeamDeleteArg) (bool, error) {
+	return true, nil
 }
