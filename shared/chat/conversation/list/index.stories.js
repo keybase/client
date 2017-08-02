@@ -19,9 +19,9 @@ const users = ['trex', 'xert']
 const corpus = [
   `Sorry, other word classes!  I have a NEW girlfriend now!`,
   `Nope. He'd have to earn it! We'd do sports or something to see.`,
-  `What?! Seriously?`,
+  `What?! Seriously? :+1:`,
   `Well, maybe the magazine will pique my interest!`,
-  `Insurance motivators? Uh, building complicaters? Domino frustraters? Wobbley Times U.S.A.? Um. . . Shakey Shakes Central? `,
+  `Insurance motivators? Uh, building complicaters? Domino frustraters? Wobbley Times U.S.A.? Um. . . Shakey Shakes Central? :ghost: `,
   `I'm going for STUNT immortality. I'll just keep kicking that kangaroo until even if somebody wanted to catch up, they'd look at my record and say "Well, THAT'S totally not worth doing".`,
   `FINE. NO I DON'T.`,
   ` Comedy relies on surprise, I think!  There's a twist that makes a joke funny, and I haven't figured out a generative algorithm yet.`,
