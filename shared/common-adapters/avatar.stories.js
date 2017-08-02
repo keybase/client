@@ -9,7 +9,7 @@ import {storiesOf, action} from '../stories/storybook'
 const sizes = [176, 112, 80, 64, 48, 40, 32, 24, 16, 12]
 
 const load = () => {
-  storiesOf('Avatar', module).add('Avatar', () =>
+  storiesOf('Common', module).add('Avatar', () =>
     sizes.map(size => {
       const commonProps = {
         following: false,

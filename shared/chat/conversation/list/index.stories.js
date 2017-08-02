@@ -160,7 +160,7 @@ const storeFn = (messageMap: Object) => ({
 })
 
 const load = () => {
-  storiesOf('Chat - List', module)
+  storiesOf('Chat/List', module)
     .add('Normal', () => {
       const messageMap = messageMapFn(corpus)
       const store = storeFn(messageMap)
