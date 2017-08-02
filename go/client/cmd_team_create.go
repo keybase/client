@@ -34,6 +34,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
+	dui := v.G().UI.GetDumbOutputUI()
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(v.G()),
 	}
@@ -46,18 +47,23 @@ func (v *CmdTeamCreate) Run() (err error) {
 			Name:      v.TeamName,
 			SessionID: v.SessionID,
 		})
-	} else {
-		err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
-			Name:      v.TeamName,
-			SessionID: v.SessionID,
-		})
+		if err != nil {
+			return err
+		}
+		dui.Printf("Success!\n")
+		return nil
 	}
+
+	err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
+		Name:      v.TeamName,
+		SessionID: v.SessionID,
+	})
 	if err != nil {
 		return err
 	}
-
-	dui := v.G().UI.GetDumbOutputUI()
 	dui.Printf("Success!\n")
+	dui.Printf("NOTE: you can adminster %s, but you won't see its files or chats\n", v.TeamName)
+	dui.Printf("unless you add yourself explicitly with `keybase team add-member`.\n")
 
 	return nil
 }
