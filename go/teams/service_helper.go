@@ -453,3 +453,16 @@ func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	return arg
 }
+
+func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (keybase1.TeamID, error) {
+	team, err := g.GetTeamLoader().Load(ctx, keybase1.LoadTeamArg{
+		ID:      id,
+		StaleOK: true,
+	})
+
+	if err != nil {
+		return keybase1.TeamID(""), err
+	}
+
+	return team.Name.RootAncestorName().ToTeamID(), nil
+}

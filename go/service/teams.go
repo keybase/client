@@ -184,3 +184,7 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg k
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)
 	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
 }
+
+func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
+	return teams.GetRootID(ctx, h.G().ExternalG(), id)
+}
