@@ -101,7 +101,7 @@ const mock = {
 }
 
 const load = () => {
-  storiesOf('Chat - List', module).add('Results List', () => {
+  storiesOf('Chat/List', module).add('Results List', () => {
     const store = {
       config: {
         following: {},

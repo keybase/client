@@ -8,6 +8,7 @@ const load = () => {
 
   const StorybookUI = getStorybookUI({
     host: 'localhost',
+    onDeviceUI: true,
     port: 7007,
   })
 
