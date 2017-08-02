@@ -49,13 +49,21 @@ func (c *CmdChatCreateChannel) Run() error {
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
+		mustNotExist:     true,
 	})
 	if err != nil {
 		return err
 	}
 	c.resolvingRequest.TopicName = c.setTopicName
+	newResolvingRequest := chatConversationResolvingRequest{
+		TlfName:     c.resolvingRequest.TlfName,
+		TopicName:   utils.SanitizeTopicName(c.setTopicName),
+		TopicType:   c.resolvingRequest.TopicType,
+		Visibility:  c.resolvingRequest.Visibility,
+		MembersType: c.resolvingRequest.MembersType,
+	}
 	return chatSend(context.TODO(), c.g, ChatSendArg{
-		resolvingRequest: c.resolvingRequest,
+		resolvingRequest: newResolvingRequest,
 		nonBlock:         c.nonBlock,
 		team:             true,
 		message:          fmt.Sprintf("Welcome to %s.", c.resolvingRequest.TopicName),
