@@ -40,7 +40,7 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatCreateChannel) Run() error {
-	return chatSend(context.TODO(), c.g, ChatSendArg{
+	err := chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		setTopicName:     c.setTopicName,
 		nonBlock:         c.nonBlock,
@@ -49,6 +49,20 @@ func (c *CmdChatCreateChannel) Run() error {
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
+	})
+	if err != nil {
+		return err
+	}
+	c.resolvingRequest.TopicName = c.setTopicName
+	return chatSend(context.TODO(), c.g, ChatSendArg{
+		resolvingRequest: c.resolvingRequest,
+		nonBlock:         c.nonBlock,
+		team:             true,
+		message:          fmt.Sprintf("Welcome to %s.", c.resolvingRequest.TopicName),
+		setHeadline:      "",
+		clearHeadline:    false,
+		hasTTY:           true,
+		setTopicName:     "",
 	})
 }
 
