@@ -7,7 +7,7 @@ import type {Exact} from '../constants/types/more'
 export type Props = {
   type: IconType,
   hint?: string,
-  onClick?: (event: SyntheticEvent) => void,
+  onClick?: () => void,
   onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,

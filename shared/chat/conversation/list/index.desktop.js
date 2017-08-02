@@ -40,10 +40,10 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (message: Constants.ServerMessage, event: SyntheticEvent) => {
+  _onAction = (message: Constants.ServerMessage) => {
     throw new Error('_onAction Implemented in PopupEnabledList')
   }
-  _onShowEditor = (message: Constants.Message, event: SyntheticEvent) => {
+  _onShowEditor = (message: Constants.Message) => {
     throw new Error('_onShowEditor Implemented in PopupEnabledList')
   }
   _onEditLastMessage = () => {
