@@ -38,6 +38,7 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
                 type="BodySemibold"
                 users={[{username, you: isYou, following, broken}]}
                 containerStyle={{marginLeft: 12}}
+                onUsernameClicked={onShowProfile}
               />
               <Text type="BodySmall" style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>
                 {fullname}
