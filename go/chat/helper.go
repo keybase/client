@@ -274,6 +274,9 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 		SummarizeMaxMsgs:     false,
 		IncludeAuxiliaryInfo: includeAuxiliaryInfo,
 	})
+	if err != nil {
+		return res, rl, err
+	}
 	if tlfRes.RateLimit != nil {
 		rl = append(rl, *tlfRes.RateLimit)
 	}

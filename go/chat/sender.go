@@ -207,6 +207,9 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	}
 	deleteTarget := deleteTargets[0]
 	state, err := deleteTarget.State()
+	if err != nil {
+		return msg, nil, err
+	}
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
 		// pass

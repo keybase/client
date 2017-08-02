@@ -902,6 +902,7 @@ func TestDeletionAssets(t *testing.T) {
 			Previews:  []chat1.Asset{mkAsset(), mkAsset()},
 		}),
 	}, 0, nil)
+	require.NoError(t, err)
 	edit2ID := edit2Boxed.GetMessageID()
 	_, edit3Boxed, _, err := blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: editHeader,
