@@ -77,6 +77,12 @@ const util = {
     right: 0,
     bottom: 0,
   },
+  flexGrow: {
+    flexGrow: 1,
+  },
+  fullHeight: {
+    height: '100%',
+  },
   scrollable: {
     overflowY: 'auto',
   },
