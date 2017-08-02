@@ -35,7 +35,7 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("nonblock")...),
+			mustGetChatFlags("set-channel", "nonblock")...),
 	}
 }
 
@@ -54,7 +54,7 @@ func (c *CmdChatCreateChannel) Run() error {
 }
 
 func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("channel"))
+	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-channel"))
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
