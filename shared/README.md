@@ -61,6 +61,28 @@ open react-native/ios/Keybase.xcworkspace
 
 Then select the target `Keybase` and run.
 
+If you get this error in the React Packager:
+
+```
+React packager ready.
+
+Loading dependency graph...2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+ ERROR  Error watching file for changes: EMFILE
+{"code":"EMFILE","errno":"EMFILE","syscall":"Error watching file for changes:","filename":null}
+Error: Error watching file for changes: EMFILE
+    at exports._errnoException (util.js:1024:11)
+    at FSEvent.FSWatcher._handle.onchange (fs.js:1359:9)
+Loading dependency graph...Process terminated. Press <enter> to close the window
+```
+
+the easiest way to fix it is simply to install watchman:
+
+```
+brew install watchman
+```
+
 ### Android
 
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
