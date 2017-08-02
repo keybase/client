@@ -139,7 +139,6 @@ function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpda
   }
 }
 
-
 function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
     regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
@@ -233,21 +232,28 @@ function waitForMount(attempt: number): Promise<*> {
   })
 }
 
-
 function openDefaultPath(): Promise<*> {
   return openInDefault(Constants.defaultKBFSPath)
-  })
+}
+
+// Wait for /keybase to exist with files in it and then opens in Finder
 function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
+}
+
 function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
   if (isWindows) {
-  yield put(openAction)
-  try {
     yield call(installCachedDokan)
   } else {
-    const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
-    yield put(openFinishedAction)
-
+    const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+    yield put(openAction)
+    try {
+      yield call(waitForMountAndOpen)
+    } finally {
+      const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
+      yield put(openFinishedAction)
+    }
+  }
 }
 
 function* installKBFSSaga(): SagaGenerator<any, any> {

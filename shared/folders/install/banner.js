@@ -2,7 +2,7 @@
 import {compose, renderComponent, branch} from 'recompose'
 import {connect} from 'react-redux'
 import Install from './banner-install'
-import {fileUIName} from '../../constants/platform'
+import Uninstall from './banner-uninstall'
 
 import type {TypedState} from '../../constants/reducer'
 

@@ -27,7 +27,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// Install empty implementation for unsupported platforms
+// Install only handles the driver part on Windows
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
@@ -52,7 +52,7 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
 
-// AutoInstall runs the auto install
+// AutoInstall is not supported on Windows
 func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (bool, error) {
 	return false, nil
 }
