@@ -15,7 +15,7 @@ type CmdChatCreateChannel struct {
 	g *libkb.GlobalContext
 
 	resolvingRequest chatConversationResolvingRequest
-	setTopicName     string
+	topicName        string
 	nonBlock         bool
 	team             bool
 }
@@ -35,23 +35,16 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-channel", "nonblock")...),
+			mustGetChatFlags("nonblock")...),
 	}
 }
 
 func (c *CmdChatCreateChannel) Run() error {
-	newResolvingRequest := chatConversationResolvingRequest{
-		TlfName:     c.resolvingRequest.TlfName,
-		TopicName:   utils.SanitizeTopicName(c.setTopicName),
-		TopicType:   c.resolvingRequest.TopicType,
-		Visibility:  c.resolvingRequest.Visibility,
-		MembersType: c.resolvingRequest.MembersType,
-	}
 	return chatSend(context.TODO(), c.g, ChatSendArg{
-		resolvingRequest: newResolvingRequest,
+		resolvingRequest: c.resolvingRequest,
 		nonBlock:         c.nonBlock,
 		team:             true,
-		message:          fmt.Sprintf("Welcome to %s.", newResolvingRequest.TopicName),
+		message:          fmt.Sprintf("Welcome to %s.", c.resolvingRequest.TopicName),
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
@@ -61,7 +54,7 @@ func (c *CmdChatCreateChannel) Run() error {
 }
 
 func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-channel"))
+	c.topicName = utils.SanitizeTopicName(ctx.String("channel"))
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
@@ -76,7 +69,7 @@ func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) (err error) {
 	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
 		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
-	if c.setTopicName == "" {
+	if c.topicName == "" {
 		return fmt.Errorf("Must supply non-empty channel name.")
 	}
 	if len(ctx.Args()) > 1 {
