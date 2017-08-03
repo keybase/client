@@ -46,6 +46,7 @@ func (c *CmdChatLeaveChannel) Run() error {
 	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
 	conv, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
+		MustNotExist:      false,
 		Interactive:       false,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})

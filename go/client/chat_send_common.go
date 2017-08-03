@@ -23,6 +23,7 @@ type ChatSendArg struct {
 	hasTTY        bool
 	nonBlock      bool
 	team          bool
+	mustNotExist  bool
 }
 
 func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
@@ -38,6 +39,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 
 	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
+		MustNotExist:      c.mustNotExist,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
