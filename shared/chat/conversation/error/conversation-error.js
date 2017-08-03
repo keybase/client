@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {branch} from 'recompose'
 import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -8,7 +9,7 @@ export type Props = {
   conversationErrorText: string,
 }
 
-const _ConversationError = ({conversationErrorText}: Props) => (
+const ConversationError = ({conversationErrorText}: Props) => (
   <Box style={styleContainer}>
     <Text type="Header">There was an error loading this conversation.</Text>
     <Text style={styleBody} type="Body">The error is:</Text>
@@ -37,6 +38,4 @@ const styleErrorText = {
   flexGrow: 1,
 }
 
-const ConversationError = isMobile ? HeaderHoc(_ConversationError) : _ConversationError
-
-export default ConversationError
+export default branch(() => isMobile, HeaderHoc)(ConversationError)
