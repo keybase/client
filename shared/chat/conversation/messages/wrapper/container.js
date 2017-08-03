@@ -90,6 +90,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     _message: stateProps._message,
     _onAction: ownProps.onAction,
     _onShowEditor: ownProps.onShowEditor,
+    _onUsernameClick: dispatchProps._onUsernameClick,
     author: stateProps.author,
     failureDescription,
     includeHeader,
