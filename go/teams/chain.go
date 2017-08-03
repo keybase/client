@@ -14,8 +14,6 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// There are a lot of TODOs in this file. Many of them are critical before team sigchains can be used safely.
-
 // Create a new user/version pair.
 func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserVersion {
 	return keybase1.UserVersion{
