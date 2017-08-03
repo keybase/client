@@ -29,9 +29,9 @@ function usernameText({
       ...(u.you ? globalStyles.italic : null),
     }
 
-    // If onUsernameClicked is omitted, omit the onClick property
-    // entirely, so as to not override any existing onClick handler
-    // from containers on native. (See DESKTOP-3963.)
+    // Make sure onClick is undefined when _onUsernameClicked is, so
+    // as to not override any existing onClick handler from containers
+    // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = onUsernameClicked
     return (
       <Text
