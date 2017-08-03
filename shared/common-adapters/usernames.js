@@ -29,16 +29,16 @@ function usernameText({
       ...(u.you ? globalStyles.italic : null),
     }
 
+    // If onUsernameClicked is omitted, omit the onClick property
+    // entirely, so as to not override any existing onClick handler
+    // from containers on native. (See DESKTOP-3963.)
+    let extraProps = {}
+    if (onUsernameClicked) {
+      const onUsernameClickedNonNull = onUsernameClicked
+      extraProps.onClick = () => onUsernameClickedNonNull(u.username)
+    }
     return (
-      <Text
-        key={u.username}
-        type={type}
-        backgroundMode={backgroundMode}
-        onClick={() => {
-          onUsernameClicked && onUsernameClicked(u.username)
-        }}
-        style={userStyle}
-      >
+      <Text key={u.username} type={type} backgroundMode={backgroundMode} style={userStyle} {...extraProps}>
         {u.username}
         {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
           <Text
