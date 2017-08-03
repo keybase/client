@@ -490,8 +490,7 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 		return nil, NewInflateErrorWithNote(link, "no prior state")
 	}
 
-	var player *TeamSigChainPlayer
-	player = NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
+	player := NewTeamSigChainPlayerWithState(l.G(), me, TeamSigChainState{inner: state.Chain})
 
 	err := player.InflateLink(link, signer)
 	if err != nil {

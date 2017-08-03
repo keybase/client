@@ -344,6 +344,24 @@ func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.Team
 	return nil
 }
 
+// Inform the SubteamLog of a subteam deletion.
+// Links must be added in order by seqno for each subteam (asserted here).
+// Links for different subteams can interleave.
+// Mutates the SubteamLog.
+func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybase1.Seqno) error {
+	lastPoint := t.getLastSubteamPoint(id)
+	if lastPoint != nil && lastPoint.Seqno.Eq(seqno) {
+		return fmt.Errorf("re-entry into subteam log for seqno: %v", seqno)
+	}
+	if lastPoint != nil && seqno < lastPoint.Seqno {
+		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
+	}
+	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
+		Seqno: seqno,
+	})
+	return nil
+}
+
 // Check that there is no other subteam with this name at this seqno.
 func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
 	for otherID, points := range t.inner.SubteamLog {
@@ -1118,6 +1136,41 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			LastPart: newName.LastPart(),
 			Seqno:    link.Seqno(),
 		})
+
+		return res, nil
+	case libkb.LinkTypeDeleteSubteam:
+		err = libkb.PickFirstError(
+			allowInflate(true),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(true),
+			hasPerTeamKey(false),
+			hasInvites(false),
+			hasCompletedInvites(false))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam ID
+		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
+		if err != nil {
+			return res, err
+		}
+
+		// Check the subteam name
+		_, err = t.assertSubteamName(prevState, link.Seqno(), string(team.Subteam.Name))
+		if err != nil {
+			return res, err
+		}
+
+		res.newState = prevState.DeepCopy()
+
+		err = res.newState.informSubteamDelete(subteamID, link.Seqno())
+		if err != nil {
+			return res, fmt.Errorf("error deleting subteam: %v", err)
+		}
 
 		return res, nil
 	case libkb.LinkTypeInvite:

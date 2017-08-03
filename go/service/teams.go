@@ -179,6 +179,11 @@ func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (
 	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
 }
 
+func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) error {
+	ui := h.getTeamsUI(arg.SessionID)
+	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
+}
+
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)

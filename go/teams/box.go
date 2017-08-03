@@ -41,12 +41,7 @@ func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) (keybase1.PerTeamKeySeed, er
 		return ret, err
 	}
 
-	ret, err = libkb.MakeByte32Soft(plaintext)
-	if err != nil {
-		return ret, err
-	}
-
-	return ret, nil
+	return libkb.MakeByte32Soft(plaintext)
 }
 
 func (t *TeamBox) nonceBytes() ([]byte, error) {

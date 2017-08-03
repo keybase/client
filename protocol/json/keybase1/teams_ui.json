@@ -1,0 +1,21 @@
+{
+  "protocol": "teamsUi",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "confirmRootTeamDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    }
+  },
+  "namespace": "keybase.1"
+}

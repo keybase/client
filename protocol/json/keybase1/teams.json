@@ -1252,6 +1252,19 @@
       ],
       "response": "TeamTreeResult"
     },
+    "teamDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "loadTeamPlusApplicationKeys": {
       "request": [
         {
