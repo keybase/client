@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Icon, Text, Box, ClickableBox} from '../../../../common-adapters'
+import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 import {marginColor, colorForAuthor} from '../shared'
@@ -24,12 +24,9 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}
     color: colorForAuthor(author, isYou, isFollowing, isBroken),
     ...(isYou ? globalStyles.italic : null),
     marginBottom: 2,
+    alignSelf: 'flex-start',
   }
-  return (
-    <ClickableBox onClick={onClick}>
-      <Text type="BodySmallSemibold" style={style}>{author}</Text>
-    </ClickableBox>
-  )
+  return <Text type="BodySmallSemibold" onClick={onClick} style={style}>{author}</Text>
 }
 
 const ActionButton = ({onAction}) => (
