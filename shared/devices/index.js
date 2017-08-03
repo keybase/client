@@ -13,6 +13,7 @@ import {
 import {RowConnector} from './row'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
+import {branch} from 'recompose'
 
 import type {Device} from '../constants/types/flow-types'
 import type {MenuItem} from '../common-adapters/popup-menu.js'
@@ -82,7 +83,7 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
   </ClickableBox>
 ))
 
-class _Devices extends PureComponent<void, Props, void> {
+class Devices extends PureComponent<void, Props, void> {
   _renderRow = (index, item) => {
     if (item.dummy) {
       if (item.dummy === 'revokedHeader') {
@@ -187,6 +188,4 @@ const textStyle = isRevoked =>
         flex: 0,
       }
 
-const Devices = isMobile ? HeaderHoc(_Devices) : _Devices
-
-export default Devices
+export default branch(() => isMobile, HeaderHoc)(Devices)
