@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, CopyableText, Text} from '../../../common-adapters'
+import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 export type Props = {
@@ -36,4 +36,4 @@ const styleErrorText = {
   flexGrow: 1,
 }
 
-export default ConversationError
+export default HeaderHoc(ConversationError)
