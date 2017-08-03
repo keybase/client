@@ -736,7 +736,7 @@ func (fbo *folderBlockOps) DeepCopyFile(
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return BlockPointer{}, nil, err
 	}
@@ -751,7 +751,7 @@ func (fbo *folderBlockOps) UndupChildrenInCopy(ctx context.Context,
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return nil, err
 	}
@@ -767,7 +767,7 @@ func (fbo *folderBlockOps) ReadyNonLeafBlocksInCopy(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return nil, err
 	}
@@ -1630,7 +1630,7 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't find uid during recovery: %v", err)
 		return
@@ -1929,7 +1929,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return WriteRange{}, nil, 0, err
 	}
@@ -2085,7 +2085,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -2149,7 +2149,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	}
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), kmd.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), kmd.GetTlfHandle())
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
 	}
@@ -2554,7 +2554,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	}()
 
 	chargedTo, err := chargedToForTLF(
-		ctx, fbo.config.KBPKI(), md.GetTlfHandle())
+		ctx, fbo.config.KBPKI(), fbo.config.KBPKI(), md.GetTlfHandle())
 	if err != nil {
 		return nil, nil, syncState, nil, err
 	}

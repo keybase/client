@@ -124,15 +124,17 @@ func checkContext(ctx context.Context) error {
 }
 
 func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
-	handle *TlfHandle) (keybase1.UserOrTeamID, error) {
+	rootIDGetter teamRootIDGetter, handle *TlfHandle) (
+	keybase1.UserOrTeamID, error) {
 	if handle.Type() == tlf.SingleTeam {
 		chargedTo := handle.FirstResolvedWriter()
-		if chargedTo.AsTeamOrBust().IsSubTeam() {
-			// TODO after CORE-5445: ask the service for the root team
-			// ID for this subteam, since that's what should be
-			// charged.
-			panic(fmt.Sprintf("Trying to charge blocks to subteam %v in TLF %s",
-				chargedTo, handle.GetCanonicalName()))
+		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
+			// Subteam blocks should be charged to the root team ID.
+			rootID, err := rootIDGetter.GetTeamRootID(ctx, tid)
+			if err != nil {
+				return keybase1.UserOrTeamID(""), err
+			}
+			return rootID.AsUserOrTeam(), nil
 		}
 		return chargedTo, nil
 	}
