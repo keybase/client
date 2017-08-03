@@ -1756,6 +1756,42 @@ func (_mr *MockteamKeysGetterMockRecorder) GetTeamTLFCryptKeys(arg0, arg1, arg2 
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockteamKeysGetter)(nil).GetTeamTLFCryptKeys), arg0, arg1, arg2)
 }
 
+// MockteamRootIDGetter is a mock of teamRootIDGetter interface
+type MockteamRootIDGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockteamRootIDGetterMockRecorder
+}
+
+// MockteamRootIDGetterMockRecorder is the mock recorder for MockteamRootIDGetter
+type MockteamRootIDGetterMockRecorder struct {
+	mock *MockteamRootIDGetter
+}
+
+// NewMockteamRootIDGetter creates a new mock instance
+func NewMockteamRootIDGetter(ctrl *gomock.Controller) *MockteamRootIDGetter {
+	mock := &MockteamRootIDGetter{ctrl: ctrl}
+	mock.recorder = &MockteamRootIDGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (_m *MockteamRootIDGetter) EXPECT() *MockteamRootIDGetterMockRecorder {
+	return _m.recorder
+}
+
+// GetTeamRootID mocks base method
+func (_m *MockteamRootIDGetter) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (keybase1.TeamID, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamRootID", ctx, tid)
+	ret0, _ := ret[0].(keybase1.TeamID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTeamRootID indicates an expected call of GetTeamRootID
+func (_mr *MockteamRootIDGetterMockRecorder) GetTeamRootID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetTeamRootID", reflect.TypeOf((*MockteamRootIDGetter)(nil).GetTeamRootID), arg0, arg1)
+}
+
 // MockKBPKI is a mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
@@ -1884,6 +1920,19 @@ func (_m *MockKBPKI) GetTeamTLFCryptKeys(ctx context.Context, tid keybase1.TeamI
 // GetTeamTLFCryptKeys indicates an expected call of GetTeamTLFCryptKeys
 func (_mr *MockKBPKIMockRecorder) GetTeamTLFCryptKeys(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetTeamTLFCryptKeys", reflect.TypeOf((*MockKBPKI)(nil).GetTeamTLFCryptKeys), arg0, arg1, arg2)
+}
+
+// GetTeamRootID mocks base method
+func (_m *MockKBPKI) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (keybase1.TeamID, error) {
+	ret := _m.ctrl.Call(_m, "GetTeamRootID", ctx, tid)
+	ret0, _ := ret[0].(keybase1.TeamID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTeamRootID indicates an expected call of GetTeamRootID
+func (_mr *MockKBPKIMockRecorder) GetTeamRootID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetTeamRootID", reflect.TypeOf((*MockKBPKI)(nil).GetTeamRootID), arg0, arg1)
 }
 
 // HasVerifyingKey mocks base method

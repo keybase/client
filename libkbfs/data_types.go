@@ -58,6 +58,7 @@ type TeamInfo struct {
 	TID          keybase1.TeamID
 	CryptKeys    map[KeyGen]kbfscrypto.TLFCryptKey
 	LatestKeyGen KeyGen
+	RootID       keybase1.TeamID // for subteams only
 
 	Writers map[keybase1.UID]bool
 	Readers map[keybase1.UID]bool

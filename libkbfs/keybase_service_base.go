@@ -567,6 +567,16 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	for _, user := range res.OnlyReaders {
 		info.Readers[user.Uid] = true
 	}
+
+	// For subteams, get the root team ID.
+	if tid.IsSubTeam() {
+		rootID, err := k.teamsClient.GetTeamRootID(ctx, tid)
+		if err != nil {
+			return TeamInfo{}, err
+		}
+		info.RootID = rootID
+	}
+
 	k.setCachedTeamInfo(tid, info)
 	return info, nil
 }

@@ -271,6 +271,18 @@ func (k *KBPKIClient) IsTeamReader(
 	return teamInfo.Writers[uid] || teamInfo.Readers[uid], nil
 }
 
+// GetTeamRootID implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
+	keybase1.TeamID, error) {
+	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
+		ctx, tid, UnspecifiedKeyGen, keybase1.UserVersion{},
+		keybase1.TeamRole_NONE)
+	if err != nil {
+		return keybase1.TeamID(""), err
+	}
+	return teamInfo.RootID, nil
+}
+
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)

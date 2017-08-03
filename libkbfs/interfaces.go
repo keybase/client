@@ -548,6 +548,13 @@ type teamKeysGetter interface {
 		map[KeyGen]kbfscrypto.TLFCryptKey, KeyGen, error)
 }
 
+type teamRootIDGetter interface {
+	// GetTeamRootID returns the root team ID for the given (sub)team
+	// ID.
+	GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
+		keybase1.TeamID, error)
+}
+
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
 	CurrentSessionGetter
@@ -557,6 +564,7 @@ type KBPKI interface {
 	merkleRootGetter
 	TeamMembershipChecker
 	teamKeysGetter
+	teamRootIDGetter
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
