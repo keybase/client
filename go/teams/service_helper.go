@@ -3,7 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -305,12 +304,6 @@ func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalConte
 }
 
 func reqFromRole(uv keybase1.UserVersion, role keybase1.TeamRole) (keybase1.TeamChangeReq, error) {
-
-	fmt.Println(strings.Repeat("*", 80))
-	fmt.Println(strings.Repeat("*", 80))
-	fmt.Printf("uv: %+v\n", uv)
-	fmt.Println(strings.Repeat("*", 80))
-	fmt.Println(strings.Repeat("*", 80))
 
 	var req keybase1.TeamChangeReq
 	list := []keybase1.UserVersion{uv}

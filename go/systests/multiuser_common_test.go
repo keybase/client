@@ -171,7 +171,29 @@ func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
 	return ret
 }
 
+func (smc *smuContext) setupDeviceNoPUK(u *smuUser) *smuDeviceWrapper {
+	tctx := setupTest(smc.t, u.usernamePrefix)
+	tctx.Tp.DisableUpgradePerUserKey = true
+	tctx.G.SetClock(smc.fakeClock)
+	ret := &smuDeviceWrapper{ctx: smc, tctx: tctx}
+	u.devices = append(u.devices, ret)
+	if u.primary == nil {
+		u.primary = ret
+	}
+	if smc.log == nil {
+		smc.log = tctx.G.Log
+	}
+	return ret
+}
+
 func (smc *smuContext) installKeybaseForUser(usernamePrefix string, numClones int) *smuUser {
+	user := &smuUser{ctx: smc, usernamePrefix: usernamePrefix}
+	smc.users[usernamePrefix] = user
+	smc.newDevice(user, numClones)
+	return user
+}
+
+func (smc *smuContext) installKeybaseForUserNoPUK(usernamePrefix string, numClones int) *smuUser {
 	user := &smuUser{ctx: smc, usernamePrefix: usernamePrefix}
 	smc.users[usernamePrefix] = user
 	smc.newDevice(user, numClones)
@@ -180,6 +202,13 @@ func (smc *smuContext) installKeybaseForUser(usernamePrefix string, numClones in
 
 func (smc *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
 	ret := smc.setupDevice(u)
+	ret.startService(numClones)
+	ret.startClient()
+	return ret
+}
+
+func (smc *smuContext) newDeviceNoPUK(u *smuUser, numClones int) *smuDeviceWrapper {
+	ret := smc.setupDeviceNoPUK(u)
 	ret.startService(numClones)
 	ret.startClient()
 	return ret
@@ -242,6 +271,40 @@ func (u *smuUser) signup() {
 	u.userInfo = userInfo
 	dw := u.primaryDevice()
 	tctx := dw.popClone()
+	g := tctx.G
+	signupUI := signupUI{
+		info:         userInfo,
+		Contextified: libkb.NewContextified(g),
+	}
+	g.SetUI(&signupUI)
+	signup := client.NewCmdSignupRunner(g)
+	signup.SetTest()
+	if err := signup.Run(); err != nil {
+		ctx.t.Fatal(err)
+	}
+	ctx.t.Logf("signed up %s", userInfo.username)
+	u.username = userInfo.username
+	var backupKey backupKey
+	devices, backups := dw.loadEncryptionKIDs()
+	if len(devices) != 1 {
+		ctx.t.Fatalf("Expected 1 device back; got %d", len(devices))
+	}
+	if len(backups) != 1 {
+		ctx.t.Fatalf("Expected 1 backup back; got %d", len(backups))
+	}
+	dw.deviceKey.KID = devices[0]
+	backupKey = backups[0]
+	backupKey.secret = signupUI.info.displayedPaperKey
+	u.backupKeys = append(u.backupKeys, backupKey)
+}
+
+func (u *smuUser) signupNoPUK() {
+	ctx := u.ctx
+	userInfo := randomUser(u.usernamePrefix)
+	u.userInfo = userInfo
+	dw := u.primaryDevice()
+	tctx := dw.popClone()
+	tctx.Tp.DisableUpgradePerUserKey = true
 	g := tctx.G
 	signupUI := signupUI{
 		info:         userInfo,
@@ -377,6 +440,25 @@ func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 
 func (u *smuUser) loginAfterReset(numClones int) *smuDeviceWrapper {
 	dev := u.ctx.newDevice(u, numClones)
+	u.primary = dev
+	g := dev.tctx.G
+	ui := genericUI{
+		g:           g,
+		SecretUI:    smuSecretUI{u},
+		LoginUI:     smuLoginUI{u},
+		ProvisionUI: nullProvisionUI{randomDevice()},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdLoginRunner(g)
+	err := cmd.Run()
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+	return dev
+}
+
+func (u *smuUser) loginAfterResetNoPUK(numClones int) *smuDeviceWrapper {
+	dev := u.ctx.newDeviceNoPUK(u, numClones)
 	u.primary = dev
 	g := dev.tctx.G
 	ui := genericUI{

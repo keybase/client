@@ -140,7 +140,9 @@ func TestTeamReset(t *testing.T) {
 	divDebug(ctx, "Bob reading chat '2'")
 }
 
-func TestTeamReset2(t *testing.T) {
+// add bob (a user who has reset his account) to a team
+// that he was never a member of
+func TestTeamResetAdd(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -170,9 +172,6 @@ func TestTeamReset2(t *testing.T) {
 
 	_, err := bob.teamGet(team)
 	require.Error(t, err)
-	ae, ok := err.(libkb.AppStatusError)
-	require.True(t, ok)
-	require.Equal(t, ae.Code, int(keybase1.StatusCode_SCTeamReadError))
 	divDebug(ctx, "Bob failed to read the team")
 
 	ann.addWriter(team, bob)
@@ -188,7 +187,47 @@ func TestTeamReset2(t *testing.T) {
 	divDebug(ctx, "Bob reading chat '2'")
 }
 
-// bob resets and has no keys
+// add bob (a user who has reset his account and has no PUK) to a team
+// that he was never a member of
+func TestTeamResetAddNoPUK(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
+	bob.signupNoPUK()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
+
+	team := ann.createTeam([]*smuUser{cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '2' (%s via %s)", team.name, ann.username)
+
+	readChats(team, ann, 1)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterResetNoPUK(1)
+	divDebug(ctx, "Bob logged in after reset")
+
+	_, err := bob.teamGet(team)
+	require.Error(t, err)
+	divDebug(ctx, "Bob failed to read the team")
+
+	// this is the main point of the test, to get this to work
+	// without an eldest seqno error.
+	ann.addWriter(team, bob)
+	divDebug(ctx, "Added bob as a writer")
+}
+
+// bob resets and added with no keys
 func TestTeamResetNoKeys(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -253,7 +292,7 @@ func TestTeamResetManyNoKeys(t *testing.T) {
 	divDebug(ctx, "Added bob as a writer")
 }
 
-// bob resets and has no keys
+// bob resets and has no keys, added as an admin
 func TestTeamResetNoKeysAdmin(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
