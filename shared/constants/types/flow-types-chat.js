@@ -790,6 +790,18 @@ export function remotePublishSetConversationStatusRpcPromise (request: $Exact<re
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteRemoteNotificationSuccessfulRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.s3Sign', request)
 }
@@ -2341,6 +2353,12 @@ export type remotePublishSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteRemoteNotificationSuccessfulRpcParam = Exact<{
+  uid: gregor1.UID,
+  authToken: gregor1.SessionToken,
+  companionPushID: string
+}>
+
 export type remoteS3SignRpcParam = Exact<{
   version: int,
   payload: bytes
@@ -2490,6 +2508,7 @@ export type rpc =
   | remotePostRemoteRpc
   | remotePublishReadMessageRpc
   | remotePublishSetConversationStatusRpc
+  | remoteRemoteNotificationSuccessfulRpc
   | remoteS3SignRpc
   | remoteSetAppNotificationSettingsRpc
   | remoteSetConversationStatusRpc

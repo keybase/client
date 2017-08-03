@@ -1070,6 +1070,20 @@ func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg 
 	}
 }
 
+type RemoteNotificationSuccessfulArg struct {
+	Uid             gregor1.UID          `codec:"uid" json:"uid"`
+	AuthToken       gregor1.SessionToken `codec:"authToken" json:"authToken"`
+	CompanionPushID string               `codec:"companionPushID" json:"companionPushID"`
+}
+
+func (o RemoteNotificationSuccessfulArg) DeepCopy() RemoteNotificationSuccessfulArg {
+	return RemoteNotificationSuccessfulArg{
+		Uid:             o.Uid.DeepCopy(),
+		AuthToken:       o.AuthToken.DeepCopy(),
+		CompanionPushID: o.CompanionPushID,
+	}
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1096,6 +1110,7 @@ type RemoteInterface interface {
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
+	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1502,6 +1517,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"remoteNotificationSuccessful": {
+				MakeArg: func() interface{} {
+					ret := make([]RemoteNotificationSuccessfulArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RemoteNotificationSuccessfulArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RemoteNotificationSuccessfulArg)(nil), args)
+						return
+					}
+					err = i.RemoteNotificationSuccessful(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1640,5 +1671,10 @@ func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConve
 
 func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) RemoteNotificationSuccessful(ctx context.Context, __arg RemoteNotificationSuccessfulArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil)
 	return
 }
