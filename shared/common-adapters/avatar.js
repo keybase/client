@@ -8,6 +8,7 @@ import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
 import shallowEqual from 'shallowequal'
 import {requestIdleCallback} from '../util/idle-callback'
+import {globalStyles} from '../styles'
 
 import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
@@ -223,7 +224,7 @@ class Avatar extends Component<void, Props, State> {
         onClick={this.props.onClick}
         opacity={this.props.opacity}
         size={this.props.size}
-        style={this.props.style}
+        style={{...this.props.style, ...(this.props.onClick ? globalStyles.clickable : null)}}
         url={url}
       />
     )

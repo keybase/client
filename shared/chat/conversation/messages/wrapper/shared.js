@@ -13,9 +13,9 @@ const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
 )
 
 const UserAvatar = ({author, showImage, onClick}) => (
-  <ClickableBox style={_userAvatarStyle} onClick={onClick}>
-    {showImage && <Avatar size={24} username={author} skipBackground={true} />}
-  </ClickableBox>
+  <Box style={_userAvatarStyle}>
+    {showImage && <Avatar size={24} username={author} skipBackground={true} onClick={onClick} />}
+  </Box>
 )
 
 const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}) => {
