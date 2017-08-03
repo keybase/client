@@ -14,6 +14,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -624,8 +625,10 @@ func GenerateNaclDHKeyPair() (NaclDHKeyPair, error) {
 	return makeNaclDHKeyPair(rand.Reader)
 }
 
-func KbOpenSig(armored string) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(armored)
+func KbOpenSig(armored string) (bs []byte, err error) {
+	bs, err = base64.StdEncoding.DecodeString(armored)
+	err = errors.WithStack(err)
+	return bs, err
 }
 
 func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
@@ -808,7 +811,7 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 }
 
 // Derive a key from another.
-// Uses HMAC(key=reason, data=key)
+// Uses HMAC(key=key, data=reason)
 // Not to be confused with DeriveSymmetricKey which has hmac inputs swapped.
 // This one makes sense for derivation from secrets used only to derive from.
 func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
@@ -879,7 +882,7 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	var senderDH NaclDHKeyPair
 	var ok bool
 	if senderDH, ok = gk.(NaclDHKeyPair); !ok {
-		err = DecryptBadSenderError{}
+		err = errors.WithStack(DecryptBadSenderError{})
 		return
 	}
 

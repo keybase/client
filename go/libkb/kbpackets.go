@@ -16,6 +16,7 @@ import (
 	"io"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/pkg/errors"
 )
 
 type FishyMsgpackError struct {
@@ -246,7 +247,7 @@ func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
 
 func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 	ret = &KeybasePacket{}
-	err = ret.unmarshalBinary(data)
+	err = errors.WithStack(ret.unmarshalBinary(data))
 	if err != nil {
 		ret = nil
 	}

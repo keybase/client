@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 )
 
 // How long until the tail of a team sigchain is considered non-fresh
@@ -304,7 +305,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		if !link.Prev().Eq(prev) {
-			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d (%v != %v)",
+				i, link.Prev(), prev)
 		}
 
 		var signer *signerX
@@ -333,7 +335,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	}
 
 	if !ret.Chain.LastLinkID.Eq(lastLinkID) {
-		return nil, fmt.Errorf("wrong sigchain link ID: %v != %v",
+		return nil, errors.Errorf("wrong sigchain link ID: %v != %v",
 			ret.Chain.LastLinkID, lastLinkID)
 	}
 
@@ -362,7 +364,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 			if !ret.Secretless {
 				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
-					return nil, fmt.Errorf("loading team secrets: %v", err)
+					return nil, errors.Wrapf(err, "loading team secrets: %v", err)
 				}
 			}
 		}

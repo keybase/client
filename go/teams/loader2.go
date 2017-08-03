@@ -135,9 +135,9 @@ func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keyba
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "user key provisioned before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap))
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
 	}
 	return proofSet
 }
@@ -258,9 +258,9 @@ func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUn
 	a := bookends.left
 	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
 	c := bookends.right
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "became admin before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c, "team link before adminship demotion")
 	}
 	return proofSet
 }
