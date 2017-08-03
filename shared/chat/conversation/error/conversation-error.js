@@ -2,12 +2,13 @@
 import React from 'react'
 import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 
 export type Props = {
   conversationErrorText: string,
 }
 
-const ConversationError = ({conversationErrorText}: Props) => (
+const _ConversationError = ({conversationErrorText}: Props) => (
   <Box style={styleContainer}>
     <Text type="Header">There was an error loading this conversation.</Text>
     <Text style={styleBody} type="Body">The error is:</Text>
@@ -36,4 +37,6 @@ const styleErrorText = {
   flexGrow: 1,
 }
 
-export default HeaderHoc(ConversationError)
+const ConversationError = isMobile ? HeaderHoc(_ConversationError) : _ConversationError
+
+export default ConversationError
