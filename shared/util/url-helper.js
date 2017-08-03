@@ -3,7 +3,6 @@ import keybaseUrl from '../constants/urls'
 
 const linkFuncs = {
   home: () => keybaseUrl,
-  help: () => `${keybaseUrl}/getting-started`,
   user: ({username}) => `${keybaseUrl}/${username || ''}`,
 }
 

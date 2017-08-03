@@ -6,7 +6,6 @@ import installer from './installer'
 import menuBar from './menu-bar'
 import os from 'os'
 import semver from 'semver'
-import splash from '../../util/splash.desktop'
 import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
@@ -83,7 +82,6 @@ function start() {
       if (err) {
         console.log('Error: ', err)
       }
-      splash()
       event.sender.send('installed')
     })
   })
