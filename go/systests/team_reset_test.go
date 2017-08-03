@@ -216,16 +216,69 @@ func TestTeamResetNoKeys(t *testing.T) {
 
 	ann.addWriter(team, bob)
 	divDebug(ctx, "Added bob as a writer")
+}
 
-	/*
-		_, err = bob.teamGet(team)
-		require.NoError(t, err)
-		divDebug(ctx, "Bob could read the team after added")
-		readChats(team, bob, 1)
-		divDebug(ctx, "Bob reading chats after added")
-		sendChat(team, ann, "1")
-		divDebug(ctx, "Ann sending chat '2'")
-		readChats(team, bob, 2)
-		divDebug(ctx, "Bob reading chat '2'")
-	*/
+// bob resets several times and added with no keys
+func TestTeamResetManyNoKeys(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
+
+	team := ann.createTeam([]*smuUser{cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '2' (%s via %s)", team.name, ann.username)
+
+	readChats(team, ann, 1)
+
+	for i := 0; i < 5; i++ {
+		bob.reset()
+		divDebug(ctx, "Reset bob (%s)", bob.username)
+
+		bob.loginAfterReset(10)
+		divDebug(ctx, "Bob logged in after reset")
+	}
+
+	ann.addWriter(team, bob)
+	divDebug(ctx, "Added bob as a writer")
+}
+
+// bob resets and has no keys
+func TestTeamResetNoKeysAdmin(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
+
+	team := ann.createTeam([]*smuUser{cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '2' (%s via %s)", team.name, ann.username)
+
+	readChats(team, ann, 1)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	ann.addAdmin(team, bob)
+	divDebug(ctx, "Added bob as an admin")
 }

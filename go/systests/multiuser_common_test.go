@@ -340,6 +340,30 @@ func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
 	}
 }
 
+func (u *smuUser) addAdmin(team smuTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: w.username,
+		Role:     keybase1.TeamRole_ADMIN,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: w.username,
+		Role:     keybase1.TeamRole_OWNER,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) reset() {
 	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
 	if err != nil {
