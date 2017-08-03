@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -175,12 +173,12 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	var ol OuterLinkV2
 	err = MsgpackDecode(&ol, payload)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	ret := OuterLinkV2WithMetadata{
 		OuterLinkV2: ol,
@@ -279,7 +277,7 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 
 func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t SigchainV2Type) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
-		return errors.WithStack(SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)})
+		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
 	if o.Version != v {
 		return mkErr("version field (%d != %d)", o.Version, v)
@@ -301,7 +299,7 @@ func (o OuterLinkV2) AssertFields(v int, s keybase1.Seqno, p LinkID, c LinkID, t
 
 func (o OuterLinkV2) AssertSomeFields(v int, s keybase1.Seqno) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
-		return errors.WithStack(SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)})
+		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
 	}
 	if o.Version != v {
 		return mkErr("version field (%d != %d)", o.Version, v)

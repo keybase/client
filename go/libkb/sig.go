@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/pkg/errors"
 )
 
 func ComputeSigIDFromSigBody(body []byte) keybase1.SigID {
@@ -110,7 +109,7 @@ func SigExtractPGPPayload(armored string) (payload []byte, sigID keybase1.SigID,
 	}
 	payload, err = ps.ExtractPayload()
 	if err != nil {
-		return nil, sigID, errors.WithStack(err)
+		return nil, sigID, err
 	}
 	return payload, ps.ID(), nil
 }

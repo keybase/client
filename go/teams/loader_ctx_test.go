@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -128,12 +127,12 @@ func (l *MockLoaderContext) PerUserEncryptionKey(ctx context.Context, userSeqno 
 	}
 	secret1, err := hex.DecodeString(hexSecret)
 	if err != nil {
-		return key, errors.WithStack(err)
+		return key, err
 	}
 	var secret libkb.PerUserKeySeed
 	secret, err = libkb.MakeByte32Soft(secret1)
 	if err != nil {
-		return key, errors.WithStack(err)
+		return key, err
 	}
 	key, err = secret.DeriveDHKey()
 	if err != nil {
@@ -217,7 +216,7 @@ func NewMockError(format string, args ...interface{}) error {
 }
 
 func NewMockBoundsError(caller string, keydesc string, key interface{}) error {
-	return errors.WithStack(&mockError{
+	return &mockError{
 		Msg: fmt.Sprintf("in %s: key not found (%s) %+v", caller, keydesc, key),
-	})
+	}
 }

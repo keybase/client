@@ -2,8 +2,7 @@ package teams
 
 import (
 	"crypto/sha256"
-
-	"github.com/pkg/errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -44,18 +43,13 @@ type chainLinkUnpacked struct {
 }
 
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
-	ret, err := unpackChainLink2(link)
-	return ret, errors.Wrap(err, "unpacking chain link")
-}
-
-func unpackChainLink2(link *SCChainLink) (*chainLinkUnpacked, error) {
 	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	err = outerLink.AssertSomeFields(link.Version, link.Seqno)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	var inner *SCChainLinkPayload
 	var innerLinkID libkb.LinkID
@@ -65,14 +59,14 @@ func unpackChainLink2(link *SCChainLink) (*chainLinkUnpacked, error) {
 	} else {
 		payload, err := link.UnmarshalPayload()
 		if err != nil {
-			return nil, errors.Wrap(err, "unmarshaling link payload")
+			return nil, fmt.Errorf("unmarshaling link payload: %v", err)
 		}
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))
 		innerLinkID = libkb.LinkID(tmp[:])
 		innerTeamID, err = inner.TeamID()
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, err
 		}
 	}
 	ret := &chainLinkUnpacked{
