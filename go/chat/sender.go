@@ -207,6 +207,9 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	}
 	deleteTarget := deleteTargets[0]
 	state, err := deleteTarget.State()
+	if err != nil {
+		return msg, nil, err
+	}
 	switch state {
 	case chat1.MessageUnboxedState_VALID:
 		// pass
@@ -328,7 +331,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
 		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType)
+			msg.ClientHeader.Sender, tlfID, topicType, membersType, false)
 		if err != nil {
 			return topicNameState, err
 		}

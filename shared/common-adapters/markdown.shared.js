@@ -15,6 +15,7 @@ function processAST(ast, createComponent) {
     ast.children[0].children.every(child => child.type === 'emoji' || child.type === 'native-emoji')
   ) {
     ast.children[0].children.forEach(child => (child.bigEmoji = true))
+    ast.children[0].big = true
   }
 
   let index = 0

@@ -2,7 +2,7 @@
 import Devices from '.'
 import {List} from 'immutable'
 import {addNewPhone, addNewComputer} from '../actions/login/creators'
-import {compose, lifecycle, mapProps, withState} from 'recompose'
+import {compose, lifecycle, mapProps, withState, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {load, paperKeyMake} from '../actions/devices'
@@ -45,11 +45,11 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateU
   addNewPaperKey: () => dispatch(paperKeyMake()),
   addNewPhone: () => dispatch(addNewPhone()),
   loadDevices: () => dispatch(load()),
+  onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {
     setRouteState({showingRevoked: !routeState.showingRevoked})
   },
   title: 'Devices',
-  onBack: () => dispatch(navigateUp()),
 })
 
 const menuItems = props => [
@@ -72,5 +72,9 @@ export default compose(
     menuItems: menuItems(props),
     revokedDeviceIDs: props.revokedDeviceIDs.toArray(),
   })),
-  withState('showingMenu', 'setShowingMenu', false)
+  withState('showingMenu', 'setShowingMenu', false),
+  withHandlers({
+    hideMenu: props => () => props.setShowingMenu(false),
+    showMenu: props => () => props.setShowingMenu(true),
+  })
 )(Devices)

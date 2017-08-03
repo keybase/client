@@ -365,3 +365,36 @@ func (n *teamNotifyHandler) TeamChanged(ctx context.Context, arg keybase1.TeamCh
 	n.rotateCh <- arg
 	return nil
 }
+
+func TestGetTeamRootID(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+
+	t.Logf("create a team")
+	parentName, err := keybase1.TeamNameFromString(tt.users[0].createTeam())
+	require.NoError(t, err)
+
+	parentID := parentName.ToTeamID()
+
+	t.Logf("create a subteam")
+	subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "mysubteam", parentName)
+	require.NoError(t, err)
+
+	subteamName, err := parentName.Append("mysubteam")
+
+	t.Logf("create a sub-subteam")
+	subteamID2, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "teamofsubs", subteamName)
+	require.NoError(t, err)
+
+	getAndCompare := func(id keybase1.TeamID) {
+		retID, err := teams.GetRootID(context.TODO(), tt.users[0].tc.G, id)
+		require.NoError(t, err)
+		require.Equal(t, parentID, retID)
+	}
+
+	getAndCompare(*subteamID)
+	getAndCompare(*subteamID2)
+	getAndCompare(parentID)
+}

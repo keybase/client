@@ -265,14 +265,18 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	membersType chat1.ConversationMembersType, includeAuxiliaryInfo bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            tlfID,
-		TopicType:        topicType,
-		MembersType:      membersType,
-		SummarizeMaxMsgs: false,
+		TlfID:                tlfID,
+		TopicType:            topicType,
+		MembersType:          membersType,
+		SummarizeMaxMsgs:     false,
+		IncludeAuxiliaryInfo: includeAuxiliaryInfo,
 	})
+	if err != nil {
+		return res, rl, err
+	}
 	if tlfRes.RateLimit != nil {
 		rl = append(rl, *tlfRes.RateLimit)
 	}

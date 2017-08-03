@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/gregor'
 import engine from '../engine'
-import {call, put, select} from 'redux-saga/effects'
+import {all, call, put, select} from 'redux-saga/effects'
 import {
   delegateUiCtlRegisterGregorFirehoseRpc,
   reachabilityCheckReachabilityRpcPromise,
@@ -184,8 +184,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
   const username: string = (yield select(usernameSelector): any)
-  // Must do this else we get weird errors from redux-saga, see https://github.com/redux-saga/redux-saga/issues/1000#issuecomment-315180255
-  yield Promise.resolve(
+  yield all(
     createdTLFs
       .map(m => {
         const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null

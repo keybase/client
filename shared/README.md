@@ -61,6 +61,28 @@ open react-native/ios/Keybase.xcworkspace
 
 Then select the target `Keybase` and run.
 
+If you get this error in the React Packager:
+
+```
+React packager ready.
+
+Loading dependency graph...2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+2017-08-01 23:06 node[58084] (FSEvents.framework) FSEventStreamStart: register_with_server: ERROR: f2d_register_rpc() => (null) (-22)
+ ERROR  Error watching file for changes: EMFILE
+{"code":"EMFILE","errno":"EMFILE","syscall":"Error watching file for changes:","filename":null}
+Error: Error watching file for changes: EMFILE
+    at exports._errnoException (util.js:1024:11)
+    at FSEvent.FSWatcher._handle.onchange (fs.js:1359:9)
+Loading dependency graph...Process terminated. Press <enter> to close the window
+```
+
+the easiest way to fix it is simply to install watchman:
+
+```
+brew install watchman
+```
+
 ### Android
 
 Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
@@ -74,7 +96,43 @@ yarn run rn-gobuild-android
 react-native run-android
 ```
 
+### Debugging with React Developer Tools extension
 
+1) Install the [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi) in your regular Chrome browser.
+2) Set the following environment variables and make sure `KEYBASE_PERF` is unset (assuming you're using fish shell):
+
+```
+set -e KEYBASE_PERF
+set -x KEYBASE_LOCAL_DEBUG 1
+set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
+```
+
+(You may also want `set -x KEYBASE_SHOW_DEVTOOLS 1`.)
+
+(See [this code](https://github.com/keybase/client/blob/master/shared/desktop/yarn-helper/electron.js#L47) for details.)
+
+3) Run `yarn run start-hot`.
+
+If you're running Chromium instead of Google Chrome, or if you've
+installed the extension in your non-default browser, you'll have to
+change the path passed to `KEYBASE_DEV_TOOL_ROOTS`.
+
+If for some reason you don't want to use `start-hot`, you'll have to
+set `KEYBASE_DEV_TOOL_EXTENSIONS` instead of `KEYBASE_DEV_TOOL_ROOTS`,
+and you'll have to use the version subdirectory:
+
+```
+set -x KEYBASE_DEV_TOOL_EXTENSIONS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/2.5.0_0"
+```
+
+Note that this means you'll have to change the last path component if
+the extension gets
+updated. (See
+[this code](https://github.com/keybase/client/blob/7e9ad67c0f86a82649f2e81586986892adcdf6fa/shared/desktop/app/dev-tools.js) and
+[the Electron docs](https://electron.atom.io/docs/tutorial/devtools-extension/) for
+details.)
+
+Then you can run, e.g. `yarn run start`.
 
 ### Troubleshooting
 

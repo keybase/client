@@ -6,7 +6,7 @@ import {storiesOf} from '../stories/storybook'
 import {globalMargins, globalStyles, globalColors} from '../styles'
 
 const load = () => {
-  storiesOf('Box', module).add('Box', () =>
+  storiesOf('Common', module).add('Box', () =>
     Object.keys(globalMargins).map(size => (
       <Box key={size} style={{...globalStyles.flexBoxRow, margin: 30, width: '100%'}}>
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', width: '50%'}}>

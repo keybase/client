@@ -3,46 +3,62 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
-import {compose, withState, withHandlers, lifecycle} from 'recompose'
+import {compose, withHandlers, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
+import {createSelector} from 'reselect'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {OwnProps} from './container'
 
-const mapStateToProps = (state: TypedState, {focusInputCounter}: OwnProps) => {
+const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  return state.chat.get('conversationStates').get(selectedConversationIDKey)
+}
 
-  let isLoading = true
-  let typing = []
+const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')
 
-  if (selectedConversationIDKey !== Constants.nothingSelected) {
-    if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
-      const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
-      if (conversationState) {
-        isLoading = !conversationState.isLoaded
-        typing = conversationState.typing.toArray()
+const ownPropsSelector = (_, {focusInputCounter}: OwnProps) => ({focusInputCounter})
+
+const stateDependentProps = createSelector(
+  [
+    Constants.getSelectedConversation,
+    conversationStateSelector,
+    Constants.getSelectedRouteState,
+    editingMessageSelector,
+  ],
+  (selectedConversationIDKey, conversationState, routeState, editingMessage) => {
+    let isLoading = true
+    let typing = []
+
+    if (selectedConversationIDKey !== Constants.nothingSelected) {
+      if (!Constants.isPendingConversationIDKey(selectedConversationIDKey || '')) {
+        if (conversationState) {
+          isLoading = !conversationState.isLoaded
+          typing = conversationState.typing.toArray()
+        }
+      } else {
+        // A conversation can't be loading if it's pending -- it doesn't exist
+        // yet and we need to allow creating it.
+        isLoading = false
       }
-    } else {
-      // A conversation can't be loading if it's pending -- it doesn't exist
-      // yet and we need to allow creating it.
-      isLoading = false
+    }
+
+    return {
+      editingMessage,
+      isLoading,
+      routeState,
+      selectedConversationIDKey,
+      typing,
     }
   }
+)
 
-  const routeState = Constants.getSelectedRouteState(state)
-  const defaultText = (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
-  return {
-    defaultText,
-    editingMessage: state.chat.get('editingMessage'),
-    focusInputCounter,
-    isLoading,
-    routeState,
-    selectedConversationIDKey,
-    typing,
-  }
-}
+const mapStateToProps = createSelector([stateDependentProps, ownPropsSelector], (stateProps, ownProps) => ({
+  ...stateProps,
+  ...ownProps,
+}))
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
@@ -79,6 +95,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
+    ...ownProps,
     onAttach: (inputs: Array<Constants.AttachmentInput>) =>
       dispatchProps.onAttach(stateProps.selectedConversationIDKey, inputs),
     onEditLastMessage: ownProps.onEditLastMessage,
@@ -106,7 +123,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('text', 'setText', props => props.defaultText || ''),
   withHandlers(props => {
     let input
     return {
@@ -126,19 +142,6 @@ export default compose(
     componentDidUpdate: function(prevProps) {
       if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
         this.props.inputFocus()
-      }
-    },
-    componentWillUnmount: function() {
-      this.props.onStoreInputText(this.props.inputValue())
-    },
-    componentWillReceiveProps: function(nextProps) {
-      if (
-        this.props.selectedConversationIDKey &&
-        this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
-      ) {
-        this.props.onStoreInputText(this.props.inputValue())
-        // withState won't get called again if props changes!
-        this.props.setText(nextProps.defaultText)
       }
     },
   })

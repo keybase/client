@@ -36,6 +36,8 @@ export type Props = {|
   addNewParticipant: boolean,
   conversationIsError: boolean,
   conversationErrorText: string,
+  chatText: string,
+  setChatText: (nextText: string) => void,
 |}
 
 export default class Conversation extends Component<void, Props, void> {}

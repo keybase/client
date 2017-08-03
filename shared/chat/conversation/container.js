@@ -2,12 +2,13 @@
 import * as Constants from '../../constants/chat'
 import * as SearchConstants from '../../constants/search'
 import * as Creators from '../../actions/chat/creators'
+import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
-import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
+import {withState, withHandlers, compose, branch, renderNothing, renderComponent, lifecycle} from 'recompose'
 import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
@@ -30,6 +31,7 @@ type StateProps = {|
   showSearchSuggestions: boolean,
   conversationIsError: boolean,
   conversationErrorText: string,
+  defaultChatText: string,
 |}
 
 type DispatchProps = {|
@@ -42,11 +44,14 @@ type DispatchProps = {|
   onBack: () => void,
   _clearSearchResults: () => void,
   _onClickSearchResult: (id: string) => void,
+  _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => void,
   onShowTrackerInSearch: (id: string) => void,
 |}
 
-const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps => {
+const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const selectedConversationIDKey = routePath.last()
+  const routeState = Constants.getSelectedRouteState(state)
+
   let finalizeInfo = null
   let rekeyInfo = null
   let supersedes = null
@@ -55,6 +60,8 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
   let threadLoadedOffline = false
   let conversationIsError = false
   let conversationErrorText = ''
+  const defaultChatText =
+    (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
   if (selectedConversationIDKey !== Constants.nothingSelected) {
     rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
@@ -92,6 +99,7 @@ const mapStateToProps = (state: TypedState, {routePath, routeState}): StateProps
     showSearchPending: searchPending,
     showSearchResults: !!searchResults,
     showSearchSuggestions: searchShowingSuggestions,
+    defaultChatText,
   }
 }
 
@@ -114,12 +122,20 @@ const mapDispatchToProps = (
     dispatch(Creators.stageUserForSearch(id))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
+  _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
+    dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
+    onStoreInputText: (chatText: string) => {
+      if (stateProps.selectedConversationIDKey) {
+        // only write if we're in a convo
+        dispatchProps._onStoreInputText(stateProps.selectedConversationIDKey, chatText)
+      }
+    },
     onAttach: (inputs: Array<Constants.AttachmentInput>) => {
       stateProps.selectedConversationIDKey &&
         dispatchProps._onAttach(stateProps.selectedConversationIDKey, inputs)
@@ -142,6 +158,7 @@ export default compose(
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
   withState('addNewParticipant', 'onAddNewParticipant', false),
+  withState('chatText', 'setChatText', props => props.defaultChatText || ''),
   selectedSearchIdHoc,
   withHandlers({
     onAddNewParticipant: props => () => props.onAddNewParticipant(true),
@@ -155,6 +172,21 @@ export default compose(
     },
     onMouseOverSearchResult: props => id => {
       props.onUpdateSelectedSearchResult(id)
+    },
+  }),
+  lifecycle({
+    componentWillUnmount: function() {
+      this.props.onStoreInputText(this.props.chatText)
+    },
+    componentWillReceiveProps: function(nextProps) {
+      if (
+        this.props.selectedConversationIDKey &&
+        this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
+      ) {
+        this.props.onStoreInputText(this.props.chatText)
+        // withState won't get called again if props changes!
+        this.props.setChatText(nextProps.defaultChatText)
+      }
     },
   })
 )(Conversation)

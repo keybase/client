@@ -1,6 +1,7 @@
 // @flow
 import {forceImmediateLogging} from '../local-debug'
-import {isAndroid} from '../constants/platform'
+import {isMobile, isAndroid} from '../constants/platform'
+import {runAfterInteractions} from './interaction-manager'
 
 function immediateCallback(
   cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
@@ -24,6 +25,24 @@ function timeoutFallback(
   }, 20)
 }
 
+function runAfterInteractionsFallback(
+  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
+  deadlineOpts?: {timeout: number}
+): {cancel: () => void} {
+  return runAfterInteractions(function() {
+    cb({
+      didTimeout: true,
+      timeRemaining: function() {
+        return 0
+      },
+    })
+  }, (deadlineOpts && deadlineOpts.timeout) || 20)
+}
+
+function cancelRunAfterInteractionsFallback(cancellablePromise: {cancel: () => void}) {
+  cancellablePromise.cancel()
+}
+
 function cancelIdleCallbackFallback(id: number) {
   clearTimeout(id)
 }
@@ -32,8 +51,12 @@ function cancelIdleCallbackFallback(id: number) {
 const useFallback = typeof window === 'undefined' || isAndroid || !window.requestIdleCallback
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
-  : useFallback ? timeoutFallback : window.requestIdleCallback.bind(window)
-const cancelIdleCallback = useFallback ? cancelIdleCallbackFallback : window.cancelIdleCallback.bind(window)
+  : useFallback
+      ? isMobile ? runAfterInteractionsFallback : timeoutFallback
+      : window.requestIdleCallback.bind(window)
+const cancelIdleCallback = useFallback
+  ? isMobile ? cancelRunAfterInteractionsFallback : cancelIdleCallbackFallback
+  : window.cancelIdleCallback.bind(window)
 
 const onIdlePromise = (timeout: number = 100) =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))

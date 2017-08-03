@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
@@ -211,7 +212,7 @@ func TestMemberAddHasBoxes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, boxes, _, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, _, err := tm.changeMembershipSection(context.TODO(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +245,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, boxes, _, err := tm.changeMembershipSection(context.TODO(), req)
+	_, boxes, _, _, err := tm.changeMembershipSection(context.TODO(), req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -557,4 +558,40 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 	if invite.Role != role {
 		tc.T.Fatalf("invite role: %s, expected %s", invite.Role, role)
 	}
+}
+
+func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	t.Logf("U0 creates a root team")
+	parentName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 creates a subteam")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U1 and U2 can't load the subteam")
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err, "U1 should not be able to load subteam without implicit admin status")
+	_, err = tcs[2].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err, "U2 isn't in the subteam at all yet, shouldn't be able to load")
+
+	t.Logf("U0 adds U1 as an admin in the root team")
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("now U1 can load the subteam, but not U2")
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.NoError(t, err, "U1 should able to load subteam with implicit admin status")
+	_, err = tcs[2].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err, "U2 still isn't in the subteam at yet, shouldn't be able to load")
+
+	t.Logf("U1 can add U2 to the subteam")
+	_, err = AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+
+	t.Logf("now U2 can load the subteam")
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.NoError(t, err, "now U2 is a member of the subteam and should be able to read it")
 }

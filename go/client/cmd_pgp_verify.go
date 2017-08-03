@@ -59,7 +59,7 @@ func (c *CmdPGPVerify) Run() error {
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
-		NewIdentifyMaybeTrackUIProtocol(c.G()),
+		NewIdentifyTrackUIProtocol(c.G()),
 		NewPgpUIProtocol(c.G()),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {

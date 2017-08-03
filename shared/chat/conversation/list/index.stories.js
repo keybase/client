@@ -19,9 +19,9 @@ const users = ['trex', 'xert']
 const corpus = [
   `Sorry, other word classes!  I have a NEW girlfriend now!`,
   `Nope. He'd have to earn it! We'd do sports or something to see.`,
-  `What?! Seriously?`,
+  `What?! Seriously? :+1:`,
   `Well, maybe the magazine will pique my interest!`,
-  `Insurance motivators? Uh, building complicaters? Domino frustraters? Wobbley Times U.S.A.? Um. . . Shakey Shakes Central? `,
+  `Insurance motivators? Uh, building complicaters? Domino frustraters? Wobbley Times U.S.A.? Um. . . Shakey Shakes Central? :ghost: `,
   `I'm going for STUNT immortality. I'll just keep kicking that kangaroo until even if somebody wanted to catch up, they'd look at my record and say "Well, THAT'S totally not worth doing".`,
   `FINE. NO I DON'T.`,
   ` Comedy relies on surprise, I think!  There's a twist that makes a joke funny, and I haven't figured out a generative algorithm yet.`,
@@ -49,6 +49,8 @@ const corpus = [
   `Pretty certain it does, Dromiceiomimus!`,
 ]
 
+const emojiOnly = [':ghost:', ':+1:', ':100:']
+
 function makeMessage(messageID: string, you: string, author: string, timestamp: number, message: string) {
   const key = Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
   return {
@@ -70,14 +72,15 @@ function makeMessage(messageID: string, you: string, author: string, timestamp: 
 }
 
 const messageCount = 100
-const messageMap = range(messageCount).reduce((acc, i) => {
-  const m = makeMessage(i, you, users[i % users.length], 1, corpus[i % corpus.length])
-  acc[m.key] = m
-  return acc
-}, {})
+const messageMapFn = (corpus: Array<string>) =>
+  range(messageCount).reduce((acc, i) => {
+    const m = makeMessage(i, you, users[i % users.length], 1, corpus[i % corpus.length])
+    acc[m.key] = m
+    return acc
+  }, {})
 
-const propCommon = {
-  messageKeys: I.List(),
+const propCommon = messageMap => ({
+  messageKeys: I.List(Object.keys(messageMap)),
   editLastMessageCounter: 0,
   listScrollDownCounter: 0,
   onDeleteMessage: action('onDeleteMessage'),
@@ -91,82 +94,97 @@ const propCommon = {
   selectedConversation: conversationIDKey,
   validated: true,
   you: 'trex',
-}
+})
 
-const mock = {
+const mockFn = messageMap => ({
   default: {
-    ...propCommon,
-    messageKeys: I.List(Object.keys(messageMap)),
+    ...propCommon(messageMap),
   },
-}
+})
 
-const load = () => {
-  storiesOf('Chat - List', module).add('Results List', () => {
-    const store = {
-      config: {
-        following: {},
-        username: 'tester',
-      },
-      chat: new Constants.StateRecord({
-        // $FlowIssue
-        messageMap: new I.Map(messageMap),
-        localMessageStates: I.Map(),
-        inbox: I.List(),
-        inboxFilter: I.List(),
-        inboxSearch: I.List(),
-        conversationStates: I.Map(),
-        metaData: I.Map(),
-        finalizedState: I.Map(),
-        supersedesState: I.Map(),
-        supersededByState: I.Map(),
-        pendingFailures: I.Map(),
-        conversationUnreadCounts: I.Map(),
-        rekeyInfos: I.Map(),
-        alwaysShow: I.Set(),
-        pendingConversations: I.Map(),
-        nowOverride: null,
-        editingMessage: null,
-        initialConversation: null,
-        inboxUntrustedState: 'unloaded',
-        previousConversation: null,
-        searchPending: false,
-        searchResults: null,
-        searchShowingSuggestions: false,
-        selectedUsersInSearch: I.List(),
-        inSearch: false,
-        tempPendingConversations: I.Map(),
-        searchResultTerm: '',
-      }),
-      routeTree: dataToRouteState({
-        selected: 'tabs:chatTab',
+const storeFn = (messageMap: Object) => ({
+  config: {
+    following: {},
+    username: 'tester',
+  },
+  chat: new Constants.StateRecord({
+    // $FlowIssue
+    messageMap: new I.Map(messageMap),
+    localMessageStates: I.Map(),
+    inbox: I.List(),
+    inboxFilter: I.List(),
+    inboxSearch: I.List(),
+    conversationStates: I.Map(),
+    metaData: I.Map(),
+    finalizedState: I.Map(),
+    supersedesState: I.Map(),
+    supersededByState: I.Map(),
+    pendingFailures: I.Map(),
+    conversationUnreadCounts: I.Map(),
+    rekeyInfos: I.Map(),
+    alwaysShow: I.Set(),
+    pendingConversations: I.Map(),
+    nowOverride: null,
+    editingMessage: null,
+    initialConversation: null,
+    inboxUntrustedState: 'unloaded',
+    previousConversation: null,
+    searchPending: false,
+    searchResults: null,
+    searchShowingSuggestions: false,
+    selectedUsersInSearch: I.List(),
+    inSearch: false,
+    tempPendingConversations: I.Map(),
+    searchResultTerm: '',
+  }),
+  routeTree: dataToRouteState({
+    selected: 'tabs:chatTab',
+    props: {},
+    state: {},
+    children: {
+      'tabs:chatTab': {
+        selected: 'mock',
         props: {},
         state: {},
         children: {
-          'tabs:chatTab': {
-            selected: 'mock',
+          mock: {
+            selected: null,
             props: {},
             state: {},
-            children: {
-              mock: {
-                selected: null,
-                props: {},
-                state: {},
-                children: {},
-              },
-            },
+            children: {},
           },
         },
-      }),
-    }
+      },
+    },
+  }),
+})
 
-    return (
-      <Box style={globalStyles.fillAbsolute}>
-        <Provider store={createStore(ignore => store, store)}>
-          <List {...mock.default} />
-        </Provider>
-      </Box>
-    )
-  })
+const load = () => {
+  storiesOf('Chat/List', module)
+    .add('Normal', () => {
+      const messageMap = messageMapFn(corpus)
+      const store = storeFn(messageMap)
+      const mock = mockFn(messageMap)
+      return (
+        <Box style={globalStyles.fillAbsolute}>
+          <Provider store={createStore(ignore => store, store)}>
+            <List {...mock.default} />
+          </Provider>
+        </Box>
+      )
+    })
+    .add('Emoji Only', () => {
+      const messageMap = messageMapFn(emojiOnly)
+      const store = storeFn(messageMap)
+      const mock = mockFn(messageMap)
+      return (
+        <Box style={globalStyles.fillAbsolute}>
+          <Provider store={createStore(ignore => store, store)}>
+            <List {...mock.default} />
+          </Provider>
+        </Box>
+      )
+    })
 }
 
 export default load

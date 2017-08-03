@@ -13,10 +13,13 @@ skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 check_ci=${CHECK_CI:-}
 
+IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
+GOPATH0=${GOPATH_ARRAY[0]}
+
 # Original sources
-client_dir="$GOPATH/src/github.com/keybase/client"
+client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
-kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
+kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 
 # Our custom gopath for iOS build
 GOPATH="$tmp_gopath"

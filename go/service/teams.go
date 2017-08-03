@@ -109,7 +109,7 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 		lines = append(lines, fmt.Sprintf("  readers: %s", strings.Join(readerNames, ",")))
 	}
 	memberBody := strings.Join(lines, "\n")
-	body := fmt.Sprintf("I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
+	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
 		user, memberBody)
 	gregorCli := h.gregor.GetClient()
 	if err = chat.SendTextByName(ctx, h.G(), team, chat1.ConversationMembersType_TEAM,
@@ -183,4 +183,8 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg k
 	netCtx = libkb.WithLogTag(netCtx, "LTPAK")
 	h.G().Log.CDebugf(netCtx, "+ TeamHandler#LoadTeamPlusApplicationKeys(%+v)", arg)
 	return teams.LoadTeamPlusApplicationKeys(netCtx, h.G().ExternalG(), arg.Id, arg.Application, arg.Refreshers)
+}
+
+func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
+	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }

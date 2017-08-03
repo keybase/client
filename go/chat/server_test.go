@@ -2023,6 +2023,10 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			Body: fmt.Sprintf("JOINME"),
 		}))
 		require.NoError(t, err)
+
+		headline := "The headline is foobar!"
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: headline}))
+		require.NoError(t, err)
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), ncres.Conv.GetConvID())
@@ -2052,14 +2056,32 @@ func TestChatSrvTeamChannels(t *testing.T) {
 
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
-				TlfName:     conv.TlfName,
-				TopicType:   chat1.TopicType_CHAT,
-				MembersType: chat1.ConversationMembersType_TEAM,
+				TlfName:              conv.TlfName,
+				TopicType:            chat1.TopicType_CHAT,
+				MembersType:          chat1.ConversationMembersType_TEAM,
+				IncludeAuxiliaryInfo: true,
 			})
 		require.NoError(t, err)
 		require.Equal(t, 3, len(getTLFRes.Convs))
 		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
 		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
+
+		aux := getTLFRes.Convs[2].AuxiliaryInfo
+		require.True(t, aux != nil)
+		require.Equal(t, aux.ReaderCount, 2)
+		require.Equal(t, aux.ConversationCreator, gregor1.UID(users[0].User.GetUID().ToBytes()))
+		require.Equal(t, *aux.HeadlineModifier, gregor1.UID(users[1].User.GetUID().ToBytes()))
+
+		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: getTLFRes.Convs[2].GetConvID(),
+		})
+		if err != nil {
+			t.Fatalf("GetThreadLocal error: %v", err)
+		}
+		tv := tvres.Thread
+		if tv.Messages[0].Valid().MessageBody.Headline().Headline != headline {
+			t.Fatalf("unexpected response from GetThreadLocal . expected '%s' got %#+v\n", headline, tv.Messages[0])
+		}
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,

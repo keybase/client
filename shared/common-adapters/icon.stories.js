@@ -43,7 +43,7 @@ const load = () => {
     sizes[size].push(type)
   })
 
-  storiesOf('Icon', module).add('Icon', () =>
+  storiesOf('Common', module).add('Icon', () =>
     Object.keys(sizes).map(size => (
       <Box key={size}>
         <Text type="Body">{size}</Text>

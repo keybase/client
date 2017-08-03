@@ -51,7 +51,7 @@ export function propsForPlatform(props: Props): Object {
         platformIcon: `icon-${props.platform}-logo-48`,
         platformIconOverlay: 'icon-proof-success',
         usernameSubtitle: null,
-        message: 'You Zcash address has now been signed onto your profile.',
+        message: 'Your Zcash address has now been signed onto your profile.',
         messageSubtitle: null,
       }
     case 'btc':
@@ -61,7 +61,7 @@ export function propsForPlatform(props: Props): Object {
         platformIcon: `icon-${props.platform}-logo-48`,
         platformIconOverlay: 'icon-proof-success',
         usernameSubtitle: null,
-        message: 'You Bitcoin address has now been signed onto your profile.',
+        message: 'Your Bitcoin address has now been signed onto your profile.',
         messageSubtitle: null,
       }
     case 'http':

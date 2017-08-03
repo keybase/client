@@ -296,16 +296,6 @@ function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox 
   return {payload: {conversation}, type: 'chat:updateInbox'}
 }
 
-function createPendingFailure(
-  failureDescription: string,
-  outboxID: Constants.OutboxIDKey
-): Constants.CreatePendingFailure {
-  return {
-    payload: {failureDescription, outboxID},
-    type: 'chat:createPendingFailure',
-  }
-}
-
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
   paginationNext: Buffer
@@ -607,10 +597,6 @@ function removeOutboxMessage(
   }
 }
 
-function removePendingFailure(outboxID: Constants.OutboxIDKey): Constants.RemovePendingFailure {
-  return {payload: {outboxID}, type: 'chat:removePendingFailure'}
-}
-
 function openConversation(conversationIDKey: Constants.ConversationIDKey): Constants.OpenConversation {
   return {payload: {conversationIDKey}, type: 'chat:openConversation'}
 }
@@ -706,7 +692,6 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
-  createPendingFailure,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -734,7 +719,6 @@ export {
   postMessage,
   prependMessages,
   removeOutboxMessage,
-  removePendingFailure,
   removeTempPendingConversations,
   replaceConversation,
   retryAttachment,

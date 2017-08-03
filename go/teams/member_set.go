@@ -14,11 +14,13 @@ type member struct {
 }
 
 type memberSet struct {
-	Owners     []member
-	Admins     []member
-	Writers    []member
-	Readers    []member
-	None       []member
+	Owners  []member
+	Admins  []member
+	Writers []member
+	Readers []member
+	None    []member
+
+	// the per-user-keys of everyone in the lists above
 	recipients map[keybase1.UserVersion]keybase1.PerUserKey
 }
 
@@ -38,6 +40,17 @@ func (m *memberSet) nonAdmins() []member {
 	var ret []member
 	ret = append(ret, m.Readers...)
 	ret = append(ret, m.Writers...)
+	return ret
+}
+
+func (m *memberSet) adminAndOwnerRecipients() map[keybase1.UserVersion]keybase1.PerUserKey {
+	ret := map[keybase1.UserVersion]keybase1.PerUserKey{}
+	for _, owner := range m.Owners {
+		ret[owner.version] = owner.perUserKey
+	}
+	for _, admin := range m.Admins {
+		ret[admin.version] = admin.perUserKey
+	}
 	return ret
 }
 

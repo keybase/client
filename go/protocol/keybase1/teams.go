@@ -1304,6 +1304,16 @@ func (o LoadTeamPlusApplicationKeysArg) DeepCopy() LoadTeamPlusApplicationKeysAr
 	}
 }
 
+type GetTeamRootIDArg struct {
+	Id TeamID `codec:"id" json:"id"`
+}
+
+func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
+	return GetTeamRootIDArg{
+		Id: o.Id.DeepCopy(),
+	}
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) error
 	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) error
@@ -1324,6 +1334,7 @@ type TeamsInterface interface {
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
+	GetTeamRootID(context.Context, TeamID) (TeamID, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -1586,6 +1597,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTeamRootID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTeamRootIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTeamRootIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTeamRootIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamRootID(ctx, (*typedArgs)[0].Id)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1675,5 +1702,11 @@ func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamT
 // * of the refreshers aren't met.
 func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, err error) {
+	__arg := GetTeamRootIDArg{Id: id}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res)
 	return
 }

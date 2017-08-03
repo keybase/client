@@ -22,6 +22,8 @@ type teamHandler struct {
 	libkb.Contextified
 }
 
+var _ libkb.GregorInBandMessageHandler = (*teamHandler)(nil)
+
 func newTeamHandler(g *libkb.GlobalContext) *teamHandler {
 	return &teamHandler{
 		Contextified: libkb.NewContextified(g),
