@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
@@ -79,6 +80,18 @@ func (e *Kex2Provisionee) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
+type kex2LogContext struct {
+	log logger.Logger
+}
+
+func (k kex2LogContext) Debug(format string, args ...interface{}) {
+	k.log.Debug(format, args...)
+}
+
+func newKex2LogContext(g *libkb.GlobalContext) kex2LogContext {
+	return kex2LogContext{g.Log}
+}
+
 // Run starts the engine.
 func (e *Kex2Provisionee) Run(ctx *Context) error {
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "Kex2Provisionee")
@@ -109,7 +122,7 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 
 	karg := kex2.KexBaseArg{
 		Ctx:           nctx,
-		ProvisionCtx:  e.G(),
+		LogCtx:        newKex2LogContext(e.G()),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
@@ -214,8 +227,8 @@ func (e *Kex2Provisionee) HandleHello2(harg keybase1.Hello2Arg) (res keybase1.He
 }
 
 func (e *Kex2Provisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg) (err error) {
-	e.G().Log.Debug("+ HandleDidCounterSign()")
-	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
+	e.G().Log.Debug("+ Kex2Provisionee#HandleDidCounterSign2()")
+	defer func() { e.G().Log.Debug("- Kex2Provisionee#HandleDidCounterSign2() -> %s", libkb.ErrToOk(err)) }()
 	var ppsBytes []byte
 	ppsBytes, _, err = e.dh.DecryptFromString(arg.PpsEncrypted)
 	if err != nil {
@@ -237,8 +250,8 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 }
 
 func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybase1.PerUserKeyBox) (err error) {
-	e.G().Log.Debug("+ HandleDidCounterSign()")
-	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
+	e.G().Log.Debug("+ Kex2Provisionee#handleDidCounterSign()")
+	defer func() { e.G().Log.Debug("- Kex2Provisionee#handleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
 
 	// load self user (to load merkle root)
 	e.G().Log.Debug("| running for username %s", e.username)
