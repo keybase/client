@@ -141,3 +141,13 @@ If you run into weird issues with your packager this may be due to a stale cache
 ```sh
 yarn run rn-packager-wipe-cache
 ```
+
+### Dependency forks
+
+We have some custom forks of dependencies. This is usually a temporary fix and is something we want to avoid long term.
+
+- react-native-image-picker: Doesn't support React Native 0.47
+- react-native-push-notification: Handle notification data from intent extras in onNewIntent. Remove hasPoppedInitialNotification flag
+- react-navigation: Fix queued transition being dropped if interrupted. Add screen option to allow interactivity during transition
+- electron-download: Make cache configurable via env vars
+- fs-extra: Workaround for problems w/ webpack
