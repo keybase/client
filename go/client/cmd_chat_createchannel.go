@@ -44,7 +44,7 @@ func (c *CmdChatCreateChannel) Run() error {
 		resolvingRequest: c.resolvingRequest,
 		nonBlock:         c.nonBlock,
 		team:             true,
-		message:          fmt.Sprintf("Welcome to %s.", c.resolvingRequest.TopicName),
+		message:          fmt.Sprintf("joined #%s.", c.resolvingRequest.TopicName),
 		setHeadline:      "",
 		clearHeadline:    false,
 		hasTTY:           true,
