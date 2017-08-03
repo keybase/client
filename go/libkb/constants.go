@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DevelServerURI      = "http://localhost:3000"
+	DevelServerURI      = "http://10.0.1.21:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
 	ProductionServerURI = "https://api.keybase.io"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
@@ -40,7 +40,7 @@ var ServerLookup = map[RunMode]string{
 }
 
 const (
-	DevelGregorServerURI      = "fmprpc://localhost:9911"
+	DevelGregorServerURI      = "fmprpc://10.0.1.21:9911"
 	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:443"
 	ProductionGregorServerURI = "fmprpc+tls://gregord.kbfs.keybase.io:443"
 )

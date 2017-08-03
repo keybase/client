@@ -1,14 +1,9 @@
 // @flow
 import * as Constants from '../../constants/push'
 import * as Creators from './creators'
-import * as Shared from '../chat/shared'
 import {isMobile} from '../../constants/platform'
-import {
-  apiserverDeleteRpcPromise,
-  apiserverPostRpcPromise,
-  appStateUpdateAppStateRpc,
-  AppStateAppState,
-} from '../../constants/types/flow-types'
+import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
+import * as ChatTypes from '../../constants/types/flow-types-chat'
 import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
@@ -18,8 +13,8 @@ import {setLaunchedViaPush} from '../config'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-import {requestPushPermissions, configurePush} from '../platform-specific'
 import {showUserProfile} from '../profile'
+import {requestPushPermissions, configurePush, displayLocalNotification} from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -49,17 +44,21 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
     }
     // If we have received a silent notification, then just bail out of here, the service will
     // wake up and do what it needs to do.
-    if (data.silent) {
+    if (data.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
-      const appFocused = yield select(Shared.focusedSelector)
-      if (!appFocused) {
-        console.info('Push notification: sending state update to service')
-        yield call(appStateUpdateAppStateRpc, {
-          param: {
-            state: AppStateAppState.backgroundactive,
-          },
-        })
+      if (!data.c || !data.t || !data.m || !data.p) {
+        console.error('Invalid silent push notification, missing fields')
+        return
       }
+      const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+        param: {
+          convID: data.c,
+          membersType: data.t,
+          payload: data.m,
+          pushID: data.p,
+        },
+      })
+      yield call(displayLocalNotification, unboxRes)
       return
     }
 

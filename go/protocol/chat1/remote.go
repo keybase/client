@@ -1071,14 +1071,12 @@ func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg 
 }
 
 type RemoteNotificationSuccessfulArg struct {
-	Uid             gregor1.UID          `codec:"uid" json:"uid"`
 	AuthToken       gregor1.SessionToken `codec:"authToken" json:"authToken"`
 	CompanionPushID string               `codec:"companionPushID" json:"companionPushID"`
 }
 
 func (o RemoteNotificationSuccessfulArg) DeepCopy() RemoteNotificationSuccessfulArg {
 	return RemoteNotificationSuccessfulArg{
-		Uid:             o.Uid.DeepCopy(),
 		AuthToken:       o.AuthToken.DeepCopy(),
 		CompanionPushID: o.CompanionPushID,
 	}

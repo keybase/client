@@ -48,6 +48,12 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(filePath)
 }
 
+function displayLocalNotification(text: string) {
+  PushNotifications.localNotification({
+    message: text,
+  })
+}
+
 function configurePush() {
   return eventChannel(emitter => {
     PushNotifications.configure({
@@ -212,6 +218,7 @@ function loadRouteState(): AsyncAction {
 }
 
 export {
+  displayLocalNotification,
   loadRouteState,
   persistRouteState,
   requestPushPermissions,

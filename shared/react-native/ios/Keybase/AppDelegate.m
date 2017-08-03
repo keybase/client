@@ -65,7 +65,7 @@ const BOOL isDebug = NO;
 #endif
 
   BOOL securityAccessGroupOverride = isSimulator;
-  BOOL skipLogFile = false;
+  BOOL skipLogFile = true;
 
   NSString * home = NSHomeDirectory();
 
@@ -90,7 +90,7 @@ const BOOL isDebug = NO;
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
-                                                   @"runmode": @"prod",
+                                                   @"runmode": @"devel",
                                                    @"homedir": home,
                                                    @"logFile": serviceLogFile,
                                                    @"serverURI": @"",

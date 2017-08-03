@@ -237,6 +237,10 @@ func (g *gregorHandler) monitorAppState() {
 	}
 }
 
+func (g *gregorHandler) GetURI() *rpc.FMPURI {
+	return g.uri
+}
+
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
 		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")

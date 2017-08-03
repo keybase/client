@@ -29,4 +29,15 @@ function showMainWindow(): AsyncAction {
   }
 }
 
-export {requestPushPermissions, showMainWindow, configurePush, saveAttachmentDialog, showShareActionSheet}
+function displayLocalNotification(text: string) {
+  throw new Error('Display local notification not available on this platform')
+}
+
+export {
+  requestPushPermissions,
+  showMainWindow,
+  configurePush,
+  saveAttachmentDialog,
+  showShareActionSheet,
+  displayLocalNotification,
+}

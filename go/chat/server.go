@@ -13,6 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"encoding/base64"
+	"encoding/hex"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
@@ -21,6 +24,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -2207,4 +2212,119 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil
+}
+
+type remoteNotificationSuccessHandler struct{}
+
+func (g *remoteNotificationSuccessHandler) HandlerName() string {
+	return "remote notification success"
+}
+func (g *remoteNotificationSuccessHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
+	return nil
+}
+func (g *remoteNotificationSuccessHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+}
+func (g *remoteNotificationSuccessHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
+}
+func (g *remoteNotificationSuccessHandler) OnDoCommandError(err error, nextTime time.Duration) {}
+func (g *remoteNotificationSuccessHandler) ShouldRetry(name string, err error) bool {
+	return false
+}
+func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool {
+	return false
+}
+
+func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushID string) {
+	// Get session token
+	status, err := h.G().LoginState().APIServerSession(false)
+	if err != nil {
+		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to get logged in session: %s", err.Error())
+		return
+	}
+
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(h.G().Env.GetGregorURI())
+	if err != nil {
+		h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse chat server UR: %s", err.Error())
+		return
+	}
+
+	var conn *rpc.Connection
+	if uri.UseTLS() {
+		rawCA := h.G().Env.GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse CAs: %s", err.Error())
+			return
+		}
+		conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{},
+			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()), h.G().Log,
+			rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.WrapError)
+		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
+			libkb.ErrorUnwrapper{}, h.G().Log, rpc.ConnectionOpts{})
+	}
+	defer conn.Shutdown()
+
+	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
+	if err = cli.RemoteNotificationSuccessful(ctx,
+		chat1.RemoteNotificationSuccessfulArg{
+			AuthToken:       gregor1.SessionToken(status.SessionToken),
+			CompanionPushID: pushID,
+		}); err != nil {
+		h.Debug(ctx, "UnboxMobilePushNotification: failed to invoke remote notification success: %",
+			err.Error())
+	}
+}
+
+func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.UnboxMobilePushNotificationArg) (res string, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("UnboxMobilePushNotification(%s)",
+		arg.ConvID))()
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	defer func() {
+		if err == nil {
+			h.sendRemoteNotificationSuccessful(ctx, arg.PushID)
+		}
+	}()
+
+	// Parse the message payload and convID
+	bConvID, err := hex.DecodeString(arg.ConvID)
+	if err != nil {
+		h.Debug(ctx, "UnboxMobilePushNotification: invalid convID: %s msg: %s", arg.ConvID,
+			err.Error())
+		return res, err
+	}
+	convID := chat1.ConversationID(bConvID)
+	bMsg, err := base64.StdEncoding.DecodeString(arg.Payload)
+	if err != nil {
+		h.Debug(ctx, "UnboxMobilePushNotification: invalid message payload: %s", err.Error())
+		return res, err
+	}
+	var msgBoxed chat1.MessageBoxed
+	mh := codec.MsgpackHandle{WriteExt: true}
+	if err = codec.NewDecoderBytes(bMsg, &mh).Decode(&msgBoxed); err != nil {
+		h.Debug(ctx, "UnboxMobilePushNotification: failed to msgpack decode payload: %s", err.Error())
+		return res, err
+	}
+
+	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
+	if err != nil {
+		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
+	}
+
+	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
+		res = fmt.Sprintf("%s: %s", msgUnboxed.Valid().SenderUsername,
+			msgUnboxed.Valid().MessageBody.Text().Body)
+		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox: %s", res)
+		return res, nil
+	}
+
+	h.Debug(ctx, "UnboxMobilePushNotification: invalid message received: typ: %v",
+		msgUnboxed.GetMessageType())
+	return "", errors.New("invalid message")
 }

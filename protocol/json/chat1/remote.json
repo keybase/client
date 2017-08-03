@@ -917,10 +917,6 @@
     "remoteNotificationSuccessful": {
       "request": [
         {
-          "name": "uid",
-          "type": "gregor1.UID"
-        },
-        {
           "name": "authToken",
           "type": "gregor1.SessionToken"
         },
