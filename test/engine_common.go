@@ -5,6 +5,7 @@
 package test
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -45,14 +46,23 @@ func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 
 func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
 	users map[libkb.NormalizedUsername]User) {
-	for name, members := range teams {
-		infos := libkbfs.AddEmptyTeamsForTestOrBust(t, config, name)
+	teamNames := make([]libkb.NormalizedUsername, 0, len(teams))
+	for name := range teams {
+		teamNames = append(teamNames, name)
+	}
+	sort.Slice(teamNames, func(i, j int) bool {
+		return string(teamNames[i]) < string(teamNames[j])
+	}) // make sure root names go first.
+	infos := libkbfs.AddEmptyTeamsForTestOrBust(t, config, teamNames...)
+	for i, name := range teamNames {
+		members := teams[name]
+		tid := infos[i].TID
 		for _, w := range members.writers {
-			libkbfs.AddTeamWriterForTestOrBust(t, config, infos[0].TID,
+			libkbfs.AddTeamWriterForTestOrBust(t, config, tid,
 				e.GetUID(users[w]))
 		}
 		for _, r := range members.readers {
-			libkbfs.AddTeamReaderForTestOrBust(t, config, infos[0].TID,
+			libkbfs.AddTeamReaderForTestOrBust(t, config, tid,
 				e.GetUID(users[r]))
 		}
 	}

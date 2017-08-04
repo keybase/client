@@ -67,7 +67,7 @@ func TestTeamsTwoWritersJournal(t *testing.T) {
 		inSingleTeamTlf("ab"),
 		as(alice,
 			// The tests don't support enabling journaling on a
-			// non-existent TF, so force the TLF creation first.
+			// non-existent TLF, so force the TLF creation first.
 			mkfile("foo", "bar"),
 			rm("foo"),
 		),
@@ -117,6 +117,60 @@ func TestTeamsNameChange(t *testing.T) {
 		),
 		as(bob,
 			read("a", "hello"),
+			read("b", "world"),
+		),
+	)
+}
+
+func TestSubteamsTwoWriters(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		team("al", "alice", ""),
+		team("al.ab", "alice,bob", ""),
+		inSingleTeamTlf("al.ab"),
+		as(alice,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			read("a", "hello"),
+			mkfile("b", "world"),
+		),
+		as(alice,
+			read("b", "world"),
+		),
+	)
+}
+
+func TestSubteamsTwoWritersJournal(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob"),
+		team("al", "alice", ""),
+		team("al.ab", "alice,bob", ""),
+		inSingleTeamTlf("al.ab"),
+		as(alice,
+			// The tests don't support enabling journaling on a
+			// non-existent TLF, so force the TLF creation first.
+			mkfile("foo", "bar"),
+			rm("foo"),
+		),
+		as(alice,
+			enableJournal(),
+			mkfile("a", "hello"),
+		),
+		as(alice,
+			// Wait for the flush, after doing a SyncAll().
+			flushJournal(),
+		),
+		as(bob,
+			enableJournal(),
+			read("a", "hello"),
+			mkfile("b", "world"),
+		),
+		as(bob,
+			// Wait for the flush, after doing a SyncAll().
+			flushJournal(),
+		),
+		as(alice,
 			read("b", "world"),
 		),
 	)
