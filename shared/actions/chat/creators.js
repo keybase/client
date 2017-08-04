@@ -646,7 +646,7 @@ function setSelectedRouteState(
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
-function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
+function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
