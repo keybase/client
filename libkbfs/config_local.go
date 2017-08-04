@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -246,8 +247,9 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	return localUsers
 }
 
-// MakeLocalTeams is a helper function to generate a list of
-// local teams suitable to use with KBPKILocal.
+// MakeLocalTeams is a helper function to generate a list of local
+// teams suitable to use with KBPKILocal.  Any subteams must came
+// after their root team names in the `teams` slice.
 func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
 	localTeams := make([]TeamInfo, len(teams))
 	for i := 0; i < len(teams); i++ {
@@ -261,6 +263,16 @@ func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
 				FirstValidKeyGen: cryptKey,
 			},
 			LatestKeyGen: FirstValidKeyGen,
+		}
+		// If this is a subteam, set the root ID.
+		if strings.Contains(string(teams[i]), ".") {
+			parts := strings.SplitN(string(teams[i]), ".", 2)
+			for j := 0; j < i; j++ {
+				if parts[0] == string(localTeams[j].Name) {
+					localTeams[i].RootID = localTeams[j].TID
+					break
+				}
+			}
 		}
 	}
 	return localTeams

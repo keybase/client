@@ -503,6 +503,14 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 		}
 
 		chargedTo = h.FirstResolvedWriter()
+		if tid := chargedTo.AsTeamOrBust(); tid.IsSubTeam() {
+			// We can't charge to subteams; find the root team.
+			rootID, err := j.config.KBPKI().GetTeamRootID(ctx, tid)
+			if err != nil {
+				return err
+			}
+			chargedTo = rootID.AsUserOrTeam()
+		}
 	}
 	tj, err := j.enableLocked(ctx, tlfID, chargedTo, bws, false)
 	if err != nil {
