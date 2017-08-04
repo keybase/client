@@ -3,7 +3,7 @@ import * as SearchConstants from './search'
 import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
-import {Set, List, Map, Record} from 'immutable'
+import {Set, List, Map, OrderedSet, Record} from 'immutable'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import * as ChatTypes from './types/flow-types-chat'
@@ -29,7 +29,7 @@ import type {
   TyperInfo,
   ConversationStaleUpdate,
 } from './types/flow-types-chat'
-import type {DeviceType, KBRecord} from './types/more'
+import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
 import type {TypedState} from './reducer'
 
 export type Username = string
@@ -1072,9 +1072,6 @@ const getMuted = createSelector(
   selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
 )
 
-const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
-  state.chat.getIn(['messageMap', messageKey])
-
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
   return state.chat.getIn(['conversationStates', selectedConversationIDKey])
@@ -1121,13 +1118,58 @@ const getUserItems = createShallowEqualSelector(
       .toArray()
 )
 
+// Selectors for entities
+function getConversationMessages(state: TypedState, convIDKey: ConversationIDKey): KBOrderedSet<MessageKey> {
+  return state.entities.conversationMessages.get(convIDKey, OrderedSet())
+}
+
+function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): Set<MessageID> {
+  return state.entities.deletedIDs.get(convIDKey, Set())
+}
+
+function getMessageUpdates(
+  state: TypedState,
+  messageKey: MessageKey
+): KBOrderedSet<EditingMessage | UpdatingAttachment> {
+  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
+  const updateKeys = state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], OrderedSet())
+  return updateKeys.map(k => state.entities.messages.get(k))
+}
+
+function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {
+  return state.entities.messages.get(messageKey)
+}
+
+function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMessage | UpdatingAttachment>) {
+  return updates.reduce((message, update) => {
+    if (!update) {
+      return message
+    } else if (update.type === 'Edit') {
+      return {
+        ...message,
+        message: update.message,
+      }
+    } else if (update.type === 'UpdateAttachment') {
+      return {
+        ...message,
+        ...update.updates,
+      }
+    }
+    return message
+  }, message)
+}
+
 export {
+  applyMessageUpdates,
   getBrokenUsers,
   getEditingMessage,
   getMessageFromMessageKey,
   getSelectedConversation,
   getSelectedConversationStates,
   getSupersedes,
+  getConversationMessages,
+  getDeletedMessageIDs,
+  getMessageUpdates,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

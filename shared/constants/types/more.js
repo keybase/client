@@ -3,6 +3,7 @@
 import {Component} from 'react' // eslint-disable-line
 import pickBy from 'lodash/pickBy'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
+import * as Immutable from 'immutable'
 
 const ProvablePlatformsMap = {
   twitter: true,
@@ -94,3 +95,9 @@ export type KBRecord<T> = T & {
   getIn<A>(keys: Array<any>, fallbackVal?: A): A,
   toObject(): T,
 }
+
+// Immutable's types for OrderedSets are kinda weird
+// Things return Sets instead of Ordered sets. They have the same methods
+// but different semantics. So this let's us keep our OrderedSet type and avoid
+// flow issues
+export type KBOrderedSet<T> = Immutable.OrderedSet<T> | Immutable.Set<T>

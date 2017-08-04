@@ -3,11 +3,12 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import ListComponent from '.'
-import {List, is} from 'immutable'
+import {List, is, Set} from 'immutable'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import createCachedSelector from 're-reselect'
 import * as Selectors from '../../../constants/selectors'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
@@ -41,20 +42,43 @@ const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onF
 
 const immutableCreateSelector = createSelectorCreator(defaultMemoize, (a, b) => a === b || is(a, b))
 
-const emptyList = List()
-const messagesSelector = (state: TypedState) => {
-  const convState = Constants.getSelectedConversationStates(state)
-  if (convState) {
-    return convState.messages
+const getMessageKeysForSelectedConv = (state: TypedState) => {
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  if (!conversationIDKey) {
+    return List()
   }
-  return emptyList
+  return Constants.getConversationMessages(state, conversationIDKey)
 }
 
-const messageKeysSelector = immutableCreateSelector([messagesSelector], messages => messages.map(m => m.key))
+const getDeletedIDsForSelectedConv = (state: TypedState) => {
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  if (!conversationIDKey) {
+    return Set()
+  }
+  return Constants.getDeletedMessageIDs(state, conversationIDKey)
+}
 
-const getMessageFromMessageKeyFnSelector = immutableCreateSelector([messagesSelector], messages => (
-  messageKey: Constants.MessageKey
-): ?Constants.Message => messages.find(m => m.key === messageKey))
+const messageKeysSelector = immutableCreateSelector(
+  [getMessageKeysForSelectedConv, getDeletedIDsForSelectedConv],
+  (ks, deletedIDs) => {
+    if (deletedIDs.count()) {
+      return ks
+        .filterNot(k => {
+          const {messageID} = Constants.splitMessageIDKey(k)
+          deletedIDs.has(messageID)
+        })
+        .toList()
+    }
+    return ks.toList()
+  }
+)
+
+const getMessageFromMessageKeyFnSelector = createCachedSelector(
+  [state => state.entities.messages],
+  (messageMap: Map<Constants.MessageKey, Constants.Message>) => {
+    return (messageKey: Constants.MessageKey) => messageMap.get(messageKey)
+  }
+)(messageKeysSelector)
 
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],

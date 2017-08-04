@@ -30,6 +30,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
   const isEditing = message === Constants.getEditingMessage(state)
+  const _editedCount: number = Constants.getMessageUpdates(state, message.key).count() + message.editedCount
 
   return {
     _conversationState,
@@ -37,6 +38,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
     _message: message,
     _prevMessage,
     _selectedConversationIDKey: selectedConversationIDKey,
+    _editedCount,
     author,
     isBroken,
     isEditing,
@@ -59,8 +61,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   const prevMessage = stateProps._prevMessage
   const conversationState = stateProps._conversationState
 
-  const _editedCount: number = (message.type === 'Text' && message.editedCount) || 0
-  const isEdited = message.type === 'Text' && _editedCount > 0
+  const isEdited = message.type === 'Text' && stateProps._editedCount > 0
   const isRevoked = !!message.senderDeviceRevokedAt
   const failureDescription = message.messageState === 'failed' ? message.failureDescription : null
 
@@ -85,7 +86,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   const includeHeader = isFirstNewMessage || !skipMsgHeader || !!timestamp
 
   return {
-    _editedCount,
+    _editedCount: stateProps._editedCount,
     _localMessageState: stateProps._localMessageState,
     _message: stateProps._message,
     _onAction: ownProps.onAction,

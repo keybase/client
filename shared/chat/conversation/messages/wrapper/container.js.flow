@@ -22,6 +22,7 @@ export type StateProps = {|
   _message: Constants.AttachmentMessage | Constants.TextMessage,
   _prevMessage: Constants.AttachmentMessage | Constants.TextMessage | null,
   _selectedConversationIDKey: ?Constants.ConversationIDKey,
+  _editedCount: number,
   author: string,
   isBroken: boolean,
   isEditing: boolean,

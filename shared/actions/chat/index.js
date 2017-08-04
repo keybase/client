@@ -3,6 +3,7 @@ import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as EntityCreators from '../entities'
 import * as SearchCreators from '../search/creators'
 import * as Inbox from './inbox'
 import * as Messages from './messages'
@@ -11,7 +12,7 @@ import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {Map} from 'immutable'
+import {Map, OrderedSet, Set} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
@@ -41,6 +42,7 @@ import {
 import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
+import type {KBOrderedSet} from '../../constants/types/more'
 import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -910,6 +912,78 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
 }
 
+function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
+  const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = currentMessages.concat(messages.map(m => m.key))
+  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+}
+
+function* _prependMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
+  const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = OrderedSet(messages.map(m => m.key)).concat(currentMessages)
+  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+}
+
+function* _clearConversationMessages({payload: {conversationIDKey}}: Constants.ClearMessages) {
+  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: OrderedSet()}))
+}
+
+function* _storeMessageToEntity(action: Constants.AppendMessages | Constants.PrependMessages) {
+  const newMessages = action.payload.messages
+  yield put(EntityCreators.mergeEntity(['messages'], Map(newMessages.map(m => [m.key, m]))))
+}
+
+function* _updateMessageEntity(action: Constants.UpdateMessage | Constants.UpdateTempMessage) {
+  if (!action.error) {
+    const {payload: {message}} = action
+    // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
+    // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
+    yield put(EntityCreators.mergeEntity(['messages'], Map({[message.key]: message})))
+  } else {
+    console.warn('error in updating temp message', action.payload)
+  }
+}
+
+function* _updateOutboxMessageToReal({
+  payload: {oldMessageKey, newMessageKey},
+}: Constants.OutboxMessageBecameReal) {
+  const conversationIDKey = Constants.messageKeyConversationIDKey(newMessageKey)
+  const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
+  const nextMessages = currentMessages.map(k => (k === oldMessageKey ? newMessageKey : k))
+  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+}
+
+function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.PrependMessages) {
+  const newMessages = action.payload.messages
+  const deletedIDs = []
+  const conversationIDKey = action.payload.conversationIDKey
+  newMessages.forEach(message => {
+    if (message.type === 'Deleted') {
+      deletedIDs.push(...message.deletedIDs)
+    }
+  })
+
+  if (deletedIDs.length) {
+    yield put(EntityCreators.mergeEntity(['deletedIDs'], Map({[conversationIDKey]: Set(deletedIDs)})))
+  }
+}
+
+function* _findMessageUpdates(action: Constants.AppendMessages | Constants.PrependMessages) {
+  const newMessages = action.payload.messages
+  type TargetMessageID = string
+  const updateIDs: {[key: TargetMessageID]: KBOrderedSet<Constants.MessageKey>} = {}
+  const conversationIDKey = action.payload.conversationIDKey
+  newMessages.forEach(message => {
+    if (message.type === 'Edit' || message.type === 'UpdateAttachment') {
+      updateIDs[message.targetMessageID] = OrderedSet([message.key])
+    }
+  })
+
+  if (Object.keys(updateIDs).length) {
+    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], Map(updateIDs)))
+  }
+}
+
 function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(Shared.focusedSelector)
   const selectedTab = yield select(Shared.routeSelector)
@@ -1076,6 +1150,14 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
+  yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
+  yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
+  yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _findMessagesToDelete)
+  yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _findMessageUpdates)
+  yield Saga.safeTakeEvery(['chat:updateMessage', 'chat:updateTempMessage'], _updateMessageEntity)
+  yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
+  yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
+  yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
   yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
