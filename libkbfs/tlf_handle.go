@@ -455,7 +455,7 @@ func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	}
 
 	normalizedName, changes, err := normalizeNamesInTLF(
-		writerNames, readerNames, extensionSuffix)
+		writerNames, readerNames, t, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -469,7 +469,7 @@ func splitAndNormalizeTLFName(name string, t tlf.Type) (
 
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
-func normalizeAssertionOrName(s string) (string, error) {
+func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
 	if libkb.CheckUsername.F(s) {
 		return libkb.NewNormalizedUsername(s).String(), nil
 	}
@@ -477,10 +477,18 @@ func normalizeAssertionOrName(s string) (string, error) {
 	// TODO: this fails for http and https right now (see CORE-2968).
 	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertion(s)
 	if isSocialAssertion {
+		if t == tlf.SingleTeam {
+			return "", fmt.Errorf(
+				"No social assertions allowed for team TLF: %s", s)
+		}
 		return socialAssertion.String(), nil
 	}
 
-	if expr, err := externals.AssertionParseAndOnly(s); err == nil {
+	sAssertion := s
+	if t == tlf.SingleTeam {
+		sAssertion = "team:" + s
+	}
+	if expr, err := externals.AssertionParseAndOnly(sAssertion); err == nil {
 		// If the expression only contains a single url, make sure
 		// it's not a just considered a single keybase username.  If
 		// it is, then some non-username slipped into the default
@@ -503,9 +511,9 @@ func normalizeAssertionOrName(s string) (string, error) {
 
 // normalizeNames normalizes a slice of names and returns
 // whether any of them changed.
-func normalizeNames(names []string) (changesMade bool, err error) {
+func normalizeNames(names []string, t tlf.Type) (changesMade bool, err error) {
 	for i, name := range names {
-		x, err := normalizeAssertionOrName(name)
+		x, err := normalizeAssertionOrName(name, t)
 		if err != nil {
 			return false, err
 		}
@@ -523,16 +531,16 @@ func normalizeNames(names []string) (changesMade bool, err error) {
 // whether any names were modified.
 // This modifies the slices passed as arguments.
 func normalizeNamesInTLF(writerNames, readerNames []string,
-	extensionSuffix string) (normalizedName string,
+	t tlf.Type, extensionSuffix string) (normalizedName string,
 	changesMade bool, err error) {
-	changesMade, err = normalizeNames(writerNames)
+	changesMade, err = normalizeNames(writerNames, t)
 	if err != nil {
 		return "", false, err
 	}
 	sort.Strings(writerNames)
 	normalizedName = strings.Join(writerNames, ",")
 	if len(readerNames) > 0 {
-		rchanges, err := normalizeNames(readerNames)
+		rchanges, err := normalizeNames(readerNames, t)
 		if err != nil {
 			return "", false, err
 		}

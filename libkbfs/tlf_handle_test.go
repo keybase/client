@@ -22,7 +22,8 @@ import (
 func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
-	s, changes, err := normalizeNamesInTLF(writerNames, readerNames, "")
+	s, changes, err := normalizeNamesInTLF(
+		writerNames, readerNames, tlf.Private, "")
 	require.NoError(t, err)
 	require.True(t, changes)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff", s)
@@ -32,7 +33,8 @@ func TestNormalizeNamesInTLFWithConflict(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
 	conflictSuffix := "(cOnflictED coPy 2015-05-11 #4)"
-	s, changes, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
+	s, changes, err := normalizeNamesInTLF(
+		writerNames, readerNames, tlf.Private, conflictSuffix)
 	require.NoError(t, err)
 	require.True(t, changes)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff (conflicted copy 2015-05-11 #4)", s)
