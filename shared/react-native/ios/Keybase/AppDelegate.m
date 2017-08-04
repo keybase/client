@@ -90,7 +90,7 @@ const BOOL isDebug = NO;
 
   NSError * err;
   self.engine = [[Engine alloc] initWithSettings:@{
-                                                   @"runmode": @"devel",
+                                                   @"runmode": @"prod",
                                                    @"homedir": home,
                                                    @"logFile": serviceLogFile,
                                                    @"serverURI": @"",

@@ -467,7 +467,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	// Handle a nil topic name with default values for the members type specified
+	// Handle a nil topic name with default values for the Gbers type specified
 	if arg.TopicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name
 		switch arg.MembersType {
@@ -2277,6 +2277,27 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushID st
 	}
 }
 
+func (h *Server) formatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) string {
+	switch membersType {
+	case chat1.ConversationMembersType_TEAM:
+		// Try to get the channel name
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+		if err != nil || len(ib.Convs) == 0 {
+			// Don't give up here, just display the team name only
+			h.Debug(ctx, "formatPushText: failed to unbox convo, using team only")
+			return fmt.Sprintf("%s (%s): %s", msg.Valid().SenderUsername, msg.Valid().ClientHeader.TlfName,
+				msg.Valid().MessageBody.Text().Body)
+		}
+		return fmt.Sprintf("%s (%s#%s): %s", msg.Valid().SenderUsername, msg.Valid().ClientHeader.TlfName,
+			utils.GetTopicName(ib.Convs[0]), msg.Valid().MessageBody.Text().Body)
+	default:
+		return fmt.Sprintf("%s: %s", msg.Valid().SenderUsername, msg.Valid().MessageBody.Text().Body)
+	}
+}
+
 func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.UnboxMobilePushNotificationArg) (res string, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
@@ -2318,8 +2339,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	}
 
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
-		res = fmt.Sprintf("%s: %s", msgUnboxed.Valid().SenderUsername,
-			msgUnboxed.Valid().MessageBody.Text().Body)
+		res = h.formatPushText(ctx, uid, convID, arg.MembersType, msgUnboxed)
 		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox: %s", res)
 		return res, nil
 	}

@@ -42,28 +42,25 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       ...payload,
       ...(payload.data || {}),
     }
-    // If we have received a silent notification, then just bail out of here, the service will
-    // wake up and do what it needs to do.
     if (data.type === 'chat.newmessageSilent') {
-      console.info('Push notification: silent notification received')
-      if (!data.c || !data.t || !data.m || !data.p) {
-        console.error('Invalid silent push notification, missing fields')
-        return
-      }
-      const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-        param: {
-          convID: data.c,
-          membersType: data.t,
-          payload: data.m,
-          pushID: data.p,
-        },
-      })
-      yield call(displayLocalNotification, unboxRes)
-      return
-    }
+      console.info('Push notification: silent notification received!', notification)
 
-    // Check for conversation ID so we know where to navigate to
-    if (data.type === 'chat.newmessage') {
+      console.info('WTF')
+      try {
+        const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          param: {
+            convID: data.c,
+            membersType: data.t,
+            payload: data.m,
+            pushID: data.p,
+          },
+        })
+        yield call(displayLocalNotification, unboxRes)
+      } catch (err) {
+        console.info('failed to unbox silent notification')
+      }
+    } else if (data.type === 'chat.newmessage') {
+      // Check for conversation ID so we know where to navigate to
       if (!data.convID) {
         console.error('Push chat notification payload missing conversation ID')
         return
