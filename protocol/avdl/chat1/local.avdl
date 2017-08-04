@@ -677,6 +677,6 @@ protocol local {
   }
   SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, ConversationNotificationInfo settings);
 
-  // Unpack message form a push notification
+  // Unpack message from a push notification
   string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, string pushID);
 }
