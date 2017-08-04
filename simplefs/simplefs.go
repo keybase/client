@@ -21,6 +21,19 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+const (
+	// CtxOpID is the display name for the unique operation SimpleFS ID tag.
+	ctxOpID = "SFSID"
+)
+
+// CtxTagKey is the type used for unique context tags
+type ctxTagKey int
+
+const (
+	// CtxIDKey is the type of the tag for unique operation IDs.
+	ctxIDKey ctxTagKey = iota
+)
+
 // SimpleFS is the simple filesystem rpc layer implementation.
 type SimpleFS struct {
 	// log for logging - constant, does not need locking.
@@ -119,7 +132,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 	})
 }
 
-func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPublic bool) (map[string]libkbfs.EntryInfo, error) {
+func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) (map[string]libkbfs.EntryInfo, error) {
 	session, err := k.config.KBPKI().GetCurrentSession(ctx)
 	// Return empty directory listing if we are not logged in.
 	if err != nil {
@@ -149,7 +162,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPub
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
 func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithListRecursive(
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithListRecursive(
 		keybase1.ListArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
@@ -190,7 +203,7 @@ func (k *SimpleFS) SimpleFSListRecursive(ctx context.Context, arg keybase1.Simpl
 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
-func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (keybase1.SimpleFSListResult, error) {
+func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keybase1.SimpleFSListResult, error) {
 	k.lock.Lock()
 	res, _ := k.handles[opid]
 	var x interface{}
@@ -210,7 +223,7 @@ func (k *SimpleFS) SimpleFSReadList(ctx context.Context, opid keybase1.OpID) (ke
 
 // SimpleFSCopy - Begin copy of file or directory
 func (k *SimpleFS) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithCopy(
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithCopy(
 		keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
 		func(ctx context.Context) (err error) {
 			return k.doCopy(ctx, arg.Src, arg.Dest)
@@ -266,7 +279,7 @@ type pathPair struct {
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 	arg keybase1.SimpleFSCopyRecursiveArg) error {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithCopy(
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithCopy(
 		keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
 		func(ctx context.Context) (err error) {
 
@@ -334,7 +347,7 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithMove(
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithMove(
 		keybase1.MoveArgs{
 			OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
 		}), func(ctx context.Context) (err error) {
@@ -456,6 +469,7 @@ func (k *SimpleFS) doneReadWriteOp(ctx context.Context, opID keybase1.OpID, err 
 // If size is zero, read an arbitrary amount.
 func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 	arg keybase1.SimpleFSReadArg) (_ keybase1.FileContent, err error) {
+	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
 	k.lock.RUnlock()
@@ -487,6 +501,7 @@ func (k *SimpleFS) SimpleFSRead(ctx context.Context,
 // SimpleFSWrite - Append content to opened file.
 // May be repeated until OpID is closed.
 func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWriteArg) error {
+	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	h, ok := k.handles[arg.OpID]
 	k.lock.RUnlock()
@@ -512,12 +527,7 @@ func (k *SimpleFS) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWrite
 // SimpleFSRemove - Remove file or directory from filesystem
 func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 	arg keybase1.SimpleFSRemoveArg) error {
-	go k.simpleFSRemove(context.Background(), arg)
-	return nil
-}
-func (k *SimpleFS) simpleFSRemove(ctx context.Context,
-	arg keybase1.SimpleFSRemoveArg) (err error) {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithRemove(
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithRemove(
 		keybase1.RemoveArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
@@ -628,6 +638,7 @@ func (k *SimpleFS) SimpleFSGetOps(_ context.Context) ([]keybase1.OpDescription, 
 
 // SimpleFSWait - Blocking wait for the pending operation to finish
 func (k *SimpleFS) SimpleFSWait(ctx context.Context, opid keybase1.OpID) error {
+	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	w, ok := k.inProgress[opid]
 	k.lock.RUnlock()
@@ -939,21 +950,26 @@ func ty2Kbfs(mode os.FileMode) libkbfs.EntryType {
 	return libkbfs.File
 }
 
-func (k *SimpleFS) startAsync(opid keybase1.OpID, desc keybase1.OpDescription,
+func (k *SimpleFS) startAsync(
+	ctx context.Context, opid keybase1.OpID, desc keybase1.OpDescription,
 	callback func(context.Context) error) error {
-	ctx, e0 := k.startOp(context.Background(), opid, desc)
+	ctxAsync, e0 := k.startOp(context.Background(), opid, desc)
 	if e0 != nil {
 		return e0
 	}
+	// Bind the old context to the new context, for debugging purposes.
+	k.log.CDebugf(ctx, "Launching new async operation with SFSID=%s",
+		ctxAsync.Value(ctxIDKey))
 	go func() (err error) {
-		defer func() { k.doneOp(ctx, opid, err) }()
-		return callback(ctx)
+		defer func() { k.doneOp(ctxAsync, opid, err) }()
+		return callback(ctxAsync)
 	}()
 	return nil
 }
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	desc keybase1.OpDescription) (context.Context, error) {
+	ctx = k.makeContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 	k.lock.Lock()
 	k.inProgress[opid] = &inprogress{desc, cancel, make(chan error, 1)}
@@ -964,6 +980,7 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	return k.startOpWrapContext(ctx)
 }
 func (k *SimpleFS) startSyncOp(ctx context.Context, name string, logarg interface{}) (context.Context, error) {
+	ctx = k.makeContext(ctx)
 	k.log.CDebugf(ctx, "start sync %s %v", name, logarg)
 	return k.startOpWrapContext(ctx)
 }
