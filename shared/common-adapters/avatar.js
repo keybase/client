@@ -224,7 +224,7 @@ class Avatar extends Component<void, Props, State> {
         onClick={this.props.onClick}
         opacity={this.props.opacity}
         size={this.props.size}
-        style={{...this.props.style, ...(this.props.onClick ? globalStyles.clickable : null)}}
+        style={{...this.props.style, ...(this.props.onClick ? globalStyles.clickable : {})}}
         url={url}
       />
     )
