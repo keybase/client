@@ -1327,6 +1327,10 @@ func (fbo *folderBlockOps) GetDirtyDir(
 	return fbo.getDirtyDirLocked(ctx, lState, kmd, dir, rtype)
 }
 
+var hiddenEntries = map[string]bool{
+	".kbfs_git": true,
+}
+
 // GetDirtyDirChildren returns a map of EntryInfos for the (possibly
 // dirty) children entries of the given directory.
 func (fbo *folderBlockOps) GetDirtyDirChildren(
@@ -1343,6 +1347,10 @@ func (fbo *folderBlockOps) GetDirtyDirChildren(
 
 	children := make(map[string]EntryInfo)
 	for k, de := range dblock.Children {
+		if hiddenEntries[k] {
+			fbo.log.CDebugf(ctx, "Hiding entry %s", k)
+			continue
+		}
 		children[k] = de.EntryInfo
 	}
 	return children, nil
