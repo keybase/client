@@ -994,7 +994,6 @@ function* _exitSearch() {
   const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
-  yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
   if (inboxSearch.count() === 0) {
     yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
