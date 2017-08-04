@@ -34,6 +34,7 @@ let config: {[key: string]: any} = {
   printOutstandingRPCs: false,
   printRPC: false,
   printRoutes: false,
+  filterActionLogs: null,
   reactPerf: false,
   reduxSagaLogger: false,
   reduxSagaLoggerMasked: true,
@@ -123,6 +124,7 @@ export const {
   reduxSagaLogger,
   showAllTrackers,
   showDevTools,
+  filterActionLogs,
 } = config
 
 export function setup(store: any) {
