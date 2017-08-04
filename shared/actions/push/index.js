@@ -14,7 +14,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 import {showUserProfile} from '../profile'
-import {requestPushPermissions, configurePush, displayLocalNotification} from '../platform-specific'
+import {requestPushPermissions, configurePush, displayNewMessageNotification} from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -43,9 +43,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       ...(payload.data || {}),
     }
     if (data.type === 'chat.newmessageSilent') {
-      console.info('Push notification: silent notification received!', notification)
-
-      console.info('WTF')
+      console.info('Push notification: silent notification received')
       try {
         const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {
@@ -55,9 +53,9 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             pushID: data.p,
           },
         })
-        yield call(displayLocalNotification, unboxRes)
+        yield call(displayNewMessageNotification, unboxRes, data.c, data.b)
       } catch (err) {
-        console.info('failed to unbox silent notification')
+        console.info('failed to unbox silent notification', err)
       }
     } else if (data.type === 'chat.newmessage') {
       // Check for conversation ID so we know where to navigate to

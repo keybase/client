@@ -22,6 +22,7 @@ export type PushNotification = {
       c?: string,
       t?: number,
       m?: string,
+      b?: number,
     },
     username?: string,
   },

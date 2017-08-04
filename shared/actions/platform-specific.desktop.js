@@ -29,8 +29,8 @@ function showMainWindow(): AsyncAction {
   }
 }
 
-function displayLocalNotification(text: string) {
-  throw new Error('Display local notification not available on this platform')
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+  throw new Error('Display new message notification not available on this platform')
 }
 
 export {
@@ -39,5 +39,5 @@ export {
   configurePush,
   saveAttachmentDialog,
   showShareActionSheet,
-  displayLocalNotification,
+  displayNewMessageNotification,
 }

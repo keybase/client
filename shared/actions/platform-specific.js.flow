@@ -11,7 +11,7 @@ declare function showShareActionSheet(options: {url?: ?any, message?: ?any}): Pr
 
 type NextURI = string
 declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
-declare function displayLocalNotification(text: string): void
+declare function displayNewMessageNotification(text: string, convID: string, badgeCount: number): void
 
 export {
   requestPushPermissions,
@@ -19,5 +19,5 @@ export {
   configurePush,
   saveAttachmentDialog,
   showShareActionSheet,
-  displayLocalNotification,
+  displayNewMessageNotification,
 }
