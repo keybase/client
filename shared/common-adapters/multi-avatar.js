@@ -12,6 +12,7 @@ export type Props = {
   singleSize: AvatarSize,
   multiSize: AvatarSize,
   style?: ?Object,
+  multiPadding?: number,
 }
 
 class MultiAvatar extends Component<void, Props, void> {
@@ -20,7 +21,7 @@ class MultiAvatar extends Component<void, Props, void> {
   }
 
   render() {
-    const {avatarProps, singleSize, multiSize, style} = this.props
+    const {avatarProps, singleSize, multiSize, style, multiPadding} = this.props
     if (avatarProps.length <= 0) {
       return null
     }
@@ -44,8 +45,12 @@ class MultiAvatar extends Component<void, Props, void> {
 
     return (
       <Box style={{height: '100%', position: 'relative', width: '100%', ...style}}>
-        <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
-        <Avatar {...rightProps} style={{...rightAvatar, ...rightProps.style}} size={multiSize} />
+        <Avatar {...leftProps} style={{...leftAvatar(multiPadding), ...leftProps.style}} size={multiSize} />
+        <Avatar
+          {...rightProps}
+          style={{...rightAvatar(multiPadding), ...rightProps.style}}
+          size={multiSize}
+        />
       </Box>
     )
   }
@@ -57,16 +62,16 @@ const singleStyle = {
   width: '100%',
 }
 
-const leftAvatar = {
+const leftAvatar = offset => ({
   left: 0,
   position: 'absolute',
-  top: 0,
-}
+  top: offset,
+})
 
-const rightAvatar = {
+const rightAvatar = offset => ({
+  bottom: offset,
   position: 'absolute',
-  bottom: 0,
   right: 0,
-}
+})
 
 export default MultiAvatar

@@ -264,9 +264,10 @@ class Avatars
       <Box style={avatarBoxStyle(backgroundColor)}>
         <Box style={avatarInnerBoxStyle}>
           <MultiAvatar
-            singleSize={40}
+            singleSize={isMobile ? 48 : 40}
             multiSize={isMobile ? 24 : 32}
             avatarProps={avatarProps}
+            multiPadding={isMobile ? 2 : 0}
             style={{...multiStyle(backgroundColor), opacity}}
           />
           {icon}
@@ -278,6 +279,7 @@ class Avatars
 
 const multiStyle = memoize(backgroundColor => {
   return {
+    ...(isMobile ? {paddingTop: 10, paddingBottom: 10} : {}),
     backgroundColor,
     height: '100%',
     width: '100%',
@@ -294,19 +296,21 @@ const avatarBoxStyle = memoize(backgroundColor => {
 const _avatarBoxStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  flexShrink: 0,
   justifyContent: 'flex-start',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
-  maxWidth: 40,
-  minWidth: 40,
+  maxWidth: isMobile ? 48 : 40,
+  minWidth: isMobile ? 48 : 40,
 }
 
 const avatarInnerBoxStyle = {
   height: '100%',
-  position: 'relative',
-  width: '100%',
+  maxWidth: isMobile ? 48 : 40,
+  minWidth: isMobile ? 48 : 40,
   paddingBottom: 4,
   paddingTop: 4,
+  position: 'relative',
 }
 
 class Row extends PureComponent<void, Props, void> {
@@ -405,6 +409,8 @@ const styles = styleSheetCreate({
         color: globalColors.black_40,
         fontSize: 13,
         lineHeight: lineHeight(17),
+        marginTop: 2,
+        paddingRight: 30,
       }
     : {
         ...noWrapStyle,
@@ -412,6 +418,7 @@ const styles = styleSheetCreate({
         fontSize: 11,
         lineHeight: lineHeight(15),
         minHeight: 15,
+        paddingRight: 30,
       },
 })
 
