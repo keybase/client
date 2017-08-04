@@ -504,7 +504,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	// if a user version was previously loaded, then there is a keybase user for username, but
 	// without a PUK or without any keys.
 	if uv.Uid.Exists() {
-		return t.inviteKeybaseMember(ctx, uv.Uid, role, resolvedUsername)
+		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
@@ -525,17 +525,17 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteKeybaseMember(ctx context.Context, uid keybase1.UID, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
-	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uid)
+func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
+	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
 	invite := SCTeamInvite{
 		Type: "keybase",
-		Name: uid.String(),
+		Name: uv.PercentForm(),
 		ID:   NewInviteID(),
 	}
 	if err := t.postInvite(ctx, invite, role); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uid, Username: resolvedUsername.String()}}, nil
+	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
 }
 
 func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
