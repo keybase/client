@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -292,7 +293,12 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 }
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
-	h.G().Log.Debug("HelloIAm: %d - %+v", h.connID, arg)
+	tmp := fmt.Sprintf("%v", arg.Argv)
+	re := regexp.MustCompile(`\b(chat|encrypt)\b`)
+	if mtch := re.FindString(tmp); len(mtch) > 0 {
+		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
+	}
+	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, arg)
 	return h.G().ConnectionManager.Label(h.connID, arg)
 }
 
