@@ -2336,7 +2336,8 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 
-	// Let's just take this whole message and add it to the message body cache.
+	// Let's just take this whole message and add it to the message body cache. Alternatively,
+	// we can try to just unbox if this fails, since it will need the convo in cache.
 	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
 	if err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
