@@ -90,7 +90,7 @@ if (PERF) {
     overrideLoggedInTab: null,
     printOutstandingRPCs: false,
     printRPC: false,
-    printBridgeB64: true,
+    printBridgeB64: false,
     printRoutes: false,
     reactPerf: false,
     reduxSagaLogger: false,
