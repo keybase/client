@@ -144,6 +144,18 @@ func (e PermissionError) Error() string {
 	return fmt.Sprintf("For team %s, user %s: %s", e.TeamID, e.UserVersion.PercentForm(), e.Desc)
 }
 
+type PrevError struct {
+	Msg string
+}
+
+func NewPrevError(format string, args ...interface{}) error {
+	return PrevError{fmt.Sprintf(format, args...)}
+}
+
+func (e PrevError) Error() string {
+	return e.Msg
+}
+
 type InviteError struct {
 	msg string
 }
