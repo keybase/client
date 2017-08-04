@@ -59,7 +59,7 @@ func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 	} else {
 		payload, err := link.UnmarshalPayload()
 		if err != nil {
-			return nil, fmt.Errorf("error unmarshaling link payload: %s", err)
+			return nil, fmt.Errorf("unmarshaling link payload: %v", err)
 		}
 		inner = &payload
 		tmp := sha256.Sum256([]byte(link.Payload))

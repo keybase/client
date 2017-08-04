@@ -220,5 +220,6 @@ func (l *LoaderContextG) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid ke
 	if err != nil {
 		return
 	}
+
 	return user.ToUserVersion(), pubKey, linkMap, nil
 }

@@ -304,7 +304,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		if !link.Prev().Eq(prev) {
-			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d (%v != %v)",
+				i, link.Prev(), prev)
 		}
 
 		var signer *signerX
