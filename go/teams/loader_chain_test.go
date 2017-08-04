@@ -19,6 +19,7 @@ type TestCase struct {
 	FileName string
 	Log      []string `json:"log"`
 	Teams    map[string] /*team label*/ struct {
+		ID         keybase1.TeamID   `json:"id"`
 		Links      []json.RawMessage `json:"links"`
 		TeamKeyBox *TeamBox          `json:"team_key_box"`
 	} `json:"teams"`
@@ -47,6 +48,9 @@ func TestUnits(t *testing.T) {
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 	jsonDir := path.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
+	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
+		jsonDir = path.Join(cwd, "../../../keybase-test-vectors/teamchains")
+	}
 	files, err := ioutil.ReadDir(jsonDir)
 	require.NoError(t, err)
 	var nRun int
@@ -101,17 +105,9 @@ func runUnit(t *testing.T, unit TestCase) {
 	loader := NewTeamLoader(tc.G, mock, storage)
 	tc.G.SetTeamLoader(loader)
 
-	// TODO replace this with data from the unit
-	teamName, err := keybase1.TeamNameFromString("cabal")
-	require.NoError(t, err)
-	mock.state.teamIDs = make(map[string] /*TeamName*/ keybase1.TeamID)
-	mock.state.teamIDs[teamName.String()] = teamName.ToTeamID()
-	mock.state.teamNames = make(map[keybase1.TeamID]keybase1.TeamName)
-	mock.state.teamNames[teamName.ToTeamID()] = teamName
-
 	t.Logf("load the team")
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name: "cabal",
+		Name: mock.defaultTeamName.String(),
 	})
 	expect := unit.Expect
 	if !expect.Error {

@@ -12,23 +12,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type mockState struct {
-	teamNames map[keybase1.TeamID]keybase1.TeamName
-	teamIDs   map[string] /*TeamName*/ keybase1.TeamID
-}
-
 type MockLoaderContext struct {
-	t     *testing.T
-	state mockState
-	unit  TestCase
+	t               *testing.T
+	unit            TestCase
+	defaultTeamName keybase1.TeamName
 }
 
 var _ LoaderContext = (*MockLoaderContext)(nil)
 
 func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *MockLoaderContext {
+	defaultTeamName, err := keybase1.TeamNameFromString("cabal")
+	require.NoError(t, err)
 	return &MockLoaderContext{
-		t:    t,
-		unit: unit,
+		t:               t,
+		unit:            unit,
+		defaultTeamName: defaultTeamName,
 	}
 }
 
@@ -51,14 +49,11 @@ func (l *MockLoaderContext) getLinksFromServer(ctx context.Context,
 
 	_ = readSubteamID // Allow all access.
 
-	name, ok := l.state.teamNames[teamID]
-	if !ok {
-		return nil, NewMockBoundsError("getLinksFromServer", "teamID", teamID)
-	}
+	name := l.defaultTeamName
 
 	t, ok := l.unit.Teams[name.String()]
 	if !ok {
-		return nil, NewMockBoundsError("getLinksFromServer", "name", name)
+		return nil, NewMockBoundsError("getLinksFromServer", "name", name.String())
 	}
 
 	var readerKeyMasks []keybase1.ReaderKeyMask
@@ -105,11 +100,15 @@ func (l *MockLoaderContext) LookupEldestSeqno(ctx context.Context, uid keybase1.
 }
 
 func (l *MockLoaderContext) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
-	id, ok := l.state.teamIDs[teamName.String()]
-	if !ok {
-		return id, NewMockBoundsError("ResolveNameToIDUntrusted", "team name", teamName)
+	for name, teamSpec := range l.unit.Teams {
+		if teamName.String() == name {
+			id = teamSpec.ID
+		}
 	}
-	return id, nil
+	if len(id) > 0 {
+		return id, nil
+	}
+	return id, NewMockBoundsError("ResolveNameToIDUntrusted", "team name", teamName)
 }
 
 func (l *MockLoaderContext) PerUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (key *libkb.NaclDHKeyPair, err error) {
