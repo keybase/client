@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -20,19 +22,23 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		return nil, err
+	}
 
 	cli, err := GetTeamsClient(g)
 	if err != nil {
 		return nil, err
 	}
 	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
-	if err != nil {
-		return nil, err
-	}
 	if err == nil {
 		ret := keybase1.UserOrTeamResult_TEAM
 		return &ret, nil
 	}
-	// concat errs intelligently..notfound NAW
-	return nil, err
+	ase, ok := err.(libkb.AppStatusError)
+	if !ok || keybase1.StatusCode(ase.Code) != keybase1.StatusCode_SCTeamNotFound {
+		return nil, err
+	}
+
+	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a username or a team name.", name)}
 }

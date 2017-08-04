@@ -4,11 +4,12 @@
 package client
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
