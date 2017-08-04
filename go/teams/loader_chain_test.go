@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -47,16 +47,16 @@ func TestUnits(t *testing.T) {
 	t.Logf("running units")
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
-	jsonDir := path.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
+	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
 	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
-		jsonDir = path.Join(cwd, "../../../keybase-test-vectors/teamchains")
+		jsonDir = filepath.Join(cwd, "../../../keybase-test-vectors/teamchains")
 	}
 	files, err := ioutil.ReadDir(jsonDir)
 	require.NoError(t, err)
 	var nRun int
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
-			runUnitFile(t, path.Join(jsonDir, f.Name()))
+			runUnitFile(t, filepath.Join(jsonDir, f.Name()))
 			nRun++
 		}
 	}
@@ -65,7 +65,7 @@ func TestUnits(t *testing.T) {
 }
 
 func runUnitFile(t *testing.T, jsonPath string) {
-	fileName := path.Base(jsonPath)
+	fileName := filepath.Base(jsonPath)
 	t.Logf("reading test json file: %v", fileName)
 	data, err := ioutil.ReadFile(jsonPath)
 	require.NoError(t, err)
