@@ -68,25 +68,29 @@ func newSimpleFS(config libkbfs.Config) *SimpleFS {
 	}
 }
 
+func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
+	return libkbfs.CtxWithRandomIDReplayable(ctx, ctxIDKey, ctxOpID, k.log)
+}
+
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Cannot be a single file to get flags/status,
 // must be a directory.
-func (k *SimpleFS) SimpleFSList(_ context.Context, arg keybase1.SimpleFSListArg) error {
-	return k.startAsync(arg.OpID, keybase1.NewOpDescriptionWithList(
+func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) error {
+	return k.startAsync(ctx, arg.OpID, keybase1.NewOpDescriptionWithList(
 		keybase1.ListArgs{
 			OpID: arg.OpID, Path: arg.Path,
 		}), func(ctx context.Context) (err error) {
 		var children map[string]libkbfs.EntryInfo
 
 		rawPath := arg.Path.Kbfs()
-		wantPublic := false
 		switch {
 		case rawPath == `/public`:
-			wantPublic = true
-			fallthrough
+			children, err = k.favoriteList(ctx, arg.Path, tlf.Public)
 		case rawPath == `/private`:
-			children, err = k.favoriteList(ctx, arg.Path, wantPublic)
+			children, err = k.favoriteList(ctx, arg.Path, tlf.Private)
+		case rawPath == `/team`:
+			children, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
 		default:
 			node, ei, err := k.getRemoteNode(ctx, arg.Path)
 			if err != nil {
@@ -129,7 +133,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, wantPub
 
 	res := make(map[string]libkbfs.EntryInfo, len(favs))
 	for _, fav := range favs {
-		if (fav.Type == tlf.Public) != wantPublic {
+		if fav.Type != t {
 			continue
 		}
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
@@ -665,8 +669,9 @@ func remotePath(path keybase1.Path) (ps []string, t tlf.Type, err error) {
 		t = tlf.Private
 	case ps[0] == `public`:
 		t = tlf.Public
+	case ps[0] == `team`:
+		t = tlf.SingleTeam
 	default:
-		// TODO: support single-team TLFs
 		return nil, tlf.Private, errInvalidRemotePath
 
 	}
