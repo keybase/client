@@ -105,6 +105,15 @@ function* onInboxStale(): SagaGenerator<any, any> {
     )
 
     const incoming = yield loadInboxChanMap.race()
+
+    if (incoming.finished) {
+      yield put(Creators.setInboxUntrustedState('loaded'))
+      if (incoming.finished.error) {
+        throw new Error(`Can't load inbox ${incoming.finished.error}`)
+      }
+      return
+    }
+
     if (
       !incoming['chat.1.chatUi.chatInboxUnverified'] ||
       !incoming['chat.1.chatUi.chatInboxUnverified'].response
