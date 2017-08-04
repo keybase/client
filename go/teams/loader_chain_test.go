@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -40,6 +41,8 @@ type TestCase struct {
 	Expect struct {
 		Error       bool   `json:"error"`
 		ErrorSubstr string `json:"error_substr"`
+		ErrorType   string `json:"error_type"`
+		Todo        bool   `json:"todo"`
 	} `json:"expect"`
 }
 
@@ -53,15 +56,18 @@ func TestUnits(t *testing.T) {
 	}
 	files, err := ioutil.ReadDir(jsonDir)
 	require.NoError(t, err)
-	var nRun int
+	var runLog []string
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
 			runUnitFile(t, filepath.Join(jsonDir, f.Name()))
-			nRun++
+			runLog = append(runLog, f.Name())
 		}
 	}
-	t.Logf("ran %v units", nRun)
-	require.NotZero(t, nRun, "found no test units")
+	require.NotZero(t, runLog, "found no test units")
+	t.Logf("ran %v units", len(runLog))
+	for _, name := range runLog {
+		t.Logf("  ✓ %v", name)
+	}
 }
 
 func runUnitFile(t *testing.T, jsonPath string) {
@@ -109,6 +115,9 @@ func runUnit(t *testing.T, unit TestCase) {
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name: mock.defaultTeamName.String(),
 	})
+	if err != nil {
+		t.Logf("got error: [%T] %v", err, err)
+	}
 	expect := unit.Expect
 	if !expect.Error {
 		require.NoError(t, err, "unit: %v", unit.FileName)
@@ -121,5 +130,9 @@ func runUnit(t *testing.T, unit TestCase) {
 		if len(expect.ErrorSubstr) > 0 {
 			require.Contains(t, errstr, expect.ErrorSubstr)
 		}
+		if len(expect.ErrorType) > 0 {
+			require.Equal(t, expect.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type")
+		}
 	}
+	require.False(t, expect.Todo, "test marked as TODO")
 }
