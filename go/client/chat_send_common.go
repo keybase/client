@@ -23,6 +23,7 @@ type ChatSendArg struct {
 	hasTTY        bool
 	nonBlock      bool
 	team          bool
+	mustNotExist  bool
 }
 
 func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
@@ -38,6 +39,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 
 	conversation, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
+		MustNotExist:      c.mustNotExist,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
@@ -63,11 +65,6 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	// Do one of set topic name, set headline, or send message
 	switch {
 	case c.setTopicName != "":
-		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT &&
-			conversation.GetMembersType() != chat1.ConversationMembersType_TEAM {
-			g.UI.GetTerminalUI().Printf("We are not supporting setting channels for chat conversations yet (except on team chats). Ignoring --set-channel >.<\n")
-			return nil
-		}
 		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
 		msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 	case c.setHeadline != "":
