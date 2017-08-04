@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import {Text, MultiAvatar, Icon, Usernames, Markdown, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import memoize from 'lodash/memoize'
 
 import {List} from 'immutable'
 import type {Props} from '.'
@@ -185,55 +186,96 @@ class BottomLine
   }
 }
 
-const Avatars = ({
-  participants,
-  youNeedToRekey,
-  participantNeedToRekey,
-  isMuted,
-  hasUnread,
-  isSelected,
-  backgroundColor,
-}) => {
-  const avatarCount = Math.min(2, participants.count())
+class Avatars
+  extends PureComponent<
+    void,
+    {
+      participants: List<string>,
+      youNeedToRekey: boolean,
+      participantNeedToRekey: boolean,
+      isMuted: boolean,
+      isSelected: boolean,
+      backgroundColor: string,
+    },
+    void
+  > {
+  render() {
+    const {
+      participants,
+      youNeedToRekey,
+      participantNeedToRekey,
+      isMuted,
+      isSelected,
+      backgroundColor,
+    } = this.props
 
-  let icon
-  if (isMuted) {
-    icon = <Icon type={isSelected ? 'icon-shh-active-16' : 'icon-shh-16'} style={avatarMutedIconStyle} />
-  } else if (participantNeedToRekey || youNeedToRekey) {
-    icon = (
-      <Icon
-        type={isSelected ? 'icon-addon-lock-active-8' : 'icon-addon-lock-8'}
-        style={avatarLockIconStyle}
-      />
+    const avatarCount = Math.min(2, participants.count())
+
+    let icon
+    if (isMuted) {
+      const type = isSelected
+        ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
+        : isMobile ? 'icon-shh-24' : 'icon-shh-16'
+      icon = <Icon type={type} style={avatarMutedIconStyle} />
+    } else if (participantNeedToRekey || youNeedToRekey) {
+      const type = isSelected
+        ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
+        : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
+      icon = <Icon type={type} style={avatarLockIconStyle} />
+    }
+
+    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
+    const avatarProps = participants
+      .slice(0, 2)
+      .map((username, idx) => ({
+        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+        loadingColor: globalColors.lightGrey,
+        size: isMobile ? 32 : 24,
+        username,
+        skipBackground: true,
+      }))
+      .toArray()
+
+    return (
+      <Box style={avatarBoxStyle(backgroundColor)}>
+        <Box style={avatarInnerBoxStyle}>
+          <MultiAvatar
+            singleSize={40}
+            multiSize={32}
+            avatarProps={avatarProps}
+            style={{...multiStyle(backgroundColor), opacity}}
+          />
+          {icon}
+        </Box>
+      </Box>
     )
   }
+}
 
-  const avatarProps = participants
-    .slice(0, 2)
-    .map((username, idx) => ({
-      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-      loadingColor: globalColors.lightGrey,
-      opacity: youNeedToRekey || participantNeedToRekey ? 0.4 : 1,
-      size: 24,
-      username,
-    }))
-    .toArray()
+const multiStyle = memoize(backgroundColor => {
+  return {
+    alignSelf: 'center',
+    backgroundColor,
+  }
+})
 
-  return (
-    <div
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'flex-start',
-        maxWidth: 48,
-        paddingLeft: globalMargins.tiny,
-      }}
-    >
-      <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} />
-      {icon}
-    </div>
-  )
+const avatarBoxStyle = memoize(backgroundColor => {
+  return {
+    ..._avatarBoxStyle,
+    backgroundColor,
+  }
+})
+
+const _avatarBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  maxWidth: isMobile ? 56 : 48,
+  minWidth: isMobile ? 56 : 48,
+  paddingLeft: globalMargins.xtiny,
+}
+const avatarInnerBoxStyle = {
+  position: 'relative',
 }
 
 const Row = (props: Props) => {
