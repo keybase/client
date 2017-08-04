@@ -2454,6 +2454,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 					Conv:        conv.Triple,
 					MessageType: chat1.MessageType_TEXT,
 					TlfName:     conv.TlfName,
+					Sender:      uid,
 				},
 				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "PUSH",
@@ -2475,12 +2476,14 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		enc := codec.NewEncoderBytes(&data, &mh)
 		require.NoError(t, enc.Encode(msg))
 		encMsg := base64.StdEncoding.EncodeToString(data)
-		_, err = ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
+		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
 			chat1.UnboxMobilePushNotificationArg{
 				ConvID:      conv.Id.String(),
 				MembersType: mt,
 				Payload:     encMsg,
 			})
 		require.NoError(t, err)
+		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
+			unboxRes)
 	})
 }
