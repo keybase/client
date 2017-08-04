@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box} from '../../../common-adapters'
+import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate, collapseStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import memoize from 'lodash/memoize'
@@ -278,7 +278,53 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-const Row = (props: Props) => {
+class Row extends PureComponent<void, Props, void> {
+  render() {
+    const props = this.props
+    return (
+      <ClickableBox
+        onClick={() => props.onSelectConversation(props.conversationIDKey)}
+        style={{backgroundColor: props.backgroundColor}}
+      >
+        <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
+          <Avatars
+            backgroundColor={props.backgroundColor}
+            isMuted={props.isMuted}
+            isSelected={props.isSelected}
+            participantNeedToRekey={props.participantNeedToRekey}
+            participants={props.participants}
+            youNeedToRekey={props.youNeedToRekey}
+          />
+          <Box
+            style={{
+              ...conversationRowStyle,
+              backgroundColor: props.backgroundColor,
+            }}
+          >
+            <TopLine
+              hasUnread={props.hasUnread}
+              participants={props.participants}
+              showBold={props.showBold}
+              subColor={props.subColor}
+              timestamp={props.timestamp}
+              usernameColor={props.usernameColor}
+            />
+            <BottomLine
+              backgroundColor={props.backgroundColor}
+              participantNeedToRekey={props.participantNeedToRekey}
+              showBold={props.showBold}
+              snippet={props.snippet}
+              subColor={props.subColor}
+              youNeedToRekey={props.youNeedToRekey}
+            />
+          </Box>
+        </Box>
+      </ClickableBox>
+    )
+  }
+}
+
+const RowOLD = (props: Props) => {
   return (
     <div
       onClick={() => props.onSelectConversation(props.conversationIDKey)}
