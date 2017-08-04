@@ -804,7 +804,7 @@ func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	req keybase1.FSEditListRequest) (err error) {
-	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+	ctx = CtxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
@@ -900,7 +900,7 @@ func (k *KeybaseServiceBase) TeamChanged(
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	query keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
 	if ctx, err = makeExtendedIdentify(
-		ctxWithRandomIDReplayable(ctx,
+		CtxWithRandomIDReplayable(ctx,
 			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
 		query.IdentifyBehavior,
 	); err != nil {
@@ -941,7 +941,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	ctx context.Context, query keybase1.TLFQuery) (
 	res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	if ctx, err = makeExtendedIdentify(
-		ctxWithRandomIDReplayable(ctx,
+		CtxWithRandomIDReplayable(ctx,
 			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
 		query.IdentifyBehavior,
 	); err != nil {

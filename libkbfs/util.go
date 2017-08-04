@@ -81,7 +81,9 @@ const (
 	CtxBackgroundSyncKey CtxBackgroundSyncKeyType = iota
 )
 
-func ctxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
+// CtxWithRandomIDReplayable returns a replayable context with a
+// random id associated with the given log key.
+func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 	tagName string, log logger.Logger) context.Context {
 	ctx = logger.ConvertRPCTagsToLogTags(ctx)
 

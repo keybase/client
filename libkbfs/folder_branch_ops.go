@@ -5375,7 +5375,7 @@ const (
 const CtxFBOOpID = "FBOID"
 
 func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
-	return ctxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
+	return CtxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
 }
 
 func (fbo *folderBranchOps) newCtxWithFBOID() (context.Context, context.CancelFunc) {

@@ -619,7 +619,7 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 
 func (teh *TlfEditHistory) process(ctx context.Context) {
 	for rmds := range teh.rmdsChan {
-		ctx := ctxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, teh.log)
+		ctx := CtxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, teh.log)
 		err := teh.updateHistory(ctx, rmds)
 		if err != nil {
 			teh.log.CWarningf(ctx,

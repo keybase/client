@@ -163,7 +163,7 @@ func NewRekeyRequestWithPaperPromptEvent() RekeyEvent {
 
 // NewRekeyRequestEvent creates a non-delayed rekey request Event.
 func NewRekeyRequestEvent() RekeyEvent {
-	return newRekeyRequestEventWithContext(ctxWithRandomIDReplayable(
+	return newRekeyRequestEventWithContext(CtxWithRandomIDReplayable(
 		context.Background(), CtxRekeyIDKey, CtxRekeyOpID, nil))
 }
 

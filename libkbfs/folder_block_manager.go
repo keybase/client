@@ -604,7 +604,7 @@ const CtxFBMOpID = "FBMID"
 
 func (fbm *folderBlockManager) ctxWithFBMID(
 	ctx context.Context) context.Context {
-	return ctxWithRandomIDReplayable(ctx, CtxFBMIDKey, CtxFBMOpID, fbm.log)
+	return CtxWithRandomIDReplayable(ctx, CtxFBMIDKey, CtxFBMOpID, fbm.log)
 }
 
 // Run the passed function with a context that's canceled on shutdown.

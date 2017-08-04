@@ -513,7 +513,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 	}()
 
 	for {
-		ctx := ctxWithRandomIDReplayable(ctx, CtxJournalIDKey, CtxJournalOpID,
+		ctx := CtxWithRandomIDReplayable(ctx, CtxJournalIDKey, CtxJournalOpID,
 			j.log)
 		switch {
 		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
