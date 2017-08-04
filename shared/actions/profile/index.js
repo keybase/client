@@ -73,26 +73,32 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
 
+  yield put(switchTo([profileTab]))
   if (!username.includes('@')) {
-    yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
-  } else {
-    const searchResult = yield select(Selectors.searchResultSelector, username)
-    const fullname = searchResult.rightFullname
-    const fullUsername = username
-    const serviceName = searchResult.leftService
-    yield put(
-      navigateAppend(
-        [
-          {
-            props: {fullname, fullUsername, serviceName, username: searchResult.leftUsername},
-            selected: 'nonUserProfile',
-          },
-        ],
-        [profileTab]
-      )
-    )
+    return
   }
+
+  const searchResult = yield select(Selectors.searchResultSelector, username)
+  if (!searchResult) {
+    yield put(navigateAppend([{props: {username}, selected: 'nonUserProfile'}], [profileTab]))
+    return
+  }
+
+  const fullname = searchResult.rightFullname
+  const fullUsername = username
+  const serviceName = searchResult.leftService
+  yield put(
+    navigateAppend(
+      [
+        {
+          props: {fullname, fullUsername, serviceName, username: searchResult.leftUsername},
+          selected: 'nonUserProfile',
+        },
+      ],
+      [profileTab]
+    )
+  )
 }
 
 function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {

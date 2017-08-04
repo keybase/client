@@ -11,8 +11,10 @@ const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
   searchQueryToResult.get(searchQuery)
 
-const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) =>
-  searchResults.get(username).toObject()
+const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) => {
+  const result = searchResults.get(username)
+  return result ? result.toObject() : null
+}
 
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
