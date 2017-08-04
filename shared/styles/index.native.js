@@ -115,6 +115,7 @@ function backgroundURL(...path: Array<string>): Object {
 const hairlineWidth = StyleSheet.hairlineWidth
 const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 const collapseStyles = (styles: Array<Object> | Object) => styles
+const lineHeight = (h: number) => h
 
 export {
   backgroundURL,
@@ -123,6 +124,7 @@ export {
   globalMargins,
   globalStyles,
   hairlineWidth,
+  lineHeight,
   statusBarHeight,
   styleSheetCreate,
 }

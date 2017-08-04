@@ -175,6 +175,7 @@ const collapseStyles = (styles: Array<Object> | Object) => {
     return styles
   }
 }
+const lineHeight = (h: number) => `${h}px`
 
 export {
   backgroundURL,
@@ -182,6 +183,7 @@ export {
   globalColors,
   globalMargins,
   globalStyles,
+  lineHeight,
   hairlineWidth,
   styleSheetCreate,
   transition,
