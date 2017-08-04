@@ -1779,8 +1779,8 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %s", getNodeIDStr(dir))
 	defer func() {
-		fbo.deferLog.CDebugf(ctx, "GetDirChildren %s done: %+v",
-			getNodeIDStr(dir), err)
+		fbo.deferLog.CDebugf(ctx, "GetDirChildren %s done, %d entries: %+v",
+			getNodeIDStr(dir), len(children), err)
 	}()
 
 	err = fbo.checkNode(dir)

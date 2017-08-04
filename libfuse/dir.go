@@ -818,6 +818,7 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 		}
 		res = append(res, fde)
 	}
+	d.folder.fs.log.CDebugf(ctx, "Returning %d entries", len(res))
 	return res, nil
 }
 
