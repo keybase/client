@@ -23,7 +23,8 @@ import * as Selectors from '../../constants/selectors'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
+import {maybeUpgradeSearchResultIdToKeybaseId, serviceIdToService} from '../../constants/search'
+import {parseUserId} from '../../util/platforms'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -79,20 +80,32 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
     return
   }
 
+  let props = {}
   const searchResult = yield select(Selectors.searchResultSelector, username)
-  if (!searchResult) {
-    yield put(navigateAppend([{props: {username}, selected: 'nonUserProfile'}], [profileTab]))
-    return
+  if (searchResult) {
+    props = {
+      fullname: searchResult.rightFullname,
+      fullUsername: username,
+      serviceName: searchResult.leftService,
+      username: searchResult.leftUsername,
+    }
+  } else {
+    const {username: parsedUsername, serviceId} = parseUserId(username)
+    const serviceName = serviceIdToService(serviceId)
+    const fullname = parsedUsername + ' on ' + serviceName
+    props = {
+      fullname: fullname,
+      fullUsername: username,
+      serviceName: serviceName,
+      username: parsedUsername,
+    }
   }
 
-  const fullname = searchResult.rightFullname
-  const fullUsername = username
-  const serviceName = searchResult.leftService
   yield put(
     navigateAppend(
       [
         {
-          props: {fullname, fullUsername, serviceName, username: searchResult.leftUsername},
+          props,
           selected: 'nonUserProfile',
         },
       ],
