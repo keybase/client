@@ -100,11 +100,8 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 	if l.seqnosContains(arg.needSeqnos, link.Seqno()) {
 		return NewStubbedErrorWithNote(link, "Need seqno")
 	}
-	if arg.needAdmin {
+	if arg.needAdmin || !link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
 		return NewStubbedErrorWithNote(link, "Need admin privilege for this action")
-	}
-	if !link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
-		return NewStubbedErrorWithNote(link, "This action is disallowed")
 	}
 	return nil
 }
