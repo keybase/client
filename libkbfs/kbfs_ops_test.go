@@ -695,6 +695,39 @@ func testPutBlockInCache(
 	}
 }
 
+func TestKBFSOpsGetBaseDirChildrenHidesFiles(t *testing.T) {
+	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
+	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
+
+	u, id, rmd := injectNewRMD(t, config)
+
+	rootID := kbfsblock.FakeID(42)
+	dirBlock := NewDirBlock().(*DirBlock)
+	dirBlock.Children["a"] = DirEntry{EntryInfo: EntryInfo{Type: File}}
+	dirBlock.Children[".kbfs_git"] = DirEntry{EntryInfo: EntryInfo{Type: Dir}}
+	blockPtr := makeBP(rootID, rmd, config, u)
+	rmd.data.Dir.BlockPointer = blockPtr
+	node := pathNode{blockPtr, "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	testPutBlockInCache(t, config, node.BlockPointer, id, dirBlock)
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+
+	children, err := config.KBFSOps().GetDirChildren(ctx, n)
+	if err != nil {
+		t.Errorf("Got error on getdir: %+v", err)
+	} else if len(children) != 1 {
+		t.Errorf("Got bad children back: %v", children)
+	}
+	for c, ei := range children {
+		if de, ok := dirBlock.Children[c]; !ok {
+			t.Errorf("No such child: %s", c)
+		} else if de.EntryInfo != ei {
+			t.Errorf("Wrong EntryInfo for child %s: %v", c, ei)
+		}
+	}
+}
+
 func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)

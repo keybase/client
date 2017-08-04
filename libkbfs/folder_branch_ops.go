@@ -3314,6 +3314,10 @@ func (fbo *folderBranchOps) renameLocked(
 		return err
 	}
 
+	if err := checkDisallowedPrefixes(newName); err != nil {
+		return err
+	}
+
 	oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(lState, oldParent)
 	if err != nil {
 		return err
