@@ -62,7 +62,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 	} else {
 		return fmt.Errorf("Must supply team name.")
 	}
-	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
+	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, c.g, tlfName); err != nil {
 		return err
 	}
 	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {

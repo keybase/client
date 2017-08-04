@@ -21,7 +21,7 @@ import (
 )
 
 type CmdChatSend struct {
-	g                *libkb.GlobalContext
+	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
@@ -33,7 +33,9 @@ type CmdChatSend struct {
 }
 
 func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
-	return &CmdChatSend{g: g}
+	return &CmdChatSend{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (c *CmdChatSend) SetTeamChatForTest(n string) {
@@ -66,7 +68,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	return chatSend(context.TODO(), c.g, ChatSendArg{
+	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,
 		setHeadline:      c.setHeadline,
@@ -83,14 +85,13 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
-	c.team = ctx.Bool("team")
 
 	var tlfName string
 	// Get the TLF name from the first position arg
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
 	}
-	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
+	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, c.G(), tlfName); err != nil {
 		return err
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:

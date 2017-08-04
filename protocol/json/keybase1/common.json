@@ -484,6 +484,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UserOrTeamResult",
+      "symbols": [
+        "USER_1",
+        "TEAM_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "RemoteTrack",
       "fields": [

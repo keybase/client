@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,7 +12,9 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 var chatFlags = map[string]cli.Flag{
@@ -95,10 +98,6 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "async",
 		Usage: "Fetch inbox and unbox asynchronously",
 	},
-	"team": cli.BoolFlag{
-		Name:  "team",
-		Usage: "Treat conversation name as a team name",
-	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -113,7 +112,7 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 }
 
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "channel", "public", "private", "team")
+	return mustGetChatFlags("topic-type", "channel", "public", "private")
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -140,20 +139,27 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 	return topicType, err
 }
 
-func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
+func parseConversationResolvingRequest(ctx *cli.Context, g *libkb.GlobalContext, tlfName string) (req chatConversationResolvingRequest, err error) {
 	req.TopicName = utils.SanitizeTopicName(ctx.String("channel"))
 	req.TlfName = tlfName
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
 	}
-	if ctx.Bool("private") {
-		req.Visibility = chat1.TLFVisibility_PRIVATE
-	} else if ctx.Bool("public") {
-		req.Visibility = chat1.TLFVisibility_PUBLIC
-	} else {
-		req.Visibility = chat1.TLFVisibility_ANY
+
+	userOrTeamResult, err := CheckUserOrTeamName(context.TODO(), g, tlfName)
+	if err != nil {
+		return chatConversationResolvingRequest{}, err
 	}
-	if ctx.Bool("team") {
+	switch *userOrTeamResult {
+	case keybase1.UserOrTeamResult_USER:
+		if ctx.Bool("private") {
+			req.Visibility = chat1.TLFVisibility_PRIVATE
+		} else if ctx.Bool("public") {
+			req.Visibility = chat1.TLFVisibility_PUBLIC
+		} else {
+			req.Visibility = chat1.TLFVisibility_ANY
+		}
+	case keybase1.UserOrTeamResult_TEAM:
 		req.MembersType = chat1.ConversationMembersType_TEAM
 	}
 
@@ -189,7 +195,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 
 	fetcher.query.MarkAsRead = markAsRead
 
-	if fetcher.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
+	if fetcher.resolvingRequest, err = parseConversationResolvingRequest(ctx, nil, tlfName); err != nil {
 		return chatCLIConversationFetcher{}, err
 	}
 

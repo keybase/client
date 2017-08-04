@@ -505,6 +505,32 @@ func (o UserOrTeamLite) DeepCopy() UserOrTeamLite {
 	}
 }
 
+type UserOrTeamResult int
+
+const (
+	UserOrTeamResult_USER UserOrTeamResult = 1
+	UserOrTeamResult_TEAM UserOrTeamResult = 2
+)
+
+func (o UserOrTeamResult) DeepCopy() UserOrTeamResult { return o }
+
+var UserOrTeamResultMap = map[string]UserOrTeamResult{
+	"USER": 1,
+	"TEAM": 2,
+}
+
+var UserOrTeamResultRevMap = map[UserOrTeamResult]string{
+	1: "USER",
+	2: "TEAM",
+}
+
+func (e UserOrTeamResult) String() string {
+	if v, ok := UserOrTeamResultRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type RemoteTrack struct {
 	Username string `codec:"username" json:"username"`
 	Uid      UID    `codec:"uid" json:"uid"`
