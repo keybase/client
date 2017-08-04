@@ -292,7 +292,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 }
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
-	h.G().Log.Debug("HelloIAm: %d - %+v", h.connID, arg)
+	h.G().Log.Debug("HelloIAm: %d - {Pid:%v ClientType:%v Desc:%v}", h.connID, arg.Pid, arg.ClientType, arg.Desc)
 	return h.G().ConnectionManager.Label(h.connID, arg)
 }
 
