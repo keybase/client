@@ -467,7 +467,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	// Handle a nil topic name with default values for the Gbers type specified
+	// Handle a nil topic name with default values for the members type specified
 	if arg.TopicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name
 		switch arg.MembersType {
@@ -2266,6 +2266,7 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushID st
 	}
 	defer conn.Shutdown()
 
+	// Make remote successful call on our ad hoc conn
 	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
 	if err = cli.RemoteNotificationSuccessful(ctx,
 		chat1.RemoteNotificationSuccessfulArg{
@@ -2309,6 +2310,8 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	}
 	defer func() {
 		if err == nil {
+			// If we have succeeded, let us let the server know that it can abort the push notification
+			// associated with this silent one
 			h.sendRemoteNotificationSuccessful(ctx, arg.PushID)
 		}
 	}()
@@ -2333,6 +2336,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 
+	// Let's just take this whole message and add it to the message body cache.
 	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
 	if err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
