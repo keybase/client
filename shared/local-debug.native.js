@@ -33,6 +33,7 @@ let config: {[key: string]: any} = {
   overrideLoggedInTab: null,
   printOutstandingRPCs: false,
   printRPC: false,
+  printBridgeB64: false, // raw b64 going over the wire
   printRoutes: false,
   reactPerf: false,
   reduxSagaLogger: false,
@@ -89,6 +90,7 @@ if (PERF) {
     overrideLoggedInTab: null,
     printOutstandingRPCs: false,
     printRPC: false,
+    printBridgeB64: true,
     printRoutes: false,
     reactPerf: false,
     reduxSagaLogger: false,
@@ -116,6 +118,7 @@ export const {
   overrideLoggedInTab,
   printOutstandingRPCs,
   printRPC,
+  printBridgeB64,
   printRoutes,
   reactPerf,
   reduxDevToolsSelect,

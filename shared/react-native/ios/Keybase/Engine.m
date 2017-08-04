@@ -24,6 +24,7 @@
 - (void)setupQueues;
 - (void)runWithData:(NSString *)data;
 - (void)reset;
+- (void)onRNReload;
 
 @end
 
@@ -33,10 +34,17 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
     [self setupQueues];
     [self setupKeybaseWithSettings:settings error:error];
   }
   return self;
+}
+
+// Reload Go if we reload the JS
+- (void)onRNReload {
+  self.keybaseEngine = nil;
+  [self reset];
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
@@ -54,6 +62,7 @@ static NSString *const eventName = @"objc-engine-event";
       NSError *error = nil;
       NSString *data = nil;
       GoKeybaseReadB64(&data, &error);
+
       if (error) {
         NSLog(@"Error reading data: %@", error);
       }
@@ -61,7 +70,12 @@ static NSString *const eventName = @"objc-engine-event";
         if (!self.keybaseEngine) {
           NSLog(@"NO ENGINE");
         }
-        [self.keybaseEngine sendEventWithName:eventName body:data];
+        if (self.keybaseEngine.bridge) {
+          [self.keybaseEngine sendEventWithName:eventName body:data];
+        } else {
+          // dead
+          break;
+        }
       }
     }
   });
