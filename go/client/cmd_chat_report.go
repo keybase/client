@@ -42,7 +42,7 @@ func (c *CmdChatReport) ParseArgv(ctx *cli.Context) error {
 		tlfName = ctx.Args()[0]
 	}
 
-	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, c.G(), tlfName)
+	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName)
 	if err != nil {
 		return err
 	}

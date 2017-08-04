@@ -4,12 +4,11 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
@@ -68,6 +67,14 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *CmdChatSend) Run() (err error) {
+	err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
+	if err != nil {
+		return err
+	}
+	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
+	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	}
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,
@@ -91,12 +98,8 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
 	}
-	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, c.G(), tlfName); err != nil {
+	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
-	}
-	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
-	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
-		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
 
 	nActions := 0

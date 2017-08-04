@@ -8,7 +8,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
@@ -21,7 +20,15 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
-	_, err = teams.GetForTeamManagementByStringName(ctx, g, name, false)
+
+	cli, err := GetTeamsClient(g)
+	if err != nil {
+		return nil, err
+	}
+	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
+	if err != nil {
+		return nil, err
+	}
 	if err == nil {
 		ret := keybase1.UserOrTeamResult_TEAM
 		return &ret, nil

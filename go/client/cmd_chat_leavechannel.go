@@ -70,7 +70,7 @@ func (c *CmdChatLeaveChannel) ParseArgv(ctx *cli.Context) (err error) {
 	teamName := ctx.Args().Get(0)
 	topicName := ctx.Args().Get(1)
 
-	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, c.G(), teamName); err != nil {
+	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, teamName); err != nil {
 		return err
 	}
 
