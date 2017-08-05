@@ -2319,8 +2319,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	// Parse the message payload and convID
 	bConvID, err := hex.DecodeString(arg.ConvID)
 	if err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: invalid convID: %s msg: %s", arg.ConvID,
-			err.Error())
+		h.Debug(ctx, "UnboxMobilePushNotification: invalid convID: %s msg: %s", arg.ConvID, err.Error())
 		return res, err
 	}
 	convID := chat1.ConversationID(bConvID)
