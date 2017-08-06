@@ -18,23 +18,30 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTextByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, membersType, ident, ri)
+func SendTextByName(ctx context.Context, g *globals.Context, name string, topicName string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
+	ri chat1.RemoteInterface) error {
+	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
 	return helper.SendText(ctx, text)
 }
 
-func SendMsgByName(ctx context.Context, g *globals.Context, name string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody, msgType chat1.MessageType, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, membersType, ident, ri)
+func SendMsgByName(ctx context.Context, g *globals.Context, name string, topicName string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+	msgType chat1.MessageType, ri chat1.RemoteInterface) error {
+	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
 	return helper.SendBody(ctx, body, msgType)
 }
 
 type sendHelper struct {
+	utils.DebugLabeler
+
 	name        string
 	membersType chat1.ConversationMembersType
 	ri          chat1.RemoteInterface
 	ident       keybase1.TLFIdentifyBehavior
 
 	canonicalName string
+	topicName     string
 	tlfID         chat1.TLFID
 	convID        chat1.ConversationID
 	triple        chat1.ConversationIDTriple
@@ -42,11 +49,13 @@ type sendHelper struct {
 	globals.Contextified
 }
 
-func newSendHelper(g *globals.Context, name string, membersType chat1.ConversationMembersType,
-	ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
+func newSendHelper(g *globals.Context, name string, topicName string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g, "sendHelper", false),
 		name:         name,
+		topicName:    topicName,
 		membersType:  membersType,
 		ri:           ri,
 		ident:        ident,
@@ -83,33 +92,24 @@ func (s *sendHelper) nameInfo(ctx context.Context) error {
 }
 
 func (s *sendHelper) conversation(ctx context.Context) error {
-	uid, err := CurrentUID(s.G())
+	kuid, err := CurrentUID(s.G())
 	if err != nil {
 		return err
 	}
+	uid := gregor1.UID(kuid.ToBytes())
 
-	vis := chat1.TLFVisibility_PRIVATE
-	topic := chat1.TopicType_CHAT
-	query := chat1.GetInboxLocalQuery{
-		Name: &chat1.NameQuery{
-			Name:        s.canonicalName,
-			MembersType: s.membersType,
-		},
-		TlfVisibility: &vis,
-		TopicType:     &topic,
-	}
-
-	ib, _, err := s.G().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
+	oneChatPerTLF := true
+	convs, _, err := FindConversations(ctx, s.G(), s.DebugLabeler, s.remoteInterface, uid, s.canonicalName,
+		chat1.TopicType_CHAT, s.membersType, chat1.TLFVisibility_PRIVATE, s.topicName, &oneChatPerTLF)
 	if err != nil {
 		return err
 	}
-
-	if len(ib.Convs) > 1 {
+	if len(convs) > 1 {
 		return fmt.Errorf("multiple conversations matched %q", s.canonicalName)
 	}
-	if len(ib.Convs) == 1 {
-		s.convID = ib.Convs[0].Info.Id
-		s.triple = ib.Convs[0].Info.Triple
+	if len(convs) == 1 {
+		s.convID = convs[0].Info.Id
+		s.triple = convs[0].Info.Triple
 		return nil
 	}
 
@@ -325,4 +325,111 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 
 	return res, nil
+}
+
+func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType, vis chat1.TLFVisibility, topicName string,
+	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	query := &chat1.GetInboxLocalQuery{
+		Name: &chat1.NameQuery{
+			Name:        tlfName,
+			MembersType: membersType,
+		},
+		TlfVisibility:     &vis,
+		TopicName:         &topicName,
+		TopicType:         &topicType,
+		OneChatTypePerTLF: oneChatPerTLF,
+	}
+	inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
+	if err != nil {
+		return res, rl, err
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+
+	// If we have inbox hits, return those
+	if len(inbox.Convs) > 0 {
+		debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
+			tlfName, len(inbox.Convs))
+		res = inbox.Convs
+	} else if membersType == chat1.ConversationMembersType_TEAM {
+		// If this is a team chat that we are looking for, then let's try searching all
+		// chats on the team to see if any match the arguments before giving up.
+		// No need to worry (yet) about conflicting with public code path, since there
+		// are not any public team chats.
+
+		// Fetch the TLF ID from specified name
+		nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
+		if err != nil {
+			debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
+			return res, rl, err
+		}
+		tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
+			uid, nameInfo.ID, topicType, membersType, false)
+		if err != nil {
+			debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
+			return res, rl, err
+		}
+		rl = append(rl, irl...)
+
+		for _, tlfConv := range tlfConvs {
+			if utils.GetTopicName(tlfConv) == topicName {
+				res = append(res, tlfConv)
+			}
+		}
+		if len(res) > 0 {
+			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
+		}
+	} else if vis == chat1.TLFVisibility_PUBLIC {
+		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
+
+		// Check for offline and return an error
+		if !g.Syncer.IsConnected(ctx) {
+			return res, rl, OfflineError{}
+		}
+
+		// If we miss the inbox, and we are looking for a public TLF, let's try and find
+		// any conversation that matches
+		nameInfo, err := GetInboxQueryNameInfo(ctx, g, query)
+		if err != nil {
+			return res, rl, err
+		}
+
+		// Call into gregor to try and find some public convs
+		pubConvs, err := ri().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
+			TlfID:            nameInfo.ID,
+			TopicType:        topicType,
+			SummarizeMaxMsgs: true,
+		})
+		if err != nil {
+			return res, rl, err
+		}
+		if pubConvs.RateLimit != nil {
+			rl = append(rl, *pubConvs.RateLimit)
+		}
+
+		// Localize the convs (if any)
+		if len(pubConvs.Conversations) > 0 {
+			localizer := NewBlockingLocalizer(g)
+			convsLocal, err := localizer.Localize(ctx, uid, chat1.Inbox{
+				ConvsUnverified: pubConvs.Conversations,
+			})
+			if err != nil {
+				return res, rl, err
+			}
+
+			// Search for conversations that match the topic name
+			for _, convLocal := range convsLocal {
+				if convLocal.Info.TopicName == topicName {
+					debugger.Debug(ctx, "FindConversation: found matching public conv: id: %s topicName: %s",
+						convLocal.GetConvID(), topicName)
+					res = append(res, convLocal)
+				}
+			}
+		}
+
+	}
+	return res, rl, nil
 }
