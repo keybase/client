@@ -154,14 +154,28 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 }
 
 func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, types.Sender, types.Sender, *chatListener) {
+	var ri chat1.RemoteInterface
 	world := NewChatMockWorld(t, "chatsender", numUsers)
-	ri := kbtest.NewChatRemoteMock(world)
+	ri = kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	g := globals.NewContext(tc.G, tc.ChatG)
-	ctx := newTestContextWithTlfMock(tc, tlf)
+
+	var ctx context.Context
+	if useRemoteMock {
+		ctx = newTestContextWithTlfMock(tc, tlf)
+	} else {
+		var sessionToken string
+		ctx = newTestContext(tc)
+		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
+			sessionToken = s.GetToken()
+		}, "test session")
+		gh := newGregorTestConnection(tc.Context(), u.User.GetUID().ToBytes(), sessionToken)
+		require.NoError(t, gh.Connect(ctx))
+		ri = gh.GetClient()
+	}
 	boxer := NewBoxer(g)
 	getRI := func() chat1.RemoteInterface { return ri }
 	baseSender := NewBlockingSender(g, boxer, nil, getRI)
@@ -198,6 +212,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	chatSyncer.isConnected = true
 	g.Syncer = chatSyncer
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
+	pushHandler := NewPushHandler(g)
+	pushHandler.SetClock(world.Fc)
+	g.PushHandler = pushHandler
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
