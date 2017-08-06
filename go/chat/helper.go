@@ -386,7 +386,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
 		// Check for offline and return an error
-		if !g.Syncer.IsConnected(ctx) {
+		if g.InboxSource.IsOffline() {
 			return res, rl, OfflineError{}
 		}
 
