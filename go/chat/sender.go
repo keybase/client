@@ -779,11 +779,6 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_DUPLICATE, true
 	}
 
-	// Check for duplicate connection error
-	if err == ErrDuplicateConnection {
-		return chat1.OutboxErrorType_DUPECONN, false
-	}
-
 	// Check attempts otherwise
 	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_MISC, true
@@ -802,7 +797,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	}
 
 	switch oserr.Typ {
-	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_DUPECONN:
+	case chat1.OutboxErrorType_DUPLICATE:
 		// Only send notification to frontend if it is not a duplicate, we just want these to go away
 	default:
 		obr.State = chat1.NewOutboxStateWithError(oserr)

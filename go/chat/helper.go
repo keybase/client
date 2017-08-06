@@ -53,7 +53,7 @@ func newSendHelper(g *globals.Context, name string, topicName string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "sendHelper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
 		name:         name,
 		topicName:    topicName,
 		membersType:  membersType,
