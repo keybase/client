@@ -101,6 +101,9 @@ func TestSendTextByName(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
+			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(inbox.Convs))
 		default:
 			// No second topic name on KBFS chats
 			require.Error(t, err)
