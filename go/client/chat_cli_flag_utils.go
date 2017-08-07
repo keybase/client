@@ -4,6 +4,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,7 +12,9 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 var chatFlags = map[string]cli.Flag{
@@ -95,10 +98,6 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "async",
 		Usage: "Fetch inbox and unbox asynchronously",
 	},
-	"team": cli.BoolFlag{
-		Name:  "team",
-		Usage: "Treat conversation name as a team name",
-	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -113,7 +112,7 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 }
 
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "channel", "public", "private", "team")
+	return mustGetChatFlags("topic-type", "channel", "public", "private")
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -146,6 +145,7 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
 	}
+
 	if ctx.Bool("private") {
 		req.Visibility = chat1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
@@ -153,13 +153,28 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	} else {
 		req.Visibility = chat1.TLFVisibility_ANY
 	}
-	if ctx.Bool("team") {
+
+	return req, nil
+}
+
+// The purpose of this function is to provide more
+// information in resolvingRequest, with the ability
+// to use the socket, since this is not available
+// at parse time.
+func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResolvingRequest) (err error) {
+	userOrTeamResult, err := CheckUserOrTeamName(context.TODO(), g, req.TlfName)
+	if err != nil {
+		return err
+	}
+	switch *userOrTeamResult {
+	case keybase1.UserOrTeamResult_USER:
+		req.MembersType = chat1.ConversationMembersType_KBFS
+	case keybase1.UserOrTeamResult_TEAM:
 		req.MembersType = chat1.ConversationMembersType_TEAM
 	}
-
 	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 &&
 		req.MembersType != chat1.ConversationMembersType_TEAM {
-		return chatConversationResolvingRequest{}, errors.New("multiple topics only supported for teams and dev channels")
+		return errors.New("multiple topics only supported for teams and dev channels")
 	}
 
 	// Set the default topic name to #general if none is specified
@@ -167,7 +182,7 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 		req.TopicName = chat.DefaultTeamTopic
 	}
 
-	return req, nil
+	return nil
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {

@@ -104,6 +104,11 @@ export const CommonSeqType = {
   semiprivate: 3,
 }
 
+export const CommonUserOrTeamResult = {
+  user: 1,
+  team: 2,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -5658,6 +5663,10 @@ export type UserOrTeamLite = {
   id: UserOrTeamID,
   name: string,
 }
+
+export type UserOrTeamResult =
+    1 // USER_1
+  | 2 // TEAM_2
 
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
