@@ -4,7 +4,7 @@
         name: eslint
         entry: shared/node_modules/.bin/eslint
         language: node
-        files: \.(js|flow)$
+        files: \.js$
         args: [
             '--quiet'
         ]
