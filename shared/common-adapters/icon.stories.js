@@ -12,7 +12,7 @@ import type {IconType} from './icon'
 
 const commonProps = {
   hint: 'hint text',
-  onClick: () => action('onClick'),
+  onClick: (event: SyntheticEvent) => action('onClick'),
   onMouseEnter: () => action('onMouseEnter'),
   onMouseLeave: () => action('onMouseLeave'),
   style: {
