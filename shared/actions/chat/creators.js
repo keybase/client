@@ -660,12 +660,14 @@ function setInboxUntrustedState(
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
-function stageUserForSearch(user: SearchConstants.SearchResultId): Constants.StageUserForSearch {
-  return {payload: {user}, type: 'chat:stageUserForSearch'}
+function stageUsersForSearch(users: Array<SearchConstants.SearchResultId>): Constants.StageUsersForSearch {
+  return {payload: {users}, type: 'chat:stageUsersForSearch'}
 }
 
-function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.UnstageUserForSearch {
-  return {payload: {user}, type: 'chat:unstageUserForSearch'}
+function unstageUsersForSearch(
+  users: Array<SearchConstants.SearchResultId>
+): Constants.UnstageUsersForSearch {
+  return {payload: {users}, type: 'chat:unstageUsersForSearch'}
 }
 
 function updateThread(
@@ -737,10 +739,10 @@ export {
   setUnboxing,
   setupChatHandlers,
   showEditor,
-  stageUserForSearch,
+  stageUsersForSearch,
   startConversation,
   threadLoadedOffline,
-  unstageUserForSearch,
+  unstageUsersForSearch,
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,

@@ -3,6 +3,7 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
+import uniq from 'lodash/uniq'
 
 const initialState: Constants.State = new Constants.StateRecord()
 const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
@@ -602,12 +603,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setPreviousConversation': {
       return state.set('previousConversation', action.payload.conversationIDKey)
     }
-    case 'chat:stageUserForSearch': {
-      const {payload: {user}} = action
-      if (state.selectedUsersInSearch.includes(user)) {
-        return state
-      }
-      return state.update('selectedUsersInSearch', l => l.push(user))
+    case 'chat:stageUsersForSearch': {
+      const {payload: {users}} = action
+
+      const newList = List(uniq(state.selectedUsersInSearch.toArray().concat(users)))
+      return state.update('selectedUsersInSearch', l => newList)
     }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
@@ -644,9 +644,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .set('searchShowingSuggestions', searchShowingSuggestions)
         .set('searchResultTerm', searchResultTerm)
     }
-    case 'chat:unstageUserForSearch': {
-      const {payload: {user}} = action
-      return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
+    case 'chat:unstageUsersForSearch': {
+      const {payload: {users}} = action
+      return state.update('selectedUsersInSearch', l => l.filterNot(u => users.indexOf(u) !== -1))
     }
     case 'chat:newChat': {
       return state.set('inSearch', true)
