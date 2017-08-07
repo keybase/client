@@ -26,8 +26,8 @@ func (e StubbedError) Error() string {
 	if e.note == nil {
 		return fmt.Sprintf("stubbed link when not expected (seqno %d)", int(e.l.outerLink.Seqno))
 	}
-	return fmt.Sprintf("stubbed link when not expected (seqno %d) (%s)",
-		int(e.l.outerLink.Seqno), *e.note)
+	return fmt.Sprintf("%s (stubbed link when not expected; at seqno %d)",
+		*e.note, int(e.l.outerLink.Seqno))
 }
 
 type InvalidLink struct {
