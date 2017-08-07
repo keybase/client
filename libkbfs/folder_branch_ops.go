@@ -768,12 +768,9 @@ func (fbo *folderBranchOps) setHeadLocked(
 				// written by the client.  But since journaling is on,
 				// then latter case will be handled by onMDFlush when
 				// the update is properly flushed to the server.  So
-				// ignore updates written by this device.
-				session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-				if err != nil {
-					return err
-				}
-				if session.VerifyingKey != md.LastModifyingWriterVerifyingKey() {
+				// ignore updates that haven't yet been put to the
+				// server.
+				if md.putToServer {
 					fbo.setLatestMergedRevisionLocked(
 						ctx, lState, md.Revision(), false)
 				}
@@ -4669,18 +4666,12 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
 			latestMerged := rmds[len(rmds)-1]
-			// If we're running a journal, don't trust our own updates
-			// here because they might have come from our own journal
-			// before the conflict was detected.  Assume we'll hear
-			// about the conflict via callbacks from the journal.
-			if TLFJournalEnabled(fbo.config, fbo.id()) {
-				session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
-				if err != nil {
-					return err
-				}
-				if session.VerifyingKey == latestMerged.LastModifyingWriterVerifyingKey() {
-					return UnmergedError{}
-				}
+			// Don't trust un-put updates here because they might have
+			// come from our own journal before the conflict was
+			// detected.  Assume we'll hear about the conflict via
+			// callbacks from the journal.
+			if !latestMerged.putToServer {
+				return UnmergedError{}
 			}
 
 			// setHeadLocked takes care of merged case
