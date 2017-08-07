@@ -760,10 +760,11 @@ func TestMembershipUpdate(t *testing.T) {
 	require.Equal(t, chat1.InboxVers(2), vers)
 	for _, c := range res {
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
-			require.Fail(t, "removed conv returned")
+			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.ReaderInfo.Status)
+			convs[5].ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 		}
 	}
-	expected := append(convs[:5], append(convs[6:], joinedConvs...)...)
+	expected := append(convs, joinedConvs...)
 	sort.Sort(utils.ConvByConvID(expected))
 	sort.Sort(utils.ConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
