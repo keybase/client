@@ -427,6 +427,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			} else {
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
 			}
+			if nm.Message.ClientHeader.Sender.Eq(uid) &&
+				nm.Message.GetMessageType() == chat1.MessageType_LEAVE {
+				g.Debug(ctx, "chat activity: ignoring our own leave message")
+				return
+			}
 
 			// Update typing status to stopped
 			g.typingMonitor.Update(ctx, chat1.TyperInfo{

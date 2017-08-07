@@ -1019,6 +1019,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	convs := i.mergeConvs(ibox.Conversations, userJoined)
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
+		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
 		removedMap[r.String()] = true
 	}
 	ibox.Conversations = nil
