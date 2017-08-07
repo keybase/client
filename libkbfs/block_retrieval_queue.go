@@ -22,7 +22,7 @@ const (
 	minimalPrefetchWorkerQueueSize       int = 1
 	testBlockRetrievalWorkerQueueSize    int = 5
 	testPrefetchWorkerQueueSize          int = 1
-	defaultOnDemandRequestPriority       int = 1<<30 - 1
+	defaultOnDemandRequestPriority       int = 1 << 30
 	lowestTriggerPrefetchPriority        int = 1
 	// Channel buffer size can be big because we use the empty struct.
 	workerQueueSize int = 1<<31 - 1
@@ -257,8 +257,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
-		brq.log.CWarningf(ctx, "Cache is full, but prefetching anyway to "+
-			"populate the disk cache.")
+		brq.log.CWarningf(ctx, "In-memory block cache is full, but "+
+			"prefetching anyway to populate the disk cache.")
 	default:
 		// We should return the error here because otherwise we could thrash
 		// the prefetcher.

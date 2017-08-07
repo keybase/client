@@ -7,12 +7,11 @@ package libkbfs
 import (
 	"path/filepath"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/syndtr/goleveldb/leveldb/errors"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -42,15 +41,22 @@ var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	cache *diskBlockCacheWrapped, err error) {
 	workingSetCacheRoot := filepath.Join(storageRoot, workingSetCacheFolderName)
-	workingSetCache, err := newDiskBlockCacheStandard(config, false,
-		workingSetCacheRoot)
+	workingSetCache, err := newDiskBlockCacheStandard(config,
+		workingSetCacheLimitTrackerType, workingSetCacheRoot)
 	if err != nil {
+		return nil, err
+	}
+	syncCacheRoot := filepath.Join(storageRoot, syncCacheFolderName)
+	syncCache, err := newDiskBlockCacheStandard(config,
+		syncCacheLimitTrackerType, syncCacheRoot)
+	if err != nil {
+		workingSetCache.Shutdown(context.Background())
 		return nil, err
 	}
 	return &diskBlockCacheWrapped{
 		config:          config,
 		workingSetCache: workingSetCache,
-		syncCache:       nil,
+		syncCache:       syncCache,
 	}, nil
 }
 
@@ -62,16 +68,14 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	// TODO: add mutex to guard sync state
 	primaryCache := cache.workingSetCache
 	secondaryCache := cache.syncCache
-	if cache.config.IsSyncedTlf(tlfID) {
-		primaryCache = cache.syncCache
-		secondaryCache = cache.workingSetCache
+	if cache.config.IsSyncedTlf(tlfID) && cache.syncCache != nil {
+		primaryCache, secondaryCache = secondaryCache, primaryCache
 	}
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, hasPrefetched, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError {
-		if secondaryCache != nil {
-			return secondaryCache.Get(ctx, tlfID, blockID)
-		}
+	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError &&
+		secondaryCache != nil {
+		return secondaryCache.Get(ctx, tlfID, blockID)
 	}
 	return buf, serverHalf, hasPrefetched, err
 }
@@ -98,14 +102,14 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
-	if cache.config.IsSyncedTlf(tlfID) {
-		cache.workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+	if cache.config.IsSyncedTlf(tlfID) && cache.syncCache != nil {
+		go cache.workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 	}
 	// TODO: Allow more intelligent transitioning from the sync cache to
 	// the working set cache.
 	if cache.syncCache != nil {
-		cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+		go cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
 	}
 	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }

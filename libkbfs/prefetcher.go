@@ -185,7 +185,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
 	wg := &sync.WaitGroup{}
-	wg.Add(len(b.Children))
+	wg.Add(len(dirEntries.dirEntries))
 	startingPriority :=
 		p.calculatePriority(dirEntryPrefetchPriority, kmd.TlfID())
 	for i, entry := range dirEntries.dirEntries {
@@ -217,8 +217,8 @@ func (p *blockPrefetcher) PrefetchBlock(
 	// TODO: Remove this log line.
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from "+
 		"upstream component. Priority: %d", priority)
-	// TODO: pass this channel back up in case the caller wants to be notified
-	// on prefetch completion.
+	// TODO: Return a channel that is closed when this WaitGroup completes, in
+	// case the caller wants to be notified about prefetch completion.
 	var wg sync.WaitGroup
 	wg.Add(1)
 	return p.request(priority, kmd, ptr, block, "", &wg)
@@ -237,7 +237,6 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 			wg = p.prefetchIndirectFileBlock(b, kmd)
 		} else {
 			close(doneCh)
-			return doneCh
 		}
 	case *DirBlock:
 		if b.IsInd {
@@ -248,12 +247,13 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
 		close(doneCh)
-		return doneCh
 	}
-	go func() {
-		wg.Wait()
-		close(doneCh)
-	}()
+	if wg != nil {
+		go func() {
+			wg.Wait()
+			close(doneCh)
+		}()
+	}
 	return doneCh
 }
 

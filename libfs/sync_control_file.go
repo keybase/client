@@ -7,13 +7,12 @@ package libfs
 import (
 	"fmt"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // SyncAction enumerates all the possible actions to take on a
-// TLF's sync state
+// TLF's sync state.
 type SyncAction int
 
 const (
@@ -53,7 +52,6 @@ func (a SyncAction) Execute(
 		return fmt.Errorf("Unknown action %s", a)
 	}
 	// Re-trigger prefetches.
-	c.KBFSOps().GetRootNode(ctx, h, fb.Branch)
-
-	return nil
+	_, _, err := c.KBFSOps().GetRootNode(ctx, h, fb.Branch)
+	return err
 }

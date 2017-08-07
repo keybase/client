@@ -935,7 +935,7 @@ type DiskBlockCache interface {
 		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		hasPrefetched, donePrefetch bool) error
+		triggeredPrefetch, finishedPrefetch bool) error
 	// GetMetadata gets metadata for a given block in the disk cache without
 	// changing it.
 	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (
