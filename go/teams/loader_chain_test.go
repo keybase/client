@@ -40,6 +40,7 @@ type TestCase struct {
 	Load          struct {
 		NeedAdmin bool             `json:"need_admin"`
 		Stub      []keybase1.Seqno `json:"stub"`
+		Omit      []keybase1.Seqno `json:"omit"`
 	} `json:"load"`
 
 	Expect struct {

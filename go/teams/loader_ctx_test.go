@@ -79,12 +79,20 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 		seqno, err := linkJ.AtKey("seqno").GetInt()
 		require.NoError(l.t, err)
 		var stub bool
+		var omit bool
 		for _, stubSeqno := range l.unit.Load.Stub {
 			if stubSeqno == keybase1.Seqno(seqno) {
 				stub = true
 			}
 		}
-		if stub {
+		for _, omitSeqno := range l.unit.Load.Omit {
+			if omitSeqno == keybase1.Seqno(seqno) {
+				omit = true
+			}
+		}
+		if omit {
+			// pass
+		} else if stub {
 			l.t.Logf("MockLoaderContext stubbing link seqno: %v", seqno)
 			err := linkJ.DeleteKey("payload_json")
 			require.NoError(l.t, err)
