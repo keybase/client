@@ -606,7 +606,6 @@ function _unboxedToMessage(
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            outboxID: null,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         }
@@ -618,7 +617,6 @@ function _unboxedToMessage(
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            outboxID: null,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         }
