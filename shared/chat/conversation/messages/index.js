@@ -13,7 +13,11 @@ import {Box} from '../../../common-adapters'
 const factory = (
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
-  onAction: (message: Constants.ServerMessage) => void,
+  onAction: (
+    message: Constants.ServerMessage,
+    localMessageState: Constants.LocalMessageState,
+    event: SyntheticEvent
+  ) => void,
   onShowEditor: (message: Constants.ServerMessage) => void,
   isSelected: boolean,
   measure: () => void
