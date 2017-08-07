@@ -419,11 +419,11 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		return nil
 	}
 
-	if mode != InitDefault {
+	if mode == InitMinimal {
 		// Leave the block changes unembedded -- they aren't needed in
-		// non-default mode since there's no node cache, and thus
-		// there are no Nodes that needs to be updated due to
-		// BlockChange pointers in those blocks.
+		// minimal mode since there's no node cache, and thus there
+		// are no Nodes that needs to be updated due to BlockChange
+		// pointers in those blocks.
 		log.CDebugf(ctx, "Skipping block change reembedding in mode: %s", mode)
 		return nil
 	}

@@ -176,11 +176,11 @@ func NewTlfEditHistory(config Config, fbo *folderBranchOps,
 		rmdsChan: make(chan []ImmutableRootMetadata, 100),
 		cancel:   cancel,
 	}
-	if config.Mode() == InitMinimal {
-		// No need to process updates in minimal mode. TODO: avoid
-		// rmdsChan memory overhead?
-	} else {
+	if config.Mode() == InitDefault {
 		go teh.process(processCtx)
+	} else {
+		// No need to process updates in non-default mode. TODO: avoid
+		// rmdsChan memory overhead?
 	}
 	return teh
 }
@@ -638,8 +638,8 @@ func (teh *TlfEditHistory) process(ctx context.Context) {
 // ImmutableRootMetadata in rmds is the current head.
 func (teh *TlfEditHistory) UpdateHistory(ctx context.Context,
 	rmds []ImmutableRootMetadata) error {
-	if teh.config.Mode() == InitMinimal {
-		// Minimal mode doesn't have a processor.
+	if teh.config.Mode() != InitDefault {
+		// Non-default mode doesn't have a processor.
 		return nil
 	}
 

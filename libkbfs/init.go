@@ -27,6 +27,9 @@ const (
 	// InitMinimalString is for when KBFS will only be used as a MD
 	// lookup layer (e.g., for chat on mobile).
 	InitMinimalString = "minimal"
+	// InitSingleOpString is for when KBFS will only be used for a
+	// single logical operation (e.g., as a git remote helper).
+	InitSingleOpString = "singleOp"
 )
 
 // InitParams contains the initialization parameters for Init(). It is
@@ -244,8 +247,8 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 		"Metadata version to use when creating new metadata")
 	flags.StringVar(&params.Mode, "mode", InitDefaultString,
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
-			"heavy-weight it can be (%s or %s)", InitDefaultString,
-			InitMinimalString))
+			"heavy-weight it can be (%s, %s or %s)", InitDefaultString,
+			InitMinimalString, InitSingleOpString))
 
 	return &params
 }
@@ -486,6 +489,9 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	case InitMinimalString:
 		log.Debug("Initializing in minimal mode")
 		mode = InitMinimal
+	case InitSingleOpString:
+		log.Debug("Initializing in singleOp mode")
+		mode = InitSingleOp
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}

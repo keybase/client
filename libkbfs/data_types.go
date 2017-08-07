@@ -806,6 +806,11 @@ const (
 	// InitMinimal is for when KBFS will only be used as a MD lookup
 	// layer (e.g., for chat on mobile).
 	InitMinimal
+	// InitSingleOp is a mode for when KBFS is only needed for a
+	// single logical operation; no rekeys or update subscriptions is
+	// needed, and some naming restrictions are lifted (e.g., `.kbfs_`
+	// filenames are allowed).
+	InitSingleOp
 )
 
 func (im InitMode) String() string {
