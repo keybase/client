@@ -50,7 +50,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             convID: data.c,
             membersType: data.t,
             payload: data.m,
-            pushID: data.p,
+            pushIDs: data.p,
           },
         })
         yield call(displayNewMessageNotification, unboxRes, data.c, data.b)
