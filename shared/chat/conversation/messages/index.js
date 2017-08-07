@@ -18,7 +18,7 @@ const factory = (
     localMessageState: Constants.LocalMessageState,
     event: SyntheticEvent
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent) => void,
   isSelected: boolean,
   measure: () => void
 ) => {
