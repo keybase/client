@@ -272,14 +272,15 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		// Make sure we've already updated the metadata once to avoid a race.
 		<-didUpdateCh
 		// Prefetches are done. Update the disk cache metadata.
-		dbc := brq.config.DiskBlockCache()
-		if dbc != nil {
-			err := dbc.UpdateMetadata(ctx, ptr.ID, true, true)
-			if err != nil {
-				brq.log.CWarningf(ctx, "Error updating metadata after "+
-					"prefetch: %+v", err)
-			}
-		}
+		// TODO: implement deep prefetch done tracking.
+		//dbc := brq.config.DiskBlockCache()
+		//if dbc != nil {
+		//	err := dbc.UpdateMetadata(ctx, ptr.ID, true, true)
+		//	if err != nil {
+		//		brq.log.CWarningf(ctx, "Error updating metadata after "+
+		//			"prefetch: %+v", err)
+		//	}
+		//}
 	}()
 	return nil
 }
