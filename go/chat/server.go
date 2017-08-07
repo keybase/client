@@ -595,6 +595,20 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
 		}
 
+		// Send a message to the channel after joining.
+		switch arg.MembersType {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+			irl, err := postJoinLeave(ctx, h.G(), h.remoteClient, uid.ToBytes(), convID, joinMessageBody)
+			if err != nil {
+				h.Debug(ctx, "posting join-conv message failed: %v", err)
+				// ignore the error
+			}
+			res.RateLimits = append(res.RateLimits, irl...)
+		default:
+			// pass
+		}
+
 		res.RateLimits = utils.AggRateLimits(res.RateLimits)
 		res.IdentifyFailures = identBreaks
 		return res, nil
