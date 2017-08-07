@@ -40,13 +40,13 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (...args) => {
+  _onAction = () => {
     throw new Error('_onAction Implemented in PopupEnabledList')
   }
-  _onShowEditor = (...args) => {
+  _onShowEditor = () => {
     throw new Error('_onShowEditor Implemented in PopupEnabledList')
   }
-  _onEditLastMessage = (...args) => {
+  _onEditLastMessage = () => {
     throw new Error('_onEditLastMessage Implemented in PopupEnabledList')
   }
 
