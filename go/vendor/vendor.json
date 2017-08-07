@@ -335,10 +335,10 @@
 			"revisionTime": "2017-07-18T14:33:06Z"
 		},
 		{
-			"checksumSHA1": "ESMHYtwUVo21l8icFb9enPsfmQE=",
+			"checksumSHA1": "QUjQm8py3BFbP2TSpB8JEo/EwPw=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "64eb98a5e1d741e42c253e435c351f91c7932965",
-			"revisionTime": "2017-08-04T19:29:02Z"
+			"revision": "73ede283a84e78b8052805b2bbc6bf5bd3ca91a6",
+			"revisionTime": "2017-08-07T19:30:28Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
