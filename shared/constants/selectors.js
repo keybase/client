@@ -12,8 +12,7 @@ const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, sear
   searchQueryToResult.get(searchQuery)
 
 const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) => {
-  const result = searchResults.get(username)
-  return result ? result.toObject() : null
+  return searchResults.get(username)
 }
 
 const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
