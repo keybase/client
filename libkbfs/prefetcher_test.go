@@ -198,7 +198,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	dirB := &DirBlock{Children: map[string]DirEntry{
 		"d": makeRandomDirEntry(t, File, 100, "d"),
 	}}
-	fileB_D := makeFakeFileBlock(t, true)
+	dirBfileD := makeFakeFileBlock(t, true)
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
 	_, continueChFileA :=
@@ -207,7 +207,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 		bg.setBlockToReturn(rootDir.Children["b"].BlockPointer, dirB)
 	_, continueChFileC :=
 		bg.setBlockToReturn(rootDir.Children["c"].BlockPointer, fileC)
-	_, _ = bg.setBlockToReturn(dirB.Children["d"].BlockPointer, fileB_D)
+	_, _ = bg.setBlockToReturn(dirB.Children["d"].BlockPointer, dirBfileD)
 
 	var block Block = &DirBlock{}
 	ch := q.Request(context.Background(), defaultOnDemandRequestPriority,
@@ -456,14 +456,14 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	dirB := &DirBlock{Children: map[string]DirEntry{
 		"d": makeRandomDirEntry(t, File, 100, "d"),
 	}}
-	fileB_D_Ptrs := []IndirectFilePtr{
+	dirBfileDptrs := []IndirectFilePtr{
 		makeFakeIndirectFilePtr(t, 0),
 		makeFakeIndirectFilePtr(t, 150),
 	}
-	fileB_D := &FileBlock{IPtrs: fileB_D_Ptrs}
-	fileB_D.IsInd = true
-	fileB_D_Block1 := makeFakeFileBlock(t, true)
-	fileB_D_Block2 := makeFakeFileBlock(t, true)
+	dirBfileD := &FileBlock{IPtrs: dirBfileDptrs}
+	dirBfileD.IsInd = true
+	dirBfileDblock1 := makeFakeFileBlock(t, true)
+	dirBfileDblock2 := makeFakeFileBlock(t, true)
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
 	_, continueChFileA :=
@@ -472,13 +472,13 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		bg.setBlockToReturn(rootDir.Children["b"].BlockPointer, dirB)
 	_, continueChFileC :=
 		bg.setBlockToReturn(rootDir.Children["c"].BlockPointer, fileC)
-	_, continueChFileB_D :=
-		bg.setBlockToReturn(dirB.Children["d"].BlockPointer, fileB_D)
+	_, continueChDirBfileD :=
+		bg.setBlockToReturn(dirB.Children["d"].BlockPointer, dirBfileD)
 
-	_, continueChFileB_D_Block1 :=
-		bg.setBlockToReturn(fileB_D_Ptrs[0].BlockPointer, fileB_D_Block1)
-	_, continueChFileB_D_Block2 :=
-		bg.setBlockToReturn(fileB_D_Ptrs[1].BlockPointer, fileB_D_Block2)
+	_, continueChDirBfileDblock1 :=
+		bg.setBlockToReturn(dirBfileDptrs[0].BlockPointer, dirBfileDblock1)
+	_, continueChDirBfileDblock2 :=
+		bg.setBlockToReturn(dirBfileDptrs[1].BlockPointer, dirBfileDblock2)
 
 	var block Block = &DirBlock{}
 	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
@@ -498,9 +498,9 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(4)
 	notifyContinueCh(continueChFileA, wg)
-	notifyContinueCh(continueChFileB_D, wg)
-	notifyContinueCh(continueChFileB_D_Block1, wg)
-	notifyContinueCh(continueChFileB_D_Block2, wg)
+	notifyContinueCh(continueChDirBfileD, wg)
+	notifyContinueCh(continueChDirBfileDblock1, wg)
+	notifyContinueCh(continueChDirBfileDblock2, wg)
 	wg.Wait()
 	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
 	<-q.Prefetcher().Shutdown()
@@ -515,9 +515,9 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		rootDir.Children["a"].BlockPointer, fileA, true, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		dirB.Children["d"].BlockPointer, fileB_D, true, TransientEntry)
+		dirB.Children["d"].BlockPointer, dirBfileD, true, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		fileB_D_Ptrs[0].BlockPointer, fileB_D_Block1, true, TransientEntry)
+		dirBfileDptrs[0].BlockPointer, dirBfileDblock1, true, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		fileB_D_Ptrs[1].BlockPointer, fileB_D_Block2, true, TransientEntry)
+		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, true, TransientEntry)
 }
