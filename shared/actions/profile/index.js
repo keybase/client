@@ -91,12 +91,9 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
     }
   } else {
     const {username: parsedUsername, serviceId} = parseUserId(username)
-    const serviceName = serviceIdToService(serviceId)
-    const fullname = parsedUsername + ' on ' + serviceName
     props = {
-      fullname: fullname,
       fullUsername: username,
-      serviceName: serviceName,
+      serviceName: serviceIdToService(serviceId),
       username: parsedUsername,
     }
   }
