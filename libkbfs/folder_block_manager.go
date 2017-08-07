@@ -982,6 +982,10 @@ func (fbm *folderBlockManager) isQRNecessary(
 		fbm.log.CWarningf(ctx, "Couldn't get the current session: %+v", err)
 		return false
 	}
+	// It's ok to treat both MDs written by this process on this
+	// device, and MDs written by other processes (e.g., kbgit) in the
+	// same way.  Other processes are likely to be short-lived, and
+	// probably won't do their own QR, so a conflict is unlikely here.
 	selfWroteHead := session.VerifyingKey == head.LastModifyingWriterVerifyingKey()
 
 	// Don't do reclamation if the head isn't old enough and it wasn't
