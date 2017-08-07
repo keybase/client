@@ -418,7 +418,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %s", err.Error())
 				return
 			}
-
 			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s",
 				nm.ConvID, nm.Message.ClientHeader.Sender)
 			if nm.Message.ClientHeader.OutboxID != nil {
@@ -426,11 +425,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
 			} else {
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
-			}
-			if nm.Message.ClientHeader.Sender.Eq(uid) &&
-				nm.Message.GetMessageType() == chat1.MessageType_LEAVE {
-				g.Debug(ctx, "chat activity: ignoring our own leave message")
-				return
 			}
 
 			// Update typing status to stopped

@@ -303,6 +303,15 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 	filtered := 0
 	for _, conv := range convs {
 		ok := true
+
+		// Member status check
+		switch conv.ReaderInfo.Status {
+		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW:
+			// only let these states through
+		default:
+			ok = false
+		}
+
 		// Basic checks
 		if query.ConvID != nil {
 			query.ConvIDs = append(query.ConvIDs, *query.ConvID)
@@ -723,7 +732,6 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	}
 	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-
 	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
 
@@ -1024,9 +1032,10 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 	ibox.Conversations = nil
 	for _, conv := range convs {
-		if !removedMap[conv.GetConvID().String()] {
-			ibox.Conversations = append(ibox.Conversations, conv)
+		if removedMap[conv.GetConvID().String()] {
+			conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 		}
+		ibox.Conversations = append(ibox.Conversations, conv)
 	}
 	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
