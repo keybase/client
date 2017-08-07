@@ -40,7 +40,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		return state, proofSet, parentChildOperations, nil
 	}
 
-	teamUpdate, err := l.world.GetLinksFromServer(ctx, state.Chain.Id, requestSeqnos, &readSubteamID)
+	teamUpdate, err := l.world.getLinksFromServer(ctx, state.Chain.Id, requestSeqnos, &readSubteamID)
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
@@ -120,7 +120,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	}
 	uid := keySection.UID
 	kid := keySection.KID
-	signerUV, key, linkMap, err = l.world.LoadKeyV2(ctx, uid, kid)
+	signerUV, key, linkMap, err = l.world.loadKeyV2(ctx, uid, kid)
 	if err != nil {
 		return signerUV, nil, nil, err
 	}
@@ -721,7 +721,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 }
 
 func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
-	return l.world.PerUserEncryptionKey(ctx, userSeqno)
+	return l.world.perUserEncryptionKey(ctx, userSeqno)
 }
 
 func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*chainLinkUnpacked, error) {

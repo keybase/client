@@ -132,7 +132,7 @@ func (p *proofSetT) AllProofs() []proof {
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
 func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
-	return world.MerkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	return world.merkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
 }
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
@@ -163,7 +163,7 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 	// we're toast.
 	if !ok && p.a.leafID.IsUser() {
 		g.Log.CDebugf(ctx, "proof#check: missed load for %s at %d; trying a force repoll", p.a.leafID.String(), laterSeqno)
-		lm, err := world.ForceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
+		lm, err := world.forceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
 		if err != nil {
 			return err
 		}

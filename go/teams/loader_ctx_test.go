@@ -30,20 +30,20 @@ func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *
 	}
 }
 
-func (l *MockLoaderContext) GetNewLinksFromServer(ctx context.Context,
+func (l *MockLoaderContext) getNewLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	return l.getLinksFromServer(ctx, teamID, lows, nil, readSubteamID)
-}
-
-func (l *MockLoaderContext) GetLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
-
-	return l.getLinksFromServer(ctx, teamID, getLinksLows{}, requestSeqnos, readSubteamID)
+	return l.getLinksFromServerHelper(ctx, teamID, lows, nil, readSubteamID)
 }
 
 func (l *MockLoaderContext) getLinksFromServer(ctx context.Context,
+	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
+
+	return l.getLinksFromServerHelper(ctx, teamID, getLinksLows{}, requestSeqnos, readSubteamID)
+}
+
+func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
 	requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
@@ -81,7 +81,7 @@ func (l *MockLoaderContext) getLinksFromServer(ctx context.Context,
 	}, nil
 }
 
-func (l *MockLoaderContext) GetMe(ctx context.Context) (res keybase1.UserVersion, err error) {
+func (l *MockLoaderContext) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
 	defaultUserLabel := "herb"
 	userSpec, ok := l.unit.Users[defaultUserLabel]
 	if !ok {
@@ -90,7 +90,7 @@ func (l *MockLoaderContext) GetMe(ctx context.Context) (res keybase1.UserVersion
 	return NewUserVersion(userSpec.UID, userSpec.EldestSeqno), nil
 }
 
-func (l *MockLoaderContext) LookupEldestSeqno(ctx context.Context, uid keybase1.UID) (seqno keybase1.Seqno, err error) {
+func (l *MockLoaderContext) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (seqno keybase1.Seqno, err error) {
 	for _, userSpec := range l.unit.Users {
 		if userSpec.UID.String() == uid.String() {
 			return userSpec.EldestSeqno, nil
@@ -99,7 +99,7 @@ func (l *MockLoaderContext) LookupEldestSeqno(ctx context.Context, uid keybase1.
 	return seqno, NewMockBoundsError("LookupEldestSeqno", "uid", uid)
 }
 
-func (l *MockLoaderContext) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
+func (l *MockLoaderContext) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
 	for name, teamSpec := range l.unit.Teams {
 		if teamName.String() == name {
 			id = teamSpec.ID
@@ -111,7 +111,7 @@ func (l *MockLoaderContext) ResolveNameToIDUntrusted(ctx context.Context, teamNa
 	return id, NewMockBoundsError("ResolveNameToIDUntrusted", "team name", teamName)
 }
 
-func (l *MockLoaderContext) PerUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (key *libkb.NaclDHKeyPair, err error) {
+func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (key *libkb.NaclDHKeyPair, err error) {
 	if userSeqno == 0 {
 		return key, NewMockError("mock got PerUserEncryptionKey request for seqno 0")
 	}
@@ -140,7 +140,7 @@ func (l *MockLoaderContext) PerUserEncryptionKey(ctx context.Context, userSeqno 
 	return key, err
 }
 
-func (l *MockLoaderContext) MerkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
+func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	x, ok := l.unit.TeamMerkle[teamID]
 	if !ok {
 		return r1, r2, NewMockBoundsError("MerkleLookup", "team id", teamID)
@@ -148,7 +148,7 @@ func (l *MockLoaderContext) MerkleLookup(ctx context.Context, teamID keybase1.Te
 	return x.Seqno, x.LinkID, nil
 }
 
-func (l *MockLoaderContext) MerkleLookupTripleAtHashMeta(ctx context.Context,
+func (l *MockLoaderContext) merkleLookupTripleAtHashMeta(ctx context.Context,
 	leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
 
 	key := fmt.Sprintf("%s-%s", leafID, hm)
@@ -163,7 +163,7 @@ func (l *MockLoaderContext) MerkleLookupTripleAtHashMeta(ctx context.Context,
 	return &triple1, nil
 }
 
-func (l *MockLoaderContext) ForceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
 	panic("TODO")
 	// if !ok {
 	// 	return nil, NewMockBoundsError("ForceLinkMapRefreshForUser", "uid", uid)
@@ -171,7 +171,7 @@ func (l *MockLoaderContext) ForceLinkMapRefreshForUser(ctx context.Context, uid 
 	// return linkMap, nil
 }
 
-func (l *MockLoaderContext) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
+func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
 	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID,
 	err error) {
 

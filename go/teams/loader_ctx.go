@@ -12,24 +12,24 @@ import (
 // Things TeamLoader uses that are mocked out for tests.
 type LoaderContext interface {
 	// Get new links from the server.
-	GetNewLinksFromServer(ctx context.Context,
+	getNewLinksFromServer(ctx context.Context,
 		teamID keybase1.TeamID, lows getLinksLows,
 		readSubteamID *keybase1.TeamID) (*rawTeam, error)
 	// Get full links from the server.
 	// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
-	GetLinksFromServer(ctx context.Context,
+	getLinksFromServer(ctx context.Context,
 		teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno,
 		readSubteamID *keybase1.TeamID) (*rawTeam, error)
-	GetMe(context.Context) (keybase1.UserVersion, error)
+	getMe(context.Context) (keybase1.UserVersion, error)
 	// Lookup the eldest seqno of a user. Can use the cache.
-	LookupEldestSeqno(context.Context, keybase1.UID) (keybase1.Seqno, error)
-	ResolveNameToIDUntrusted(context.Context, keybase1.TeamName) (keybase1.TeamID, error)
+	lookupEldestSeqno(context.Context, keybase1.UID) (keybase1.Seqno, error)
+	resolveNameToIDUntrusted(context.Context, keybase1.TeamName) (keybase1.TeamID, error)
 	// Get the current user's per-user-key's derived encryption key (full).
-	PerUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
-	MerkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
-	MerkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
-	ForceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error)
-	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
+	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
+	merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
+	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
+	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error)
+	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
 }
 
 // The main LoaderContext is G.
@@ -46,7 +46,7 @@ func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
 }
 
 // Get new links from the server.
-func (l *LoaderContextG) GetNewLinksFromServer(ctx context.Context,
+func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
@@ -76,7 +76,7 @@ func (l *LoaderContextG) GetNewLinksFromServer(ctx context.Context,
 
 // Get full links from the server.
 // Does not guarantee that the server returned the correct links, nor that they are unstubbed.
-func (l *LoaderContextG) GetLinksFromServer(ctx context.Context,
+func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	var seqnoStrs []string
@@ -109,7 +109,7 @@ func (l *LoaderContextG) GetLinksFromServer(ctx context.Context,
 	return &rt, nil
 }
 
-func (l *LoaderContextG) GetMe(ctx context.Context) (res keybase1.UserVersion, err error) {
+func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
 	loadMeArg := libkb.NewLoadUserArgBase(l.G()).
 		WithNetContext(ctx).
 		WithUID(l.G().Env.GetUID()).
@@ -122,7 +122,7 @@ func (l *LoaderContextG) GetMe(ctx context.Context) (res keybase1.UserVersion, e
 	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
 }
 
-func (l *LoaderContextG) LookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {
+func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID) (keybase1.Seqno, error) {
 	// Lookup the latest eldest seqno for that uid.
 	// This value may come from a cache.
 	upak, err := loadUPAK2(ctx, l.G(), uid, false /*forcePoll */)
@@ -134,7 +134,7 @@ func (l *LoaderContextG) LookupEldestSeqno(ctx context.Context, uid keybase1.UID
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *LoaderContextG) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
+func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {
 		return teamName.ToTeamID(), nil
@@ -159,7 +159,7 @@ func (l *LoaderContextG) ResolveNameToIDUntrusted(ctx context.Context, teamName 
 	return id, nil
 }
 
-func (l *LoaderContextG) PerUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
+func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
 	kr, err := l.G().GetPerUserKeyring()
 	if err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (l *LoaderContextG) PerUserEncryptionKey(ctx context.Context, userSeqno key
 	return encKey, err
 }
 
-func (l *LoaderContextG) MerkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
+func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
 	if err != nil {
 		return r1, r2, err
@@ -191,7 +191,7 @@ func (l *LoaderContextG) MerkleLookup(ctx context.Context, teamID keybase1.TeamI
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
 }
 
-func (l *LoaderContextG) MerkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
+func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error) {
 	leaf, err := l.G().MerkleClient.LookupLeafAtHashMeta(ctx, leafID, hm)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (l *LoaderContextG) MerkleLookupTripleAtHashMeta(ctx context.Context, leafI
 	return triple, nil
 }
 
-func (l *LoaderContextG) ForceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
 	arg := libkb.NewLoadUserArgBase(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll()
 	upak, _, err := l.G().GetUPAKLoader().LoadV2(*arg)
 	if err != nil {
@@ -213,7 +213,7 @@ func (l *LoaderContextG) ForceLinkMapRefreshForUser(ctx context.Context, uid key
 	return upak.SeqnoLinkIDs, nil
 }
 
-func (l *LoaderContextG) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
+func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
 	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID,
 	err error) {
 
