@@ -74,8 +74,8 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
 
-  yield put(switchTo([profileTab]))
   if (!username.includes('@')) {
+    yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
     return
   }
@@ -98,17 +98,8 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
     }
   }
 
-  yield put(
-    navigateAppend(
-      [
-        {
-          props,
-          selected: 'nonUserProfile',
-        },
-      ],
-      [profileTab]
-    )
-  )
+  yield put(switchTo([profileTab]))
+  yield put(navigateAppend([{props, selected: 'nonUserProfile'}], [profileTab]))
 }
 
 function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {
