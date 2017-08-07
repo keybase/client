@@ -17,7 +17,7 @@ class ConversationList extends Component<void, Props, void> {
   }
 
   // This is handled slightly differently on mobile, leave this blank
-  _onShowEditor = (message: Constants.Message) => {}
+  _onShowEditor = () => {}
 
   // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
