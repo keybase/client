@@ -2340,6 +2340,12 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	msgUnboxed, _, err := h.G().ConvSource.Push(ctx, convID, uid, msgBoxed)
 	if err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s", err.Error())
+		// Try to just unbox without pushing
+		unboxInfo := newBasicUnboxConversationInfo(convID, arg.MembersType, nil)
+		if msgUnboxed, err = NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo); err != nil {
+			h.Debug(ctx, "UnboxMobilePushNotification: failed simple unbox as well, bailing: %s", err.Error())
+			return res, err
+		}
 	}
 
 	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
