@@ -280,9 +280,31 @@ function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobi
 function* _updateThread({
   payload: {yourName, thread, yourDeviceName, conversationIDKey},
 }: Constants.UpdateThread) {
-  const newMessages = ((thread && thread.messages) || [])
-    .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
-    .reverse()
+  let newMessages = []
+  const newUnboxeds = (thread && thread.messages) || []
+  for (const unboxed of newUnboxeds) {
+    const message = _unboxedToMessage(unboxed, yourName, yourDeviceName, conversationIDKey)
+    const messageFromYou =
+      message.deviceName === yourDeviceName && message.author && yourName === message.author
+
+    let pendingMessage
+    if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
+      pendingMessage = yield select(
+        Shared.pendingMessageOutboxIDSelector,
+        conversationIDKey,
+        message.outboxID
+      )
+    }
+
+    if (pendingMessage) {
+      // Delete the pre-existing pending version of this message, since we're
+      // about to add a newly received version of the same message.
+      yield put(Creators.removeOutboxMessage(conversationIDKey, message.outboxID))
+    }
+    newMessages.push(message)
+  }
+
+  newMessages = newMessages.reverse()
   const pagination = _threadToPagination(thread)
   yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
 }
