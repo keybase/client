@@ -921,8 +921,11 @@
           "type": "gregor1.SessionToken"
         },
         {
-          "name": "companionPushID",
-          "type": "string"
+          "name": "companionPushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null

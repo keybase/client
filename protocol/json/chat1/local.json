@@ -2644,8 +2644,11 @@
           "type": "ConversationMembersType"
         },
         {
-          "name": "pushID",
-          "type": "string"
+          "name": "pushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": "string"

@@ -2234,7 +2234,7 @@ func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool 
 	return false
 }
 
-func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushID string) {
+func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs []string) {
 	// Get session token
 	status, err := h.G().LoginState().APIServerSession(false)
 	if err != nil {
@@ -2270,8 +2270,8 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushID st
 	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
 	if err = cli.RemoteNotificationSuccessful(ctx,
 		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:       gregor1.SessionToken(status.SessionToken),
-			CompanionPushID: pushID,
+			AuthToken:        gregor1.SessionToken(status.SessionToken),
+			CompanionPushIDs: pushIDs,
 		}); err != nil {
 		h.Debug(ctx, "UnboxMobilePushNotification: failed to invoke remote notification success: %",
 			err.Error())
@@ -2312,7 +2312,7 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		if err == nil {
 			// If we have succeeded, let us let the server know that it can abort the push notification
 			// associated with this silent one
-			h.sendRemoteNotificationSuccessful(ctx, arg.PushID)
+			h.sendRemoteNotificationSuccessful(ctx, arg.PushIDs)
 		}
 	}()
 

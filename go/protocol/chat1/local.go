@@ -3670,7 +3670,7 @@ type UnboxMobilePushNotificationArg struct {
 	Payload     string                  `codec:"payload" json:"payload"`
 	ConvID      string                  `codec:"convID" json:"convID"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	PushID      string                  `codec:"pushID" json:"pushID"`
+	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
 }
 
 func (o UnboxMobilePushNotificationArg) DeepCopy() UnboxMobilePushNotificationArg {
@@ -3678,7 +3678,14 @@ func (o UnboxMobilePushNotificationArg) DeepCopy() UnboxMobilePushNotificationAr
 		Payload:     o.Payload,
 		ConvID:      o.ConvID,
 		MembersType: o.MembersType.DeepCopy(),
-		PushID:      o.PushID,
+		PushIDs: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.PushIDs),
 	}
 }
 

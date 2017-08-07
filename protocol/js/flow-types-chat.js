@@ -2277,7 +2277,7 @@ export type localUnboxMobilePushNotificationRpcParam = Exact<{
   payload: string,
   convID: string,
   membersType: ConversationMembersType,
-  pushID: string
+  pushIDs?: ?Array<string>
 }>
 
 export type localUpdateTypingRpcParam = Exact<{
@@ -2374,7 +2374,7 @@ export type remotePublishSetConversationStatusRpcParam = Exact<{
 
 export type remoteRemoteNotificationSuccessfulRpcParam = Exact<{
   authToken: gregor1.SessionToken,
-  companionPushID: string
+  companionPushIDs?: ?Array<string>
 }>
 
 export type remoteS3SignRpcParam = Exact<{
