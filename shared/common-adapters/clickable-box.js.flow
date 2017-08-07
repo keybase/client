@@ -7,7 +7,7 @@ export type Props = {|
   style?: ?Object,
   onClick?: ?(event: SyntheticEvent) => void,
   onPress?: void,
-  onLongPress?: ?() => void,
+  onLongPress?: ?(event: SyntheticEvent) => void,
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
@@ -15,7 +15,7 @@ export type Props = {|
   // mobile only
   activeOpacity?: number,
   // desktop only
-  onMouseOver?: ?() => void,
+  onMouseOver?: ?(event: SyntheticEvent) => void,
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
   onMouseDown?: ?() => void,
