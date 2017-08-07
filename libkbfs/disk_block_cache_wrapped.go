@@ -46,13 +46,15 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	if err != nil {
 		return nil, err
 	}
-	syncCacheRoot := filepath.Join(storageRoot, syncCacheFolderName)
-	syncCache, err := newDiskBlockCacheStandard(config,
-		syncCacheLimitTrackerType, syncCacheRoot)
-	if err != nil {
-		workingSetCache.Shutdown(context.Background())
-		return nil, err
-	}
+	// TODO: enable sync cache in a subsequent PR.
+	var syncCache DiskBlockCache
+	//syncCacheRoot := filepath.Join(storageRoot, syncCacheFolderName)
+	//syncCache, err := newDiskBlockCacheStandard(config,
+	//	syncCacheLimitTrackerType, syncCacheRoot)
+	//if err != nil {
+	//	workingSetCache.Shutdown(context.Background())
+	//	return nil, err
+	//}
 	return &diskBlockCacheWrapped{
 		config:          config,
 		workingSetCache: workingSetCache,
