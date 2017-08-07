@@ -273,7 +273,7 @@ const propsBase: RenderProps = {
     console.log('onFolderClick', folder)
   },
   onUserClick: username => {
-    console.log('onUserClick', username)
+    console.log('showUserProfile', username)
   },
   onMissingProofClick: proof => {
     console.log(`Prove ${proof.type}`)
