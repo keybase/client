@@ -4,40 +4,10 @@ import ReactList from 'react-list'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
+import AddNewRow from './row/add-new-row'
 import debounce from 'lodash/debounce'
-import KeyHandler from '../../util/key-handler.desktop'
 
 import type {Props} from './'
-
-class _AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
-  render() {
-    return (
-      <div
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexShrink: 0,
-          justifyContent: 'center',
-          minHeight: 48,
-        }}
-      >
-        <div
-          style={{
-            ...globalStyles.flexBoxRow,
-            ...globalStyles.clickable,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onClick={this.props.onNewChat}
-        >
-          <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-          <Text type="BodyBigLink">New chat</Text>
-        </div>
-      </div>
-    )
-  }
-}
-const AddNewRow = KeyHandler(_AddNewRow)
 
 class NewConversation extends PureComponent<void, {}, void> {
   render() {

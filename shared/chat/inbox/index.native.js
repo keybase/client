@@ -1,34 +1,12 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {
-  Text,
-  Icon,
-  Box,
-  ClickableBox,
-  LoadingLine,
-  NativeDimensions,
-  NativeFlatList,
-} from '../../common-adapters/index.native'
+import {Text, Icon, Box, NativeDimensions, NativeFlatList} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
+import AddNewRow from './row/add-new-row'
 import debounce from 'lodash/debounce'
 
 import type {Props} from './'
-
-const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
-  <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
-        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-        <Text type="BodyBigLink">New chat</Text>
-      </Box>
-    </ClickableBox>
-    {isLoading &&
-      <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
-        <LoadingLine />
-      </Box>}
-  </Box>
-)
 
 const NoChats = () => (
   <Box
