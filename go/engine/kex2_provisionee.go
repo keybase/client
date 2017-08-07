@@ -414,6 +414,14 @@ func (e *Kex2Provisionee) Device() *libkb.Device {
 
 func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	if e.device.Description == nil {
+		// should not get in here with change to login_provision.go
+		// deviceWithType that is prompting for device name before
+		// starting this engine, but leaving the code here just
+		// as a safety measure.
+
+		e.G().Log.Debug("kex2 provisionee: device name (e.device.Description) is nil. It should be set by caller.")
+		e.G().Log.Debug("kex2 provisionee: proceeding to prompt user for device name, but figure out how this happened...")
+
 		// need user to get existing device names
 		loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
 		loadArg.LoginContext = e.ctx.LoginContext
@@ -426,7 +434,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 			e.G().Log.Debug("proceeding despite error getting existing device names: %s", err)
 		}
 
-		e.G().Log.Debug("prompting for device name")
+		e.G().Log.Debug("kex2 provisionee: prompting for device name")
 		arg := keybase1.PromptNewDeviceNameArg{
 			ExistingDevices: existingDevices,
 		}
@@ -435,7 +443,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 			return err
 		}
 		e.device.Description = &name
-		e.G().Log.Debug("got device name: %q", name)
+		e.G().Log.Debug("kex2 provisionee: got device name: %q", name)
 	}
 
 	s := libkb.DeviceStatusActive
