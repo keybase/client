@@ -2009,111 +2009,11 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	}
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
-	// First look in the local user inbox
-	query := chat1.GetInboxLocalQuery{
-		Name: &chat1.NameQuery{
-			Name:        arg.TlfName,
-			MembersType: arg.MembersType,
-		},
-		TlfVisibility:     &arg.Visibility,
-		TopicType:         &arg.TopicType,
-		TopicName:         &arg.TopicName,
-		OneChatTypePerTLF: arg.OneChatPerTLF,
-	}
-	inbox, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-		Query:            &query,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	res.Conversations, res.RateLimits, err = FindConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
+		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err
 	}
-	res.RateLimits = append(res.RateLimits, inbox.RateLimits...)
-	res.IdentifyFailures = inbox.IdentifyFailures
-	res.Offline = h.G().InboxSource.IsOffline()
-
-	// If we have inbox hits, return those
-	if len(inbox.Conversations) > 0 {
-		h.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
-			arg.TlfName, len(inbox.Conversations))
-		res.Conversations = inbox.Conversations
-	} else if arg.MembersType == chat1.ConversationMembersType_TEAM {
-		// If this is a team chat that we are looking for, then let's try searching all
-		// chats on the team to see if any match the arguments before giving up.
-		// No need to worry (yet) about conflicting with public code path, since there
-		// are not any public team chats.
-
-		// Fetch the TLF ID from specified name
-		nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
-		if err != nil {
-			h.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
-			return res, err
-		}
-		tlfConvs, rl, err := GetTLFConversations(ctx, h.G(), h.DebugLabeler, h.remoteClient,
-			uid, nameInfo.ID, arg.TopicType, arg.MembersType, false)
-		if err != nil {
-			h.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
-			return res, err
-		}
-		res.RateLimits = append(res.RateLimits, rl...)
-
-		for _, tlfConv := range tlfConvs {
-			if utils.GetTopicName(tlfConv) == arg.TopicName {
-				res.Conversations = append(res.Conversations, tlfConv)
-			}
-		}
-		if len(res.Conversations) > 0 {
-			h.Debug(ctx, "FindConversations: found team channels: num: %d", len(res.Conversations))
-		}
-	} else if arg.Visibility == chat1.TLFVisibility_PUBLIC {
-		h.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
-
-		// Check for offline and return an error
-		if res.Offline {
-			return res, OfflineError{}
-		}
-
-		// If we miss the inbox, and we are looking for a public TLF, let's try and find
-		// any conversation that matches
-		nameInfo, err := GetInboxQueryNameInfo(ctx, h.G(), &query)
-		if err != nil {
-			return res, err
-		}
-
-		// Call into gregor to try and find some public convs
-		pubConvs, err := h.remoteClient().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
-			TlfID:            nameInfo.ID,
-			TopicType:        arg.TopicType,
-			SummarizeMaxMsgs: true,
-		})
-		if err != nil {
-			return res, err
-		}
-		if pubConvs.RateLimit != nil {
-			res.RateLimits = append(res.RateLimits, *pubConvs.RateLimit)
-		}
-
-		// Localize the convs (if any)
-		if len(pubConvs.Conversations) > 0 {
-			localizer := NewBlockingLocalizer(h.G())
-			convsLocal, err := localizer.Localize(ctx, uid, chat1.Inbox{
-				ConvsUnverified: pubConvs.Conversations,
-			})
-			if err != nil {
-				return res, nil
-			}
-
-			// Search for conversations that match the topic name
-			for _, convLocal := range convsLocal {
-				if convLocal.Info.TopicName == arg.TopicName {
-					h.Debug(ctx, "FindConversation: found matching public conv: id: %s topicName: %s",
-						convLocal.GetConvID(), arg.TopicName)
-					res.Conversations = append(res.Conversations, convLocal)
-				}
-			}
-		}
-
-	}
-
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 	return res, nil
 }
