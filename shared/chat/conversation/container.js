@@ -119,7 +119,7 @@ const mapDispatchToProps = (
   onBack: () => dispatch(navigateUp()),
   _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   _onClickSearchResult: id => {
-    dispatch(Creators.stageUserForSearch(id))
+    dispatch(Creators.stageUsersForSearch([id]))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
   _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>

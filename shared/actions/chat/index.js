@@ -711,9 +711,7 @@ function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-  for (const username of action.payload.existingParticipants) {
-    yield put(Creators.stageUserForSearch(username))
-  }
+  yield put(Creators.stageUsersForSearch(action.payload.existingParticipants))
   yield put(Creators.selectConversation(null, false))
   yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
@@ -963,21 +961,21 @@ function* _updateTyping({
 }
 
 function* _updateTempSearchConversation(
-  action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
+  action: Constants.StageUsersForSearch | Constants.UnstageUsersForSearch
 ) {
-  const {payload: {user}} = action
+  const {payload: {users}} = action
   const searchResultMap = yield select(searchResultMapSelector)
-  const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
+  const maybeUpgradedUsers = users.map(user => maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user))
   const me = yield select(usernameSelector)
 
   const inboxSearch = yield select(inboxSearchSelector)
   if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
+    const nextTempSearchConv = inboxSearch.concat(maybeUpgradedUsers)
     yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
     yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
   } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
+    const nextTempSearchConv = inboxSearch.filterNot(u => maybeUpgradedUsers.indexOf(u) !== -1)
     if (!nextTempSearchConv.isEmpty()) {
       yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
     } else {

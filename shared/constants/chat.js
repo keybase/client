@@ -553,9 +553,9 @@ export type SetUnboxing = TypedAction<
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
-export type StageUserForSearch = NoErrorTypedAction<
-  'chat:stageUserForSearch',
-  {user: SearchConstants.SearchResultId}
+export type StageUsersForSearch = NoErrorTypedAction<
+  'chat:stageUsersForSearch',
+  {users: Array<SearchConstants.SearchResultId>}
 >
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
@@ -565,9 +565,9 @@ export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}
 >
-export type UnstageUserForSearch = NoErrorTypedAction<
-  'chat:unstageUserForSearch',
-  {user: SearchConstants.SearchResultId}
+export type UnstageUsersForSearch = NoErrorTypedAction<
+  'chat:unstageUsersForSearch',
+  {users: Array<SearchConstants.SearchResultId>}
 >
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',

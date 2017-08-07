@@ -27,7 +27,7 @@ const mapStateToProps = createSelector(
 )
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
+  onRemoveUser: id => dispatch(Creators.unstageUsersForSearch([id])),
   onExitSearch: () => dispatch(Creators.exitSearch()),
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
@@ -37,12 +37,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
     }
   },
-  onStageUserForSearch: id => dispatch(Creators.stageUserForSearch(id)),
+  onStageUserForSearch: id => dispatch(Creators.stageUsersForSearch([id])),
   _onClickSearchResult: id => {
-    dispatch(Creators.stageUserForSearch(id))
+    dispatch(Creators.stageUsersForSearch([id]))
   },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
-  onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
+  onAddSelectedUser: id => dispatch(Creators.stageUsersForSearch([id])),
 })
 
 const SearchHeader = props => (
