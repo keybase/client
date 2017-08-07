@@ -748,6 +748,9 @@ type MDCache interface {
 	// that's already in the cache.  This should be used when putting
 	// new MDs created locally.
 	Replace(newRmd ImmutableRootMetadata, oldBID BranchID) error
+	// MarkPutToServer sets `PutToServer` to true for the specified
+	// MD, if it already exists in the cache.
+	MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID)
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.

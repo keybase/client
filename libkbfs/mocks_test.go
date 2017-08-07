@@ -2442,6 +2442,16 @@ func (_mr *MockMDCacheMockRecorder) Replace(arg0, arg1 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Replace", reflect.TypeOf((*MockMDCache)(nil).Replace), arg0, arg1)
 }
 
+// MarkPutToServer mocks base method
+func (_m *MockMDCache) MarkPutToServer(tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
+	_m.ctrl.Call(_m, "MarkPutToServer", tlf, rev, bid)
+}
+
+// MarkPutToServer indicates an expected call of MarkPutToServer
+func (_mr *MockMDCacheMockRecorder) MarkPutToServer(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "MarkPutToServer", reflect.TypeOf((*MockMDCache)(nil).MarkPutToServer), arg0, arg1, arg2)
+}
+
 // MockKeyCache is a mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller

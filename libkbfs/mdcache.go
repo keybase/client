@@ -92,3 +92,22 @@ func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
 	md.lru.Add(newKey, newRmd)
 	return nil
 }
+
+// MarkPutToServer implements the MDCache interface for
+// MDCacheStandard.
+func (md *MDCacheStandard) MarkPutToServer(
+	tlf tlf.ID, rev kbfsmd.Revision, bid BranchID) {
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	key := mdCacheKey{tlf, rev, bid}
+	tmp, ok := md.lru.Get(key)
+	if !ok {
+		return
+	}
+	rmd, ok := tmp.(ImmutableRootMetadata)
+	if !ok {
+		return
+	}
+	rmd.putToServer = true
+	md.lru.Add(key, rmd)
+}

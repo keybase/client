@@ -1379,6 +1379,9 @@ func (j *tlfJournal) flushOneMDOp(
 		return false, pushErr
 	}
 
+	j.config.MDCache().MarkPutToServer(
+		rmds.MD.TlfID(), rmds.MD.RevisionNumber(), rmds.MD.BID())
+
 	err = j.doOnMDFlushAndRemoveFlushedMDEntry(ctx, mdID, rmds)
 	if err != nil {
 		return false, err
