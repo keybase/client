@@ -2965,8 +2965,8 @@ func (_mr *MockDiskBlockCacheMockRecorder) Delete(arg0, arg1 interface{}) *gomoc
 }
 
 // UpdateMetadata mocks base method
-func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, hasPrefetched bool, donePrefetch bool) error {
-	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, hasPrefetched, donePrefetch)
+func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, triggeredPrefetch bool, finishedPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, triggeredPrefetch, finishedPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
