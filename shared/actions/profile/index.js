@@ -260,8 +260,8 @@ function* _profileSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.onClickAvatar, _onClickAvatar)
   yield safeTakeEvery(Constants.onClickFollowers, _onClickFollowers)
   yield safeTakeEvery(Constants.onClickFollowing, _onClickFollowing)
-  yield safeTakeEvery(Constants.showUserProfile, _showUserProfile)
   yield safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink)
+  yield safeTakeEvery(Constants.showUserProfile, _showUserProfile)
   yield safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof)
   yield safeTakeEvery('app:link', _onAppLink)
 }
