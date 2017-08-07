@@ -258,7 +258,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 			// rewrite.
 			irmdCopy := MakeImmutableRootMetadata(rmdCopy,
 				rmd.LastModifyingWriterVerifyingKey(), rmd.MdID(),
-				rmd.LocalTimestamp())
+				rmd.LocalTimestamp(), rmd.putToServer)
 			if err := config.MDCache().Put(irmdCopy); err != nil {
 				return nil, err
 			}

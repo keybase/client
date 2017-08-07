@@ -330,7 +330,8 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 			VerifyingKey: session.VerifyingKey,
 		}
 	}
-	return MakeImmutableRootMetadata(rmd, session.VerifyingKey, mdID, time.Now())
+	return MakeImmutableRootMetadata(
+		rmd, session.VerifyingKey, mdID, time.Now(), true)
 }
 
 // injectNewRMD creates a new RMD and makes sure the existing ops for

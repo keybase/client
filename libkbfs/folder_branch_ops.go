@@ -2209,7 +2209,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 				return err
 			}
 			irmd = MakeImmutableRootMetadata(
-				md, session.VerifyingKey, mdID, fbo.config.Clock().Now())
+				md, session.VerifyingKey, mdID, fbo.config.Clock().Now(), true)
 			err = fbo.config.MDCache().Put(irmd)
 			if err != nil {
 				return err
@@ -6165,7 +6165,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 		oldHandle.GetCanonicalName(), newHandle.GetCanonicalName())
 	fbo.head = MakeImmutableRootMetadata(
 		newHead, fbo.head.lastWriterVerifyingKey, fbo.head.mdID,
-		fbo.head.localTimestamp)
+		fbo.head.localTimestamp, fbo.head.putToServer)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Error setting head: %+v", err)
 		return

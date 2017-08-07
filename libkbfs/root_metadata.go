@@ -955,13 +955,18 @@ type ImmutableRootMetadata struct {
 	// persists in the journal or in the cache, localTimestamp comes
 	// directly from the local clock.
 	localTimestamp time.Time
+	// putToServer indicates whether this MD has been put successfully
+	// to the remote server (e.g., it isn't just local to the
+	// process's journal).
+	putToServer bool
 }
 
 // MakeImmutableRootMetadata makes a new ImmutableRootMetadata from
 // the given RMD and its corresponding MdID.
 func MakeImmutableRootMetadata(
 	rmd *RootMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
-	mdID kbfsmd.ID, localTimestamp time.Time) ImmutableRootMetadata {
+	mdID kbfsmd.ID, localTimestamp time.Time,
+	putToServer bool) ImmutableRootMetadata {
 	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
 	}
@@ -982,7 +987,7 @@ func MakeImmutableRootMetadata(
 		}
 	}
 	return ImmutableRootMetadata{
-		rmd.ReadOnly(), mdID, writerVerifyingKey, localTimestamp}
+		rmd.ReadOnly(), mdID, writerVerifyingKey, localTimestamp, putToServer}
 }
 
 // MdID returns the pre-computed MdID of the contained RootMetadata

@@ -42,7 +42,8 @@ type journalMDOps struct {
 var _ MDOps = journalMDOps{}
 
 // convertImmutableBareRMDToIRMD decrypts the bare MD into a
-// full-fledged RMD.
+// full-fledged RMD.  The MD is assumed to have been read from the
+// journal.
 func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 	ibrmd ImmutableBareRootMetadata, handle *TlfHandle,
 	uid keybase1.UID, key kbfscrypto.VerifyingKey) (
@@ -66,7 +67,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 
 	rmd.data = pmd
 	irmd := MakeImmutableRootMetadata(
-		rmd, key, ibrmd.mdID, ibrmd.localTimestamp)
+		rmd, key, ibrmd.mdID, ibrmd.localTimestamp, false)
 	return irmd, nil
 }
 

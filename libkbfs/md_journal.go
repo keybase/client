@@ -766,7 +766,7 @@ func (j *mdJournal) convertToBranch(
 			err = mdcache.Replace(
 				MakeImmutableRootMetadata(newRmd,
 					oldIrmd.LastModifyingWriterVerifyingKey(),
-					newID, ts),
+					newID, ts, false),
 				NullBranchID)
 			if err != nil {
 				return err

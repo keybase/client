@@ -631,7 +631,7 @@ func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	cachedMdID, _, _, _, err := j.getEarliestWithExtra(ctx, false)
 	require.NoError(t, err)
 	err = mdcache.Put(MakeImmutableRootMetadata(cachedMd,
-		j.key, cachedMdID, time.Now()))
+		j.key, cachedMdID, time.Now(), false))
 	require.NoError(t, err)
 
 	bid := PendingLocalSquashBranchID

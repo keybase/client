@@ -97,7 +97,7 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid BranchID) ImmutableRootMetadata {
 			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
 		},
 		tlfHandle: &TlfHandle{name: "fake"},
-	}, key, kbfsmd.FakeID(byte(rev)), time.Now())
+	}, key, kbfsmd.FakeID(byte(rev)), time.Now(), true)
 }
 
 func TestCRInput(t *testing.T) {

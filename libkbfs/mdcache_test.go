@@ -52,7 +52,7 @@ func testMdcachePut(t *testing.T, tlfID tlf.ID, rev kbfsmd.Revision,
 
 	// put the md
 	irmd := MakeImmutableRootMetadata(
-		rmd, signingKey.GetVerifyingKey(), kbfsmd.FakeID(1), time.Now())
+		rmd, signingKey.GetVerifyingKey(), kbfsmd.FakeID(1), time.Now(), true)
 	if err := mdcache.Put(irmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlfID, err)
 	}
@@ -109,7 +109,8 @@ func TestMdcacheReplace(t *testing.T) {
 
 	newRmd.SetBranchID(bid)
 	err = mdcache.Replace(MakeImmutableRootMetadata(newRmd,
-		irmd.LastModifyingWriterVerifyingKey(), kbfsmd.FakeID(2), time.Now()), NullBranchID)
+		irmd.LastModifyingWriterVerifyingKey(), kbfsmd.FakeID(2), time.Now(),
+		true), NullBranchID)
 	require.NoError(t, err)
 
 	_, err = mdcache.Get(id, 1, NullBranchID)
