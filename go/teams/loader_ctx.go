@@ -185,7 +185,8 @@ func (l *LoaderContextG) MerkleLookup(ctx context.Context, teamID keybase1.TeamI
 		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
 	}
 	if leaf.Private == nil {
-		return r1, r2, fmt.Errorf("merkle returned nil leaf")
+		l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
+		return r1, r2, NewTeamDoesNotExistError(teamID.String())
 	}
 	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
 }

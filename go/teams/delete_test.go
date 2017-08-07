@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeleteRoot(t *testing.T) {
@@ -20,16 +21,8 @@ func TestDeleteRoot(t *testing.T) {
 	}
 
 	_, err := GetForTeamManagementByStringName(context.Background(), tc.G, teamname, false)
-	if err == nil {
-		t.Fatal("no error getting deleted team")
-	}
-	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("error type: %T (%s), expected libkb.AppStatusError", err, err)
-	}
-	if aerr.Code != int(keybase1.StatusCode_SCTeamNotFound) {
-		t.Errorf("error status code: %d, expected %d", aerr.Code, keybase1.StatusCode_SCTeamNotFound)
-	}
+	require.Error(t, err, "no error getting deleted team")
+	require.IsType(t, TeamDoesNotExistError{}, err)
 }
 
 func TestDeleteSubteamAdmin(t *testing.T) {

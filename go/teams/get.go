@@ -45,7 +45,7 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 		ForceRepoll: true,
 		NeedAdmin:   needAdmin,
 	})
-	return team, fixupTeamGetError(err, name)
+	return team, fixupTeamGetError(ctx, g, err, name)
 }
 
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
