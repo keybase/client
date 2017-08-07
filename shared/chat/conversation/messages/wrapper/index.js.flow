@@ -15,9 +15,13 @@ export type Props = {|
   isSelected: boolean,
   isYou: boolean,
   messageKey: Constants.MessageKey,
-  onAction: (event: SyntheticEvent) => void,
+  onAction: (
+    message: Constants.ServiceMessage,
+    localMessageState: Constants.LocalMessageState,
+    event: SyntheticEvent
+  ) => void,
   onRetry: () => void,
-  onShowEditor: (event: SyntheticEvent) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent) => void,
   onClick: (event: SyntheticEvent) => void,
   timestamp: ?string,
 |}
