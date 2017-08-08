@@ -516,6 +516,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	KBFSLogFileName    = "keybase.kbfs.log"
+	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging
