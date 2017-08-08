@@ -599,21 +599,18 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		switch arg.MembersType {
 		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-			rl, err = h.postJoinLeave(ctx, uid.ToBytes(), convID, joinMessageBody)
+			irl, err := postJoinLeave(ctx, h.G(), h.remoteClient, uid.ToBytes(), convID, joinMessageBody)
 			if err != nil {
 				h.Debug(ctx, "posting join-conv message failed: %v", err)
 				// ignore the error
 			}
-			if err == nil && rl != nil {
-				res.RateLimits = append(res.RateLimits, *rl)
-			}
+			res.RateLimits = append(res.RateLimits, irl...)
 		default:
 			// pass
 		}
 
 		res.RateLimits = utils.AggRateLimits(res.RateLimits)
 		res.IdentifyFailures = identBreaks
-
 		return res, nil
 	}
 
@@ -2048,113 +2045,7 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	return nil
 }
 
-// Check whether the active user is in a conv.
-func (h *Server) checkInConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (in bool, err error) {
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("checkInConv(%v)", convID))()
-
-	conv, _, err := GetUnverifiedConv(ctx, h.G(), uid, convID, true)
-	if err != nil {
-		return false, err
-	}
-	switch conv.ReaderInfo.Status {
-	case chat1.ConversationMemberStatus_ACTIVE:
-		return true, nil
-	default:
-		// including PREVIEW
-		return false, nil
-	}
-}
-
-// Post a join or leave message. Must be called when the user is in the conv.
-// Uses a blocking sender.
-func (h *Server) postJoinLeave(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, body chat1.MessageBody) (rl *chat1.RateLimit, err error) {
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("postJoinLeave(%v)", convID))()
-
-	typ, err := body.MessageType()
-	if err != nil {
-		return nil, fmt.Errorf("message type for postJoinLeave: %v", err)
-	}
-	switch typ {
-	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-	// good
-	default:
-		return nil, fmt.Errorf("invalid message type for postJoinLeave: %v", typ)
-	}
-
-	// Get the conversation from the inbox.
-	query := chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, nil, true, &query, nil)
-	if len(ib.Convs) != 1 {
-		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
-	}
-	conv := ib.Convs[0]
-
-	plaintext := chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:         conv.Info.Triple,
-			TlfName:      conv.Info.TlfName,
-			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
-			MessageType:  typ,
-			Supersedes:   chat1.MessageID(0),
-			Deletes:      nil,
-			Prev:         nil, // Filled by Sender
-			Sender:       nil, // Filled by Sender
-			SenderDevice: nil, // Filled by Sender
-			MerkleRoot:   nil, // Filled by Boxer
-			OutboxID:     nil,
-			OutboxInfo:   nil,
-		},
-		MessageBody: body,
-	}
-
-	// Send with a blocking sender
-	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
-	h.Debug(ctx, "postJoinLeave sending")
-	_, _, rl, err = sender.Send(ctx, convID, plaintext, 0, nil)
-	return rl, err
-}
-
-func (h *Server) doJoinConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
-	alreadyIn, err := h.checkInConv(ctx, uid, convID)
-	if err != nil {
-		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
-		// Assume we're not in.
-		alreadyIn = false
-	}
-
-	// Send the join command even if we're in.
-	joinRes, err := h.remoteClient().JoinConversation(ctx, convID)
-	if err != nil {
-		h.Debug(ctx, "doJoinConversation: failed to join conversation: %s", err.Error())
-		return res, err
-	}
-	if joinRes.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *joinRes.RateLimit)
-	}
-
-	if !alreadyIn {
-		// Send a message to the channel after joining.
-		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		rl, err := h.postJoinLeave(ctx, uid, convID, joinMessageBody)
-		if err != nil {
-			h.Debug(ctx, "posting join-conv message failed: %v", err)
-			// ignore the error
-		}
-		if err == nil && rl != nil {
-			res.RateLimits = append(res.RateLimits, *rl)
-		}
-	}
-
-	res.RateLimits = utils.AggRateLimits(res.RateLimits)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
-
-	return res, nil
-}
-
 func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
-
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
@@ -2166,7 +2057,13 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		return res, err
 	}
 
-	return h.doJoinConversation(ctx, uid, convID)
+	rl, err := JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
+	if err != nil {
+		return res, err
+	}
+	res.RateLimits = utils.AggRateLimits(rl)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
 }
 
 func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConversationLocalArg) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2225,7 +2122,13 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
 	}
 
-	return h.doJoinConversation(ctx, uid, convID)
+	rl, err := JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
+	if err != nil {
+		return res, err
+	}
+	res.RateLimits = utils.AggRateLimits(rl)
+	res.Offline = h.G().Syncer.IsConnected(ctx)
+	return res, nil
 }
 
 func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.JoinLeaveConversationLocalRes, err error) {
@@ -2239,36 +2142,12 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		return res, err
 	}
 
-	alreadyIn, err := h.checkInConv(ctx, uid, convID)
+	rl, err := LeaveConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
 	if err != nil {
-		h.Debug(ctx, "doJoinConversation checkInConv err: %v", err)
-		// Pretend we're in.
-		alreadyIn = true
-	}
-
-	// Send a message to the channel before leaving
-	if alreadyIn {
-		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
-		rl, err := h.postJoinLeave(ctx, uid, convID, leaveMessageBody)
-		if err != nil {
-			h.Debug(ctx, "posting leave-conv message failed: %v", err)
-			// ignore the error
-		}
-		if err == nil && rl != nil {
-			res.RateLimits = append(res.RateLimits, *rl)
-		}
-	}
-
-	leaveRes, err := h.remoteClient().LeaveConversation(ctx, convID)
-	if err != nil {
-		h.Debug(ctx, "LeaveConversationLocal: failed to leave conversation: %s", err.Error())
 		return res, err
 	}
-	if leaveRes.RateLimit != nil {
-		res.RateLimits = append(res.RateLimits, *leaveRes.RateLimit)
-	}
 
-	res.RateLimits = utils.AggRateLimits(res.RateLimits)
+	res.RateLimits = utils.AggRateLimits(rl)
 	res.Offline = h.G().Syncer.IsConnected(ctx)
 	return res, nil
 }

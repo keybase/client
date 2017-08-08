@@ -418,7 +418,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %s", err.Error())
 				return
 			}
-
 			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s",
 				nm.ConvID, nm.Message.ClientHeader.Sender)
 			if nm.Message.ClientHeader.OutboxID != nil {

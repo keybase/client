@@ -504,7 +504,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// the conversation in case that is an option. If it succeeds, then we just keep going,
 	// otherwise we give up and return an error.
 	var conv chat1.Conversation
-	conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, true)
+	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
+	conv, _, err = GetUnverifiedConv(ctx, s.G(), sender, convID, true)
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
@@ -513,13 +514,13 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				return chat1.OutboxID{}, nil, nil, err
 			default:
 				s.Debug(ctx, "conversation not found, attempting to join the conversation and try again")
-				if _, jerr := ri.JoinConversation(ctx, convID); jerr != nil {
-					s.Debug(ctx, "failed to join after conv not found: %s", jerr.Error())
+				if _, err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
+					convID); err != nil {
 					return chat1.OutboxID{}, nil, nil, err
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				conv, _, err = GetUnverifiedConv(ctx, s.G(), msg.ClientHeader.Sender, convID, false)
+				conv, _, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
 				if err != nil {
 					s.Debug(ctx, "failed to get conversation again, giving up: %s", err.Error())
 					return chat1.OutboxID{}, nil, nil, err
@@ -529,6 +530,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			s.Debug(ctx, "error getting conversation metadata: %s", err.Error())
 			return chat1.OutboxID{}, nil, nil, err
 		}
+	} else {
+		s.Debug(ctx, "uid: %s in conversation %s with status: %v", sender,
+			conv.GetConvID(), conv.ReaderInfo.Status)
 	}
 
 	// If we are in preview mode, then just join the conversation right now.
@@ -538,7 +542,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
 			// pass so we don't loop between Send and Join/Leave.
 		default:
-			if _, err = ri.JoinConversation(ctx, convID); err != nil {
+			s.Debug(ctx, "user is in preview mode, joining conversation")
+			if _, err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
 				return chat1.OutboxID{}, nil, nil, err
 			}
 		}
