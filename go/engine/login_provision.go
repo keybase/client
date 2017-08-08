@@ -164,6 +164,16 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		Type: e.arg.DeviceType,
 	}
 
+	// prompt for the device name here so there's no delay during kex:
+	e.G().Log.Debug("deviceWithType: prompting for device name")
+	name, err := e.deviceName(ctx)
+	if err != nil {
+		e.G().Log.Debug("deviceWithType: error getting device name from user: %s", err)
+		return err
+	}
+	device.Description = &name
+	e.G().Log.Debug("deviceWithType: got device name: %q", name)
+
 	// make a new secret:
 	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile)
 	if err != nil {

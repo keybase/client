@@ -1658,10 +1658,6 @@ func TestProvisionDupDevice(t *testing.T) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	secretCh := make(chan kex2.Secret)
 
@@ -1677,38 +1673,17 @@ func TestProvisionDupDevice(t *testing.T) {
 	}
 	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 
-	var wg sync.WaitGroup
-
 	// start provisionee
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := RunEngine(eng, ctx); err == nil {
-			t.Errorf("login ran without error")
-			return
-		}
-	}()
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Errorf("login ran without error")
+		return
+	}
 
-	// start provisioner
-	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	// Note: there is no need to start the provisioner as the provisionee will
+	// fail because of the duplicate device name before the provisioner
+	// is needed.
 
-		ctx := &Context{
-			SecretUI:    userX.NewSecretUI(),
-			ProvisionUI: newTestProvisionUI(),
-		}
-		if err := RunEngine(provisioner, ctx); err == nil {
-			t.Errorf("provisioner ran without error")
-			return
-		}
-	}()
-	secretFromY := <-secretCh
-	provisioner.AddSecret(secretFromY)
-
-	wg.Wait()
-
+	// double-check that provisioning failed
 	if err := AssertProvisioned(tcY); err == nil {
 		t.Fatal("device provisioned using existing name")
 	}
