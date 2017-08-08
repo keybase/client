@@ -23,7 +23,8 @@ import * as Selectors from '../../constants/selectors'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
+import {maybeUpgradeSearchResultIdToKeybaseId, serviceIdToService} from '../../constants/search'
+import {parseUserId} from '../../util/platforms'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -76,23 +77,29 @@ function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
   if (!username.includes('@')) {
     yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
-  } else {
-    const searchResult = yield select(Selectors.searchResultSelector, username)
-    const fullname = searchResult.rightFullname
-    const fullUsername = username
-    const serviceName = searchResult.leftService
-    yield put(
-      navigateAppend(
-        [
-          {
-            props: {fullname, fullUsername, serviceName, username: searchResult.leftUsername},
-            selected: 'nonUserProfile',
-          },
-        ],
-        [profileTab]
-      )
-    )
+    return
   }
+
+  let props = {}
+  const searchResult = yield select(Selectors.searchResultSelector, username)
+  if (searchResult) {
+    props = {
+      fullname: searchResult.rightFullname,
+      fullUsername: username,
+      serviceName: searchResult.leftService,
+      username: searchResult.leftUsername,
+    }
+  } else {
+    const {username: parsedUsername, serviceId} = parseUserId(username)
+    props = {
+      fullUsername: username,
+      serviceName: serviceIdToService(serviceId),
+      username: parsedUsername,
+    }
+  }
+
+  yield put(switchTo([profileTab]))
+  yield put(navigateAppend([{props, selected: 'nonUserProfile'}], [profileTab]))
 }
 
 function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {
