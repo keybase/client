@@ -32,6 +32,7 @@ type diskBlockCacheConfig interface {
 
 type diskBlockCacheWrapped struct {
 	config          diskBlockCacheConfig
+	storageRoot     string
 	workingSetCache DiskBlockCache
 	syncCache       DiskBlockCache
 }
@@ -46,20 +47,28 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 	if err != nil {
 		return nil, err
 	}
-	// TODO: enable sync cache in a subsequent PR.
-	var syncCache DiskBlockCache
-	//syncCacheRoot := filepath.Join(storageRoot, syncCacheFolderName)
-	//syncCache, err := newDiskBlockCacheStandard(config,
-	//	syncCacheLimitTrackerType, syncCacheRoot)
-	//if err != nil {
-	//	workingSetCache.Shutdown(context.Background())
-	//	return nil, err
-	//}
-	return &diskBlockCacheWrapped{
+	cache = &diskBlockCacheWrapped{
 		config:          config,
+		storageRoot:     storageRoot,
 		workingSetCache: workingSetCache,
-		syncCache:       syncCache,
-	}, nil
+		syncCache:       nil,
+	}
+	// TODO: enable sync cache in a subsequent PR.
+	// _ = cache.enableSyncCache()
+	return cache, nil
+}
+
+func (cache *diskBlockCacheWrapped) enableSyncCache() (err error) {
+	if cache.syncCache != nil {
+		return nil
+	}
+	syncCacheRoot := filepath.Join(cache.storageRoot, syncCacheFolderName)
+	cache.syncCache, err = newDiskBlockCacheStandard(cache.config,
+		syncCacheLimitTrackerType, syncCacheRoot)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Get implements the DiskBlockCache interface for diskBlockCacheWrapped.

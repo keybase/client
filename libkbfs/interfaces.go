@@ -78,7 +78,7 @@ type diskLimiterGetter interface {
 
 type syncedTlfGetterSetter interface {
 	IsSyncedTlf(tlfID tlf.ID) bool
-	SetTlfSyncState(tlfID tlf.ID, isSynced bool)
+	SetTlfSyncState(tlfID tlf.ID, isSynced bool) error
 }
 
 // Block just needs to be (de)serialized using msgpack

@@ -1209,8 +1209,18 @@ func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 }
 
 // SetTlfSyncState implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) {
+func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	if isSynced {
+		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
+		if !ok {
+			return errors.Errorf("Invalid disk cache type to set TLF sync state.")
+		}
+		if err := diskCacheWrapped.enableSyncCache(); err != nil {
+			return err
+		}
+	}
 	c.syncedTlfs[tlfID] = isSynced
+	return nil
 }
