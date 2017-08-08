@@ -56,7 +56,7 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
       label={username}
       isNav={true}
       selected={false}
-      onClick={() => onTabClick(Tabs.profileTab, username)}
+      onClick={() => onTabClick(Tabs.profileTab)}
       badgeNumber={badgeNumbers[Tabs.peopleTab]}
       source={{type: 'avatar', username}}
       style={stylesTabButton}

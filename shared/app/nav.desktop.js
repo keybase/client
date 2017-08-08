@@ -7,7 +7,7 @@ import TabBar from './tab-bar/container'
 import {chatTab, loginTab, profileTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
-import {navigateTo, switchTo, navigateAppend} from '../actions/route-tree'
+import {navigateTo, switchTo} from '../actions/route-tree'
 
 import type {Tab} from '../constants/tabs'
 import type {Props} from './nav'
@@ -49,16 +49,20 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  switchTab: (tab: Tab, username?: string) => {
+  switchTab: (tab: Tab) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       // clicking the chat tab when already selected should do nothing.
       return
     }
 
     // If we're going to the profile tab, switch to the current user's
-    // profile first.
-    if (tab === profileTab && username) {
-      dispatch(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
+    // profile first before switching tabs, if necessary.
+    if (tab === profileTab) {
+      dispatch(navigateTo([], [profileTab]))
+      if (ownProps.routeSelected !== profileTab) {
+        dispatch(switchTo([profileTab]))
+      }
+      return
     }
 
     // otherwise, back out to the default route of the tab.

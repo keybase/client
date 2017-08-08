@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Tab} from '../../constants/tabs'
 
 export type Props = {
-  onTabClick: (tab: Tab, username?: string) => void,
+  onTabClick: (tab: Tab) => void,
   selectedTab: Tab,
   username?: string,
   badgeNumbers: {[key: Tab]: number},
