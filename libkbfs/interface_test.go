@@ -71,6 +71,7 @@ func (t *testSyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
 }
 
 func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
-	isSynced bool) {
+	isSynced bool) error {
 	t.syncedTlfs[tlfID] = isSynced
+	return nil
 }

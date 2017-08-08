@@ -2708,8 +2708,8 @@ func (_mr *MockBlockCacheMockRecorder) GetWithPrefetch(arg0 interface{}) *gomock
 }
 
 // PutWithPrefetch mocks base method
-func (_m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "PutWithPrefetch", ptr, tlf, block, lifetime, hasPrefetched)
+func (_m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, triggeredPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "PutWithPrefetch", ptr, tlf, block, lifetime, triggeredPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -8263,8 +8263,8 @@ func (_mr *MockBlockRetrieverMockRecorder) Request(arg0, arg1, arg2, arg3, arg4,
 }
 
 // CacheAndPrefetch mocks base method
-func (_m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, hasPrefetched)
+func (_m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, triggeredPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, triggeredPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

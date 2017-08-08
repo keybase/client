@@ -75,7 +75,7 @@ func (cache *diskBlockCacheWrapped) enableSyncCache() (err error) {
 func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	hasPrefetched bool, err error) {
+	triggeredPrefetch bool, err error) {
 	// TODO: add mutex to guard sync state
 	primaryCache := cache.workingSetCache
 	secondaryCache := cache.syncCache
@@ -83,12 +83,12 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 		primaryCache, secondaryCache = secondaryCache, primaryCache
 	}
 	// Check both caches if the primary cache doesn't have the block.
-	buf, serverHalf, hasPrefetched, err = primaryCache.Get(ctx, tlfID, blockID)
+	buf, serverHalf, triggeredPrefetch, err = primaryCache.Get(ctx, tlfID, blockID)
 	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		return secondaryCache.Get(ctx, tlfID, blockID)
 	}
-	return buf, serverHalf, hasPrefetched, err
+	return buf, serverHalf, triggeredPrefetch, err
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -140,18 +140,18 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, hasPrefetched, donePrefetch bool) error {
+	blockID kbfsblock.ID, triggeredPrefetch, finishedPrefetch bool) error {
 	// Try to update metadata for both caches.
 	if cache.syncCache != nil {
-		err := cache.syncCache.UpdateMetadata(ctx, blockID, hasPrefetched,
-			donePrefetch)
+		err := cache.syncCache.UpdateMetadata(ctx, blockID, triggeredPrefetch,
+			finishedPrefetch)
 		_, isNoSuchBlockError := err.(NoSuchBlockError)
 		if !isNoSuchBlockError {
 			return err
 		}
 	}
-	return cache.workingSetCache.UpdateMetadata(ctx, blockID, hasPrefetched,
-		donePrefetch)
+	return cache.workingSetCache.UpdateMetadata(ctx, blockID, triggeredPrefetch,
+		finishedPrefetch)
 }
 
 // Size implements the DiskBlockCache interface for diskBlockCacheWrapped.

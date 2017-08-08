@@ -25,9 +25,11 @@ type DiskBlockCacheMetadata struct {
 	// the size of the block
 	BlockSize uint32
 	// whether the block has triggered prefetches
-	HasPrefetched bool
+	// This used to be called "HasPrefetched" so to maintain compatibility with
+	// existing disk caches, we have to name it that in the codec tag.
+	TriggeredPrefetch bool `codec:"HasPrefetched"`
 	// whether the block's triggered prefetches are complete
-	DonePrefetch bool
+	FinishedPrefetch bool
 }
 
 // lruEntry is an entry for sorting LRU times

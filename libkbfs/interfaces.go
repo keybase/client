@@ -826,11 +826,11 @@ type BlockCache interface {
 	// GetWithPrefetch retrieves a block from the cache, along with whether or
 	// not it has triggered a prefetch.
 	GetWithPrefetch(ptr BlockPointer) (
-		block Block, hasPrefetched bool, lifetime BlockCacheLifetime, err error)
+		block Block, triggeredPrefetch bool, lifetime BlockCacheLifetime, err error)
 	// PutWithPrefetch puts a block into the cache, along with whether or not
 	// it has triggered a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, hasPrefetched bool) error
+		lifetime BlockCacheLifetime, triggeredPrefetch bool) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -926,7 +926,7 @@ type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-		hasPrefetched bool, err error)
+		triggeredPrefetch bool, err error)
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
@@ -2228,5 +2228,5 @@ type BlockRetriever interface {
 	// triggers prefetches as appropriate.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		hasPrefetched bool) error
+		triggeredPrefetch bool) error
 }

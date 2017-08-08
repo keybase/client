@@ -17,8 +17,8 @@ import (
 )
 
 type blockContainer struct {
-	block         Block
-	hasPrefetched bool
+	block             Block
+	triggeredPrefetch bool
 }
 
 type idCacheKey struct {
@@ -82,7 +82,7 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 			if !ok {
 				return nil, false, NoCacheEntry, BadDataError{ptr.ID}
 			}
-			return bc.block, bc.hasPrefetched, TransientEntry, nil
+			return bc.block, bc.triggeredPrefetch, TransientEntry, nil
 		}
 	}
 
@@ -242,7 +242,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 // again.
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
-	hasPrefetched bool) (err error) {
+	triggeredPrefetch bool) (err error) {
 	// Just in case we tried to cache a block type that shouldn't be cached,
 	// return an error. This is an insurance check. That said, this got rid of
 	// a flake in TestSBSConflicts, so we should still look for the underlying
@@ -281,7 +281,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		var bc interface{}
 		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
 		if wasInCache {
-			hasPrefetched = (hasPrefetched || bc.(blockContainer).hasPrefetched)
+			triggeredPrefetch = (triggeredPrefetch || bc.(blockContainer).triggeredPrefetch)
 		}
 		// Cache it later, once we know there's room
 
@@ -312,7 +312,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if !transientCacheHasRoom {
 			return cachePutCacheFullError{ptr.ID}
 		}
-		b.cleanTransient.Add(ptr.ID, blockContainer{block, hasPrefetched})
+		b.cleanTransient.Add(ptr.ID, blockContainer{block, triggeredPrefetch})
 	}
 
 	return nil

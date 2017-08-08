@@ -393,14 +393,14 @@ func (*DiskBlockCacheStandard) tlfKey(tlfID tlf.ID, blockKey []byte) []byte {
 // updateMetadataLocked updates the LRU time of a block in the LRU cache to
 // the current time.
 func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
-	tlfID tlf.ID, blockKey []byte, encodeLen int, hasPrefetched,
-	donePrefetch bool) error {
+	tlfID tlf.ID, blockKey []byte, encodeLen int, triggeredPrefetch,
+	finishedPrefetch bool) error {
 	metadata := DiskBlockCacheMetadata{
-		TlfID:         tlfID,
-		LRUTime:       cache.config.Clock().Now(),
-		BlockSize:     uint32(encodeLen),
-		HasPrefetched: hasPrefetched,
-		DonePrefetch:  donePrefetch,
+		TlfID:             tlfID,
+		LRUTime:           cache.config.Clock().Now(),
+		BlockSize:         uint32(encodeLen),
+		TriggeredPrefetch: triggeredPrefetch,
+		FinishedPrefetch:  finishedPrefetch,
 	}
 	encodedMetadata, err := cache.config.Codec().Encode(&metadata)
 	if err != nil {
@@ -484,7 +484,7 @@ func (cache *DiskBlockCacheStandard) checkCacheLocked(method string) error {
 // Get implements the DiskBlockCache interface for DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf, hasPrefetched bool,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf, triggeredPrefetch bool,
 	err error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
@@ -513,12 +513,12 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
 	err = cache.updateMetadataLocked(ctx, tlfID, blockKey, len(entry),
-		md.HasPrefetched, md.DonePrefetch)
+		md.TriggeredPrefetch, md.FinishedPrefetch)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, false, err
 	}
 	buf, serverHalf, err = cache.decodeBlockCacheEntry(entry)
-	return buf, serverHalf, md.HasPrefetched, err
+	return buf, serverHalf, md.TriggeredPrefetch, err
 }
 
 func (cache *DiskBlockCacheStandard) evictUntilBytesAvailable(
@@ -602,7 +602,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		} else {
 			if cache.config.IsSyncedTlf(tlfID) {
 				// TODO: Make better error type
-				return errors.New("Attempted to add a block of an synced " +
+				return errors.New("Attempted to add a block of a synced " +
 					"TLF to the working set disk cache.")
 			}
 			hasEnoughSpace, err := cache.evictUntilBytesAvailable(ctx, encodedLen)
@@ -640,7 +640,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				"Error writing to TLF cache database: %+v", err)
 		}
 	}
-	// Initially set HasPrefetched and DonePrefetch to false; rely on
+	// Initially set TriggeredPrefetch and FinishedPrefetch to false; rely on
 	// UpdateMetadata to fix it.
 	return cache.updateMetadataLocked(ctx, tlfID, blockKey, int(encodedLen),
 		false, false)
@@ -658,7 +658,7 @@ func (cache *DiskBlockCacheStandard) GetMetadata(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, hasPrefetched, donePrefetch bool) (err error) {
+	blockID kbfsblock.ID, triggeredPrefetch, finishedPrefetch bool) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked("UpdateMetadata")
@@ -676,7 +676,7 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 		return NoSuchBlockError{blockID}
 	}
 	return cache.updateMetadataLocked(ctx, md.TlfID, blockID.Bytes(),
-		int(md.BlockSize), hasPrefetched, donePrefetch)
+		int(md.BlockSize), triggeredPrefetch, finishedPrefetch)
 }
 
 // Size implements the DiskBlockCache interface for DiskBlockCacheStandard.

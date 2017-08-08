@@ -90,7 +90,7 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 	if err != nil {
 		return nil, err
 	}
-	return &diskBlockCacheWrapped{config, workingSetCache, syncCache}, nil
+	return &diskBlockCacheWrapped{config, "", workingSetCache, syncCache}, nil
 }
 
 func initDiskBlockCacheTest(t *testing.T) (DiskBlockCache,
