@@ -3,13 +3,14 @@ import React from 'react'
 import {connect} from 'react-redux'
 import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {permissionsRequest} from '../../actions/push/creators'
+import {permissionsRequest, permissionsNo} from '../../actions/push/creators'
 
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   permissionsRequesting: boolean,
   onRequestPermissions: () => void,
+  onNoPermissions: () => void,
 }
 
 const Push = (props: Props) => (
@@ -20,9 +21,10 @@ const Push = (props: Props) => (
         alignItems: 'center',
         backgroundColor: globalColors.white,
         justifyContent: 'center',
+        width: '100%',
       }}
     >
-      <Box style={{margin: globalMargins.small}}>
+      <Box style={{padding: globalMargins.small, width: '100%'}}>
         <Text
           type="Header"
           style={{
@@ -60,10 +62,17 @@ const Push = (props: Props) => (
         <Button
           type="Primary"
           fullWidth={true}
-          style={{marginBottom: 0}}
-          onClick={() => props.onRequestPermissions()}
+          style={{marginBottom: 10}}
+          onClick={props.onRequestPermissions}
           label="Got it"
           waiting={props.permissionsRequesting}
+        />
+        <Button
+          type="Secondary"
+          fullWidth={true}
+          style={{marginBottom: 10}}
+          onClick={props.onNoPermissions}
+          label="No thanks"
         />
       </Box>
     </Box>
@@ -79,9 +88,8 @@ export default connect(
   },
   (dispatch: any) => {
     return {
-      onRequestPermissions: () => {
-        dispatch(permissionsRequest())
-      },
+      onRequestPermissions: () => dispatch(permissionsRequest()),
+      onNoPermissions: () => dispatch(permissionsNo()),
     }
   }
 )(Push)

@@ -1,6 +1,7 @@
 // @flow
 import type {AsyncAction} from '../constants/types/flux'
 
+declare function setNoPushPermissions(): Promise<*>
 declare function requestPushPermissions(): Promise<*>
 declare function configurePush(): void
 declare function showMainWindow(): AsyncAction
@@ -19,5 +20,6 @@ export {
   configurePush,
   saveAttachmentDialog,
   showShareActionSheet,
+  setNoPushPermissions,
   displayNewMessageNotification,
 }
