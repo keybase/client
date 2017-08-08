@@ -55,6 +55,8 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       return
     }
 
+    // If we're going to the profile tab, switch to the current user's
+    // profile first.
     if (tab === profileTab && username) {
       dispatch(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
     }
