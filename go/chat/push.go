@@ -121,6 +121,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
 	go func() {
+		defer close(res)
 		g.Lock()
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
@@ -129,6 +130,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
+		if len(waiters) == 0 {
+			return
+		}
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -141,7 +145,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-		close(res)
 	}()
 	return res
 }
