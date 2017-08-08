@@ -57,7 +57,7 @@ func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 }
 
 func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
-	me, err := l.world.GetMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
 	if !teamID.Exists() {
-		teamID, err = l.world.ResolveNameToIDUntrusted(ctx, *teamName)
+		teamID, err = l.world.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			return nil, err
@@ -245,7 +245,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if (ret == nil) || repoll {
 		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, err = l.world.MerkleLookup(ctx, arg.teamID)
+		lastSeqno, lastLinkID, err = l.world.merkleLookup(ctx, arg.teamID)
 		if err != nil {
 			return nil, err
 		}
@@ -278,7 +278,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.world.GetNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -304,7 +304,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		if !link.Prev().Eq(prev) {
-			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d (%v != %v)",
+				i, link.Prev(), prev)
 		}
 
 		var signer *signerX
@@ -600,7 +601,7 @@ func (l *TeamLoader) mungeWantMembers(ctx context.Context, wantMembers []keybase
 		if uv2.EldestSeqno == 0 {
 			// Lookup the latest eldest seqno for that uid.
 			// This value may come from a cache.
-			uv2.EldestSeqno, err = l.world.LookupEldestSeqno(ctx, uv2.Uid)
+			uv2.EldestSeqno, err = l.world.lookupEldestSeqno(ctx, uv2.Uid)
 			if err != nil {
 				return res, err
 			}
@@ -690,7 +691,7 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 // The specified team must be a subteam, or an error is returned.
 // Always sends a flurry of RPCs to get the most up to date info.
 func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
-	me, err := l.world.GetMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -712,7 +713,7 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 }
 
 func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID) ([]keybase1.UserVersion, error) {
-	me, err := l.world.GetMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -782,7 +783,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 
 	var ancestorIDs []keybase1.TeamID
 
-	me, err := l.world.GetMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return err
 	}

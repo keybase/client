@@ -40,7 +40,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		return state, proofSet, parentChildOperations, nil
 	}
 
-	teamUpdate, err := l.world.GetLinksFromServer(ctx, state.Chain.Id, requestSeqnos, &readSubteamID)
+	teamUpdate, err := l.world.getLinksFromServer(ctx, state.Chain.Id, requestSeqnos, &readSubteamID)
 	if err != nil {
 		return state, proofSet, parentChildOperations, err
 	}
@@ -98,13 +98,10 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 		return nil
 	}
 	if l.seqnosContains(arg.needSeqnos, link.Seqno()) {
-		return NewStubbedErrorWithNote(link, "need seqno")
+		return NewStubbedErrorWithNote(link, "Need seqno")
 	}
-	if arg.needAdmin {
-		return NewStubbedErrorWithNote(link, "need admin")
-	}
-	if !link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
-		return NewStubbedErrorWithNote(link, "disallowed")
+	if arg.needAdmin || !link.outerLink.LinkType.TeamAllowStubWithAdminFlag(arg.needAdmin) {
+		return NewStubbedErrorWithNote(link, "Need admin privilege for this action")
 	}
 	return nil
 }
@@ -120,7 +117,7 @@ func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	}
 	uid := keySection.UID
 	kid := keySection.KID
-	signerUV, key, linkMap, err = l.world.LoadKeyV2(ctx, uid, kid)
+	signerUV, key, linkMap, err = l.world.loadKeyV2(ctx, uid, kid)
 	if err != nil {
 		return signerUV, nil, nil, err
 	}
@@ -135,9 +132,9 @@ func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keyba
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "user key provisioned before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap))
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
 	}
 	return proofSet
 }
@@ -258,9 +255,9 @@ func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUn
 	a := bookends.left
 	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
 	c := bookends.right
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b)
+	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "became admin before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c)
+		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c, "team link before adminship demotion")
 	}
 	return proofSet
 }
@@ -721,7 +718,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 }
 
 func (l *TeamLoader) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
-	return l.world.PerUserEncryptionKey(ctx, userSeqno)
+	return l.world.perUserEncryptionKey(ctx, userSeqno)
 }
 
 func (l *TeamLoader) unpackLinks(ctx context.Context, teamUpdate *rawTeam) ([]*chainLinkUnpacked, error) {

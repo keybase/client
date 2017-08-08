@@ -808,7 +808,7 @@ func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSe
 }
 
 // Derive a key from another.
-// Uses HMAC(key=reason, data=key)
+// Uses HMAC(key=key, data=reason)
 // Not to be confused with DeriveSymmetricKey which has hmac inputs swapped.
 // This one makes sense for derivation from secrets used only to derive from.
 func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {

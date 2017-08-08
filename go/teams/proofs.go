@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -25,8 +26,9 @@ type proofTermBookends struct {
 }
 
 type proof struct {
-	a proofTerm
-	b proofTerm
+	a      proofTerm
+	b      proofTerm
+	reason string
 }
 
 type proofIndex struct {
@@ -75,7 +77,7 @@ func newProofSet() *proofSetT {
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
 // proof set with the new proofs needed, but the original arugment p will
 // be mutated.
-func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proofSetT {
+func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm, reason string) *proofSetT {
 	idx := newProofIndex(a.leafID, b.leafID)
 	set := p.proofs[idx]
 	for i := len(set) - 1; i >= 0; i-- {
@@ -87,7 +89,7 @@ func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proof
 			return p
 		}
 	}
-	p.proofs[idx] = append(p.proofs[idx], proof{a, b})
+	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
 	return p
 }
 
@@ -130,7 +132,7 @@ func (p *proofSetT) AllProofs() []proof {
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
 func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
-	return world.MerkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
+	return world.merkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
 }
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
@@ -161,7 +163,7 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 	// we're toast.
 	if !ok && p.a.leafID.IsUser() {
 		g.Log.CDebugf(ctx, "proof#check: missed load for %s at %d; trying a force repoll", p.a.leafID.String(), laterSeqno)
-		lm, err := world.ForceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
+		lm, err := world.forceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
 		if err != nil {
 			return err
 		}
@@ -173,6 +175,7 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 	}
 
 	if !triple.LinkID.Export().Eq(linkID) {
+		g.Log.CDebugf(ctx, "proof error: %s", spew.Sdump(p))
 		return NewProofError(p, fmt.Sprintf("hash mismatch: %s != %s", triple.LinkID, linkID))
 	}
 	return nil

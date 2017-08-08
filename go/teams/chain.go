@@ -1472,7 +1472,7 @@ func (t *TeamSigChainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 func (t *TeamSigChainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
 	// check the per-team-key
 	if perTeamKey.Generation != expectedGeneration {
-		return res, fmt.Errorf("per-team-key generation must start at 1 but got:%d", perTeamKey.Generation)
+		return res, fmt.Errorf("per-team-key generation expected %v but got %v", expectedGeneration, perTeamKey.Generation)
 	}
 
 	// validate signing kid

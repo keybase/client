@@ -2,9 +2,10 @@ package teams
 
 import (
 	"encoding/hex"
+	"testing"
+
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func createProofTerm(idInt int, seqno keybase1.Seqno) proofTerm {
@@ -63,22 +64,22 @@ func TestAddNeededHappensBeforeProof(t *testing.T) {
 	q := createProofTerm(2, keybase1.Seqno(403))
 	r := createProofTerm(1, keybase1.Seqno(49))
 
-	ps = ps.AddNeededHappensBeforeProof(a, b)
-	ps = ps.AddNeededHappensBeforeProof(c, d)
-	ps = ps.AddNeededHappensBeforeProof(e, f)
-	ps = ps.AddNeededHappensBeforeProof(g, h)
-	ps = ps.AddNeededHappensBeforeProof(i, j)
-	ps = ps.AddNeededHappensBeforeProof(k, l)
-	ps = ps.AddNeededHappensBeforeProof(m, n)
-	ps = ps.AddNeededHappensBeforeProof(o, p)
-	ps = ps.AddNeededHappensBeforeProof(q, r)
+	ps = ps.AddNeededHappensBeforeProof(a, b, "")
+	ps = ps.AddNeededHappensBeforeProof(c, d, "")
+	ps = ps.AddNeededHappensBeforeProof(e, f, "")
+	ps = ps.AddNeededHappensBeforeProof(g, h, "")
+	ps = ps.AddNeededHappensBeforeProof(i, j, "")
+	ps = ps.AddNeededHappensBeforeProof(k, l, "")
+	ps = ps.AddNeededHappensBeforeProof(m, n, "")
+	ps = ps.AddNeededHappensBeforeProof(o, p, "")
+	ps = ps.AddNeededHappensBeforeProof(q, r, "")
 
 	ret := ps.AllProofs()
 
 	require.Equal(t, len(ret), 5)
-	require.True(t, proofEq(ret[0], proof{a, h}))
-	require.True(t, proofEq(ret[1], proof{i, d}))
-	require.True(t, proofEq(ret[2], proof{k, l}))
-	require.True(t, proofEq(ret[3], proof{q, r}))
-	require.True(t, proofEq(ret[4], proof{o, p}))
+	require.True(t, proofEq(ret[0], proof{a, h, ""}))
+	require.True(t, proofEq(ret[1], proof{i, d, ""}))
+	require.True(t, proofEq(ret[2], proof{k, l, ""}))
+	require.True(t, proofEq(ret[3], proof{q, r, ""}))
+	require.True(t, proofEq(ret[4], proof{o, p, ""}))
 }

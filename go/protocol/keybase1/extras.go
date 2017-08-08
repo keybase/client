@@ -418,6 +418,20 @@ func MakeTestTeamID(n uint32) TeamID {
 	return tid
 }
 
+// Used by unit tests.
+func MakeTestSubTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(SUB_TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + SUB_TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
 // Can panic if invalid
 func (t TeamID) IsSubTeam() bool {
 	suffix := t[len(t)-2:]

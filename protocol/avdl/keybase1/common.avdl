@@ -207,6 +207,11 @@ protocol Common {
       string name;
   }
 
+  enum UserOrTeamResult {
+      USER_1,
+      TEAM_2
+  }
+
   record RemoteTrack {
       string username;
       UID uid;

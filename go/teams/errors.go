@@ -3,6 +3,8 @@ package teams
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -24,8 +26,8 @@ func (e StubbedError) Error() string {
 	if e.note == nil {
 		return fmt.Sprintf("stubbed link when not expected (seqno %d)", int(e.l.outerLink.Seqno))
 	}
-	return fmt.Sprintf("stubbed link when not expected (seqno %d) (%s)",
-		int(e.l.outerLink.Seqno), *e.note)
+	return fmt.Sprintf("%s (stubbed link when not expected; at seqno %d)",
+		*e.note, int(e.l.outerLink.Seqno))
 }
 
 type InvalidLink struct {
@@ -167,20 +169,38 @@ func NewResolveError(name keybase1.TeamName, id keybase1.TeamID) ResolveError {
 	return ResolveError{name, id}
 }
 
-func fixupTeamGetError(e error, n string) error {
+type TeamDoesNotExistError struct {
+	descriptor string
+}
+
+func (e TeamDoesNotExistError) Error() string {
+	return fmt.Sprintf("Team %q does not exist", e.descriptor)
+}
+
+func NewTeamDoesNotExistError(descriptor string) error {
+	return TeamDoesNotExistError{descriptor}
+}
+
+func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n string) error {
 	if e == nil {
 		return nil
 	}
-	ase, ok := e.(libkb.AppStatusError)
-	if !ok {
-		return e
+	switch e := e.(type) {
+	case libkb.AppStatusError:
+		switch keybase1.StatusCode(e.Code) {
+		case keybase1.StatusCode_SCTeamReadError:
+			e.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
+		case keybase1.StatusCode_SCTeamNotFound:
+			return NewTeamDoesNotExistError(n)
+		default:
+		}
+	case TeamDoesNotExistError:
+		// Replace the not found error so that it has a name instead of team ID.
+		// If subteams are involved the name might not correspond to the ID
+		// but it's better to have this undertandable error message that's accurate
+		// most of the time than one with an ID that's always accurate.
+		g.Log.CDebugf(ctx, "replacing error: %v", e)
+		return NewTeamDoesNotExistError(n)
 	}
-	switch keybase1.StatusCode(ase.Code) {
-	case keybase1.StatusCode_SCTeamReadError:
-		ase.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
-	case keybase1.StatusCode_SCTeamNotFound:
-		ase.Desc = fmt.Sprintf("Team %q does not exist", n)
-	default:
-	}
-	return ase
+	return e
 }
