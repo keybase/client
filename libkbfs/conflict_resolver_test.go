@@ -29,7 +29,8 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetClock(wallClock{})
 	id := tlf.FakeID(1, tlf.Private)
-	fbo := newFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
+	fbo := newFolderBranchOps(
+		ctx, config, FolderBranch{id, MasterBranch}, standard)
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(libkb.NormalizedUsername("mockUser"), nil)
@@ -380,7 +381,7 @@ func testCRGetCROrBust(t *testing.T, config Config,
 	if !ok {
 		t.Fatalf("Unexpected KBFSOps type")
 	}
-	ops := kbfsOpsCast.getOpsNoAdd(fb)
+	ops := kbfsOpsCast.getOpsNoAdd(context.TODO(), fb)
 	return ops.cr
 }
 

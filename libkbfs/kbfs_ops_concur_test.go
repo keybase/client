@@ -617,7 +617,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(rootNode.GetFolderBranch())
+	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(
+		ctx, rootNode.GetFolderBranch())
 	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
@@ -704,7 +705,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(rootNode.GetFolderBranch())
+	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(
+		ctx, rootNode.GetFolderBranch())
 	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}

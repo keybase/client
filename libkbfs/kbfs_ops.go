@@ -230,7 +230,8 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	return nil
 }
 
-func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
+func (fs *KBFSOpsStandard) getOpsNoAdd(
+	ctx context.Context, fb FolderBranch) *folderBranchOps {
 	if fb == (FolderBranch{}) {
 		panic("zero FolderBranch in getOps")
 	}
@@ -249,7 +250,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
 	if !ok {
 		// TODO: add some interface for specifying the type of the
 		// branch; for now assume online and read-write.
-		ops = newFolderBranchOps(fs.config, fb, standard)
+		ops = newFolderBranchOps(ctx, fs.config, fb, standard)
 		fs.ops[fb] = ops
 	}
 	return ops
@@ -257,7 +258,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
 
 func (fs *KBFSOpsStandard) getOps(ctx context.Context,
 	fb FolderBranch, fop FavoritesOp) *folderBranchOps {
-	ops := fs.getOpsNoAdd(fb)
+	ops := fs.getOpsNoAdd(ctx, fb)
 	if err := ops.doFavoritesOp(ctx, fs.favs, fop, nil); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
@@ -273,7 +274,7 @@ func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	handle *TlfHandle, fb FolderBranch, fop FavoritesOp) *folderBranchOps {
-	ops := fs.getOpsNoAdd(fb)
+	ops := fs.getOpsNoAdd(ctx, fb)
 	if err := ops.doFavoritesOp(ctx, fs.favs, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.

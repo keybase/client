@@ -66,6 +66,7 @@ build_script:
   - echo github.com/keybase/kbfs/tlf >> testlist.txt
   - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
   - echo github.com/keybase/kbfs/libdokan >> testlist.txt
+  - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
   - echo github.com/keybase/kbfs/simplefs >> testlist.txt
   - echo github.com/keybase/kbfs/test >> testlist.txt
 # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.

@@ -528,10 +528,11 @@ func (m *rekeyFSM) listenOnEvent(
 	})
 }
 
-func getRekeyFSM(ops KBFSOps, tlfID tlf.ID) RekeyFSM {
+func getRekeyFSM(ctx context.Context, ops KBFSOps, tlfID tlf.ID) RekeyFSM {
 	switch o := ops.(type) {
 	case *KBFSOpsStandard:
-		return o.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch}).rekeyFSM
+		return o.getOpsNoAdd(
+			ctx, FolderBranch{Tlf: tlfID, Branch: MasterBranch}).rekeyFSM
 	case *folderBranchOps:
 		return o.rekeyFSM
 	default:
@@ -550,7 +551,7 @@ func getRekeyFSM(ops KBFSOps, tlfID tlf.ID) RekeyFSM {
 // should go through the FSM asychronously.
 func RequestRekeyAndWaitForOneFinishEvent(ctx context.Context,
 	ops KBFSOps, tlfID tlf.ID) (res RekeyResult, err error) {
-	fsm := getRekeyFSM(ops, tlfID)
+	fsm := getRekeyFSM(ctx, ops, tlfID)
 	rekeyWaiter := make(chan struct{})
 	fsm.listenOnEvent(rekeyFinishedEvent, func(e RekeyEvent) {
 		res = e.finished.RekeyResult

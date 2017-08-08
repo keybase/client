@@ -300,7 +300,7 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 
 func getOps(config Config, id tlf.ID) *folderBranchOps {
 	return config.KBFSOps().(*KBFSOpsStandard).
-		getOpsNoAdd(FolderBranch{id, MasterBranch})
+		getOpsNoAdd(context.TODO(), FolderBranch{id, MasterBranch})
 }
 
 // createNewRMD creates a new RMD for the given name. Returns its ID
@@ -1588,7 +1588,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(t, ops1, p1)
 	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
-		FolderBranch{id1, "test"})
+		ctx, FolderBranch{id1, "test"})
 	n2 := nodeFromPath(t, ops2, p2)
 
 	expectedErr := RenameAcrossDirsError{}

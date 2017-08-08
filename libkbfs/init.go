@@ -178,11 +178,12 @@ func DefaultInitParams(ctx Context) InitParams {
 	}
 }
 
-// AddFlags adds libkbfs flags to the given FlagSet. Returns an
-// InitParams that will be filled in once the given FlagSet is parsed.
-func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
-	defaultParams := DefaultInitParams(ctx)
-
+// AddFlagsWithDefaults adds libkbfs flags to the given FlagSet, given
+// a set of default flags. Returns an InitParams that will be filled
+// in once the given FlagSet is parsed.
+func AddFlagsWithDefaults(
+	flags *flag.FlagSet, defaultParams InitParams,
+	defaultLogPath string) *InitParams {
 	var params InitParams
 	flags.BoolVar(&params.Debug, "debug", defaultParams.Debug,
 		"Print debug messages")
@@ -201,8 +202,8 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.DurationVar(&params.TLFValidDuration, "tlf-valid",
 		defaultParams.TLFValidDuration,
 		"time tlfs are valid before redoing identification")
-	flags.BoolVar(&params.LogToFile, "log-to-file", false,
-		fmt.Sprintf("Log to default file: %s", defaultLogPath(ctx)))
+	flags.BoolVar(&params.LogToFile, "log-to-file", defaultParams.LogToFile,
+		fmt.Sprintf("Log to default file: %s", defaultLogPath))
 	flags.StringVar(&params.LogFileConfig.Path, "log-file", "",
 		"Path to log file")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age",
@@ -245,12 +246,19 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.IntVar((*int)(&params.MetadataVersion), "md-version",
 		int(defaultParams.MetadataVersion),
 		"Metadata version to use when creating new metadata")
-	flags.StringVar(&params.Mode, "mode", InitDefaultString,
+	flags.StringVar(&params.Mode, "mode", defaultParams.Mode,
 		fmt.Sprintf("Overall initialization mode for KBFS, indicating how "+
 			"heavy-weight it can be (%s, %s or %s)", InitDefaultString,
 			InitMinimalString, InitSingleOpString))
 
 	return &params
+}
+
+// AddFlags adds libkbfs flags to the given FlagSet. Returns an
+// InitParams that will be filled in once the given FlagSet is parsed.
+func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
+	return AddFlagsWithDefaults(
+		flags, DefaultInitParams(ctx), defaultLogPath(ctx))
 }
 
 // GetRemoteUsageString returns a string describing the flags to use
@@ -381,13 +389,16 @@ func makeBlockServer(config Config, bserverAddr string,
 	return NewBlockServerRemote(config, bserverAddr, rpcLogFactory), nil
 }
 
-// InitLog sets up logging switching to a log file if necessary.
-// Returns a valid logger even on error, which are non-fatal, thus
-// errors from this function may be ignored.
-// Possible errors are logged to the logger returned.
-func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
+// InitLogWithPrefix sets up logging switching to a log file if
+// necessary, given a prefix and a default log path.  Returns a valid
+// logger even on error, which are non-fatal, thus errors from this
+// function may be ignored.  Possible errors are logged to the logger
+// returned.
+func InitLogWithPrefix(
+	params InitParams, ctx Context, prefix string,
+	defaultLogPath string) (logger.Logger, error) {
 	var err error
-	log := logger.NewWithCallDepth("kbfs", 1)
+	log := logger.NewWithCallDepth(prefix, 1)
 
 	// Set log file to default if log-to-file was specified
 	if params.LogToFile {
@@ -395,7 +406,7 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 			return nil, fmt.Errorf(
 				"log-to-file and log-file flags can't be specified together")
 		}
-		params.LogFileConfig.Path = defaultLogPath(ctx)
+		params.LogFileConfig.Path = defaultLogPath
 	}
 
 	if params.LogFileConfig.Path != "" {
@@ -413,7 +424,15 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	return log, err
 }
 
-// Init initializes a config and returns it.
+// InitLog sets up logging switching to a log file if necessary.
+// Returns a valid logger even on error, which are non-fatal, thus
+// errors from this function may be ignored.
+// Possible errors are logged to the logger returned.
+func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
+	return InitLogWithPrefix(params, ctx, "kbfs", defaultLogPath(ctx))
+}
+
+// InitWithPrefix initializes a config and returns it, given a prefix.
 //
 // onInterruptFn is called whenever an interrupt signal is received
 // (e.g., if the user hits Ctrl-C).
@@ -425,8 +444,10 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // The keybaseServiceCn argument is to specify a custom service and
 // crypto (for non-RPC environments) like mobile. If this is nil, we'll
 // use the default RPC implementation.
-func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
-	onInterruptFn func(), log logger.Logger) (cfg Config, err error) {
+func InitWithPrefix(
+	ctx context.Context, kbCtx Context, params InitParams,
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	log logger.Logger, logPrefix string) (cfg Config, err error) {
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt)
@@ -467,7 +488,7 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	errCh := make(chan error)
 	go func() {
 		var er error
-		cfg, er = doInit(ctx, params, keybaseServiceCn, log)
+		cfg, er = doInit(ctx, kbCtx, params, keybaseServiceCn, log, logPrefix)
 		errCh <- er
 	}()
 
@@ -479,25 +500,47 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	}
 }
 
-func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
-	log logger.Logger) (Config, error) {
+// Init initializes a config and returns it.
+//
+// onInterruptFn is called whenever an interrupt signal is received
+// (e.g., if the user hits Ctrl-C).
+//
+// Init should be called at the beginning of main. Shutdown (see
+// below) should then be called at the end of main (usually via
+// defer).
+//
+// The keybaseServiceCn argument is to specify a custom service and
+// crypto (for non-RPC environments) like mobile. If this is nil, we'll
+// use the default RPC implementation.
+func Init(
+	ctx context.Context, kbCtx Context, params InitParams,
+	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
+	log logger.Logger) (cfg Config, err error) {
+	return InitWithPrefix(
+		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
+}
+
+func doInit(
+	ctx context.Context, kbCtx Context, params InitParams,
+	keybaseServiceCn KeybaseServiceCn, log logger.Logger,
+	logPrefix string) (Config, error) {
 	mode := InitDefault
 	switch params.Mode {
 	case InitDefaultString:
-		log.Debug("Initializing in default mode")
+		log.CDebugf(ctx, "Initializing in default mode")
 		// Already the default
 	case InitMinimalString:
-		log.Debug("Initializing in minimal mode")
+		log.CDebugf(ctx, "Initializing in minimal mode")
 		mode = InitMinimal
 	case InitSingleOpString:
-		log.Debug("Initializing in singleOp mode")
+		log.CDebugf(ctx, "Initializing in singleOp mode")
 		mode = InitSingleOp
 	default:
 		return nil, fmt.Errorf("Unexpected mode: %s", params.Mode)
 	}
 
 	config := NewConfigLocal(mode, func(module string) logger.Logger {
-		mname := "kbfs"
+		mname := logPrefix
 		if module != "" {
 			mname += fmt.Sprintf("(%s)", module)
 		}
@@ -513,7 +556,8 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	}, params.StorageRoot)
 
 	if params.CleanBlockCacheCapacity > 0 {
-		log.Debug("overriding default clean block cache capacity from %d to %d",
+		log.CDebugf(
+			ctx, "overriding default clean block cache capacity from %d to %d",
 			config.BlockCache().GetCleanBytesCapacity(),
 			params.CleanBlockCacheCapacity)
 		config.BlockCache().SetCleanBytesCapacity(
@@ -565,7 +609,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		keybaseServiceCn = keybaseDaemon{}
 	}
 	service, err := keybaseServiceCn.NewKeybaseService(
-		config, params, ctx, kbfsLog)
+		config, params, kbCtx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
@@ -583,7 +627,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	// crypto must be initialized before the MD and block servers
 	// are initialized, since those depend on crypto.
-	crypto, err := keybaseServiceCn.NewCrypto(config, params, ctx, kbfsLog)
+	crypto, err := keybaseServiceCn.NewCrypto(config, params, kbCtx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating crypto: %s", err)
 	}
@@ -591,7 +635,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	config.SetCrypto(crypto)
 
 	mdServer, err := makeMDServer(
-		config, params.MDServerAddr, ctx.NewRPCLogFactory(), log)
+		config, params.MDServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %+v", err)
 	}
@@ -610,7 +654,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 	config.SetKeyServer(keyServer)
 
 	bserv, err := makeBlockServer(
-		config, params.BServerAddr, ctx.NewRPCLogFactory(), log)
+		config, params.BServerAddr, kbCtx.NewRPCLogFactory(), log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %+v", err)
 	}
@@ -623,10 +667,10 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 
 	err = config.EnableDiskLimiter(params.StorageRoot)
 	if err != nil {
-		log.Warning("Could not enable disk limiter: %+v", err)
+		log.CWarningf(ctx, "Could not enable disk limiter: %+v", err)
 		return nil, err
 	}
-	ctx10s, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx10s, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	// TODO: Don't turn on journaling if either -bserver or
 	// -mdserver point to local implementations.
@@ -635,14 +679,14 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		err = config.EnableJournaling(ctx10s, journalRoot,
 			params.TLFJournalBackgroundWorkStatus)
 		if err != nil {
-			log.Warning("Could not initialize journal server: %+v", err)
+			log.CWarningf(ctx, "Could not initialize journal server: %+v", err)
 		}
-		log.Debug("Journaling enabled")
+		log.CDebugf(ctx, "Journaling enabled")
 	}
 	if params.EnableDiskCache {
 		err = config.MakeDiskBlockCacheIfNotExists()
 		if err != nil {
-			log.Warning("Could not initialize disk cache: %+v", err)
+			log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
 			notification := &keybase1.FSNotification{
 				StatusCode:       keybase1.FSStatusCode_ERROR,
 				NotificationType: keybase1.FSNotificationType_INITIALIZED,
@@ -650,7 +694,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 			}
 			defer config.Reporter().Notify(ctx10s, notification)
 		} else {
-			log.Debug("Disk cache enabled")
+			log.CDebugf(ctx, "Disk cache enabled")
 		}
 	}
 
@@ -658,7 +702,7 @@ func doInit(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn,
 		return nil, fmt.Errorf(
 			"Illegal sync batch size: %d", params.BGFlushDirOpBatchSize)
 	}
-	log.Debug("Enabling a dir op batch size of %d",
+	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 

@@ -327,6 +327,13 @@ def runNixTest(prefix) {
             sh './simplefs.test -test.timeout 2m'
         }
     }
+    tests[prefix+'kbfsgit'] = {
+        dir('kbfsgit') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './kbfsgit.test -test.timeout 10m'
+        }
+    }
     tests[prefix+'test_race'] = {
         dir('test') {
             println "Test with Race but no Fuse"

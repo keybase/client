@@ -27,9 +27,10 @@ type StartOptions struct {
 	MountPoint     string
 }
 
-func startMounting(config libkbfs.Config, options StartOptions,
+func startMounting(
+	ctx context.Context, config libkbfs.Config, options StartOptions,
 	log logger.Logger, mi *libfs.MountInterrupter) error {
-	log.Debug("Mounting: %q", options.MountPoint)
+	log.CDebugf(ctx, "Mounting: %q", options.MountPoint)
 
 	var mounter = &mounter{options: options}
 	err := mi.MountAndSetUnmount(mounter)
@@ -43,17 +44,17 @@ func startMounting(config libkbfs.Config, options StartOptions,
 		return err
 	}
 
-	log.Debug("Creating filesystem")
+	log.CDebugf(ctx, "Creating filesystem")
 	fs := NewFS(config, mounter.c, options.KbfsParams.Debug, options.PlatformParams)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
-	log.Debug("Serving filesystem")
+	log.CDebugf(ctx, "Serving filesystem")
 	if err = fs.Serve(ctx); err != nil {
 		return err
 	}
 
-	log.Debug("Ending")
+	log.CDebugf(ctx, "Ending")
 	return nil
 }
 
@@ -77,7 +78,9 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 
 	log.Debug("Initializing")
 	mi := libfs.NewMountInterrupter(log)
-	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
+	ctx := context.Background()
+	config, err := libkbfs.Init(
+		ctx, kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
@@ -86,7 +89,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	if options.SkipMount {
 		log.Debug("Skipping mounting filesystem")
 	} else {
-		err = startMounting(config, options, log, mi)
+		err = startMounting(ctx, config, options, log, mi)
 		if err != nil {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {

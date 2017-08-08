@@ -350,7 +350,7 @@ var _ KBFSOps = (*folderBranchOps)(nil)
 var _ fbmHelper = (*folderBranchOps)(nil)
 
 // newFolderBranchOps constructs a new folderBranchOps object.
-func newFolderBranchOps(config Config, fb FolderBranch,
+func newFolderBranchOps(ctx context.Context, config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode() == InitMinimal {
@@ -371,7 +371,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	log := config.MakeLogger(fmt.Sprintf("FBO %s%s", tlfStringFull[:8],
 		branchSuffix))
 	// But print it out once in full, just in case.
-	log.CInfof(nil, "Created new folder-branch for %s", tlfStringFull)
+	log.CInfof(ctx, "Created new folder-branch for %s", tlfStringFull)
 
 	observers := newObserverList()
 

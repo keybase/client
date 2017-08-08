@@ -979,7 +979,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// Force the FBO to forget about its previous identify, so that we
 	// can make sure the rekey doesn't trigger a full identify.
 	kbfsOps1.(*KBFSOpsStandard).getOpsNoAdd(
-		rootNode1.GetFolderBranch()).identifyDone = false
+		ctx, rootNode1.GetFolderBranch()).identifyDone = false
 
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,
 		kbfsOps1, rootNode1.GetFolderBranch().Tlf)
@@ -1221,7 +1221,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	// Force the FBO to forget about its previous identify, so that we
 	// can make sure the rekey doesn't trigger a full identify.
 	kbfsOps1.(*KBFSOpsStandard).getOpsNoAdd(
-		rootNode1.GetFolderBranch()).identifyDone = false
+		ctx, rootNode1.GetFolderBranch()).identifyDone = false
 
 	// now user 1 should rekey
 	_, err = RequestRekeyAndWaitForOneFinishEvent(ctx,

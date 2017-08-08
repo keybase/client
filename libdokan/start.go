@@ -48,7 +48,9 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	}
 
 	mi := libfs.NewMountInterrupter(log)
-	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, mi.Done, log)
+	ctx := context.Background()
+	config, err := libkbfs.Init(
+		ctx, kbCtx, options.KbfsParams, nil, mi.Done, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
@@ -69,7 +71,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		log.Configure("", true, "")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	if options.MountPoint == "" {

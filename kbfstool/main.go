@@ -75,7 +75,8 @@ func realMain() (exitStatus int) {
 	kbfsParams.EnableJournal = false
 	kbfsParams.EnableDiskCache = false
 
-	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, nil, log)
+	ctx := context.Background()
+	config, err := libkbfs.Init(ctx, kbCtx, *kbfsParams, nil, nil, log)
 	if err != nil {
 		printError("kbfs", err)
 		return 1
@@ -89,8 +90,6 @@ func realMain() (exitStatus int) {
 
 	cmd := flag.Arg(0)
 	args := flag.Args()[1:]
-
-	ctx := context.Background()
 
 	switch cmd {
 	case "stat":
