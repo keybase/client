@@ -41,6 +41,10 @@ type LogoutHook interface {
 	OnLogout() error
 }
 
+type StandaloneChatConnector interface {
+	StartStandaloneChat(g *GlobalContext) error
+}
+
 type GlobalContext struct {
 	Log              logger.Logger // Handles all logging
 	VDL              *VDebugLog    // verbose debug log
@@ -108,6 +112,8 @@ type GlobalContext struct {
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+
+	SChatConnector StandaloneChatConnector
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -1016,4 +1022,17 @@ func (g *GlobalContext) ClearPerUserKeyring() {
 
 func (g *GlobalContext) LocalSigchainGuard() *LocalSigchainGuard {
 	return g.localSigchainGuard
+}
+
+func (g *GlobalContext) StartStandaloneChat() {
+	if g.Service {
+		return
+	}
+
+	if g.SChatConnector == nil {
+		g.Log.Warning("G#StartStandaloneChat - not starting chat, SChatConnector is nil.")
+		return
+	}
+
+	g.SChatConnector.StartStandaloneChat(g)
 }

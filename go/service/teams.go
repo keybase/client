@@ -139,6 +139,10 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
+	// Ensure we have chat available, since TeamAddMember may also be
+	// coming from a standalone launch.
+	h.G().ExternalG().StartStandaloneChat()
+
 	result.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name, result.User.Username)
 	return result, nil
 }
