@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Icon, Box, ClickableBox, LoadingLine} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
@@ -10,14 +10,49 @@ if (!isMobile) {
   KeyHandler = require('../../../util/key-handler.desktop').default
 }
 
-const _AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
-  <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
-        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-        <Text type="BodyBigLink">New chat</Text>
+const _AddNewRow = ({
+  onNewChat,
+  onJumpToChat,
+  isLoading,
+}: {
+  onNewChat: () => void,
+  onJumpToChat: () => void,
+  isLoading: boolean,
+}) => (
+  <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
+    <ClickableBox
+      style={{
+        ...globalStyles.flexBoxCenter,
+        flexGrow: 1,
+        flexShrink: 0,
+        paddingLeft: globalMargins.medium,
+        paddingRight: globalMargins.medium,
+      }}
+      onClick={onJumpToChat}
+    >
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          backgroundColor: globalColors.lightGrey,
+          borderRadius: 19,
+          flexShrink: 0,
+          height: globalMargins.medium,
+          justifyContent: 'center',
+          width: '100%',
+        }}
+      >
+        <Icon type="iconfont-search" style={{color: globalColors.black_20, fontSize: 12}} />
+        <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
+          Jump to chat
+        </Text>
       </Box>
     </ClickableBox>
+    <Icon
+      type="iconfont-add"
+      style={{color: globalColors.black_40, marginRight: 12, marginTop: 2}}
+      onClick={onNewChat}
+    />
     {isLoading &&
       <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
         <LoadingLine />
