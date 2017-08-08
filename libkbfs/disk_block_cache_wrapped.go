@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"path/filepath"
+	"sync"
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -31,8 +32,10 @@ type diskBlockCacheConfig interface {
 }
 
 type diskBlockCacheWrapped struct {
-	config          diskBlockCacheConfig
-	storageRoot     string
+	config      diskBlockCacheConfig
+	storageRoot string
+	// Protects the caches
+	mtx             sync.RWMutex
 	workingSetCache DiskBlockCache
 	syncCache       DiskBlockCache
 }
@@ -59,6 +62,8 @@ func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
 }
 
 func (cache *diskBlockCacheWrapped) enableSyncCache() (err error) {
+	cache.mtx.Lock()
+	defer cache.mtx.Unlock()
 	if cache.syncCache != nil {
 		return nil
 	}
@@ -76,7 +81,8 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 	triggeredPrefetch bool, err error) {
-	// TODO: add mutex to guard sync state
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	primaryCache := cache.workingSetCache
 	secondaryCache := cache.syncCache
 	if cache.config.IsSyncedTlf(tlfID) && cache.syncCache != nil {
@@ -95,7 +101,8 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (metadata DiskBlockCacheMetadata, err error) {
-	// TODO: add mutex to guard sync state
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	if cache.syncCache != nil {
 		md, err := cache.syncCache.GetMetadata(ctx, blockID)
 		switch err {
@@ -113,14 +120,20 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	// This is a write operation but we are only reading the pointers to the
+	// caches. So we use a read lock.
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	if cache.config.IsSyncedTlf(tlfID) && cache.syncCache != nil {
-		go cache.workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
+		workingSetCache := cache.workingSetCache
+		go workingSetCache.Delete(ctx, []kbfsblock.ID{blockID})
 		return cache.syncCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 	}
 	// TODO: Allow more intelligent transitioning from the sync cache to
 	// the working set cache.
 	if cache.syncCache != nil {
-		go cache.syncCache.Delete(ctx, []kbfsblock.ID{blockID})
+		syncCache := cache.syncCache
+		go syncCache.Delete(ctx, []kbfsblock.ID{blockID})
 	}
 	return cache.workingSetCache.Put(ctx, tlfID, blockID, buf, serverHalf)
 }
@@ -128,6 +141,10 @@ func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 // Delete implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
+	// This is a write operation but we are only reading the pointers to the
+	// caches. So we use a read lock.
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	numRemoved, sizeRemoved, err = cache.workingSetCache.Delete(ctx, blockIDs)
 	if cache.syncCache == nil || err != nil {
 		return numRemoved, sizeRemoved, err
@@ -141,6 +158,10 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, triggeredPrefetch, finishedPrefetch bool) error {
+	// This is a write operation but we are only reading the pointers to the
+	// caches. So we use a read lock.
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	// Try to update metadata for both caches.
 	if cache.syncCache != nil {
 		err := cache.syncCache.UpdateMetadata(ctx, blockID, triggeredPrefetch,
@@ -156,6 +177,8 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 
 // Size implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Size() int64 {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	size := cache.workingSetCache.Size()
 	if cache.syncCache != nil {
 		size += cache.syncCache.Size()
@@ -166,6 +189,10 @@ func (cache *diskBlockCacheWrapped) Size() int64 {
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {
+	// This is a write operation but we are only reading the pointers to the
+	// caches. So we use a read lock.
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
 	statuses := make(map[string]DiskBlockCacheStatus, 2)
 	for name, status := range cache.workingSetCache.Status(ctx) {
 		statuses[name] = status
@@ -181,6 +208,8 @@ func (cache *diskBlockCacheWrapped) Status(
 
 // Shutdown implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Shutdown(ctx context.Context) {
+	cache.mtx.Lock()
+	defer cache.mtx.Unlock()
 	cache.workingSetCache.Shutdown(ctx)
 	if cache.syncCache != nil {
 		cache.syncCache.Shutdown(ctx)
