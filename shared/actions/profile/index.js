@@ -65,11 +65,11 @@ function* _finishRevoking(): SagaGenerator<any, any> {
   yield put(navigateUp())
 }
 
-function onUserClick(username: string): Constants.OnUserClick {
-  return {payload: {username}, type: Constants.onUserClick}
+function showUserProfile(username: string): Constants.ShowUserProfile {
+  return {payload: {username}, type: Constants.showUserProfile}
 }
 
-function* _onUserClick(action: Constants.OnUserClick): SagaGenerator<any, any> {
+function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any, any> {
   const {username: userId} = action.payload
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
@@ -119,7 +119,7 @@ function* _onClickAvatar(action: Constants.OnClickFollowers): SagaGenerator<any,
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username))
+    yield put(showUserProfile(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
@@ -142,7 +142,7 @@ function* _onClickFollowers(action: Constants.OnClickFollowers): SagaGenerator<a
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username))
+    yield put(showUserProfile(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
@@ -165,7 +165,7 @@ function* _onClickFollowing(action: Constants.OnClickFollowing): SagaGenerator<a
 
   if (!action.openWebsite) {
     // TODO(mm) hint followings
-    yield put(onUserClick(action.payload.username))
+    yield put(showUserProfile(action.payload.username))
   } else {
     yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
@@ -207,7 +207,7 @@ function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
   const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
   const username = match && match[1]
   if (username) {
-    yield put(onUserClick(username))
+    yield put(showUserProfile(username))
   }
 }
 
@@ -260,8 +260,8 @@ function* _profileSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.onClickAvatar, _onClickAvatar)
   yield safeTakeEvery(Constants.onClickFollowers, _onClickFollowers)
   yield safeTakeEvery(Constants.onClickFollowing, _onClickFollowing)
-  yield safeTakeEvery(Constants.onUserClick, _onUserClick)
   yield safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink)
+  yield safeTakeEvery(Constants.showUserProfile, _showUserProfile)
   yield safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof)
   yield safeTakeEvery('app:link', _onAppLink)
 }
@@ -285,7 +285,7 @@ export {
   onClickAvatar,
   onClickFollowers,
   onClickFollowing,
-  onUserClick,
+  showUserProfile,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitZcashAddress,

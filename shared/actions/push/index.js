@@ -19,7 +19,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 import {requestPushPermissions, configurePush} from '../platform-specific'
-import {onUserClick} from '../profile'
+import {showUserProfile} from '../profile'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -82,7 +82,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(onUserClick(data.username))
+      yield put(showUserProfile(data.username))
     } else {
       console.error('Push notification payload missing or unknown type')
     }

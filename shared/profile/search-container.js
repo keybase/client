@@ -1,5 +1,5 @@
 // @flow
-import {clearSearchResults, onUserClick} from '../actions/profile'
+import {clearSearchResults, showUserProfile} from '../actions/profile'
 import * as SearchCreators from '../actions/search/creators'
 import * as SearchConstants from '../constants/search'
 import {compose, withState, withHandlers, defaultProps} from 'recompose'
@@ -40,11 +40,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
   },
   onAddSelectedUser: username => {
     dispatch(navigateUp())
-    dispatch(onUserClick(username))
+    dispatch(showUserProfile(username))
   },
   _onClick: username => {
     dispatch(navigateUp())
-    dispatch(onUserClick(username))
+    dispatch(showUserProfile(username))
   },
   onClose: () => {
     dispatch(clearSearchResults())

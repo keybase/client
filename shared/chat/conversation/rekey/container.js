@@ -5,7 +5,7 @@ import YouRekey from './you-rekey'
 import {compose, branch, renderComponent, renderNothing} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend, navigateUp} from '../../../actions/route-tree'
-import {onUserClick} from '../../../actions/profile'
+import {showUserProfile} from '../../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../../actions/unlock-folders'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onBack: () => dispatch(navigateUp()),
   onEnterPaperkey: () => dispatch(navigateAppend(['enterPaperkey'])),
   onRekey: () => dispatch(openRekeyDialog()),
-  onShowProfile: (username: string) => dispatch(onUserClick(username)),
+  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props => ({
