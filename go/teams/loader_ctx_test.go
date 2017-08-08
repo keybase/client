@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +52,7 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 
 	name := l.defaultTeamName
 
-	t, ok := l.unit.Teams[name.String()]
+	teamSpec, ok := l.unit.Teams[name.String()]
 	if !ok {
 		return nil, NewMockBoundsError("getLinksFromServer", "name", name.String())
 	}
@@ -69,12 +70,46 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 		}
 	}
 
+	var links []json.RawMessage
+	for _, link := range teamSpec.Links {
+		// Stub out those links in teamSpec that claim seqnos
+		// that are in the Unit.Load.Stub list.
+		linkJ, err := jsonw.Unmarshal(link)
+		require.NoError(l.t, err)
+		seqno, err := linkJ.AtKey("seqno").GetInt()
+		require.NoError(l.t, err)
+		var stub bool
+		var omit bool
+		for _, stubSeqno := range l.unit.Load.Stub {
+			if stubSeqno == keybase1.Seqno(seqno) {
+				stub = true
+			}
+		}
+		for _, omitSeqno := range l.unit.Load.Omit {
+			if omitSeqno == keybase1.Seqno(seqno) {
+				omit = true
+			}
+		}
+		if omit {
+			// pass
+		} else if stub {
+			l.t.Logf("MockLoaderContext stubbing link seqno: %v", seqno)
+			err := linkJ.DeleteKey("payload_json")
+			require.NoError(l.t, err)
+			stubbed, err := linkJ.Marshal()
+			require.NoError(l.t, err)
+			links = append(links, stubbed)
+		} else {
+			links = append(links, link)
+		}
+	}
+
 	return &rawTeam{
 		ID:             teamID,
 		Name:           name,
 		Status:         libkb.AppStatus{Code: libkb.SCOk},
-		Chain:          t.Links,
-		Box:            t.TeamKeyBox,
+		Chain:          links,
+		Box:            teamSpec.TeamKeyBox,
 		Prevs:          make(map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded), // TODO
 		ReaderKeyMasks: readerKeyMasks,                                               // TODO
 		SubteamReader:  false,                                                        // TODO

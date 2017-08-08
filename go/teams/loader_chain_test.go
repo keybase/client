@@ -37,11 +37,17 @@ type TestCase struct {
 		LinkID keybase1.LinkID `json:"link_id"`
 	} `json:"team_merkle"`
 	MerkleTriples map[string] /*LeafID-HashMeta*/ libkb.MerkleTriple `json:"merkle_triples"`
+	Load          struct {
+		NeedAdmin bool             `json:"need_admin"`
+		Stub      []keybase1.Seqno `json:"stub"`
+		Omit      []keybase1.Seqno `json:"omit"`
+	} `json:"load"`
 
 	Expect struct {
 		Error       bool   `json:"error"`
 		ErrorSubstr string `json:"error_substr"`
 		ErrorType   string `json:"error_type"`
+		NStubbed    int    `json:"n_stubbed"`
 		Todo        bool   `json:"todo"`
 	} `json:"expect"`
 }
@@ -113,7 +119,8 @@ func runUnit(t *testing.T, unit TestCase) {
 
 	t.Logf("load the team")
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-		Name: mock.defaultTeamName.String(),
+		NeedAdmin: unit.Load.NeedAdmin,
+		Name:      mock.defaultTeamName.String(),
 	})
 	if err != nil {
 		t.Logf("got error: [%T] %v", err, err)
@@ -123,9 +130,10 @@ func runUnit(t *testing.T, unit TestCase) {
 		require.NoError(t, err, "unit: %v", unit.FileName)
 		for _, teamDesc := range unit.Teams {
 			require.Len(t, team.chain().inner.LinkIDs, len(teamDesc.Links))
+			require.Len(t, team.chain().inner.StubbedLinks, expect.NStubbed, "number of stubbed links in load result")
 		}
 	} else {
-		require.Error(t, err, "unexpected team load success")
+		require.Error(t, err, "unexpected team load success in %v", unit.FileName)
 		errstr := err.Error()
 		if len(expect.ErrorSubstr) > 0 {
 			require.Contains(t, errstr, expect.ErrorSubstr)
