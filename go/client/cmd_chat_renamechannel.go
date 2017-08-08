@@ -65,6 +65,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
 	}
+	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
 	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
 		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
