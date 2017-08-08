@@ -493,6 +493,21 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "GlobalAppNotificationSetting",
+      "symbols": [
+        "NEWMESSAGES_0",
+        "PLAINTEXTMOBILE_1",
+        "PLAINTEXTDESKTOP_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GlobalAppNotificationSettings",
+      "fields": [],
+      "typedef": "map<GlobalAppNotificationSetting, bool>"
     }
   ],
   "messages": {
@@ -913,6 +928,19 @@
         }
       ],
       "response": "SetAppNotificationSettingsRes"
+    },
+    "setGlobalAppNotificationSettings": {
+      "request": [
+        {
+          "name": "settings",
+          "type": "GlobalAppNotificationSettings"
+        }
+      ],
+      "response": null
+    },
+    "getGlobalNotificationSettings": {
+      "request": [],
+      "response": "GlobalAppNotificationSettings"
     },
     "remoteNotificationSuccessful": {
       "request": [

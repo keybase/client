@@ -238,7 +238,16 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
+  // Global notification settings (on by default)
+  enum GlobalAppNotificationSetting {
+    NEWMESSAGES_0,
+    PLAINTEXTMOBILE_1,
+    PLAINTEXTDESKTOP_2
+  }
+  @typedef("map<GlobalAppNotificationSetting, bool>") record GlobalAppNotificationSettings {}
+  void setGlobalAppNotificationSettings(GlobalAppNotificationSettings settings);
+  GlobalAppNotificationSettings getGlobalNotificationSettings();
 
   // Endpoint to indicate a high priority push notification has been processed
- void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
+  void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
 }

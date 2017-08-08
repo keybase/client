@@ -4,65 +4,64 @@
 package chat1
 
 import (
-	"errors"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	"errors"
 )
 
+
 type MessageBoxed struct {
-	Version          MessageBoxedVersion  `codec:"version" json:"version"`
-	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderCiphertext SealedData           `codec:"headerCiphertext" json:"headerCiphertext"`
-	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	VerifyKey        []byte               `codec:"verifyKey" json:"verifyKey"`
-	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
+	Version	MessageBoxedVersion	`codec:"version" json:"version"`
+	ServerHeader	*MessageServerHeader	`codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader	MessageClientHeader	`codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext	SealedData	`codec:"headerCiphertext" json:"headerCiphertext"`
+	BodyCiphertext	EncryptedData	`codec:"bodyCiphertext" json:"bodyCiphertext"`
+	VerifyKey	[]byte	`codec:"verifyKey" json:"verifyKey"`
+	KeyGeneration	int	`codec:"keyGeneration" json:"keyGeneration"`
 }
 
 func (o MessageBoxed) DeepCopy() MessageBoxed {
 	return MessageBoxed{
-		Version: o.Version.DeepCopy(),
-		ServerHeader: (func(x *MessageServerHeader) *MessageServerHeader {
+		Version : o.Version.DeepCopy(),
+		ServerHeader : (func (x *MessageServerHeader) *MessageServerHeader {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ServerHeader),
-		ClientHeader:     o.ClientHeader.DeepCopy(),
-		HeaderCiphertext: o.HeaderCiphertext.DeepCopy(),
-		BodyCiphertext:   o.BodyCiphertext.DeepCopy(),
-		VerifyKey: (func(x []byte) []byte {
+		ClientHeader : o.ClientHeader.DeepCopy(),
+		HeaderCiphertext : o.HeaderCiphertext.DeepCopy(),
+		BodyCiphertext : o.BodyCiphertext.DeepCopy(),
+		VerifyKey : (func (x []byte) []byte {
 			if x == nil {
 				return nil
 			}
 			return append([]byte(nil), x...)
 		})(o.VerifyKey),
-		KeyGeneration: o.KeyGeneration,
+		KeyGeneration : o.KeyGeneration,
 	}
 }
 
 type MessageBoxedVersion int
-
 const (
 	MessageBoxedVersion_VNONE MessageBoxedVersion = 0
-	MessageBoxedVersion_V1    MessageBoxedVersion = 1
-	MessageBoxedVersion_V2    MessageBoxedVersion = 2
+	MessageBoxedVersion_V1 MessageBoxedVersion = 1
+	MessageBoxedVersion_V2 MessageBoxedVersion = 2
 )
 
 func (o MessageBoxedVersion) DeepCopy() MessageBoxedVersion { return o }
-
 var MessageBoxedVersionMap = map[string]MessageBoxedVersion{
-	"VNONE": 0,
-	"V1":    1,
-	"V2":    2,
+	"VNONE" : 0,
+	"V1" : 1,
+	"V2" : 2,
 }
 
 var MessageBoxedVersionRevMap = map[MessageBoxedVersion]string{
-	0: "VNONE",
-	1: "V1",
-	2: "V2",
+	0 : "VNONE",
+	1 : "V1",
+	2 : "V2",
 }
 
 func (e MessageBoxedVersion) String() string {
@@ -73,13 +72,13 @@ func (e MessageBoxedVersion) String() string {
 }
 
 type ThreadViewBoxed struct {
-	Messages   []MessageBoxed `codec:"messages" json:"messages"`
-	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages	[]MessageBoxed	`codec:"messages" json:"messages"`
+	Pagination	*Pagination	`codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o ThreadViewBoxed) DeepCopy() ThreadViewBoxed {
 	return ThreadViewBoxed{
-		Messages: (func(x []MessageBoxed) []MessageBoxed {
+		Messages : (func (x []MessageBoxed) []MessageBoxed {
 			var ret []MessageBoxed
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -87,7 +86,7 @@ func (o ThreadViewBoxed) DeepCopy() ThreadViewBoxed {
 			}
 			return ret
 		})(o.Messages),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination : (func (x *Pagination) *Pagination {
 			if x == nil {
 				return nil
 			}
@@ -98,14 +97,14 @@ func (o ThreadViewBoxed) DeepCopy() ThreadViewBoxed {
 }
 
 type GetInboxRemoteRes struct {
-	Inbox     InboxView  `codec:"inbox" json:"inbox"`
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Inbox	InboxView	`codec:"inbox" json:"inbox"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetInboxRemoteRes) DeepCopy() GetInboxRemoteRes {
 	return GetInboxRemoteRes{
-		Inbox: o.Inbox.DeepCopy(),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		Inbox : o.Inbox.DeepCopy(),
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -116,13 +115,13 @@ func (o GetInboxRemoteRes) DeepCopy() GetInboxRemoteRes {
 }
 
 type GetInboxByTLFIDRemoteRes struct {
-	Convs     []Conversation `codec:"convs" json:"convs"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Convs	[]Conversation	`codec:"convs" json:"convs"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetInboxByTLFIDRemoteRes) DeepCopy() GetInboxByTLFIDRemoteRes {
 	return GetInboxByTLFIDRemoteRes{
-		Convs: (func(x []Conversation) []Conversation {
+		Convs : (func (x []Conversation) []Conversation {
 			var ret []Conversation
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -130,7 +129,7 @@ func (o GetInboxByTLFIDRemoteRes) DeepCopy() GetInboxByTLFIDRemoteRes {
 			}
 			return ret
 		})(o.Convs),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -141,14 +140,14 @@ func (o GetInboxByTLFIDRemoteRes) DeepCopy() GetInboxByTLFIDRemoteRes {
 }
 
 type GetThreadRemoteRes struct {
-	Thread    ThreadViewBoxed `codec:"thread" json:"thread"`
-	RateLimit *RateLimit      `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Thread	ThreadViewBoxed	`codec:"thread" json:"thread"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetThreadRemoteRes) DeepCopy() GetThreadRemoteRes {
 	return GetThreadRemoteRes{
-		Thread: o.Thread.DeepCopy(),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		Thread : o.Thread.DeepCopy(),
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -159,14 +158,14 @@ func (o GetThreadRemoteRes) DeepCopy() GetThreadRemoteRes {
 }
 
 type GetConversationMetadataRemoteRes struct {
-	Conv      Conversation `codec:"conv" json:"conv"`
-	RateLimit *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Conv	Conversation	`codec:"conv" json:"conv"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetConversationMetadataRemoteRes) DeepCopy() GetConversationMetadataRemoteRes {
 	return GetConversationMetadataRemoteRes{
-		Conv: o.Conv.DeepCopy(),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		Conv : o.Conv.DeepCopy(),
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -177,14 +176,14 @@ func (o GetConversationMetadataRemoteRes) DeepCopy() GetConversationMetadataRemo
 }
 
 type PostRemoteRes struct {
-	MsgHeader MessageServerHeader `codec:"msgHeader" json:"msgHeader"`
-	RateLimit *RateLimit          `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	MsgHeader	MessageServerHeader	`codec:"msgHeader" json:"msgHeader"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o PostRemoteRes) DeepCopy() PostRemoteRes {
 	return PostRemoteRes{
-		MsgHeader: o.MsgHeader.DeepCopy(),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		MsgHeader : o.MsgHeader.DeepCopy(),
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -195,14 +194,14 @@ func (o PostRemoteRes) DeepCopy() PostRemoteRes {
 }
 
 type NewConversationRemoteRes struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o NewConversationRemoteRes) DeepCopy() NewConversationRemoteRes {
 	return NewConversationRemoteRes{
-		ConvID: o.ConvID.DeepCopy(),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		ConvID : o.ConvID.DeepCopy(),
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -213,13 +212,13 @@ func (o NewConversationRemoteRes) DeepCopy() NewConversationRemoteRes {
 }
 
 type GetMessagesRemoteRes struct {
-	Msgs      []MessageBoxed `codec:"msgs" json:"msgs"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Msgs	[]MessageBoxed	`codec:"msgs" json:"msgs"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetMessagesRemoteRes) DeepCopy() GetMessagesRemoteRes {
 	return GetMessagesRemoteRes{
-		Msgs: (func(x []MessageBoxed) []MessageBoxed {
+		Msgs : (func (x []MessageBoxed) []MessageBoxed {
 			var ret []MessageBoxed
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -227,7 +226,7 @@ func (o GetMessagesRemoteRes) DeepCopy() GetMessagesRemoteRes {
 			}
 			return ret
 		})(o.Msgs),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -238,12 +237,12 @@ func (o GetMessagesRemoteRes) DeepCopy() GetMessagesRemoteRes {
 }
 
 type MarkAsReadRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o MarkAsReadRes) DeepCopy() MarkAsReadRes {
 	return MarkAsReadRes{
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -254,12 +253,12 @@ func (o MarkAsReadRes) DeepCopy() MarkAsReadRes {
 }
 
 type SetConversationStatusRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o SetConversationStatusRes) DeepCopy() SetConversationStatusRes {
 	return SetConversationStatusRes{
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -270,13 +269,13 @@ func (o SetConversationStatusRes) DeepCopy() SetConversationStatusRes {
 }
 
 type GetPublicConversationsRes struct {
-	Conversations []Conversation `codec:"conversations" json:"conversations"`
-	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Conversations	[]Conversation	`codec:"conversations" json:"conversations"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 	return GetPublicConversationsRes{
-		Conversations: (func(x []Conversation) []Conversation {
+		Conversations : (func (x []Conversation) []Conversation {
 			var ret []Conversation
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -284,7 +283,7 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 			}
 			return ret
 		})(o.Conversations),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -295,25 +294,23 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 }
 
 type ChannelMention int
-
 const (
 	ChannelMention_NONE ChannelMention = 0
-	ChannelMention_ALL  ChannelMention = 1
+	ChannelMention_ALL ChannelMention = 1
 	ChannelMention_HERE ChannelMention = 2
 )
 
 func (o ChannelMention) DeepCopy() ChannelMention { return o }
-
 var ChannelMentionMap = map[string]ChannelMention{
-	"NONE": 0,
-	"ALL":  1,
-	"HERE": 2,
+	"NONE" : 0,
+	"ALL" : 1,
+	"HERE" : 2,
 }
 
 var ChannelMentionRevMap = map[ChannelMention]string{
-	0: "NONE",
-	1: "ALL",
-	2: "HERE",
+	0 : "NONE",
+	1 : "ALL",
+	2 : "HERE",
 }
 
 func (e ChannelMention) String() string {
@@ -324,16 +321,16 @@ func (e ChannelMention) String() string {
 }
 
 type UnreadUpdateFull struct {
-	Ignore    bool           `codec:"ignore" json:"ignore"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
-	Updates   []UnreadUpdate `codec:"updates" json:"updates"`
+	Ignore	bool	`codec:"ignore" json:"ignore"`
+	InboxVers	InboxVers	`codec:"inboxVers" json:"inboxVers"`
+	Updates	[]UnreadUpdate	`codec:"updates" json:"updates"`
 }
 
 func (o UnreadUpdateFull) DeepCopy() UnreadUpdateFull {
 	return UnreadUpdateFull{
-		Ignore:    o.Ignore,
-		InboxVers: o.InboxVers.DeepCopy(),
-		Updates: (func(x []UnreadUpdate) []UnreadUpdate {
+		Ignore : o.Ignore,
+		InboxVers : o.InboxVers.DeepCopy(),
+		Updates : (func (x []UnreadUpdate) []UnreadUpdate {
 			var ret []UnreadUpdate
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -345,47 +342,45 @@ func (o UnreadUpdateFull) DeepCopy() UnreadUpdateFull {
 }
 
 type S3Params struct {
-	Bucket               string `codec:"bucket" json:"bucket"`
-	ObjectKey            string `codec:"objectKey" json:"objectKey"`
-	AccessKey            string `codec:"accessKey" json:"accessKey"`
-	Acl                  string `codec:"acl" json:"acl"`
-	RegionName           string `codec:"regionName" json:"regionName"`
-	RegionEndpoint       string `codec:"regionEndpoint" json:"regionEndpoint"`
-	RegionBucketEndpoint string `codec:"regionBucketEndpoint" json:"regionBucketEndpoint"`
+	Bucket	string	`codec:"bucket" json:"bucket"`
+	ObjectKey	string	`codec:"objectKey" json:"objectKey"`
+	AccessKey	string	`codec:"accessKey" json:"accessKey"`
+	Acl	string	`codec:"acl" json:"acl"`
+	RegionName	string	`codec:"regionName" json:"regionName"`
+	RegionEndpoint	string	`codec:"regionEndpoint" json:"regionEndpoint"`
+	RegionBucketEndpoint	string	`codec:"regionBucketEndpoint" json:"regionBucketEndpoint"`
 }
 
 func (o S3Params) DeepCopy() S3Params {
 	return S3Params{
-		Bucket:               o.Bucket,
-		ObjectKey:            o.ObjectKey,
-		AccessKey:            o.AccessKey,
-		Acl:                  o.Acl,
-		RegionName:           o.RegionName,
-		RegionEndpoint:       o.RegionEndpoint,
-		RegionBucketEndpoint: o.RegionBucketEndpoint,
+		Bucket : o.Bucket,
+		ObjectKey : o.ObjectKey,
+		AccessKey : o.AccessKey,
+		Acl : o.Acl,
+		RegionName : o.RegionName,
+		RegionEndpoint : o.RegionEndpoint,
+		RegionBucketEndpoint : o.RegionBucketEndpoint,
 	}
 }
 
 type SyncInboxResType int
-
 const (
-	SyncInboxResType_CURRENT     SyncInboxResType = 0
+	SyncInboxResType_CURRENT SyncInboxResType = 0
 	SyncInboxResType_INCREMENTAL SyncInboxResType = 1
-	SyncInboxResType_CLEAR       SyncInboxResType = 2
+	SyncInboxResType_CLEAR SyncInboxResType = 2
 )
 
 func (o SyncInboxResType) DeepCopy() SyncInboxResType { return o }
-
 var SyncInboxResTypeMap = map[string]SyncInboxResType{
-	"CURRENT":     0,
-	"INCREMENTAL": 1,
-	"CLEAR":       2,
+	"CURRENT" : 0,
+	"INCREMENTAL" : 1,
+	"CLEAR" : 2,
 }
 
 var SyncInboxResTypeRevMap = map[SyncInboxResType]string{
-	0: "CURRENT",
-	1: "INCREMENTAL",
-	2: "CLEAR",
+	0 : "CURRENT",
+	1 : "INCREMENTAL",
+	2 : "CLEAR",
 }
 
 func (e SyncInboxResType) String() string {
@@ -396,14 +391,14 @@ func (e SyncInboxResType) String() string {
 }
 
 type SyncIncrementalRes struct {
-	Vers  InboxVers      `codec:"vers" json:"vers"`
-	Convs []Conversation `codec:"convs" json:"convs"`
+	Vers	InboxVers	`codec:"vers" json:"vers"`
+	Convs	[]Conversation	`codec:"convs" json:"convs"`
 }
 
 func (o SyncIncrementalRes) DeepCopy() SyncIncrementalRes {
 	return SyncIncrementalRes{
-		Vers: o.Vers.DeepCopy(),
-		Convs: (func(x []Conversation) []Conversation {
+		Vers : o.Vers.DeepCopy(),
+		Convs : (func (x []Conversation) []Conversation {
 			var ret []Conversation
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -415,29 +410,29 @@ func (o SyncIncrementalRes) DeepCopy() SyncIncrementalRes {
 }
 
 type ServerCacheVers struct {
-	InboxVers  int `codec:"inboxVers" json:"inboxVers"`
-	BodiesVers int `codec:"bodiesVers" json:"bodiesVers"`
+	InboxVers	int	`codec:"inboxVers" json:"inboxVers"`
+	BodiesVers	int	`codec:"bodiesVers" json:"bodiesVers"`
 }
 
 func (o ServerCacheVers) DeepCopy() ServerCacheVers {
 	return ServerCacheVers{
-		InboxVers:  o.InboxVers,
-		BodiesVers: o.BodiesVers,
+		InboxVers : o.InboxVers,
+		BodiesVers : o.BodiesVers,
 	}
 }
 
 type SyncInboxRes struct {
-	Typ__         SyncInboxResType    `codec:"typ" json:"typ"`
-	Incremental__ *SyncIncrementalRes `codec:"incremental,omitempty" json:"incremental,omitempty"`
+	Typ__	SyncInboxResType	`codec:"typ" json:"typ"`
+	Incremental__	*SyncIncrementalRes	`codec:"incremental,omitempty" json:"incremental,omitempty"`
 }
 
 func (o *SyncInboxRes) Typ() (ret SyncInboxResType, err error) {
-	switch o.Typ__ {
-	case SyncInboxResType_INCREMENTAL:
-		if o.Incremental__ == nil {
-			err = errors.New("unexpected nil value for Incremental__")
-			return ret, err
-		}
+	switch (o.Typ__) {
+		case SyncInboxResType_INCREMENTAL:
+			if o.Incremental__ == nil {
+				err = errors.New("unexpected nil value for Incremental__")
+				return ret, err
+			}
 	}
 	return o.Typ__, nil
 }
@@ -454,27 +449,27 @@ func (o SyncInboxRes) Incremental() (res SyncIncrementalRes) {
 
 func NewSyncInboxResWithCurrent() SyncInboxRes {
 	return SyncInboxRes{
-		Typ__: SyncInboxResType_CURRENT,
+		Typ__ : SyncInboxResType_CURRENT,
 	}
 }
 
 func NewSyncInboxResWithIncremental(v SyncIncrementalRes) SyncInboxRes {
 	return SyncInboxRes{
-		Typ__:         SyncInboxResType_INCREMENTAL,
-		Incremental__: &v,
+		Typ__ : SyncInboxResType_INCREMENTAL,
+		Incremental__ : &v,
 	}
 }
 
 func NewSyncInboxResWithClear() SyncInboxRes {
 	return SyncInboxRes{
-		Typ__: SyncInboxResType_CLEAR,
+		Typ__ : SyncInboxResType_CLEAR,
 	}
 }
 
 func (o SyncInboxRes) DeepCopy() SyncInboxRes {
-	return SyncInboxRes{
-		Typ__: o.Typ__.DeepCopy(),
-		Incremental__: (func(x *SyncIncrementalRes) *SyncIncrementalRes {
+	return SyncInboxRes {
+		Typ__ : o.Typ__.DeepCopy(),
+		Incremental__ : (func (x *SyncIncrementalRes) *SyncIncrementalRes {
 			if x == nil {
 				return nil
 			}
@@ -485,34 +480,32 @@ func (o SyncInboxRes) DeepCopy() SyncInboxRes {
 }
 
 type SyncChatRes struct {
-	CacheVers ServerCacheVers `codec:"cacheVers" json:"cacheVers"`
-	InboxRes  SyncInboxRes    `codec:"inboxRes" json:"inboxRes"`
+	CacheVers	ServerCacheVers	`codec:"cacheVers" json:"cacheVers"`
+	InboxRes	SyncInboxRes	`codec:"inboxRes" json:"inboxRes"`
 }
 
 func (o SyncChatRes) DeepCopy() SyncChatRes {
 	return SyncChatRes{
-		CacheVers: o.CacheVers.DeepCopy(),
-		InboxRes:  o.InboxRes.DeepCopy(),
+		CacheVers : o.CacheVers.DeepCopy(),
+		InboxRes : o.InboxRes.DeepCopy(),
 	}
 }
 
 type SyncAllNotificationType int
-
 const (
-	SyncAllNotificationType_STATE       SyncAllNotificationType = 0
+	SyncAllNotificationType_STATE SyncAllNotificationType = 0
 	SyncAllNotificationType_INCREMENTAL SyncAllNotificationType = 1
 )
 
 func (o SyncAllNotificationType) DeepCopy() SyncAllNotificationType { return o }
-
 var SyncAllNotificationTypeMap = map[string]SyncAllNotificationType{
-	"STATE":       0,
-	"INCREMENTAL": 1,
+	"STATE" : 0,
+	"INCREMENTAL" : 1,
 }
 
 var SyncAllNotificationTypeRevMap = map[SyncAllNotificationType]string{
-	0: "STATE",
-	1: "INCREMENTAL",
+	0 : "STATE",
+	1 : "INCREMENTAL",
 }
 
 func (e SyncAllNotificationType) String() string {
@@ -523,23 +516,23 @@ func (e SyncAllNotificationType) String() string {
 }
 
 type SyncAllNotificationRes struct {
-	Typ__         SyncAllNotificationType `codec:"typ" json:"typ"`
-	State__       *gregor1.State          `codec:"state,omitempty" json:"state,omitempty"`
-	Incremental__ *gregor1.SyncResult     `codec:"incremental,omitempty" json:"incremental,omitempty"`
+	Typ__	SyncAllNotificationType	`codec:"typ" json:"typ"`
+	State__	*gregor1.State	`codec:"state,omitempty" json:"state,omitempty"`
+	Incremental__	*gregor1.SyncResult	`codec:"incremental,omitempty" json:"incremental,omitempty"`
 }
 
 func (o *SyncAllNotificationRes) Typ() (ret SyncAllNotificationType, err error) {
-	switch o.Typ__ {
-	case SyncAllNotificationType_STATE:
-		if o.State__ == nil {
-			err = errors.New("unexpected nil value for State__")
-			return ret, err
-		}
-	case SyncAllNotificationType_INCREMENTAL:
-		if o.Incremental__ == nil {
-			err = errors.New("unexpected nil value for Incremental__")
-			return ret, err
-		}
+	switch (o.Typ__) {
+		case SyncAllNotificationType_STATE:
+			if o.State__ == nil {
+				err = errors.New("unexpected nil value for State__")
+				return ret, err
+			}
+		case SyncAllNotificationType_INCREMENTAL:
+			if o.Incremental__ == nil {
+				err = errors.New("unexpected nil value for Incremental__")
+				return ret, err
+			}
 	}
 	return o.Typ__, nil
 }
@@ -566,29 +559,29 @@ func (o SyncAllNotificationRes) Incremental() (res gregor1.SyncResult) {
 
 func NewSyncAllNotificationResWithState(v gregor1.State) SyncAllNotificationRes {
 	return SyncAllNotificationRes{
-		Typ__:   SyncAllNotificationType_STATE,
-		State__: &v,
+		Typ__ : SyncAllNotificationType_STATE,
+		State__ : &v,
 	}
 }
 
 func NewSyncAllNotificationResWithIncremental(v gregor1.SyncResult) SyncAllNotificationRes {
 	return SyncAllNotificationRes{
-		Typ__:         SyncAllNotificationType_INCREMENTAL,
-		Incremental__: &v,
+		Typ__ : SyncAllNotificationType_INCREMENTAL,
+		Incremental__ : &v,
 	}
 }
 
 func (o SyncAllNotificationRes) DeepCopy() SyncAllNotificationRes {
-	return SyncAllNotificationRes{
-		Typ__: o.Typ__.DeepCopy(),
-		State__: (func(x *gregor1.State) *gregor1.State {
+	return SyncAllNotificationRes {
+		Typ__ : o.Typ__.DeepCopy(),
+		State__ : (func (x *gregor1.State) *gregor1.State {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.State__),
-		Incremental__: (func(x *gregor1.SyncResult) *gregor1.SyncResult {
+		Incremental__ : (func (x *gregor1.SyncResult) *gregor1.SyncResult {
 			if x == nil {
 				return nil
 			}
@@ -599,28 +592,28 @@ func (o SyncAllNotificationRes) DeepCopy() SyncAllNotificationRes {
 }
 
 type SyncAllResult struct {
-	Auth         gregor1.AuthResult     `codec:"auth" json:"auth"`
-	Chat         SyncChatRes            `codec:"chat" json:"chat"`
-	Notification SyncAllNotificationRes `codec:"notification" json:"notification"`
-	Badge        UnreadUpdateFull       `codec:"badge" json:"badge"`
+	Auth	gregor1.AuthResult	`codec:"auth" json:"auth"`
+	Chat	SyncChatRes	`codec:"chat" json:"chat"`
+	Notification	SyncAllNotificationRes	`codec:"notification" json:"notification"`
+	Badge	UnreadUpdateFull	`codec:"badge" json:"badge"`
 }
 
 func (o SyncAllResult) DeepCopy() SyncAllResult {
 	return SyncAllResult{
-		Auth:         o.Auth.DeepCopy(),
-		Chat:         o.Chat.DeepCopy(),
-		Notification: o.Notification.DeepCopy(),
-		Badge:        o.Badge.DeepCopy(),
+		Auth : o.Auth.DeepCopy(),
+		Chat : o.Chat.DeepCopy(),
+		Notification : o.Notification.DeepCopy(),
+		Badge : o.Badge.DeepCopy(),
 	}
 }
 
 type JoinLeaveConversationRemoteRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o JoinLeaveConversationRemoteRes) DeepCopy() JoinLeaveConversationRemoteRes {
 	return JoinLeaveConversationRemoteRes{
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -631,13 +624,13 @@ func (o JoinLeaveConversationRemoteRes) DeepCopy() JoinLeaveConversationRemoteRe
 }
 
 type GetTLFConversationsRes struct {
-	Conversations []Conversation `codec:"conversations" json:"conversations"`
-	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Conversations	[]Conversation	`codec:"conversations" json:"conversations"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
 	return GetTLFConversationsRes{
-		Conversations: (func(x []Conversation) []Conversation {
+		Conversations : (func (x []Conversation) []Conversation {
 			var ret []Conversation
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -645,7 +638,7 @@ func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
 			}
 			return ret
 		})(o.Conversations),
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -656,12 +649,12 @@ func (o GetTLFConversationsRes) DeepCopy() GetTLFConversationsRes {
 }
 
 type SetAppNotificationSettingsRes struct {
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	RateLimit	*RateLimit	`codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o SetAppNotificationSettingsRes) DeepCopy() SetAppNotificationSettingsRes {
 	return SetAppNotificationSettingsRes{
-		RateLimit: (func(x *RateLimit) *RateLimit {
+		RateLimit : (func (x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
 			}
@@ -671,23 +664,55 @@ func (o SetAppNotificationSettingsRes) DeepCopy() SetAppNotificationSettingsRes 
 	}
 }
 
+type GlobalAppNotificationSetting int
+const (
+	GlobalAppNotificationSetting_NEWMESSAGES GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+)
+
+func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
+var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
+	"NEWMESSAGES" : 0,
+	"PLAINTEXTMOBILE" : 1,
+	"PLAINTEXTDESKTOP" : 2,
+}
+
+var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
+	0 : "NEWMESSAGES",
+	1 : "PLAINTEXTMOBILE",
+	2 : "PLAINTEXTDESKTOP",
+}
+
+func (e GlobalAppNotificationSetting) String() string {
+	if v, ok := GlobalAppNotificationSettingRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GlobalAppNotificationSettings map<GlobalAppNotificationSetting, bool>
+func (o GlobalAppNotificationSettings) DeepCopy() GlobalAppNotificationSettings {
+	return o.DeepCopy()
+}
+
 type GetInboxRemoteArg struct {
-	Vers       InboxVers      `codec:"vers" json:"vers"`
-	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Vers	InboxVers	`codec:"vers" json:"vers"`
+	Query	*GetInboxQuery	`codec:"query,omitempty" json:"query,omitempty"`
+	Pagination	*Pagination	`codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o GetInboxRemoteArg) DeepCopy() GetInboxRemoteArg {
 	return GetInboxRemoteArg{
-		Vers: o.Vers.DeepCopy(),
-		Query: (func(x *GetInboxQuery) *GetInboxQuery {
+		Vers : o.Vers.DeepCopy(),
+		Query : (func (x *GetInboxQuery) *GetInboxQuery {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Query),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination : (func (x *Pagination) *Pagination {
 			if x == nil {
 				return nil
 			}
@@ -698,22 +723,22 @@ func (o GetInboxRemoteArg) DeepCopy() GetInboxRemoteArg {
 }
 
 type GetThreadRemoteArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
+	Query	*GetThreadQuery	`codec:"query,omitempty" json:"query,omitempty"`
+	Pagination	*Pagination	`codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o GetThreadRemoteArg) DeepCopy() GetThreadRemoteArg {
 	return GetThreadRemoteArg{
-		ConversationID: o.ConversationID.DeepCopy(),
-		Query: (func(x *GetThreadQuery) *GetThreadQuery {
+		ConversationID : o.ConversationID.DeepCopy(),
+		Query : (func (x *GetThreadQuery) *GetThreadQuery {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Query),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination : (func (x *Pagination) *Pagination {
 			if x == nil {
 				return nil
 			}
@@ -724,32 +749,32 @@ func (o GetThreadRemoteArg) DeepCopy() GetThreadRemoteArg {
 }
 
 type GetPublicConversationsArg struct {
-	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
-	TopicType        TopicType `codec:"topicType" json:"topicType"`
-	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	TlfID	TLFID	`codec:"tlfID" json:"tlfID"`
+	TopicType	TopicType	`codec:"topicType" json:"topicType"`
+	SummarizeMaxMsgs	bool	`codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 func (o GetPublicConversationsArg) DeepCopy() GetPublicConversationsArg {
 	return GetPublicConversationsArg{
-		TlfID:            o.TlfID.DeepCopy(),
-		TopicType:        o.TopicType.DeepCopy(),
-		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
+		TlfID : o.TlfID.DeepCopy(),
+		TopicType : o.TopicType.DeepCopy(),
+		SummarizeMaxMsgs : o.SummarizeMaxMsgs,
 	}
 }
 
 type PostRemoteArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	MessageBoxed   MessageBoxed    `codec:"messageBoxed" json:"messageBoxed"`
-	AtMentions     []gregor1.UID   `codec:"atMentions" json:"atMentions"`
-	ChannelMention ChannelMention  `codec:"channelMention" json:"channelMention"`
-	TopicNameState *TopicNameState `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
+	MessageBoxed	MessageBoxed	`codec:"messageBoxed" json:"messageBoxed"`
+	AtMentions	[]gregor1.UID	`codec:"atMentions" json:"atMentions"`
+	ChannelMention	ChannelMention	`codec:"channelMention" json:"channelMention"`
+	TopicNameState	*TopicNameState	`codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 }
 
 func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 	return PostRemoteArg{
-		ConversationID: o.ConversationID.DeepCopy(),
-		MessageBoxed:   o.MessageBoxed.DeepCopy(),
-		AtMentions: (func(x []gregor1.UID) []gregor1.UID {
+		ConversationID : o.ConversationID.DeepCopy(),
+		MessageBoxed : o.MessageBoxed.DeepCopy(),
+		AtMentions : (func (x []gregor1.UID) []gregor1.UID {
 			var ret []gregor1.UID
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -757,8 +782,8 @@ func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 			}
 			return ret
 		})(o.AtMentions),
-		ChannelMention: o.ChannelMention.DeepCopy(),
-		TopicNameState: (func(x *TopicNameState) *TopicNameState {
+		ChannelMention : o.ChannelMention.DeepCopy(),
+		TopicNameState : (func (x *TopicNameState) *TopicNameState {
 			if x == nil {
 				return nil
 			}
@@ -769,28 +794,28 @@ func (o PostRemoteArg) DeepCopy() PostRemoteArg {
 }
 
 type NewConversationRemoteArg struct {
-	IdTriple ConversationIDTriple `codec:"idTriple" json:"idTriple"`
+	IdTriple	ConversationIDTriple	`codec:"idTriple" json:"idTriple"`
 }
 
 func (o NewConversationRemoteArg) DeepCopy() NewConversationRemoteArg {
 	return NewConversationRemoteArg{
-		IdTriple: o.IdTriple.DeepCopy(),
+		IdTriple : o.IdTriple.DeepCopy(),
 	}
 }
 
 type NewConversationRemote2Arg struct {
-	IdTriple       ConversationIDTriple    `codec:"idTriple" json:"idTriple"`
-	TLFMessage     MessageBoxed            `codec:"TLFMessage" json:"TLFMessage"`
-	MembersType    ConversationMembersType `codec:"membersType" json:"membersType"`
-	TopicNameState *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
+	IdTriple	ConversationIDTriple	`codec:"idTriple" json:"idTriple"`
+	TLFMessage	MessageBoxed	`codec:"TLFMessage" json:"TLFMessage"`
+	MembersType	ConversationMembersType	`codec:"membersType" json:"membersType"`
+	TopicNameState	*TopicNameState	`codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 }
 
 func (o NewConversationRemote2Arg) DeepCopy() NewConversationRemote2Arg {
 	return NewConversationRemote2Arg{
-		IdTriple:    o.IdTriple.DeepCopy(),
-		TLFMessage:  o.TLFMessage.DeepCopy(),
-		MembersType: o.MembersType.DeepCopy(),
-		TopicNameState: (func(x *TopicNameState) *TopicNameState {
+		IdTriple : o.IdTriple.DeepCopy(),
+		TLFMessage : o.TLFMessage.DeepCopy(),
+		MembersType : o.MembersType.DeepCopy(),
+		TopicNameState : (func (x *TopicNameState) *TopicNameState {
 			if x == nil {
 				return nil
 			}
@@ -801,14 +826,14 @@ func (o NewConversationRemote2Arg) DeepCopy() NewConversationRemote2Arg {
 }
 
 type GetMessagesRemoteArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
+	MessageIDs	[]MessageID	`codec:"messageIDs" json:"messageIDs"`
 }
 
 func (o GetMessagesRemoteArg) DeepCopy() GetMessagesRemoteArg {
 	return GetMessagesRemoteArg{
-		ConversationID: o.ConversationID.DeepCopy(),
-		MessageIDs: (func(x []MessageID) []MessageID {
+		ConversationID : o.ConversationID.DeepCopy(),
+		MessageIDs : (func (x []MessageID) []MessageID {
 			var ret []MessageID
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -820,58 +845,58 @@ func (o GetMessagesRemoteArg) DeepCopy() GetMessagesRemoteArg {
 }
 
 type MarkAsReadArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
+	MsgID	MessageID	`codec:"msgID" json:"msgID"`
 }
 
 func (o MarkAsReadArg) DeepCopy() MarkAsReadArg {
 	return MarkAsReadArg{
-		ConversationID: o.ConversationID.DeepCopy(),
-		MsgID:          o.MsgID.DeepCopy(),
+		ConversationID : o.ConversationID.DeepCopy(),
+		MsgID : o.MsgID.DeepCopy(),
 	}
 }
 
 type SetConversationStatusArg struct {
-	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
-	Status         ConversationStatus `codec:"status" json:"status"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
+	Status	ConversationStatus	`codec:"status" json:"status"`
 }
 
 func (o SetConversationStatusArg) DeepCopy() SetConversationStatusArg {
 	return SetConversationStatusArg{
-		ConversationID: o.ConversationID.DeepCopy(),
-		Status:         o.Status.DeepCopy(),
+		ConversationID : o.ConversationID.DeepCopy(),
+		Status : o.Status.DeepCopy(),
 	}
 }
 
 type GetUnreadUpdateFullArg struct {
-	InboxVers InboxVers `codec:"inboxVers" json:"inboxVers"`
+	InboxVers	InboxVers	`codec:"inboxVers" json:"inboxVers"`
 }
 
 func (o GetUnreadUpdateFullArg) DeepCopy() GetUnreadUpdateFullArg {
 	return GetUnreadUpdateFullArg{
-		InboxVers: o.InboxVers.DeepCopy(),
+		InboxVers : o.InboxVers.DeepCopy(),
 	}
 }
 
 type GetS3ParamsArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	ConversationID	ConversationID	`codec:"conversationID" json:"conversationID"`
 }
 
 func (o GetS3ParamsArg) DeepCopy() GetS3ParamsArg {
 	return GetS3ParamsArg{
-		ConversationID: o.ConversationID.DeepCopy(),
+		ConversationID : o.ConversationID.DeepCopy(),
 	}
 }
 
 type S3SignArg struct {
-	Version int    `codec:"version" json:"version"`
-	Payload []byte `codec:"payload" json:"payload"`
+	Version	int	`codec:"version" json:"version"`
+	Payload	[]byte	`codec:"payload" json:"payload"`
 }
 
 func (o S3SignArg) DeepCopy() S3SignArg {
 	return S3SignArg{
-		Version: o.Version,
-		Payload: (func(x []byte) []byte {
+		Version : o.Version,
+		Payload : (func (x []byte) []byte {
 			if x == nil {
 				return nil
 			}
@@ -881,83 +906,83 @@ func (o S3SignArg) DeepCopy() S3SignArg {
 }
 
 type GetInboxVersionArg struct {
-	Uid gregor1.UID `codec:"uid" json:"uid"`
+	Uid	gregor1.UID	`codec:"uid" json:"uid"`
 }
 
 func (o GetInboxVersionArg) DeepCopy() GetInboxVersionArg {
 	return GetInboxVersionArg{
-		Uid: o.Uid.DeepCopy(),
+		Uid : o.Uid.DeepCopy(),
 	}
 }
 
 type SyncInboxArg struct {
-	Vers InboxVers `codec:"vers" json:"vers"`
+	Vers	InboxVers	`codec:"vers" json:"vers"`
 }
 
 func (o SyncInboxArg) DeepCopy() SyncInboxArg {
 	return SyncInboxArg{
-		Vers: o.Vers.DeepCopy(),
+		Vers : o.Vers.DeepCopy(),
 	}
 }
 
 type SyncChatArg struct {
-	Vers InboxVers `codec:"vers" json:"vers"`
+	Vers	InboxVers	`codec:"vers" json:"vers"`
 }
 
 func (o SyncChatArg) DeepCopy() SyncChatArg {
 	return SyncChatArg{
-		Vers: o.Vers.DeepCopy(),
+		Vers : o.Vers.DeepCopy(),
 	}
 }
 
 type SyncAllArg struct {
-	Uid       gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID  gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session   gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh     bool                 `codec:"fresh" json:"fresh"`
+	Uid	gregor1.UID	`codec:"uid" json:"uid"`
+	DeviceID	gregor1.DeviceID	`codec:"deviceID" json:"deviceID"`
+	Session	gregor1.SessionToken	`codec:"session" json:"session"`
+	InboxVers	InboxVers	`codec:"inboxVers" json:"inboxVers"`
+	Ctime	gregor1.Time	`codec:"ctime" json:"ctime"`
+	Fresh	bool	`codec:"fresh" json:"fresh"`
 }
 
 func (o SyncAllArg) DeepCopy() SyncAllArg {
 	return SyncAllArg{
-		Uid:       o.Uid.DeepCopy(),
-		DeviceID:  o.DeviceID.DeepCopy(),
-		Session:   o.Session.DeepCopy(),
-		InboxVers: o.InboxVers.DeepCopy(),
-		Ctime:     o.Ctime.DeepCopy(),
-		Fresh:     o.Fresh,
+		Uid : o.Uid.DeepCopy(),
+		DeviceID : o.DeviceID.DeepCopy(),
+		Session : o.Session.DeepCopy(),
+		InboxVers : o.InboxVers.DeepCopy(),
+		Ctime : o.Ctime.DeepCopy(),
+		Fresh : o.Fresh,
 	}
 }
 
 type TlfFinalizeArg struct {
-	TlfID          TLFID        `codec:"tlfID" json:"tlfID"`
-	ResetUser      string       `codec:"resetUser" json:"resetUser"`
-	ResetDate      string       `codec:"resetDate" json:"resetDate"`
-	ResetTimestamp gregor1.Time `codec:"resetTimestamp" json:"resetTimestamp"`
-	ResetFull      string       `codec:"resetFull" json:"resetFull"`
+	TlfID	TLFID	`codec:"tlfID" json:"tlfID"`
+	ResetUser	string	`codec:"resetUser" json:"resetUser"`
+	ResetDate	string	`codec:"resetDate" json:"resetDate"`
+	ResetTimestamp	gregor1.Time	`codec:"resetTimestamp" json:"resetTimestamp"`
+	ResetFull	string	`codec:"resetFull" json:"resetFull"`
 }
 
 func (o TlfFinalizeArg) DeepCopy() TlfFinalizeArg {
 	return TlfFinalizeArg{
-		TlfID:          o.TlfID.DeepCopy(),
-		ResetUser:      o.ResetUser,
-		ResetDate:      o.ResetDate,
-		ResetTimestamp: o.ResetTimestamp.DeepCopy(),
-		ResetFull:      o.ResetFull,
+		TlfID : o.TlfID.DeepCopy(),
+		ResetUser : o.ResetUser,
+		ResetDate : o.ResetDate,
+		ResetTimestamp : o.ResetTimestamp.DeepCopy(),
+		ResetFull : o.ResetFull,
 	}
 }
 
 type TlfResolveArg struct {
-	TlfID           TLFID         `codec:"tlfID" json:"tlfID"`
-	ResolvedWriters []gregor1.UID `codec:"resolvedWriters" json:"resolvedWriters"`
-	ResolvedReaders []gregor1.UID `codec:"resolvedReaders" json:"resolvedReaders"`
+	TlfID	TLFID	`codec:"tlfID" json:"tlfID"`
+	ResolvedWriters	[]gregor1.UID	`codec:"resolvedWriters" json:"resolvedWriters"`
+	ResolvedReaders	[]gregor1.UID	`codec:"resolvedReaders" json:"resolvedReaders"`
 }
 
 func (o TlfResolveArg) DeepCopy() TlfResolveArg {
 	return TlfResolveArg{
-		TlfID: o.TlfID.DeepCopy(),
-		ResolvedWriters: (func(x []gregor1.UID) []gregor1.UID {
+		TlfID : o.TlfID.DeepCopy(),
+		ResolvedWriters : (func (x []gregor1.UID) []gregor1.UID {
 			var ret []gregor1.UID
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -965,7 +990,7 @@ func (o TlfResolveArg) DeepCopy() TlfResolveArg {
 			}
 			return ret
 		})(o.ResolvedWriters),
-		ResolvedReaders: (func(x []gregor1.UID) []gregor1.UID {
+		ResolvedReaders : (func (x []gregor1.UID) []gregor1.UID {
 			var ret []gregor1.UID
 			for _, v := range x {
 				vCopy := v.DeepCopy()
@@ -977,108 +1002,126 @@ func (o TlfResolveArg) DeepCopy() TlfResolveArg {
 }
 
 type PublishReadMessageArg struct {
-	Uid    gregor1.UID    `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Uid	gregor1.UID	`codec:"uid" json:"uid"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
+	MsgID	MessageID	`codec:"msgID" json:"msgID"`
 }
 
 func (o PublishReadMessageArg) DeepCopy() PublishReadMessageArg {
 	return PublishReadMessageArg{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
-		MsgID:  o.MsgID.DeepCopy(),
+		Uid : o.Uid.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
+		MsgID : o.MsgID.DeepCopy(),
 	}
 }
 
 type PublishSetConversationStatusArg struct {
-	Uid    gregor1.UID        `codec:"uid" json:"uid"`
-	ConvID ConversationID     `codec:"convID" json:"convID"`
-	Status ConversationStatus `codec:"status" json:"status"`
+	Uid	gregor1.UID	`codec:"uid" json:"uid"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
+	Status	ConversationStatus	`codec:"status" json:"status"`
 }
 
 func (o PublishSetConversationStatusArg) DeepCopy() PublishSetConversationStatusArg {
 	return PublishSetConversationStatusArg{
-		Uid:    o.Uid.DeepCopy(),
-		ConvID: o.ConvID.DeepCopy(),
-		Status: o.Status.DeepCopy(),
+		Uid : o.Uid.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
+		Status : o.Status.DeepCopy(),
 	}
 }
 
 type UpdateTypingRemoteArg struct {
-	Uid      gregor1.UID      `codec:"uid" json:"uid"`
-	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
-	ConvID   ConversationID   `codec:"convID" json:"convID"`
-	Typing   bool             `codec:"typing" json:"typing"`
+	Uid	gregor1.UID	`codec:"uid" json:"uid"`
+	DeviceID	gregor1.DeviceID	`codec:"deviceID" json:"deviceID"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
+	Typing	bool	`codec:"typing" json:"typing"`
 }
 
 func (o UpdateTypingRemoteArg) DeepCopy() UpdateTypingRemoteArg {
 	return UpdateTypingRemoteArg{
-		Uid:      o.Uid.DeepCopy(),
-		DeviceID: o.DeviceID.DeepCopy(),
-		ConvID:   o.ConvID.DeepCopy(),
-		Typing:   o.Typing,
+		Uid : o.Uid.DeepCopy(),
+		DeviceID : o.DeviceID.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
+		Typing : o.Typing,
 	}
 }
 
 type JoinConversationArg struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
 }
 
 func (o JoinConversationArg) DeepCopy() JoinConversationArg {
 	return JoinConversationArg{
-		ConvID: o.ConvID.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
 	}
 }
 
 type LeaveConversationArg struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
 }
 
 func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
 	return LeaveConversationArg{
-		ConvID: o.ConvID.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
 	}
 }
 
 type GetTLFConversationsArg struct {
-	TlfID                TLFID                   `codec:"tlfID" json:"tlfID"`
-	TopicType            TopicType               `codec:"topicType" json:"topicType"`
-	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
-	SummarizeMaxMsgs     bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
-	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
+	TlfID	TLFID	`codec:"tlfID" json:"tlfID"`
+	TopicType	TopicType	`codec:"topicType" json:"topicType"`
+	MembersType	ConversationMembersType	`codec:"membersType" json:"membersType"`
+	SummarizeMaxMsgs	bool	`codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	IncludeAuxiliaryInfo	bool	`codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
 }
 
 func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
 	return GetTLFConversationsArg{
-		TlfID:                o.TlfID.DeepCopy(),
-		TopicType:            o.TopicType.DeepCopy(),
-		MembersType:          o.MembersType.DeepCopy(),
-		SummarizeMaxMsgs:     o.SummarizeMaxMsgs,
-		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
+		TlfID : o.TlfID.DeepCopy(),
+		TopicType : o.TopicType.DeepCopy(),
+		MembersType : o.MembersType.DeepCopy(),
+		SummarizeMaxMsgs : o.SummarizeMaxMsgs,
+		IncludeAuxiliaryInfo : o.IncludeAuxiliaryInfo,
 	}
 }
 
 type SetAppNotificationSettingsArg struct {
-	ConvID   ConversationID               `codec:"convID" json:"convID"`
-	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+	ConvID	ConversationID	`codec:"convID" json:"convID"`
+	Settings	ConversationNotificationInfo	`codec:"settings" json:"settings"`
 }
 
 func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg {
 	return SetAppNotificationSettingsArg{
-		ConvID:   o.ConvID.DeepCopy(),
-		Settings: o.Settings.DeepCopy(),
+		ConvID : o.ConvID.DeepCopy(),
+		Settings : o.Settings.DeepCopy(),
+	}
+}
+
+type SetGlobalAppNotificationSettingsArg struct {
+	Settings	GlobalAppNotificationSettings	`codec:"settings" json:"settings"`
+}
+
+func (o SetGlobalAppNotificationSettingsArg) DeepCopy() SetGlobalAppNotificationSettingsArg {
+	return SetGlobalAppNotificationSettingsArg{
+		Settings : o.Settings.DeepCopy(),
+	}
+}
+
+type GetGlobalNotificationSettingsArg struct {
+}
+
+func (o GetGlobalNotificationSettingsArg) DeepCopy() GetGlobalNotificationSettingsArg {
+	return GetGlobalNotificationSettingsArg{
 	}
 }
 
 type RemoteNotificationSuccessfulArg struct {
-	AuthToken        gregor1.SessionToken `codec:"authToken" json:"authToken"`
-	CompanionPushIDs []string             `codec:"companionPushIDs" json:"companionPushIDs"`
+	AuthToken	gregor1.SessionToken	`codec:"authToken" json:"authToken"`
+	CompanionPushIDs	[]string	`codec:"companionPushIDs" json:"companionPushIDs"`
 }
 
 func (o RemoteNotificationSuccessfulArg) DeepCopy() RemoteNotificationSuccessfulArg {
 	return RemoteNotificationSuccessfulArg{
-		AuthToken: o.AuthToken.DeepCopy(),
-		CompanionPushIDs: (func(x []string) []string {
+		AuthToken : o.AuthToken.DeepCopy(),
+		CompanionPushIDs : (func (x []string) []string {
 			var ret []string
 			for _, v := range x {
 				vCopy := v
@@ -1090,36 +1133,38 @@ func (o RemoteNotificationSuccessfulArg) DeepCopy() RemoteNotificationSuccessful
 }
 
 type RemoteInterface interface {
-	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
-	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
-	GetPublicConversations(context.Context, GetPublicConversationsArg) (GetPublicConversationsRes, error)
-	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
-	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
-	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
-	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
-	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
-	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
-	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
-	GetS3Params(context.Context, ConversationID) (S3Params, error)
-	S3Sign(context.Context, S3SignArg) ([]byte, error)
-	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
-	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
-	SyncChat(context.Context, InboxVers) (SyncChatRes, error)
-	SyncAll(context.Context, SyncAllArg) (SyncAllResult, error)
-	TlfFinalize(context.Context, TlfFinalizeArg) error
-	TlfResolve(context.Context, TlfResolveArg) error
-	PublishReadMessage(context.Context, PublishReadMessageArg) error
-	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) error
-	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
-	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
-	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
-	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
-	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
-	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
+	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes,error)
+	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes,error)
+	GetPublicConversations(context.Context, GetPublicConversationsArg) (GetPublicConversationsRes,error)
+	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes,error)
+	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes,error)
+	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes,error)
+	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes,error)
+	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes,error)
+	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes,error)
+	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull,error)
+	GetS3Params(context.Context, ConversationID) (S3Params,error)
+	S3Sign(context.Context, S3SignArg) ([]byte,error)
+	GetInboxVersion(context.Context, gregor1.UID) (InboxVers,error)
+	SyncInbox(context.Context, InboxVers) (SyncInboxRes,error)
+	SyncChat(context.Context, InboxVers) (SyncChatRes,error)
+	SyncAll(context.Context, SyncAllArg) (SyncAllResult,error)
+	TlfFinalize(context.Context, TlfFinalizeArg) (error)
+	TlfResolve(context.Context, TlfResolveArg) (error)
+	PublishReadMessage(context.Context, PublishReadMessageArg) (error)
+	PublishSetConversationStatus(context.Context, PublishSetConversationStatusArg) (error)
+	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) (error)
+	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes,error)
+	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes,error)
+	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes,error)
+	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes,error)
+	SetGlobalAppNotificationSettings(context.Context, GlobalAppNotificationSettings) (error)
+	GetGlobalNotificationSettings(context.Context, ) (GlobalAppNotificationSettings,error)
+	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) (error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
-	return rpc.Protocol{
+	return rpc.Protocol {
 		Name: "chat.1.remote",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"getInboxRemote": {
@@ -1522,6 +1567,33 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setGlobalAppNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetGlobalAppNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetGlobalAppNotificationSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetGlobalAppNotificationSettingsArg)(nil), args)
+						return
+					}
+					err = i.SetGlobalAppNotificationSettings(ctx, (*typedArgs)[0].Settings)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getGlobalNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]GetGlobalNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetGlobalNotificationSettings(ctx, )
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"remoteNotificationSuccessful": {
 				MakeArg: func() interface{} {
 					ret := make([]RemoteNotificationSuccessfulArg, 1)
@@ -1546,88 +1618,88 @@ type RemoteClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes, err error) {
+func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
+func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes, err error) {
+func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res PostRemoteRes, err error) {
+func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res PostRemoteRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res NewConversationRemoteRes, err error) {
-	__arg := NewConversationRemoteArg{IdTriple: idTriple}
+func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res NewConversationRemoteRes,err error) {
+	__arg := NewConversationRemoteArg{ IdTriple : idTriple }
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res NewConversationRemoteRes, err error) {
+func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res NewConversationRemoteRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res GetMessagesRemoteRes, err error) {
+func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res GetMessagesRemoteRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getMessagesRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
+func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes, err error) {
+func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
-	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
+func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull,err error) {
+	__arg := GetUnreadUpdateFullArg{ InboxVers : inboxVers }
 	err = c.Cli.Call(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetS3Params(ctx context.Context, conversationID ConversationID) (res S3Params, err error) {
-	__arg := GetS3ParamsArg{ConversationID: conversationID}
+func (c RemoteClient) GetS3Params(ctx context.Context, conversationID ConversationID) (res S3Params,err error) {
+	__arg := GetS3ParamsArg{ ConversationID : conversationID }
 	err = c.Cli.Call(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, err error) {
+func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
-	__arg := GetInboxVersionArg{Uid: uid}
+func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers,err error) {
+	__arg := GetInboxVersionArg{ Uid : uid }
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes, err error) {
-	__arg := SyncInboxArg{Vers: vers}
+func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes,err error) {
+	__arg := SyncInboxArg{ Vers : vers }
 	err = c.Cli.Call(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes, err error) {
-	__arg := SyncChatArg{Vers: vers}
+func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes,err error) {
+	__arg := SyncChatArg{ Vers : vers }
 	err = c.Cli.Call(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult, err error) {
+func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res)
 	return
 }
@@ -1657,25 +1729,36 @@ func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTyping
 	return
 }
 
-func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
-	__arg := JoinConversationArg{ConvID: convID}
+func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes,err error) {
+	__arg := JoinConversationArg{ ConvID : convID }
 	err = c.Cli.Call(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
-	__arg := LeaveConversationArg{ConvID: convID}
+func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes,err error) {
+	__arg := LeaveConversationArg{ ConvID : convID }
 	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
+func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
+func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes,err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetGlobalAppNotificationSettings(ctx context.Context, settings GlobalAppNotificationSettings) (err error) {
+	__arg := SetGlobalAppNotificationSettingsArg{ Settings : settings }
+	err = c.Cli.Call(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) GetGlobalNotificationSettings(ctx context.Context, ) (res GlobalAppNotificationSettings,err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getGlobalNotificationSettings", []interface{}{GetGlobalNotificationSettingsArg{}}, &res)
 	return
 }
 
