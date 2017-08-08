@@ -2015,6 +2015,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		consumeNewMsg(listener0, chat1.MessageType_JOIN)
 		consumeNewMsg(listener1, chat1.MessageType_JOIN)
+		consumeNewMsg(listener2, chat1.MessageType_JOIN)
 		t.Logf("first conv: %s", conv.Id)
 
 		t.Logf("create a conversation, and join user 1 into by sending a message")
@@ -2138,12 +2139,14 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsg(listener0, chat1.MessageType_TEXT)
 		consumeNewMsg(listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(listener2, chat1.MessageType_TEXT)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
 			ncres.Conv.GetConvID())
 		require.NoError(t, err)
 		consumeNewMsg(listener0, chat1.MessageType_LEAVE)
 		consumeNewMsg(listener1, chat1.MessageType_LEAVE)
+		consumeNewMsg(listener2, chat1.MessageType_LEAVE)
 		select {
 		case convID := <-listener1.leftConv:
 			require.Equal(t, convID, getTLFRes.Convs[1].GetConvID())
@@ -2180,6 +2183,17 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
 		}
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
+			TlfName:    conv.TlfName,
+			TopicType:  chat1.TopicType_CHAT,
+			Visibility: chat1.TLFVisibility_PRIVATE,
+			TopicName:  topicName,
+		})
+		require.NoError(t, err)
+		consumeNewMsg(listener0, chat1.MessageType_JOIN)
+		consumeNewMsg(listener1, chat1.MessageType_JOIN)
+		consumeNewMsg(listener2, chat1.MessageType_JOIN)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:

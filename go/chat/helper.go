@@ -510,6 +510,14 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if joinRes.RateLimit != nil {
 		rl = append(rl, *joinRes.RateLimit)
 	}
+	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
+		chat1.ConversationMember{
+			Uid:    uid,
+			ConvID: convID,
+		},
+	}, nil); err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
+	}
 
 	if !alreadyIn {
 		// Send a message to the channel after joining.
