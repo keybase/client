@@ -49,14 +49,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  switchTab: (tab: Tab) => {
+  switchTab: (tab: Tab, username?: string) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       // clicking the chat tab when already selected should do nothing.
       return
     }
 
-    if (tab === profileTab) {
-      dispatch(navigateAppend([{props: {username: 'akalin'}, selected: 'profile'}], [profileTab]))
+    if (tab === profileTab && username) {
+      dispatch(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
     }
 
     // otherwise, back out to the default route of the tab.
