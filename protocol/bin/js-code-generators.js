@@ -23,19 +23,19 @@ function rpcChannelMap(methodName, name, callbackType, innerParamType, responseT
     callbackType,
     innerParamType,
   ]
-    .filter(t => t)
+    .filter(Boolean)
     .join(' & ')}>): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, ${methodName}, request)
 }`
 }
 
 function rpcPromiseGen(methodName, name, callbackType, innerParamType, responseType) {
-  return `\nexport function ${name}RpcPromise (request: $Exact<${[
+  const maybeOptional = !innerParamType ? '?' : ''
+  return `\nexport function ${name}RpcPromise (request: ${maybeOptional}$Exact<${[
     'requestCommon',
-    callbackType,
     innerParamType,
   ]
-    .filter(t => t)
+    .filter(Boolean)
     .join(' & ')}>): Promise<${responseType !== 'null' ? `${name}Result` : 'void'}> {
   return new Promise((resolve, reject) => engineRpcOutgoing(${methodName}, request, (error, result) => error ? reject(error) : resolve(result)))
 }`
