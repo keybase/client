@@ -130,7 +130,7 @@ export default pausableConnect(
     onUnfollow: username => {
       dispatch(onUnfollow(username))
     },
-    showUserProfile: username => {
+    onUserClick: username => {
       dispatch(showUserProfile(username))
     },
     onViewProof: (proof: Proof) => {
