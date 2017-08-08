@@ -84,6 +84,7 @@ type GlobalContext struct {
 	Timers           *TimerSet         // Which timers are currently configured on
 	UI               UI                // Interact with the UI
 	Service          bool              // whether we're in server mode
+	Standalone       bool              // whether we're launched as standalone command
 
 	shutdownOnce      *sync.Once         // whether we've shut down or not
 	loginStateMu      *sync.RWMutex      // protects loginState pointer, which gets destroyed on logout
@@ -1025,7 +1026,7 @@ func (g *GlobalContext) LocalSigchainGuard() *LocalSigchainGuard {
 }
 
 func (g *GlobalContext) StartStandaloneChat() {
-	if g.Service {
+	if !g.Standalone {
 		return
 	}
 

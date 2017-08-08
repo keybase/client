@@ -76,6 +76,16 @@ func (c *CmdChatSend) Run() (err error) {
 	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
 		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
+
+	if c.G().Standalone {
+		if c.resolvingRequest.MembersType == chat1.ConversationMembersType_KBFS {
+			err = fmt.Errorf("Can't run command in standalone mode")
+			return err
+		} else if c.resolvingRequest.MembersType == chat1.ConversationMembersType_TEAM {
+			c.G().StartStandaloneChat()
+		}
+	}
+
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,

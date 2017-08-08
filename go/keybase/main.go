@@ -203,6 +203,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		// StartStandaloneChat. This way we can pass Service object
 		// while not exposing anything but that one function.
 		g.SChatConnector = svc
+		g.Standalone = true
 
 		if pflerr, ok := err.(libkb.PIDFileLockError); ok {
 			err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
