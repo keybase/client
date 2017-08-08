@@ -70,6 +70,10 @@ func (s *sigPrivKey) PublicKey() saltpack.SigningPublicKey {
 	return s.public
 }
 
+func (s *sigPrivKey) GetPublicKey() saltpack.SigningPublicKey {
+	return s.public
+}
+
 type keyring struct {
 	*sigPrivKey
 }
@@ -105,18 +109,18 @@ func init() {
 }
 
 func Fuzz(data []byte) int {
-	smsg, err := saltpack.Sign(data, &key)
+	smsg, err := saltpack.Sign(saltpack.Version2(), data, &key)
 	if err != nil {
 		panic(err)
 	}
-	skey, vmsg, err := saltpack.Verify(smsg, keyring{&key})
+	skey, vmsg, err := saltpack.Verify(saltpack.SingleVersionValidator(saltpack.Version2()), smsg, keyring{&key})
 	if err != nil {
 		panic(err)
 	}
 	if !bytes.Equal(vmsg, data) {
 		panic("message mismatch")
 	}
-	if !saltpack.KIDEqual(key.PublicKey(), skey) {
+	if !saltpack.PublicKeyEqual(key.PublicKey(), skey) {
 		panic("verifier key doesn't match signer key")
 	}
 
