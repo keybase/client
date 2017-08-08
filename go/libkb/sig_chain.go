@@ -104,7 +104,7 @@ func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.
 
 	if len(sigID) > 0 {
 		var zeroTime time.Time
-		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, time.Unix(0, 0), zeroTime, mhm, fau, keybase1.SigChainLocation{})
+		err = cki.Delegate(key.GetKID(), NowAsKeybaseTime(0), sigID, signingKid, signingKid, "" /* pgpHash */, isSibkey, false /* isEldest */, time.Unix(0, 0), zeroTime, mhm, fau, keybase1.SigChainLocation{})
 	}
 
 	return
