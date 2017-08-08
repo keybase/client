@@ -48,6 +48,18 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(filePath)
 }
 
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+  PushNotifications.localNotification({
+    message: text,
+    soundName: 'keybasemessage.wav',
+    userInfo: {
+      convID: convID,
+      type: 'chat.newmessage',
+    },
+    number: badgeCount,
+  })
+}
+
 function configurePush() {
   return eventChannel(emitter => {
     PushNotifications.configure({
@@ -212,6 +224,7 @@ function loadRouteState(): AsyncAction {
 }
 
 export {
+  displayNewMessageNotification,
   loadRouteState,
   persistRouteState,
   requestPushPermissions,

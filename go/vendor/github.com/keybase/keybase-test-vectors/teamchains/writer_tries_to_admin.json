@@ -1,0 +1,177 @@
+{
+    "log": [
+        "link team:cabal type:root",
+        "link team:cabal type:change_membership"
+    ],
+    "teams": {
+        "cabal": {
+            "id": "2123209b98b16083c69c91152b861724",
+            "links": [
+                {
+                    "seqno": 1,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTEJ5UCAcDEIDCj1L+AYiKeHBA5lfDCJjOBNCJzLN4wyM/vgvrZ8EF/IaNzaWfEQG5mkoIyqxHC4Vr4Kr82g1p7rUNkt9A8ptu8InaJDOhUah9ihV4XzYk6wgz1MMmVfPH9jbpMqGsycLb+IHPOCgmoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"members\":{\"owner\":[\"25852c87d6e47fb8d7d55400be9c7a19\"],\"writer\":[\"579651b0d574971040b531b66efbc519\"]},\"name\":\"cabal\",\"per_team_key\":{\"encryption_kid\":\"01219aafccffa4c9366d8c64ffbd9ae57bb123dccf206b9df506851fb9a822bb5d7a0a\",\"generation\":1,\"reverse_sig\":\"g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg0bAkuUnZmpWY+mKr7Xb7KLnnhn3NC4sxLqyTbMu6/nUKp3BheWxvYWTFA5R7ImJvZHkiOnsia2V5Ijp7ImtpZCI6IjAxMjAxMjYwY2YxNWI4MGFlYWYyYzJjMzYyZjBkZTg4YmJjNDAyNzJkNTM0ZDE3OWI5NGMwNDU3YTVlNTg0ZmNkMTg2MGEiLCJ1aWQiOiIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSIsInVzZXJuYW1lIjoiaGVyYiJ9LCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTUwMDU3MDAwMSwiaGFzaCI6ImZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmIiwiaGFzaF9tZXRhIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkMTAwMCIsInNlcW5vIjo4MDAxfSwidGVhbSI6eyJpZCI6IjIxMjMyMDliOThiMTYwODNjNjljOTExNTJiODYxNzI0IiwibWVtYmVycyI6eyJvd25lciI6WyIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSJdLCJ3cml0ZXIiOlsiNTc5NjUxYjBkNTc0OTcxMDQwYjUzMWI2NmVmYmM1MTkiXX0sIm5hbWUiOiJjYWJhbCIsInBlcl90ZWFtX2tleSI6eyJlbmNyeXB0aW9uX2tpZCI6IjAxMjE5YWFmY2NmZmE0YzkzNjZkOGM2NGZmYmQ5YWU1N2JiMTIzZGNjZjIwNmI5ZGY1MDY4NTFmYjlhODIyYmI1ZDdhMGEiLCJnZW5lcmF0aW9uIjoxLCJyZXZlcnNlX3NpZyI6bnVsbCwic2lnbmluZ19raWQiOiIwMTIwZDFiMDI0Yjk0OWQ5OWE5NTk4ZmE2MmFiZWQ3NmZiMjhiOWU3ODY3ZGNkMGI4YjMxMmVhYzkzNmNjYmJhZmU3NTBhIn19LCJ0eXBlIjoidGVhbS5yb290IiwidmVyc2lvbiI6Mn0sImN0aW1lIjoxNTAxODc0OTI2LCJleHBpcmVfaW4iOjE1NzY4MDAwMCwic2Vxbm8iOjEsInRhZyI6InNpZ25hdHVyZSJ9o3NpZ8RAO19eoYew8Ab8oTtMsBroZBPbTvaMlZ2d92RO9VM4X8gp2dQBYApMTqmvwEZiiop/YEPfWpHVj/Wy6ZQZsU2aBqhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B\",\"signing_kid\":\"0120d1b024b949d99a9598fa62abed76fb28b9e7867dcd0b8b312eac936ccbbafe750a\"}},\"type\":\"team.root\",\"version\":2},\"ctime\":1501874926,\"expire_in\":157680000,\"seqno\":1,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2
+                },
+                {
+                    "seqno": 2,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgx/Xzc1XM1LS+giV1hEq3kDxjqbgxv9MMlA0B8Ss5qkcKp3BheWxvYWTESJUCAsQgP5oA83vHB/kmuINAd1upmBhDFuEuoZqO7ujfgFBevfrEIIUDBdzAAqkH23JD3u+YevI+uysa5NmNCOjdNg9ri1SqI6NzaWfEQKFln3iPdB0AmPO85a1bukOompWIcSzacVssDc2smvdgZu+3qbhdY7xxhU4GDAzJwDTWnsoKzKK0oTUVFWXrAACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a\",\"uid\":\"579651b0d574971040b531b66efbc519\",\"username\":\"basil\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"members\":{\"writer\":[\"618d663af0f1ec88a5a19defa65a2f19\"]}},\"type\":\"team.change_membership\",\"version\":2},\"ctime\":1501874926,\"expire_in\":157680000,\"prev\":\"3f9a00f37bc707f926b88340775ba998184316e12ea19a8eeee8df80505ebdfa\",\"seqno\":2,\"tag\":\"signature\"}",
+                    "uid": "579651b0d574971040b531b66efbc519",
+                    "version": 2
+                }
+            ],
+            "team_key_box": {
+                "nonce": "/yj6bEQMAlMbZ9SskNp4EEsnoisAAAAB",
+                "sender_kid": "012192b181dd77c93ceb4dcfd773c846f0a51cd04ee2c18a6d7f84e0c43217a7a54c0a",
+                "generation": 1,
+                "ctext": "kNZJiKdmfQFY8XU/kO8WoD7VgyR0W1wxEg3CSTq4iWQBP4x57zXucMLKd9KcvPEp",
+                "per_user_key_seqno": 1
+            },
+            "tmp_tk_sec": "f7cec195f58dfcdb84d28b50d0b61e6e41cb51c7777d5c18b5cb41ac9b595f08",
+            "tmp_tk_sig_kid": "0120d1b024b949d99a9598fa62abed76fb28b9e7867dcd0b8b312eac936ccbbafe750a"
+        }
+    },
+    "users": {
+        "herb": {
+            "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+            "eldest_seqno": 1,
+            "puk_secrets": {
+                "1": "3759ea1c8527a0ecca7be3a447fa35a5ed64969e1651b4c1825dac09b5b6fb42"
+            },
+            "link_map": {
+                "1": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+            },
+            "tmp_puk_enc_kid": "012192b181dd77c93ceb4dcfd773c846f0a51cd04ee2c18a6d7f84e0c43217a7a54c0a"
+        },
+        "basil": {
+            "uid": "579651b0d574971040b531b66efbc519",
+            "eldest_seqno": 1,
+            "puk_secrets": {
+                "1": "2f93d1fb90f25614da0ca264f42c8da61ee41a9a8ea549e35285906a185b79e9"
+            },
+            "link_map": {
+                "1": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
+            },
+            "tmp_puk_enc_kid": "0121f087facd497c93cd138bcd6145910da8d2828d173f3f558c063a68e5ce40d6060a"
+        },
+        "rose": {
+            "uid": "618d663af0f1ec88a5a19defa65a2f19",
+            "eldest_seqno": 1,
+            "puk_secrets": {
+                "1": "b3e9b7ab02ba6ee54570e28ca0746ed9e8c97212a5394d4473f568b63d9133d6"
+            },
+            "link_map": {
+                "1": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe2"
+            },
+            "tmp_puk_enc_kid": "0121c8cd556316a43aea7c79c9252b4233198bc994615c10a7da7769c39e93dcb3760a"
+        }
+    },
+    "key_owners": {
+        "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a": "herb",
+        "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a": "basil",
+        "0120d635bded1ab8d49f7fe3083635ea79e4a01b1201a2a9bb299c8f4309a0785a120a": "rose"
+    },
+    "key_pubkeyv2nacls": {
+        "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a": {
+            "deviceType": "desktop",
+            "deviceDescription": "home thing",
+            "deviceID": "fbd762facdfad44709aef63a9a8cdf18",
+            "base": {
+                "provisioning": {
+                    "sigChainLocation": {
+                        "seqType": 1,
+                        "seqno": 1
+                    },
+                    "time": 0,
+                    "firstAppearedUnverified": 0,
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
+                        "seqno": 0
+                    },
+                    "signingKID": ""
+                },
+                "eTime": 2005146762000,
+                "cTime": 1500570762000,
+                "isEldest": true,
+                "isSibkey": true,
+                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+            }
+        },
+        "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a": {
+            "deviceType": "desktop",
+            "deviceDescription": "home thing",
+            "deviceID": "fbd762facdfad44709aef63a9a8cdf18",
+            "base": {
+                "provisioning": {
+                    "sigChainLocation": {
+                        "seqType": 1,
+                        "seqno": 1
+                    },
+                    "time": 0,
+                    "firstAppearedUnverified": 0,
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
+                        "seqno": 0
+                    },
+                    "signingKID": ""
+                },
+                "eTime": 2005146762000,
+                "cTime": 1500570762000,
+                "isEldest": true,
+                "isSibkey": true,
+                "kid": "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a"
+            }
+        },
+        "0120d635bded1ab8d49f7fe3083635ea79e4a01b1201a2a9bb299c8f4309a0785a120a": {
+            "deviceType": "desktop",
+            "deviceDescription": "home thing",
+            "deviceID": "fbd762facdfad44709aef63a9a8cdf18",
+            "base": {
+                "provisioning": {
+                    "sigChainLocation": {
+                        "seqType": 1,
+                        "seqno": 1
+                    },
+                    "time": 0,
+                    "firstAppearedUnverified": 0,
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
+                        "seqno": 0
+                    },
+                    "signingKID": ""
+                },
+                "eTime": 2005146762000,
+                "cTime": 1500570762000,
+                "isEldest": true,
+                "isSibkey": true,
+                "kid": "0120d635bded1ab8d49f7fe3083635ea79e4a01b1201a2a9bb299c8f4309a0785a120a"
+            }
+        }
+    },
+    "team_merkle": {
+        "2123209b98b16083c69c91152b861724": {
+            "seqno": 2,
+            "link_id": "8cddfe731b09df2504d1a93de0d05097e03b45150b551f87c37ea25304fb5124"
+        }
+    },
+    "merkle_triples": {
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
+        },
+        "579651b0d574971040b531b66efbc519-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
+        },
+        "618d663af0f1ec88a5a19defa65a2f19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe2"
+        }
+    },
+    "expect": {
+        "error": true,
+        "error_type": "AdminPermissionError"
+    }
+}

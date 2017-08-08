@@ -104,6 +104,11 @@ export const CommonSeqType = {
   semiprivate: 3,
 }
 
+export const CommonUserOrTeamResult = {
+  user: 1,
+  team: 2,
+}
+
 export const ConfigForkType = {
   none: 0,
   auto: 1,
@@ -209,6 +214,7 @@ export const ConstantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scteamselfnotowner: 2607,
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
@@ -3086,6 +3092,18 @@ export function teamsTeamCreateSubteamRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamDeleteRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>) {
+  engineRpcOutgoing('keybase.1.teams.teamDelete', request)
+}
+
+export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
+}
+
+export function teamsTeamDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamDelete', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamEditMemberRpc (request: Exact<requestCommon & requestErrorCallback & {param: teamsTeamEditMemberRpcParam}>) {
   engineRpcOutgoing('keybase.1.teams.teamEditMember', request)
 }
@@ -5337,6 +5355,7 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2518 // SCChatStalePreviousState_2518
+  | 2607 // SCTeamSelfNotOwner_2607
   | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623
@@ -5709,6 +5728,10 @@ export type UserOrTeamLite = {
   id: UserOrTeamID,
   name: string,
 }
+
+export type UserOrTeamResult =
+    1 // USER_1
+  | 2 // TEAM_2
 
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
@@ -6731,6 +6754,10 @@ export type teamsTeamCreateSubteamRpcParam = Exact<{
   name: TeamName
 }>
 
+export type teamsTeamDeleteRpcParam = Exact<{
+  name: string
+}>
+
 export type teamsTeamEditMemberRpcParam = Exact<{
   name: string,
   username: string,
@@ -6773,6 +6800,10 @@ export type teamsTeamRequestAccessRpcParam = Exact<{
 
 export type teamsTeamTreeRpcParam = Exact<{
   name: TeamName
+}>
+
+export type teamsUiConfirmRootTeamDeleteRpcParam = Exact<{
+  teamName: string
 }>
 
 export type testPanicRpcParam = Exact<{
@@ -7028,6 +7059,7 @@ type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamTreeResult = TeamTreeResult
+type teamsUiConfirmRootTeamDeleteResult = boolean
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7264,6 +7296,7 @@ export type rpc =
   | teamsTeamChangeMembershipRpc
   | teamsTeamCreateRpc
   | teamsTeamCreateSubteamRpc
+  | teamsTeamDeleteRpc
   | teamsTeamEditMemberRpc
   | teamsTeamGetRpc
   | teamsTeamIgnoreRequestRpc
@@ -7950,6 +7983,16 @@ export type incomingCallMapType = Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: streamUiWriteResult) => void,
+    }
+  ) => void,
+  'keybase.1.teamsUi.confirmRootTeamDelete'?: (
+    params: Exact<{
+      sessionID: int,
+      teamName: string
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: teamsUiConfirmRootTeamDeleteResult) => void,
     }
   ) => void,
   'keybase.1.ui.promptYesNo'?: (

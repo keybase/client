@@ -1,10 +1,24 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, HOCTimers, Icon, Text} from '../../common-adapters'
+import {
+  Box,
+  Button,
+  HOCTimers,
+  Icon,
+  Text,
+  NativeScrollView,
+  NativeDimensions,
+} from '../../common-adapters/index.native'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from '.'
 import type {TimerProps} from '../../common-adapters/hoc-timers'
+
+const Scroller = (props: any) => (
+  <NativeScrollView style={{height: '100%', width: '100%', paddingTop: 20}}>
+    {props.children}
+  </NativeScrollView>
+)
 
 const Splash = HOCTimers(
   class _Splash extends Component<void, Props & TimerProps, {showFeedback: boolean}> {
@@ -24,106 +38,118 @@ const Splash = HOCTimers(
 
     render() {
       return (
-        <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
-          <Icon type="icon-keybase-logo-80" />
-          <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
-          {this.state.showFeedback &&
-            <Box style={globalStyles.flexBoxColumn}>
-              <Text style={{marginTop: globalMargins.large}} type="BodySmall">
-                Keybase not starting up?
-              </Text>
-              <Button
-                label="Let us know"
-                onClick={this.props.onFeedback}
-                style={{marginTop: globalMargins.small}}
-                type="Primary"
-              />
-            </Box>}
-        </Box>
+        <Scroller>
+          <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+            <Icon type="icon-keybase-logo-80" />
+            <Text style={stylesHeader} type="HeaderBig">Keybase</Text>
+            {this.state.showFeedback &&
+              <Box style={globalStyles.flexBoxColumn}>
+                <Text style={{marginTop: globalMargins.large}} type="BodySmall">
+                  Keybase not starting up?
+                </Text>
+                <Button
+                  label="Let us know"
+                  onClick={this.props.onFeedback}
+                  style={{marginTop: globalMargins.small}}
+                  type="Primary"
+                />
+              </Box>}
+          </Box>
+        </Scroller>
       )
     }
   }
 )
 
 const Failure = (props: Props) => (
-  <Box style={{...stylesLoginForm, marginTop: 0}}>
-    <Box style={stylesBannerRed}>
-      <Text type="BodySemibold" style={stylesTextBanner}>
-        Oops, we had a problem communicating with our services. This might be because you lost connectivity.
-      </Text>
-    </Box>
-    <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Icon type="icon-keybase-logo-logged-out-80" />
-      <Box style={globalStyles.flexBoxRow}>
-        <Button
-          type="Primary"
-          label="Reload"
-          onClick={props.onRetry}
-          style={{marginTop: globalMargins.xlarge}}
-        />
-        <Button
-          type="Secondary"
-          label="Send us feedback"
-          onClick={props.onFeedback}
-          style={{marginLeft: globalMargins.small, marginTop: globalMargins.xlarge}}
-        />
+  <Scroller>
+    <Box style={{...stylesLoginForm, justifyContent: 'center'}}>
+      <Box style={stylesBannerRed}>
+        <Text type="BodySemibold" style={stylesTextBanner}>
+          Oops, we had a problem communicating with our services. This might be because you lost connectivity.
+        </Text>
+      </Box>
+      <Box
+        style={{...globalStyles.flexBoxColumn, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}
+      >
+        <Icon type="icon-keybase-logo-logged-out-80" />
+        <Box style={globalStyles.flexBoxRow}>
+          <Button
+            type="Primary"
+            label="Reload"
+            onClick={props.onRetry}
+            style={{marginTop: globalMargins.xlarge}}
+          />
+          <Button
+            type="Secondary"
+            label="Send us feedback"
+            onClick={props.onFeedback}
+            style={{marginLeft: globalMargins.small, marginTop: globalMargins.xlarge}}
+          />
+        </Box>
       </Box>
     </Box>
-  </Box>
+  </Scroller>
 )
 
 const Intro = (props: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      flexGrow: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}
-  >
-    {!!props.justRevokedSelf &&
-      <Box style={stylesBannerGreen}>
-        <Text type="BodySemibold" style={stylesTextBanner}>
-          <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justRevokedSelf}</Text>
-          &nbsp;was revoked successfully.
-        </Text>
-      </Box>}
-    {!!props.justDeletedSelf &&
-      <Box style={stylesBannerBlue}>
-        <Text type="BodySemibold" style={stylesTextBanner}>
-          Your Keybase account
-          {' '}
-          <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justDeletedSelf}</Text>
-          &nbsp;has been deleted.
-        </Text>
-      </Box>}
-    {!!props.justLoginFromRevokedDevice &&
-      <Box style={stylesBannerBlue}>
-        <Text type="BodySemibold" style={stylesTextBanner}>
-          Your device has been revoked, please log in again.
-        </Text>
-      </Box>}
+  <Scroller>
     <Box
       style={{
+        ...stylesLoginForm,
         ...globalStyles.flexBoxColumn,
-        flexGrow: 1,
         justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 55,
       }}
     >
-      <Icon type="icon-keybase-logo-80" />
-      <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
-      <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
-      <Button style={stylesSignupButton} type="Primary" onClick={props.onSignup} label="Create an account" />
-      <Box style={{flex: 1, width: 1}} />
-      <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
-      <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
-      <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
-        Problems logging in?
-      </Text>
+      {!!props.justRevokedSelf &&
+        <Box style={stylesBannerGreen}>
+          <Text type="BodySemibold" style={stylesTextBanner}>
+            <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justRevokedSelf}</Text>
+            &nbsp;was revoked successfully.
+          </Text>
+        </Box>}
+      {!!props.justDeletedSelf &&
+        <Box style={stylesBannerBlue}>
+          <Text type="BodySemibold" style={stylesTextBanner}>
+            Your Keybase account
+            {' '}
+            <Text type="BodySemiboldItalic" style={stylesTextBanner}>{props.justDeletedSelf}</Text>
+            &nbsp;has been deleted.
+          </Text>
+        </Box>}
+      {!!props.justLoginFromRevokedDevice &&
+        <Box style={stylesBannerBlue}>
+          <Text type="BodySemibold" style={stylesTextBanner}>
+            Your device has been revoked, please log in again.
+          </Text>
+        </Box>}
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          flexGrow: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: 55,
+        }}
+      >
+        <Icon type="icon-keybase-logo-80" />
+        <Text style={stylesHeader} type="HeaderBig">Join Keybase</Text>
+        <Text style={stylesHeaderSub} type="Body">Folders for anyone in the world.</Text>
+        <Button
+          style={stylesSignupButton}
+          type="Primary"
+          onClick={props.onSignup}
+          label="Create an account"
+        />
+        <Box style={{minHeight: 100, width: 1}} />
+        <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
+        <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
+        <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
+          Problems logging in?
+        </Text>
+      </Box>
     </Box>
-  </Box>
+  </Scroller>
 )
 
 const stylesFeedback = {
@@ -134,8 +160,8 @@ const stylesFeedback = {
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  flexGrow: 1,
   justifyContent: 'flex-start',
+  minHeight: NativeDimensions.get('window').height - 20,
 }
 
 const stylesHeader = {

@@ -211,6 +211,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, xs, 2)
 		xs, err = state.GetUsersWithRole(keybase1.TeamRole_READER)
+		require.NoError(t, err)
 		require.Len(t, xs, 0)
 
 		// Reserialize

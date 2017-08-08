@@ -59,8 +59,8 @@ export const maxProfileBioChars = 256
 export const onClickAvatar = 'profile:onClickAvatar'
 export const onClickFollowers = 'profile:onClickFollowers'
 export const onClickFollowing = 'profile:onClickFollowing'
-export const onUserClick = 'profile:onUserClick'
 export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
+export const showUserProfile = 'profile:showUserProfile'
 export const submitBTCAddress = 'profile:submitBTCAddress'
 export const submitZcashAddress = 'profile:submitZcashAddress'
 export const submitRevokeProof = 'profile:submitRevokeProof'
@@ -106,8 +106,8 @@ export type OnClickFollowing = NoErrorTypedAction<
   'profile:onClickFollowing',
   {username: string, openWebsite: ?boolean}
 >
-export type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string}>
 export type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
+export type ShowUserProfile = NoErrorTypedAction<'profile:showUserProfile', {username: string}>
 export type SubmitZcashAddress = NoErrorTypedAction<'profile:submitZcashAddress', void>
 export type SubmitBTCAddress = NoErrorTypedAction<'profile:submitBTCAddress', void>
 export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>

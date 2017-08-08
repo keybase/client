@@ -376,7 +376,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
 	}
 
-	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
 	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
@@ -384,7 +384,7 @@ func TestMemberAddNoKeys(t *testing.T) {
 	}
 
 	// existing invite should be untouched
-	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
 }
 
 func TestMemberAddEmail(t *testing.T) {

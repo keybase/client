@@ -31,6 +31,7 @@ func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg
 // Threadsafe.
 type TeamLoader struct {
 	libkb.Contextified
+	world   LoaderContext
 	storage *Storage
 	// Single-flight locks per team ID.
 	locktab libkb.LockTable
@@ -38,40 +39,29 @@ type TeamLoader struct {
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
-func NewTeamLoader(g *libkb.GlobalContext, storage *Storage) *TeamLoader {
+func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *Storage) *TeamLoader {
 	return &TeamLoader{
 		Contextified: libkb.NewContextified(g),
+		world:        world,
 		storage:      storage,
 	}
 }
 
 // NewTeamLoaderAndInstall creates a new loader and installs it into G.
 func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
+	world := NewLoaderContextFromG(g)
 	st := NewStorage(g)
-	l := NewTeamLoader(g, st)
+	l := NewTeamLoader(g, world, st)
 	g.SetTeamLoader(l)
 	return l
 }
 
 func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *keybase1.TeamData, err error) {
-	me, err := l.getMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return l.load1(ctx, me, lArg)
-}
-
-func (l *TeamLoader) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
-	loadMeArg := libkb.NewLoadUserArgBase(l.G()).
-		WithNetContext(ctx).
-		WithUID(l.G().Env.GetUID()).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*loadMeArg)
-	if err != nil {
-		return keybase1.UserVersion{}, err
-	}
-	return NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno), nil
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
@@ -96,7 +86,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
 	if !teamID.Exists() {
-		teamID, err = l.resolveNameToIDUntrusted(ctx, *teamName)
+		teamID, err = l.world.resolveNameToIDUntrusted(ctx, *teamName)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			return nil, err
@@ -169,33 +159,6 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 		return fmt.Errorf("team load arg must have either ID or Name")
 	}
 	return nil
-}
-
-// Resolve a team name to a team ID.
-// Will always hit the server for subteams. The server can lie in this return value.
-func (l *TeamLoader) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
-	// For root team names, just hash.
-	if teamName.IsRootTeam() {
-		return teamName.ToTeamID(), nil
-	}
-
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
-	arg.SessionType = libkb.APISessionTypeREQUIRED
-	arg.Args = libkb.HTTPArgs{
-		"name":        libkb.S{Val: teamName.String()},
-		"lookup_only": libkb.B{Val: true},
-	}
-
-	var rt rawTeam
-	if err := l.G().API.GetDecode(arg, &rt); err != nil {
-		return id, err
-	}
-	id = rt.ID
-	if !id.Exists() {
-		return id, fmt.Errorf("could not resolve team name: %v", teamName.String())
-	}
-	return id, nil
 }
 
 // Mostly the same as the public keybase.LoadTeamArg
@@ -282,7 +245,10 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if (ret == nil) || repoll {
 		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, err = l.lookupMerkle(ctx, arg.teamID)
+		lastSeqno, lastLinkID, err = l.world.merkleLookup(ctx, arg.teamID)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		lastSeqno = ret.Chain.LastSeqno
 		lastLinkID = ret.Chain.LastLinkID
@@ -312,7 +278,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -338,7 +304,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		}
 
 		if !link.Prev().Eq(prev) {
-			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d", i)
+			return nil, fmt.Errorf("team replay failed: prev chain broken at link %d (%v != %v)",
+				i, link.Prev(), prev)
 		}
 
 		var signer *signerX
@@ -628,31 +595,16 @@ func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 	return nil
 }
 
-func (l *TeamLoader) lookupMerkle(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
-	if err != nil {
-		return r1, r2, err
-	}
-	if !leaf.TeamID.Eq(teamID) {
-		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
-	}
-	if leaf.Private == nil {
-		return r1, r2, fmt.Errorf("merkle returned nil leaf")
-	}
-	return leaf.Private.Seqno, leaf.Private.LinkID.Export(), nil
-}
-
 func (l *TeamLoader) mungeWantMembers(ctx context.Context, wantMembers []keybase1.UserVersion) (res []keybase1.UserVersion, err error) {
 	for _, uv1 := range wantMembers {
 		uv2 := uv1
 		if uv2.EldestSeqno == 0 {
 			// Lookup the latest eldest seqno for that uid.
 			// This value may come from a cache.
-			upak, err := loadUPAK2(ctx, l.G(), uv2.Uid, false /*forcePoll */)
+			uv2.EldestSeqno, err = l.world.lookupEldestSeqno(ctx, uv2.Uid)
 			if err != nil {
 				return res, err
 			}
-			uv2.EldestSeqno = upak.Current.EldestSeqno
 			l.G().Log.CDebugf(ctx, "TeamLoader resolved wantMember %v -> %v", uv2.Uid, uv2.EldestSeqno)
 		}
 		res = append(res, uv2)
@@ -739,7 +691,7 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 // The specified team must be a subteam, or an error is returned.
 // Always sends a flurry of RPCs to get the most up to date info.
 func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID) (impAdmins []keybase1.UserVersion, err error) {
-	me, err := l.getMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -761,7 +713,7 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 }
 
 func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1.TeamID, ancestorID *keybase1.TeamID) ([]keybase1.UserVersion, error) {
-	me, err := l.getMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -831,13 +783,13 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 
 	var ancestorIDs []keybase1.TeamID
 
-	me, err := l.getMe(ctx)
+	me, err := l.world.getMe(ctx)
 	if err != nil {
 		return err
 	}
 
 	loopID := &id
-	if loopID != nil {
+	for loopID != nil {
 		team, err := l.load2(ctx, load2ArgT{
 			teamID:        *loopID,
 			forceRepoll:   true,

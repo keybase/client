@@ -1105,255 +1105,265 @@ const iconMeta_ = {
     gridSize: 16,
     charCode: 0xe906,
   },
-  'iconfont-down-arrow': {
+  'iconfont-compose': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe907,
   },
-  'iconfont-edit': {
+  'iconfont-down-arrow': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe908,
   },
-  'iconfont-ellipsis': {
+  'iconfont-edit': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe909,
   },
-  'iconfont-emoji': {
+  'iconfont-ellipsis': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90a,
   },
-  'iconfont-exclamation': {
+  'iconfont-emoji': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90b,
   },
-  'iconfont-folder-private': {
+  'iconfont-exclamation': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90c,
   },
-  'iconfont-folder-private-has-files': {
+  'iconfont-folder-private': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90d,
   },
-  'iconfont-folder-private-me': {
+  'iconfont-folder-private-has-files': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90e,
   },
-  'iconfont-folder-public': {
+  'iconfont-folder-private-me': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe90f,
   },
-  'iconfont-folder-public-has-files': {
+  'iconfont-folder-public': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe910,
   },
-  'iconfont-folder-public-me': {
+  'iconfont-folder-public-has-files': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe911,
   },
-  'iconfont-identity-bitcoin': {
+  'iconfont-folder-public-me': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe912,
   },
-  'iconfont-identity-devices': {
+  'iconfont-identity-bitcoin': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe913,
   },
-  'iconfont-identity-facebook': {
+  'iconfont-identity-devices': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe914,
   },
-  'iconfont-identity-github': {
+  'iconfont-identity-facebook': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe915,
   },
-  'iconfont-identity-hn': {
+  'iconfont-identity-github': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe916,
   },
-  'iconfont-identity-pgp': {
+  'iconfont-identity-hn': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe917,
   },
-  'iconfont-identity-reddit': {
+  'iconfont-identity-pgp': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe918,
   },
-  'iconfont-identity-twitter': {
+  'iconfont-identity-reddit': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe919,
   },
-  'iconfont-identity-website': {
+  'iconfont-identity-twitter': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91a,
   },
-  'iconfont-identity-zcash': {
+  'iconfont-identity-website': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91b,
   },
-  'iconfont-import': {
+  'iconfont-identity-zcash': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91c,
   },
-  'iconfont-info': {
+  'iconfont-import': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91d,
   },
-  'iconfont-keybase': {
+  'iconfont-info': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91e,
   },
-  'iconfont-link': {
+  'iconfont-keybase': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe91f,
   },
-  'iconfont-lock': {
+  'iconfont-link': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe920,
   },
-  'iconfont-new': {
+  'iconfont-lock': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe921,
   },
-  'iconfont-open-browser': {
+  'iconfont-mention': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe922,
   },
-  'iconfont-question-mark': {
+  'iconfont-new': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe923,
   },
-  'iconfont-remove': {
+  'iconfont-open-browser': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe924,
   },
-  'iconfont-search': {
+  'iconfont-question-mark': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe925,
   },
-  'iconfont-shh': {
+  'iconfont-refresh': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe926,
   },
-  'iconfont-star': {
+  'iconfont-remove': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe927,
   },
-  'iconfont-thunderbolt': {
+  'iconfont-search': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe928,
   },
-  'iconfont-tweet': {
+  'iconfont-shh': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe929,
   },
-  'iconfont-usercard': {
+  'iconfont-star': {
     isFont: true,
     gridSize: 16,
     charCode: 0xe92a,
   },
-  'iconfont-camera': {
+  'iconfont-thunderbolt': {
     isFont: true,
-    gridSize: 24,
+    gridSize: 16,
     charCode: 0xe92b,
   },
-  'iconfont-chat': {
+  'iconfont-tweet': {
     isFont: true,
-    gridSize: 24,
+    gridSize: 16,
     charCode: 0xe92c,
   },
-  'iconfont-device': {
+  'iconfont-usercard': {
     isFont: true,
-    gridSize: 24,
+    gridSize: 16,
     charCode: 0xe92d,
   },
-  'iconfont-folder': {
+  'iconfont-camera': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe92e,
   },
-  'iconfont-hamburger': {
+  'iconfont-chat': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe92f,
   },
-  'iconfont-nav-crypto': {
+  'iconfont-device': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe930,
   },
-  'iconfont-nav-search': {
+  'iconfont-folder': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe931,
   },
-  'iconfont-people': {
+  'iconfont-hamburger': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe932,
   },
-  'iconfont-people-search': {
+  'iconfont-nav-search': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe933,
   },
-  'iconfont-proof-broken': {
+  'iconfont-people': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe934,
   },
-  'iconfont-proof-good': {
+  'iconfont-people-search': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe935,
   },
-  'iconfont-proof-pending': {
+  'iconfont-proof-broken': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe936,
   },
-  'iconfont-proof-placeholder': {
+  'iconfont-proof-good': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe937,
   },
-  'iconfont-settings': {
+  'iconfont-proof-pending': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe938,
+  },
+  'iconfont-proof-placeholder': {
+    isFont: true,
+    gridSize: 24,
+    charCode: 0xe939,
+  },
+  'iconfont-settings': {
+    isFont: true,
+    gridSize: 24,
+    charCode: 0xe93a,
   },/* eslint-enable */
 }
 

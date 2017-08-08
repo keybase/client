@@ -2628,6 +2628,30 @@
         }
       ],
       "response": "SetAppNotificationSettingsLocalRes"
+    },
+    "unboxMobilePushNotification": {
+      "request": [
+        {
+          "name": "payload",
+          "type": "string"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "pushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "chat.1"

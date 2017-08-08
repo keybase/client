@@ -1,12 +1,18 @@
 ## How to build the font icon
 
-## Phase 1: Get svg paths
+## Phase 1: Update svgs
+- Go to the Icon font zeplin sheet (https://zpl.io/pbL9pM2)
+- Export all the icons to this folderl
+  - On the right panel you can click the assets tab and download all SVGs into this folder.
+  - Delete all non-icon font svgs from that folder (anything thats not 'kb-iconfont-.*')
+
+## Phase 2: Get svg paths
 - Go to https://icomoon.io
 - Create a new empty project [Main Menu -> Manage projects -> New Project]
-- Import all the svgs [Import icons]
+- Import all the svgs from phase 1 [Import icons]
 - Download JSON [Right hamburger menu => Download JSON] and save as kb-icomoon-project-app.json
 
-## Phase 2: Generate fonts
+## Phase 3: Generate fonts
 - run `yarn run generate-font-project` (this updates our Icon constants for you)
 - On icomoon.io import the generated project [menu -> Projects -> Import Project -> kb-icomoon-project-generated.json]
 - Generate font and download

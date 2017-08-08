@@ -4,6 +4,7 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
+import {printBridgeB64} from '../local-debug'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
@@ -18,7 +19,12 @@ class NativeTransport extends TransportShared {
       disconnectCallback,
       incomingRPCCallback,
       // We pass data over to the native side to be handled
-      data => nativeBridge.runWithData(data)
+      data => {
+        if (printBridgeB64) {
+          console.log(`PRINTBridge JS sending data ${data}`)
+        }
+        nativeBridge.runWithData(data)
+      }
     )
 
     // We're connected locally so we never get disconnected
@@ -68,6 +74,9 @@ function createClient(
 
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, payload => {
+    if (printBridgeB64) {
+      console.log(`PRINTBridge: JS got payload ${payload}`)
+    }
     return client.transport.packetize_data(toBuffer(toByteArray(payload)))
   })
 

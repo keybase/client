@@ -38,6 +38,9 @@ type chatConversationResolvingBehavior struct {
 	// Specify whether the resolve should create a conversation if none is found.
 	CreateIfNotExists bool
 
+	// Specify whether the resolve should error if a conversation was found
+	MustNotExist bool
+
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
@@ -234,6 +237,10 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
 	if err != nil {
 		return nil, false, err
+	}
+
+	if behavior.MustNotExist && len(conversations) > 0 {
+		return nil, false, fmt.Errorf("conversation already exists")
 	}
 
 	switch len(conversations) {

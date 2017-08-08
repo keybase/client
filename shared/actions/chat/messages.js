@@ -49,12 +49,14 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
+    const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
       param: {
         clientPrev: lastMessageID,
         conv: clientHeader.conv,
         conversationID: Constants.keyToConversationID(conversationIDKey),
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID,
         supersedes: messageID,
         tlfName: clientHeader.tlfName,
         tlfPublic: clientHeader.tlfPublic,
@@ -183,6 +185,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   // Not editing anymore
   yield put(Creators.showEditor(null))
 
+  const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
   yield call(ChatTypes.localPostEditNonblockRpcPromise, {
     param: {
       body: action.payload.text.stringValue(),
@@ -190,6 +193,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
       conv: clientHeader.conv,
       conversationID: Constants.keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
       supersedes: messageID,
       tlfName: clientHeader.tlfName,
       tlfPublic: clientHeader.tlfPublic,

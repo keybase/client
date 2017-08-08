@@ -56,6 +56,7 @@ const (
 	PromptDescriptorDeviceRevoke
 	PromptDescriptorFSOverwrite
 	PromptDescriptorRemoveMember
+	PromptDescriptorDeleteRootTeam
 )
 
 const (

@@ -408,6 +408,7 @@ protocol teams {
   // Team must be a root team.
   // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
+  void teamDelete(int sessionID, string name); 
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

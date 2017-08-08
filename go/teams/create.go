@@ -124,11 +124,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
@@ -274,9 +270,12 @@ func makeSigchainV2OuterSig(
 
 func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 	newSubteamSigBody, err := NewSubteamSig(me, signingKey, parentTeam, subteamName, subteamID, admin)
+	if err != nil {
+		return nil, err
+	}
 	newSubteamSigJSON, err := newSubteamSigBody.Marshal()
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
@@ -292,7 +291,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		false, /* hasRevokes */
 	)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	item = &libkb.SigMultiItem{
@@ -302,7 +301,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		SigInner:   string(newSubteamSigJSON),
 		TeamID:     parentTeam.GetID(),
 	}
-	return
+	return item, nil
 }
 
 func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin, allParentAdmins []keybase1.UserVersion) (item *libkb.SigMultiItem, boxes *PerTeamSharedSecretBoxes, err error) {
@@ -344,6 +343,9 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(me, signingKey, teamSection)
+	if err != nil {
+		return
+	}
 
 	// Now generate the reverse sig and edit it into the JSON. Note that this
 	// (sigchain-v1-style) reverse sig is made with the derived *per-team*

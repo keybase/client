@@ -161,6 +161,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           ctx,
+				LogCtx:        testLogCtx{t},
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
@@ -177,6 +178,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.Background(),
+				LogCtx:        testLogCtx{t},
 				Mr:            router,
 				Secret:        s2,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -261,15 +263,6 @@ func TestFullProtocolXProvisioneeSlowHelloWithCancel(t *testing.T) {
 	}
 }
 
-func TestFullProtocolXProvisioneeSlowDidCounterSign(t *testing.T) {
-	results := testProtocolXWithBehavior(t, BadProvisioneeSlowDidCounterSign)
-	for i, e := range results {
-		if !eeq(e, ErrTimedOut) && !eeq(e, io.EOF) {
-			t.Fatalf("Bad error %d: %v", i, e)
-		}
-	}
-}
-
 func TestFullProtocolY(t *testing.T) {
 
 	timeout := time.Duration(60) * time.Second
@@ -286,6 +279,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
+				LogCtx:        testLogCtx{t},
 				Mr:            router,
 				Secret:        s1,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -302,6 +296,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
+				LogCtx:        testLogCtx{t},
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
