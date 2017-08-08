@@ -261,6 +261,11 @@ func (f failingRemote) LeaveConversation(ctx context.Context, convID chat1.Conve
 	require.Fail(f.t, "LeaveConversation")
 	return chat1.JoinLeaveConversationRemoteRes{}, nil
 }
+func (f failingRemote) RemoteNotificationSuccessful(ctx context.Context,
+	arg chat1.RemoteNotificationSuccessfulArg) error {
+	require.Fail(f.t, "RemoteNotificationSuccessful")
+	return nil
+}
 
 type failingTlf struct {
 	t *testing.T

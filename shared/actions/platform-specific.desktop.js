@@ -29,4 +29,15 @@ function showMainWindow(): AsyncAction {
   }
 }
 
-export {requestPushPermissions, showMainWindow, configurePush, saveAttachmentDialog, showShareActionSheet}
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+  throw new Error('Display new message notification not available on this platform')
+}
+
+export {
+  requestPushPermissions,
+  showMainWindow,
+  configurePush,
+  saveAttachmentDialog,
+  showShareActionSheet,
+  displayNewMessageNotification,
+}

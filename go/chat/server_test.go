@@ -14,6 +14,8 @@ import (
 
 	"golang.org/x/net/context"
 
+	"encoding/base64"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
@@ -2423,5 +2425,65 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.Error(t, err)
 		require.IsType(t, libkb.ChatStalePreviousStateError{}, err)
 
+	})
+}
+
+func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvUnboxMobilePushNotification", 1)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		tc := ctc.world.Tcs[users[0].Username]
+		uid := users[0].User.GetUID().ToBytes()
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		convRemote, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		require.NoError(t, err)
+		plarg := chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+					Sender:      uid,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "PUSH",
+				}),
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		ri := ctc.as(t, users[0]).ri
+		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()), nil,
+			func() chat1.RemoteInterface { return ri })
+		msg, _, _, _, _, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		require.NoError(t, err)
+		msg.ServerHeader = &chat1.MessageServerHeader{
+			MessageID: 10,
+		}
+
+		mh := codec.MsgpackHandle{WriteExt: true}
+		var data []byte
+		enc := codec.NewEncoderBytes(&data, &mh)
+		require.NoError(t, enc.Encode(msg))
+		encMsg := base64.StdEncoding.EncodeToString(data)
+		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
+			chat1.UnboxMobilePushNotificationArg{
+				ConvID:      conv.Id.String(),
+				MembersType: mt,
+				Payload:     encMsg,
+			})
+		require.NoError(t, err)
+		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
+			unboxRes)
 	})
 }

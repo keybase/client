@@ -1,14 +1,9 @@
 // @flow
 import * as Constants from '../../constants/push'
 import * as Creators from './creators'
-import * as Shared from '../chat/shared'
 import {isMobile} from '../../constants/platform'
-import {
-  apiserverDeleteRpcPromise,
-  apiserverPostRpcPromise,
-  appStateUpdateAppStateRpc,
-  AppStateAppState,
-} from '../../constants/types/flow-types'
+import {apiserverDeleteRpcPromise, apiserverPostRpcPromise} from '../../constants/types/flow-types'
+import * as ChatTypes from '../../constants/types/flow-types-chat'
 import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
@@ -18,8 +13,8 @@ import {setLaunchedViaPush} from '../config'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-import {requestPushPermissions, configurePush} from '../platform-specific'
 import {showUserProfile} from '../profile'
+import {requestPushPermissions, configurePush, displayNewMessageNotification} from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
@@ -47,24 +42,23 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       ...payload,
       ...(payload.data || {}),
     }
-    // If we have received a silent notification, then just bail out of here, the service will
-    // wake up and do what it needs to do.
-    if (data.silent) {
+    if (data.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
-      const appFocused = yield select(Shared.focusedSelector)
-      if (!appFocused) {
-        console.info('Push notification: sending state update to service')
-        yield call(appStateUpdateAppStateRpc, {
+      try {
+        const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {
-            state: AppStateAppState.backgroundactive,
+            convID: data.c,
+            membersType: data.t,
+            payload: data.m,
+            pushIDs: data.p,
           },
         })
+        yield call(displayNewMessageNotification, unboxRes, data.c, data.b)
+      } catch (err) {
+        console.info('failed to unbox silent notification', err)
       }
-      return
-    }
-
-    // Check for conversation ID so we know where to navigate to
-    if (data.type === 'chat.newmessage') {
+    } else if (data.type === 'chat.newmessage') {
+      // Check for conversation ID so we know where to navigate to
       if (!data.convID) {
         console.error('Push chat notification payload missing conversation ID')
         return

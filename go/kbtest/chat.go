@@ -274,6 +274,10 @@ func (m *ChatRemoteMock) inConversation(conv *chat1.Conversation) bool {
 	return true
 }
 
+func (m *ChatRemoteMock) RemoteNotificationSuccessful(ctx context.Context, arg chat1.RemoteNotificationSuccessfulArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	var ibfull chat1.InboxViewFull
