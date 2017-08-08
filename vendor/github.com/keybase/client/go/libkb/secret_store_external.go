@@ -147,8 +147,15 @@ func (s *secretStoreAccountName) GetApprovalPrompt() string {
 func (s *secretStoreAccountName) setup() {
 	s.setupOnce.Do(func() {
 		s.context.GetLog().Debug("+ secret_store_external:setup")
+
 		// username not required
-		s.externalKeyStore.SetupKeyStore(s.serviceName(), "")
+		err := s.externalKeyStore.SetupKeyStore(s.serviceName(), "")
+		if err != nil {
+			s.context.GetLog().Debug("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", s.serviceName(), err, err)
+		} else {
+			s.context.GetLog().Debug("externalKeyStore.SetupKeyStore(%s) success", s.serviceName())
+		}
+
 		s.context.GetLog().Debug("- secret_store_external:setup")
 	})
 }

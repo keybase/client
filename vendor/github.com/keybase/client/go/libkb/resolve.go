@@ -325,9 +325,9 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 	}
 
 	if l == 0 {
-		res.err = ResolutionError{Input: input, Msg: "No resolution found"}
+		res.err = ResolutionError{Input: input, Msg: "No resolution found", Kind: ResolutionErrorNotFound}
 	} else if l > 1 {
-		res.err = ResolutionError{Input: input, Msg: "Identify is ambiguous"}
+		res.err = ResolutionError{Input: input, Msg: "Identify is ambiguous", Kind: ResolutionErrorAmbiguous}
 	} else {
 		res.body = them.AtIndex(0)
 		res.uid, res.err = GetUID(res.body.AtKey("id"))
@@ -350,6 +350,8 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 }
 
 func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	r.G().Log.CDebugf(ctx, "resolveTeamViaServerLookup")
+
 	res.queriedByTeamID = au.IsTeamID()
 	key, val, err := au.ToLookup()
 	if err != nil {

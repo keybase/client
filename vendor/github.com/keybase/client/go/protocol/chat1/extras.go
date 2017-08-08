@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ByUID []gregor1.UID
@@ -101,6 +102,10 @@ func (t MessageType) String() string {
 		return "TLFNAME"
 	case MessageType_ATTACHMENTUPLOADED:
 		return "ATTACHMENTUPLOADED"
+	case MessageType_JOIN:
+		return "JOIN"
+	case MessageType_LEAVE:
+		return "LEAVE"
 	default:
 		return "UNKNOWN"
 	}
@@ -188,12 +193,16 @@ func (m MessageBoxed) GetMessageType() MessageType {
 }
 
 func (m MessageBoxed) Summary() MessageSummary {
-	return MessageSummary{
+	s := MessageSummary{
 		MsgID:       m.GetMessageID(),
 		MessageType: m.GetMessageType(),
 		TlfName:     m.ClientHeader.TlfName,
 		TlfPublic:   m.ClientHeader.TlfPublic,
 	}
+	if m.ServerHeader != nil {
+		s.Ctime = m.ServerHeader.Ctime
+	}
+	return s
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{
@@ -582,6 +591,10 @@ func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
@@ -592,4 +605,23 @@ func (o TLFConvOrdinal) Int() int {
 
 func (o TLFConvOrdinal) IsFirst() bool {
 	return o.Int() == 1
+}
+
+func MakeEmptyUnreadUpdate(convID ConversationID) UnreadUpdate {
+	counts := make(map[keybase1.DeviceType]int)
+	counts[keybase1.DeviceType_DESKTOP] = 0
+	counts[keybase1.DeviceType_MOBILE] = 0
+	return UnreadUpdate{
+		ConvID:                  convID,
+		UnreadMessages:          0,
+		UnreadNotifyingMessages: counts,
+	}
+}
+
+func (s TopicNameState) Bytes() []byte {
+	return []byte(s)
+}
+
+func (s TopicNameState) Eq(o TopicNameState) bool {
+	return bytes.Equal(s.Bytes(), o.Bytes())
 }

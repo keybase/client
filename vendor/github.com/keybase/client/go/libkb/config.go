@@ -113,10 +113,6 @@ func (f JSONConfigFile) GetDurationAtPath(p string) (time.Duration, bool) {
 	return d, true
 }
 
-func (f JSONConfigFile) GetSupportPerUserKey() (bool, bool) {
-	return false, false
-}
-
 func (f JSONConfigFile) GetUpgradePerUserKey() (bool, bool) {
 	return false, false
 }
@@ -611,6 +607,10 @@ func (f JSONConfigFile) GetLinkCacheSize() (int, bool) {
 
 func (f JSONConfigFile) GetLinkCacheCleanDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.clean_duration.links")
+}
+
+func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
+	return f.GetIntAtPath("leveldb.num_files")
 }
 
 func (f JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {

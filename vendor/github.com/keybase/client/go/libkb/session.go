@@ -385,6 +385,10 @@ func (s *Session) loadAndCheckProvisioned() (bool, error) {
 	return s.IsLoggedInAndProvisioned(), nil
 }
 
+func (s *Session) LoadAndCheckIfStale() (bool, error) {
+	return s.loadAndCheck()
+}
+
 func (s *Session) LoadAndForceCheck() (bool, error) {
 	err := s.Load()
 	if err != nil {

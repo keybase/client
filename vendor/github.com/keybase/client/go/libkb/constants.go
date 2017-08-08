@@ -114,7 +114,11 @@ const (
 
 	CriticalClockSkewLimit = time.Hour
 
-	ChatBoxerMerkleFreshness = time.Duration(10) * time.Minute
+	ChatBoxerMerkleFreshness    = 10 * time.Minute
+	TeamMerkleFreshnessForAdmin = 30 * time.Second
+
+	// By default, only 64 files can be opened.
+	LevelDBNumFiles = 64
 )
 
 const RemoteIdentifyUITimeout = 5 * time.Second
@@ -241,6 +245,7 @@ const (
 	SCChatAlreadyDeleted       = int(keybase1.StatusCode_SCChatAlreadyDeleted)
 	SCChatTLFFinalized         = int(keybase1.StatusCode_SCChatTLFFinalized)
 	SCChatCollision            = int(keybase1.StatusCode_SCChatCollision)
+	SCChatStalePreviousState   = int(keybase1.StatusCode_SCChatStalePreviousState)
 	SCBadEmail                 = int(keybase1.StatusCode_SCBadEmail)
 	SCIdentifySummaryError     = int(keybase1.StatusCode_SCIdentifySummaryError)
 	SCNeedSelfRekey            = int(keybase1.StatusCode_SCNeedSelfRekey)
@@ -249,6 +254,12 @@ const (
 	SCChatDuplicateMessage     = int(keybase1.StatusCode_SCChatDuplicateMessage)
 	SCChatClientError          = int(keybase1.StatusCode_SCChatClientError)
 	SCAccountReset             = int(keybase1.StatusCode_SCAccountReset)
+	SCTeamReadError            = int(keybase1.StatusCode_SCTeamReadError)
+	SCTeamNotFound             = int(keybase1.StatusCode_SCTeamNotFound)
+	SCTeamTarDuplicate         = int(keybase1.StatusCode_SCTeamTarDuplicate)
+	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
+	SCTeamMemberExists         = int(keybase1.StatusCode_SCTeamMemberExists)
+	SCLoginStateTimeout        = int(keybase1.StatusCode_SCLoginStateTimeout)
 )
 
 const (
@@ -281,6 +292,12 @@ const (
 	LinkTypeChangeMembership LinkType = "team.change_membership"
 	LinkTypeRotateKey        LinkType = "team.rotate_key"
 	LinkTypeLeave            LinkType = "team.leave"
+	LinkTypeInvite           LinkType = "team.invite"
+	LinkTypeRenameSubteam    LinkType = "team.rename_subteam"
+	LinkTypeRenameUpPointer  LinkType = "team.rename_up_pointer"
+	LinkTypeDeleteRoot       LinkType = "team.delete_root"
+	LinkTypeDeleteSubteam    LinkType = "team.delete_subteam"
+	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
@@ -499,6 +516,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	KBFSLogFileName    = "keybase.kbfs.log"
+	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging
@@ -603,4 +621,5 @@ const (
 const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
+	InviteIDTag        = 0x27
 )

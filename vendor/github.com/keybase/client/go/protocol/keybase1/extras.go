@@ -418,6 +418,20 @@ func MakeTestTeamID(n uint32) TeamID {
 	return tid
 }
 
+// Used by unit tests.
+func MakeTestSubTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(SUB_TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + SUB_TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
 // Can panic if invalid
 func (t TeamID) IsSubTeam() bool {
 	suffix := t[len(t)-2:]
@@ -663,6 +677,14 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
+}
+
+// Size implements the keybase/kbfs/cache.Measurable interface.
+func (k *KID) Size() int {
+	if k == nil {
+		return 0
+	}
+	return len(*k)
 }
 
 func (s *SigID) UnmarshalJSON(b []byte) error {
@@ -1221,7 +1243,7 @@ func (ut UserOrTeamID) AsUserOrBust() UID {
 
 func (ut UserOrTeamID) AsTeam() (TeamID, error) {
 	if !ut.IsTeamOrSubteam() {
-		return TeamID(""), errors.New("ID is not a team ID")
+		return TeamID(""), fmt.Errorf("ID is not a team ID (%s)", ut)
 	}
 	return TeamID(ut), nil
 }
@@ -1239,41 +1261,56 @@ func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
 }
 
 func (ut UserOrTeamID) IsUser() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == UID_SUFFIX_HEX || suffix == UID_SUFFIX_2_HEX
+	i := idSchema{
+		length:        UID_LEN,
+		magicSuffixes: map[byte]bool{UID_SUFFIX: true, UID_SUFFIX_2: true},
+		typeHint:      "user id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsTeam() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == TEAMID_SUFFIX_HEX
+	i := idSchema{
+		length:        TEAMID_LEN,
+		magicSuffixes: map[byte]bool{TEAMID_SUFFIX: true},
+		typeHint:      "team id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsSubteam() bool {
-	suffix := ut[len(ut)-2:]
-	return suffix == SUB_TEAMID_SUFFIX_HEX
+	i := idSchema{
+		length:        TEAMID_LEN,
+		magicSuffixes: map[byte]bool{SUB_TEAMID_SUFFIX: true},
+		typeHint:      "subteam id",
+	}
+	return i.check(string(ut)) == nil
 }
 
 func (ut UserOrTeamID) IsTeamOrSubteam() bool {
-	suffixLen := 2
-	if ut.IsNil() || len(ut) < suffixLen {
-		return false
-	}
-	suffix := ut[len(ut)-suffixLen:]
-	return suffix == TEAMID_SUFFIX_HEX || suffix == SUB_TEAMID_SUFFIX_HEX
+	return ut.IsTeam() || ut.IsSubteam()
 }
 
+func (ut UserOrTeamID) IsValidID() bool {
+	return ut.IsUser() || ut.IsTeamOrSubteam()
+}
+
+// Preconditions:
+// 	-first four bits (in Little Endian) of UserOrTeamID are
+// 	 	independent and uniformly distributed
+//	-UserOrTeamID must have an even number of bits, or this will always
+//   	return 0
 // Returns a number in [0, shardCount) which can be treated as roughly
 // uniformly distributed. Used for things that need to shard by user.
 func (ut UserOrTeamID) GetShard(shardCount int) (int, error) {
+	if !ut.IsValidID() {
+		return 0, fmt.Errorf("Bad ID, does not match any known valid type")
+	}
 	bytes, err := hex.DecodeString(string(ut))
 	if err != nil {
 		return 0, err
 	}
-	// TODO -- fix this and all other UserOrTeam#foo's that don't check
-	// the size of the input.
-	if len(bytes) < 4 {
-		return 0, fmt.Errorf("bad ID, isn't 4 bytes at least")
-	}
+	// LittleEndian.Uint32 truncates to obtain 4 bytes from the buffer
 	n := binary.LittleEndian.Uint32(bytes)
 	return int(n % uint32(shardCount)), nil
 }
@@ -1486,7 +1523,7 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, fmt.Errorf("team name wrong size:'%s' %v <= %v <= %v", part, 2, len(part), 16)
+			return ret, errors.New("team names must be between 2 and 16 characters long")
 		}
 		if !namePartRxx.MatchString(part) {
 			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
@@ -1546,6 +1583,26 @@ func (t TeamName) RootAncestorName() TeamName {
 	return TeamName{
 		Parts: t.Parts[:1],
 	}
+}
+
+func (t TeamName) Parent() (TeamName, error) {
+	if len(t.Parts) == 0 {
+		return t, fmt.Errorf("empty team name")
+	}
+	if t.IsRootTeam() {
+		return t, fmt.Errorf("root team has no parent")
+	}
+	return TeamName{
+		Parts: t.Parts[:len(t.Parts)-1],
+	}, nil
+}
+
+func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
+	parent, err := t.Parent()
+	if err != nil {
+		return t, err
+	}
+	return parent.Append(newLast)
 }
 
 // The number of parts in a team name.
@@ -1608,29 +1665,29 @@ func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	return int(r) >= int(min)
 }
 
-type idDesc struct {
-	byteLen int
-	suffix  byte
-	typ     string
+type idSchema struct {
+	length        int
+	magicSuffixes map[byte]bool
+	typeHint      string
 }
 
-func (i idDesc) check(s string) error {
-	b, err := hex.DecodeString(s)
+func (i idSchema) check(s string) error {
+	xs, err := hex.DecodeString(s)
 	if err != nil {
 		return err
 	}
-	if len(b) != i.byteLen {
-		return fmt.Errorf("%s: wrong ID len (got %d)", i.typ, len(b))
+	if len(xs) != i.length {
+		return fmt.Errorf("%s: Wrong ID length (got %d)", i.typeHint, len(xs))
 	}
-	sffx := b[len(b)-1]
-	if sffx != i.suffix {
-		return fmt.Errorf("%s: wrong suffix byte (got 0x%x)", i.typ, sffx)
+	suffix := xs[len(xs)-1]
+	if !i.magicSuffixes[suffix] {
+		return fmt.Errorf("%s: Incorrect suffix byte (got 0x%x)", i.typeHint, suffix)
 	}
 	return nil
 }
 
 func TeamInviteIDFromString(s string) (TeamInviteID, error) {
-	if err := (idDesc{16, 0x27, "team invite ID"}).check(s); err != nil {
+	if err := (idSchema{16, map[byte]bool{0x27: true}, "team invite ID"}).check(s); err != nil {
 		return TeamInviteID(""), err
 	}
 	return TeamInviteID(s), nil
@@ -1671,4 +1728,8 @@ func (t TeamInviteType) String() (string, error) {
 	}
 
 	return "", nil
+}
+
+func (m MemberInfo) TeamName() (TeamName, error) {
+	return TeamNameFromString(m.FqName)
 }
