@@ -55,14 +55,14 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       return
     }
 
+    if (tab === profileTab) {
+      dispatch(navigateAppend([{props: {username: 'akalin'}, selected: 'profile'}], [profileTab]))
+    }
+
     // otherwise, back out to the default route of the tab.
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
     // $FlowIssue TODO
     dispatch(action(ownProps.routePath.push(tab)))
-
-    if (tab === profileTab) {
-      dispatch(navigateAppend([{props: {username: 'akalin'}, selected: 'profile'}], [profileTab]))
-    }
   },
 })
 
