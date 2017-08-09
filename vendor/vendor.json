@@ -418,6 +418,12 @@
 			"revisionTime": "2016-06-14T09:28:26Z"
 		},
 		{
+			"checksumSHA1": "kDPbDtntPM6hgITCDqxqBBKYVtQ=",
+			"path": "github.com/src-d/go-billy",
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
+		},
+		{
 			"checksumSHA1": "hIEmcd7hIDqO/xWSp1rJJHd0TpE=",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "18a02ba4a312f95da08ff4cfc0055750ce50ae9e",
