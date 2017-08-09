@@ -199,10 +199,10 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 			return err
 		}
 
-		// SChatConnector is an interface with only one method:
-		// StartStandaloneChat. This way we can pass Service object
-		// while not exposing anything but that one function.
-		g.SChatConnector = svc
+		// StandaloneChatConnector is an interface with only one
+		// method: StartStandaloneChat. This way we can pass Service
+		// object while not exposing anything but that one function.
+		g.StandaloneChatConnector = svc
 		g.Standalone = true
 
 		if pflerr, ok := err.(libkb.PIDFileLockError); ok {

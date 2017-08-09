@@ -78,11 +78,12 @@ func (c *CmdChatSend) Run() (err error) {
 	}
 
 	if c.G().Standalone {
-		if c.resolvingRequest.MembersType == chat1.ConversationMembersType_KBFS {
+		switch c.resolvingRequest.MembersType {
+		case chat1.ConversationMembersType_TEAM:
+			c.G().StartStandaloneChat()
+		default:
 			err = fmt.Errorf("Can't run command in standalone mode")
 			return err
-		} else if c.resolvingRequest.MembersType == chat1.ConversationMembersType_TEAM {
-			c.G().StartStandaloneChat()
 		}
 	}
 

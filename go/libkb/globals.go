@@ -114,7 +114,7 @@ type GlobalContext struct {
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
 
-	SChatConnector StandaloneChatConnector
+	StandaloneChatConnector StandaloneChatConnector
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -1030,10 +1030,10 @@ func (g *GlobalContext) StartStandaloneChat() {
 		return
 	}
 
-	if g.SChatConnector == nil {
-		g.Log.Warning("G#StartStandaloneChat - not starting chat, SChatConnector is nil.")
+	if g.StandaloneChatConnector == nil {
+		g.Log.Warning("G#StartStandaloneChat - not starting chat, StandaloneChatConnector is nil.")
 		return
 	}
 
-	g.SChatConnector.StartStandaloneChat(g)
+	g.StandaloneChatConnector.StartStandaloneChat(g)
 }
