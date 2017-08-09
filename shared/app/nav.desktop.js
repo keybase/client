@@ -59,9 +59,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     // profile first before switching tabs, if necessary.
     if (tab === profileTab) {
       dispatch(navigateTo([], [profileTab]))
-      if (ownProps.routeSelected !== profileTab) {
-        dispatch(switchTo([profileTab]))
-      }
+      dispatch(switchTo([profileTab]))
       return
     }
 
