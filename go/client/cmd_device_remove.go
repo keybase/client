@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -17,6 +18,7 @@ import (
 type CmdDeviceRemove struct {
 	idOrName string
 	force    bool
+	last     bool
 	libkb.Contextified
 }
 
@@ -30,6 +32,7 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	}
 	c.idOrName = ctx.Args()[0]
 	c.force = ctx.Bool("force")
+	c.last = ctx.Bool("last")
 	return nil
 }
 
@@ -103,8 +106,9 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	}
 
 	return cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
-		Force:    c.force,
-		DeviceID: id,
+		Force:     c.force,
+		ForceLast: c.last,
+		DeviceID:  id,
 	})
 }
 
@@ -134,7 +138,11 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "Override warning about removing the current device.",
+				Usage: "Force removal of the current device.",
+			},
+			cli.BoolFlag{
+				Name:  "last",
+				Usage: "Force removal of the last device in your account.",
 			},
 		},
 		Action: func(c *cli.Context) {

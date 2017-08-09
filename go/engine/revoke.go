@@ -27,8 +27,9 @@ type RevokeEngine struct {
 }
 
 type RevokeDeviceEngineArgs struct {
-	ID    keybase1.DeviceID
-	Force bool
+	ID        keybase1.DeviceID
+	Force     bool
+	ForceLast bool
 }
 
 func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {

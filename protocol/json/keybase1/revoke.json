@@ -34,6 +34,10 @@
         {
           "name": "force",
           "type": "boolean"
+        },
+        {
+          "name": "forceLast",
+          "type": "boolean"
         }
       ],
       "response": null
