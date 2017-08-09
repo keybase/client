@@ -55,7 +55,7 @@ class Files extends Component<void, Props, State> {
   }
 
   componentDidMount() {
-    if (this.props.folder && !this.props.folder.ignored) {
+    if (this.props.folder && !this.props.folder.ignored && this.props.folder.meta === 'new') {
       this.props.favoriteFolder(this.props.path)
     }
   }
