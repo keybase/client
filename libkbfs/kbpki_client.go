@@ -274,6 +274,10 @@ func (k *KBPKIClient) IsTeamReader(
 // GetTeamRootID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
 	keybase1.TeamID, error) {
+	if !tid.IsSubTeam() {
+		return tid, nil
+	}
+
 	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
 		ctx, tid, UnspecifiedKeyGen, keybase1.UserVersion{},
 		keybase1.TeamRole_NONE)
