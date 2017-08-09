@@ -97,7 +97,8 @@ func TestSendHelper(t *testing.T) {
 		g := globals.NewContext(tc.G, tc.ChatG)
 		server := NewServer(g, nil, sc, TestUISource{})
 
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
 		tlfName := created.TlfName
 
 		var topicName *string
@@ -132,26 +133,26 @@ func TestSendHelper(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, len(tv.Messages))
 
+		altServer := NewServer(g, nil, sc, TestUISource{})
 		altTopicName := "aleph"
-		altSendHelper, err := NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
-			TlfName:          tlfName,
-			TopicType:        chat1.TopicType_CHAT,
-			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
-			TopicName:        &altTopicName,
-			MembersType:      mt,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		altSendHelper, err := NewSendHelper(ctx, altServer, chat1.NewConversationLocalArg{
+			TlfName:       tlfName,
+			TopicType:     chat1.TopicType_CHAT,
+			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			TopicName:     &altTopicName,
+			MembersType:   mt,
 		})
 		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			_, err = altSendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
+			_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
 			require.NoError(t, err)
 			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 			require.NoError(t, err)
 			require.Equal(t, 2, len(inbox.Convs))
 		default:
 			// No second topic name on KBFS chats
-			_, err = altSendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
+			_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
 			require.NoError(t, err)
 			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 			require.Equal(t, 1, len(inbox.Convs))

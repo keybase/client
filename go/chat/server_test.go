@@ -519,6 +519,8 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
 			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
+			mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		case chat1.ConversationMembersType_KBFS:
 			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
 		}
@@ -745,6 +747,34 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
 			t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
 		}
+	})
+}
+
+func TestChatSrvPostLocalAlt(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "PostLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+
+		// we just posted this message, so should be the first one.
+		uid := users[0].User.GetUID().ToBytes()
+		tc := ctc.world.Tcs[users[0].Username]
+		tv, _, err := tc.Context().ConvSource.Pull(ctc.as(t, users[0]).startCtx, created.Id, uid, nil,
+			nil)
+		require.NoError(t, err)
+		require.NotZero(t, len(tv.Messages))
+		msg := tv.Messages[0]
+
+		if mt == chat1.ConversationMembersType_KBFS {
+			require.NotEqual(t, created.TlfName, msg.Valid().ClientHeader.TlfName)
+		}
+		require.NotZero(t, len(msg.Valid().ClientHeader.Sender.Bytes()))
+		require.NotZero(t, len(msg.Valid().ClientHeader.SenderDevice.Bytes()))
 	})
 }
 
