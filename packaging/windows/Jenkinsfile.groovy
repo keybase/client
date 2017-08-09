@@ -46,9 +46,9 @@ def doBuild() {
             // Check both the built .sys files and the msi package.
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\x64\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\Win32\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
-            bat "%ProgramFiles%\\7=Zip\7z e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys"
+            bat "\"%ProgramFiles%\\7=Zip\7z\" e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys"
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v Win10_Sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
-            bat "%ProgramFiles%\\7=Zip\7z e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x86.msi Win10_Sys"
+            bat "\"%ProgramFiles%\\7=Zip\7z\" e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x86.msi Win10_Sys"
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v Win10_Sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
         } else {
             echo "Skipping signed driver checking"
