@@ -18,6 +18,30 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+func SendTextByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
+	uiSource UISource, nclArg chat1.NewConversationLocalArg, body string) error {
+
+	chatServer := NewServer(g, nil, serverConnection, uiSource)
+	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
+	if err != nil {
+		return err
+	}
+	_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage(body))
+	return err
+}
+
+func SendMessageByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
+	uiSource UISource, nclArg chat1.NewConversationLocalArg, msg chat1.MessagePlaintext) error {
+
+	chatServer := NewServer(g, nil, serverConnection, uiSource)
+	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
+	if err != nil {
+		return err
+	}
+	_, err = sendHelper.Send(ctx, msg)
+	return err
+}
+
 func NewTeamNewConversationLocalArg(tlfName string, topicName *string, identifyBehavior keybase1.TLFIdentifyBehavior) chat1.NewConversationLocalArg {
 	return chat1.NewConversationLocalArg{
 		TlfName:          tlfName,
@@ -67,12 +91,7 @@ func (s *SendHelper) NewPlaintextMessage(body string) chat1.MessagePlaintext {
 			TlfName:     s.TlfName,
 			MessageType: chat1.MessageType_TEXT,
 		},
-		MessageBody: chat1.MessageBody{
-			MessageType__: chat1.MessageType_TEXT,
-			Text__: &chat1.MessageText{
-				Body: body,
-			},
-		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
 	}
 }
 

@@ -491,9 +491,9 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	if arg.TopicName != nil {
-		if arg.MembersType == chat1.ConversationMembersType_KBFS {
-			return chat1.NewConversationLocalRes{}, errors.New("Cannot set topic name for non-team chat.")
-		}
+		// if arg.MembersType == chat1.ConversationMembersType_KBFS {
+		// 	return chat1.NewConversationLocalRes{}, errors.New("Cannot set topic name for non-team chat.")
+		// }
 		findArg.TopicName = *arg.TopicName
 	}
 	findRes, err := h.FindConversationsLocal(ctx, findArg)

@@ -150,7 +150,13 @@ func TestSendHelper(t *testing.T) {
 			require.Equal(t, 2, len(inbox.Convs))
 		default:
 			// No second topic name on KBFS chats
-			require.Error(t, err)
+			require.NoError(t, err)
+			_, err = altSendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
+			require.NoError(t, err)
+			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(inbox.Convs))
+			//require.Error(t, err)
 		}
 	})
 }
