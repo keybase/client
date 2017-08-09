@@ -11,20 +11,21 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
 const (
-	defaultIndirectPointerPrefetchCount int           = 20
-	fileIndirectBlockPrefetchPriority   int           = -100
-	dirEntryPrefetchPriority            int           = -200
-	updatePointerPrefetchPriority       int           = 0
-	defaultPrefetchPriority             int           = -1024
-	prefetchTimeout                     time.Duration = time.Minute
+	fileIndirectBlockPrefetchPriority int           = -100
+	dirEntryPrefetchPriority          int           = -200
+	updatePointerPrefetchPriority     int           = 0
+	defaultPrefetchPriority           int           = -1024
+	prefetchTimeout                   time.Duration = time.Minute
 )
 
 type prefetcherConfig interface {
+	syncedTlfGetterSetter
 	dataVersioner
 	logMaker
 	blockCacher
@@ -35,6 +36,7 @@ type prefetchRequest struct {
 	kmd      KeyMetadata
 	ptr      BlockPointer
 	block    Block
+	wg       *sync.WaitGroup
 }
 
 type blockPrefetcher struct {
@@ -107,6 +109,7 @@ func (p *blockPrefetcher) run() {
 					cancel()
 					<-errCh
 				}
+				req.wg.Done()
 			}()
 		case <-p.shutdownCh:
 			return
@@ -115,7 +118,8 @@ func (p *blockPrefetcher) run() {
 }
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
-	ptr BlockPointer, block Block, entryName string) error {
+	ptr BlockPointer, block Block, entryName string,
+	wg *sync.WaitGroup) error {
 	if _, err := p.config.BlockCache().Get(ptr); err == nil {
 		return nil
 	}
@@ -123,7 +127,7 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 		return err
 	}
 	select {
-	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block}:
+	case p.progressCh <- prefetchRequest{priority, kmd, ptr, block, wg}:
 		return nil
 	case <-p.shutdownCh:
 		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since "+
@@ -131,38 +135,62 @@ func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	}
 }
 
+// calculatePriority returns either a base priority for an unsynced TLF or a
+// high priority for a synced TLF.
+func (p *blockPrefetcher) calculatePriority(basePriority int,
+	tlfID tlf.ID) int {
+	if p.config.IsSyncedTlf(tlfID) {
+		return defaultOnDemandRequestPriority - 1
+	}
+	return basePriority
+}
+
 func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	// Prefetch indirect block pointers.
 	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file "+
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
-	for _, ptr := range b.IPtrs {
-		p.request(fileIndirectBlockPrefetchPriority, kmd, ptr.BlockPointer,
-			b.NewEmpty(), "")
+	wg := &sync.WaitGroup{}
+	wg.Add(len(b.IPtrs))
+	startingPriority :=
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+	for i, ptr := range b.IPtrs {
+		p.request(startingPriority-i, kmd, ptr.BlockPointer,
+			b.NewEmpty(), "", wg)
 	}
+	return wg
 }
 
 func (p *blockPrefetcher) prefetchIndirectDirBlock(b *DirBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	// Prefetch indirect block pointers.
 	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir "+
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
-	for _, ptr := range b.IPtrs {
-		_ = p.request(fileIndirectBlockPrefetchPriority, kmd,
-			ptr.BlockPointer, b.NewEmpty(), "")
+	wg := &sync.WaitGroup{}
+	wg.Add(len(b.IPtrs))
+	startingPriority :=
+		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
+	for i, ptr := range b.IPtrs {
+		_ = p.request(startingPriority-i, kmd,
+			ptr.BlockPointer, b.NewEmpty(), "", wg)
 	}
+	return wg
 }
 
 func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
-	kmd KeyMetadata) {
+	kmd KeyMetadata) *sync.WaitGroup {
 	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block "+
 		"ID %s. Num entries: %d", ptr.ID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
+	wg := &sync.WaitGroup{}
+	wg.Add(len(dirEntries.dirEntries))
+	startingPriority :=
+		p.calculatePriority(dirEntryPrefetchPriority, kmd.TlfID())
 	for i, entry := range dirEntries.dirEntries {
 		// Prioritize small files
-		priority := dirEntryPrefetchPriority - i
+		priority := startingPriority - i
 		var block Block
 		switch entry.Type {
 		case Dir:
@@ -174,10 +202,13 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
 		default:
 			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of "+
 				"unknown type %d", entry.Type)
+			wg.Done()
 			continue
 		}
-		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName)
+		p.request(priority, kmd, entry.BlockPointer, block, entry.entryName,
+			wg)
 	}
+	return wg
 }
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
@@ -186,27 +217,44 @@ func (p *blockPrefetcher) PrefetchBlock(
 	// TODO: Remove this log line.
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from "+
 		"upstream component. Priority: %d", priority)
-	return p.request(priority, kmd, ptr, block, "")
+	// TODO: Return a channel that is closed when this WaitGroup completes, in
+	// case the caller wants to be notified about prefetch completion.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	return p.request(priority, kmd, ptr, block, "", &wg)
 }
 
 // PrefetchAfterBlockRetrieved implements the Prefetcher interface for
-// blockPrefetcher.
+// blockPrefetcher. Returns a channel that is closed once all the prefetches
+// complete.
 func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(
-	b Block, ptr BlockPointer, kmd KeyMetadata) {
+	b Block, ptr BlockPointer, kmd KeyMetadata) <-chan struct{} {
+	doneCh := make(chan struct{})
+	var wg *sync.WaitGroup
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
-			p.prefetchIndirectFileBlock(b, kmd)
+			wg = p.prefetchIndirectFileBlock(b, kmd)
+		} else {
+			close(doneCh)
 		}
 	case *DirBlock:
 		if b.IsInd {
-			p.prefetchIndirectDirBlock(b, kmd)
+			wg = p.prefetchIndirectDirBlock(b, kmd)
 		} else {
-			p.prefetchDirectDirBlock(ptr, b, kmd)
+			wg = p.prefetchDirectDirBlock(ptr, b, kmd)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
+		close(doneCh)
 	}
+	if wg != nil {
+		go func() {
+			wg.Wait()
+			close(doneCh)
+		}()
+	}
+	return doneCh
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.

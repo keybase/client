@@ -76,6 +76,11 @@ type diskLimiterGetter interface {
 	DiskLimiter() DiskLimiter
 }
 
+type syncedTlfGetterSetter interface {
+	IsSyncedTlf(tlfID tlf.ID) bool
+	SetTlfSyncState(tlfID tlf.ID, isSynced bool) error
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -821,11 +826,11 @@ type BlockCache interface {
 	// GetWithPrefetch retrieves a block from the cache, along with whether or
 	// not it has triggered a prefetch.
 	GetWithPrefetch(ptr BlockPointer) (
-		block Block, hasPrefetched bool, lifetime BlockCacheLifetime, err error)
+		block Block, triggeredPrefetch bool, lifetime BlockCacheLifetime, err error)
 	// PutWithPrefetch puts a block into the cache, along with whether or not
 	// it has triggered a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, hasPrefetched bool) error
+		lifetime BlockCacheLifetime, triggeredPrefetch bool) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -921,20 +926,24 @@ type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-		hasPrefetched bool, err error)
+		triggeredPrefetch bool, err error)
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// Delete deletes some blocks from the disk cache.
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
-	// UpdateMetadata updates the LRU time to Now() for a given block.
+	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		hasPrefetched bool) error
+		triggeredPrefetch, finishedPrefetch bool) error
+	// GetMetadata gets metadata for a given block in the disk cache without
+	// changing it.
+	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (
+		metadata DiskBlockCacheMetadata, err error)
 	// Size returns the size in bytes of the disk cache.
 	Size() int64
 	// Status returns the current status of the disk cache.
-	Status(ctx context.Context) *DiskBlockCacheStatus
+	Status(ctx context.Context) map[string]DiskBlockCacheStatus
 	// Shutdown cleanly shuts down the disk block cache.
 	Shutdown(ctx context.Context)
 }
@@ -1192,9 +1201,10 @@ type Prefetcher interface {
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block.
+	// block. Returns a channel that is closed once the all the underlying
+	// prefetches are complete.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata)
+		kmd KeyMetadata) <-chan struct{}
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -1635,6 +1645,7 @@ type Config interface {
 	diskBlockCacheSetter
 	clockGetter
 	diskLimiterGetter
+	syncedTlfGetterSetter
 	Tracer
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
@@ -2217,5 +2228,5 @@ type BlockRetriever interface {
 	// triggers prefetches as appropriate.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		hasPrefetched bool) error
+		triggeredPrefetch bool) error
 }

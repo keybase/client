@@ -15,9 +15,9 @@ type diskBlockCacheEntry struct {
 	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
-// diskBlockCacheMetadata packages the metadata needed to make decisions on
+// DiskBlockCacheMetadata packages the metadata needed to make decisions on
 // cache eviction.
-type diskBlockCacheMetadata struct {
+type DiskBlockCacheMetadata struct {
 	// the TLF ID for the block
 	TlfID tlf.ID
 	// the last time the block was used
@@ -25,7 +25,11 @@ type diskBlockCacheMetadata struct {
 	// the size of the block
 	BlockSize uint32
 	// whether the block has triggered prefetches
-	HasPrefetched bool
+	// This used to be called "HasPrefetched" so to maintain compatibility with
+	// existing disk caches, we have to name it that in the codec tag.
+	TriggeredPrefetch bool `codec:"HasPrefetched"`
+	// whether the block's triggered prefetches are complete
+	FinishedPrefetch bool
 }
 
 // lruEntry is an entry for sorting LRU times

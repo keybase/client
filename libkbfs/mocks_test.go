@@ -509,6 +509,53 @@ func (_mr *MockdiskLimiterGetterMockRecorder) DiskLimiter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DiskLimiter", reflect.TypeOf((*MockdiskLimiterGetter)(nil).DiskLimiter))
 }
 
+// MocksyncedTlfGetterSetter is a mock of syncedTlfGetterSetter interface
+type MocksyncedTlfGetterSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MocksyncedTlfGetterSetterMockRecorder
+}
+
+// MocksyncedTlfGetterSetterMockRecorder is the mock recorder for MocksyncedTlfGetterSetter
+type MocksyncedTlfGetterSetterMockRecorder struct {
+	mock *MocksyncedTlfGetterSetter
+}
+
+// NewMocksyncedTlfGetterSetter creates a new mock instance
+func NewMocksyncedTlfGetterSetter(ctrl *gomock.Controller) *MocksyncedTlfGetterSetter {
+	mock := &MocksyncedTlfGetterSetter{ctrl: ctrl}
+	mock.recorder = &MocksyncedTlfGetterSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (_m *MocksyncedTlfGetterSetter) EXPECT() *MocksyncedTlfGetterSetterMockRecorder {
+	return _m.recorder
+}
+
+// IsSyncedTlf mocks base method
+func (_m *MocksyncedTlfGetterSetter) IsSyncedTlf(tlfID tlf.ID) bool {
+	ret := _m.ctrl.Call(_m, "IsSyncedTlf", tlfID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlf indicates an expected call of IsSyncedTlf
+func (_mr *MocksyncedTlfGetterSetterMockRecorder) IsSyncedTlf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "IsSyncedTlf", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).IsSyncedTlf), arg0)
+}
+
+// SetTlfSyncState mocks base method
+func (_m *MocksyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
+	ret := _m.ctrl.Call(_m, "SetTlfSyncState", tlfID, isSynced)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTlfSyncState indicates an expected call of SetTlfSyncState
+func (_mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), arg0, arg1)
+}
+
 // MockBlock is a mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -2661,8 +2708,8 @@ func (_mr *MockBlockCacheMockRecorder) GetWithPrefetch(arg0 interface{}) *gomock
 }
 
 // PutWithPrefetch mocks base method
-func (_m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "PutWithPrefetch", ptr, tlf, block, lifetime, hasPrefetched)
+func (_m *MockBlockCache) PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime, triggeredPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "PutWithPrefetch", ptr, tlf, block, lifetime, triggeredPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2920,15 +2967,28 @@ func (_mr *MockDiskBlockCacheMockRecorder) Delete(arg0, arg1 interface{}) *gomoc
 }
 
 // UpdateMetadata mocks base method
-func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, hasPrefetched)
+func (_m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, triggeredPrefetch bool, finishedPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "UpdateMetadata", ctx, blockID, triggeredPrefetch, finishedPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMetadata indicates an expected call of UpdateMetadata
-func (_mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), arg0, arg1, arg2)
+func (_mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), arg0, arg1, arg2, arg3)
+}
+
+// GetMetadata mocks base method
+func (_m *MockDiskBlockCache) GetMetadata(ctx context.Context, blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetMetadata", ctx, blockID)
+	ret0, _ := ret[0].(DiskBlockCacheMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMetadata indicates an expected call of GetMetadata
+func (_mr *MockDiskBlockCacheMockRecorder) GetMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).GetMetadata), arg0, arg1)
 }
 
 // Size mocks base method
@@ -2944,9 +3004,9 @@ func (_mr *MockDiskBlockCacheMockRecorder) Size() *gomock.Call {
 }
 
 // Status mocks base method
-func (_m *MockDiskBlockCache) Status(ctx context.Context) *DiskBlockCacheStatus {
+func (_m *MockDiskBlockCache) Status(ctx context.Context) map[string]DiskBlockCacheStatus {
 	ret := _m.ctrl.Call(_m, "Status", ctx)
-	ret0, _ := ret[0].(*DiskBlockCacheStatus)
+	ret0, _ := ret[0].(map[string]DiskBlockCacheStatus)
 	return ret0
 }
 
@@ -3912,8 +3972,10 @@ func (_mr *MockPrefetcherMockRecorder) PrefetchBlock(arg0, arg1, arg2, arg3 inte
 }
 
 // PrefetchAfterBlockRetrieved mocks base method
-func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer, kmd KeyMetadata) {
-	_m.ctrl.Call(_m, "PrefetchAfterBlockRetrieved", b, blockPtr, kmd)
+func (_m *MockPrefetcher) PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer, kmd KeyMetadata) <-chan struct{} {
+	ret := _m.ctrl.Call(_m, "PrefetchAfterBlockRetrieved", b, blockPtr, kmd)
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
 }
 
 // PrefetchAfterBlockRetrieved indicates an expected call of PrefetchAfterBlockRetrieved
@@ -5522,6 +5584,30 @@ func (_m *MockConfig) DiskLimiter() DiskLimiter {
 // DiskLimiter indicates an expected call of DiskLimiter
 func (_mr *MockConfigMockRecorder) DiskLimiter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DiskLimiter", reflect.TypeOf((*MockConfig)(nil).DiskLimiter))
+}
+
+// IsSyncedTlf mocks base method
+func (_m *MockConfig) IsSyncedTlf(tlfID tlf.ID) bool {
+	ret := _m.ctrl.Call(_m, "IsSyncedTlf", tlfID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSyncedTlf indicates an expected call of IsSyncedTlf
+func (_mr *MockConfigMockRecorder) IsSyncedTlf(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "IsSyncedTlf", reflect.TypeOf((*MockConfig)(nil).IsSyncedTlf), arg0)
+}
+
+// SetTlfSyncState mocks base method
+func (_m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
+	ret := _m.ctrl.Call(_m, "SetTlfSyncState", tlfID, isSynced)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetTlfSyncState indicates an expected call of SetTlfSyncState
+func (_mr *MockConfigMockRecorder) SetTlfSyncState(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), arg0, arg1)
 }
 
 // MaybeStartTrace mocks base method
@@ -8177,8 +8263,8 @@ func (_mr *MockBlockRetrieverMockRecorder) Request(arg0, arg1, arg2, arg3, arg4,
 }
 
 // CacheAndPrefetch mocks base method
-func (_m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, hasPrefetched bool) error {
-	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, hasPrefetched)
+func (_m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, triggeredPrefetch bool) error {
+	ret := _m.ctrl.Call(_m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, triggeredPrefetch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

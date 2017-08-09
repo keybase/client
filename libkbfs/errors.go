@@ -1226,7 +1226,8 @@ type cachePutCacheFullError struct {
 }
 
 func (e cachePutCacheFullError) Error() string {
-	return fmt.Sprintf("tried and failed to put transient block into the cache because it is full. Block: %s", e.blockID)
+	return fmt.Sprintf("failed to put block due to full cache. Block: %s",
+		e.blockID)
 }
 
 // FileTooBigForCRError indicates that a file is too big to fit in

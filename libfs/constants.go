@@ -92,3 +92,11 @@ const EditHistoryName = ".kbfs_edit_history"
 
 // FileInfoPrefix is the prefix of the per-file metadata files.
 const FileInfoPrefix = ".kbfs_fileinfo_"
+
+// EnableSyncFileName is the name of the file to enable the sync cache for a
+// TLF. It can be reached anywhere within a TLF.
+const EnableSyncFileName = ".kbfs_enable_sync"
+
+// DisableSyncFileName is the name of the file to disable the sync cache for a
+// TLF. It can be reached anywhere within a TLF.
+const DisableSyncFileName = ".kbfs_disable_sync"
