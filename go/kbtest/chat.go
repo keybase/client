@@ -52,6 +52,7 @@ type ChatMockWorld struct {
 
 	// should always be sorted by newly updated conversation first
 	conversations []*chat1.Conversation
+
 	// each slice should always be sorted by message ID in desc, i.e. newest messages first
 	Msgs map[string][]*chat1.MessageBoxed
 }

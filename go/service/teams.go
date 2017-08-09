@@ -116,7 +116,7 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	}
 	chatServer := chat.NewServer(h.G(), nil, h.gregor, localH)
 	nclArg := chat.NewTeamNewConversationLocalArg(team, &chat.DefaultTeamTopic, keybase1.TLFIdentifyBehavior_CHAT_CLI)
-	sendHelper, err := chat.NewSendHelper(ctx, h.G(), chatServer, nclArg)
+	sendHelper, err := chat.NewSendHelper(ctx, chatServer, nclArg)
 	if err != nil {
 		return false
 	}

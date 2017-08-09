@@ -3,6 +3,8 @@ package chat
 import (
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -69,55 +71,46 @@ type MockSC struct {
 	ri chat1.RemoteInterface
 }
 
-func (s *MockSC) Reconnect(context.Context) (bool, error) {
+func (s MockSC) Reconnect(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (s *MockSC) GetClient() chat1.RemoteInterface {
+func (s MockSC) GetClient() chat1.RemoteInterface {
 	return s.ri
 }
 
 func TestSendHelper(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		//	ctx, world, _, _, _, _, gh := setupTest(t, 1)
-		//	defer world.Cleanup()
-
-		//	u := world.GetUsers()[0]
-		//	tc := world.Tcs[u.Username]
-		//	// _ = u.User.GetUID().ToBytes()
-		//	var name string
-		//	var topicName *string
-		//	switch mt {
-		//	case chat1.ConversationMembersType_TEAM:
-		//		name = createTeam(tc.TestContext)
-		//		topicName = &DefaultTeamTopic
-		//	default:
-		//		name = u.Username
-		//		topicName = nil
-		//	}
-
 		ctc := makeChatTestContext(t, "SendHelper", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		//created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
-		//	ctc.as(t, users[1]).user())
-
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
-		// conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
-		// require.NoError(t, err)
 
 		ri := ctc.as(t, users[0]).ri
 		sc := MockSC{
 			ri: ri,
 		}
+
 		g := globals.NewContext(tc.G, tc.ChatG)
 		server := NewServer(g, nil, sc, TestUISource{})
 		/* g redundant? */
-		sendHelper, err := newSendHelper(ctx, server.G(), server, chat1.NewConversationLocalArg{
-			TlfName:          name,
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		tlfName := created.TlfName
+
+		var topicName *string
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			topicName = nil
+		case chat1.ConversationMembersType_TEAM:
+			topicName = &DefaultTeamTopic
+		}
+
+		sendHelper, err := NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
+			TlfName:          tlfName,
 			TopicType:        chat1.TopicType_CHAT,
 			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
 			TopicName:        topicName,
@@ -125,35 +118,40 @@ func TestSendHelper(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		require.NoError(t, err)
-		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("HI"))
+		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("alpha"))
 		require.NoError(t, err)
-		// require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
-		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
-		// inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-		// require.NoError(t, err)
-		// require.Equal(t, 1, len(inbox.Convs))
-		// require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
-		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
-		// inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-		// require.NoError(t, err)
-		// require.Equal(t, 1, len(inbox.Convs))
-		// tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
-		// 	MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-		// }, nil)
-		// require.NoError(t, err)
-		// require.Equal(t, 2, len(tv.Messages))
+		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("beta"))
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(tv.Messages))
 
-		// err = SendTextByName(ctx, tc.Context(), name, "MIKE",
-		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2)
-		// switch mt {
-		// case chat1.ConversationMembersType_TEAM:
-		// 	require.NoError(t, err)
-		// 	inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-		// 	require.NoError(t, err)
-		// 	require.Equal(t, 2, len(inbox.Convs))
-		// default:
-		// 	// No second topic name on KBFS chats
-		// 	require.Error(t, err)
-		// }
+		altTopicName := "aleph"
+		altSendHelper, err := NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
+			TlfName:          tlfName,
+			TopicType:        chat1.TopicType_CHAT,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicName:        &altTopicName,
+			MembersType:      mt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.NoError(t, err)
+			_, err = altSendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
+			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(inbox.Convs))
+		default:
+			// No second topic name on KBFS chats
+			require.Error(t, err)
+		}
 	})
 }

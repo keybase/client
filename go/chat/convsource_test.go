@@ -17,7 +17,7 @@ import (
 )
 
 func TestGetThreadSupersedes(t *testing.T) {
-	ctx, world, ri, _, sender, _, _ := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -359,7 +359,7 @@ func (f failingUpak) PutUserToCache(ctx context.Context, user *libkb.User) error
 }
 
 func TestGetThreadCaching(t *testing.T) {
-	ctx, world, ri, _, sender, _, _ := setupTest(t, 1)
+	ctx, world, ri, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -455,7 +455,7 @@ func (n *noGetThreadRemote) GetThreadRemote(ctx context.Context, arg chat1.GetTh
 }
 
 func TestGetThreadHoleResolution(t *testing.T) {
-	ctx, world, ri2, _, sender, _, _ := setupTest(t, 1)
+	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -530,7 +530,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 }
 
 func TestConversationLocking(t *testing.T) {
-	ctx, world, ri2, _, sender, _, _ := setupTest(t, 1)
+	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)

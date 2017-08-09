@@ -40,10 +40,10 @@ type SendHelper struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func NewSendHelperFromInfo(g *globals.Context, server *Server, tlfName string, conversationID chat1.ConversationID, triple chat1.ConversationIDTriple, identifyBehavior keybase1.TLFIdentifyBehavior) (*SendHelper, error) {
+func NewSendHelperFromInfo(server *Server, tlfName string, conversationID chat1.ConversationID, triple chat1.ConversationIDTriple, identifyBehavior keybase1.TLFIdentifyBehavior) (*SendHelper, error) {
 	return &SendHelper{
-		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
+		Contextified:     globals.NewContextified(server.G()),
+		DebugLabeler:     utils.NewDebugLabeler(server.G().GetLog(), "sendHelper", false),
 		ChatServer:       server,
 		ConversationID:   conversationID,
 		TlfName:          tlfName,
@@ -52,12 +52,12 @@ func NewSendHelperFromInfo(g *globals.Context, server *Server, tlfName string, c
 	}, nil
 }
 
-func NewSendHelper(ctx context.Context, g *globals.Context, server *Server, nclArg chat1.NewConversationLocalArg) (*SendHelper, error) {
+func NewSendHelper(ctx context.Context, server *Server, nclArg chat1.NewConversationLocalArg) (*SendHelper, error) {
 	nclRes, err := server.NewConversationLocal(ctx, nclArg)
 	if err != nil {
 		return nil, err
 	}
-	return NewSendHelperFromInfo(g, server, nclRes.Conv.Info.TlfName, nclRes.Conv.Info.Id, nclRes.Conv.Info.Triple, nclArg.IdentifyBehavior)
+	return NewSendHelperFromInfo(server, nclRes.Conv.Info.TlfName, nclRes.Conv.Info.Id, nclRes.Conv.Info.Triple, nclArg.IdentifyBehavior)
 }
 
 func (s *SendHelper) NewPlaintextMessage(body string) chat1.MessagePlaintext {

@@ -153,7 +153,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *kbtest.Ch
 	return res
 }
 
-func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, types.Sender, types.Sender, *chatListener, *gregorTestConnection) {
+func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWorld, chat1.RemoteInterface, types.Sender, types.Sender, *chatListener) {
 	var ri chat1.RemoteInterface
 	world := NewChatMockWorld(t, "chatsender", numUsers)
 	ri = kbtest.NewChatRemoteMock(world)
@@ -162,19 +162,17 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	tc := world.Tcs[u.Username]
 	tc.G.SetService()
 	g := globals.NewContext(tc.G, tc.ChatG)
-	var gh *gregorTestConnection
 
 	var ctx context.Context
 	if useRemoteMock {
 		ctx = newTestContextWithTlfMock(tc, tlf)
-		gh = nil
 	} else {
 		var sessionToken string
 		ctx = newTestContext(tc)
 		tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 			sessionToken = s.GetToken()
 		}, "test session")
-		gh = newGregorTestConnection(tc.Context(), u.User.GetUID().ToBytes(), sessionToken)
+		gh := newGregorTestConnection(tc.Context(), u.User.GetUID().ToBytes(), sessionToken)
 		require.NoError(t, gh.Connect(ctx))
 		ri = gh.GetClient()
 	}
@@ -218,11 +216,11 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	pushHandler.SetClock(world.Fc)
 	g.PushHandler = pushHandler
 
-	return ctx, world, getRI(), sender, baseSender, &listener, gh
+	return ctx, world, ri, sender, baseSender, &listener
 }
 
 func TestNonblockChannel(t *testing.T) {
-	ctx, world, ri, sender, blockingSender, listener, _ := setupTest(t, 1)
+	ctx, world, ri, sender, blockingSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -279,7 +277,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 }
 
 func TestNonblockTimer(t *testing.T) {
-	ctx, world, ri, _, baseSender, listener, _ := setupTest(t, 1)
+	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -431,7 +429,7 @@ func recordCompare(t *testing.T, obids []chat1.OutboxID, obrs []chat1.OutboxReco
 
 func TestFailingSender(t *testing.T) {
 
-	ctx, world, ri, sender, _, listener, _ := setupTest(t, 1)
+	ctx, world, ri, sender, _, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -492,7 +490,7 @@ func TestFailingSender(t *testing.T) {
 
 func TestDisconnectedFailure(t *testing.T) {
 
-	ctx, world, ri, sender, baseSender, listener, _ := setupTest(t, 1)
+	ctx, world, ri, sender, baseSender, listener := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -614,7 +612,7 @@ func TestDisconnectedFailure(t *testing.T) {
 // The sender is responsible for making sure that a deletion of a single
 // message is expanded to include all of its edits.
 func TestDeletionHeaders(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -694,7 +692,7 @@ func TestDeletionHeaders(t *testing.T) {
 }
 
 func TestAtMentionsText(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _, _ := setupTest(t, 3)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 3)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -741,7 +739,7 @@ func TestAtMentionsText(t *testing.T) {
 }
 
 func TestAtMentionsEdit(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _, _ := setupTest(t, 3)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 3)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -809,7 +807,7 @@ func TestAtMentionsEdit(t *testing.T) {
 }
 
 func TestPrevPointerAddition(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -858,7 +856,7 @@ func TestPrevPointerAddition(t *testing.T) {
 // Test a DELETE attempts to delete all associated assets.
 // func TestDeletionHeaders(t *testing.T) { // <- TODO delete this line
 func TestDeletionAssets(t *testing.T) {
-	ctx, world, ri, _, blockingSender, _, _ := setupTest(t, 1)
+	ctx, world, ri, _, blockingSender, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]

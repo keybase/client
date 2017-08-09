@@ -69,7 +69,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
+func (g *gregorTestConnection) GetClient() chat1.RemoteClient {
 	return chat1.RemoteClient{Cli: g.cli}
 }
 
