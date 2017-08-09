@@ -12,6 +12,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+// GetEncodedUpdateHistory returns a JSON-encoded version of a TLF's
+// complete update history.
 func GetEncodedUpdateHistory(
 	ctx context.Context, config libkbfs.Config,
 	folderBranch libkbfs.FolderBranch) (
