@@ -913,6 +913,22 @@
         }
       ],
       "response": "SetAppNotificationSettingsRes"
+    },
+    "remoteNotificationSuccessful": {
+      "request": [
+        {
+          "name": "authToken",
+          "type": "gregor1.SessionToken"
+        },
+        {
+          "name": "companionPushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

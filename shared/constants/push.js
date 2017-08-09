@@ -19,6 +19,11 @@ export type PushNotification = {
       convID?: string,
       type?: string,
       username?: string,
+      c?: string,
+      t?: number,
+      m?: string,
+      b?: number,
+      p?: Array<string>,
     },
     username?: string,
   },
@@ -28,6 +33,9 @@ export const androidSenderID = '9603251415'
 
 export const configurePush = 'push:configurePush'
 export type ConfigurePush = NoErrorTypedAction<'push:configurePush', void>
+
+export const permissionsNo = 'push:permissionsNo'
+export type PushPermissionsNo = NoErrorTypedAction<'push:permissionsNo', void>
 
 export const permissionsRequest = 'push:permissionsRequest'
 export type PushPermissionsRequest = NoErrorTypedAction<'push:permissionsRequest', void>

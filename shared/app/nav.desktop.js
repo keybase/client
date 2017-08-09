@@ -4,7 +4,7 @@ import {Box} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
-import {chatTab, loginTab} from '../constants/tabs'
+import {chatTab, loginTab, profileTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
@@ -54,6 +54,15 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       // clicking the chat tab when already selected should do nothing.
       return
     }
+
+    // If we're going to the profile tab, switch to the current user's
+    // profile first before switching tabs, if necessary.
+    if (tab === profileTab) {
+      dispatch(navigateTo([], [profileTab]))
+      dispatch(switchTo([profileTab]))
+      return
+    }
+
     // otherwise, back out to the default route of the tab.
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
     // $FlowIssue TODO

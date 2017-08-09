@@ -241,7 +241,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 		// this is the provisionee device (device Y)
 		// For command line app, the provisionee displays secrets only
 
-		p.parent.Output("Type this verification code into your other device:\n\n")
+		p.parent.Output("\n\nType this verification code into your other device:\n\n")
 		p.parent.Output("\t" + arg.Phrase + "\n\n")
 		p.parent.Output("If you are using the command line client on your other device, run this command:\n\n")
 		p.parent.Output("\tkeybase device add\n\n")
@@ -269,9 +269,9 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 }
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
-	p.parent.Output("\n\n\n")
+	p.parent.Output("\n\n")
 	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
-	p.parent.Printf(ColorString("magenta", "* Final step: name your new device!                        *\n"))
+	p.parent.Printf(ColorString("magenta", "* Name your new device!                                    *\n"))
 	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
 	p.parent.Output("\n\n\n")
 
@@ -302,15 +302,6 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
 	p.parent.Printf("\n\n" + CHECK + " " + ColorString("bold", "Verification code received") + ".\n\n")
-	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
-	p.parent.Printf(ColorString("magenta", "* On your new device, choose and save a public name for it *\n"))
-	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
-	p.parent.Output("\n\nAfter you enter a device name on your new device, this command will finish\n")
-	p.parent.Output("provisioning your new device and you'll be all set.\n")
-	p.parent.Output("\n\nNote: if you do not see a prompt on your new device for a device name\n")
-	p.parent.Output("in a few seconds then the verification code entered above does not match the\n")
-	p.parent.Output("verification code provided on your new device. If that happens, quit\n")
-	p.parent.Output("this (ctrl-c) and try again.\n")
 	return nil
 }
 

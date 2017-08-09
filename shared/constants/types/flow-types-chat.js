@@ -586,6 +586,18 @@ export function localSetConversationStatusLocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localUnboxMobilePushNotificationRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.unboxMobilePushNotification', request)
+}
+
+export function localUnboxMobilePushNotificationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.unboxMobilePushNotification', request)
+}
+
+export function localUnboxMobilePushNotificationRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>): Promise<localUnboxMobilePushNotificationResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localUpdateTypingRpc (request: Exact<requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}>) {
   engineRpcOutgoing('chat.1.local.updateTyping', request)
 }
@@ -788,6 +800,18 @@ export function remotePublishSetConversationStatusRpcChannelMap (configKeys: Arr
 
 export function remotePublishSetConversationStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remotePublishSetConversationStatusRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteRemoteNotificationSuccessfulRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
@@ -2249,6 +2273,13 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localUnboxMobilePushNotificationRpcParam = Exact<{
+  payload: string,
+  convID: string,
+  membersType: ConversationMembersType,
+  pushIDs?: ?Array<string>
+}>
+
 export type localUpdateTypingRpcParam = Exact<{
   conversationID: ConversationID,
   typing: boolean
@@ -2341,6 +2372,11 @@ export type remotePublishSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteRemoteNotificationSuccessfulRpcParam = Exact<{
+  authToken: gregor1.SessionToken,
+  companionPushIDs?: ?Array<string>
+}>
+
 export type remoteS3SignRpcParam = Exact<{
   version: int,
   payload: bytes
@@ -2421,6 +2457,7 @@ type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes
 type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
+type localUnboxMobilePushNotificationResult = string
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
@@ -2473,6 +2510,7 @@ export type rpc =
   | localRetryPostRpc
   | localSetAppNotificationSettingsLocalRpc
   | localSetConversationStatusLocalRpc
+  | localUnboxMobilePushNotificationRpc
   | localUpdateTypingRpc
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
@@ -2490,6 +2528,7 @@ export type rpc =
   | remotePostRemoteRpc
   | remotePublishReadMessageRpc
   | remotePublishSetConversationStatusRpc
+  | remoteRemoteNotificationSuccessfulRpc
   | remoteS3SignRpc
   | remoteSetAppNotificationSettingsRpc
   | remoteSetConversationStatusRpc

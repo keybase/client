@@ -433,3 +433,136 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 	return res, rl, nil
 }
+
+// Post a join or leave message. Must be called when the user is in the conv.
+// Uses a blocking sender.
+func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID,
+	convID chat1.ConversationID, body chat1.MessageBody) (rl []chat1.RateLimit, err error) {
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil, fmt.Errorf("message type for postJoinLeave: %v", err)
+	}
+	switch typ {
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+	// good
+	default:
+		return nil, fmt.Errorf("invalid message type for postJoinLeave: %v", typ)
+	}
+
+	// Get the conversation from the inbox.
+	query := chat1.GetInboxLocalQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}
+	ib, irl, err := g.InboxSource.Read(ctx, uid, nil, true, &query, nil)
+	if len(ib.Convs) != 1 {
+		return rl, fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+	conv := ib.Convs[0]
+
+	plaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:         conv.Info.Triple,
+			TlfName:      conv.Info.TlfName,
+			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			MessageType:  typ,
+			Supersedes:   chat1.MessageID(0),
+			Deletes:      nil,
+			Prev:         nil, // Filled by Sender
+			Sender:       nil, // Filled by Sender
+			SenderDevice: nil, // Filled by Sender
+			MerkleRoot:   nil, // Filled by Boxer
+			OutboxID:     nil,
+			OutboxInfo:   nil,
+		},
+		MessageBody: body,
+	}
+
+	// Send with a blocking sender
+	sender := NewBlockingSender(g, NewBoxer(g), nil, ri)
+	_, _, irl, err = sender.Send(ctx, convID, plaintext, 0, nil)
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+	return rl, err
+}
+
+func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
+	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
+		// Assume we're not in.
+		alreadyIn = false
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+
+	// Send the join command even if we're in.
+	joinRes, err := ri().JoinConversation(ctx, convID)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
+		return rl, err
+	}
+	if joinRes.RateLimit != nil {
+		rl = append(rl, *joinRes.RateLimit)
+	}
+	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
+		chat1.ConversationMember{
+			Uid:    uid,
+			ConvID: convID,
+		},
+	}, nil); err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
+	}
+
+	if !alreadyIn {
+		// Send a message to the channel after joining.
+		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		irl, err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
+		if err != nil {
+			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
+			// ignore the error
+		}
+		rl = append(rl, irl...)
+	}
+	return rl, nil
+}
+
+func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (rl []chat1.RateLimit, err error) {
+	alreadyIn, irl, err := g.InboxSource.IsMember(ctx, uid, convID)
+	if err != nil {
+		debugger.Debug(ctx, "LeaveConversation: IsMember err: %s", err.Error())
+		// Pretend we're in.
+		alreadyIn = true
+	}
+	if irl != nil {
+		rl = append(rl, *irl)
+	}
+
+	// Send a message to the channel before leaving
+	if alreadyIn {
+		leaveMessageBody := chat1.NewMessageBodyWithLeave(chat1.MessageLeave{})
+		irl, err := postJoinLeave(ctx, g, ri, uid, convID, leaveMessageBody)
+		if err != nil {
+			debugger.Debug(ctx, "LeaveConversation: posting leave-conv message failed: %v", err)
+			// ignore the error
+		}
+		rl = append(rl, irl...)
+	}
+
+	leaveRes, err := ri().LeaveConversation(ctx, convID)
+	if err != nil {
+		debugger.Debug(ctx, "LeaveConversation: failed to leave conversation: %s", err.Error())
+		return rl, err
+	}
+	if leaveRes.RateLimit != nil {
+		rl = append(rl, *leaveRes.RateLimit)
+	}
+
+	return rl, nil
+}

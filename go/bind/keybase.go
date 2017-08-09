@@ -4,6 +4,7 @@
 package keybase
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -144,7 +145,9 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		// true in a mobile setting. Kill this setting if too spammy.
 		kbfsParams.Debug = true
 		kbfsParams.Mode = libkbfs.InitMinimalString
-		kbfsConfig, _ = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+		kbfsConfig, _ = libkbfs.Init(
+			context.Background(), kbCtx, kbfsParams, serviceCn{}, func() {},
+			kbCtx.Log)
 	}()
 
 	return nil

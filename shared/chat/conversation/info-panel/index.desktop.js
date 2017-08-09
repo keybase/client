@@ -31,6 +31,7 @@ const InfoPanel = (props: Props) => (
       <Box style={globalStyles.flexBoxRow}>
         <Checkbox
           checked={props.muted}
+          disabled={props.onMuteConversation == null}
           onCheck={checked => props.onMuteConversation(checked)}
           label="Mute notifications"
         />

@@ -239,4 +239,6 @@ protocol remote {
   }
   SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
 
+  // Endpoint to indicate a high priority push notification has been processed
+ void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
 }

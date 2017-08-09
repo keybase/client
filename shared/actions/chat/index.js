@@ -598,6 +598,28 @@ function _unboxedToMessage(
             type: 'Edit',
           }
         }
+        case ChatTypes.CommonMessageType.join: {
+          const message = new HiddenString('_*has joined the channel*_')
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: 0,
+            message,
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
+        case ChatTypes.CommonMessageType.leave: {
+          const message = new HiddenString('_*has left the channel*_')
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: 0,
+            message,
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,

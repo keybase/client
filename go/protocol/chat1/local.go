@@ -3666,6 +3666,29 @@ func (o SetAppNotificationSettingsLocalArg) DeepCopy() SetAppNotificationSetting
 	}
 }
 
+type UnboxMobilePushNotificationArg struct {
+	Payload     string                  `codec:"payload" json:"payload"`
+	ConvID      string                  `codec:"convID" json:"convID"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	PushIDs     []string                `codec:"pushIDs" json:"pushIDs"`
+}
+
+func (o UnboxMobilePushNotificationArg) DeepCopy() UnboxMobilePushNotificationArg {
+	return UnboxMobilePushNotificationArg{
+		Payload:     o.Payload,
+		ConvID:      o.ConvID,
+		MembersType: o.MembersType.DeepCopy(),
+		PushIDs: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.PushIDs),
+	}
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -3698,6 +3721,7 @@ type LocalInterface interface {
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
+	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -4195,6 +4219,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"unboxMobilePushNotification": {
+				MakeArg: func() interface{} {
+					ret := make([]UnboxMobilePushNotificationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UnboxMobilePushNotificationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UnboxMobilePushNotificationArg)(nil), args)
+						return
+					}
+					ret, err = i.UnboxMobilePushNotification(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -4361,5 +4401,10 @@ func (c LocalClient) GetTLFConversationsLocal(ctx context.Context, __arg GetTLFC
 
 func (c LocalClient) SetAppNotificationSettingsLocal(ctx context.Context, __arg SetAppNotificationSettingsLocalArg) (res SetAppNotificationSettingsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setAppNotificationSettingsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) UnboxMobilePushNotification(ctx context.Context, __arg UnboxMobilePushNotificationArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.unboxMobilePushNotification", []interface{}{__arg}, &res)
 	return
 }
