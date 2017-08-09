@@ -90,6 +90,10 @@ const DisableDebugServerFileName = ".kbfs_disable_debug_server"
 // it can be reached anywhere within a top-level folder.
 const EditHistoryName = ".kbfs_edit_history"
 
+// UpdateHistoryFileName is the name of the KBFS update history -- it
+// can be reached anywhere within a top-level folder.
+const UpdateHistoryFileName = ".kbfs_update_history"
+
 // FileInfoPrefix is the prefix of the per-file metadata files.
 const FileInfoPrefix = ".kbfs_fileinfo_"
 

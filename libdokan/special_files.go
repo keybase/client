@@ -17,7 +17,8 @@ func handleTLFSpecialFile(name string, folder *Folder) dokan.File {
 	case libfs.StatusFileName:
 		return NewTLFStatusFile(folder)
 
-		// TODO: Port over UpdateHistoryFile.
+	case libfs.UpdateHistoryFileName:
+		return NewUpdateHistoryFile(folder)
 
 	case libfs.EditHistoryName:
 		return NewTlfEditHistoryFile(folder)
