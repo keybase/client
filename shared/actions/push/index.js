@@ -14,11 +14,22 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 import {showUserProfile} from '../profile'
-import {requestPushPermissions, configurePush, displayNewMessageNotification} from '../platform-specific'
+import {
+  requestPushPermissions,
+  configurePush,
+  displayNewMessageNotification,
+  setNoPushPermissions,
+} from '../platform-specific'
 
 const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
 
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
+
+function* permissionsNoSaga(): SagaGenerator<any, any> {
+  yield call(setNoPushPermissions)
+  yield put({type: Constants.permissionsRequesting, payload: false})
+  yield put({type: Constants.permissionsPrompt, payload: false})
+}
 
 function* permissionsRequestSaga(): SagaGenerator<any, any> {
   try {
@@ -157,6 +168,7 @@ export function* deletePushTokenSaga(): SagaGenerator<any, any> {
 
 function* pushSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
+  yield safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
   yield safeTakeLatest(Constants.pushToken, pushTokenSaga)
   yield safeTakeLatest(Constants.savePushToken, savePushTokenSaga)
   yield safeTakeLatest(Constants.configurePush, configurePushSaga)
