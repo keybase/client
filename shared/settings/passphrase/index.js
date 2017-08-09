@@ -4,7 +4,16 @@ import {globalMargins} from '../../styles'
 import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
 import HiddenString from '../../util/hidden-string'
 
-import type {Props} from './index'
+type Props = {
+  error?: ?Error,
+  newPassphraseError: ?string,
+  newPassphraseConfirmError: ?string,
+  hasPGPKeyOnServer: boolean,
+  onBack: () => void,
+  onSave: (passphrase: HiddenString, passphraseConfirm: HiddenString) => void,
+  waitingForResponse: boolean,
+  onUpdatePGPSettings: () => void,
+}
 
 type State = {
   passphrase: HiddenString,
@@ -62,7 +71,7 @@ class UpdatePassphrase extends Component<void, Props, State> {
             }
           : null
     return (
-      <StandardScreen onBack={this.props.onBack} notification={notification}>
+      <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
         <Input
           hintText="New passphrase"
           value={this.state.passphrase.stringValue()}
@@ -102,14 +111,13 @@ class UpdatePassphrase extends Component<void, Props, State> {
 }
 
 const styleInput = {
-  minWidth: 450,
   marginBottom: globalMargins.small,
 }
 
 const stylePasswordNote = {
+  height: 0, // don't offset next input by label height
   position: 'relative',
   top: -globalMargins.small,
-  height: 0, // don't offset next input by label height
 }
 
 export default UpdatePassphrase
