@@ -154,7 +154,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	}
 
 	// Revoke the current device with --force
-	err = doRevokeDevice(tc, fu, thisDevice.ID, true)
+	err = doRevokeDevice(tc, fu, thisDevice.ID, true, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
