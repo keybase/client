@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"context"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/keybase/kbfs/libfs"
@@ -92,22 +91,12 @@ func Start(ctx context.Context, options StartOptions,
 		ctx, "Running Git remote helper: remote=%s, repo=%s, storageRoot=%s",
 		options.Remote, options.Repo, options.KbfsParams.StorageRoot)
 
-	config, err := libkbfs.InitWithPrefix(
+	config, err := libkbfs.InitWithLogPrefix(
 		ctx, kbCtx, options.KbfsParams, nil, nil, log, "git")
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
-	defer func() {
-		config.Shutdown(ctx)
-		// Clean up the storage root, as long as it's not the default
-		// storage root used by the main KBFS process -- wouldn't want
-		// to accidentally nuke that!
-		if kbCtx.GetDataDir() != options.KbfsParams.StorageRoot {
-			log.CDebugf(ctx, "Cleaning temp storage dir %s",
-				options.KbfsParams.StorageRoot)
-			os.RemoveAll(options.KbfsParams.StorageRoot)
-		}
-	}()
+	defer config.Shutdown(ctx)
 
 	errCh := make(chan error, 1)
 	go func() {

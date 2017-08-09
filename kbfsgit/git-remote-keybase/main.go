@@ -52,10 +52,15 @@ func start() *libfs.Error {
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
+	defer func() {
+		fmt.Fprintf(os.Stderr, "Cleaning temp storage dir %s\n", storageRoot)
+		os.RemoveAll(storageRoot)
+	}()
 
 	defaultParams := libkbfs.DefaultInitParams(kbCtx)
 	defaultParams.LogToFile = true
 	defaultParams.Debug = true
+	defaultParams.EnableDiskCache = false
 	defaultParams.StorageRoot = storageRoot
 	defaultParams.Mode = libkbfs.InitSingleOpString
 	defaultLogPath := filepath.Join(

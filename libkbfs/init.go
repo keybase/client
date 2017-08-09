@@ -432,7 +432,7 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	return InitLogWithPrefix(params, ctx, "kbfs", defaultLogPath(ctx))
 }
 
-// InitWithPrefix initializes a config and returns it, given a prefix.
+// InitWithLogPrefix initializes a config and returns it, given a prefix.
 //
 // onInterruptFn is called whenever an interrupt signal is received
 // (e.g., if the user hits Ctrl-C).
@@ -444,7 +444,7 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // The keybaseServiceCn argument is to specify a custom service and
 // crypto (for non-RPC environments) like mobile. If this is nil, we'll
 // use the default RPC implementation.
-func InitWithPrefix(
+func InitWithLogPrefix(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
 	log logger.Logger, logPrefix string) (cfg Config, err error) {
@@ -516,7 +516,7 @@ func Init(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, onInterruptFn func(),
 	log logger.Logger) (cfg Config, err error) {
-	return InitWithPrefix(
+	return InitWithLogPrefix(
 		ctx, kbCtx, params, keybaseServiceCn, onInterruptFn, log, "kbfs")
 }
 
