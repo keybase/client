@@ -2368,3 +2368,12 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 	}
 	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
 }
+
+func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetGlobalAppNotificationSettings")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
+}

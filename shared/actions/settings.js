@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/settings'
+import * as ChatTypes from '../constants/types/flow-types-chat'
 import HiddenString from '../util/hidden-string'
 import {
   apiserverGetWithSessionRpcPromise,
@@ -369,10 +370,14 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
       args: [],
     },
   })
+  const chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings = yield call(
+    ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
+    {}
+  )
 
   yield cancel(delayThenEmptyTask)
 
-  const results: {
+  let results: {
     notifications: {
       email: {
         settings: Array<{
@@ -382,8 +387,28 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
         }>,
         unsub: boolean,
       },
+      security: {
+        settings: Array<{
+          name: string,
+          description: string,
+          subscribed: boolean,
+        }>,
+        unsub: boolean,
+      },
     },
   } = JSON.parse((json && json.body) || '')
+  results.notifications['security'] = {
+    settings: [
+      {
+        name: 'mobileplaintext',
+        description: 'Display mobile plaintext notifications',
+        subscribed: chatGlobalSettings.settings[
+          `${ChatTypes.CommonGlobalAppNotificationSetting.plaintextmobile}`
+        ],
+      },
+    ],
+    unsub: false,
+  }
 
   const settingsToPayload = s =>
     ({

@@ -3676,6 +3676,13 @@ func (o SetGlobalAppNotificationSettingsLocalArg) DeepCopy() SetGlobalAppNotific
 	}
 }
 
+type GetGlobalAppNotificationSettingsLocalArg struct {
+}
+
+func (o GetGlobalAppNotificationSettingsLocalArg) DeepCopy() GetGlobalAppNotificationSettingsLocalArg {
+	return GetGlobalAppNotificationSettingsLocalArg{}
+}
+
 type UnboxMobilePushNotificationArg struct {
 	Payload     string                  `codec:"payload" json:"payload"`
 	ConvID      string                  `codec:"convID" json:"convID"`
@@ -3732,6 +3739,7 @@ type LocalInterface interface {
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, GlobalAppNotificationSettings) error
+	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 }
 
@@ -4246,6 +4254,17 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getGlobalAppNotificationSettingsLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetGlobalAppNotificationSettingsLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetGlobalAppNotificationSettingsLocal(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"unboxMobilePushNotification": {
 				MakeArg: func() interface{} {
 					ret := make([]UnboxMobilePushNotificationArg, 1)
@@ -4434,6 +4453,11 @@ func (c LocalClient) SetAppNotificationSettingsLocal(ctx context.Context, __arg 
 func (c LocalClient) SetGlobalAppNotificationSettingsLocal(ctx context.Context, settings GlobalAppNotificationSettings) (err error) {
 	__arg := SetGlobalAppNotificationSettingsLocalArg{Settings: settings}
 	err = c.Cli.Call(ctx, "chat.1.local.setGlobalAppNotificationSettingsLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res GlobalAppNotificationSettings, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getGlobalAppNotificationSettingsLocal", []interface{}{GetGlobalAppNotificationSettingsLocalArg{}}, &res)
 	return
 }
 

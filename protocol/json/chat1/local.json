@@ -2638,6 +2638,10 @@
       ],
       "response": null
     },
+    "getGlobalAppNotificationSettingsLocal": {
+      "request": [],
+      "response": "GlobalAppNotificationSettings"
+    },
     "unboxMobilePushNotification": {
       "request": [
         {

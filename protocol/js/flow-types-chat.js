@@ -316,6 +316,18 @@ export function localGetConversationForCLILocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getConversationForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localGetGlobalAppNotificationSettingsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>) {
+  engineRpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localGetGlobalAppNotificationSettingsLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localGetGlobalAppNotificationSettingsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>): Promise<localGetGlobalAppNotificationSettingsLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localGetInboxAndUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>) {
   engineRpcOutgoing('chat.1.local.getInboxAndUnboxLocal', request)
 }
@@ -2494,6 +2506,7 @@ type localFindConversationsLocalResult = FindConversationsLocalRes
 type localGenerateOutboxIDResult = OutboxID
 type localGetCachedThreadResult = GetThreadLocalRes
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
+type localGetGlobalAppNotificationSettingsLocalResult = GlobalAppNotificationSettings
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 type localGetInboxNonblockLocalResult = NonblockFetchRes
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
@@ -2547,6 +2560,7 @@ export type rpc =
   | localGenerateOutboxIDRpc
   | localGetCachedThreadRpc
   | localGetConversationForCLILocalRpc
+  | localGetGlobalAppNotificationSettingsLocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
