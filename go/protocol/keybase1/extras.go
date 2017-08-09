@@ -332,6 +332,10 @@ func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
 
+func (s Seqno) String() string {
+	return fmt.Sprintf("%d", s)
+}
+
 func UIDFromString(s string) (UID, error) {
 	if len(s) != hex.EncodedLen(UID_LEN) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
