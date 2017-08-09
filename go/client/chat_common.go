@@ -26,7 +26,7 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 	}
 	_, okNotFound := err.(libkb.NotFoundError)
 	_, okInvalidUsername := err.(libkb.BadUsernameError)
-	if !(okNotFound || okInvalidUsername) {
+	if !(okNotFound || okInvalidUsername || strings.HasPrefix(err.Error(), "bad keybase username")) {
 		return nil, err
 	}
 
@@ -39,13 +39,26 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_TEAM
 		return &ret, nil
 	}
-
 	ase, okNet := err.(libkb.AppStatusError)
 	_, okNotFound = err.(teams.TeamDoesNotExistError)
 
-	if !(okNet && keybase1.StatusCode(ase.Code) == keybase1.StatusCode_SCTeamNotFound) && !okNotFound && !strings.HasSuffix(err.Error(), "does not exist") {
+	if !(okNet && keybase1.StatusCode(ase.Code) == keybase1.StatusCode_SCTeamNotFound) && !okNotFound && !strings.HasSuffix(err.Error(), "does not exist") && !strings.HasPrefix(err.Error(), "invalid team name") {
 		return nil, err
 	}
 
-	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a username or a team name.", name)}
+	tlfCli, err := GetTlfClient(g)
+	if err != nil {
+		return nil, err
+	}
+	tlfQuery := keybase1.TLFQuery{
+		TlfName:          name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	_, err = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
+	if err == nil {
+		ret := keybase1.UserOrTeamResult_USER
+		return &ret, nil
+	}
+
+	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a username, group name, or team name, or an unexpected error occurred: %v.", name, err)}
 }
