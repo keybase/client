@@ -46,12 +46,10 @@ def doBuild() {
             // Check both the built .sys files and the msi package.
             // Note this depends on the build taking place on Windows 10 for the msi
             // extraction to yield the drivers we want to test.
-            bat '''
-                call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v ${DOKAN_PATH}\\x64\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-                call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v ${DOKAN_PATH}\\x86\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-                call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && msiexec /a ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi" /qb TARGETDIR=temp
-                call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v temp\\Dokan\\DokanLibrary-1.0.1\\driver\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"
-            '''
+            bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v ${DOKAN_PATH}\\x64\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"'
+            bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v ${DOKAN_PATH}\\x86\\Win10Release\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"'
+            bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && msiexec /a ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi" /qb TARGETDIR=temp'
+            bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && signtool verify /all /kp /v temp\\Dokan\\DokanLibrary-1.0.1\\driver\\dokan1.sys | find "Issued to: Microsoft Windows Hardware Compatibility Publisher"'
         } else {
             echo "Skipping signed driver checking"
         }
