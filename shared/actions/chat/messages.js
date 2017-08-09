@@ -64,7 +64,6 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     })
   } else {
     // Deleting a local outbox message.
-    if (message.messageState !== 'failed') throw new Error('Tried to delete a non-failed message')
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
 
