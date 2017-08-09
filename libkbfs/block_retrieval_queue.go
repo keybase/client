@@ -257,6 +257,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
+		// TODO: make sure this doesn't thrash.
 		brq.log.CWarningf(ctx, "In-memory block cache is full, but "+
 			"prefetching anyway to populate the disk cache.")
 	default:
