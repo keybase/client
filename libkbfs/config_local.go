@@ -248,7 +248,7 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 }
 
 // MakeLocalTeams is a helper function to generate a list of local
-// teams suitable to use with KBPKILocal.  Any subteams must came
+// teams suitable to use with KBPKILocal.  Any subteams must come
 // after their root team names in the `teams` slice.
 func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
 	localTeams := make([]TeamInfo, len(teams))
