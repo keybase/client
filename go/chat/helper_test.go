@@ -96,7 +96,6 @@ func TestSendHelper(t *testing.T) {
 
 		g := globals.NewContext(tc.G, tc.ChatG)
 		server := NewServer(g, nil, sc, TestUISource{})
-		/* g redundant? */
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
 		tlfName := created.TlfName
