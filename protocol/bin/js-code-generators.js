@@ -18,25 +18,16 @@ const channelMapPrelude = `\nfunction _channelMapRpcHelper(channelConfig: Channe
 `
 
 function rpcChannelMap(methodName, name, callbackType, innerParamType, responseType) {
-  return `\nexport function ${name}RpcChannelMap (configKeys: Array<string>, request: $Exact<${[
-    'requestCommon',
-    callbackType,
-    innerParamType,
-  ]
-    .filter(Boolean)
-    .join(' & ')}>): EngineChannel {
+  const requestType = ['requestCommon', callbackType, innerParamType].filter(Boolean).join(' & ')
+  return `\nexport function ${name}RpcChannelMap (configKeys: Array<string>, request: ${requestType}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, ${methodName}, request)
 }`
 }
 
 function rpcPromiseGen(methodName, name, callbackType, innerParamType, responseType) {
+  const requestType = ['requestCommon', callbackType, innerParamType].filter(Boolean).join(' & ')
   const maybeOptional = !innerParamType ? '?' : ''
-  return `\nexport function ${name}RpcPromise (request: ${maybeOptional}$Exact<${[
-    'requestCommon',
-    innerParamType,
-  ]
-    .filter(Boolean)
-    .join(' & ')}>): Promise<${responseType !== 'null' ? `${name}Result` : 'void'}> {
+  return `\nexport function ${name}RpcPromise (request: ${maybeOptional}(${requestType})): Promise<${responseType !== 'null' ? `${name}Result` : 'void'}> {
   return new Promise((resolve, reject) => engineRpcOutgoing(${methodName}, request, (error, result) => error ? reject(error) : resolve(result)))
 }`
 }

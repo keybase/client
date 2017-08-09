@@ -1,5 +1,5 @@
 // @flow
-import {apiserverGetRpc} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise} from '../constants/types/flow-types'
 import throttle from 'lodash/throttle'
 import partition from 'lodash/partition'
 
@@ -46,38 +46,7 @@ const _getUserImages = throttle(() => {
     return
   }
 
-  apiserverGetRpc({
-    callback: (error, response) => {
-      if (error) {
-        good.forEach(username => {
-          const info = _usernameToURL[username]
-          const urlMap = {}
-          if (info) {
-            info.done = true
-            info.error = true
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
-      } else {
-        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = good[idx]
-          let urlMap = {
-            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          }
-
-          const info = _usernameToURL[username]
-          if (info) {
-            info.done = true
-            info.urlMap = urlMap
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
-      }
-    },
+  apiserverGetRpcPromise({
     param: {
       args: [
         {key: 'usernames', value: good.join(',')},
@@ -86,6 +55,36 @@ const _getUserImages = throttle(() => {
       endpoint: 'image/username_pic_lookups',
     },
   })
+    .then(response => {
+      JSON.parse(response.body).pictures.forEach((picMap, idx) => {
+        const username = good[idx]
+        let urlMap = {
+          ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+          ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+          ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+        }
+
+        const info = _usernameToURL[username]
+        if (info) {
+          info.done = true
+          info.urlMap = urlMap
+          info.callbacks.forEach(cb => cb(username, urlMap))
+          info.callbacks = []
+        }
+      })
+    })
+    .catch(error => {
+      good.forEach(username => {
+        const info = _usernameToURL[username]
+        const urlMap = {}
+        if (info) {
+          info.done = true
+          info.error = true
+          info.callbacks.forEach(cb => cb(username, urlMap))
+          info.callbacks = []
+        }
+      })
+    })
 }, 200)
 
 function validUsername(name: ?string) {

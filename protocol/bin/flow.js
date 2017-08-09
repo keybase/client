@@ -366,7 +366,7 @@ export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = Buffer
-export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+export type WaitingHandlerType = (waiting: boolean) => void
 
 const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, incomingCallMapOverride: any) => engine()._rpcOutgoing(method, params, callbackOverride, incomingCallMapOverride)
 
