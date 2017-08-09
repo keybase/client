@@ -73,7 +73,7 @@ const _getUserImages = throttle(() => {
         }
       })
     })
-    .catch(error => {
+    .catch(() => {
       good.forEach(username => {
         const info = _usernameToURL[username]
         const urlMap = {}
