@@ -15,7 +15,6 @@ import {
   NotifyFSRequestFSSyncStatusRequestRpcPromise,
 } from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {navigateUp} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 import {isMobile} from '../constants/platform'
@@ -220,10 +219,8 @@ function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
       yield put(favoriteList())
-      yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteAdd', error)
-      yield put(navigateUp())
     }
   }
 }
@@ -243,10 +240,8 @@ function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
       const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
       yield put(favoriteList())
-      yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteIgnore', error)
-      yield put(navigateUp())
     }
   }
 }
