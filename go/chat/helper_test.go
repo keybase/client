@@ -143,18 +143,15 @@ func TestSendHelper(t *testing.T) {
 			MembersType:   mt,
 		})
 		require.NoError(t, err)
+		_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
+		require.NoError(t, err)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
-			require.NoError(t, err)
-			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-			require.NoError(t, err)
 			require.Equal(t, 2, len(inbox.Convs))
 		default:
 			// No second topic name on KBFS chats
-			_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
-			require.NoError(t, err)
-			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 			require.Equal(t, 1, len(inbox.Convs))
 		}
 	})
