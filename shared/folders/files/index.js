@@ -66,9 +66,11 @@ class Files extends Component<void, Props, State> {
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)
+      this.props.navigateUp()
     }
     const unIgnoreCurrentFolder = () => {
       this.props.favoriteFolder(this.props.path)
+      this.props.navigateUp()
     }
     const allowIgnore = folder.users.some(f => !f.you)
 
