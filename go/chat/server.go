@@ -2358,3 +2358,13 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		msgUnboxed.GetMessageType())
 	return "", errors.New("invalid message")
 }
+
+func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
+	settings chat1.GlobalAppNotificationSettings) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetGlobalAppNotificationSettings")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
+}

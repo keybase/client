@@ -493,21 +493,6 @@
           "name": "rateLimit"
         }
       ]
-    },
-    {
-      "type": "enum",
-      "name": "GlobalAppNotificationSetting",
-      "symbols": [
-        "NEWMESSAGES_0",
-        "PLAINTEXTMOBILE_1",
-        "PLAINTEXTDESKTOP_2"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GlobalAppNotificationSettings",
-      "fields": [],
-      "typedef": "map<GlobalAppNotificationSetting, bool>"
     }
   ],
   "messages": {
@@ -938,7 +923,7 @@
       ],
       "response": null
     },
-    "getGlobalNotificationSettings": {
+    "getGlobalAppNotificationSettings": {
       "request": [],
       "response": "GlobalAppNotificationSettings"
     },

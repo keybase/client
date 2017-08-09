@@ -124,6 +124,29 @@
     },
     {
       "type": "enum",
+      "name": "GlobalAppNotificationSetting",
+      "symbols": [
+        "NEWMESSAGES_0",
+        "PLAINTEXTMOBILE_1",
+        "PLAINTEXTDESKTOP_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GlobalAppNotificationSettings",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "GlobalAppNotificationSetting"
+          },
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "enum",
       "name": "ConversationStatus",
       "symbols": [
         "UNFILED_0",
