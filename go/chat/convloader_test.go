@@ -11,7 +11,7 @@ import (
 )
 
 func setupLoaderTest(t *testing.T) (*kbtest.ChatTestContext, *kbtest.ChatMockWorld, *chatListener, chat1.NewConversationRemoteRes) {
-	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
+	ctx, world, ri, _, baseSender, listener, _ := setupTest(t, 1)
 
 	u := world.GetUsers()[0]
 	tc := world.Tcs[u.Username]

@@ -3,6 +3,7 @@ package chat
 import (
 	"testing"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -12,7 +13,7 @@ import (
 
 func TestRecentConversationParticipants(t *testing.T) {
 	maxUsers := 5
-	ctx, world, ri2, _, sender, _ := setupTest(t, maxUsers)
+	ctx, world, ri2, _, sender, _, _ := setupTest(t, maxUsers)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -64,49 +65,66 @@ func TestRecentConversationParticipants(t *testing.T) {
 	require.Equal(t, refList, res)
 }
 
-// func TestSendTextByName(t *testing.T) {
-// 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-// 		ctx, world, ri2, _, _, _ := setupTest(t, 1)
-// 		defer world.Cleanup()
+func TestSendHelper(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctx, world, _, _, _, _, _ := setupTest(t, 1)
+		defer world.Cleanup()
 
-// 		u := world.GetUsers()[0]
-// 		tc := world.Tcs[u.Username]
-// 		uid := u.User.GetUID().ToBytes()
-// 		var name string
-// 		switch mt {
-// 		case chat1.ConversationMembersType_TEAM:
-// 			name = createTeam(tc.TestContext)
-// 		default:
-// 			name = u.Username
-// 		}
+		u := world.GetUsers()[0]
+		tc := world.Tcs[u.Username]
+		_ = u.User.GetUID().ToBytes()
+		var name string
+		var topicName *string
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			name = createTeam(tc.TestContext)
+			topicName = &DefaultTeamTopic
+		default:
+			name = u.Username
+			topicName = nil
+		}
 
-// 		require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
-// 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
-// 		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-// 		require.NoError(t, err)
-// 		require.Equal(t, 1, len(inbox.Convs))
-// 		require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
-// 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
-// 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-// 		require.NoError(t, err)
-// 		require.Equal(t, 1, len(inbox.Convs))
-// 		tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
-// 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-// 		}, nil)
-// 		require.NoError(t, err)
-// 		require.Equal(t, 2, len(tv.Messages))
+		g := globals.NewContext(tc.G, tc.ChatG)
+		gh := ctx.as(t, users[0]).chatLocalHandler()
+		server := NewServer(g, nil, gh, TestUISource{})
+		sendHelper, err := NewSendHelper(ctx, g, server, chat1.NewConversationLocalArg{
+			TlfName:          name,
+			TopicType:        chat1.TopicType_CHAT,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicName:        topicName,
+			MembersType:      mt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		require.NoError(t, err)
+		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("HI"))
+		require.NoError(t, err)
+		// require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
+		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
+		// inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		// require.NoError(t, err)
+		// require.Equal(t, 1, len(inbox.Convs))
+		// require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
+		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
+		// inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		// require.NoError(t, err)
+		// require.Equal(t, 1, len(inbox.Convs))
+		// tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+		// 	MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		// }, nil)
+		// require.NoError(t, err)
+		// require.Equal(t, 2, len(tv.Messages))
 
-// 		err = SendTextByName(ctx, tc.Context(), name, "MIKE",
-// 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2)
-// 		switch mt {
-// 		case chat1.ConversationMembersType_TEAM:
-// 			require.NoError(t, err)
-// 			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-// 			require.NoError(t, err)
-// 			require.Equal(t, 2, len(inbox.Convs))
-// 		default:
-// 			// No second topic name on KBFS chats
-// 			require.Error(t, err)
-// 		}
-// 	})
-// }
+		// err = SendTextByName(ctx, tc.Context(), name, "MIKE",
+		// 	mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2)
+		// switch mt {
+		// case chat1.ConversationMembersType_TEAM:
+		// 	require.NoError(t, err)
+		// 	inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		// 	require.NoError(t, err)
+		// 	require.Equal(t, 2, len(inbox.Convs))
+		// default:
+		// 	// No second topic name on KBFS chats
+		// 	require.Error(t, err)
+		// }
+	})
+}

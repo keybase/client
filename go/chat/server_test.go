@@ -69,7 +69,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (g *gregorTestConnection) GetClient() chat1.RemoteClient {
+func (g *gregorTestConnection) GetClient() chat1.RemoteInterface {
 	return chat1.RemoteClient{Cli: g.cli}
 }
 
@@ -132,14 +132,14 @@ func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInf
 	return ctx
 }
 
-type testUISource struct {
+type TestUISource struct {
 }
 
-func (t testUISource) GetChatUI(sessionID int) libkb.ChatUI {
+func (t TestUISource) GetChatUI(sessionID int) libkb.ChatUI {
 	return nil
 }
 
-func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
+func (t TestUISource) GetStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: nil}
 }
 
@@ -251,7 +251,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	g := globals.NewContext(tc.G, tc.ChatG)
-	h := NewServer(g, nil, nil, testUISource{})
+	h := NewServer(g, nil, nil, TestUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var tlf kbtest.TlfMock

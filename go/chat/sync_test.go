@@ -82,7 +82,7 @@ func doSync(t *testing.T, syncer types.Syncer, ri chat1.RemoteInterface, uid gre
 }
 
 func TestSyncerConnected(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 3)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 3)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -215,7 +215,7 @@ func TestSyncerConnected(t *testing.T) {
 }
 
 func TestSyncerAppState(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)

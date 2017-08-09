@@ -68,7 +68,7 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 }
 
 func TestPushOrdering(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -133,7 +133,7 @@ func TestPushOrdering(t *testing.T) {
 }
 
 func TestPushAppState(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
@@ -194,7 +194,7 @@ func makeTypingNotification(t *testing.T, uid gregor1.UID, convID chat1.Conversa
 }
 
 func TestPushTyping(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)

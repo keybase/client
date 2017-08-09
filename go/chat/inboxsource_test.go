@@ -14,7 +14,7 @@ import (
 )
 
 func TestInboxSourceUpdateRace(t *testing.T) {
-	ctx, world, ri, _, sender, _ := setupTest(t, 1)
+	ctx, world, ri, _, sender, _, _ := setupTest(t, 1)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -70,7 +70,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 // a complete sync of the inbox occurs.
 func TestInboxSourceSkipAhead(t *testing.T) {
 	t.Logf("setup")
-	ctx, world, ri2, _, sender, _ := setupTest(t, 1)
+	ctx, world, ri2, _, sender, _, _ := setupTest(t, 1)
 	ri := ri2.(*kbtest.ChatRemoteMock)
 	defer world.Cleanup()
 	t.Logf("test's remoteInterface: %p[%T] -> %v", &ri, ri, ri)

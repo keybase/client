@@ -24,7 +24,7 @@ func (e errorClient) Notify(ctx context.Context, method string, arg interface{})
 }
 
 func TestFetchRetry(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 3)
+	ctx, world, ri2, _, sender, list, _ := setupTest(t, 3)
 	defer world.Cleanup()
 
 	ri := ri2.(*kbtest.ChatRemoteMock)
