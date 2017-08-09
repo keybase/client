@@ -54,6 +54,12 @@ class Files extends Component<void, Props, State> {
     this._checkFolderExistence(nextProps)
   }
 
+  componentDidMount() {
+    if (this.props.folder && !this.props.folder.ignored) {
+      this.props.favoriteFolder(this.props.path)
+    }
+  }
+
   render() {
     const {folder, username} = this.props
     if (!folder) return null // Protect from state where the folder to be displayed was removed
