@@ -80,6 +80,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
 			}, "encrypt", c)
+			cl.SetNoStandalone() // needs KBFS in SaltpackEncrypt.getCryptKeys
 		},
 		Flags: flags,
 	}
