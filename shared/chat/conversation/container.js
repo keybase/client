@@ -8,7 +8,7 @@ import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
 import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
-import {withState, withHandlers, compose, branch, renderNothing, renderComponent, lifecycle} from 'recompose'
+import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
@@ -158,7 +158,6 @@ export default compose(
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
   withState('addNewParticipant', 'onAddNewParticipant', false),
-  withState('chatText', 'setChatText', props => props.defaultChatText || ''),
   selectedSearchIdHoc,
   withHandlers({
     onAddNewParticipant: props => () => props.onAddNewParticipant(true),
@@ -172,21 +171,6 @@ export default compose(
     },
     onMouseOverSearchResult: props => id => {
       props.onUpdateSelectedSearchResult(id)
-    },
-  }),
-  lifecycle({
-    componentWillUnmount: function() {
-      this.props.onStoreInputText(this.props.chatText)
-    },
-    componentWillReceiveProps: function(nextProps) {
-      if (
-        this.props.selectedConversationIDKey &&
-        this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey
-      ) {
-        this.props.onStoreInputText(this.props.chatText)
-        // withState won't get called again if props changes!
-        this.props.setChatText(nextProps.defaultChatText)
-      }
     },
   })
 )(Conversation)
