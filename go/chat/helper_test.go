@@ -13,7 +13,7 @@ import (
 
 func TestRecentConversationParticipants(t *testing.T) {
 	maxUsers := 5
-	ctx, world, ri2, _, sender, _, _ := setupTest(t, maxUsers)
+	ctx, world, ri2, _, sender, _ := setupTest(t, maxUsers)
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
@@ -65,29 +65,58 @@ func TestRecentConversationParticipants(t *testing.T) {
 	require.Equal(t, refList, res)
 }
 
+type MockSC struct {
+	ri chat1.RemoteInterface
+}
+
+func (s *MockSC) Reconnect(context.Context) (bool, error) {
+	return true, nil
+}
+
+func (s *MockSC) GetClient() chat1.RemoteInterface {
+	return s.ri
+}
+
 func TestSendHelper(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctx, world, _, _, _, _, _ := setupTest(t, 1)
-		defer world.Cleanup()
+		//	ctx, world, _, _, _, _, gh := setupTest(t, 1)
+		//	defer world.Cleanup()
 
-		u := world.GetUsers()[0]
-		tc := world.Tcs[u.Username]
-		_ = u.User.GetUID().ToBytes()
-		var name string
-		var topicName *string
-		switch mt {
-		case chat1.ConversationMembersType_TEAM:
-			name = createTeam(tc.TestContext)
-			topicName = &DefaultTeamTopic
-		default:
-			name = u.Username
-			topicName = nil
+		//	u := world.GetUsers()[0]
+		//	tc := world.Tcs[u.Username]
+		//	// _ = u.User.GetUID().ToBytes()
+		//	var name string
+		//	var topicName *string
+		//	switch mt {
+		//	case chat1.ConversationMembersType_TEAM:
+		//		name = createTeam(tc.TestContext)
+		//		topicName = &DefaultTeamTopic
+		//	default:
+		//		name = u.Username
+		//		topicName = nil
+		//	}
+
+		ctc := makeChatTestContext(t, "SendHelper", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		//created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+		//	ctc.as(t, users[1]).user())
+
+		tc := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+		uid := users[0].User.GetUID().ToBytes()
+		// conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		// require.NoError(t, err)
+
+		ri := ctc.as(t, users[0]).ri
+		sc := MockSC{
+			ri: ri,
 		}
-
 		g := globals.NewContext(tc.G, tc.ChatG)
-		gh := ctx.as(t, users[0]).chatLocalHandler()
-		server := NewServer(g, nil, gh, TestUISource{})
-		sendHelper, err := NewSendHelper(ctx, g, server, chat1.NewConversationLocalArg{
+		server := NewServer(g, nil, sc, TestUISource{})
+		/* g redundant? */
+		sendHelper, err := newSendHelper(ctx, server.G(), server, chat1.NewConversationLocalArg{
 			TlfName:          name,
 			TopicType:        chat1.TopicType_CHAT,
 			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
