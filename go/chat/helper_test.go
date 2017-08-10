@@ -98,7 +98,7 @@ func TestSendHelper(t *testing.T) {
 		server := NewServer(g, nil, sc, TestUISource{})
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+			mt, users[1])
 		tlfName := created.TlfName
 
 		var topicName *string
@@ -133,6 +133,47 @@ func TestSendHelper(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, len(tv.Messages))
 
+		sendHelper, err = NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
+			TlfName:          tlfName,
+			TopicType:        chat1.TopicType_CHAT,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicName:        topicName,
+			MembersType:      mt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		require.NoError(t, err)
+		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
+		require.NoError(t, err)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("delta"))
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		tv, _, err = tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 4, len(tv.Messages))
+
+		err = SendTextByName(ctx, g, sc, TestUISource{}, chat1.NewConversationLocalArg{
+			TlfName:          tlfName,
+			TopicType:        chat1.TopicType_CHAT,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicName:        topicName,
+			MembersType:      mt,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}, "epsilon")
+		require.NoError(t, err)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		tv, _, err = tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 5, len(tv.Messages))
+
 		altServer := NewServer(g, nil, sc, TestUISource{})
 		altTopicName := "aleph"
 		altSendHelper, err := NewSendHelper(ctx, altServer, chat1.NewConversationLocalArg{
@@ -143,7 +184,7 @@ func TestSendHelper(t *testing.T) {
 			MembersType:   mt,
 		})
 		require.NoError(t, err)
-		_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("gamma"))
+		_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("zeta"))
 		require.NoError(t, err)
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
