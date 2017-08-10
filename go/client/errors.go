@@ -74,5 +74,5 @@ func (e UnexpectedArgsError) Error() string {
 type CantRunInStandaloneError struct{}
 
 func (e CantRunInStandaloneError) Error() string {
-	return fmt.Sprintf("Can't run command in standalone mode")
+	return "Can't run command in standalone mode"
 }
