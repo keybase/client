@@ -2375,8 +2375,10 @@ func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
 			h.Debug(ctx, "SetGlobalAppNotificationSettings: failed to convert key: %s", err.Error())
 			continue
 		}
-		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v", k, v)
-		settings.Settings[chat1.GlobalAppNotificationSetting(key)] = v
+		gkey := chat1.GlobalAppNotificationSetting(key)
+		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v",
+			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
+		settings.Settings[gkey] = v
 	}
 
 	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)

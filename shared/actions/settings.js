@@ -201,7 +201,7 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
       }
     }
 
-    const result = yield all([
+    const [result] = yield all([
       call(apiserverPostJSONRpcPromise, {
         param: {
           endpoint: 'account/subscribe',
