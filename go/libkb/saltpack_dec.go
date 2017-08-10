@@ -202,7 +202,7 @@ func (r *TlfKeyResolver) ResolveKeys(identifiers [][]byte) ([]*saltpack.Symmetri
 func (r *TlfKeyResolver) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
 	xp := r.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return keybase1.GetTLFCryptKeysRes{}, fmt.Errorf("KBFS client wasn't found")
+		return keybase1.GetTLFCryptKeysRes{}, KBFSNotRunning{}
 	}
 	cli := &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(xp, ErrorUnwrapper{}, LogTagsFromContext),
