@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -121,6 +122,48 @@ func TestRecreateSubteam(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// U0 creates a subteam and deletes it
+// U0 creates a subteam and deletes it again
+// U1 loads the root team.
+func TestDeleteTwoSubteams(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	subteamName1 := createTeamName(t, parentName.String(), "bbb")
+	subteamName2 := createTeamName(t, parentName.String(), "ccc")
+
+	t.Logf("U0 creates A.B")
+	_, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U0 deletes A.B")
+	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName1.String())
+	require.NoError(t, err)
+
+	t.Logf("U0 creates A.C")
+	_, err = CreateSubteam(context.TODO(), tcs[0].G, "ccc", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U0 deletes A.C")
+	err = Delete(context.Background(), tcs[0].G, &teamsUI{}, subteamName2.String())
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 to A")
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 loads A")
+	team, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: parentID,
+	})
+	require.NoError(t, err, "load team")
+	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
 type teamsUI struct{}
