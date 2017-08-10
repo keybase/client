@@ -17,7 +17,7 @@ const _AddNewRow = ({
   isLoading,
 }: {
   onNewChat: () => void,
-  onSetFilter?: (filter: string) => void,
+  onSetFilter: (filter: string) => void,
   onJumpToChat: () => void,
   isLoading: boolean,
 }) => (
