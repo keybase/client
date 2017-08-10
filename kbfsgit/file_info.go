@@ -7,8 +7,6 @@ package kbfsgit
 import (
 	"os"
 	"time"
-
-	_ "github.com/keybase/kbfs/libkbfs"
 )
 
 // FileInfo is a wrapper around libkbfs.EntryInfo that implements the

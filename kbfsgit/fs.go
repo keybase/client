@@ -267,6 +267,7 @@ func (fs *FS) Root() string {
 	return ""
 }
 
+// SyncAll syncs any outstanding buffered writes to the KBFS journal.
 func (fs *FS) SyncAll() error {
 	return fs.config.KBFSOps().SyncAll(fs.ctx, fs.root.GetFolderBranch())
 }
