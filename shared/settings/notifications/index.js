@@ -51,7 +51,7 @@ const Group = (props: {
         ))}
     </Box>
     {props.unsub.length > 0 &&
-      <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.small}}>
+      <Box style={{...globalStyles.flexBoxColumn}}>
         <Text type="BodyBig">Or:</Text>
         <Checkbox
           style={{marginTop: globalMargins.small}}

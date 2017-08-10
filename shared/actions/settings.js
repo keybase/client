@@ -12,7 +12,7 @@ import {
   accountHasServerKeysRpcPromise,
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
-import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
@@ -177,29 +177,46 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
     }
 
     let JSONPayload = []
+    let chatGlobalArg = {}
     for (const groupName in current.groups) {
       const group = current.groups[groupName]
-      for (const key in group.settings) {
-        const setting = group.settings[key]
+      if (groupName === Constants.securityGroup) {
+        // Special case this since it will go to chat settings endpoint
+        for (const key in group.settings) {
+          const setting = group.settings[key]
+          chatGlobalArg[`${ChatTypes.CommonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
+        }
+      } else {
+        for (const key in group.settings) {
+          const setting = group.settings[key]
+          JSONPayload.push({
+            key: `${setting.name}|${groupName}`,
+            value: setting.subscribed ? '1' : '0',
+          })
+        }
         JSONPayload.push({
-          key: `${setting.name}|${groupName}`,
-          value: setting.subscribed ? '1' : '0',
+          key: `unsub|${groupName}`,
+          value: group.unsubscribedFromAll ? '1' : '0',
         })
       }
-      JSONPayload.push({
-        key: `unsub|${groupName}`,
-        value: group.unsubscribedFromAll ? '1' : '0',
-      })
     }
 
-    const result = yield call(apiserverPostJSONRpcPromise, {
-      param: {
-        endpoint: 'account/subscribe',
-        args: [],
-        JSONPayload,
-      },
-    })
-
+    const result = yield all([
+      call(apiserverPostJSONRpcPromise, {
+        param: {
+          endpoint: 'account/subscribe',
+          args: [],
+          JSONPayload,
+        },
+      }),
+      call(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
+        param: {
+          settings: {
+            ...chatGlobalArg,
+          },
+        },
+      }),
+    ])
     if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
       throw new Error(`Invalid response ${result || '(no result)'}`)
     }
@@ -364,17 +381,15 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
     })
   })
 
-  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
-    param: {
-      endpoint: 'account/subscriptions',
-      args: [],
-    },
-  })
-  const chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings = yield call(
-    ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
-    {}
-  )
-
+  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield all([
+    call(apiserverGetWithSessionRpcPromise, {
+      param: {
+        endpoint: 'account/subscriptions',
+        args: [],
+      },
+    }),
+    call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise, {}),
+  ])
   yield cancel(delayThenEmptyTask)
 
   let results: {
@@ -397,10 +412,11 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
       },
     },
   } = JSON.parse((json && json.body) || '')
-  results.notifications['security'] = {
+  // Add security group extra since it does not come from API endpoint
+  results.notifications[Constants.securityGroup] = {
     settings: [
       {
-        name: 'mobileplaintext',
+        name: 'plaintextmobile',
         description: 'Display mobile plaintext notifications',
         subscribed: chatGlobalSettings.settings[
           `${ChatTypes.CommonGlobalAppNotificationSetting.plaintextmobile}`

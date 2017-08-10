@@ -2633,7 +2633,11 @@
       "request": [
         {
           "name": "settings",
-          "type": "GlobalAppNotificationSettings"
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "string"
+          }
         }
       ],
       "response": null

@@ -2337,7 +2337,7 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
 }>
 
 export type localSetGlobalAppNotificationSettingsLocalRpcParam = Exact<{
-  settings: GlobalAppNotificationSettings
+  settings: {[key: string]: bool}
 }>
 
 export type localUnboxMobilePushNotificationRpcParam = Exact<{

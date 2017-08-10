@@ -205,3 +205,5 @@ export function waiting(waiting: boolean): TypedAction<'settings:waitingForRespo
     payload: waiting,
   }
 }
+
+export const securityGroup = 'security'

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -2360,12 +2361,24 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 }
 
 func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
-	settings chat1.GlobalAppNotificationSettings) (err error) {
+	strSettings map[string]bool) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetGlobalAppNotificationSettings")()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
+	var settings chat1.GlobalAppNotificationSettings
+	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
+	for k, v := range strSettings {
+		key, err := strconv.Atoi(k)
+		if err != nil {
+			h.Debug(ctx, "SetGlobalAppNotificationSettings: failed to convert key: %s", err.Error())
+			continue
+		}
+		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v", k, v)
+		settings.Settings[chat1.GlobalAppNotificationSetting(key)] = v
+	}
+
 	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
 }
 
