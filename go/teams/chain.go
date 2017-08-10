@@ -325,6 +325,9 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 // Links must be added in order by seqno for each subteam (asserted here).
 // Links for different subteams can interleave.
 // Mutates the SubteamLog.
+// Name collisions are allowed here. They are allowed because you might
+// be removed a subteam and then its future name changes and deletion would be stubbed.
+// See ListSubteams for details.
 func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
 	lastPoint := t.getLastSubteamPoint(id)
 	if lastPoint != nil && lastPoint.Seqno.Eq(seqno) {
@@ -333,9 +336,8 @@ func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.Team
 	if lastPoint != nil && seqno < lastPoint.Seqno {
 		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
 	}
-	err := t.checkSubteamCollision(id, name, seqno)
-	if err != nil {
-		return err
+	if lastPoint != nil && lastPoint.Name.IsNil() {
+		return fmt.Errorf("cannot process subteam rename because %v was deleted at seqno %v", id, lastPoint.Seqno)
 	}
 	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
 		Name:  name,
@@ -356,30 +358,10 @@ func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybas
 	if lastPoint != nil && seqno < lastPoint.Seqno {
 		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
 	}
+	// Don't check for deleting the same team twice. Just allow it.
 	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
 		Seqno: seqno,
 	})
-	return nil
-}
-
-// Check that there is no other subteam with this name at this seqno.
-func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
-	for otherID, points := range t.inner.SubteamLog {
-		if otherID.Eq(id) {
-			continue
-		}
-		// Get the other team's name at the time of the caller's update.
-		var otherName keybase1.TeamName
-		for _, point := range points {
-			if point.Seqno < seqno {
-				otherName = point.Name
-			}
-		}
-		if otherName.Eq(name) {
-			return fmt.Errorf("multiple subteams named %v at seqno %v: %v, %v",
-				name.String(), seqno, id.String(), otherID.String())
-		}
-	}
 	return nil
 }
 
@@ -391,16 +373,46 @@ type TeamIDAndName struct {
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
+//
+// For subteams that you were removed from, this list may
+// still include them because your removal was stubbed.
+// The list will not contain duplicate names.
+// Since this should only be called when you are an admin,
+// none of that should really come up, but it's here just to be less fragile.
 func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+	type Entry struct {
+		ID   keybase1.TeamID
+		Name keybase1.TeamName
+		// Seqno of the last cached rename of this team
+		Seqno keybase1.Seqno
+	}
+	// Use a map to deduplicate names. If there is a subteam name
+	// collision, take the one with the latest (parent) seqno
+	// modifying its name.
+	// A collision could occur if you were removed from a team
+	// and miss its renaming or deletion to to stubbing.
+	resMap := make(map[string] /*TeamName*/ Entry)
 	for subteamID, points := range t.inner.SubteamLog {
 		if len(points) == 0 {
 			// this should never happen
 			continue
 		}
 		lastPoint := points[len(points)-1]
+		entry := Entry{
+			ID:    subteamID,
+			Name:  lastPoint.Name,
+			Seqno: lastPoint.Seqno,
+		}
+		existing, ok := resMap[entry.Name.String()]
+		replace := !ok || (entry.Seqno >= existing.Seqno)
+		if replace {
+			resMap[entry.Name.String()] = entry
+		}
+	}
+	for _, entry := range resMap {
 		res = append(res, TeamIDAndName{
-			ID:   subteamID,
-			Name: lastPoint.Name,
+			ID:   entry.ID,
+			Name: entry.Name,
 		})
 	}
 	return res

@@ -111,10 +111,9 @@ func TestRenameInflateSubteamAfterRenameParent(t *testing.T) {
 	require.NoError(t, err, "load subsubteam")
 }
 
-// This was a bug that I expect once got the loader stuck.
-// It is a dance with the subteam log of a user that makes
-// it look like there is a subteam name collision when
-// there is not.
+// This was a bug that once caused the loader to get stuck.
+// A situation where it looks like there is a subteam name
+// collision when there is not. Because of a stubbed link.
 // U1 is a member of R
 // U1 gets added to R.B and caches that subteam log entry
 // U1 gets removed from R.B
@@ -175,4 +174,6 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
+
+	// TODO check the subteam list
 }
