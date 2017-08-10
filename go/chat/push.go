@@ -117,27 +117,22 @@ func (g *gregorMessageOrderer) cleanupAfterTimeoutLocked(uid gregor1.UID, vers c
 func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	newVers chat1.InboxVers) (res chan struct{}) {
 	res = make(chan struct{})
-	// Grab latest inbox version if we can
-	vers, err := g.latestInboxVersion(ctx, uid)
-	if err != nil {
-		g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s", err.Error())
-		close(res)
-		return res
-	}
-
-	// Check for an in-order update
-	if newVers <= vers+1 {
-		close(res)
-		return
-	}
-
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
 	go func() {
+		defer close(res)
 		g.Lock()
+		vers, err := g.latestInboxVersion(ctx, uid)
+		if err != nil {
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s", err.Error())
+			vers = newVers - 1
+		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
+		if len(waiters) == 0 {
+			return
+		}
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -150,7 +145,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-		close(res)
 	}()
 	return res
 }

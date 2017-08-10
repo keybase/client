@@ -141,7 +141,7 @@ const stylesCommonCore = {
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
   ...stylesCommonCore,
-  minHeight: 64,
+  minHeight: isMobile ? 64 : 48,
   padding: 8,
 }
 

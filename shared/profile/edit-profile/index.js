@@ -35,6 +35,7 @@ export default compose(
     bioLengthLeft: props.bio ? maxProfileBioChars - props.bio.length : maxProfileBioChars,
   })),
   withHandlers({
+    onCancel: ({onBack}) => () => onBack(),
     onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile({bio, fullname, location}),
   })
 )(Render)
