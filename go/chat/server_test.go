@@ -132,14 +132,14 @@ func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInf
 	return ctx
 }
 
-type testUISource struct {
+type TestUISource struct {
 }
 
-func (t testUISource) GetChatUI(sessionID int) libkb.ChatUI {
+func (t TestUISource) GetChatUI(sessionID int) libkb.ChatUI {
 	return nil
 }
 
-func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
+func (t TestUISource) GetStreamUICli() *keybase1.StreamUiClient {
 	return &keybase1.StreamUiClient{Cli: nil}
 }
 
@@ -251,7 +251,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	g := globals.NewContext(tc.G, tc.ChatG)
-	h := NewServer(g, nil, nil, testUISource{})
+	h := NewServer(g, nil, nil, TestUISource{})
 	uid := gregor1.UID(user.User.GetUID().ToBytes())
 
 	var tlf kbtest.TlfMock
@@ -519,6 +519,8 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, topicName, ncres.Conv.Info.TopicName)
 			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
+			mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 		case chat1.ConversationMembersType_KBFS:
 			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
 		}

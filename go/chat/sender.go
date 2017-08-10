@@ -147,12 +147,12 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 
 	if !headerQ.Conv.Derivable(conv.GetConvID()) {
 		s.Debug(ctx, "checkConvID: ConvID %s </- %s", fmtConv(headerQ.Conv), conv.GetConvID())
-		return fmt.Errorf("ConversationID does not match reference message")
+		return fmt.Errorf("ConversationID does not match reference message+")
 	}
 
 	if !headerQ.Conv.Eq(headerRef.Conv) {
 		s.Debug(ctx, "checkConvID: Conv %s != %s", fmtConv(headerQ.Conv), fmtConv(headerRef.Conv))
-		return fmt.Errorf("ConversationID does not match reference message")
+		return fmt.Errorf("ConversationID does not match reference message-")
 	}
 
 	if headerQ.TlfPublic != headerRef.TlfPublic {

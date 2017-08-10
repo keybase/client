@@ -18,168 +18,90 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTextByName(ctx context.Context, g *globals.Context, name string, topicName string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
-	ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
-	return helper.SendText(ctx, text)
-}
+func SendTextByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
+	uiSource UISource, nclArg chat1.NewConversationLocalArg, body string) error {
 
-func SendMsgByName(ctx context.Context, g *globals.Context, name string, topicName string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
-	return helper.SendBody(ctx, body, msgType)
-}
-
-type sendHelper struct {
-	utils.DebugLabeler
-
-	name        string
-	membersType chat1.ConversationMembersType
-	ri          chat1.RemoteInterface
-	ident       keybase1.TLFIdentifyBehavior
-
-	canonicalName string
-	topicName     string
-	tlfID         chat1.TLFID
-	convID        chat1.ConversationID
-	triple        chat1.ConversationIDTriple
-
-	globals.Contextified
-}
-
-func newSendHelper(g *globals.Context, name string, topicName string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
-	return &sendHelper{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
-		name:         name,
-		topicName:    topicName,
-		membersType:  membersType,
-		ri:           ri,
-		ident:        ident,
-	}
-}
-
-func (s *sendHelper) SendText(ctx context.Context, text string) error {
-	body := chat1.NewMessageBodyWithText(chat1.MessageText{Body: text})
-	return s.SendBody(ctx, body, chat1.MessageType_TEXT)
-}
-
-func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
-	if err := s.nameInfo(ctx); err != nil {
-		return err
-	}
-
-	if err := s.conversation(ctx); err != nil {
-		return err
-	}
-
-	return s.deliver(ctx, body, mtype)
-}
-
-func (s *sendHelper) nameInfo(ctx context.Context) error {
-	nameInfo, err := CtxKeyFinder(ctx, s.G()).Find(ctx, s.name, s.membersType, false)
+	chatServer := NewServer(g, nil, serverConnection, uiSource)
+	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
 	if err != nil {
 		return err
 	}
-	s.tlfID = nameInfo.ID
-	s.canonicalName = nameInfo.CanonicalName
-
-	return nil
-}
-
-func (s *sendHelper) conversation(ctx context.Context) error {
-	kuid, err := CurrentUID(s.G())
-	if err != nil {
-		return err
-	}
-	uid := gregor1.UID(kuid.ToBytes())
-
-	oneChatPerTLF := true
-	convs, _, err := FindConversations(ctx, s.G(), s.DebugLabeler, s.remoteInterface, uid, s.canonicalName,
-		chat1.TopicType_CHAT, s.membersType, chat1.TLFVisibility_PRIVATE, s.topicName, &oneChatPerTLF)
-	if err != nil {
-		return err
-	}
-	if len(convs) > 1 {
-		return fmt.Errorf("multiple conversations matched %q", s.canonicalName)
-	}
-	if len(convs) == 1 {
-		s.convID = convs[0].Info.Id
-		s.triple = convs[0].Info.Triple
-		return nil
-	}
-
-	// need new conversation
-	return s.newConversation(ctx)
-}
-
-func (s *sendHelper) newConversation(ctx context.Context) error {
-	s.triple = chat1.ConversationIDTriple{
-		Tlfid:     s.tlfID,
-		TopicType: chat1.TopicType_CHAT,
-	}
-	var err error
-	s.triple.TopicID, err = utils.NewChatTopicID()
-	if err != nil {
-		return err
-	}
-
-	first := chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        s.triple,
-			TlfName:     s.canonicalName,
-			MessageType: chat1.MessageType_TLFNAME,
-		},
-	}
-
-	boxer := NewBoxer(s.G())
-	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, first, s.membersType, nil)
-	if err != nil {
-		return err
-	}
-
-	ncrres, reserr := s.ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-		IdTriple:       s.triple,
-		TLFMessage:     *mbox,
-		MembersType:    s.membersType,
-		TopicNameState: topicNameState,
-	})
-	convID := ncrres.ConvID
-	if reserr != nil {
-		switch cerr := reserr.(type) {
-		case libkb.ChatConvExistsError:
-			convID = cerr.ConvID
-		default:
-			return fmt.Errorf("error creating conversation: %s", reserr)
-		}
-	}
-	s.convID = convID
-
-	return nil
-}
-
-func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	boxer := NewBoxer(s.G())
-	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	msg := chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        s.triple,
-			TlfName:     s.canonicalName,
-			MessageType: mtype,
-		},
-		MessageBody: body,
-	}
-	_, _, _, err := sender.Send(ctx, s.convID, msg, 0, nil)
+	_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage(body))
 	return err
 }
 
-func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
-	return s.ri
+func SendMessageByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
+	uiSource UISource, nclArg chat1.NewConversationLocalArg, msg chat1.MessagePlaintext) error {
+
+	chatServer := NewServer(g, nil, serverConnection, uiSource)
+	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
+	if err != nil {
+		return err
+	}
+	_, err = sendHelper.Send(ctx, msg)
+	return err
+}
+
+func NewTeamNewConversationLocalArg(tlfName string, topicName *string, identifyBehavior keybase1.TLFIdentifyBehavior) chat1.NewConversationLocalArg {
+	return chat1.NewConversationLocalArg{
+		TlfName:          tlfName,
+		TopicName:        topicName,
+		IdentifyBehavior: identifyBehavior,
+		TopicType:        chat1.TopicType_CHAT,
+		TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+		MembersType:      chat1.ConversationMembersType_TEAM,
+	}
+}
+
+type SendHelper struct {
+	utils.DebugLabeler
+	globals.Contextified
+
+	ChatServer       *Server
+	ConversationID   chat1.ConversationID
+	TlfName          string
+	Triple           chat1.ConversationIDTriple
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
+}
+
+func NewSendHelperFromInfo(server *Server, tlfName string, conversationID chat1.ConversationID, triple chat1.ConversationIDTriple, identifyBehavior keybase1.TLFIdentifyBehavior) (*SendHelper, error) {
+	return &SendHelper{
+		Contextified:     globals.NewContextified(server.G()),
+		DebugLabeler:     utils.NewDebugLabeler(server.G().GetLog(), "sendHelper", false),
+		ChatServer:       server,
+		ConversationID:   conversationID,
+		TlfName:          tlfName,
+		Triple:           triple,
+		IdentifyBehavior: identifyBehavior,
+	}, nil
+}
+
+func NewSendHelper(ctx context.Context, server *Server, nclArg chat1.NewConversationLocalArg) (*SendHelper, error) {
+	nclRes, err := server.NewConversationLocal(ctx, nclArg)
+	if err != nil {
+		return nil, err
+	}
+	return NewSendHelperFromInfo(server, nclRes.Conv.Info.TlfName, nclRes.Conv.Info.Id, nclRes.Conv.Info.Triple, nclArg.IdentifyBehavior)
+}
+
+func (s *SendHelper) NewPlaintextMessage(body string) chat1.MessagePlaintext {
+	return chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        s.Triple,
+			TlfName:     s.TlfName,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: body}),
+	}
+}
+
+func (s *SendHelper) Send(ctx context.Context, msg chat1.MessagePlaintext) (res chat1.PostLocalRes, err error) {
+	return s.ChatServer.PostLocal(ctx,
+		chat1.PostLocalArg{
+			ConversationID:   s.ConversationID,
+			Msg:              msg,
+			IdentifyBehavior: s.IdentifyBehavior,
+		})
 }
 
 func CurrentUID(g *globals.Context) (keybase1.UID, error) {
