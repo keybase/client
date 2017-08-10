@@ -95,7 +95,7 @@ const Notifications = (props: Props) =>
           />}
 
         {props.groups.security &&
-          props.groups.security &&
+          props.groups.security.settings &&
           <Group
             allowEdit={props.allowEdit}
             groupName="security"
