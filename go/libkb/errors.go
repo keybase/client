@@ -2042,9 +2042,9 @@ func (e LoginStateTimeoutError) Error() string {
 	return fmt.Sprintf("LoginState request timeout - attempted: %s, active request: %s, duration: %s", e.ActiveRequest, e.AttemptedRequest, e.Duration)
 }
 
-type KBFSNotRunning struct{}
+type KBFSNotRunningError struct{}
 
-func (e KBFSNotRunning) Error() string {
+func (e KBFSNotRunningError) Error() string {
 	const err string = "Keybase services aren't running - KBFS client not found."
 	switch runtime.GOOS {
 	case "linux":

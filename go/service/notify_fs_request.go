@@ -18,7 +18,7 @@ type notifyFSRequestHandler struct {
 func (h *notifyFSRequestHandler) client() (*keybase1.NotifyFSRequestClient, error) {
 	xp := h.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return nil, libkb.KBFSNotRunning{}
+		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.NotifyFSRequestClient{
 		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),

@@ -212,7 +212,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 func (e *SaltpackEncrypt) getCryptKeys(ctx context.Context, name string) (keybase1.GetTLFCryptKeysRes, error) {
 	xp := e.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunning{}
+		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),

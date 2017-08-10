@@ -25,7 +25,7 @@ func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHan
 func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 	xp := s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return nil, libkb.KBFSNotRunning{}
+		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.SimpleFSClient{
 		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
