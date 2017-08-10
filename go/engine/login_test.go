@@ -1009,6 +1009,7 @@ func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
 		a.ClearCachedSecretKeys()
+		a.ClearLoginSession()
 	}, "account - clear")
 
 	// now assert we can login without a passphrase
