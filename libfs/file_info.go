@@ -14,16 +14,16 @@ import (
 // FileInfo is a wrapper around libkbfs.EntryInfo that implements the
 // os.FileInfo interface.
 type FileInfo struct {
-	fs       *FS
-	ei       libkbfs.EntryInfo
-	fullpath string
+	fs   *FS
+	ei   libkbfs.EntryInfo
+	name string
 }
 
 var _ os.FileInfo = (*FileInfo)(nil)
 
 // Name implements the os.FileInfo interface for FileInfo.
 func (fi *FileInfo) Name() string {
-	return fi.fullpath
+	return fi.name
 }
 
 // Size implements the os.FileInfo interface for FileInfo.
@@ -38,7 +38,7 @@ func (fi *FileInfo) Mode() os.FileMode {
 		fi.fs.ctx, os.FileMode(0), fi.fs.config.KBPKI(), fi.fs.h)
 	if err != nil {
 		fi.fs.log.CWarningf(
-			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.fullpath, err)
+			fi.fs.ctx, "Couldn't get mode for file %s: %+v", fi.name, err)
 		mode = os.FileMode(0)
 	}
 

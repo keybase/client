@@ -220,9 +220,9 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	}
 
 	return &FileInfo{
-		fs:       fs,
-		ei:       ei,
-		fullpath: filename,
+		fs:   fs,
+		ei:   ei,
+		name: base,
 	}, nil
 }
 
@@ -271,9 +271,9 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 	fis = make([]os.FileInfo, 0, len(children))
 	for name, ei := range children {
 		fis = append(fis, &FileInfo{
-			fs:       fs,
-			ei:       ei,
-			fullpath: path.Join(p, name),
+			fs:   fs,
+			ei:   ei,
+			name: name,
 		})
 	}
 	return fis, nil

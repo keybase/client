@@ -195,7 +195,7 @@ func TestStat(t *testing.T) {
 	fi, err = fs.Stat("a/foo")
 	require.NoError(t, err)
 	checkFile := func(fi os.FileInfo, isWriter bool) {
-		require.Equal(t, "a/foo", fi.Name())
+		require.Equal(t, "foo", fi.Name())
 		require.Equal(t, int64(1), fi.Size())
 		expectedMode := os.FileMode(0400)
 		if isWriter {
@@ -248,17 +248,17 @@ func TestReadDir(t *testing.T) {
 	require.NoError(t, err)
 	testCreateFile(t, ctx, fs, "a/foo", aNode)
 	testCreateFile(t, ctx, fs, "a/bar", aNode)
-	expectedFullPaths := map[string]bool{
-		"a/foo": true,
-		"a/bar": true,
+	expectedNames := map[string]bool{
+		"foo": true,
+		"bar": true,
 	}
 
 	fis, err := fs.ReadDir("a")
 	require.NoError(t, err)
-	require.Len(t, fis, len(expectedFullPaths))
+	require.Len(t, fis, len(expectedNames))
 	for _, fi := range fis {
-		require.True(t, expectedFullPaths[fi.Name()])
-		delete(expectedFullPaths, fi.Name())
+		require.True(t, expectedNames[fi.Name()])
+		delete(expectedNames, fi.Name())
 	}
-	require.Len(t, expectedFullPaths, 0)
+	require.Len(t, expectedNames, 0)
 }
