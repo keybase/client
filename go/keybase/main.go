@@ -186,7 +186,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	// operations.
 	if g.Env.GetStandalone() {
 		if cl.IsNoStandalone() {
-			err = fmt.Errorf("Can't run command in standalone mode")
+			err = client.CantRunInStandaloneError{}
 			return err
 		}
 		svc := service.NewService(g, false /* isDaemon */)
