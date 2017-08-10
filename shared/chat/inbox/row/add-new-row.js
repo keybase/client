@@ -12,21 +12,17 @@ if (!isMobile) {
 
 const _AddNewRow = ({
   onNewChat,
+  onSetFilter,
   onJumpToChat,
   isLoading,
 }: {
   onNewChat: () => void,
+  onSetFilter?: (filter: string) => void,
   onJumpToChat: () => void,
   isLoading: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
-    <AutosizeInput
-      placeholder="placeholder"
-      value=""
-      onChange={(text: string) => {
-        console.log(text)
-      }}
-    />
+    <AutosizeInput placeholder="placeholder" value="" onChange={onSetFilter} />
     <ClickableBox
       style={{
         ...globalStyles.flexBoxRow,

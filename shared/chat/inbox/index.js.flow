@@ -10,6 +10,7 @@ export type Props = {
   nowOverride?: number, // just for dumb rendering
   rows: List<ConversationIDKey>,
   onNewChat: () => void,
+  onSetFilter?: (filter: string) => void,
   loadInbox: () => void,
   children?: React$Element<*>,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
