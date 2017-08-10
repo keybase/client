@@ -65,7 +65,7 @@ func newCmdTeamShowTree(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "Show a team's subteams.",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdTeamShowTreeRunner(g), "teamshowtree", c)
+			cl.ChooseCommand(NewCmdTeamShowTreeRunner(g), "show-tree", c)
 		},
 		Description: "Show all the subteams of a team.",
 	}
