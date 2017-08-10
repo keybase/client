@@ -237,6 +237,76 @@ func TestStat(t *testing.T) {
 	checkFile(fi, false)
 }
 
+func TestRename(t *testing.T) {
+	ctx, h, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	testCreateFile(t, ctx, fs, "foo", rootNode)
+	err = fs.MkdirAll("a/b", os.FileMode(0600))
+	require.NoError(t, err)
+
+	f, err := fs.Open("foo")
+	require.NoError(t, err)
+	gotDataFoo := make([]byte, 1)
+	_, err = f.Read(gotDataFoo)
+	require.NoError(t, err)
+	err = f.Close()
+	require.NoError(t, err)
+
+	err = fs.Rename("foo", "a/b/bar")
+	require.NoError(t, err)
+
+	f, err = fs.Open("a/b/bar")
+	require.NoError(t, err)
+	gotDataBar := make([]byte, 1)
+	_, err = f.Read(gotDataBar)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(gotDataFoo, gotDataBar))
+	err = f.Close()
+	require.NoError(t, err)
+
+	_, err = fs.Open("foo")
+	require.NotNil(t, err)
+
+	err = fs.SyncAll()
+	require.NoError(t, err)
+}
+
+func TestRemove(t *testing.T) {
+	ctx, h, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	rootNode, _, err := fs.config.KBFSOps().GetRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	testCreateFile(t, ctx, fs, "foo", rootNode)
+	err = fs.MkdirAll("a/b", os.FileMode(0600))
+	require.NoError(t, err)
+
+	// Remove a file.
+	err = fs.Remove("foo")
+	require.NoError(t, err)
+	_, err = fs.Open("foo")
+	require.NotNil(t, err)
+
+	// Removing "a" should fail because it's not empty.
+	err = fs.Remove("a")
+	require.NotNil(t, err)
+
+	// Remove an empty dir and verify we can't create a file there
+	// anymore.
+	err = fs.Remove("a/b")
+	require.NoError(t, err)
+	_, err = fs.Create("a/b/foo")
+	require.NotNil(t, err)
+
+	err = fs.SyncAll()
+	require.NoError(t, err)
+}
+
 func TestReadDir(t *testing.T) {
 	ctx, h, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
@@ -261,4 +331,18 @@ func TestReadDir(t *testing.T) {
 		delete(expectedNames, fi.Name())
 	}
 	require.Len(t, expectedNames, 0)
+}
+
+func TestMkdirAll(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	err := fs.MkdirAll("a/b", os.FileMode(0600))
+	require.NoError(t, err)
+
+	err = fs.MkdirAll("a/b/c/d", os.FileMode(0600))
+	require.NoError(t, err)
+
+	_, err = fs.Create("a/b/c/d/foo")
+	require.NoError(t, err)
 }

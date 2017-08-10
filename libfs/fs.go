@@ -227,13 +227,47 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 }
 
 // Rename implements the billy.Filesystem interface for FS.
-func (fs *FS) Rename(oldpath, newpath string) error {
-	return nil
+func (fs *FS) Rename(oldpath, newpath string) (err error) {
+	fs.log.CDebugf(fs.ctx, "Rename %s -> %s", oldpath, newpath)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
+	}()
+
+	oldParent, oldBase, err := fs.lookupParent(oldpath)
+	if err != nil {
+		return err
+	}
+
+	newParent, newBase, err := fs.lookupParent(newpath)
+	if err != nil {
+		return err
+	}
+
+	return fs.config.KBFSOps().Rename(
+		fs.ctx, oldParent, oldBase, newParent, newBase)
 }
 
 // Remove implements the billy.Filesystem interface for FS.
-func (fs *FS) Remove(filename string) error {
-	return nil
+func (fs *FS) Remove(filename string) (err error) {
+	fs.log.CDebugf(fs.ctx, "Remove %s", filename)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Remove done: %+v", err)
+	}()
+
+	parent, base, err := fs.lookupParent(filename)
+	if err != nil {
+		return err
+	}
+
+	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, parent, base)
+	if err != nil {
+		return err
+	}
+
+	if ei.Type == libkbfs.Dir {
+		return fs.config.KBFSOps().RemoveDir(fs.ctx, parent, base)
+	}
+	return fs.config.KBFSOps().RemoveEntry(fs.ctx, parent, base)
 }
 
 // Join implements the billy.Filesystem interface for FS.
@@ -243,7 +277,8 @@ func (fs *FS) Join(elem ...string) string {
 
 // TempFile implements the billy.Filesystem interface for FS.
 func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
-	return nil, nil
+	// We'd have to turn off journaling to support TempFile fully.
+	return nil, errors.New("TempFile is not currently supported")
 }
 
 // ReadDir implements the billy.Filesystem interface for FS.
@@ -280,7 +315,42 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 }
 
 // MkdirAll implements the billy.Filesystem interface for FS.
-func (fs *FS) MkdirAll(filename string, perm os.FileMode) error {
+func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
+	fs.log.CDebugf(fs.ctx, "MkdirAll %s", filename)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
+	}()
+
+	parts := strings.Split(filename, "/")
+	n := fs.root
+	i := 0
+outer:
+	for i = 0; i < len(parts); i++ {
+		p := parts[i]
+		nextNode, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, p)
+		switch errors.Cause(err).(type) {
+		case libkbfs.NoSuchNameError:
+			break outer
+		case nil:
+			n = nextNode
+		default:
+			return err
+		}
+		if ei.Type != libkbfs.Dir {
+			return errors.Errorf("%s is not a directory",
+				path.Join(parts[:i]...))
+		}
+	}
+
+	// Make all necessary dirs.
+	for ; i < len(parts); i++ {
+		p := parts[i]
+		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
