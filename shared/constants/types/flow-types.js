@@ -173,6 +173,8 @@ export const ConstantsStatusCode = {
   scdeviceprevprovisioned: 1413,
   scdevicenoprovision: 1414,
   scdeviceprovisionviadevice: 1415,
+  screvokecurrentdevice: 1416,
+  screvokelastdevice: 1417,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -5251,6 +5253,8 @@ export type StatusCode =
   | 1413 // SCDevicePrevProvisioned_1413
   | 1414 // SCDeviceNoProvision_1414
   | 1415 // SCDeviceProvisionViaDevice_1415
+  | 1416 // SCRevokeCurrentDevice_1416
+  | 1417 // SCRevokeLastDevice_1417
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503

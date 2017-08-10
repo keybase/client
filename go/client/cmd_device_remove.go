@@ -105,11 +105,33 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		return err
 	}
 
-	return cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
+	err = cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
 		Force:     c.force,
 		ForceLast: c.last,
 		DeviceID:  id,
 	})
+
+	ui := c.G().UI.GetTerminalUI()
+	if ui == nil {
+		return err
+	}
+
+	switch err.(type) {
+	case libkb.RevokeCurrentDeviceError:
+		ui.Output("You tried to remove this device. If you are sure you want to\n")
+		ui.Output("remove the current device, then run\n\n")
+		ui.Output("\tkeybase device remove --force <device id or name>\n\n")
+	case libkb.RevokeLastDeviceError:
+		ui.Output("You tried to remove the last device in your account. If you are\n")
+		ui.Output("sure you want to remove it, then run\n\n")
+		ui.Output("\tkeybase device remove --last <device id or name>\n\n")
+		// XXX uncomment this when CORE-5364 is done
+		// ui.Output("Your account will be automatically reset afterward.\n\n")
+	default:
+		return err
+	}
+
+	return nil
 }
 
 func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {

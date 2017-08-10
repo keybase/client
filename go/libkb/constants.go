@@ -260,6 +260,8 @@ const (
 	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
 	SCTeamMemberExists         = int(keybase1.StatusCode_SCTeamMemberExists)
 	SCLoginStateTimeout        = int(keybase1.StatusCode_SCLoginStateTimeout)
+	SCRevokeCurrentDevice      = int(keybase1.StatusCode_SCRevokeCurrentDevice)
+	SCRevokeLastDevice         = int(keybase1.StatusCode_SCRevokeLastDevice)
 )
 
 const (

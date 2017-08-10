@@ -117,13 +117,15 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
-		if e.deviceID == currentDevice && !e.force {
-			return errors.New("Can't revoke the current device.")
-		}
 
 		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 && !e.forceLast {
-			return errors.New("Can't revoke the last device.")
+			return libkb.RevokeLastDeviceError{}
 		}
+
+		if e.deviceID == currentDevice && !(e.force || e.forceLast) {
+			return libkb.RevokeCurrentDeviceError{}
+		}
+
 	}
 
 	kidsToRevoke, err := e.getKIDsToRevoke(me)
