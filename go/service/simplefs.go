@@ -4,8 +4,6 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -27,7 +25,7 @@ func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHan
 func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 	xp := s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return nil, errors.New("KBFS client wasn't found")
+		return nil, libkb.KBFSNotRunning{}
 	}
 	return &keybase1.SimpleFSClient{
 		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),

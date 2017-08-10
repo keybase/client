@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -2039,4 +2040,16 @@ type LoginStateTimeoutError struct {
 
 func (e LoginStateTimeoutError) Error() string {
 	return fmt.Sprintf("LoginState request timeout - attempted: %s, active request: %s, duration: %s", e.ActiveRequest, e.AttemptedRequest, e.Duration)
+}
+
+type KBFSNotRunning struct{}
+
+func (e KBFSNotRunning) Error() string {
+	const err string = "Keybase services aren't running - KBFS client not found."
+	switch runtime.GOOS {
+	case "linux":
+		return fmt.Sprintf("%s On Linux you need to start them after an update with `run_keybase` command.", err)
+	default:
+		return err
+	}
 }
