@@ -1068,7 +1068,13 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 
 	// Send the oobm to that chat system so that it can potentially handle it
 	if g.G().PushHandler != nil {
-		g.G().PushHandler.HandleOobm(ctx, obm)
+		handled, err := g.G().PushHandler.HandleOobm(ctx, obm)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
 	}
 
 	switch obm.System().String() {
@@ -1078,8 +1084,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Debug("reconnected to push server")
 		return nil
 	default:
-		// it's ok if this can't handle a message
-		return nil
+		return fmt.Errorf("unhandled system: %s", obm.System())
 	}
 }
 

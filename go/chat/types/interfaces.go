@@ -146,7 +146,7 @@ type PushHandler interface {
 	Activity(context.Context, gregor.OutOfBandMessage) error
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
-	HandleOobm(context.Context, gregor.OutOfBandMessage) error
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 
 type AppState interface {
