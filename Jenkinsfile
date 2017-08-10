@@ -306,6 +306,13 @@ def runNixTest(prefix) {
             sh './tlf.test -test.timeout 10m'
         }
     }
+    tests[prefix+'libfs'] = {
+        dir('libfs') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './libfs.test -test.timeout 10m'
+        }
+    }
     tests[prefix+'libkbfs'] = {
         dir('libkbfs') {
             sh 'go test -i'
