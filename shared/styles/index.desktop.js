@@ -87,11 +87,11 @@ const util = {
     overflowY: 'auto',
   },
   selectable: {
-    WebkitUserSelect: 'text',
+    userSelect: 'text',
     cursor: 'text',
   },
   noSelect: {
-    WebkitUserSelect: 'none',
+    userSelect: 'none',
   },
   windowDragging: {
     // allow frameless window dragging
