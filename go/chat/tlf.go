@@ -36,7 +36,7 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}
 	xp := t.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return nil, libkb.KBFSNotRunning{}
+		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(
