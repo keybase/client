@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Text, Icon, Box, ClickableBox, LoadingLine} from '../../../common-adapters'
+import {Icon, Box, ClickableBox, LoadingLine, AutosizeInput} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
@@ -20,6 +20,13 @@ const _AddNewRow = ({
   isLoading: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
+    <AutosizeInput
+      placeholder="placeholder"
+      value=""
+      onChange={(text: string) => {
+        console.log(text)
+      }}
+    />
     <ClickableBox
       style={{
         ...globalStyles.flexBoxRow,
@@ -33,7 +40,6 @@ const _AddNewRow = ({
       onClick={onNewChat}
     >
       <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-      <Text type="BodyBigLink">New chat</Text>
     </ClickableBox>
     {isLoading &&
       <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
