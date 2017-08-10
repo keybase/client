@@ -95,7 +95,8 @@ func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connecti
 
 func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	if obm := m.ToOutOfBandMessage(); obm != nil {
-		return g.G().PushHandler.HandleOobm(ctx, obm)
+		_, err := g.G().PushHandler.HandleOobm(ctx, obm)
+		return err
 	}
 	return nil
 }
