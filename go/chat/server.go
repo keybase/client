@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -2357,4 +2358,37 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 	h.Debug(ctx, "UnboxMobilePushNotification: invalid message received: typ: %v",
 		msgUnboxed.GetMessageType())
 	return "", errors.New("invalid message")
+}
+
+func (h *Server) SetGlobalAppNotificationSettingsLocal(ctx context.Context,
+	strSettings map[string]bool) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetGlobalAppNotificationSettings")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	var settings chat1.GlobalAppNotificationSettings
+	settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
+	for k, v := range strSettings {
+		key, err := strconv.Atoi(k)
+		if err != nil {
+			h.Debug(ctx, "SetGlobalAppNotificationSettings: failed to convert key: %s", err.Error())
+			continue
+		}
+		gkey := chat1.GlobalAppNotificationSetting(key)
+		h.Debug(ctx, "SetGlobalAppNotificationSettings: setting typ: %s enabled: %v",
+			chat1.GlobalAppNotificationSettingRevMap[gkey], v)
+		settings.Settings[gkey] = v
+	}
+
+	return h.remoteClient().SetGlobalAppNotificationSettings(ctx, settings)
+}
+
+func (h *Server) GetGlobalAppNotificationSettingsLocal(ctx context.Context) (res chat1.GlobalAppNotificationSettings, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetGlobalAppNotificationSettings")()
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return h.remoteClient().GetGlobalAppNotificationSettings(ctx)
 }

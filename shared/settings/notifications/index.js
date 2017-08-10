@@ -28,10 +28,10 @@ const Group = (props: {
   allowEdit: boolean,
   groupName: string,
   onToggle: (groupName: string, name: string) => void,
-  onToggleUnsubscribeAll: () => void,
+  onToggleUnsubscribeAll?: () => void,
   settings: ?Array<NotificationsSettingsState>,
   title: string,
-  unsub: string,
+  unsub?: string,
   unsubscribedFromAll: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
@@ -50,14 +50,17 @@ const Group = (props: {
           />
         ))}
     </Box>
-    <Text type="BodyBig">Or:</Text>
-    <Checkbox
-      style={{marginTop: globalMargins.small}}
-      onCheck={props.onToggleUnsubscribeAll}
-      disabled={!props.allowEdit}
-      checked={!!props.unsubscribedFromAll}
-      label={`Unsubscribe me from all ${props.unsub} notifications.`}
-    />
+    {props.unsub &&
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Text type="BodyBig">Or:</Text>
+        <Checkbox
+          style={{marginTop: globalMargins.small}}
+          onCheck={props.onToggleUnsubscribeAll}
+          disabled={!props.allowEdit}
+          checked={!!props.unsubscribedFromAll}
+          label={`Unsubscribe me from all ${props.unsub} notifications.`}
+        />
+      </Box>}
   </Box>
 )
 
@@ -89,6 +92,17 @@ const Notifications = (props: Props) =>
             unsub="push"
             settings={props.groups.app_push.settings}
             unsubscribedFromAll={props.groups.app_push.unsubscribedFromAll}
+          />}
+
+        {props.groups.security &&
+          props.groups.security.settings &&
+          <Group
+            allowEdit={props.allowEdit}
+            groupName="security"
+            onToggle={props.onToggle}
+            title="Security"
+            settings={props.groups.security.settings}
+            unsubscribedFromAll={false}
           />}
 
         <Button

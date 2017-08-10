@@ -63,7 +63,6 @@ function reducer(state: State = initialState, action: Actions): State {
       }
 
       const {group, name} = action.payload
-
       const updateSubscribe = (setting, storeGroup) => {
         let subscribed = setting.subscribed
 
@@ -89,7 +88,6 @@ function reducer(state: State = initialState, action: Actions): State {
           unsubscribedFromAll: !name && !unsubscribedFromAll,
         },
       }
-
       return {
         ...state,
         notifications: {

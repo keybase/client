@@ -2629,6 +2629,23 @@
       ],
       "response": "SetAppNotificationSettingsLocalRes"
     },
+    "setGlobalAppNotificationSettingsLocal": {
+      "request": [
+        {
+          "name": "settings",
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "string"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getGlobalAppNotificationSettingsLocal": {
+      "request": [],
+      "response": "GlobalAppNotificationSettings"
+    },
     "unboxMobilePushNotification": {
       "request": [
         {
