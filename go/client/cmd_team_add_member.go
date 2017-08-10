@@ -26,7 +26,7 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 	return cli.Command{
 		Name:         "add-member",
 		ArgumentHelp: "<team name>",
-		Usage:        "add a user to a team",
+		Usage:        "Add a user to a team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamAddMemberRunner(g)
 			cl.ChooseCommand(cmd, "add-member", c)
