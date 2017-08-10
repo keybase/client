@@ -338,45 +338,11 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	}
 }
 
-func (f *Folder) isWriter(ctx context.Context) (bool, error) {
-	session, err := libkbfs.GetCurrentSessionIfPossible(
-		ctx, f.fs.config.KBPKI(), f.list.tlfType == tlf.Public)
-	// We are using GetCurrentUserInfoIfPossible here so err is only non-nil if
-	// a real problem happened. If the user is logged out, we will get an empty
-	// username and uid, with a nil error.
-	if err != nil {
-		return false, err
-	}
-	f.handleMu.RLock()
-	defer f.handleMu.RUnlock()
-	if f.h.Type() == tlf.SingleTeam {
-		tid, err := f.h.FirstResolvedWriter().AsTeam()
-		if err != nil {
-			return false, err
-		}
-		isWriter, err := f.fs.config.KBPKI().IsTeamWriter(
-			ctx, tid, session.UID, session.VerifyingKey)
-		if err != nil {
-			return false, err
-		}
-		return isWriter, nil
-	}
-	return f.h.IsWriter(session.UID), nil
-}
-
 func (f *Folder) writePermMode(ctx context.Context,
 	original os.FileMode) (os.FileMode, error) {
-	original &^= os.FileMode(0222) // clear write perm bits
-
-	isWriter, err := f.isWriter(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if isWriter {
-		original |= 0200
-	}
-
-	return original, nil
+	f.handleMu.RLock()
+	defer f.handleMu.RUnlock()
+	return libfs.WritePermMode(ctx, original, f.fs.config.KBPKI(), f.h)
 }
 
 // fillAttrWithUIDAndWritePerm sets attributes based on the entry info, and
@@ -398,6 +364,12 @@ func (f *Folder) fillAttrWithUIDAndWritePerm(
 	}
 
 	return nil
+}
+
+func (f *Folder) isWriter(ctx context.Context) (bool, error) {
+	f.handleMu.RLock()
+	defer f.handleMu.RUnlock()
+	return libfs.IsWriter(ctx, f.fs.config.KBPKI(), f.h)
 }
 
 func (f *Folder) access(ctx context.Context, r *fuse.AccessRequest) error {
