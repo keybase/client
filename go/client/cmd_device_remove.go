@@ -159,11 +159,11 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "Remove a device",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "f, force",
+				Name:  "force",
 				Usage: "Force removal of the current device.",
 			},
 			cli.BoolFlag{
-				Name:  "last",
+				Name:  "force-last",
 				Usage: "Force removal of the last device in your account.",
 			},
 		},
