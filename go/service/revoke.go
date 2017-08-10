@@ -41,7 +41,7 @@ func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDevic
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, Force: arg.Force, ForceLast: arg.ForceLast}, h.G())
+	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, ForceSelf: arg.ForceSelf, ForceLast: arg.ForceLast}, h.G())
 	return engine.RunEngine(eng, &ctx)
 }
 

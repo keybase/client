@@ -6546,7 +6546,7 @@ export type rekeyUIRekeySendEventRpcParam = Exact<{
 
 export type revokeRevokeDeviceRpcParam = Exact<{
   deviceID: DeviceID,
-  force: boolean,
+  forceSelf: boolean,
   forceLast: boolean
 }>
 

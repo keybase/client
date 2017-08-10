@@ -73,8 +73,8 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
 	} else {
 		// Do the revoke. We expect this to succeed.
 		revokeArg := RevokeDeviceEngineArgs{
-			ID:    e.G().Env.GetDeviceIDForUsername(nun),
-			Force: true,
+			ID:        e.G().Env.GetDeviceIDForUsername(nun),
+			ForceSelf: true,
 		}
 		revokeEng := NewRevokeDeviceEngine(revokeArg, e.G())
 		err = revokeEng.Run(ctx)

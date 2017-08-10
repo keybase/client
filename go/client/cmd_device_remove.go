@@ -16,9 +16,9 @@ import (
 )
 
 type CmdDeviceRemove struct {
-	idOrName string
-	force    bool
-	last     bool
+	idOrName  string
+	forceSelf bool
+	forceLast bool
 	libkb.Contextified
 }
 
@@ -31,13 +31,13 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("Device remove only takes one argument: the device ID or name.")
 	}
 	c.idOrName = ctx.Args()[0]
-	c.force = ctx.Bool("force")
-	c.last = ctx.Bool("last")
+	c.forceSelf = ctx.Bool("force-self")
+	c.forceLast = ctx.Bool("force-last")
 	return nil
 }
 
 func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
-	if c.force {
+	if c.forceSelf || c.forceLast {
 		return nil
 	}
 	rkcli, err := GetRekeyClient(c.G())
@@ -106,8 +106,8 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	}
 
 	err = cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
-		Force:     c.force,
-		ForceLast: c.last,
+		ForceSelf: c.forceSelf,
+		ForceLast: c.forceLast,
 		DeviceID:  id,
 	})
 
@@ -120,11 +120,11 @@ func (c *CmdDeviceRemove) Run() (err error) {
 	case libkb.RevokeCurrentDeviceError:
 		ui.Output("You tried to remove this device. If you are sure you want to\n")
 		ui.Output("remove the current device, then run\n\n")
-		ui.Output("\tkeybase device remove --force <device id or name>\n\n")
+		ui.Output("\tkeybase device remove --force-self <device id or name>\n\n")
 	case libkb.RevokeLastDeviceError:
 		ui.Output("You tried to remove the last device in your account. If you are\n")
 		ui.Output("sure you want to remove it, then run\n\n")
-		ui.Output("\tkeybase device remove --last <device id or name>\n\n")
+		ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
 		// XXX uncomment this when CORE-5364 is done
 		// ui.Output("Your account will be automatically reset afterward.\n\n")
 	default:
@@ -159,7 +159,7 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "Remove a device",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "force",
+				Name:  "force-self",
 				Usage: "Force removal of the current device.",
 			},
 			cli.BoolFlag{

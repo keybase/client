@@ -32,7 +32,7 @@
           "type": "DeviceID"
         },
         {
-          "name": "force",
+          "name": "forceSelf",
           "type": "boolean"
         },
         {

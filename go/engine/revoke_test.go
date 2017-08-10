@@ -41,8 +41,8 @@ func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
 	return err
 }
 
-func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, force, forceLast bool) error {
-	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, Force: force, ForceLast: forceLast}, tc.G)
+func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, forceSelf, forceLast bool) error {
+	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, ForceSelf: forceSelf, ForceLast: forceLast}, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),

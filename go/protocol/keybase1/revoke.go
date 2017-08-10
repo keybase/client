@@ -23,7 +23,7 @@ func (o RevokeKeyArg) DeepCopy() RevokeKeyArg {
 type RevokeDeviceArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	DeviceID  DeviceID `codec:"deviceID" json:"deviceID"`
-	Force     bool     `codec:"force" json:"force"`
+	ForceSelf bool     `codec:"forceSelf" json:"forceSelf"`
 	ForceLast bool     `codec:"forceLast" json:"forceLast"`
 }
 
@@ -31,7 +31,7 @@ func (o RevokeDeviceArg) DeepCopy() RevokeDeviceArg {
 	return RevokeDeviceArg{
 		SessionID: o.SessionID,
 		DeviceID:  o.DeviceID.DeepCopy(),
-		Force:     o.Force,
+		ForceSelf: o.ForceSelf,
 		ForceLast: o.ForceLast,
 	}
 }

@@ -23,13 +23,13 @@ type RevokeEngine struct {
 	deviceID  keybase1.DeviceID
 	kid       keybase1.KID
 	mode      RevokeMode
-	force     bool
+	forceSelf bool
 	forceLast bool
 }
 
 type RevokeDeviceEngineArgs struct {
 	ID        keybase1.DeviceID
-	Force     bool
+	ForceSelf bool
 	ForceLast bool
 }
 
@@ -37,7 +37,7 @@ func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) 
 	return &RevokeEngine{
 		deviceID:     args.ID,
 		mode:         RevokeDevice,
-		force:        args.Force,
+		forceSelf:    args.ForceSelf,
 		forceLast:    args.ForceLast,
 		Contextified: libkb.NewContextified(g),
 	}
@@ -122,7 +122,7 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 			return libkb.RevokeLastDeviceError{}
 		}
 
-		if e.deviceID == currentDevice && !(e.force || e.forceLast) {
+		if e.deviceID == currentDevice && !(e.forceSelf || e.forceLast) {
 			return libkb.RevokeCurrentDeviceError{}
 		}
 
