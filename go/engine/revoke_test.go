@@ -41,8 +41,8 @@ func doRevokeKey(tc libkb.TestContext, u *FakeUser, kid keybase1.KID) error {
 	return err
 }
 
-func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, force bool) error {
-	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, Force: force}, tc.G)
+func doRevokeDevice(tc libkb.TestContext, u *FakeUser, id keybase1.DeviceID, forceSelf, forceLast bool) error {
+	revokeEngine := NewRevokeDeviceEngine(RevokeDeviceEngineArgs{ID: id, ForceSelf: forceSelf, ForceLast: forceLast}, tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -93,7 +93,7 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	}
 
 	// Revoking the current device should fail.
-	err := doRevokeDevice(tc, u, thisDevice.ID, false)
+	err := doRevokeDevice(tc, u, thisDevice.ID, false, false)
 	if err == nil {
 		tc.T.Fatal("Expected revoking the current device to fail.")
 	}
@@ -101,7 +101,7 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
 	// But it should succeed with the --force flag.
-	err = doRevokeDevice(tc, u, thisDevice.ID, true)
+	err = doRevokeDevice(tc, u, thisDevice.ID, true, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func TestTrackAfterRevoke(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("tc2 revokes tc1 device:")
-	err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false)
+	err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false, false)
 	require.NoError(t, err)
 
 	// Still logged in on tc1.  Try to use it to track someone.  It should fail
@@ -334,7 +334,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("tc2 revokes tc1 device:")
-	err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false)
+	err = doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false, false)
 	require.NoError(t, err)
 
 	// Still logged in on tc1, a revoked device.
@@ -418,7 +418,43 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	}
 	require.NotNil(t, revokeDevice, "no paper key found to revoke")
 	t.Logf("revoke %s", revokeDevice.ID)
-	err := doRevokeDevice(tc, fu, revokeDevice.ID, false)
+	err := doRevokeDevice(tc, fu, revokeDevice.ID, false, false)
 	require.NoError(t, err)
 	return revokeDevice
+}
+
+func TestRevokeLastDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "rev")
+
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	thisDevice := devices[0]
+
+	// Revoking the current device should fail.
+	err := doRevokeDevice(tc, u, thisDevice.ID, false, false)
+	if err == nil {
+		t.Fatal("Expected revoking the current device to fail.")
+	}
+
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	// Since this is the last device, it should fail with `force` too:
+	err = doRevokeDevice(tc, u, thisDevice.ID, true, false)
+	if err == nil {
+		t.Fatal("Expected revoking the current last device to fail.")
+	}
+
+	assertNumDevicesAndKeys(tc, u, 1, 2)
+
+	// With `force` and `forceLast`, the revoke should succeed
+	err = doRevokeDevice(tc, u, thisDevice.ID, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertNumDevicesAndKeys(tc, u, 0, 0)
 }

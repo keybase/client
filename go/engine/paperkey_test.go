@@ -213,7 +213,7 @@ func TestPaperKeyAfterRevokePUK(t *testing.T) {
 	}
 
 	revoke := func(devid keybase1.DeviceID) {
-		err := doRevokeDevice(tc, fu, devid, false)
+		err := doRevokeDevice(tc, fu, devid, false /* force */, false /* forceLast */)
 		require.NoError(t, err)
 	}
 

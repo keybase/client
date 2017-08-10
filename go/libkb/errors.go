@@ -2053,3 +2053,15 @@ func (e KBFSNotRunning) Error() string {
 		return err
 	}
 }
+
+type RevokeCurrentDeviceError struct{}
+
+func (e RevokeCurrentDeviceError) Error() string {
+	return "cannot revoke the current device without confirmation"
+}
+
+type RevokeLastDeviceError struct{}
+
+func (e RevokeLastDeviceError) Error() string {
+	return "cannot revoke the last device in your account without confirmation"
+}
