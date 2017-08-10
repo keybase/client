@@ -4,7 +4,7 @@ import * as Constants from '../../constants/chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
+import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
 import throttle from 'lodash/throttle'
 
@@ -57,6 +57,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
   onNewChat: () => dispatch(newChat([])),
+  onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
