@@ -18,11 +18,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTextByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
-	uiSource UISource, nclArg chat1.NewConversationLocalArg, body string) error {
-
-	chatServer := NewServer(g, nil, serverConnection, uiSource)
-	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
+func SendTextByName(ctx context.Context, g *globals.Context, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, store *AttachmentStore, body string) error {
+	sendHelper, err := NewSendHelper(ctx, g, tlfName, topicType, tlfVisibility, topicName, membersType, ri, uid, oneChatPerTLF, store)
 	if err != nil {
 		return err
 	}
@@ -30,11 +27,8 @@ func SendTextByName(ctx context.Context, g *globals.Context, serverConnection Se
 	return err
 }
 
-func SendMessageByName(ctx context.Context, g *globals.Context, serverConnection ServerConnection,
-	uiSource UISource, nclArg chat1.NewConversationLocalArg, msg chat1.MessagePlaintext) error {
-
-	chatServer := NewServer(g, nil, serverConnection, uiSource)
-	sendHelper, err := NewSendHelper(ctx, chatServer, nclArg)
+func SendMessageByName(ctx context.Context, g *globals.Context, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, store *AttachmentStore, msg chat1.MessagePlaintext) error {
+	sendHelper, err := NewSendHelper(ctx, g, tlfName, topicType, tlfVisibility, topicName, membersType, ri, uid, oneChatPerTLF, store)
 	if err != nil {
 		return err
 	}
@@ -42,46 +36,41 @@ func SendMessageByName(ctx context.Context, g *globals.Context, serverConnection
 	return err
 }
 
-func NewTeamNewConversationLocalArg(tlfName string, topicName *string, identifyBehavior keybase1.TLFIdentifyBehavior) chat1.NewConversationLocalArg {
-	return chat1.NewConversationLocalArg{
-		TlfName:          tlfName,
-		TopicName:        topicName,
-		IdentifyBehavior: identifyBehavior,
-		TopicType:        chat1.TopicType_CHAT,
-		TlfVisibility:    chat1.TLFVisibility_PRIVATE,
-		MembersType:      chat1.ConversationMembersType_TEAM,
-	}
-}
-
 type SendHelper struct {
 	utils.DebugLabeler
 	globals.Contextified
 
-	ChatServer       *Server
-	ConversationID   chat1.ConversationID
-	TlfName          string
-	Triple           chat1.ConversationIDTriple
-	IdentifyBehavior keybase1.TLFIdentifyBehavior
+	RI             func() chat1.RemoteInterface
+	ConversationID chat1.ConversationID
+	TlfName        string
+	Triple         chat1.ConversationIDTriple
+	Boxer          *Boxer
+	Store          *AttachmentStore
 }
 
-func NewSendHelperFromInfo(server *Server, tlfName string, conversationID chat1.ConversationID, triple chat1.ConversationIDTriple, identifyBehavior keybase1.TLFIdentifyBehavior) (*SendHelper, error) {
+func NewSendHelperFromInfo(g *globals.Context, ri func() chat1.RemoteInterface, tlfName string, conversationID chat1.ConversationID, triple chat1.ConversationIDTriple, boxer *Boxer, store *AttachmentStore) (*SendHelper, error) {
 	return &SendHelper{
-		Contextified:     globals.NewContextified(server.G()),
-		DebugLabeler:     utils.NewDebugLabeler(server.G().GetLog(), "sendHelper", false),
-		ChatServer:       server,
-		ConversationID:   conversationID,
-		TlfName:          tlfName,
-		Triple:           triple,
-		IdentifyBehavior: identifyBehavior,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
+		RI:             ri,
+		ConversationID: conversationID,
+		TlfName:        tlfName,
+		Triple:         triple,
+		Boxer:          boxer,
+		Store:          store,
 	}, nil
 }
 
-func NewSendHelper(ctx context.Context, server *Server, nclArg chat1.NewConversationLocalArg) (*SendHelper, error) {
-	nclRes, err := server.NewConversationLocal(ctx, nclArg)
+func NewSendHelper(ctx context.Context, g *globals.Context, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, store *AttachmentStore) (*SendHelper, error) {
+	boxer := NewBoxer(g)
+	var identBreaks []keybase1.TLFIdentifyFailure
+	nclRes, err := NewConversation(ctx, g, utils.NewDebugLabeler(g.GetLog(),
+		"NewConversation", false), tlfName, topicType, tlfVisibility, topicName,
+		membersType, ri, uid, oneChatPerTLF, boxer, store, identBreaks)
 	if err != nil {
 		return nil, err
 	}
-	return NewSendHelperFromInfo(server, nclRes.Conv.Info.TlfName, nclRes.Conv.Info.Id, nclRes.Conv.Info.Triple, nclArg.IdentifyBehavior)
+	return NewSendHelperFromInfo(g, ri, nclRes.Conv.Info.TlfName, nclRes.Conv.Info.Id, nclRes.Conv.Info.Triple, boxer, store)
 }
 
 func (s *SendHelper) NewPlaintextMessage(body string) chat1.MessagePlaintext {
@@ -96,12 +85,16 @@ func (s *SendHelper) NewPlaintextMessage(body string) chat1.MessagePlaintext {
 }
 
 func (s *SendHelper) Send(ctx context.Context, msg chat1.MessagePlaintext) (res chat1.PostLocalRes, err error) {
-	return s.ChatServer.PostLocal(ctx,
-		chat1.PostLocalArg{
-			ConversationID:   s.ConversationID,
-			Msg:              msg,
-			IdentifyBehavior: s.IdentifyBehavior,
-		})
+	sender := NewBlockingSender(s.G(), s.Boxer, s.Store, s.RI)
+	_, msgBoxed, rl, err := sender.Send(ctx, s.ConversationID, msg, 0, nil)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	return chat1.PostLocalRes{
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		MessageID:  msgBoxed.GetMessageID(),
+	}, nil
 }
 
 func CurrentUID(g *globals.Context) (keybase1.UID, error) {
@@ -185,8 +178,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.ConvsUnverified[0], ratelim, nil
 }
 
-func NewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, boxer *Boxer, store *AttachmentStore) (res chat1.NewConversationLocalRes, reserr error) {
-	// uid not necessar =y maybe
+func NewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, boxer *Boxer, store *AttachmentStore, identBreaks []keybase1.TLFIdentifyFailure) (res chat1.NewConversationLocalRes, reserr error) {
 	if topicName == nil {
 		switch membersType {
 		case chat1.ConversationMembersType_TEAM:
@@ -230,7 +222,7 @@ func NewConversation(ctx context.Context, g *globals.Context, debugger utils.Deb
 		if reserr != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", reserr)
 		}
-		// REPLACE
+
 		firstMessageBoxed, topicNameState, reserr := makeFirstMessage(ctx, g, triple, info.CanonicalName,
 			membersType, tlfVisibility, topicName, boxer, store, ri)
 
@@ -315,6 +307,7 @@ func NewConversation(ctx context.Context, g *globals.Context, debugger utils.Deb
 		}
 
 		res.RateLimits = utils.AggRateLimits(res.RateLimits)
+		res.IdentifyFailures = identBreaks
 		return res, nil
 	}
 

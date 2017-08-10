@@ -10,6 +10,8 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -111,19 +113,13 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
 		user, memberBody)
 
-	localH := &chatLocalHandler{
-		BaseHandler: h.BaseHandler,
-	}
-	chatServer := chat.NewServer(h.G(), nil, h.gregor, localH)
-	nclArg := chat.NewTeamNewConversationLocalArg(team, &chat.DefaultTeamTopic, keybase1.TLFIdentifyBehavior_CHAT_CLI)
-	sendHelper, err := chat.NewSendHelper(ctx, chatServer, nclArg)
+	err = chat.SendTextByName(ctx, h.G(), team, chat1.TopicType_CHAT,
+		chat1.TLFVisibility_PRIVATE, &chat.DefaultTeamTopic,
+		chat1.ConversationMembersType_TEAM, h.gregor.GetClient,
+		gregor1.UID(h.G().Env.GetUID()), nil, nil, body)
 	if err != nil {
 		return false
 	}
-	if _, err := sendHelper.Send(ctx, sendHelper.NewPlaintextMessage(body)); err != nil {
-		return false
-	}
-
 	return true
 }
 

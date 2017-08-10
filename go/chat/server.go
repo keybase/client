@@ -461,11 +461,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
-	res.IdentifyFailures = identBreaks
+
 	return NewConversation(ctx, h.G(), h.DebugLabeler, arg.TlfName,
 		arg.TopicType, arg.TlfVisibility, arg.TopicName, arg.MembersType,
-		h.remoteClient, uid, nil, h.boxer, h.store)
+		h.remoteClient, uid, nil, h.boxer, h.store, identBreaks)
 }
 
 var DefaultTeamTopic = "general"
