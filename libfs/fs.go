@@ -247,13 +247,13 @@ func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
 }
 
 // ReadDir implements the billy.Filesystem interface for FS.
-func (fs *FS) ReadDir(path string) (fis []os.FileInfo, err error) {
-	fs.log.CDebugf(fs.ctx, "ReadDir %s", path)
+func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
+	fs.log.CDebugf(fs.ctx, "ReadDir %s", p)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
 	}()
 
-	n, base, err := fs.lookupParent(path)
+	n, base, err := fs.lookupParent(p)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (fs *FS) ReadDir(path string) (fis []os.FileInfo, err error) {
 		fis = append(fis, &FileInfo{
 			fs:       fs,
 			ei:       ei,
-			fullpath: path + "/" + name,
+			fullpath: path.Join(p, name),
 		})
 	}
 	return fis, nil
