@@ -27,6 +27,7 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "list", c)
+			cl.SetNoStandalone()
 		},
 		Flags: getInboxFetcherActivitySortedFlags(),
 	}

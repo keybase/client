@@ -111,6 +111,11 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	memberBody := strings.Join(lines, "\n")
 	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
 		user, memberBody)
+
+	// Ensure we have chat available, since TeamAddMember may also be
+	// coming from a standalone launch.
+	h.G().ExternalG().StartStandaloneChat()
+
 	gregorCli := h.gregor.GetClient()
 	if err = chat.SendTextByName(ctx, h.G(), team, chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli); err != nil {

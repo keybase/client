@@ -60,6 +60,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "[conversation [message]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
+			cl.SetNoStandalone()
 		},
 		Flags: append(getConversationResolverFlags(),
 			mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
@@ -76,6 +77,20 @@ func (c *CmdChatSend) Run() (err error) {
 	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
 		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
+
+	// TODO: Right now this command cannot be run in standalone at
+	// all, even though team chats should work, but there is a bug
+	// in finding existing conversations.
+	if c.G().Standalone {
+		switch c.resolvingRequest.MembersType {
+		case chat1.ConversationMembersType_TEAM:
+			c.G().StartStandaloneChat()
+		default:
+			err = CantRunInStandaloneError{}
+			return err
+		}
+	}
+
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,

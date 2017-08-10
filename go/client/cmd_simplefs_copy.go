@@ -38,6 +38,7 @@ func NewCmdSimpleFSCopy(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Contextified: libkb.NewContextified(g),
 				opCanceler:   NewOpCanceler(g),
 			}, "cp", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
