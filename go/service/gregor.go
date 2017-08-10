@@ -223,11 +223,17 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_BACKGROUNDACTIVE:
 			fallthrough
 		case keybase1.AppState_FOREGROUND:
-			// Make sure the URI is set before attempting this (possible it isnt in a race)
+			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+
+				g.chatLog.Debug(context.Background(), "(artificial sleep for 5s)")
+				time.Sleep(5 * time.Second)
+
 				if err := g.Connect(g.uri); err != nil {
-					g.chatLog.Debug(context.Background(), "error reconnecting")
+					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
+				} else {
+					g.chatLog.Debug(context.Background(), "foregrounded and reconnected")
 				}
 			}
 		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
@@ -333,6 +339,10 @@ func (g *gregorHandler) setReachability(r *reachability) {
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	// XXX move this here?
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
@@ -1335,8 +1345,9 @@ func (g *gregorHandler) pingLoop() {
 }
 
 func (g *gregorHandler) connectTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
+	// XXX
+	// g.connMutex.Lock()
+	// defer g.connMutex.Unlock()
 
 	ctx := context.Background()
 	if g.conn != nil {
@@ -1377,8 +1388,9 @@ func (g *gregorHandler) connectTLS() error {
 }
 
 func (g *gregorHandler) connectNoTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
+	// XXX
+	// g.connMutex.Lock()
+	// defer g.connMutex.Unlock()
 
 	ctx := context.Background()
 	if g.conn != nil {
