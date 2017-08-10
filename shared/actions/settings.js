@@ -392,7 +392,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   ])
   yield cancel(delayThenEmptyTask)
 
-  let results: {
+  const results: {
     notifications: {
       email: {
         settings: Array<{
