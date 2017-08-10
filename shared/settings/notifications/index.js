@@ -28,10 +28,10 @@ const Group = (props: {
   allowEdit: boolean,
   groupName: string,
   onToggle: (groupName: string, name: string) => void,
-  onToggleUnsubscribeAll: () => void,
+  onToggleUnsubscribeAll?: () => void,
   settings: ?Array<NotificationsSettingsState>,
   title: string,
-  unsub: string,
+  unsub?: string,
   unsubscribedFromAll: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
@@ -50,7 +50,7 @@ const Group = (props: {
           />
         ))}
     </Box>
-    {props.unsub.length > 0 &&
+    {props.unsub &&
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Text type="BodyBig">Or:</Text>
         <Checkbox
@@ -100,10 +100,8 @@ const Notifications = (props: Props) =>
             allowEdit={props.allowEdit}
             groupName="security"
             onToggle={props.onToggle}
-            onToggleUnsubscribeAll={() => {}}
             title="Security"
             settings={props.groups.security.settings}
-            unsub=""
             unsubscribedFromAll={false}
           />}
 
