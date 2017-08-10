@@ -1078,7 +1078,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Debug("reconnected to push server")
 		return nil
 	default:
-		return fmt.Errorf("unhandled system: %s", obm.System())
+		// it's ok if this can't handle a message
+		return nil
 	}
 }
 
