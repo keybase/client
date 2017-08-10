@@ -185,6 +185,178 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.ConvsUnverified[0], ratelim, nil
 }
 
+func NewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, boxer *Boxer, store *AttachmentStore) (res chat1.NewConversationLocalRes, reserr error) {
+	// uid not necessar =y maybe
+	if topicName == nil {
+		switch membersType {
+		case chat1.ConversationMembersType_TEAM:
+			topicName = &DefaultTeamTopic
+		default:
+			name := ""
+			topicName = &name
+		}
+	}
+
+	var findRes chat1.FindConversationsLocalRes
+	findRes.Conversations, findRes.RateLimits, reserr = FindConversations(ctx, g, debugger, ri, uid, tlfName, topicType, membersType, tlfVisibility, *topicName, oneChatPerTLF)
+	findRes.RateLimits = utils.AggRateLimits(findRes.RateLimits)
+
+	if reserr != nil {
+		return chat1.NewConversationLocalRes{}, reserr
+	}
+
+	if len(findRes.Conversations) == 1 {
+		return chat1.NewConversationLocalRes{
+			Conv:             findRes.Conversations[0],
+			RateLimits:       findRes.RateLimits,
+			IdentifyFailures: findRes.IdentifyFailures,
+		}, nil
+	}
+	res.RateLimits = append(res.RateLimits, res.RateLimits...)
+
+	info, reserr := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, tlfVisibility == chat1.TLFVisibility_PUBLIC)
+	if reserr != nil {
+		return chat1.NewConversationLocalRes{}, reserr
+	}
+
+	triple := chat1.ConversationIDTriple{
+		Tlfid:     info.ID,
+		TopicType: topicType,
+		TopicID:   make(chat1.TopicID, 16),
+	}
+
+	for i := 0; i < 5; i++ {
+		triple.TopicID, reserr = utils.NewChatTopicID()
+		if reserr != nil {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", reserr)
+		}
+		// REPLACE
+		firstMessageBoxed, topicNameState, reserr := makeFirstMessage(ctx, g, triple, info.CanonicalName,
+			membersType, tlfVisibility, topicName, boxer, store, ri)
+
+		if reserr != nil {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", reserr)
+		}
+		var ncrres chat1.NewConversationRemoteRes
+		ncrres, reserr = ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+			IdTriple:       triple,
+			TLFMessage:     *firstMessageBoxed,
+			MembersType:    membersType,
+			TopicNameState: topicNameState,
+		})
+		if ncrres.RateLimit != nil {
+			res.RateLimits = append(res.RateLimits, *ncrres.RateLimit)
+		}
+		convID := ncrres.ConvID
+		if reserr != nil {
+			switch cerr := reserr.(type) {
+			case libkb.ChatStalePreviousStateError:
+				continue
+			case libkb.ChatConvExistsError:
+				// This triple already exists.
+
+				if triple.TopicType != chat1.TopicType_CHAT ||
+					membersType == chat1.ConversationMembersType_TEAM {
+					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
+					// different topic ID.
+					continue
+				}
+				// A chat conversation already exists; just reuse it.
+				// Note that from this point on, TopicID is entirely the wrong value.
+				convID = cerr.ConvID
+			case libkb.ChatCollisionError:
+				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
+				continue
+			default:
+				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
+			}
+		}
+
+		// create succeeded; grabbing the conversation and returning
+		uid := g.Env.GetUID()
+
+		ib, rl, err := g.InboxSource.Read(ctx, uid.ToBytes(), nil, false,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			}, nil)
+		if err != nil {
+			return chat1.NewConversationLocalRes{}, err
+		}
+		if rl != nil {
+			res.RateLimits = append(res.RateLimits, *rl)
+		}
+
+		if len(ib.Convs) != 1 {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
+		}
+		res.Conv = ib.Convs[0]
+
+		// Update inbox cache
+		updateConv := ib.ConvsUnverified[0]
+		if err = g.InboxSource.NewConversation(ctx, uid.ToBytes(), 0, updateConv); err != nil {
+			return chat1.NewConversationLocalRes{}, err
+		}
+
+		if res.Conv.Error != nil {
+			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
+		}
+
+		// Send a message to the channel after joining.
+		switch membersType {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+			irl, err := postJoinLeave(ctx, g, ri, uid.ToBytes(), convID, joinMessageBody)
+			if err != nil {
+				// ignore the error
+			}
+			res.RateLimits = append(res.RateLimits, irl...)
+		default:
+			// pass
+		}
+
+		res.RateLimits = utils.AggRateLimits(res.RateLimits)
+		return res, nil
+	}
+
+	return chat1.NewConversationLocalRes{}, reserr
+}
+
+func makeFirstMessage(ctx context.Context, g *globals.Context, triple chat1.ConversationIDTriple,
+	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
+	topicName *string, boxer *Boxer, store *AttachmentStore, ri func() chat1.RemoteInterface) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
+	var msg chat1.MessagePlaintext
+	if topicName != nil {
+		msg = chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        triple,
+				TlfName:     tlfName,
+				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				MessageType: chat1.MessageType_METADATA,
+				Prev:        nil, // TODO
+				// Sender and SenderDevice filled by prepareMessageForRemote
+			},
+			MessageBody: chat1.NewMessageBodyWithMetadata(
+				chat1.MessageConversationMetadata{
+					ConversationTitle: *topicName,
+				}),
+		}
+	} else {
+		msg = chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        triple,
+				TlfName:     tlfName,
+				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				MessageType: chat1.MessageType_TLFNAME,
+				Prev:        nil, // TODO
+			},
+		}
+	}
+
+	sender := NewBlockingSender(g, boxer, store, ri)
+	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
+	return mbox, topicNameState, err
+}
+
 func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, includeAuxiliaryInfo bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
