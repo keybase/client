@@ -3,13 +3,13 @@ package chat
 import (
 	"testing"
 
-	"golang.org/x/net/context"
+	// "golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
+	// "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,18 +67,6 @@ func TestRecentConversationParticipants(t *testing.T) {
 	require.Equal(t, refList, res)
 }
 
-type MockSC struct {
-	ri chat1.RemoteInterface
-}
-
-func (s MockSC) Reconnect(ctx context.Context) (bool, error) {
-	return true, nil
-}
-
-func (s MockSC) GetClient() chat1.RemoteInterface {
-	return s.ri
-}
-
 func TestSendHelper(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "SendHelper", 2)
@@ -90,12 +78,11 @@ func TestSendHelper(t *testing.T) {
 		uid := users[0].User.GetUID().ToBytes()
 
 		ri := ctc.as(t, users[0]).ri
-		sc := MockSC{
-			ri: ri,
+		riWrapper := func() chat1.RemoteInterface {
+			return ri
 		}
 
 		g := globals.NewContext(tc.G, tc.ChatG)
-		server := NewServer(g, nil, sc, TestUISource{})
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, users[1])
@@ -109,14 +96,7 @@ func TestSendHelper(t *testing.T) {
 			topicName = &DefaultTeamTopic
 		}
 
-		sendHelper, err := NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
-			TlfName:          tlfName,
-			TopicType:        chat1.TopicType_CHAT,
-			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
-			TopicName:        topicName,
-			MembersType:      mt,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
+		sendHelper, err := NewSendHelper(ctx, g, tlfName, chat1.TopicType_CHAT, chat1.TLFVisibility_PRIVATE, topicName, mt, riWrapper, uid, nil, nil)
 		require.NoError(t, err)
 		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("alpha"))
 		require.NoError(t, err)
@@ -133,14 +113,7 @@ func TestSendHelper(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, len(tv.Messages))
 
-		sendHelper, err = NewSendHelper(ctx, server, chat1.NewConversationLocalArg{
-			TlfName:          tlfName,
-			TopicType:        chat1.TopicType_CHAT,
-			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
-			TopicName:        topicName,
-			MembersType:      mt,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
+		sendHelper, err = NewSendHelper(ctx, g, tlfName, chat1.TopicType_CHAT, chat1.TLFVisibility_PRIVATE, topicName, mt, riWrapper, uid, nil, nil)
 		require.NoError(t, err)
 		_, err = sendHelper.Send(ctx, sendHelper.NewPlaintextMessage("gamma"))
 		require.NoError(t, err)
@@ -157,14 +130,7 @@ func TestSendHelper(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 4, len(tv.Messages))
 
-		err = SendTextByName(ctx, g, sc, TestUISource{}, chat1.NewConversationLocalArg{
-			TlfName:          tlfName,
-			TopicType:        chat1.TopicType_CHAT,
-			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
-			TopicName:        topicName,
-			MembersType:      mt,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}, "epsilon")
+		err = SendTextByName(ctx, g, tlfName, chat1.TopicType_CHAT, chat1.TLFVisibility_PRIVATE, topicName, mt, riWrapper, uid, nil, nil, "epsilon")
 		require.NoError(t, err)
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
@@ -174,15 +140,8 @@ func TestSendHelper(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 5, len(tv.Messages))
 
-		altServer := NewServer(g, nil, sc, TestUISource{})
 		altTopicName := "aleph"
-		altSendHelper, err := NewSendHelper(ctx, altServer, chat1.NewConversationLocalArg{
-			TlfName:       tlfName,
-			TopicType:     chat1.TopicType_CHAT,
-			TlfVisibility: chat1.TLFVisibility_PRIVATE,
-			TopicName:     &altTopicName,
-			MembersType:   mt,
-		})
+		altSendHelper, err := NewSendHelper(ctx, g, tlfName, chat1.TopicType_CHAT, chat1.TLFVisibility_PRIVATE, &altTopicName, mt, ri_wrapper, uid, nil, nil)
 		require.NoError(t, err)
 		_, err = altSendHelper.Send(ctx, altSendHelper.NewPlaintextMessage("zeta"))
 		require.NoError(t, err)

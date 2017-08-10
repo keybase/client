@@ -179,18 +179,21 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func NewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler, tlfName string, topicType chat1.TopicType, tlfVisibility chat1.TLFVisibility, topicName *string, membersType chat1.ConversationMembersType, ri func() chat1.RemoteInterface, uid gregor1.UID, oneChatPerTLF *bool, boxer *Boxer, store *AttachmentStore, identBreaks []keybase1.TLFIdentifyFailure) (res chat1.NewConversationLocalRes, reserr error) {
+	var name string
 	if topicName == nil {
 		switch membersType {
 		case chat1.ConversationMembersType_TEAM:
 			topicName = &DefaultTeamTopic
+			name = *topicName
 		default:
-			name := ""
-			topicName = &name
+			name = ""
 		}
+	} else {
+		name = *topicName
 	}
 
 	var findRes chat1.FindConversationsLocalRes
-	findRes.Conversations, findRes.RateLimits, reserr = FindConversations(ctx, g, debugger, ri, uid, tlfName, topicType, membersType, tlfVisibility, *topicName, oneChatPerTLF)
+	findRes.Conversations, findRes.RateLimits, reserr = FindConversations(ctx, g, debugger, ri, uid, tlfName, topicType, membersType, tlfVisibility, name, oneChatPerTLF)
 	findRes.RateLimits = utils.AggRateLimits(findRes.RateLimits)
 
 	if reserr != nil {
@@ -265,7 +268,10 @@ func NewConversation(ctx context.Context, g *globals.Context, debugger utils.Deb
 		}
 
 		// create succeeded; grabbing the conversation and returning
-		uid := g.Env.GetUID()
+		uid, err := CurrentUID(g)
+		if err != nil {
+			return chat1.NewConversationLocalRes{}, err
+		}
 
 		ib, rl, err := g.InboxSource.Read(ctx, uid.ToBytes(), nil, false,
 			&chat1.GetInboxLocalQuery{
