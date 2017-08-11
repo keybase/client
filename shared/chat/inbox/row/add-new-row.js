@@ -90,7 +90,7 @@ class _AddNewRow extends Component<void, Props, State> {
       >
         {children}
         <Icon
-          type="iconfont-add"
+          type="iconfont-compose"
           style={{color: globalColors.blue, marginLeft: 9, marginRight: 9}}
           onClick={this.props.onNewChat}
         />
