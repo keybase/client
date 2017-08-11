@@ -35,10 +35,9 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		}
 	}
 
-	msg := `
-		Unable to find conversation.
-		When considering %s as a username or a list of usernames, received error: %v.
-		When considering %s as a team name, received error: %v.
-	`
+	msg := `Unable to find conversation.
+When considering %s as a username or a list of usernames, received error: %v.
+When considering %s as a team name, received error: %v.`
+
 	return nil, libkb.NotFoundError{Msg: fmt.Sprintf(msg, name, tlfError, name, teamError)}
 }
