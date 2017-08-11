@@ -39,11 +39,11 @@ class _AddNewRow extends Component<void, Props, State> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
-        <Icon type="iconfont-search" style={{color: globalColors.blue, marginLeft: 9}} />
+        <Icon type="iconfont-search" style={{color: globalColors.grey, marginLeft: 9, marginRight: 9}} />
         <Input small={true} value={this.state.filter} hintText="Jump to..." onChangeText={this._setFilter} />
         <Icon
           type="iconfont-new"
-          style={{color: globalColors.blue, marginRight: 9}}
+          style={{color: globalColors.blue, marginLeft: 9, marginRight: 9}}
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
