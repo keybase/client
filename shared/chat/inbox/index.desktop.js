@@ -88,6 +88,8 @@ class Inbox extends PureComponent<void, Props, void> {
     return (
       <div style={containerStyle}>
         <ChatFilterRow
+          isLoading={this.props.isLoading}
+          filter={this.props.filter}
           onNewChat={this.props.onNewChat}
           onSetFilter={this.props.onSetFilter}
           hotkeys={['ctrl+n', 'command+n']}

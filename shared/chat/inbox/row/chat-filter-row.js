@@ -11,15 +11,14 @@ if (!isMobile) {
 }
 
 type Props = {
+  isLoading: boolean,
+  filter: string,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
-  onJumpToChat: () => void,
-  isLoading: boolean,
 }
 
 type State = {
   inEditingMode: boolean,
-  filter: string,
 }
 
 class _ChatFilterRow extends Component<void, Props, State> {
@@ -29,24 +28,21 @@ class _ChatFilterRow extends Component<void, Props, State> {
     super(props)
     this.state = {
       inEditingMode: false,
-      filter: '',
     }
   }
 
   _setState = (inEditingMode, filter) => {
-    this.setState({inEditingMode, filter})
+    this.setState({inEditingMode})
     this.props.onSetFilter(filter)
   }
 
-  _setFilter = filter => this._setState(this.state.inEditingMode, filter)
-
   _enterEditingMode = () => {
-    this._setState(true, '')
+    this.setState({inEditingMode: true})
   }
 
   _leaveEditingMode = () => {
+    this.setState({inEditingMode: false})
     // TODO: Set filter to '', but only after the chat is selected.
-    this._setState(false, this.state.filter)
   }
 
   render() {
@@ -63,9 +59,9 @@ class _ChatFilterRow extends Component<void, Props, State> {
           hideUnderline={true}
           key="1"
           small={true}
-          value={this.state.filter}
+          value={this.props.filter}
           hintText="Jump to..."
-          onChangeText={(filter: string) => this._setFilter(filter)}
+          onChangeText={this.props.onSetFilter}
           onBlur={this._leaveEditingMode}
         />,
       ]

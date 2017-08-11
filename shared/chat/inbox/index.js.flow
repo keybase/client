@@ -7,6 +7,7 @@ import type {ConversationIDKey} from '../../constants/chat'
 export type Props = {
   isLoading: boolean,
   isActiveRoute: boolean,
+  filter: string,
   nowOverride?: number, // just for dumb rendering
   rows: List<ConversationIDKey>,
   onNewChat: () => void,

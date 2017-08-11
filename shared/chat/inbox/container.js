@@ -49,6 +49,7 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
 
 const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
   isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+  filter: getFilter(state),
   showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
   rows: getRows(state),
   isActiveRoute,
