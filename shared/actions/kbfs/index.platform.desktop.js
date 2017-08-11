@@ -189,6 +189,11 @@ function installCachedDokan(): Promise<*> {
     })
   })
 }
+
+function* installDokanSaga(): SagaGenerator<any, any> {
+  yield call(installCachedDokan)
+}
+
 function* installFuseSaga(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallFuseRpcPromise)
   const fuseResults = result && result.componentResults
@@ -242,17 +247,13 @@ function waitForMountAndOpen(): Promise<*> {
 }
 
 function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
-  if (isWindows) {
-    yield call(installCachedDokan)
-  } else {
-    const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
-    yield put(openAction)
-    try {
-      yield call(waitForMountAndOpen)
-    } finally {
-      const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
-      yield put(openFinishedAction)
-    }
+  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  yield put(openAction)
+  try {
+    yield call(waitForMountAndOpen)
+  } finally {
+    const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
+    yield put(openFinishedAction)
   }
 }
 
@@ -332,6 +333,7 @@ export {
   fuseStatusSaga,
   fuseStatusUpdateSaga,
   installFuseSaga,
+  installDokanSaga,
   installKBFSSaga,
   openInFileUISaga,
   openSaga,

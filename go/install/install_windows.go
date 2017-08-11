@@ -62,7 +62,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return keybase1.UninstallResult{}
 }
 
-// InstallKBFS installs the KBFS launchd service
+// installDokan installs the Dokan drivers
 func installDokan(_ libkb.RunMode, log Log) error {
 	log.Info("Installing Dokan")
 	command, err := getCachedPackageModifyString(log)
