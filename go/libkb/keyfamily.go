@@ -36,7 +36,8 @@ type ComputedKeyInfosVersion int
 
 const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV1
+	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV2
 )
 
 // refers to exactly one ServerKeyInfo.
@@ -653,11 +654,17 @@ func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) 
 	if perUserKey.Gen <= 0 {
 		return fmt.Errorf("invalid per-user-key generation %v", perUserKey.Gen)
 	}
+	if perUserKey.Seqno == 0 {
+		return fmt.Errorf("invalid per-user-key seqno: %v", perUserKey.Seqno)
+	}
 	if perUserKey.SigKID.IsNil() {
 		return errors.New("nil per-user-key sig kid")
 	}
 	if perUserKey.EncKID.IsNil() {
 		return errors.New("nil per-user-key enc kid")
+	}
+	if perUserKey.SignedByKID.IsNil() {
+		return errors.New("nil per-user-key signed-by kid")
 	}
 	cki.PerUserKeys[keybase1.PerUserKeyGeneration(perUserKey.Gen)] = perUserKey
 	return nil
