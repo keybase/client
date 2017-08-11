@@ -9,7 +9,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -59,9 +58,7 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		return &ret, nil
 	}
 	_, notFound = err.(libkb.NotFoundError)
-	_, badTLFName := err.(utils.BadTLFNameError)
-	_, noSuchUser := err.(utils.NoSuchUserError)
-	if !notFound && !badTLFName && !noSuchUser {
+	if !notFound && !strings.HasSuffix(err.Error(), "is in an incorrect format") {
 		return nil, err
 	}
 	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a valid username, list of usernames, or team name.", name)}
