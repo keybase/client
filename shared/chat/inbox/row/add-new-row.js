@@ -33,26 +33,20 @@ class _AddNewRow extends Component<void, Props, State> {
     }
   }
 
-  _setFilter = filter => {
-    this.setState({
-      inEditingMode: true,
-      filter,
-    })
+  _setState = (inEditingMode, filter) => {
+    this.setState({inEditingMode, filter})
     this.props.onSetFilter(filter)
   }
 
+  _setFilter = filter => this._setState(this.state.inEditingMode, filter)
+
   _enterEditingMode = () => {
-    this.setState({
-      inEditingMode: true,
-      filter: '',
-    })
+    this._setState(true, '')
   }
 
   _leaveEditingMode = () => {
-    this.setState({
-      inEditingMode: false,
-      filter: '',
-    })
+    // TODO: Set filter to '', but only after the chat is selected.
+    this._setState(false, this.state.filter)
   }
 
   render() {
@@ -65,11 +59,12 @@ class _AddNewRow extends Component<void, Props, State> {
           style={{color: globalColors.grey, marginLeft: 9, marginRight: 9}}
         />,
         <Input
+          autoFocus={true}
           key="1"
           small={true}
           value={this.state.filter}
           hintText="Jump to..."
-          onChangeText={this._setFilter}
+          onChangeText={(filter: string) => this._setFilter(filter)}
           onBlur={() => this._leaveEditingMode()}
         />,
       ]
