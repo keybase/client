@@ -34,6 +34,7 @@ import (
 type ServerConnection interface {
 	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
+	IsConnectInProgress() bool
 }
 
 type UISource interface {
@@ -112,10 +113,18 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
 	if h.isOfflineError(err) {
-		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err.Error())
+		if h.serverConn.IsConnectInProgress() {
+			h.Debug(ctx, "handleOfflineError: connect in progress, received offline err: %s", err)
+			h.Debug(ctx, "handleOfflineError: connect in progress, *not* setting offline")
+			return nil
+		} else {
+			h.Debug(ctx, "handleOfflineError: connect not in progress")
+		}
+		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
+		h.Debug(ctx, "handleOfflineError: current app state: %v", h.G().AppState.State())
 		res.SetOffline()
 
-		// Reconnect Gregor if we think we are online
+		// Reconnect Gregor if we think we are offline
 		if _, err := h.serverConn.Reconnect(ctx); err != nil {
 			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
 		}
@@ -224,6 +233,10 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	wg.Wait()
 
 	res.Offline = h.G().InboxSource.IsOffline()
+	if h.serverConn.IsConnectInProgress() {
+		h.Debug(ctx, "GetInboxNonblockLocal: connect in progress, clearing Offline in result")
+		res.Offline = false
+	}
 	res.IdentifyFailures = breaks
 	return res, nil
 }
@@ -455,6 +468,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	cancel()
 
 	res.Offline = h.G().ConvSource.IsOffline()
+	if h.serverConn != nil && h.serverConn.IsConnectInProgress() {
+		h.Debug(ctx, "GetThreadNonblock: connect in progress, clearing Offline in result")
+		res.Offline = false
+	}
 	return res, fullErr
 }
 
@@ -2162,8 +2179,8 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s)",
-		arg.TlfName))()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s) [offline = %v]",
+		arg.TlfName, res.Offline))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err

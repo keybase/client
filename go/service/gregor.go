@@ -143,6 +143,9 @@ type gregorHandler struct {
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
 
+	progMutex         sync.Mutex
+	connectInProgress bool
+
 	cli               rpc.GenericClient
 	pingCli           rpc.GenericClient
 	sessionID         gregor1.SessionID
@@ -225,19 +228,24 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_FOREGROUND:
 			// Make sure the URI is set before attempting this (possible it isn't in a race)
 			if g.uri != nil {
-				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
+				g.chatLog.Debug(context.Background(), "[offline debug] foregrounded, reconnecting")
 
-				g.chatLog.Debug(context.Background(), "(artificial sleep for 5s)")
-				time.Sleep(5 * time.Second)
+				g.chatLog.Debug(context.Background(), "[offline debug] (artificial sleep for 20s)")
+				g.progMutex.Lock()
+				g.G().Log.Debug("gregorHandler (offline debug) setting connectInProgress to true")
+				g.connectInProgress = true
+				g.progMutex.Unlock()
+				time.Sleep(20 * time.Second)
+				g.chatLog.Debug(context.Background(), "[offline debug] (artificial sleep done)")
 
 				if err := g.Connect(g.uri); err != nil {
-					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
+					g.chatLog.Debug(context.Background(), "[offline debug] error reconnecting: %s", err)
 				} else {
-					g.chatLog.Debug(context.Background(), "foregrounded and reconnected")
+					g.chatLog.Debug(context.Background(), "[offline debug] foregrounded and reconnected")
 				}
 			}
 		case keybase1.AppState_INACTIVE, keybase1.AppState_BACKGROUND:
-			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
+			g.chatLog.Debug(context.Background(), "[offline debug] backgrounded, shutting down connection")
 			g.Shutdown()
 		}
 	}
@@ -343,6 +351,17 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// XXX move this here?
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
+
+	g.progMutex.Lock()
+	g.G().Log.Debug("gregorHandler (offline debug) setting connectInProgress to true")
+	g.connectInProgress = true
+	g.progMutex.Unlock()
+	defer func() {
+		g.progMutex.Lock()
+		g.G().Log.Debug("gregorHandler (offline debug) setting connectInProgress to false")
+		g.connectInProgress = false
+		g.progMutex.Unlock()
+	}()
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
@@ -1246,6 +1265,12 @@ func (g *gregorHandler) isReachable() bool {
 	}
 
 	return true
+}
+
+func (g *gregorHandler) IsConnectInProgress() bool {
+	g.progMutex.Lock()
+	defer g.progMutex.Unlock()
+	return g.connectInProgress
 }
 
 func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err error) {
