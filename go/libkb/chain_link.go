@@ -206,12 +206,6 @@ type ChainLink struct {
 	isOwnNewLinkFromServer bool
 }
 
-type ChainLinkStorageVersion int
-
-const (
-	currentChainLinkStorageVersion ChainLinkStorageVersion = 1
-)
-
 // Returns whether or not this chain link is bad, and if so, what the
 // reason is.
 func (c *ChainLink) IsBad() (isBad bool, reason string) {
@@ -317,8 +311,6 @@ func (c *ChainLink) Pack() error {
 	if c.cki != nil {
 		p.SetKey("computed_key_infos", jsonw.NewWrapper(*c.cki))
 	}
-
-	p.SetKey("storage_version", jsonw.NewInt(int(currentChainLinkStorageVersion)))
 
 	c.packed = p
 
@@ -872,16 +864,6 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 	if err == nil && jw != nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(g, nil, id, jw)
-		storageVersion, err2 := ret.packed.AtKey("storage_version").GetInt()
-		if err2 != nil {
-			storageVersion = 0
-		}
-		if ChainLinkStorageVersion(storageVersion) != currentChainLinkStorageVersion {
-			// Pretend the link was not found in storage.
-			g.Log.Debug("ImportLinkFromStorage found outdated cached link version: %v but need %v",
-				storageVersion, currentChainLinkStorageVersion)
-			return nil, nil
-		}
 		if err = ret.Unpack(true, selfUID); err != nil {
 			return nil, err
 		}

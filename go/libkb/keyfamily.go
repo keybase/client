@@ -36,7 +36,8 @@ type ComputedKeyInfosVersion int
 
 const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV1
+	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV2
 )
 
 // refers to exactly one ServerKeyInfo.
