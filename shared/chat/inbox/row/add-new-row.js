@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Icon, Box, ClickableBox, LoadingLine, Input} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {Icon, Box, LoadingLine, Input} from '../../../common-adapters'
+import {globalStyles, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
@@ -39,21 +39,12 @@ class _AddNewRow extends Component<void, Props, State> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
-        <Input value={this.state.filter} hintText="Jump to..." onChangeText={this._setFilter} />
-        <ClickableBox
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flexGrow: 1,
-            flexShrink: 0,
-            justifyContent: 'center',
-            paddingLeft: globalMargins.medium,
-            paddingRight: globalMargins.medium,
-          }}
+        <Input small={true} value={this.state.filter} hintText="Jump to..." onChangeText={this._setFilter} />
+        <Icon
+          type="iconfont-new"
+          style={{color: globalColors.blue, marginRight: 9}}
           onClick={this.props.onNewChat}
-        >
-          <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-        </ClickableBox>
+        />
         {this.props.isLoading &&
           <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
             <LoadingLine />
