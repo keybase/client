@@ -18,7 +18,7 @@ type Props = {
 }
 
 type State = {
-  inEditingMode: boolean,
+  isEditing: boolean,
 }
 
 class _ChatFilterRow extends Component<void, Props, State> {
@@ -27,22 +27,22 @@ class _ChatFilterRow extends Component<void, Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      inEditingMode: false,
+      isEditing: false,
     }
   }
 
-  _enterEditingMode = () => {
-    this.setState({inEditingMode: true})
+  _startEditing = () => {
+    this.setState({isEditing: true})
   }
 
-  _leaveEditingMode = () => {
-    this.setState({inEditingMode: false})
+  _stopEditing = () => {
+    this.setState({isEditing: false})
     // TODO: Set filter to '', but only after the chat is selected.
   }
 
   render() {
     let children
-    if (this.state.inEditingMode) {
+    if (this.state.isEditing) {
       children = [
         <Icon
           key="0"
@@ -57,12 +57,12 @@ class _ChatFilterRow extends Component<void, Props, State> {
           value={this.props.filter}
           hintText="Jump to..."
           onChangeText={this.props.onSetFilter}
-          onBlur={this._leaveEditingMode}
+          onBlur={this._stopEditing}
         />,
       ]
     } else {
       children = (
-        <Box style={styleFilterContainer} onClick={this._enterEditingMode}>
+        <Box style={styleFilterContainer} onClick={this._startEditing}>
           <Icon type="iconfont-search" style={{color: globalColors.black_20, fontSize: 12}} />
           <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
             Jump to chat
