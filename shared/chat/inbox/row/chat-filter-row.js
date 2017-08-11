@@ -66,12 +66,12 @@ class _ChatFilterRow extends Component<void, Props, State> {
           value={this.state.filter}
           hintText="Jump to..."
           onChangeText={(filter: string) => this._setFilter(filter)}
-          onBlur={() => this._leaveEditingMode()}
+          onBlur={this._leaveEditingMode}
         />,
       ]
     } else {
       children = (
-        <Box style={styleFilterContainer} onClick={() => this._enterEditingMode()}>
+        <Box style={styleFilterContainer} onClick={this._enterEditingMode}>
           <Icon type="iconfont-search" style={{color: globalColors.black_20, fontSize: 12}} />
           <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
             Jump to chat
