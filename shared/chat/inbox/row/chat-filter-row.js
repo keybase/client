@@ -35,6 +35,8 @@ class _ChatFilterRow extends Component<void, Props, State> {
     this.setState({isEditing: true})
   }
 
+  // TODO: Bind esc to _stopEditing.
+
   _stopEditing = () => {
     this.setState({isEditing: false})
     // TODO: Set filter to '', but only after the chat is selected.
