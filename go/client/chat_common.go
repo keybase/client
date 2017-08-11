@@ -5,47 +5,40 @@ package client
 
 import (
 	"fmt"
-	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	tlfCli, err := GetTlfClient(g)
-	if err != nil {
-		return nil, err
-	}
-	tlfQuery := keybase1.TLFQuery{
-		TlfName:          name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	}
-	_, err = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
-	if err == nil {
-		ret := keybase1.UserOrTeamResult_USER
-		return &ret, nil
-	}
-	_, notFound := err.(libkb.NotFoundError)
-	if !notFound && !strings.HasSuffix(err.Error(), "is in an incorrect format") {
-		return nil, err
+	tlfCli, tlfError := GetTlfClient(g)
+	if tlfError == nil {
+		tlfQuery := keybase1.TLFQuery{
+			TlfName:          name,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		_, tlfError = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
+		if tlfError == nil {
+			ret := keybase1.UserOrTeamResult_USER
+			return &ret, nil
+		}
 	}
 
-	cli, err := GetTeamsClient(g)
-	if err != nil {
-		return nil, err
-	}
-	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
-	if err == nil {
-		ret := keybase1.UserOrTeamResult_TEAM
-		return &ret, nil
-	}
-	_, notFound = err.(teams.TeamDoesNotExistError)
-	if !notFound && !strings.HasSuffix(err.Error(), "does not exist") && !strings.HasPrefix(err.Error(), "invalid team name") {
-		return nil, err
+	cli, teamError := GetTeamsClient(g)
+	if teamError == nil {
+		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
+		if teamError == nil {
+			ret := keybase1.UserOrTeamResult_TEAM
+			return &ret, nil
+		}
 	}
 
-	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a valid username, list of usernames, or team name.", name)}
+	msg := `
+		Unable to find conversation.
+		When considering %s as a username or a list of usernames, received error: %v.
+		When considering %s as a team name, received error: %v.
+	`
+	return nil, libkb.NotFoundError{Msg: fmt.Sprintf(msg, name, tlfError, name, teamError)}
 }
