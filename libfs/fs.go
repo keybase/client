@@ -35,6 +35,10 @@ type FS struct {
 
 var _ billy.Filesystem = (*FS)(nil)
 
+const (
+	maxSymlinkLevels = 40 // same as Linux
+)
+
 // NewFS returns a new FS instance, chroot'd to the given TLF and
 // subdir within that TLF.  `subdir` must exist, and point to a
 // directory, before this function is called.
@@ -78,7 +82,11 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	}, nil
 }
 
-func (fs *FS) lookupOrCreateFile(
+// lookupOrCreateEntryNoFollow looks up the entry for a file in a
+// given parent node.  If the entry is a symlink, it will return a nil
+// Node and a nil error.  If the entry doesn't exist an O_CREATE is
+// set in `flag`, it will create the entry as a file.
+func (fs *FS) lookupOrCreateEntryNoFollow(
 	dir libkbfs.Node, filename string, flag int, perm os.FileMode) (
 	libkbfs.Node, libkbfs.EntryInfo, error) {
 	n, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, dir, filename)
@@ -102,7 +110,7 @@ func (fs *FS) lookupOrCreateFile(
 			// Someone made it already; recurse to try the lookup again.
 			fs.log.CDebugf(
 				fs.ctx, "Attempting lookup again after failed create")
-			return fs.lookupOrCreateFile(dir, filename, flag, perm)
+			return fs.lookupOrCreateEntryNoFollow(dir, filename, flag, perm)
 		case nil:
 			return n, ei, nil
 		default:
@@ -116,37 +124,121 @@ func (fs *FS) lookupOrCreateFile(
 				errors.New("Exclusive create failed because the file exists")
 		}
 
-		// Make sure this is a file.
-		if !ei.Type.IsFile() {
-			return nil, libkbfs.EntryInfo{},
-				errors.Errorf("%s is not a file", filename)
+		if ei.Type == libkbfs.Sym {
+			// The caller must retry if desired.
+			return nil, ei, nil
 		}
+
 		return n, ei, nil
 	default:
 		return nil, libkbfs.EntryInfo{}, err
 	}
 }
 
-func (fs *FS) lookupParent(filename string) (
-	parent libkbfs.Node, base string, err error) {
+func followSymlink(parentPath, link string) (newPath string, err error) {
+	if path.IsAbs(link) {
+		return "", errors.Errorf("Can't follow absolute link: %s", link)
+	}
+
+	newPath = path.Clean(path.Join(parentPath, link))
+	if strings.HasPrefix(newPath, "..") {
+		return "", errors.Errorf(
+			"Cannot follow symlink out of chroot: %s", newPath)
+	}
+
+	return newPath, nil
+}
+
+// lookupParentWithDepth looks up the parent node of the given
+// filename.  It follows symlinks in the path, but doesn't resolve the
+// final base name.  If `exitEarly` is true, it returns on the first
+// not-found error and `base` will contain the subpath of filename not
+// yet found.
+func (fs *FS) lookupParentWithDepth(
+	filename string, exitEarly bool, depth int) (
+	parent libkbfs.Node, parentDir, base string, err error) {
 	parts := strings.Split(filename, "/")
 	n := fs.root
 	// Iterate through each of the parent directories of the file, but
 	// not the file itself.
 	for i := 0; i < len(parts)-1; i++ {
 		p := parts[i]
-		var ei libkbfs.EntryInfo
-		n, ei, err = fs.config.KBFSOps().Lookup(fs.ctx, n, p)
-		if err != nil {
-			return nil, "", err
+		nextNode, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, p)
+		switch errors.Cause(err).(type) {
+		case libkbfs.NoSuchNameError:
+			if exitEarly {
+				parentDir = path.Join(parts[:i]...)
+				base = path.Join(parts[i:]...)
+				return n, parentDir, base, nil
+			}
+			return nil, "", "", err
+		case nil:
+			n = nextNode
+		default:
+			return nil, "", "", err
 		}
-		if ei.Type != libkbfs.Dir {
-			return nil, "", errors.Errorf("%s is not a directory",
+
+		switch ei.Type {
+		case libkbfs.Sym:
+			if depth == maxSymlinkLevels {
+				return nil, "", "", errors.New("Too many levels of symlinks")
+			}
+			parentDir = path.Join(parts[:i]...)
+			newPath, err := followSymlink(parentDir, ei.SymPath)
+			if err != nil {
+				return nil, "", "", err
+			}
+			newPathPlusRemainder := append([]string{newPath}, parts[i+1:]...)
+			return fs.lookupParentWithDepth(
+				path.Join(newPathPlusRemainder...), exitEarly, depth+1)
+		case libkbfs.Dir:
+			continue
+		default:
+			return nil, "", "", errors.Errorf("%s is not a directory",
 				path.Join(parts[:i]...))
 		}
 	}
 
-	return n, parts[len(parts)-1], nil
+	parentDir = path.Join(parts[:len(parts)-1]...)
+	base = parts[len(parts)-1]
+	return n, parentDir, base, nil
+}
+
+func (fs *FS) lookupParent(filename string) (
+	parent libkbfs.Node, parentDir, base string, err error) {
+	return fs.lookupParentWithDepth(filename, false, 0)
+}
+
+// lookupOrCreateEntry looks up the entry for a filename, following
+// symlinks in the path (including if the final entry is a symlink).
+// If the entry doesn't exist an O_CREATE is set in `flag`, it will
+// create the entry as a file.
+func (fs *FS) lookupOrCreateEntry(
+	filename string, flag int, perm os.FileMode) (
+	n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
+	for i := 0; i < maxSymlinkLevels; i++ {
+		var parentDir, fName string
+		n, parentDir, fName, err = fs.lookupParent(filename)
+		if err != nil {
+			return nil, libkbfs.EntryInfo{}, err
+		}
+
+		n, ei, err := fs.lookupOrCreateEntryNoFollow(n, fName, flag, perm)
+		if err != nil {
+			return nil, libkbfs.EntryInfo{}, err
+		}
+
+		if ei.Type != libkbfs.Sym {
+			return n, ei, nil
+		}
+		fs.log.CDebugf(fs.ctx, "Following symlink=%s from dir=%s",
+			ei.SymPath, parentDir)
+		filename, err = followSymlink(parentDir, ei.SymPath)
+		if err != nil {
+			return nil, libkbfs.EntryInfo{}, err
+		}
+	}
+	return nil, libkbfs.EntryInfo{}, errors.New("Too many levels of symlinks")
 }
 
 // OpenFile implements the billy.Filesystem interface for FS.
@@ -158,14 +250,14 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		fs.deferLog.CDebugf(fs.ctx, "OpenFile done: %+v", err)
 	}()
 
-	n, fName, err := fs.lookupParent(filename)
+	n, ei, err := fs.lookupOrCreateEntry(filename, flag, perm)
 	if err != nil {
 		return nil, err
 	}
 
-	n, ei, err := fs.lookupOrCreateFile(n, fName, flag, perm)
-	if err != nil {
-		return nil, err
+	// Make sure this is a file.
+	if !ei.Type.IsFile() {
+		return nil, errors.Errorf("%s is not a file", filename)
 	}
 
 	if flag&os.O_TRUNC != 0 {
@@ -209,12 +301,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Stat done: %+v", err)
 	}()
 
-	n, base, err := fs.lookupParent(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	n, ei, err := fs.lookupOrCreateEntry(filename, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +309,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	return &FileInfo{
 		fs:   fs,
 		ei:   ei,
-		name: base,
+		name: n.GetBasename(),
 	}, nil
 }
 
@@ -233,12 +320,12 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
 	}()
 
-	oldParent, oldBase, err := fs.lookupParent(oldpath)
+	oldParent, _, oldBase, err := fs.lookupParent(oldpath)
 	if err != nil {
 		return err
 	}
 
-	newParent, newBase, err := fs.lookupParent(newpath)
+	newParent, _, newBase, err := fs.lookupParent(newpath)
 	if err != nil {
 		return err
 	}
@@ -254,7 +341,7 @@ func (fs *FS) Remove(filename string) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "Remove done: %+v", err)
 	}()
 
-	parent, base, err := fs.lookupParent(filename)
+	parent, _, base, err := fs.lookupParent(filename)
 	if err != nil {
 		return err
 	}
@@ -288,12 +375,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
 	}()
 
-	n, base, err := fs.lookupParent(p)
-	if err != nil {
-		return nil, err
-	}
-
-	n, _, err = fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -321,30 +403,14 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
 	}()
 
-	parts := strings.Split(filename, "/")
-	n := fs.root
-	i := 0
-outer:
-	for i = 0; i < len(parts); i++ {
-		p := parts[i]
-		nextNode, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, p)
-		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
-			break outer
-		case nil:
-			n = nextNode
-		default:
-			return err
-		}
-		if ei.Type != libkbfs.Dir {
-			return errors.Errorf("%s is not a directory",
-				path.Join(parts[:i]...))
-		}
+	n, _, leftover, err := fs.lookupParentWithDepth(filename, true, 0)
+	if err != nil {
+		return err
 	}
 
+	parts := strings.Split(leftover, "/")
 	// Make all necessary dirs.
-	for ; i < len(parts); i++ {
-		p := parts[i]
+	for _, p := range parts {
 		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
 		if err != nil {
 			return err
@@ -355,18 +421,66 @@ outer:
 }
 
 // Lstat implements the billy.Filesystem interface for FS.
-func (fs *FS) Lstat(filename string) (os.FileInfo, error) {
-	return nil, nil
+func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
+	fs.log.CDebugf(fs.ctx, "Lstat %s", filename)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Lstat done: %+v", err)
+	}()
+
+	n, _, base, err := fs.lookupParent(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileInfo{
+		fs:   fs,
+		ei:   ei,
+		name: base,
+	}, nil
 }
 
 // Symlink implements the billy.Filesystem interface for FS.
-func (fs *FS) Symlink(target, link string) error {
-	return nil
+func (fs *FS) Symlink(target, link string) (err error) {
+	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s", target, link)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
+	}()
+
+	n, _, base, err := fs.lookupParent(link)
+	if err != nil {
+		return err
+	}
+
+	_, err = fs.config.KBFSOps().CreateLink(fs.ctx, n, base, target)
+	return err
 }
 
 // Readlink implements the billy.Filesystem interface for FS.
-func (fs *FS) Readlink(link string) (string, error) {
-	return "", nil
+func (fs *FS) Readlink(link string) (target string, err error) {
+	fs.log.CDebugf(fs.ctx, "Readlink %s", link)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Readlink done: %+v", err)
+	}()
+
+	n, _, base, err := fs.lookupParent(link)
+	if err != nil {
+		return "", err
+	}
+
+	_, ei, err := fs.config.KBFSOps().Lookup(fs.ctx, n, base)
+	if err != nil {
+		return "", err
+	}
+
+	if ei.Type != libkbfs.Sym {
+		return "", errors.Errorf("%s is not a symlink", link)
+	}
+	return ei.SymPath, nil
 }
 
 // Chmod implements the billy.Filesystem interface for FS.

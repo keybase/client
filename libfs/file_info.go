@@ -46,6 +46,8 @@ func (fi *FileInfo) Mode() os.FileMode {
 	switch fi.ei.Type {
 	case libkbfs.Dir:
 		mode |= os.ModeDir | 0100
+	case libkbfs.Sym:
+		mode |= os.ModeSymlink
 	case libkbfs.Exec:
 		mode |= 0100
 	}

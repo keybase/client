@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	billy "github.com/src-d/go-billy"
 	"github.com/stretchr/testify/require"
 )
 
@@ -343,6 +344,103 @@ func TestMkdirAll(t *testing.T) {
 	err = fs.MkdirAll("a/b/c/d", os.FileMode(0600))
 	require.NoError(t, err)
 
-	_, err = fs.Create("a/b/c/d/foo")
+	f, err := fs.Create("a/b/c/d/foo")
+	require.NoError(t, err)
+
+	err = f.Close()
+	require.NoError(t, err)
+}
+
+func TestSymlink(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	err := fs.MkdirAll("a/b/c", os.FileMode(0600))
+	require.NoError(t, err)
+
+	foo, err := fs.Create("a/b/c/foo")
+	require.NoError(t, err)
+
+	data := []byte{1, 2, 3, 4}
+	n, err := foo.Write(data)
+	require.Equal(t, len(data), n)
+	require.NoError(t, err)
+	err = foo.Close()
+	require.NoError(t, err)
+
+	t.Log("Basic file symlink in same dir")
+	err = fs.Symlink("foo", "a/b/c/bar")
+	require.NoError(t, err)
+
+	bar, err := fs.Open("a/b/c/bar")
+	require.NoError(t, err)
+
+	checkData := func(f billy.File) {
+		gotData := make([]byte, len(data))
+		n, err = f.Read(gotData)
+		require.Equal(t, len(data), n)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(data, gotData))
+	}
+	checkData(bar)
+
+	err = bar.Close()
+	require.NoError(t, err)
+
+	t.Log("File symlink across to a lower dir")
+	err = fs.Symlink("b/c/foo", "a/bar")
+	require.NoError(t, err)
+	bar, err = fs.Open("a/bar")
+	require.NoError(t, err)
+	checkData(bar)
+	err = bar.Close()
+	require.NoError(t, err)
+
+	t.Log("File symlink across to a higher dir")
+	err = fs.MkdirAll("a/b/c/d/e/f", os.FileMode(0600))
+	require.NoError(t, err)
+	err = fs.Symlink("../../../foo", "a/b/c/d/e/f/bar")
+	require.NoError(t, err)
+	bar, err = fs.Open("a/b/c/d/e/f/bar")
+	require.NoError(t, err)
+	checkData(bar)
+	err = bar.Close()
+	require.NoError(t, err)
+
+	t.Log("File across dir symlink")
+	err = fs.Symlink("b", "a/b2")
+	require.NoError(t, err)
+	bar, err = fs.Open("a/b2/c/bar")
+	require.NoError(t, err)
+	checkData(bar)
+	err = bar.Close()
+	require.NoError(t, err)
+
+	t.Log("Infinite symlink loop")
+	err = fs.Symlink("x", "y")
+	require.NoError(t, err)
+	err = fs.Symlink("y", "x")
+	require.NoError(t, err)
+	bar, err = fs.Open("x")
+	require.NotNil(t, err)
+
+	t.Log("Symlink that tries to break chroot")
+	err = fs.Symlink("../../a", "a/breakout")
+	require.NoError(t, err)
+	bar, err = fs.Open("a/breakout")
+	require.NotNil(t, err)
+
+	t.Log("Symlink to absolute path")
+	err = fs.Symlink("/etc/passwd", "absolute")
+	require.NoError(t, err)
+	bar, err = fs.Open("absolute")
+	require.NotNil(t, err)
+
+	t.Log("Readlink")
+	link, err := fs.Readlink("a/bar")
+	require.NoError(t, err)
+	require.Equal(t, "b/c/foo", link)
+
+	err = fs.SyncAll()
 	require.NoError(t, err)
 }
