@@ -59,6 +59,9 @@ InlineCont
 InlineDelimiter
  = WhiteSpace / PunctuationMarker
 
+URLInlineDelimiter
+ = WhiteSpace / URLPunctuationMarker
+
 Ticks1 = "`"
 Ticks3 = "```"
 EscapeMarker = "\\"
@@ -71,8 +74,14 @@ QuoteBlockMarker = ">"
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
+URLPunctuationMarker 
+    = [[\].,!?]
+
 SpecialChar
  = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+
+URLSpecialChar
+ = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / URLPunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -132,7 +141,7 @@ NativeEmoji
  }
 
 LinkChar
- = !(SpecialChar+ (InlineDelimiter / LineTerminatorSequence / !.)) char:NonBlank { return char }
+ = !(URLSpecialChar+ (URLInlineDelimiter / LineTerminatorSequence / !.)) char:NonBlank { return char }
 
 Link
  = proto:("http"i "s"i? ":")? url:(LinkChar+) & {

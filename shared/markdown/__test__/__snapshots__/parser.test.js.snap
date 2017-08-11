@@ -662,6 +662,18 @@ Object {
     },
     Object {
       "children": Array [
+        "    okay.json",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    okay.png",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
         "  Include:",
       ],
       "type": "text-block",
@@ -909,7 +921,341 @@ Object {
     },
     Object {
       "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_(world)_(okay)",
+          ],
+          "href": "http://wikipedia.org/hello_(world)_(okay)",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "json.org/image.json",
+          ],
+          "href": "http://json.org/image.json",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail#!t",
+          ],
+          "href": "http://trailing.com/trail#!t",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "commas.net/a,b,c,d",
+          ],
+          "href": "http://commas.net/a,b,c,d",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://www.google.com/search?q=full+circle+bar&oq=full+circle+bar&aqs=chrome..69i57j0j69i60l3j69i61.2262j0j7&sourceid=chrome&ie=UTF-8",
+          ],
+          "href": "https://www.google.com/search?q=full+circle+bar&oq=full+circle+bar&aqs=chrome..69i57j0j69i60l3j69i61.2262j0j7&sourceid=chrome&ie=UTF-8",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://github.com/keybase/client/compare/master...miles/team-test",
+          ],
+          "href": "https://github.com/keybase/client/compare/master...miles/team-test",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://www.google.com/maps/place/207+Union+Tpke,+Hollis+Hills,+NY+11364/@40.7296274,-73.8891088,13z/data=!4m21!1m15!4m14!1m6!1m2!1s0x89c25944285c8d37:0xec514da3903a76f8!2s99+Norman+Avenue,+Brooklyn,+NY+11222,+USA!2m2!1d-73.9512991!2d40.7257587!1m6!1m2!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!2s207+Union+Tpke,+Hollis+Hills,+NY+11364!2m2!1d-73.7635942!2d40.7331327!3m4!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!8m2!3d40.7331327!4d-73.7635942",
+          ],
+          "href": "https://www.google.com/maps/place/207+Union+Tpke,+Hollis+Hills,+NY+11364/@40.7296274,-73.8891088,13z/data=!4m21!1m15!4m14!1m6!1m2!1s0x89c25944285c8d37:0xec514da3903a76f8!2s99+Norman+Avenue,+Brooklyn,+NY+11222,+USA!2m2!1d-73.9512991!2d40.7257587!1m6!1m2!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!2s207+Union+Tpke,+Hollis+Hills,+NY+11364!2m2!1d-73.7635942!2d40.7331327!3m4!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!8m2!3d40.7331327!4d-73.7635942",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://www.google.com/maps/@37.811065,-122.4770798,3a,75y,346.55h,93.26t/data=!3m8!1e1!3m6!1s-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC!2e4!3e11!6s%2F%2Flh6.googleusercontent.com%2F-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC%2Fw203-h100-k-no-pi-0-ya143.44029-ro0-fo100%2F!7i10240!8i5120",
+          ],
+          "href": "https://www.google.com/maps/@37.811065,-122.4770798,3a,75y,346.55h,93.26t/data=!3m8!1e1!3m6!1s-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC!2e4!3e11!6s%2F%2Flh6.googleusercontent.com%2F-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC%2Fw203-h100-k-no-pi-0-ya143.44029-ro0-fo100%2F!7i10240!8i5120",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://groups.google.com/forum/#!topic/golang-dev/1ZV7mIj_Du8",
+          ],
+          "href": "https://groups.google.com/forum/#!topic/golang-dev/1ZV7mIj_Du8",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://en.wikipedia.org/wiki/Redshirt_(character)",
+          ],
+          "href": "https://en.wikipedia.org/wiki/Redshirt_(character)",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://t.co",
+          ],
+          "href": "https://t.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://g.co",
+          ],
+          "href": "https://g.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail...t",
+          ],
+          "href": "http://trailing.com/trail...t",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail..t",
+          ],
+          "href": "http://trailing.com/trail..t",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail.t",
+          ],
+          "href": "http://trailing.com/trail.t",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
         "  These should have the trailing punctuation outside the link:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail",
+          ],
+          "href": "http://trailing.com/trail",
+          "type": "link",
+        },
+        "...",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail",
+          ],
+          "href": "http://trailing.com/trail",
+          "type": "link",
+        },
+        "..",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail",
+          ],
+          "href": "http://trailing.com/trail",
+          "type": "link",
+        },
+        ".",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "commas.net/a,b,c,d",
+          ],
+          "href": "http://commas.net/a,b,c,d",
+          "type": "link",
+        },
+        ",",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "trailing.com/trail#",
+          ],
+          "href": "http://trailing.com/trail#",
+          "type": "link",
+        },
+        "!",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_",
+          ],
+          "href": "http://wikipedia.org/hello_",
+          "type": "link",
+        },
+        "(world",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_(world)_",
+          ],
+          "href": "http://wikipedia.org/hello_(world)_",
+          "type": "link",
+        },
+        "(okay",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_(world)_",
+          ],
+          "href": "http://wikipedia.org/hello_(world)_",
+          "type": "link",
+        },
+        "(okay",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_(world)_(okay)",
+          ],
+          "href": "http://wikipedia.org/hello_(world)_(okay)",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "wikipedia.org/hello_(world)_(okay)",
+          ],
+          "href": "http://wikipedia.org/hello_(world)_(okay)",
+          "type": "link",
+        },
+        ")",
       ],
       "type": "text-block",
     },

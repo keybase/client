@@ -128,6 +128,8 @@ this is a code block with two newline above\`\`\`
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
+    okay.json
+    okay.png
   Include:
     http://keybase.io
     http://keybase.io/
@@ -146,7 +148,32 @@ this is a code block with two newline above\`\`\`
     keybase.io?blah=true
     keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
+    wikipedia.org/hello_(world)_(okay)
+    json.org/image.json
+    trailing.com/trail#!t
+    commas.net/a,b,c,d
+    https://www.google.com/search?q=full+circle+bar&oq=full+circle+bar&aqs=chrome..69i57j0j69i60l3j69i61.2262j0j7&sourceid=chrome&ie=UTF-8
+    https://github.com/keybase/client/compare/master...miles/team-test
+    https://www.google.com/maps/place/207+Union+Tpke,+Hollis+Hills,+NY+11364/@40.7296274,-73.8891088,13z/data=!4m21!1m15!4m14!1m6!1m2!1s0x89c25944285c8d37:0xec514da3903a76f8!2s99+Norman+Avenue,+Brooklyn,+NY+11222,+USA!2m2!1d-73.9512991!2d40.7257587!1m6!1m2!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!2s207+Union+Tpke,+Hollis+Hills,+NY+11364!2m2!1d-73.7635942!2d40.7331327!3m4!1s0x89c2619a6e18c11f:0xa90d5492c8d767a0!8m2!3d40.7331327!4d-73.7635942
+    https://www.google.com/maps/@37.811065,-122.4770798,3a,75y,346.55h,93.26t/data=!3m8!1e1!3m6!1s-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC!2e4!3e11!6s%2F%2Flh6.googleusercontent.com%2F-cLDS636PtKU%2FVTx5N5EPNEI%2FAAAAAAAAChw%2FrgTinSxtV2kMWucPvTg17jfwRFq9NQeYACJkC%2Fw203-h100-k-no-pi-0-ya143.44029-ro0-fo100%2F!7i10240!8i5120
+    https://groups.google.com/forum/#!topic/golang-dev/1ZV7mIj_Du8
+    https://en.wikipedia.org/wiki/Redshirt_(character)
+    https://t.co
+    https://g.co
+    trailing.com/trail...t
+    trailing.com/trail..t
+    trailing.com/trail.t
   These should have the trailing punctuation outside the link:
+    trailing.com/trail...
+    trailing.com/trail..
+    trailing.com/trail.
+    commas.net/a,b,c,d,
+    trailing.com/trail#!
+    wikipedia.org/hello_(world
+    wikipedia.org/hello_(world)_(okay
+    (wikipedia.org/hello_(world)_(okay
+    (wikipedia.org/hello_(world)_(okay)
+    (wikipedia.org/hello_(world)_(okay))
     amazon.co.uk.
     keybase.io,
     keybase.io.
