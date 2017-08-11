@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import React, {Component} from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -10,39 +10,58 @@ if (!isMobile) {
   KeyHandler = require('../../../util/key-handler.desktop').default
 }
 
-const _AddNewRow = ({
-  onNewChat,
-  onSetFilter,
-  onJumpToChat,
-  isLoading,
-}: {
+type Props = {
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
   onJumpToChat: () => void,
   isLoading: boolean,
-}) => (
-  <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
-    <Input value="" type="text" hintText="Jump to..." onChangeText={onSetFilter} />
-    <ClickableBox
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flexGrow: 1,
-        flexShrink: 0,
-        justifyContent: 'center',
-        paddingLeft: globalMargins.medium,
-        paddingRight: globalMargins.medium,
-      }}
-      onClick={onNewChat}
-    >
-      <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-    </ClickableBox>
-    {isLoading &&
-      <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
-        <LoadingLine />
-      </Box>}
-  </Box>
-)
+}
+
+type State = {
+  filter: string,
+}
+
+class _AddNewRow extends Component<void, Props, State> {
+  state: State
+
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      filter: '',
+    }
+  }
+
+  _setFilter = filter => {
+    this.setState({filter})
+    this.props.onSetFilter(filter)
+  }
+
+  render() {
+    return (
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
+        <Input value={this.state.filter} hintText="Jump to..." onChangeText={this._setFilter} />
+        <ClickableBox
+          style={{
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            flexGrow: 1,
+            flexShrink: 0,
+            justifyContent: 'center',
+            paddingLeft: globalMargins.medium,
+            paddingRight: globalMargins.medium,
+          }}
+          onClick={this.props.onNewChat}
+        >
+          <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
+        </ClickableBox>
+        {this.props.isLoading &&
+          <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
+            <LoadingLine />
+          </Box>}
+      </Box>
+    )
+  }
+}
 
 // const _AddNewRow= ({
 // onNewChat,
