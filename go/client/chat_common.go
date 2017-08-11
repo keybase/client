@@ -15,18 +15,21 @@ import (
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	userCli, err := GetUserClient(g)
+	tlfCli, err := GetTlfClient(g)
 	if err != nil {
 		return nil, err
 	}
-	_, err = userCli.LoadUserByName(ctx, keybase1.LoadUserByNameArg{Username: name})
+	tlfQuery := keybase1.TLFQuery{
+		TlfName:          name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	_, err = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
 	if err == nil {
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
 	_, notFound := err.(libkb.NotFoundError)
-	_, invalidUsername := err.(libkb.BadUsernameError)
-	if !(notFound || invalidUsername || strings.HasPrefix(err.Error(), "bad keybase username")) {
+	if !notFound && !strings.HasSuffix(err.Error(), "is in an incorrect format") {
 		return nil, err
 	}
 
@@ -44,22 +47,5 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		return nil, err
 	}
 
-	tlfCli, err := GetTlfClient(g)
-	if err != nil {
-		return nil, err
-	}
-	tlfQuery := keybase1.TLFQuery{
-		TlfName:          name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	}
-	_, err = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
-	if err == nil {
-		ret := keybase1.UserOrTeamResult_USER
-		return &ret, nil
-	}
-	_, notFound = err.(libkb.NotFoundError)
-	if !notFound && !strings.HasSuffix(err.Error(), "is in an incorrect format") {
-		return nil, err
-	}
 	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a valid username, list of usernames, or team name.", name)}
 }
