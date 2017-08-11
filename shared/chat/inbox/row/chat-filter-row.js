@@ -31,11 +31,6 @@ class _ChatFilterRow extends Component<void, Props, State> {
     }
   }
 
-  _setState = (inEditingMode, filter) => {
-    this.setState({inEditingMode})
-    this.props.onSetFilter(filter)
-  }
-
   _enterEditingMode = () => {
     this.setState({inEditingMode: true})
   }
