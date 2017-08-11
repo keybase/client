@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	testvectors "github.com/keybase/keybase-test-vectors/go"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -125,7 +126,8 @@ func TestAllChains(t *testing.T) {
 	defer tc.Cleanup()
 
 	var testList TestList
-	json.Unmarshal([]byte(testvectors.ChainTests), &testList)
+	err := json.Unmarshal([]byte(testvectors.ChainTests), &testList)
+	require.NoError(t, err, "failed to unmarshal the chain tests")
 	// Always do the tests in alphabetical order.
 	testNames := []string{}
 	for name := range testList.Tests {
