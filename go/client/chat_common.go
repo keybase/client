@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -24,9 +25,9 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
-	_, okNotFound := err.(libkb.NotFoundError)
-	_, okInvalidUsername := err.(libkb.BadUsernameError)
-	if !(okNotFound || okInvalidUsername || strings.HasPrefix(err.Error(), "bad keybase username")) {
+	_, notFound := err.(libkb.NotFoundError)
+	_, invalidUsername := err.(libkb.BadUsernameError)
+	if !(notFound || invalidUsername || strings.HasPrefix(err.Error(), "bad keybase username")) {
 		return nil, err
 	}
 
@@ -39,10 +40,8 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_TEAM
 		return &ret, nil
 	}
-	ase, okNet := err.(libkb.AppStatusError)
-	_, okNotFound = err.(teams.TeamDoesNotExistError)
-
-	if !(okNet && keybase1.StatusCode(ase.Code) == keybase1.StatusCode_SCTeamNotFound) && !okNotFound && !strings.HasSuffix(err.Error(), "does not exist") && !strings.HasPrefix(err.Error(), "invalid team name") {
+	_, notFound = err.(teams.TeamDoesNotExistError)
+	if !notFound && !strings.HasSuffix(err.Error(), "does not exist") && !strings.HasPrefix(err.Error(), "invalid team name") {
 		return nil, err
 	}
 
@@ -59,6 +58,11 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
-
-	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a username, group name, or team name, or an unexpected error occurred: %v.", name, err)}
+	_, notFound = err.(libkb.NotFoundError)
+	_, badTLFName := err.(utils.BadTLFNameError)
+	_, noSuchUser := err.(utils.NoSuchUserError)
+	if !notFound && !badTLFName && !noSuchUser {
+		return nil, err
+	}
+	return nil, libkb.NotFoundError{Msg: fmt.Sprintf("%s is neither a valid username, list of usernames, or team name.", name)}
 }
