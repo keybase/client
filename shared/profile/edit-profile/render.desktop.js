@@ -18,19 +18,19 @@ const EditProfileRender = (props: Props) => (
       />
       <Input
         style={styleEditProfile}
-        hintText="Location"
-        value={props.location}
-        onEnterKeyDown={props.onSubmit}
-        onChangeText={location => props.onLocationChange(location)}
-      />
-      <Input
-        style={styleEditProfile}
         hintText="Bio"
         value={props.bio}
         multiline={true}
         rowsMax={4}
         errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' characters left.' : ''}
         onChangeText={bio => props.onBioChange(bio)}
+      />
+      <Input
+        style={styleEditProfile}
+        hintText="Location"
+        value={props.location}
+        onEnterKeyDown={props.onSubmit}
+        onChangeText={location => props.onLocationChange(location)}
       />
       <Box style={styleButtonContainer}>
         <Button
