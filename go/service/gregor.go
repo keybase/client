@@ -143,6 +143,9 @@ type gregorHandler struct {
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
 
+	// connectHappened will be closed after gregor connection established
+	connectHappened chan struct{}
+
 	cli               rpc.GenericClient
 	pingCli           rpc.GenericClient
 	sessionID         gregor1.SessionID
@@ -243,9 +246,22 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
-		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")
-		return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+		select {
+		case <-g.connectHappened:
+			if g.IsShutdown() || g.cli == nil {
+				g.chatLog.Debug(context.Background(), "GetClient: connectHappened, but still shutdown, using OfflineClient for chat1.RemoteClient")
+				return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+
+			}
+			g.chatLog.Debug(context.Background(), "GetClient: successfully waited for connection")
+			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+		case <-time.After(2 * time.Second):
+			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited 2s for connectHappened)")
+			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+		}
 	}
+
+	g.chatLog.Debug(context.Background(), "GetClient: not shutdown, making new remote client")
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
@@ -333,6 +349,13 @@ func (g *gregorHandler) setReachability(r *reachability) {
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	g.connectHappened = make(chan struct{})
+	defer close(g.connectHappened)
+
+	g.G().Log.Debug("artificial sleep 1s")
+	time.Sleep(1 * time.Second)
+	g.G().Log.Debug("artificial sleep done")
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
