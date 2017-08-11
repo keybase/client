@@ -31,6 +31,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var DefaultTeamTopic = "general"
+
 type ServerConnection interface {
 	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
@@ -460,206 +462,25 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
-func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
+func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return reserr }, "NewConversationLocal")()
+	defer h.Trace(ctx, func() error { return err }, "NewConversationLocal")()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	// Handle a nil topic name with default values for the members type specified
-	if arg.TopicName == nil {
-		// We never want a blank topic name in team chats, always default to the default team name
-		switch arg.MembersType {
-		case chat1.ConversationMembersType_TEAM:
-			arg.TopicName = &DefaultTeamTopic
-		}
-	}
-
-	// Find any existing conversations that match this argument specifically. We need to do this check
-	// here in the client since we can't see the topic name on the server.
-
-	// NOTE: The CLI already does this. It is hard to move that code completely into the service, since
-	// there is a ton of logic in there to try and present a nice looking menu to help out the
-	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
-	// should hopefully just result in a bunch of cache hits on the second invocation.
-	findArg := chat1.FindConversationsLocalArg{
-		TlfName:          arg.TlfName,
-		MembersType:      arg.MembersType,
-		Visibility:       arg.TlfVisibility,
-		TopicType:        arg.TopicType,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	}
-	if arg.TopicName != nil {
-		findArg.TopicName = *arg.TopicName
-	}
-	findRes, err := h.FindConversationsLocal(ctx, findArg)
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	conv, rl, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
+		arg.TopicType, arg.MembersType, arg.TlfVisibility, h.remoteClient)
 	if err != nil {
-		return chat1.NewConversationLocalRes{}, err
-	}
-	// If we find one conversation, then just return it as if we created it.
-	if len(findRes.Conversations) == 1 {
-		return chat1.NewConversationLocalRes{
-			Conv:             findRes.Conversations[0],
-			RateLimits:       findRes.RateLimits,
-			IdentifyFailures: findRes.IdentifyFailures,
-		}, nil
-	}
-	res.RateLimits = append(res.RateLimits, findRes.RateLimits...)
-
-	info, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType,
-		arg.TlfVisibility == chat1.TLFVisibility_PUBLIC)
-	if err != nil {
-		return chat1.NewConversationLocalRes{}, err
+		return res, err
 	}
 
-	triple := chat1.ConversationIDTriple{
-		Tlfid:     info.ID,
-		TopicType: arg.TopicType,
-		TopicID:   make(chat1.TopicID, 16),
-	}
-
-	for i := 0; i < 5; i++ {
-		h.Debug(ctx, "NewConversationLocal: attempt: %v", i)
-		triple.TopicID, err = utils.NewChatTopicID()
-		if err != nil {
-			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
-		}
-		firstMessageBoxed, topicNameState, err := h.makeFirstMessage(ctx, triple, info.CanonicalName,
-			arg.MembersType, arg.TlfVisibility, arg.TopicName)
-		if err != nil {
-			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
-		}
-		var ncrres chat1.NewConversationRemoteRes
-		ncrres, reserr = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
-			IdTriple:       triple,
-			TLFMessage:     *firstMessageBoxed,
-			MembersType:    arg.MembersType,
-			TopicNameState: topicNameState,
-		})
-		if ncrres.RateLimit != nil {
-			res.RateLimits = append(res.RateLimits, *ncrres.RateLimit)
-		}
-		convID := ncrres.ConvID
-		if reserr != nil {
-			switch cerr := reserr.(type) {
-			case libkb.ChatStalePreviousStateError:
-				h.Debug(ctx, "NewConversationLocal: stale topic name state, trying again")
-				continue
-			case libkb.ChatConvExistsError:
-				// This triple already exists.
-				h.Debug(ctx, "NewConversationLocal: conv exists: %v", cerr.ConvID)
-
-				if triple.TopicType != chat1.TopicType_CHAT ||
-					arg.MembersType == chat1.ConversationMembersType_TEAM {
-					// Not a chat (or is a team) conversation. Multiples are fine. Just retry with a
-					// different topic ID.
-					continue
-				}
-				// A chat conversation already exists; just reuse it.
-				// Note that from this point on, TopicID is entirely the wrong value.
-				convID = cerr.ConvID
-			case libkb.ChatCollisionError:
-				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
-				h.Debug(ctx, "NewConversationLocal: collision: %v", reserr)
-				continue
-			default:
-				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
-			}
-		}
-
-		h.Debug(ctx, "NewConversationLocal: established conv: %v", convID)
-
-		// create succeeded; grabbing the conversation and returning
-		uid := h.G().Env.GetUID()
-
-		ib, rl, err := h.G().InboxSource.Read(ctx, uid.ToBytes(), nil, false,
-			&chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{convID},
-			}, nil)
-		if err != nil {
-			return chat1.NewConversationLocalRes{}, err
-		}
-		if rl != nil {
-			res.RateLimits = append(res.RateLimits, *rl)
-		}
-
-		if len(ib.Convs) != 1 {
-			return chat1.NewConversationLocalRes{}, fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
-		}
-		res.Conv = ib.Convs[0]
-		h.Debug(ctx, "NewConversationLocal: fetched conv: %v", res.Conv.GetConvID())
-
-		// Update inbox cache
-		updateConv := ib.ConvsUnverified[0]
-		if err = h.G().InboxSource.NewConversation(ctx, uid.ToBytes(), 0, updateConv); err != nil {
-			return chat1.NewConversationLocalRes{}, err
-		}
-
-		if res.Conv.Error != nil {
-			return chat1.NewConversationLocalRes{}, errors.New(res.Conv.Error.Message)
-		}
-
-		// Send a message to the channel after joining.
-		switch arg.MembersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
-			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-			irl, err := postJoinLeave(ctx, h.G(), h.remoteClient, uid.ToBytes(), convID, joinMessageBody)
-			if err != nil {
-				h.Debug(ctx, "posting join-conv message failed: %v", err)
-				// ignore the error
-			}
-			res.RateLimits = append(res.RateLimits, irl...)
-		default:
-			// pass
-		}
-
-		res.RateLimits = utils.AggRateLimits(res.RateLimits)
-		res.IdentifyFailures = identBreaks
-		return res, nil
-	}
-
-	return chat1.NewConversationLocalRes{}, reserr
-}
-
-var DefaultTeamTopic = "general"
-
-func (h *Server) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
-	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
-	topicName *string) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
-	var msg chat1.MessagePlaintext
-	if topicName != nil {
-		msg = chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        triple,
-				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
-				MessageType: chat1.MessageType_METADATA,
-				Prev:        nil, // TODO
-				// Sender and SenderDevice filled by prepareMessageForRemote
-			},
-			MessageBody: chat1.NewMessageBodyWithMetadata(
-				chat1.MessageConversationMetadata{
-					ConversationTitle: *topicName,
-				}),
-		}
-	} else {
-		msg = chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        triple,
-				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
-				MessageType: chat1.MessageType_TLFNAME,
-				Prev:        nil, // TODO
-				// Sender and SenderDevice filled by prepareMessageForRemote
-			},
-		}
-	}
-
-	sender := NewBlockingSender(h.G(), h.boxer, h.store, h.remoteClient)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
-	return mbox, topicNameState, err
+	res.Conv = conv
+	res.RateLimits = utils.AggRateLimits(rl)
+	res.IdentifyFailures = identBreaks
+	return res, nil
 }
 
 func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {

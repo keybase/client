@@ -117,7 +117,7 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	h.G().ExternalG().StartStandaloneChat()
 
 	gregorCli := h.gregor.GetClient()
-	if err = chat.SendTextByName(ctx, h.G(), team, chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
+	if err = chat.SendTextByName(ctx, h.G(), team, &chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli); err != nil {
 		return false
 	}
