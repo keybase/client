@@ -90,7 +90,13 @@ const styleContentContainer = {
 
 const stylePlatformUsername = {
   ...globalStyles.textDecoration('line-through'),
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  ...(isMobile
+    ? {}
+    : {
+        textAlign: 'center',
+        overflowWrap: 'break-word',
+        maxWidth: 400,
+      }),
   color: globalColors.red,
 }
 
