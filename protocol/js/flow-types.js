@@ -576,6 +576,7 @@ export const UPKUPK2MinorVersion = {
   v0: 0,
   v1: 1,
   v2: 2,
+  v3: 3,
 }
 
 export const UiPromptDefault = {
@@ -5626,6 +5627,7 @@ export type UPK2MinorVersion =
     0 // V0_0
   | 1 // V1_1
   | 2 // V2_2
+  | 3 // V3_3
 
 export type UnboxAnyRes = {
   kid: KID,
