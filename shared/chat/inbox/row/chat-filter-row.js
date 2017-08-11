@@ -47,7 +47,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
         <Icon
           key="0"
           type="iconfont-search"
-          style={{color: globalColors.grey, marginLeft: 9, marginRight: 9}}
+          style={{color: globalColors.black_20, fontSize: 12, marginLeft: 9, marginRight: 9}}
         />,
         <Input
           autoFocus={true}
