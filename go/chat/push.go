@@ -767,23 +767,23 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	return nil
 }
 
-func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
-		return errors.New("nil system in out of band message")
+		return false, errors.New("nil system in out of band message")
 	}
 
 	switch obm.System().String() {
 	case types.PushActivity:
-		return g.Activity(ctx, obm)
+		return true, g.Activity(ctx, obm)
 	case types.PushTLFFinalize:
-		return g.TlfFinalize(ctx, obm)
+		return true, g.TlfFinalize(ctx, obm)
 	case types.PushTLFResolve:
-		return g.TlfResolve(ctx, obm)
+		return true, g.TlfResolve(ctx, obm)
 	case types.PushTyping:
-		return g.Typing(ctx, obm)
+		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
-		return g.MembershipUpdate(ctx, obm)
+		return true, g.MembershipUpdate(ctx, obm)
 	}
 
-	return nil
+	return false, nil
 }

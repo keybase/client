@@ -25,7 +25,7 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 	return cli.Command{
 		Name:         "remove-member",
 		ArgumentHelp: "<team name> --user=<username>",
-		Usage:        "remove a user from a team",
+		Usage:        "Remove a user from a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamRemoveMember{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "remove-member", c)

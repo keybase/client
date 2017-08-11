@@ -364,12 +364,12 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	}
 
 	// Revoke the current device.
-	err := doRevokeDevice(tc, fu, currentDevice.ID, false)
+	err := doRevokeDevice(tc, fu, currentDevice.ID, false, false)
 	if err == nil {
 		tc.T.Fatal("Expected revoking the current device to fail.")
 	}
 	// force=true is required for the current device
-	err = doRevokeDevice(tc, fu, currentDevice.ID, true)
+	err = doRevokeDevice(tc, fu, currentDevice.ID, true, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

@@ -221,6 +221,53 @@ var NotificationKindRevMap = map[NotificationKind]string{
 	1: "ATMENTION",
 }
 
+type GlobalAppNotificationSetting int
+
+const (
+	GlobalAppNotificationSetting_NEWMESSAGES      GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE  GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+)
+
+func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
+
+var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
+	"NEWMESSAGES":      0,
+	"PLAINTEXTMOBILE":  1,
+	"PLAINTEXTDESKTOP": 2,
+}
+
+var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
+	0: "NEWMESSAGES",
+	1: "PLAINTEXTMOBILE",
+	2: "PLAINTEXTDESKTOP",
+}
+
+func (e GlobalAppNotificationSetting) String() string {
+	if v, ok := GlobalAppNotificationSettingRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GlobalAppNotificationSettings struct {
+	Settings map[GlobalAppNotificationSetting]bool `codec:"settings" json:"settings"`
+}
+
+func (o GlobalAppNotificationSettings) DeepCopy() GlobalAppNotificationSettings {
+	return GlobalAppNotificationSettings{
+		Settings: (func(x map[GlobalAppNotificationSetting]bool) map[GlobalAppNotificationSetting]bool {
+			ret := make(map[GlobalAppNotificationSetting]bool)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Settings),
+	}
+}
+
 type ConversationStatus int
 
 const (

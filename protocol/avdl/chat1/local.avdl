@@ -676,6 +676,8 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, ConversationNotificationInfo settings);
+  void setGlobalAppNotificationSettingsLocal(map<string, bool> settings);
+  GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 
   // Unpack message from a push notification
   string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);

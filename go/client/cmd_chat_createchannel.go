@@ -40,6 +40,7 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatCreateChannel) Run() error {
+	c.g.StartStandaloneChat()
 	return chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		nonBlock:         c.nonBlock,

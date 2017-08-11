@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAccountDelete(t *testing.T) {
@@ -33,6 +34,31 @@ func TestAccountDelete(t *testing.T) {
 	if _, ok := err.(libkb.DeletedError); !ok {
 		t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
 	}
+}
+
+func TestAccountDeleteAfterRestart(t *testing.T) {
+	tc := SetupEngineTest(t, "acct")
+	defer tc.Cleanup()
+
+	fu := SignupFakeUserStoreSecret(tc, "acct")
+
+	simulateServiceRestart(t, tc, fu)
+
+	ctx := &Context{}
+	eng := NewAccountDelete(tc.G)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatalf("AccountDelete after restart was broken but it looks like you've fixed it. Please make this test expect nil error here and uncomment the rest.")
+	}
+	require.Equal(t, "LoginSession is nil", err.Error())
+
+	// _, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, fu.Username))
+	// if err == nil {
+	// 	t.Fatal("no error loading deleted user")
+	// }
+	// if _, ok := err.(libkb.DeletedError); !ok {
+	// 	t.Errorf("loading deleted user error type: %T, expected libkb.DeletedError", err)
+	// }
 }
 
 func TestAccountDeleteIdentify(t *testing.T) {

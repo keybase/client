@@ -572,6 +572,15 @@ func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
 	return res, errors.New("not implemented")
 }
 
+func (m *ChatRemoteMock) SetGlobalAppNotificationSettings(ctx context.Context,
+	arg chat1.GlobalAppNotificationSettings) error {
+	return errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) GetGlobalAppNotificationSettings(ctx context.Context) (chat1.GlobalAppNotificationSettings, error) {
+	return chat1.GlobalAppNotificationSettings{}, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {
 	return nil
 }

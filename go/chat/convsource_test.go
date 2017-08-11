@@ -267,6 +267,16 @@ func (f failingRemote) RemoteNotificationSuccessful(ctx context.Context,
 	return nil
 }
 
+func (f failingRemote) SetGlobalAppNotificationSettings(ctx context.Context, arg chat1.GlobalAppNotificationSettings) error {
+	require.Fail(f.t, "SetGlobalAppNotificationSettings")
+	return nil
+}
+
+func (f failingRemote) GetGlobalAppNotificationSettings(ctx context.Context) (chat1.GlobalAppNotificationSettings, error) {
+	require.Fail(f.t, "GetGlobalAppNotificationSettings")
+	return chat1.GlobalAppNotificationSettings{}, nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }

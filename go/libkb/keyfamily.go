@@ -368,26 +368,21 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 }
 
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username NormalizedUsername) (err error) {
-	ckf.G().Log.Debug("ComputedKeyFamily#InsertEldestLink %s", tcl.ToDebugString())
-
 	kid := tcl.GetKID()
-	sigid := tcl.GetSigID()
-	tm := TclToKeybaseTime(tcl)
-
+	ckf.G().Log.Debug("ComputedKeyFamily#InsertEldestLink %s", tcl.ToDebugString())
 	_, err = ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return
 	}
 
-	mhm, err := tcl.GetMerkleHashMeta()
-	if err != nil {
-		return err
-	}
+	// We don't need to check the signature on the first link, because
+	// verifySubchain will take care of that.
+	ctime := tcl.GetCTime().Unix()
+	etime := tcl.GetETime().Unix()
 
-	ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(),
-		true /* isSibkey */, true /* isEldest */, tcl.GetCTime(), tcl.GetETime(),
-		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified(), tcl.ToSigChainLocation())
+	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
 
+	ckf.cki.Insert(&eldestCki)
 	return nil
 }
 
@@ -598,8 +593,8 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 		return err
 	}
 
-	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(),
-		(tcl.GetRole() == DLGSibkey), false /* isEldest */, tcl.GetCTime(), tcl.GetETime(),
+	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(),
+		tcl.GetPGPFullHash(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime(),
 		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified(), tcl.ToSigChainLocation())
 	return
 }
@@ -612,16 +607,15 @@ func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey)
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
 // fau = "FirstAppearedUnverified", a hint from the server that we're going to persist.
 // dascl = "DelegatedAtSigChainLocation"
-func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime,
-	sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
-	pgpHash string, isSibkey bool, isEldest bool, ctime, etime time.Time,
+func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
+	pgpHash string, isSibkey bool, ctime, etime time.Time,
 	merkleHashMeta keybase1.HashMeta, fau keybase1.Seqno,
 	dascl keybase1.SigChainLocation) (err error) {
 
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	if !found {
-		newInfo := NewComputedKeyInfo(kid, isEldest, isSibkey, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
+		newInfo := NewComputedKeyInfo(kid, false, isSibkey, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid] = info

@@ -20,7 +20,7 @@ export type Props = {
   followsYou?: ?boolean,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   opacity?: number,
   skipBackground?: boolean,
   size: AvatarSize,

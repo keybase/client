@@ -18,7 +18,7 @@ func newCmdTeamIgnoreRequest(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	return cli.Command{
 		Name:         "ignore-request",
 		ArgumentHelp: "<team name> --user=<username>",
-		Usage:        "ignore request to join a team",
+		Usage:        "Ignore request to join a team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamIgnoreRequestRunner(g)
 			cl.ChooseCommand(cmd, "ignore-request", c)

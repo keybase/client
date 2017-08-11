@@ -100,7 +100,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 		return false
 	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamInvite:
+		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamDeleteSubteam, SigchainV2TypeTeamInvite:
 			return true
 		default:
 			// disallow stubbing of other including unknown links

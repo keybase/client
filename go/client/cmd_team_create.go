@@ -71,16 +71,10 @@ func (v *CmdTeamCreate) Run() (err error) {
 func newCmdTeamCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "create",
-		ArgumentHelp: "teamname",
+		ArgumentHelp: "<team name>",
 		Usage:        "Create a team or a subteam.",
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "subteam",
-				Usage: "Create a subteam",
-			},
-		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdTeamCreateRunner(g), "teamcreate", c)
+			cl.ChooseCommand(NewCmdTeamCreateRunner(g), "create", c)
 		},
 		Description: "Create a team or a subteam with specified name.",
 	}
