@@ -60,6 +60,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
         />,
         <Input
           autoFocus={true}
+          hideUnderline={true}
           key="1"
           small={true}
           value={this.state.filter}
@@ -109,7 +110,7 @@ const styleFilterContainer = {
   alignItems: 'center',
   backgroundColor: globalColors.lightGrey,
   borderRadius: 19,
-  flexShrink: 0,
+  flexGrow: 1,
   height: globalMargins.medium,
   justifyContent: 'center',
   width: 160,
