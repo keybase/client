@@ -22,7 +22,7 @@ type State = {
   filter: string,
 }
 
-class _AddNewRow extends Component<void, Props, State> {
+class _ChatFilterRow extends Component<void, Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -115,6 +115,6 @@ const styleFilterContainer = {
   width: 160,
 }
 
-const AddNewRow = branch(() => !isMobile, KeyHandler)(_AddNewRow)
+const ChatFilterRow = branch(() => !isMobile, KeyHandler)(_ChatFilterRow)
 
-export default AddNewRow
+export default ChatFilterRow
