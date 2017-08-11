@@ -1205,20 +1205,23 @@ type KeyOps interface {
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
-		priority int) error
+		priority int) (doneCh, errCh <-chan struct{}, err error)
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
 	// block. Returns a channel that is closed once the all the underlying
 	// prefetches are complete.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata) <-chan struct{}
+		kmd KeyMetadata) (doneCh, errCh <-chan struct{}, numBlocks int)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
 	// complete. This feature is mainly used for testing, but also to toggle
 	// the prefetcher on and off.
 	Shutdown() <-chan struct{}
+	// ShutdownCh returns a channel that is closed if and when the prefetcher
+	// is shut down.
+	ShutdownCh() <-chan struct{}
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs

@@ -216,7 +216,9 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, triggeredPrefetch bool) (err error) {
 	didUpdateCh := make(chan struct{})
-	finishedPrefetch := triggeredPrefetch
+	// TODO: Currently this is wrong; we need to pipe the real value through
+	// the caches.
+	finishedPrefetch := false
 	defer func() {
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
@@ -238,6 +240,9 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			close(didUpdateCh)
 		}
 	}()
+	// TODO: If the working set cache has triggered a prefetch in the past, and
+	// we've switched to a sync cache, we still need to re-trigger prefetches
+	// so that it goes down the tree.
 	if triggeredPrefetch {
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, triggeredPrefetch)
@@ -268,20 +273,39 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
 	go func() {
-		<-brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
-			ptr, kmd)
+		prefetcher := brq.Prefetcher()
+		doneCh, errCh, numBlocks :=
+			prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
+
+		// If we have child blocks to prefetch, wait for them.
+		if numBlocks > 0 {
+			for i := 0; i < numBlocks; i++ {
+				select {
+				case <-doneCh:
+				case <-errCh:
+					// One error means this block didn't finish prefetching, so
+					// we don't want to overwrite whatever the current
+					// finishedPrefetch state is.
+					return
+				case <-prefetcher.ShutdownCh():
+					return
+				}
+			}
+		}
+
 		// Make sure we've already updated the metadata once to avoid a race.
 		<-didUpdateCh
 		// Prefetches are done. Update the disk cache metadata.
-		// TODO: implement deep prefetch done tracking.
-		//dbc := brq.config.DiskBlockCache()
-		//if dbc != nil {
-		//	err := dbc.UpdateMetadata(ctx, ptr.ID, true, true)
-		//	if err != nil {
-		//		brq.log.CWarningf(ctx, "Error updating metadata after "+
-		//			"prefetch: %+v", err)
-		//	}
-		//}
+		dbc := brq.config.DiskBlockCache()
+		if dbc != nil {
+			// TODO: set finishedPrefetch to true here once it correctly
+			// represents the doneness of the prefetching.
+			err := dbc.UpdateMetadata(ctx, ptr.ID, true, false)
+			if err != nil {
+				brq.log.CWarningf(ctx, "Error updating metadata after "+
+					"prefetch: %+v", err)
+			}
+		}
 	}()
 	return nil
 }
@@ -291,10 +315,10 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	lifetime BlockCacheLifetime) error {
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
-	// Set correctly. The cache will never have CommonBlocks.  TODO: verify
-	// that the returned lifetime here matches `lifetime` (which should always
-	// be TransientEntry, since a PermanentEntry would have been served
-	// directly from the cache elsewhere)?
+	// Set correctly. The cache will never have CommonBlocks.
+	// TODO: verify that the returned lifetime here matches `lifetime` (which
+	// should always be TransientEntry, since a PermanentEntry would have been
+	// served directly from the cache elsewhere)?
 	cachedBlock, triggeredPrefetch, _, err :=
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
