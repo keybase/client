@@ -586,6 +586,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		uid:          uid,
 		tlfName:      tlfName,
 		topicName:    topicName,
+		topicType:    topicType,
 		membersType:  membersType,
 		vis:          vis,
 		ri:           ri,
@@ -593,7 +594,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, rl []chat1.RateLimit, reserr error) {
-
+	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
 	if n.topicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name
@@ -601,6 +602,10 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		case chat1.ConversationMembersType_TEAM:
 			n.topicName = &DefaultTeamTopic
 		}
+	}
+	var findConvsTopicName string
+	if n.topicName != nil {
+		findConvsTopicName = *n.topicName
 	}
 
 	// Find any existing conversations that match this argument specifically. We need to do this check
@@ -612,13 +617,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// should hopefully just result in a bunch of cache hits on the second invocation.
 	onechatpertlf := true
 	convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
-		n.membersType, n.vis, *n.topicName, &onechatpertlf)
+		n.membersType, n.vis, findConvsTopicName, &onechatpertlf)
 	if err != nil {
 		return res, rl, err
 	}
 	// If we find one conversation, then just return it as if we created it.
 	rl = append(rl, irl...)
 	if len(convs) == 1 {
+		n.Debug(ctx, "found previous conversation that matches, returning")
 		return convs[0], rl, err
 	}
 
@@ -635,11 +641,12 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	for i := 0; i < 5; i++ {
-		n.Debug(ctx, "NewConversation: attempt: %v", i)
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
 			return res, rl, fmt.Errorf("error creating topic ID: %s", err)
 		}
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s]", i, triple.Tlfid, triple.TopicType,
+			triple.TopicID)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
@@ -659,11 +666,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if reserr != nil {
 			switch cerr := reserr.(type) {
 			case libkb.ChatStalePreviousStateError:
-				n.Debug(ctx, "NewConversation: stale topic name state, trying again")
+				n.Debug(ctx, "stale topic name state, trying again")
 				continue
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
-				n.Debug(ctx, "NewConversation: conv exists: %v", cerr.ConvID)
+				n.Debug(ctx, "conv exists: %v", cerr.ConvID)
 
 				if triple.TopicType != chat1.TopicType_CHAT ||
 					n.membersType == chat1.ConversationMembersType_TEAM {
@@ -676,14 +683,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				convID = cerr.ConvID
 			case libkb.ChatCollisionError:
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
-				n.Debug(ctx, "NewConversation: collision: %v", reserr)
+				n.Debug(ctx, "collision: %v", reserr)
 				continue
 			default:
 				return res, rl, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
-		n.Debug(ctx, "NewConversation: established conv: %v", convID)
+		n.Debug(ctx, "established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
 		ib, irl, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,
@@ -702,7 +709,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res = ib.Convs[0]
-		n.Debug(ctx, "NewConversationLocal: fetched conv: %v", res.GetConvID())
+		n.Debug(ctx, "fetched conv: %v", res.GetConvID())
 
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]
