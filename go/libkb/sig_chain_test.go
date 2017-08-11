@@ -256,7 +256,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		t.Fatal(err)
 	}
 	for _, link := range idtable.links {
-		if !link.IsRevoked() {
+		if !link.IsDirectlyRevoked() {
 			unrevokedCount++
 		}
 	}
