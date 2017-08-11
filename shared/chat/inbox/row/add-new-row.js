@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Icon, Box, ClickableBox, LoadingLine, AutosizeInput} from '../../../common-adapters'
+import {Icon, Box, ClickableBox, LoadingLine, Input} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
@@ -22,7 +22,7 @@ const _AddNewRow = ({
   isLoading: boolean,
 }) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 48, position: 'relative'}}>
-    <AutosizeInput placeholder="placeholder" value="" onChange={onSetFilter} />
+    <Input value="" type="text" hintText="Jump to..." onChangeText={onSetFilter} />
     <ClickableBox
       style={{
         ...globalStyles.flexBoxRow,
