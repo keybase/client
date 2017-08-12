@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+
+import type {ConversationIDKey} from '../../../constants/chat'
+
+export type Props = {
+  conversationIDKey: ConversationIDKey,
+  onBack: () => void,
+  onBlock: () => void,
+  onBlockAndReport: () => void,
+  participants: string,
+}
+
+export default class NewTeamDialog extends Component<void, Props, void> {}
