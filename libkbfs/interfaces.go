@@ -2237,10 +2237,12 @@ type RekeyFSM interface {
 type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
+		prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		triggeredPrefetch bool) error
+		triggeredPrefetch bool,
+		prefetchDoneCh, prefetchErrCh chan<- struct{}) error
 }

@@ -52,8 +52,10 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 
 // blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
-	block  Block
-	doneCh chan error
+	block          Block
+	doneCh         chan error
+	prefetchDoneCh chan<- struct{}
+	prefetchErrCh  chan<- struct{}
 }
 
 // blockRetrieval contains the metadata for a given block retrieval. May
@@ -355,17 +357,20 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 // Request submits a block request to the queue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
+	lifetime BlockCacheLifetime,
+	prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
 		ch <- io.EOF
+		prefetchErrCh <- struct{}{}
 		return ch
 	default:
 	}
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
+		prefetchErrCh <- struct{}{}
 		return ch
 	}
 
@@ -373,6 +378,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
 	if err == nil {
 		ch <- nil
+		prefetchErrCh <- struct{}{}
 		return ch
 	}
 
@@ -412,8 +418,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		}
 		br.reqMtx.Lock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
-			block:  block,
-			doneCh: ch,
+			block:          block,
+			doneCh:         ch,
+			prefetchDoneCh: prefetchDoneCh,
+			prefetchErrCh:  prefetchErrCh,
 		})
 		if lifetime > br.cacheLifetime {
 			br.cacheLifetime = lifetime
@@ -454,6 +462,13 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
+	// This is a symbolic lock, since there shouldn't be any other goroutines
+	// accessing requests at this point. But requests had contentious access
+	// earlier, so we'll lock it here as well to maintain the integrity of the
+	// lock.
+	retrieval.reqMtx.Lock()
+	defer retrieval.reqMtx.Unlock()
+
 	// Cache the block and trigger prefetches if there is no error.
 	if err == nil {
 		// We treat this request as not having been prefetched, because the
@@ -464,12 +479,6 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime, false)
 	}
 
-	// This is a symbolic lock, since there shouldn't be any other goroutines
-	// accessing requests at this point. But requests had contentious access
-	// earlier, so we'll lock it here as well to maintain the integrity of the
-	// lock.
-	retrieval.reqMtx.Lock()
-	defer retrieval.reqMtx.Unlock()
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {

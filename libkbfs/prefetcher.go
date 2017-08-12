@@ -100,6 +100,7 @@ func (p *blockPrefetcher) run() {
 				defer cancel()
 				select {
 				case err := <-errCh:
+					req.errCh <- struct{}{}
 					if err != nil {
 						p.log.CDebugf(ctx, "Done prefetch for block %s. "+
 							"Error: %+v", req.ptr.ID, err)
