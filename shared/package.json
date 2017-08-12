@@ -147,7 +147,7 @@
     "eslint-plugin-node": "5.1.1",
     "eslint-plugin-prettier": "2.1.2",
     "eslint-plugin-promise": "3.5.0",
-    "eslint-plugin-react": "7.1.0",
+    "eslint-plugin-react": "7.2.0",
     "eslint-plugin-standard": "3.0.1",
     "file-loader": "0.11.1",
     "flow-bin": "^0.49.1",
