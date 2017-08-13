@@ -9,6 +9,7 @@ package engine
 //
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -129,15 +130,49 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		KeyQuery:   e.arg.Query,
 		ExactMatch: e.arg.ExactMatch,
 	}
-	key, skb, err := e.G().Keyrings.GetSecretKeyAndSKBWithPrompt(ctx.SecretKeyPromptArg(ska, "key export"))
+
+	var passphrase string
+	unencrypted := false
+
+	skb, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
-		if _, ok := err.(libkb.NoSecretKeyError); ok {
-			// if no secret key found, don't return an error, just let
-			// the result be empty
-			return nil
+		return nil
+	}
+
+	skb.SetUID(e.me.GetUID())
+	secretStore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
+
+	unlockDesc, err := skb.HumanDescription(e.me)
+	if err != nil {
+		return nil
+	}
+
+	unlocker := func(pw string, storeSecret bool) (ret libkb.GenericKey, err error) {
+		var secretStorer libkb.SecretStorer
+		if storeSecret {
+			secretStorer = secretStore
 		}
+		if !unencrypted {
+			// save passphrase to encrypt key later
+			passphrase = pw
+		}
+		return skb.UnlockSecretKey(ctx.LoginContext, pw, nil, nil, secretStorer)
+	}
+
+	reason := "key unlock for export "
+	if unencrypted {
+		reason += "(not encrypted)"
+	} else {
+		reason += "(encrypted with passphrase)"
+	}
+
+	keyUnlocker := libkb.NewKeyUnlocker(e.G(), 4, reason, unlockDesc, libkb.PassphraseTypeKeybase, (secretStore != nil), ctx.SecretUI, unlocker)
+
+	key, err := keyUnlocker.Run()
+	if err != nil {
 		return err
 	}
+
 	fp := libkb.GetPGPFingerprintFromGenericKey(key)
 	if fp == nil {
 		return libkb.BadKeyError{Msg: "no fingerprint found"}
@@ -151,9 +186,33 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		return libkb.BadKeyError{Msg: "Expected a PGP key"}
 	}
 
-	raw := skb.RawUnlockedKey()
-	if raw == nil {
-		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
+	var raw []byte
+
+	if unencrypted {
+		// User wanted un-encrypted key. Just pass raw bytes
+		raw = skb.RawUnlockedKey()
+
+		if raw == nil {
+			return libkb.BadKeyError{Msg: "can't get raw representation of key"}
+		}
+	} else {
+		// Make encrypted PGP key bundle using user's passphrase
+		// provided at the beginning.
+		entity, _ := key.(*libkb.PGPKeyBundle)
+		if entity.PrivateKey == nil {
+			return libkb.BadKeyError{Msg: "No secret part in PGP key."}
+		}
+
+		if err = entity.PrivateKey.Encrypt([]byte(passphrase), nil); err != nil {
+			return err
+		}
+
+		var buf bytes.Buffer
+		if err = entity.SerializePrivate(&buf); err != nil {
+			return err
+		}
+
+		raw = buf.Bytes()
 	}
 
 	ret, err := libkb.PGPKeyRawToArmored(raw, true)
