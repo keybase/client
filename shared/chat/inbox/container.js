@@ -32,26 +32,63 @@ const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
 const filteredInbox = createImmutableEqualSelector(
   [getInbox, getSupersededByState, getAlwaysShow, getFilter],
   (inbox, supersededByState, alwaysShow, filter) => {
-    const ids = []
-    // Building a list using forEach for performance reason, only call i.conversationIDKey once
+    const smallIds = []
+    const bigTeamToChannels = {}
+
+    // Partition small and big. Some big will turn into small later if they only have one channel
     inbox.forEach(i => {
       const id = i.conversationIDKey
       if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
-        ids.push(id)
+        // Keep time cause we sort later
+        const value = {id, time: i.time}
+        if (!i.teamname) {
+          smallIds.push(value)
+        } else {
+          if (!bigTeamToChannels[i.teamname]) {
+            bigTeamToChannels[i.teamname] = {}
+          }
+          bigTeamToChannels[i.teamname][i.channelname] = value
+        }
       }
     })
-    return I.List(ids)
+
+    // convert any small teams into smallids
+    Object.keys(bigTeamToChannels).forEach(team => {
+      // only one channel
+      if (Object.keys(bigTeamToChannels[team]) === 1) {
+        smallIds.push(bigTeamToChannels[team])
+        bigTeamToChannels[team] = undefined
+      }
+    })
+
+    const sortedSmallIds = smallIds
+      .sort((a, b) => {
+        if (a.time === b.time) {
+          return a.id.localeCompare(b.id)
+        }
+
+        return b.time - a.time
+      })
+      .map(v => v.id)
+
+    return [sortedSmallIds, bigTeamToChannels]
   }
 )
 const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
-  return I.List(pending.keys()).concat(inbox)
+  const [smallIds, bigTeamToChannels] = inbox
+
+  const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, teamname: null})))
+  const sids = I.List(smallIds.map(s => ({conversationIDKey: s, teamname: null})))
+  // TODO teams
+
+  return pids.concat(sids)
 })
 
 const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
-  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
-  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
-  rows: getRows(state),
   isActiveRoute,
+  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+  rows: getRows(state),
+  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
