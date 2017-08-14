@@ -263,9 +263,6 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 }
 
 func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec Triplesec, pps *PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
-	if key = s.decryptedSecret; key != nil {
-		return
-	}
 	var unlocked []byte
 
 	switch s.Priv.Encryption {
@@ -306,6 +303,12 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec Triples
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
 	}
+
+	if key = s.decryptedSecret; key != nil {
+		// Key is already unlocked and unpacked, do not parse again.
+		return
+	}
+
 	if err == nil {
 		key, err = s.parseUnlocked(unlocked)
 	}
