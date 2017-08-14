@@ -461,6 +461,10 @@ function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.Load
   }
 }
 
+function createNewTeam(conversationIDKey: Constants.ConversationIDKey) {
+  return {payload: {conversationIDKey}, type: 'chat:createNewTeam'}
+}
+
 function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
   return {payload: {messageKey}, type: 'chat:saveAttachment'}
 }
@@ -692,6 +696,7 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
+  createNewTeam,
   deleteMessage,
   downloadProgress,
   editMessage,

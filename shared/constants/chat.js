@@ -45,6 +45,7 @@ type MessageKeyKind =
   | 'messageIDError'
   | 'messageIDText'
   | 'messageIDUnhandled'
+  | 'offerTeamCreation'
   | 'outboxIDAttachment'
   | 'outboxIDText'
   | 'tempAttachment'
@@ -665,6 +666,15 @@ export type SaveAttachment = NoErrorTypedAction<
     messageKey: MessageKey,
   }
 >
+
+export type CreateNewTeam = NoErrorTypedAction<
+  'chat:createNewTeam',
+  {
+    conversationIDKey: ConversationIDKey,
+    name: string,
+  }
+>
+
 export type AttachmentSaveStart = NoErrorTypedAction<
   'chat:attachmentSaveStart',
   {
@@ -758,6 +768,7 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
+  | CreateNewTeam
   | DeleteMessage
   | EditMessage
   | ShowEditor
@@ -1045,6 +1056,8 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
       return 'timestamp'
     case 'supersedes':
       return 'supersedes'
+    case 'offerTeamCreation':
+      return 'offerTeamCreation'
   }
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }

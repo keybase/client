@@ -17,6 +17,9 @@ import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
   ConstantsStatusCode,
+  teamsTeamCreateRpcPromise,
+  teamsTeamAddMemberRpcPromise,
+  TeamsTeamRole,
 } from '../../constants/types/flow-types'
 import {call, put, all, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
@@ -283,6 +286,7 @@ function* _updateThread({
   const newMessages = ((thread && thread.messages) || [])
     .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
     .reverse()
+  newMessages.unshift(_offerTeamCreationMessage(conversationIDKey))
   const pagination = _threadToPagination(thread)
   yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
 }
@@ -441,6 +445,13 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
       return 'message is too long'
   }
   return `unknown error type ${typ}`
+}
+
+function _offerTeamCreationMessage(conversationIDKey: Constants.ConversationIDKey): Constants.Message {
+  return {
+    key: Constants.messageKey(conversationIDKey, 'offerTeamCreation', 0),
+    type: 'Unhandled',
+  }
 }
 
 function _unboxedToMessage(
@@ -1028,10 +1039,35 @@ function* _exitSearch() {
   }
 }
 
+function* _createNewTeam(action: Constants.CreateNewTeam) {
+  const {payload: {conversationIDKey, name}} = action
+  console.warn(conversationIDKey, name)
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox) {
+    yield call(teamsTeamCreateRpcPromise, {
+      param: {name},
+    })
+    const participants = inbox.get('participants').toArray()
+    console.warn({participants})
+    for (const username of participants) {
+      yield call(teamsTeamAddMemberRpcPromise, {
+        param: {
+          email: '',
+          name,
+          role: TeamsTeamRole.writer,
+          sendChatNotification: true,
+          username,
+        },
+      })
+    }
+  }
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
