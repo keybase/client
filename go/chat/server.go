@@ -172,7 +172,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		if lres.InboxRes == nil {
 			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
-		h.Debug(ctx, "GetInboxNonblockLocal: unverified inbox sent: %d convs",
+		start := time.Now()
+		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
 			len(lres.InboxRes.ConvsUnverified))
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
@@ -183,6 +184,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				RateLimits:              res.RateLimits,
 			},
 		})
+		h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
 	case <-time.After(15 * time.Second):
 		return res, fmt.Errorf("timeout waiting for inbox result")
 	case <-ctx.Done():
