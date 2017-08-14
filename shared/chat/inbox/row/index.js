@@ -15,26 +15,6 @@ import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../../constants/chat'
 
-type Props = {
-  backgroundColor: string,
-  conversationIDKey: ConversationIDKey,
-  hasUnread: boolean,
-  isMuted: boolean,
-  isSelected: boolean,
-  onSelectConversation: (key: ConversationIDKey) => void,
-  marginRight: number,
-  participantNeedToRekey: boolean,
-  participants: List<string>,
-  rekeyInfo: any,
-  showBold: boolean,
-  snippet: string,
-  subColor: string,
-  timestamp: string,
-  unreadCount: number,
-  usernameColor: string,
-  youNeedToRekey: boolean,
-}
-
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
 function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
@@ -47,19 +27,16 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
   return !idx && isLastParticipant ? undefined : backgroundColor
 }
 
-class TopLine
-  extends PureComponent<
-    void,
-    {
-      hasUnread: boolean,
-      participants: List<string>,
-      showBold: boolean,
-      subColor: ?string,
-      timestamp: ?string,
-      usernameColor: ?string,
-    },
-    void
-  > {
+type TopLineProps = {
+  hasUnread: boolean,
+  participants: List<string>,
+  showBold: boolean,
+  subColor: ?string,
+  timestamp: ?string,
+  usernameColor: ?string,
+}
+
+class TopLine extends PureComponent<void, TopLineProps, void> {
   render() {
     const {hasUnread, showBold, participants, subColor, timestamp, usernameColor} = this.props
     const height = isMobile ? 19 : 17
@@ -106,19 +83,16 @@ class TopLine
   }
 }
 
-class BottomLine
-  extends PureComponent<
-    void,
-    {
-      backgroundColor: ?string,
-      participantNeedToRekey: boolean,
-      showBold: boolean,
-      snippet: ?string,
-      subColor: ?string,
-      youNeedToRekey: boolean,
-    },
-    void
-  > {
+type BottomLineProps = {
+  backgroundColor: ?string,
+  participantNeedToRekey: boolean,
+  showBold: boolean,
+  snippet: ?string,
+  subColor: ?string,
+  youNeedToRekey: boolean,
+}
+
+class BottomLine extends PureComponent<void, BottomLineProps, void> {
   render() {
     const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
     let content
@@ -160,11 +134,11 @@ class BottomLine
 
       if (subColor !== globalColors.black_40 || showBold) {
         style = collapseStyles([
+          baseStyle,
           {
             color: subColor,
             ...(showBold ? globalStyles.fontBold : {}),
           },
-          baseStyle,
         ])
       } else {
         style = baseStyle
@@ -210,19 +184,16 @@ class BottomLine
   }
 }
 
-class Avatars
-  extends PureComponent<
-    void,
-    {
-      participants: List<string>,
-      youNeedToRekey: boolean,
-      participantNeedToRekey: boolean,
-      isMuted: boolean,
-      isSelected: boolean,
-      backgroundColor: string,
-    },
-    void
-  > {
+type AvatarProps = {
+  participants: List<string>,
+  youNeedToRekey: boolean,
+  participantNeedToRekey: boolean,
+  isMuted: boolean,
+  isSelected: boolean,
+  backgroundColor: string,
+}
+
+class Avatars extends PureComponent<void, AvatarProps, void> {
   render() {
     const {
       participants,
@@ -279,7 +250,7 @@ class Avatars
 
 const multiStyle = memoize(backgroundColor => {
   return {
-    ...(isMobile ? {paddingTop: 10, paddingBottom: 10} : {}),
+    ...(isMobile ? {paddingBottom: 10, paddingTop: 10} : {}),
     backgroundColor,
     height: '100%',
     width: '100%',
@@ -311,6 +282,26 @@ const avatarInnerBoxStyle = {
   paddingBottom: 4,
   paddingTop: 4,
   position: 'relative',
+}
+
+type Props = {
+  backgroundColor: string,
+  conversationIDKey: ConversationIDKey,
+  hasUnread: boolean,
+  isMuted: boolean,
+  isSelected: boolean,
+  onSelectConversation: (key: ConversationIDKey) => void,
+  marginRight: number,
+  participantNeedToRekey: boolean,
+  participants: List<string>,
+  rekeyInfo: any,
+  showBold: boolean,
+  snippet: string,
+  subColor: string,
+  timestamp: string,
+  unreadCount: number,
+  usernameColor: string,
+  youNeedToRekey: boolean,
 }
 
 class Row extends PureComponent<void, Props, void> {
