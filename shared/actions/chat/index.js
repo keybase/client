@@ -910,7 +910,7 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
-        const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
+        const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
             dispatch(Creators.selectConversation(action.payload.conversationIDKey, false))

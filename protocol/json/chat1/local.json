@@ -2103,10 +2103,6 @@
           "type": "ConversationID"
         },
         {
-          "name": "conv",
-          "type": "ConversationIDTriple"
-        },
-        {
           "name": "tlfName",
           "type": "string"
         },
@@ -2143,10 +2139,6 @@
           "type": "ConversationID"
         },
         {
-          "name": "conv",
-          "type": "ConversationIDTriple"
-        },
-        {
           "name": "tlfName",
           "type": "string"
         },
@@ -2181,10 +2173,6 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
-        },
-        {
-          "name": "conv",
-          "type": "ConversationIDTriple"
         },
         {
           "name": "tlfName",

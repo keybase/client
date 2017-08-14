@@ -368,6 +368,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// convID will be nil in makeFirstMessage
 	if conv != nil {
+		msg.ClientHeader.Conv = conv.Metadata.IdTriple
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err

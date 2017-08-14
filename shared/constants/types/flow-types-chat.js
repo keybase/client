@@ -1480,13 +1480,18 @@ export type InboxResType =
 
 export type InboxUIItem = {
   convID: string,
+  isEmpty: boolean,
   name: string,
   snippet: string,
   channel: string,
+  visibility: TLFVisibility,
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
   time: gregor1.Time,
+  finalizeInfo?: ?ConversationFinalizeInfo,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
 }
 
 export type InboxUIItems = {
@@ -2102,6 +2107,7 @@ export type UnreadUpdateFull = {
 export type UnverifiedInboxUIItem = {
   convID: string,
   name: string,
+  visibility: TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
   time: gregor1.Time,
@@ -2296,7 +2302,6 @@ export type localPostAttachmentLocalRpcParam = Exact<{
 
 export type localPostDeleteNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   supersedes: MessageID,
@@ -2307,7 +2312,6 @@ export type localPostDeleteNonblockRpcParam = Exact<{
 
 export type localPostEditNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   supersedes: MessageID,
@@ -2343,7 +2347,6 @@ export type localPostLocalRpcParam = Exact<{
 
 export type localPostTextNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   body: string,

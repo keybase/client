@@ -525,7 +525,7 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 		}
 	}
 	if len(summaries) == 0 {
-		return gregor1.Time(0)
+		return conv.ReaderInfo.Mtime
 	}
 	sort.Sort(ByMsgSummaryCtime(summaries))
 	return summaries[len(summaries)-1].Ctime
@@ -553,7 +553,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	}
 	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
 	if err != nil {
-		return gregor1.Time(0)
+		return conv.ReaderInfo.Mtime
 	}
 	return msg.Valid().ServerHeader.Ctime
 }
@@ -584,7 +584,12 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Participants = rawConv.Info.WriterNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
+	res.Visibility = rawConv.Info.Visibility
 	res.Time = GetConvMtimeLocal(rawConv)
+	res.FinalizeInfo = rawConv.GetFinalizeInfo()
+	res.SupersededBy = rawConv.SupersededBy
+	res.Supersedes = rawConv.Supersedes
+	res.IsEmpty = rawConv.IsEmpty
 	return res
 }
 

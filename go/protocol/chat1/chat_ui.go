@@ -12,6 +12,7 @@ import (
 type UnverifiedInboxUIItem struct {
 	ConvID      string                  `codec:"convID" json:"convID"`
 	Name        string                  `codec:"name" json:"name"`
+	Visibility  TLFVisibility           `codec:"visibility" json:"visibility"`
 	Status      ConversationStatus      `codec:"status" json:"status"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 	Time        gregor1.Time            `codec:"time" json:"time"`
@@ -21,6 +22,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:      o.ConvID,
 		Name:        o.Name,
+		Visibility:  o.Visibility.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
 		Time:        o.Time.DeepCopy(),
@@ -55,22 +57,29 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 }
 
 type InboxUIItem struct {
-	ConvID       string                  `codec:"convID" json:"convID"`
-	Name         string                  `codec:"name" json:"name"`
-	Snippet      string                  `codec:"snippet" json:"snippet"`
-	Channel      string                  `codec:"channel" json:"channel"`
-	Participants []string                `codec:"participants" json:"participants"`
-	Status       ConversationStatus      `codec:"status" json:"status"`
-	MembersType  ConversationMembersType `codec:"membersType" json:"membersType"`
-	Time         gregor1.Time            `codec:"time" json:"time"`
+	ConvID       string                    `codec:"convID" json:"convID"`
+	IsEmpty      bool                      `codec:"isEmpty" json:"isEmpty"`
+	Name         string                    `codec:"name" json:"name"`
+	Snippet      string                    `codec:"snippet" json:"snippet"`
+	Channel      string                    `codec:"channel" json:"channel"`
+	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	Participants []string                  `codec:"participants" json:"participants"`
+	Status       ConversationStatus        `codec:"status" json:"status"`
+	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
+	Time         gregor1.Time              `codec:"time" json:"time"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes   []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
+	SupersededBy []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
-		ConvID:  o.ConvID,
-		Name:    o.Name,
-		Snippet: o.Snippet,
-		Channel: o.Channel,
+		ConvID:     o.ConvID,
+		IsEmpty:    o.IsEmpty,
+		Name:       o.Name,
+		Snippet:    o.Snippet,
+		Channel:    o.Channel,
+		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			var ret []string
 			for _, v := range x {
@@ -82,6 +91,29 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
 		Time:        o.Time.DeepCopy(),
+		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FinalizeInfo),
+		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Supersedes),
+		SupersededBy: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.SupersededBy),
 	}
 }
 
