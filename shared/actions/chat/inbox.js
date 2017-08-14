@@ -149,14 +149,21 @@ function* onInboxStale(): SagaGenerator<any, any> {
             .map((message: {ctime: number}) => message.ctime)
             .sort()
           const time = times && times.length > 0 && times[times.length - 1]
-
+          let teamname
+          let channelname
+          if (c.metadata.membersType === ChatTypes.CommonConversationMembersType.team) {
+            teamname = msgMax.tlfName
+            channelname = ''
+          }
           return new Constants.InboxStateRecord({
             conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
             info: null,
             participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
+            channelname,
             snippet: ' ',
             state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
+            teamname,
             time,
           })
         })
@@ -412,8 +419,8 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
         title: Constants.makeTeamTitle(message.body) || '<none>',
       }))
       .first() || {}
-    channelname = c.info.tlfName
-    teamname = topicName.title
+    teamname = c.info.tlfName
+    channelname = topicName.title
   }
 
   return new Constants.InboxStateRecord({

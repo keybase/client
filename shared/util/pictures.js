@@ -46,46 +46,93 @@ const _getUserImages = throttle(() => {
     return
   }
 
-  apiserverGetRpc({
-    callback: (error, response) => {
-      if (error) {
-        good.forEach(username => {
-          const info = _nameToURL[username]
-          const urlMap = {}
-          if (info) {
-            info.done = true
-            info.error = true
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
-      } else {
-        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = good[idx]
-          let urlMap = {
-            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          }
+  const [teamnames, usernames] = partition(good, g => _nameToURL[g].isTeam)
 
-          const info = _nameToURL[username]
-          if (info) {
-            info.done = true
-            info.urlMap = urlMap
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
-      }
-    },
-    param: {
-      args: [
-        {key: 'usernames', value: good.join(',')},
-        {key: 'formats', value: 'square_360,square_200,square_40'},
-      ],
-      endpoint: 'image/username_pic_lookups',
-    },
-  })
+  if (usernames.length) {
+    apiserverGetRpc({
+      callback: (error, response) => {
+        if (error) {
+          usernames.forEach(username => {
+            const info = _nameToURL[username]
+            const urlMap = {}
+            if (info) {
+              info.done = true
+              info.error = true
+              info.callbacks.forEach(cb => cb(username, urlMap))
+              info.callbacks = []
+            }
+          })
+        } else {
+          JSON.parse(response.body).pictures.forEach((picMap, idx) => {
+            const username = usernames[idx]
+            let urlMap = {
+              ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+              ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+              ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+            }
+
+            const info = _nameToURL[username]
+            if (info) {
+              info.done = true
+              info.urlMap = urlMap
+              info.callbacks.forEach(cb => cb(username, urlMap))
+              info.callbacks = []
+            }
+          })
+        }
+      },
+      param: {
+        args: [
+          {key: 'usernames', value: good.join(',')},
+          {key: 'formats', value: 'square_360,square_200,square_40'},
+        ],
+        endpoint: 'image/username_pic_lookups',
+      },
+    })
+  }
+
+  if (teamnames.length) {
+    apiserverGetRpc({
+      callback: (error, response) => {
+        if (error) {
+          teamnames.forEach(teamname => {
+            const info = _nameToURL[teamname]
+            const urlMap = {}
+            if (info) {
+              info.done = true
+              info.error = true
+              info.callbacks.forEach(cb => cb(teamname, urlMap))
+              info.callbacks = []
+            }
+          })
+        } else {
+          JSON.parse(response.body).pictures.forEach((picMap, idx) => {
+            const teamname = teamnames[idx]
+            let urlMap = {
+              ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+              ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+              ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+            }
+
+            const info = _nameToURL[teamname]
+            if (info) {
+              info.done = true
+              info.urlMap = urlMap
+              info.callbacks.forEach(cb => cb(teamname, urlMap))
+              info.callbacks = []
+            }
+          })
+        }
+      },
+      param: {
+        args: [
+          {key: 'team_names', value: good.join(',')},
+          {key: 'formats', value: 'square_360,square_200,square_40'},
+        ],
+        endpoint: 'image/team_avatar_lookups',
+      },
+    })
+  }
 }, 200)
 
 function validUsername(name: ?string) {
@@ -93,7 +140,7 @@ function validUsername(name: ?string) {
     return false
   }
 
-  return !!name.match(/^([a-z0-9][a-z0-9_]{1,15})$/i)
+  return !!name.match(/^([a-z0-9_-]{1,1000})$/i)
 }
 
 function getUserImageMap(username: string): ?URLMap {

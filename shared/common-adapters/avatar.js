@@ -50,28 +50,28 @@ type State = {
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
-  '12': 'icon-placeholder-avatar-24',
-  '16': 'icon-placeholder-avatar-24',
+  '12': 'icon-placeholder-avatar-12',
+  '16': 'icon-placeholder-avatar-16',
   '176': 'icon-placeholder-avatar-176',
   '24': 'icon-placeholder-avatar-24',
   '32': 'icon-placeholder-avatar-32',
-  '40': 'icon-placeholder-avatar-48',
+  '40': 'icon-placeholder-avatar-40',
   '48': 'icon-placeholder-avatar-48',
   '64': 'icon-placeholder-avatar-64',
   '80': 'icon-placeholder-avatar-80',
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
-  '112': 'icon-placeholder-team-avatar-112',
-  '12': 'icon-placeholder-team-avatar-24',
-  '16': 'icon-placeholder-team-avatar-24',
-  '176': 'icon-placeholder-team-avatar-176',
-  '24': 'icon-placeholder-team-avatar-24',
-  '32': 'icon-placeholder-team-avatar-32',
-  '40': 'icon-placeholder-team-avatar-48',
-  '48': 'icon-placeholder-team-avatar-48',
-  '64': 'icon-placeholder-team-avatar-64',
-  '80': 'icon-placeholder-team-avatar-80',
+  '112': 'icon-team-placeholder-avatar-112',
+  '12': 'icon-team-placeholder-avatar-12',
+  '16': 'icon-team-placeholder-avatar-16',
+  '176': 'icon-team-placeholder-avatar-176',
+  '24': 'icon-team-placeholder-avatar-24',
+  '32': 'icon-team-placeholder-avatar-32',
+  '40': 'icon-team-placeholder-avatar-40',
+  '48': 'icon-team-placeholder-avatar-48',
+  '64': 'icon-team-placeholder-avatar-64',
+  '80': 'icon-team-placeholder-avatar-80',
 }
 
 const followStateToType = I.fromJS({
@@ -131,11 +131,11 @@ const followSizeToStyle = {
 class Avatar extends Component<void, Props, State> {
   state: State
   _mounted: boolean = false
-  _onURLLoaded = (username: string, urlMap: ?URLMap) => {
+  _onURLLoaded = (name: string, urlMap: ?URLMap) => {
     // Mounted and still looking at the same username?
     requestIdleCallback(
       () => {
-        if (this._mounted && this.props.username === username) {
+        if (this._mounted && (this.props.username === name || this.props.teamname === name)) {
           this.setState({url: this._urlMapsToUrl(urlMap)})
         }
       },
