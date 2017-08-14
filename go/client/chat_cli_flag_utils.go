@@ -94,10 +94,6 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "u, unmute",
 		Usage: "Unmute the conversation",
 	},
-	"async": cli.BoolFlag{
-		Name:  "async",
-		Usage: "Fetch inbox and unbox asynchronously",
-	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -124,7 +120,7 @@ func getInboxFetcherUnreadFirstFlags() []cli.Flag {
 }
 
 func getInboxFetcherActivitySortedFlags() []cli.Flag {
-	return append(mustGetChatFlags("number", "since", "include-hidden", "async"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("number", "since", "include-hidden"), getConversationResolverFlags()...)
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
@@ -231,8 +227,6 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 	if !ctx.Bool("include-hidden") {
 		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
-
-	fetcher.async = ctx.Bool("async")
 
 	return fetcher, err
 }

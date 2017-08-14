@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -128,6 +129,37 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	return err
 }
 
+func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInboxLocalRes) (res chat1.UnverifiedInboxUIItems, err error) {
+	for _, rawConv := range vres.ConversationsUnverified {
+		if len(rawConv.MaxMsgSummaries) == 0 {
+			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
+				rawConv.GetConvID())
+			continue
+		}
+		var conv chat1.UnverifiedInboxUIItem
+		conv.ConvID = rawConv.GetConvID().String()
+		conv.Name = rawConv.MaxMsgSummaries[0].TlfName
+		conv.Status = rawConv.Metadata.Status
+
+		timeTyps := []chat1.MessageType{
+			chat1.MessageType_TEXT,
+			chat1.MessageType_ATTACHMENT,
+		}
+		var summaries []chat1.MessageSummary
+		for _, typ := range timeTyps {
+			summary, err := rawConv.GetMaxMessage(typ)
+			if err == nil {
+				summaries = append(summaries, summary)
+			}
+		}
+		sort.Sort(utils.ByMsgSummaryCtime(summaries))
+		conv.Time = summaries[len(summaries)-1].Ctime
+	}
+	res.Pagination = vres.Pagination
+	res.Offline = vres.Offline
+	return res, err
+}
+
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -172,17 +204,21 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		if lres.InboxRes == nil {
 			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
+		uires, err := h.presentUnverifiedInbox(ctx, chat1.GetInboxLocalRes{
+			ConversationsUnverified: lres.InboxRes.ConvsUnverified,
+			Pagination:              lres.InboxRes.Pagination,
+			Offline:                 h.G().InboxSource.IsOffline(),
+		})
+		if err != nil {
+			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
+			return res, err
+		}
 		start := time.Now()
 		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
 			len(lres.InboxRes.ConvsUnverified))
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
-			Inbox: chat1.GetInboxLocalRes{
-				ConversationsUnverified: lres.InboxRes.ConvsUnverified,
-				Pagination:              lres.InboxRes.Pagination,
-				Offline:                 h.G().InboxSource.IsOffline(),
-				RateLimits:              res.RateLimits,
-			},
+			Inbox:     uires,
 		})
 		h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
 	case <-time.After(15 * time.Second):

@@ -1,6 +1,12 @@
 {
   "protocol": "chatUi",
-  "imports": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
   "types": [
     {
       "type": "record",
@@ -21,6 +27,30 @@
         {
           "type": "gregor1.Time",
           "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
         }
       ]
     }
@@ -151,10 +181,7 @@
         },
         {
           "name": "inbox",
-          "type": {
-            "type": "array",
-            "items": "UnverifiedInboxUIItem"
-          }
+          "type": "UnverifiedInboxUIItems"
         }
       ],
       "response": null

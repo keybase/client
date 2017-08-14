@@ -2089,6 +2089,12 @@ export type UnverifiedInboxUIItem = {
   time: gregor1.Time,
 }
 
+export type UnverifiedInboxUIItems = {
+  items?: ?Array<UnverifiedInboxUIItem>,
+  pagination?: ?Pagination,
+  offline: boolean,
+}
+
 export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
@@ -2129,7 +2135,7 @@ export type chatUiChatInboxFailedRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
-  inbox?: ?Array<UnverifiedInboxUIItem>
+  inbox: UnverifiedInboxUIItems
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
@@ -2689,7 +2695,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxUnverified'?: (
     params: Exact<{
       sessionID: int,
-      inbox?: ?Array<UnverifiedInboxUIItem>
+      inbox: UnverifiedInboxUIItems
     }>,
     response: CommonResponseHandler
   ) => void,

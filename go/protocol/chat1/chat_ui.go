@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -21,6 +22,33 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 		Name:   o.Name,
 		Status: o.Status.DeepCopy(),
 		Time:   o.Time.DeepCopy(),
+	}
+}
+
+type UnverifiedInboxUIItems struct {
+	Items      []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Pagination *Pagination             `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline    bool                    `codec:"offline" json:"offline"`
+}
+
+func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
+	return UnverifiedInboxUIItems{
+		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
 	}
 }
 
@@ -131,21 +159,14 @@ func (o ChatAttachmentDownloadDoneArg) DeepCopy() ChatAttachmentDownloadDoneArg 
 }
 
 type ChatInboxUnverifiedArg struct {
-	SessionID int                     `codec:"sessionID" json:"sessionID"`
-	Inbox     []UnverifiedInboxUIItem `codec:"inbox" json:"inbox"`
+	SessionID int                    `codec:"sessionID" json:"sessionID"`
+	Inbox     UnverifiedInboxUIItems `codec:"inbox" json:"inbox"`
 }
 
 func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 	return ChatInboxUnverifiedArg{
 		SessionID: o.SessionID,
-		Inbox: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
-			var ret []UnverifiedInboxUIItem
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Inbox),
+		Inbox:     o.Inbox.DeepCopy(),
 	}
 }
 
