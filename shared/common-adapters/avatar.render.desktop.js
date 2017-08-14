@@ -11,6 +11,7 @@ type ImageProps = {
   opacity: ?number,
   size: AvatarSize,
   url: string,
+  borderRadius: any,
 }
 
 type Props = {

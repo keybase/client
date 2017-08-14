@@ -96,7 +96,10 @@ const makeSelector = conversationIDKey => {
         const participants = participantFilter(conversation.get('participants'), you)
         const snippet = conversation.get('snippet')
         const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
+        const channelname = conversation.get('channelname')
+        const teamname = conversation.get('teamname')
         return {
+          channelname,
           conversationIDKey,
           isError,
           isMuted,
@@ -104,6 +107,7 @@ const makeSelector = conversationIDKey => {
           participants,
           rekeyInfo,
           snippet,
+          teamname,
           timestamp,
           unreadCount: unreadCount || 0,
           ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),

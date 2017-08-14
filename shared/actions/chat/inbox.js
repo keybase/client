@@ -401,8 +401,10 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
     }))
     .first() || {}
 
-  // Temporary hack to make team convos easier to parse in inbox view
-  let parts = List(c.info.writerNames || [])
+  const parts = List(c.info.writerNames || [])
+  let teamname = null
+  let channelname = null
+
   if (c.info.membersType === ChatTypes.CommonConversationMembersType.team) {
     const topicName = validMaxMsgs
       .filter(m => [ChatTypes.CommonMessageType.metadata].includes(m.body && m.body.messageType))
@@ -410,17 +412,20 @@ function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Const
         title: Constants.makeTeamTitle(message.body) || '<none>',
       }))
       .first() || {}
-    parts = List([`${topicName.title} ${c.info.tlfName}`])
+    channelname = c.info.tlfName
+    teamname = topicName.title
   }
 
   return new Constants.InboxStateRecord({
+    channelname,
     conversationIDKey,
     info: c.info,
     isEmpty: c.isEmpty,
-    participants: parts || [],
+    participants: parts,
     snippet: toShow.snippet,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.info ? c.info.status : 0],
+    teamname,
     time: toShow.time || c.readerInfo.mtime,
   })
 }
