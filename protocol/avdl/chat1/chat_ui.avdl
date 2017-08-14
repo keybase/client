@@ -2,11 +2,19 @@
 
 protocol chatUi {
 
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+
   record UnverifiedInboxUIItem {
     string convID;
     string name;
     ConversationStatus status;
     gregor1.Time time;
+  }
+
+  record UnverifiedInboxUIItems {
+    array<UnverifiedInboxUIItem> items;
+    union { null, Pagination } pagination;
+    boolean offline;
   }
 
   void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
@@ -21,7 +29,7 @@ protocol chatUi {
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
 
-  void chatInboxUnverified(int sessionID, array<UnverifiedInboxUIItem> inbox);
+  void chatInboxUnverified(int sessionID, UnverifiedInboxUIItems inbox);
   void chatInboxConversation(int sessionID, ConversationLocal conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 

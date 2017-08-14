@@ -543,6 +543,14 @@ func (c ByConvID) Less(i, j int) bool {
 	return c[i].Less(c[j])
 }
 
+type ByMsgSummaryCtime []chat1.MessageSummary
+
+func (c ByMsgSummaryCtime) Len() int      { return len(c) }
+func (c ByMsgSummaryCtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByMsgSummaryCtime) Less(i, j int) bool {
+	return c[i].Ctime.Before(c[j].Ctime)
+}
+
 func GetTopicName(conv chat1.ConversationLocal) string {
 	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 	if err != nil {
