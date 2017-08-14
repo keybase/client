@@ -23,7 +23,7 @@ class Contents extends Component<void, Props, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Header windowDragging={false} style={{backgroundColor: globalColors.blue}}>
-          <Text style={{margin: globalMargins.tiny}} type="BodySemibold" backgroundMode="Announcements">
+          <Text style={{textAlign: 'center', width: '100%', margin: globalMargins.tiny}} type="BodySemibold" backgroundMode="Announcements">
             Team names are unique for security reasons.
           </Text>
         </Header>
