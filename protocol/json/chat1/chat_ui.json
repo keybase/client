@@ -1,7 +1,30 @@
 {
   "protocol": "chatUi",
   "imports": [],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    }
+  ],
   "messages": {
     "chatAttachmentUploadOutboxID": {
       "request": [
@@ -128,7 +151,10 @@
         },
         {
           "name": "inbox",
-          "type": "GetInboxLocalRes"
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          }
         }
       ],
       "response": null
