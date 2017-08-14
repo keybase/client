@@ -11,7 +11,7 @@ import {
   getSelectedConversation,
 } from '../../../constants/chat'
 import {selectConversation} from '../../../actions/chat/creators'
-import Row from '.'
+import SimpleRow from './simple-row'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -30,13 +30,11 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
   const backgroundColor = isSelected ? globalColors.blue : globalColors.white
-  const marginRight = isSelected ? 0 : 1
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {
     backgroundColor,
     hasUnread,
-    marginRight,
     participantNeedToRekey,
     showBold,
     subColor,
@@ -124,6 +122,6 @@ const ConnectedRow = pausableConnect(
   dispatch => ({
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
-)(Row)
+)(SimpleRow)
 
 export default ConnectedRow

@@ -291,7 +291,6 @@ type Props = {
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: (key: ConversationIDKey) => void,
-  marginRight: number,
   participantNeedToRekey: boolean,
   participants: List<string>,
   rekeyInfo: any,
