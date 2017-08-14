@@ -313,7 +313,6 @@ const commonSettings = {
       unsubscribedFromAll: false,
     },
   },
-  allowSave: true,
   allowEdit: true,
   waitingForResponse: false,
   onRefresh: () => console.log('onRefresh'),
