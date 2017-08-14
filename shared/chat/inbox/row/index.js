@@ -236,7 +236,7 @@ class Avatars extends PureComponent<void, AvatarProps, void> {
         <Box style={avatarInnerBoxStyle}>
           <MultiAvatar
             singleSize={isMobile ? 48 : 40}
-            multiSize={isMobile ? 24 : 32}
+            multiSize={32}
             avatarProps={avatarProps}
             multiPadding={isMobile ? 2 : 0}
             style={{...multiStyle(backgroundColor), opacity}}

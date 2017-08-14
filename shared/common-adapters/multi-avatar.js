@@ -62,13 +62,13 @@ const singleStyle = {
   width: '100%',
 }
 
-const leftAvatar = offset => ({
+const leftAvatar = (offset = 0) => ({
   left: 0,
   position: 'absolute',
   top: offset,
 })
 
-const rightAvatar = offset => ({
+const rightAvatar = (offset = 0) => ({
   bottom: offset,
   position: 'absolute',
   right: 0,
