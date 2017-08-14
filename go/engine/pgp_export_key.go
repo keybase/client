@@ -156,6 +156,9 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 			// save passphrase to encrypt key later
 			passphrase = pw
 		}
+		if skb.RawUnlockedKey() != nil {
+			e.G().Log.Debug("exportSecret: Key is already unlocked, unlocking again to verify passphrase.")
+		}
 		return skb.UnlockSecretKey(ctx.LoginContext, pw, nil, nil, secretStorer)
 	}
 
@@ -197,8 +200,13 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		}
 	} else {
 		// Make encrypted PGP key bundle using user's passphrase
-		// provided at the beginning.
-		entity, _ := key.(*libkb.PGPKeyBundle)
+		// provided at the beginning. Reimport key so we don't mutate
+		// key entity stored in SKB.
+		entity, _, err := libkb.ReadOneKeyFromBytes(skb.RawUnlockedKey())
+		if err != nil {
+			return err
+		}
+
 		if entity.PrivateKey == nil {
 			return libkb.BadKeyError{Msg: "No secret part in PGP key."}
 		}
