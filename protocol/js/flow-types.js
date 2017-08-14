@@ -6354,15 +6354,18 @@ export type pgpPgpEncryptRpcParam = Exact<{
 }>
 
 export type pgpPgpExportByFingerprintRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  unencrypted: boolean
 }>
 
 export type pgpPgpExportByKIDRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  unencrypted: boolean
 }>
 
 export type pgpPgpExportRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  unencrypted: boolean
 }>
 
 export type pgpPgpImportRpcParam = Exact<{

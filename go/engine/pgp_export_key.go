@@ -27,10 +27,11 @@ const (
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg   keybase1.PGPQuery
-	qtype queryType
-	res   []keybase1.KeyInfo
-	me    *libkb.User
+	arg         keybase1.PGPQuery
+	unencrypted bool
+	qtype       queryType
+	res         []keybase1.KeyInfo
+	me          *libkb.User
 }
 
 func (e *PGPKeyExportEngine) Prereqs() Prereqs {
@@ -61,6 +62,7 @@ func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *P
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        either,
+		unencrypted:  arg.Unencrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -69,6 +71,7 @@ func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalC
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        kid,
+		unencrypted:  arg.Unencrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -77,6 +80,7 @@ func NewPGPKeyExportByFingerprintEngine(arg keybase1.PGPExportByFingerprintArg, 
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        fingerprint,
+		unencrypted:  arg.Unencrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -132,7 +136,6 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	}
 
 	var passphrase string
-	unencrypted := false
 
 	skb, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
@@ -152,7 +155,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		if storeSecret {
 			secretStorer = secretStore
 		}
-		if !unencrypted {
+		if !e.unencrypted {
 			// save passphrase to encrypt key later
 			passphrase = pw
 		}
@@ -163,7 +166,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	}
 
 	reason := "key unlock for export "
-	if unencrypted {
+	if e.unencrypted {
 		reason += "(not encrypted)"
 	} else {
 		reason += "(encrypted with passphrase)"
@@ -191,7 +194,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 
 	var raw []byte
 
-	if unencrypted {
+	if e.unencrypted {
 		// User wanted un-encrypted key. Just pass raw bytes
 		raw = skb.RawUnlockedKey()
 

@@ -315,6 +315,10 @@
         {
           "name": "options",
           "type": "PGPQuery"
+        },
+        {
+          "name": "unencrypted",
+          "type": "boolean"
         }
       ],
       "response": {
@@ -332,6 +336,10 @@
         {
           "name": "options",
           "type": "PGPQuery"
+        },
+        {
+          "name": "unencrypted",
+          "type": "boolean"
         }
       ],
       "response": {
@@ -348,6 +356,10 @@
         {
           "name": "options",
           "type": "PGPQuery"
+        },
+        {
+          "name": "unencrypted",
+          "type": "boolean"
         }
       ],
       "response": {
