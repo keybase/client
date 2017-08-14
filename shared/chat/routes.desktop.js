@@ -30,7 +30,7 @@ const conversationRoute = new RouteDefNode({
       component: NewTeamDialog,
       tags: {layerOnTop: true},
       children: {},
-    }
+    },
   },
 })
 
