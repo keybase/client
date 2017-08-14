@@ -122,42 +122,21 @@ function* onInboxStale(): SagaGenerator<any, any> {
     }
     incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
-    const inbox: ChatTypes.GetInboxLocalRes = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+    const inbox: ChatTypes.UnverifiedInboxUIItems = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
     const conversations: List<Constants.InboxState> = List(
-      (inbox.conversationsUnverified || [])
+      (inbox.items || [])
         .map(c => {
-          if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) {
-            // private chats only
-            return null
-          }
-
-          const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
-          if (!msgMax || msgMax.tlfName.includes('#')) {
-            // We don't support mixed reader/writers
-            return null
-          }
-
-          const times = (c.maxMsgSummaries || [])
-            .filter(m =>
-              [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
-                m.messageType
-              )
-            )
-            .map((message: {ctime: number}) => message.ctime)
-            .sort()
-          const time = times && times.length > 0 && times[times.length - 1]
-
           return new Constants.InboxStateRecord({
-            conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
+            conversationIDKey: c.convID,
             info: null,
-            participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
+            participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
             snippet: ' ',
             state: 'untrusted',
-            status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-            time,
+            status: Constants.ConversationStatusByEnum[c.status || 0],
+            time: c.time,
           })
         })
         .filter(Boolean)

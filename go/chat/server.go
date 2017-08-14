@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -140,20 +139,8 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.ConvID = rawConv.GetConvID().String()
 		conv.Name = rawConv.MaxMsgSummaries[0].TlfName
 		conv.Status = rawConv.Metadata.Status
-
-		timeTyps := []chat1.MessageType{
-			chat1.MessageType_TEXT,
-			chat1.MessageType_ATTACHMENT,
-		}
-		var summaries []chat1.MessageSummary
-		for _, typ := range timeTyps {
-			summary, err := rawConv.GetMaxMessage(typ)
-			if err == nil {
-				summaries = append(summaries, summary)
-			}
-		}
-		sort.Sort(utils.ByMsgSummaryCtime(summaries))
-		conv.Time = summaries[len(summaries)-1].Ctime
+		conv.Time = utils.GetConvMtime(rawConv)
+		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = vres.Pagination
 	res.Offline = vres.Offline
@@ -251,7 +238,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
 				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 					SessionID: arg.SessionID,
-					Conv:      *convRes.ConvRes,
+					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
 				})
 
 				// Send a note to the retrier that we actually loaded this guy successfully

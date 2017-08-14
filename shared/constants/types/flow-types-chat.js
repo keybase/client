@@ -1478,6 +1478,23 @@ export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
 
+export type InboxUIItem = {
+  convID: string,
+  name: string,
+  snippet: string,
+  channel: string,
+  participants?: ?Array<string>,
+  status: ConversationStatus,
+  membersType: ConversationMembersType,
+  time: gregor1.Time,
+}
+
+export type InboxUIItems = {
+  items?: ?Array<InboxUIItem>,
+  pagination?: ?Pagination,
+  offline: boolean,
+}
+
 export type InboxVers = uint64
 
 export type InboxView =
@@ -1494,7 +1511,7 @@ export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
   displayDesktopNotification: boolean,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
   pagination?: ?Pagination,
 }
 
@@ -1727,7 +1744,7 @@ export type NameQuery = {
 }
 
 export type NewConversationInfo = {
-  conv: ConversationLocal,
+  conv: InboxUIItem,
 }
 
 export type NewConversationLocalRes = {
@@ -1776,7 +1793,7 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
 
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
   uid: keybase1.UID,
-  conv: ConversationLocal
+  conv: InboxUIItem
 }>
 
 export type NotifyChatChatLeftConversationRpcParam = Exact<{
@@ -1788,7 +1805,7 @@ export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
   finalizeInfo: ConversationFinalizeInfo,
-  conv?: ?ConversationLocal
+  conv?: ?InboxUIItem
 }>
 
 export type NotifyChatChatTLFResolveRpcParam = Exact<{
@@ -1881,7 +1898,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
 }
 
 export type ReadMessagePayload = {
@@ -1953,7 +1970,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
 }
 
 export type SetStatusPayload = {
@@ -2086,6 +2103,7 @@ export type UnverifiedInboxUIItem = {
   convID: string,
   name: string,
   status: ConversationStatus,
+  membersType: ConversationMembersType,
   time: gregor1.Time,
 }
 
@@ -2126,7 +2144,7 @@ export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
-  conv: ConversationLocal
+  conv: InboxUIItem
 }>
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
@@ -2702,7 +2720,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxConversation'?: (
     params: Exact<{
       sessionID: int,
-      conv: ConversationLocal
+      conv: InboxUIItem
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -2748,7 +2766,7 @@ export type incomingCallMapType = Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
       finalizeInfo: ConversationFinalizeInfo,
-      conv?: ?ConversationLocal
+      conv?: ?InboxUIItem
     }> /* ,
     response: {} // Notify call
     */
@@ -2787,7 +2805,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatJoinedConversation'?: (
     params: Exact<{
       uid: keybase1.UID,
-      conv: ConversationLocal
+      conv: InboxUIItem
     }> /* ,
     response: {} // Notify call
     */
