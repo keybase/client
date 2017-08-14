@@ -8,11 +8,29 @@ protocol chatUi {
     string convID;
     string name;
     ConversationStatus status;
+    ConversationMembersType membersType;
     gregor1.Time time;
   }
 
   record UnverifiedInboxUIItems {
     array<UnverifiedInboxUIItem> items;
+    union { null, Pagination } pagination;
+    boolean offline;
+  }
+
+  record InboxUIItem {
+    string convID;
+    string name;
+    string snippet;
+    string channel;
+    array<string> participants;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    gregor1.Time time;
+  }
+
+  record InboxUIItems {
+    array<InboxUIItem> items;
     union { null, Pagination } pagination;
     boolean offline;
   }
@@ -30,7 +48,7 @@ protocol chatUi {
   void chatAttachmentDownloadDone(int sessionID);
 
   void chatInboxUnverified(int sessionID, UnverifiedInboxUIItems inbox);
-  void chatInboxConversation(int sessionID, ConversationLocal conv);
+  void chatInboxConversation(int sessionID, InboxUIItem conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
   void chatThreadCached(int sessionID, union { null, ThreadView } thread) oneway;
