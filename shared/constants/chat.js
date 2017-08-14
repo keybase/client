@@ -802,18 +802,8 @@ function keyToOutboxID(key: OutboxIDKey): OutboxID {
   return Buffer.from(key, 'hex')
 }
 
-function makeSnippet(messageBody: ?MessageBody): ?string {
-  if (!messageBody) {
-    return null
-  }
-  switch (messageBody.messageType) {
-    case ChatTypes.CommonMessageType.text:
-      return textSnippet(messageBody.text && messageBody.text.body, 100)
-    case ChatTypes.CommonMessageType.attachment:
-      return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
-    default:
-      return null
-  }
+function makeSnippet(messageBody: ?string): ?string {
+  return textSnippet(messageBody || '', 100)
 }
 
 function makeTeamTitle(messageBody: ?MessageBody): ?string {
@@ -843,15 +833,10 @@ function participantFilter(participants: List<string>, you: string): List<string
   return withoutYou
 }
 
-function serverMessageToMessageBody(message: ServerMessage): ?MessageBody {
+function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
-      return {
-        messageType: ChatTypes.CommonMessageType.text,
-        text: {
-          body: message.message.stringValue(),
-        },
-      }
+      return message.message.stringValue()
     default:
       return null
   }
@@ -1142,7 +1127,7 @@ export {
   splitMessageIDKey,
   outboxIDToKey,
   participantFilter,
-  serverMessageToMessageBody,
+  serverMessageToMessageText,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
   newestConversationIDKey,

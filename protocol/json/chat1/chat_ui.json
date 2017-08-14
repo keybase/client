@@ -21,6 +21,10 @@
           "name": "name"
         },
         {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
           "type": "ConversationStatus",
           "name": "status"
         },
@@ -67,6 +71,10 @@
           "name": "convID"
         },
         {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
           "type": "string",
           "name": "name"
         },
@@ -77,6 +85,10 @@
         {
           "type": "string",
           "name": "channel"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
         },
         {
           "type": {
@@ -96,6 +108,27 @@
         {
           "type": "gregor1.Time",
           "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
         }
       ]
     },

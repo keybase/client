@@ -140,6 +140,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Name = rawConv.MaxMsgSummaries[0].TlfName
 		conv.Status = rawConv.Metadata.Status
 		conv.Time = utils.GetConvMtime(rawConv)
+		conv.Visibility = rawConv.Metadata.Visibility
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = vres.Pagination
@@ -832,7 +833,6 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
-	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_DELETE
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
@@ -848,7 +848,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
-	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
 	parg.Msg.ClientHeader.Supersedes = arg.Supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
@@ -868,7 +867,6 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	parg.ConversationID = arg.ConversationID
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
-	parg.Msg.ClientHeader.Conv = arg.Conv
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
@@ -1287,7 +1285,6 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 		deleteArg := chat1.PostDeleteNonblockArg{
 			ConversationID:   arg.ConversationID,
 			IdentifyBehavior: arg.IdentifyBehavior,
-			Conv:             arg.ClientHeader.Conv,
 			Supersedes:       placeholder.MessageID,
 			TlfName:          arg.ClientHeader.TlfName,
 			TlfPublic:        arg.ClientHeader.TlfPublic,

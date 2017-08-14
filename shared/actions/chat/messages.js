@@ -92,7 +92,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     }
   }
 
-  const clientHeader = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.text, conversationIDKey)
+  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   let lastMessageID
   if (conversationState) {
@@ -135,21 +135,15 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     )
   )
 
-  yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
+  yield call(ChatTypes.localPostTextNonblockRpcPromise, {
     param: {
       conversationID: Constants.keyToConversationID(conversationIDKey),
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
       outboxID,
+      body: action.payload.text.stringValue(),
       identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
       clientPrev: lastMessageID,
-      msg: {
-        clientHeader,
-        messageBody: {
-          messageType: ChatTypes.CommonMessageType.text,
-          text: {
-            body: action.payload.text.stringValue(),
-          },
-        },
-      },
     },
   })
 }

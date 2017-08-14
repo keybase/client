@@ -78,11 +78,7 @@ function* clientHeader(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?ChatTypes.MessageClientHeader, any> {
   const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-    if (convo) {
-      return convo.get('info')
-    }
-    return null
+    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
   }
 
   const info = yield select(infoSelector)
@@ -93,8 +89,7 @@ function* clientHeader(
   }
 
   return {
-    conv: info.triple,
-    tlfName: info.tlfName,
+    tlfName: info.name,
     tlfPublic: info.visibility === ChatTypes.CommonTLFVisibility.public,
     messageType,
     supersedes: 0,
