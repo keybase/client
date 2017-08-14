@@ -12,6 +12,7 @@ const simpleCommon = {
   hasUnread: false,
   isMuted: false,
   isSelected: false,
+  isTeam: false,
   onSelectConversation: action('onSelectConversation'),
   participantNeedToRekey: false,
   participants: I.List(['chris']),
@@ -26,6 +27,16 @@ const simpleCommon = {
 }
 
 const mocks = [
+  {
+    ...simpleCommon,
+    conversationIDKey: '3',
+    hasUnread: false,
+    isTeam: true,
+    participants: I.List(['forgreenmoms']),
+    showBold: false,
+    snippet: 'elisa: Hopefully not',
+    timestamp: 'Tue',
+  },
   {
     ...simpleCommon,
     conversationIDKey: '1',

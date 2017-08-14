@@ -775,6 +775,41 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-placeholder-avatar-80.png'),
   },
+  'icon-placeholder-team-avatar-112': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-112.png'),
+  },
+  'icon-placeholder-team-avatar-176': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-176.png'),
+  },
+  'icon-placeholder-team-avatar-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-24.png'),
+  },
+  'icon-placeholder-team-avatar-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-32.png'),
+  },
+  'icon-placeholder-team-avatar-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-48.png'),
+  },
+  'icon-placeholder-team-avatar-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-64.png'),
+  },
+  'icon-placeholder-team-avatar-80': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-placeholder-team-avatar-80.png'),
+  },
   'icon-play-64': {
     isFont: false,
     extension: 'png',

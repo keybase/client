@@ -1,6 +1,15 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox} from '../../../common-adapters'
+import {
+  Avatar,
+  Text,
+  MultiAvatar,
+  Icon,
+  Usernames,
+  Markdown,
+  Box,
+  ClickableBox,
+} from '../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -284,12 +293,23 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
+class TeamAvatar extends PureComponent<void, {teamname: string}, void> {
+  render() {
+    return (
+      <Box style={_avatarBoxStyle}>
+        <Avatar teamname={this.props.teamname} size={40} />
+      </Box>
+    )
+  }
+}
+
 type Props = {
   backgroundColor: string,
   conversationIDKey: ConversationIDKey,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
+  isTeam: boolean,
   onSelectConversation: (key: ConversationIDKey) => void,
   participantNeedToRekey: boolean,
   participants: List<string>,
@@ -312,14 +332,16 @@ class Row extends PureComponent<void, Props, void> {
         style={{backgroundColor: props.backgroundColor}}
       >
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          <Avatars
-            backgroundColor={props.backgroundColor}
-            isMuted={props.isMuted}
-            isSelected={props.isSelected}
-            participantNeedToRekey={props.participantNeedToRekey}
-            participants={props.participants}
-            youNeedToRekey={props.youNeedToRekey}
-          />
+          {this.props.isTeam
+            ? <TeamAvatar teamname={props.participants.first()} />
+            : <Avatars
+                backgroundColor={props.backgroundColor}
+                isMuted={props.isMuted}
+                isSelected={props.isSelected}
+                participantNeedToRekey={props.participantNeedToRekey}
+                participants={props.participants}
+                youNeedToRekey={props.youNeedToRekey}
+              />}
           <Box
             style={{
               ...conversationRowStyle,
