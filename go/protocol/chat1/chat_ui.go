@@ -8,6 +8,22 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type UnverifiedInboxUIItem struct {
+	ConvID string             `codec:"convID" json:"convID"`
+	Name   string             `codec:"name" json:"name"`
+	Status ConversationStatus `codec:"status" json:"status"`
+	Time   gregor1.Time       `codec:"time" json:"time"`
+}
+
+func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
+	return UnverifiedInboxUIItem{
+		ConvID: o.ConvID,
+		Name:   o.Name,
+		Status: o.Status.DeepCopy(),
+		Time:   o.Time.DeepCopy(),
+	}
+}
+
 type ChatAttachmentUploadOutboxIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	OutboxID  OutboxID `codec:"outboxID" json:"outboxID"`
@@ -115,14 +131,21 @@ func (o ChatAttachmentDownloadDoneArg) DeepCopy() ChatAttachmentDownloadDoneArg 
 }
 
 type ChatInboxUnverifiedArg struct {
-	SessionID int              `codec:"sessionID" json:"sessionID"`
-	Inbox     GetInboxLocalRes `codec:"inbox" json:"inbox"`
+	SessionID int                     `codec:"sessionID" json:"sessionID"`
+	Inbox     []UnverifiedInboxUIItem `codec:"inbox" json:"inbox"`
 }
 
 func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 	return ChatInboxUnverifiedArg{
 		SessionID: o.SessionID,
-		Inbox:     o.Inbox.DeepCopy(),
+		Inbox: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Inbox),
 	}
 }
 
