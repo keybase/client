@@ -132,3 +132,52 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 
 	return xcount, nil
 }
+
+func TestPGPExportEncrypted(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpsave")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	fp, _, key := armorKey(t, tc, u.Email)
+	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	opts := keybase1.PGPQuery{
+		Secret:     true,
+		Query:      fp.String(),
+		ExactMatch: true,
+	}
+
+	arg := keybase1.PGPExportArg{
+		Options: opts,
+	}
+	xe := NewPGPKeyExportEngine(arg, tc.G)
+	if err := RunEngine(xe, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	entity, _, err := libkb.ReadOneKeyFromString(xe.Results()[0].Key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if entity.PrivateKey == nil {
+		t.Fatal("Key isn't private key")
+	}
+
+	if !entity.PrivateKey.Encrypted {
+		t.Fatal("Key is not encrypted")
+	}
+
+	if err := entity.PrivateKey.Decrypt([]byte(u.Passphrase)); err != nil {
+		t.Fatal("Decryption with passphrase failed")
+	}
+}
