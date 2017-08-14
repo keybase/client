@@ -120,11 +120,7 @@ class BioRender extends Component<void, Props, void> {
           {!!followLabel &&
             <Text type="BodySmall" style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type="BodySmall" style={stylesFollowing}>
-            <Text
-              type="BodySmallInlineLink"
-              onClick={() => this.props.onClickFollowers(username)}
-              style={stylesFollowingLabel}
-            >
+            <Text type="BodySmall" style={stylesFollowingLabel}>
               <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followersCount}</Text>
               {' '}
               {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
@@ -132,11 +128,7 @@ class BioRender extends Component<void, Props, void> {
             &nbsp;
             &middot;
             &nbsp;
-            <Text
-              type="BodySmallInlineLink"
-              onClick={() => this.props.onClickFollowing(username)}
-              style={stylesFollowingLabel}
-            >
+            <Text type="BodySmall" style={stylesFollowingLabel}>
               Following <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followingCount}</Text>
             </Text>
           </Text>
