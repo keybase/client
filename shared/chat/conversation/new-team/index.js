@@ -1,21 +1,21 @@
 // @flow
 import React from 'react'
-import {Box, Button, Header, Input, PopupDialog, Text} from '../../../common-adapters/index'
+import {Box, Button, Input, PopupDialog, Text} from '../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
 
 const Contents = ({name, onNameChange, onSubmit}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
-    <Header windowDragging={false} style={{backgroundColor: globalColors.blue}}>
+    <Box style={styleContainer}>
       <Text
-        style={{textAlign: 'center', width: '100%', margin: globalMargins.tiny}}
+        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
         backgroundMode="Announcements"
       >
         Team names are unique for security reasons.
       </Text>
-    </Header>
+    </Box>
 
     <Box
       style={{
@@ -47,5 +47,12 @@ const NewTeamDialog = (props: Props) => (
     <Contents {...props} />
   </PopupDialog>
 )
+
+const styleContainer = {
+  ...globalStyles.flexBoxCenter,
+  backgroundColor: globalColors.blue,
+  cursor: 'default',
+  paddingTop: 6,
+}
 
 export default NewTeamDialog
