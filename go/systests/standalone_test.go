@@ -3,10 +3,13 @@ package systests
 import (
 	"testing"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,10 +74,19 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	add.Username = tt.users[1].username
 	add.Role = keybase1.TeamRole_WRITER
 	add.SkipChatNotification = false
-
 	err := add.Run()
 	require.NoError(t, err)
 
+	// Check if adding worked
+	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), g, team, true)
+	require.NoError(t, err)
+	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	require.Equal(t, len(writers), 1, "expected 1 writer")
+	require.True(t, writers[0].Uid.Equal(tt.users[1].uid), "unexpected writer uid")
+
+	// Do not care about result (printed to UI), just be sure that it
+	// doesn't crash or fail.
 	listmem := client.NewCmdTeamListMembershipsRunner(g)
 	listmem.SetJSON(true)
 	err = listmem.Run()
@@ -92,4 +104,11 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	remove.Force = true // avoid Yes/No prompt
 	err = remove.Run()
 	require.NoError(t, err)
+
+	// Check if removal worked
+	t0, err = teams.GetForTeamManagementByStringName(context.TODO(), g, team, true)
+	require.NoError(t, err)
+	writers, err = t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	require.Equal(t, len(writers), 0, "expected 0 writers")
 }
