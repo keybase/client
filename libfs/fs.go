@@ -29,6 +29,7 @@ type FS struct {
 	config   libkbfs.Config
 	root     libkbfs.Node
 	h        *libkbfs.TlfHandle
+	subdir   string
 	log      logger.Logger
 	deferLog logger.Logger
 }
@@ -77,6 +78,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		config:   config,
 		root:     n,
 		h:        tlfHandle,
+		subdir:   subdir,
 		log:      log,
 		deferLog: log.CloneWithAddedDepth(1),
 	}, nil
@@ -484,33 +486,81 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 }
 
 // Chmod implements the billy.Filesystem interface for FS.
-func (fs *FS) Chmod(name string, mode os.FileMode) error {
-	return nil
+func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
+	fs.log.CDebugf(fs.ctx, "Chmod %s %s", name, mode)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Chmod done: %+v", err)
+	}()
+
+	n, _, err := fs.lookupOrCreateEntry(name, os.O_RDONLY, 0)
+	if err != nil {
+		return err
+	}
+
+	isExec := (mode & 0100) != 0
+	return fs.config.KBFSOps().SetEx(fs.ctx, n, isExec)
 }
 
 // Lchown implements the billy.Filesystem interface for FS.
 func (fs *FS) Lchown(name string, uid, gid int) error {
+	// KBFS doesn't support ownership changes.
+	fs.log.CDebugf(fs.ctx, "Ignoring Lchown %s %d %d", name, uid, gid)
 	return nil
 }
 
 // Chown implements the billy.Filesystem interface for FS.
 func (fs *FS) Chown(name string, uid, gid int) error {
+	// KBFS doesn't support ownership changes.
+	fs.log.CDebugf(fs.ctx, "Ignoring Chown %s %d %d", name, uid, gid)
 	return nil
 }
 
 // Chtimes implements the billy.Filesystem interface for FS.
-func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	return nil
+func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
+	err error) {
+	fs.log.CDebugf(fs.ctx, "Chtimes %s mtime=%s; ignoring atime=%s",
+		name, mtime, atime)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Chtimes done: %+v", err)
+	}()
+
+	n, _, err := fs.lookupOrCreateEntry(name, os.O_RDONLY, 0)
+	if err != nil {
+		return err
+	}
+
+	return fs.config.KBFSOps().SetMtime(fs.ctx, n, &mtime)
 }
 
 // Chroot implements the billy.Filesystem interface for FS.
-func (fs *FS) Chroot(path string) (billy.Filesystem, error) {
-	return nil, nil
+func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
+	fs.log.CDebugf(fs.ctx, "Chroot %s", p)
+	defer func() {
+		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
+	}()
+
+	// lookupOrCreateEntry doesn't handle "..", so we don't have to
+	// worry about someone trying to break out of the jail since this
+	// lookup will fail.
+	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FS{
+		ctx:      fs.ctx,
+		config:   fs.config,
+		root:     n,
+		h:        fs.h,
+		subdir:   path.Clean(path.Join(fs.subdir, p)),
+		log:      fs.log,
+		deferLog: fs.deferLog,
+	}, nil
 }
 
 // Root implements the billy.Filesystem interface for FS.
 func (fs *FS) Root() string {
-	return ""
+	return path.Join(fs.h.GetCanonicalPath(), fs.subdir)
 }
 
 // SyncAll syncs any outstanding buffered writes to the KBFS journal.

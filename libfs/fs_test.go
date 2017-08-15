@@ -444,3 +444,92 @@ func TestSymlink(t *testing.T) {
 	err = fs.SyncAll()
 	require.NoError(t, err)
 }
+
+func TestChmod(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	foo, err := fs.Create("foo")
+	require.NoError(t, err)
+	err = foo.Close()
+	require.NoError(t, err)
+
+	fi, err := fs.Stat("foo")
+	require.NoError(t, err)
+	require.True(t, fi.Mode()&0100 == 0)
+
+	err = fs.Chmod("foo", 0777)
+	require.NoError(t, err)
+
+	fi, err = fs.Stat("foo")
+	require.NoError(t, err)
+	require.True(t, fi.Mode()&0100 != 0)
+}
+
+func TestChtimes(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	clock := &libkbfs.TestClock{}
+	clock.Set(time.Now())
+	fs.config.SetClock(clock)
+
+	foo, err := fs.Create("foo")
+	require.NoError(t, err)
+	err = foo.Close()
+	require.NoError(t, err)
+
+	fi, err := fs.Stat("foo")
+	require.NoError(t, err)
+	require.Equal(t, clock.Now(), fi.ModTime())
+
+	mtime := time.Date(2015, 1, 2, 3, 4, 5, 6, time.Local)
+	err = fs.Chtimes("foo", time.Now(), mtime)
+	require.NoError(t, err)
+
+	fi, err = fs.Stat("foo")
+	require.NoError(t, err)
+	require.Equal(t, mtime, fi.ModTime())
+}
+
+func TestChroot(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	require.Equal(t, "/keybase/private/user1", fs.Root())
+
+	err := fs.MkdirAll("a/b/c", os.FileMode(0600))
+	require.NoError(t, err)
+
+	foo, err := fs.Create("a/b/c/foo")
+	require.NoError(t, err)
+
+	data := []byte{1, 2, 3, 4}
+	n, err := foo.Write(data)
+	require.Equal(t, len(data), n)
+	require.NoError(t, err)
+	err = foo.Close()
+	require.NoError(t, err)
+
+	err = fs.SyncAll()
+	require.NoError(t, err)
+
+	t.Log("Make a new FS with a deeper root")
+	fs2, err := fs.Chroot("a/b")
+	require.NoError(t, err)
+
+	require.Equal(t, "/keybase/private/user1/a/b", fs2.Root())
+
+	f, err := fs2.Open("c/foo")
+	require.NoError(t, err)
+	gotData := make([]byte, len(data))
+	_, err = f.Read(gotData)
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(data, gotData))
+	err = f.Close()
+	require.NoError(t, err)
+
+	t.Log("Attempt a breakout")
+	_, err = fs.Chroot("../../../etc/passwd")
+	require.NotNil(t, err)
+}
