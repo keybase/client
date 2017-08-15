@@ -1004,7 +1004,8 @@ func (h *Server) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachme
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
-		ClientHeader:     arg.ClientHeader,
+		TlfName:          arg.TlfName,
+		Visibility:       arg.Visibility,
 		Attachment:       newStreamSource(arg.Attachment),
 		Title:            arg.Title,
 		Metadata:         arg.Metadata,
@@ -1043,7 +1044,8 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	parg := postAttachmentArg{
 		SessionID:        arg.SessionID,
 		ConversationID:   arg.ConversationID,
-		ClientHeader:     arg.ClientHeader,
+		TlfName:          arg.TlfName,
+		Visibility:       arg.Visibility,
 		Title:            arg.Title,
 		Metadata:         arg.Metadata,
 		IdentifyBehavior: arg.IdentifyBehavior,
@@ -1089,7 +1091,8 @@ type attachmentPreview struct {
 type postAttachmentArg struct {
 	SessionID        int
 	ConversationID   chat1.ConversationID
-	ClientHeader     chat1.MessageClientHeader
+	TlfName          string
+	Visibility       chat1.TLFVisibility
 	Attachment       assetSource
 	Preview          *attachmentPreview
 	Title            string
@@ -1218,10 +1221,9 @@ func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg)
 	}
 
 	// set msg client header explicitly
-	postArg.Msg.ClientHeader.Conv = arg.ClientHeader.Conv
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
-	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
+	postArg.Msg.ClientHeader.TlfName = arg.TlfName
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1286,8 +1288,8 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 			ConversationID:   arg.ConversationID,
 			IdentifyBehavior: arg.IdentifyBehavior,
 			Supersedes:       placeholder.MessageID,
-			TlfName:          arg.ClientHeader.TlfName,
-			TlfPublic:        arg.ClientHeader.TlfPublic,
+			TlfName:          arg.TlfName,
+			TlfPublic:        arg.Visibility == chat1.TLFVisibility_PUBLIC,
 		}
 		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
 		if derr != nil {
@@ -1377,11 +1379,10 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	}
 
 	// set msg client header explicitly
-	postArg.Msg.ClientHeader.Conv = arg.ClientHeader.Conv
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENTUPLOADED
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
-	postArg.Msg.ClientHeader.TlfName = arg.ClientHeader.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.ClientHeader.TlfPublic
+	postArg.Msg.ClientHeader.TlfName = arg.TlfName
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1580,7 +1581,6 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 		return chat1.PostLocalRes{}, err
 	}
 	obid := chat1.OutboxID(rbs)
-	arg.ClientHeader.OutboxID = &obid
 	chatUI := h.getChatUI(arg.SessionID)
 	chatUI.ChatAttachmentUploadOutboxID(ctx, chat1.ChatAttachmentUploadOutboxIDArg{SessionID: arg.SessionID, OutboxID: obid})
 
@@ -1602,8 +1602,13 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
 		Msg: chat1.MessagePlaintext{
-			ClientHeader: arg.ClientHeader,
-			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     arg.TlfName,
+				TlfPublic:   arg.Visibility == chat1.TLFVisibility_PUBLIC,
+				MessageType: chat1.MessageType_ATTACHMENT,
+				OutboxID:    &obid,
+			},
+			MessageBody: chat1.NewMessageBodyWithAttachment(attachment),
 		},
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}

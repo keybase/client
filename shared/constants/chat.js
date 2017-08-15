@@ -283,6 +283,8 @@ export const InboxStateRecord = Record({
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
+  name: '',
+  visibility: ChatTypes.CommonTLFVisibility.private,
 })
 
 export type InboxState = KBRecord<{

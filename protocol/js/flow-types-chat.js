@@ -2292,7 +2292,8 @@ export type localNewConversationLocalRpcParam = Exact<{
 
 export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  clientHeader: MessageClientHeader,
+  tlfName: string,
+  visibility: TLFVisibility,
   attachment: LocalSource,
   preview?: ?MakePreviewRes,
   title: string,
@@ -2323,7 +2324,8 @@ export type localPostEditNonblockRpcParam = Exact<{
 
 export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  clientHeader: MessageClientHeader,
+  tlfName: string,
+  visibility: TLFVisibility,
   attachment: LocalFileSource,
   preview?: ?MakePreviewRes,
   title: string,

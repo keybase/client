@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
-import {call, put, select} from 'redux-saga/effects'
+import {all, call, put, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
 import {navigateTo} from '../../actions/route-tree'
@@ -33,12 +33,10 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
   if (messageID) {
     // Deleting a server message.
-    const clientHeader = yield call(
-      Shared.clientHeader,
-      ChatTypes.CommonMessageType.delete,
-      conversationIDKey
-    )
-    const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
+    const [inboxConvo, conversationState] = yield all([
+      select(Shared.selectedInboxSelector, conversationIDKey),
+      select(Shared.conversationStateSelector, conversationIDKey),
+    ])
     let lastMessageID
     if (conversationState) {
       const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -53,13 +51,12 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
       param: {
         clientPrev: lastMessageID,
-        conv: clientHeader.conv,
         conversationID: Constants.keyToConversationID(conversationIDKey),
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
         outboxID,
         supersedes: messageID,
-        tlfName: clientHeader.tlfName,
-        tlfPublic: clientHeader.tlfPublic,
+        tlfName: inboxConvo.name,
+        tlfPublic: false,
       },
     })
   } else {
@@ -92,8 +89,10 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     }
   }
 
-  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
+  const [inboxConvo, conversationState] = yield all([
+    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Shared.conversationStateSelector, conversationIDKey),
+  ])
   let lastMessageID
   if (conversationState) {
     const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -165,8 +164,10 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     return
   }
 
-  const clientHeader = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.edit, conversationIDKey)
-  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
+  const [inboxConvo, conversationState] = yield all([
+    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Shared.conversationStateSelector, conversationIDKey),
+  ])
   let lastMessageID
   if (conversationState) {
     const message = conversationState.messages.findLast(m => !!m.messageID)
@@ -183,13 +184,12 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     param: {
       body: action.payload.text.stringValue(),
       clientPrev: lastMessageID,
-      conv: clientHeader.conv,
       conversationID: Constants.keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       outboxID,
       supersedes: messageID,
-      tlfName: clientHeader.tlfName,
-      tlfPublic: clientHeader.tlfPublic,
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
     },
   })
 }
