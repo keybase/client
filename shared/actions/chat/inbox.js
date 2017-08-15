@@ -174,7 +174,10 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.loadedInbox(conversations))
 
     // Unbox teams so we can get their names
-    yield call(unboxConversations, conversations.map(c => c.conversationIDKey).toArray())
+    yield call(
+      unboxConversations,
+      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    )
 
     const {
       initialConversation,
