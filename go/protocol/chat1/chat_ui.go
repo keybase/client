@@ -251,14 +251,14 @@ func (o ChatAttachmentDownloadDoneArg) DeepCopy() ChatAttachmentDownloadDoneArg 
 }
 
 type ChatInboxUnverifiedArg struct {
-	SessionID int                    `codec:"sessionID" json:"sessionID"`
-	Inbox     UnverifiedInboxUIItems `codec:"inbox" json:"inbox"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Inbox     string `codec:"inbox" json:"inbox"`
 }
 
 func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 	return ChatInboxUnverifiedArg{
 		SessionID: o.SessionID,
-		Inbox:     o.Inbox.DeepCopy(),
+		Inbox:     o.Inbox,
 	}
 }
 

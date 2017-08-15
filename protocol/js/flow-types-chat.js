@@ -2159,7 +2159,7 @@ export type chatUiChatInboxFailedRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
-  inbox: UnverifiedInboxUIItems
+  inbox: string
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
@@ -2718,7 +2718,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxUnverified'?: (
     params: Exact<{
       sessionID: int,
-      inbox: UnverifiedInboxUIItems
+      inbox: string
     }>,
     response: CommonResponseHandler
   ) => void,

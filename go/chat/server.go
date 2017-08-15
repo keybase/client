@@ -201,12 +201,17 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
 			return res, err
 		}
+		jbody, err := json.Marshal(uires)
+		if err != nil {
+			h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
+			return res, err
+		}
 		start := time.Now()
 		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
 			len(lres.InboxRes.ConvsUnverified))
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
-			Inbox:     uires,
+			Inbox:     string(jbody),
 		})
 		h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
 	case <-time.After(15 * time.Second):

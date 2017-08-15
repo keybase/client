@@ -122,7 +122,8 @@ function* onInboxStale(): SagaGenerator<any, any> {
     }
     incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
-    const inbox: ChatTypes.UnverifiedInboxUIItems = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+    const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+    const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
