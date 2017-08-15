@@ -353,10 +353,6 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	g.connectHappened = make(chan struct{})
 	defer close(g.connectHappened)
 
-	g.G().Log.Debug("artificial sleep 1s")
-	time.Sleep(1 * time.Second)
-	g.G().Log.Debug("artificial sleep done")
-
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
 	if err = g.resetGregorClient(); err != nil {
