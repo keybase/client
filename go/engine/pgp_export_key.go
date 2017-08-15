@@ -27,11 +27,11 @@ const (
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg         keybase1.PGPQuery
-	unencrypted bool
-	qtype       queryType
-	res         []keybase1.KeyInfo
-	me          *libkb.User
+	arg       keybase1.PGPQuery
+	encrypted bool
+	qtype     queryType
+	res       []keybase1.KeyInfo
+	me        *libkb.User
 }
 
 func (e *PGPKeyExportEngine) Prereqs() Prereqs {
@@ -62,7 +62,7 @@ func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *P
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        either,
-		unencrypted:  arg.Unencrypted,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -71,7 +71,7 @@ func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalC
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        kid,
-		unencrypted:  arg.Unencrypted,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -80,7 +80,7 @@ func NewPGPKeyExportByFingerprintEngine(arg keybase1.PGPExportByFingerprintArg, 
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        fingerprint,
-		unencrypted:  arg.Unencrypted,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -155,7 +155,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		if storeSecret {
 			secretStorer = secretStore
 		}
-		if !e.unencrypted {
+		if e.encrypted {
 			// save passphrase to encrypt key later
 			passphrase = pw
 		}
@@ -166,7 +166,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	}
 
 	reason := "key unlock for export "
-	if e.unencrypted {
+	if !e.encrypted {
 		reason += "(not encrypted)"
 	} else {
 		reason += "(encrypted with passphrase)"
@@ -194,7 +194,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 
 	var raw []byte
 
-	if e.unencrypted {
+	if !e.encrypted {
 		// User wanted un-encrypted key. Just pass raw bytes
 		raw = skb.RawUnlockedKey()
 

@@ -80,9 +80,9 @@ protocol pgp {
   /**
     Exports active PGP keys. Only allows armored export.
     */
-  array<KeyInfo> pgpExport(int sessionID, PGPQuery options, boolean unencrypted);
-  array<KeyInfo> pgpExportByFingerprint(int sessionID, PGPQuery options, boolean unencrypted);
-  array<KeyInfo> pgpExportByKID(int sessionID, PGPQuery options, boolean unencrypted);
+  array<KeyInfo> pgpExport(int sessionID, PGPQuery options, boolean encrypted);
+  array<KeyInfo> pgpExportByFingerprint(int sessionID, PGPQuery options, boolean encrypted);
+  array<KeyInfo> pgpExportByKID(int sessionID, PGPQuery options, boolean encrypted);
 
   @lint("ignore")
   record PGPCreateUids {

@@ -292,44 +292,44 @@ func (o PGPImportArg) DeepCopy() PGPImportArg {
 }
 
 type PGPExportArg struct {
-	SessionID   int      `codec:"sessionID" json:"sessionID"`
-	Options     PGPQuery `codec:"options" json:"options"`
-	Unencrypted bool     `codec:"unencrypted" json:"unencrypted"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
+	Encrypted bool     `codec:"encrypted" json:"encrypted"`
 }
 
 func (o PGPExportArg) DeepCopy() PGPExportArg {
 	return PGPExportArg{
-		SessionID:   o.SessionID,
-		Options:     o.Options.DeepCopy(),
-		Unencrypted: o.Unencrypted,
+		SessionID: o.SessionID,
+		Options:   o.Options.DeepCopy(),
+		Encrypted: o.Encrypted,
 	}
 }
 
 type PGPExportByFingerprintArg struct {
-	SessionID   int      `codec:"sessionID" json:"sessionID"`
-	Options     PGPQuery `codec:"options" json:"options"`
-	Unencrypted bool     `codec:"unencrypted" json:"unencrypted"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
+	Encrypted bool     `codec:"encrypted" json:"encrypted"`
 }
 
 func (o PGPExportByFingerprintArg) DeepCopy() PGPExportByFingerprintArg {
 	return PGPExportByFingerprintArg{
-		SessionID:   o.SessionID,
-		Options:     o.Options.DeepCopy(),
-		Unencrypted: o.Unencrypted,
+		SessionID: o.SessionID,
+		Options:   o.Options.DeepCopy(),
+		Encrypted: o.Encrypted,
 	}
 }
 
 type PGPExportByKIDArg struct {
-	SessionID   int      `codec:"sessionID" json:"sessionID"`
-	Options     PGPQuery `codec:"options" json:"options"`
-	Unencrypted bool     `codec:"unencrypted" json:"unencrypted"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Options   PGPQuery `codec:"options" json:"options"`
+	Encrypted bool     `codec:"encrypted" json:"encrypted"`
 }
 
 func (o PGPExportByKIDArg) DeepCopy() PGPExportByKIDArg {
 	return PGPExportByKIDArg{
-		SessionID:   o.SessionID,
-		Options:     o.Options.DeepCopy(),
-		Unencrypted: o.Unencrypted,
+		SessionID: o.SessionID,
+		Options:   o.Options.DeepCopy(),
+		Encrypted: o.Encrypted,
 	}
 }
 

@@ -156,11 +156,11 @@ func TestPGPExportEncryption(t *testing.T) {
 		ExactMatch: true,
 	}
 
-	// Run export with Unencrypted: false
+	// Run export with Encrypted: true
 
 	arg := keybase1.PGPExportArg{
-		Options:     opts,
-		Unencrypted: false,
+		Options:   opts,
+		Encrypted: true,
 	}
 	xe := NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
@@ -184,11 +184,11 @@ func TestPGPExportEncryption(t *testing.T) {
 		t.Fatal("Decryption with passphrase failed")
 	}
 
-	// Run export with Unencrypted: true
+	// Run export with Encrypted: false
 
 	arg = keybase1.PGPExportArg{
-		Options:     opts,
-		Unencrypted: true,
+		Options:   opts,
+		Encrypted: false,
 	}
 	xe = NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
