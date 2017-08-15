@@ -1,5 +1,4 @@
 // @flow
-import React from 'react'
 import * as I from 'immutable'
 import pausableConnect from '../../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
