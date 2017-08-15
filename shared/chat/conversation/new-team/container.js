@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
-import {createNewTeam} from '../../../actions/chat/creators'
+import {createNewTeam, selectConversation} from '../../../actions/chat/creators'
 import {getSelectedConversation} from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
@@ -28,8 +28,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   navToRootChat: () => dispatch(navigateTo([], [chatTab])),
   onBack: () => dispatch(navigateUp()),
   onCreateTeam: (conversationIDKey: ConversationIDKey, name: string) => {
-    console.warn(conversationIDKey, name)
     dispatch(createNewTeam(conversationIDKey, name))
+    dispatch(selectConversation(null, true))
   },
 })
 

@@ -1055,7 +1055,7 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
             email: '',
             name,
             role: TeamsTeamRole.writer,
-            sendChatNotification: false,
+            sendChatNotification: true,
             username,
           },
         })
