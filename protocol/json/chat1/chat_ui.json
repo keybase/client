@@ -283,7 +283,7 @@
         },
         {
           "name": "inbox",
-          "type": "UnverifiedInboxUIItems"
+          "type": "string"
         }
       ],
       "response": null
