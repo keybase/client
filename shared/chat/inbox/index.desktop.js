@@ -65,6 +65,15 @@ class Inbox extends PureComponent<void, Props, void> {
     }
   }
 
+  _itemSizeGetter = index => {
+    const row = this.props.rows.get(index)
+    if (row.teamname) {
+      return 24
+    } else {
+      return 56
+    }
+  }
+
   _itemRenderer = index => {
     const row = this.props.rows.get(index)
     return (
@@ -108,6 +117,8 @@ class Inbox extends PureComponent<void, Props, void> {
             useTranslate3d={true}
             itemRenderer={this._itemRenderer}
             length={this.props.rows.count()}
+            type="variable"
+            itemSizeGetter={this._itemSizeGetter}
           />
         </div>
       </div>
