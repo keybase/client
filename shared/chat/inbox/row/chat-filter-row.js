@@ -46,7 +46,12 @@ class _ChatFilterRow extends Component<void, Props, State> {
         <Icon
           key="0"
           type="iconfont-search"
-          style={{color: globalColors.black_20, fontSize: 12, marginLeft: 9, marginRight: 9}}
+          style={{
+            color: globalColors.black_20,
+            fontSize: 12,
+            marginLeft: globalMargins.tiny,
+            marginRight: globalMargins.tiny,
+          }}
         />,
         <Input
           autoFocus={true}
@@ -62,7 +67,14 @@ class _ChatFilterRow extends Component<void, Props, State> {
     } else {
       children = (
         <Box style={styleFilterContainer} onClick={this._startEditing}>
-          <Icon type="iconfont-search" style={{color: globalColors.black_20, fontSize: 12}} />
+          <Icon
+            type="iconfont-search"
+            style={{
+              color: globalColors.black_20,
+              fontSize: 12,
+              marginLeft: globalMargins.tiny,
+            }}
+          />
           <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
             Jump to chat
           </Text>
@@ -82,7 +94,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
         {children}
         <Icon
           type="iconfont-compose"
-          style={{color: globalColors.blue, marginLeft: 9, marginRight: 9}}
+          style={{color: globalColors.blue, marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
@@ -103,6 +115,7 @@ const styleFilterContainer = {
   flexGrow: 1,
   height: globalMargins.medium,
   justifyContent: 'center',
+  marginLeft: globalMargins.tiny,
   width: 160,
 }
 
