@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
-import {Box, Button, Input, PopupDialog, Text} from '../../../common-adapters/index'
+import {Box, Button, HeaderHoc, Input, PopupDialog, Text} from '../../../common-adapters/index'
+import {isMobile} from '../../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 
 import type {Props} from './'
@@ -20,13 +21,9 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
+        ...stylePadding,
         alignItems: 'center',
-        flex: 1,
         justifyContent: 'center',
-        marginBottom: 80,
-        marginLeft: 80,
-        marginRight: 80,
-        marginTop: 90,
       }}
     >
       <Input autoFocus={true} hintText="Name your team" value={name} onChangeText={onNameChange} />
@@ -42,7 +39,7 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
   </Box>
 )
 
-const NewTeamDialog = (props: Props) => (
+const PopupWrapped = (props: Props) => (
   <PopupDialog onClose={props.onBack}>
     <Contents {...props} />
   </PopupDialog>
@@ -55,4 +52,15 @@ const styleContainer = {
   paddingTop: 6,
 }
 
-export default NewTeamDialog
+const stylePadding = isMobile
+  ? {
+      paddingTop: globalMargins.xlarge,
+    }
+  : {
+      marginBottom: 80,
+      marginLeft: 80,
+      marginRight: 80,
+      marginTop: 90,
+    }
+
+export default (isMobile ? HeaderHoc(Contents) : PopupWrapped)
