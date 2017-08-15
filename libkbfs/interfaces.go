@@ -2247,5 +2247,5 @@ type BlockRetriever interface {
 	// triggers prefetches as appropriate.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		triggeredPrefetch bool) error
+		triggeredPrefetch bool) <-chan error
 }

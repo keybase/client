@@ -481,8 +481,11 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		bg.setBlockToReturn(dirBfileDptrs[1].BlockPointer, dirBfileDblock2)
 
 	var block Block = &DirBlock{}
-	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
-		rootPtr, block, TransientEntry)
+	prefetchDoneCh := make(chan struct{}, 3)
+	prefetchErrCh := make(chan struct{}, 3)
+	ch := q.RequestWithPrefetch(context.Background(),
+		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
+		prefetchDoneCh, prefetchErrCh)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
