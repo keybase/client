@@ -165,6 +165,10 @@
           "name": "messageID"
         },
         {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
           "type": [
             null,
             "OutboxID"

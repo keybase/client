@@ -1846,6 +1846,7 @@ export type UIMessage =
 
 export type UIMessageValid = {
   messageID: MessageID,
+  ctime: gregor1.Time,
   outboxID?: ?OutboxID,
   messageBody: MessageBody,
   senderUsername: string,

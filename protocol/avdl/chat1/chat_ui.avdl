@@ -45,6 +45,7 @@ protocol chatUi {
 
   record UIMessageValid {
     MessageID messageID;
+    gregor1.Time ctime;
     union { null, OutboxID } outboxID;
     MessageBody messageBody;
     string senderUsername;

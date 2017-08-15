@@ -146,17 +146,19 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 }
 
 type UIMessageValid struct {
-	MessageID        MessageID   `codec:"messageID" json:"messageID"`
-	OutboxID         *OutboxID   `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	MessageBody      MessageBody `codec:"messageBody" json:"messageBody"`
-	SenderUsername   string      `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName string      `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType string      `codec:"senderDeviceType" json:"senderDeviceType"`
+	MessageID        MessageID    `codec:"messageID" json:"messageID"`
+	Ctime            gregor1.Time `codec:"ctime" json:"ctime"`
+	OutboxID         *OutboxID    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody      MessageBody  `codec:"messageBody" json:"messageBody"`
+	SenderUsername   string       `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string       `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType string       `codec:"senderDeviceType" json:"senderDeviceType"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
 	return UIMessageValid{
 		MessageID: o.MessageID.DeepCopy(),
+		Ctime:     o.Ctime.DeepCopy(),
 		OutboxID: (func(x *OutboxID) *OutboxID {
 			if x == nil {
 				return nil
