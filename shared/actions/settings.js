@@ -30,7 +30,6 @@ import type {
   InvitesSent,
   LoadSettings,
   NotificationsRefresh,
-  NotificationsSave,
   NotificationsToggle,
   OnChangeNewEmail,
   OnChangeNewPassphrase,
@@ -91,10 +90,6 @@ function invitesSend(email: string, message: ?string): InvitesSend {
 
 function notificationsRefresh(): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
-}
-
-function notificationsSave(): NotificationsSave {
-  return {type: Constants.notificationsSave, payload: undefined}
 }
 
 function notificationsToggle(group: string, name?: string): NotificationsToggle {
@@ -167,7 +162,7 @@ function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
   }
 }
 
-function* saveNotificationsSaga(): SagaGenerator<any, any> {
+function* toggleNotificationsSaga(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
@@ -471,7 +466,7 @@ function* settingsSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga)
   yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
   yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
-  yield safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga)
+  yield safeTakeLatest(Constants.notificationsToggle, toggleNotificationsSaga)
   yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
   yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
   yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
@@ -485,7 +480,6 @@ export {
   invitesRefresh,
   invitesSend,
   notificationsRefresh,
-  notificationsSave,
   notificationsToggle,
   onChangeNewEmail,
   onChangeNewPassphrase,

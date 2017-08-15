@@ -19,7 +19,6 @@ const initialState: State = {
   },
   notifications: {
     allowEdit: false,
-    allowSave: false,
     groups: {
       email: {
         settings: null,
@@ -92,19 +91,11 @@ function reducer(state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           ...state.notifications,
-          allowSave: true,
+          allowEdit: false,
           groups: {
             ...state.notifications.groups,
             ...changed,
           },
-        },
-      }
-    case Constants.notificationsSave:
-      return {
-        ...state,
-        notifications: {
-          ...state.notifications,
-          allowEdit: false,
         },
       }
     case Constants.notificationsSaved:
@@ -113,7 +104,6 @@ function reducer(state: State = initialState, action: Actions): State {
         notifications: {
           ...state.notifications,
           allowEdit: true,
-          allowSave: false,
         },
       }
     case Constants.notificationsRefreshed:
@@ -121,7 +111,6 @@ function reducer(state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           allowEdit: true,
-          allowSave: false,
           groups: {
             ...action.payload,
           },
