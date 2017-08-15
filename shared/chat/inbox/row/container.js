@@ -10,7 +10,7 @@ import {
   participantFilter,
   getSelectedConversation,
 } from '../../../constants/chat'
-import {selectConversation} from '../../../actions/chat/creators'
+import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import Row from '.'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -122,7 +122,10 @@ const ConnectedRow = pausableConnect(
     return (state: TypedState) => selector(state)
   },
   dispatch => ({
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+    onSelectConversation: (key: ConversationIDKey) => {
+      dispatch(setInboxFilter(''))
+      dispatch(selectConversation(key, true))
+    },
   })
 )(Row)
 
