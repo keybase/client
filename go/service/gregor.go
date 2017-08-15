@@ -199,6 +199,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		badger:            nil,
 		broadcastCh:       make(chan gregor1.Message, 10000),
 		forceSessionCheck: false,
+		connectHappened:   make(chan struct{}),
 	}
 	return gh
 }
@@ -350,8 +351,13 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
 
-	g.connectHappened = make(chan struct{})
-	defer close(g.connectHappened)
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
+	defer func() {
+		close(g.connectHappened)
+		g.connectHappened = make(chan struct{})
+	}()
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
@@ -1353,10 +1359,8 @@ func (g *gregorHandler) pingLoop() {
 	}
 }
 
+// connMutex must be locked before calling this
 func (g *gregorHandler) connectTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-
 	ctx := context.Background()
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
@@ -1395,10 +1399,8 @@ func (g *gregorHandler) connectTLS() error {
 	return nil
 }
 
+// connMutex must be locked before calling this
 func (g *gregorHandler) connectNoTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-
 	ctx := context.Background()
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
