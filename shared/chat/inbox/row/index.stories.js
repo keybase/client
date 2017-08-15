@@ -5,6 +5,7 @@ import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'
 import SimpleRow from './simple-row'
+import {TeamRow, ChannelRow} from './team-row'
 
 const simpleCommon = {
   backgroundColor: globalColors.white,
@@ -57,11 +58,26 @@ const mocks = [
 ]
 
 const load = () => {
-  storiesOf('Chat/Inbox', module).add('Normal', () => (
-    <Box style={{width: 240}}>
-      {mocks.map(m => <SimpleRow key={m.conversationIDKey} {...m} />)}
-    </Box>
-  ))
+  storiesOf('Chat/Inbox', module)
+    .add('Simple', () => (
+      <Box style={{width: 240}}>
+        {mocks.map(m => <SimpleRow key={m.conversationIDKey} {...m} />)}
+      </Box>
+    ))
+    .add('Team', () => (
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+        <TeamRow teamname="Keybase" />
+        <ChannelRow teamname="Keybase" channelname="#general" />
+        <ChannelRow teamname="Keybase" channelname="#random" showBold={true} />
+        <ChannelRow teamname="Keybase" channelname="#zzz" showBold={true} hasUnread={true} />
+        <ChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} />
+        <TeamRow teamname="techtonica" />
+        <ChannelRow teamname="techtonica" channelname="#general" isSelected={true} />
+        <ChannelRow teamname="techtonica" channelname="#ignore-selected-below" />
+        <ChannelRow teamname="techtonica" channelname="#random" isSelected={true} isMuted={true} />
+        <ChannelRow teamname="techtonica" channelname="#happy-hour" isSelected={true} hasUnread={true} />
+      </Box>
+    ))
 }
 
 export default load
