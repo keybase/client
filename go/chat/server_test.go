@@ -622,7 +622,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		select {
 		case ibox := <-inboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
-			require.Zero(t, len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+			require.Zero(t, len(ibox.InboxRes.Items), "wrong size inbox")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
 		}
@@ -672,7 +672,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		select {
 		case ibox := <-inboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
-			require.Equal(t, len(convs), len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+			require.Equal(t, len(convs), len(ibox.InboxRes.Items), "wrong size inbox")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
 		}
@@ -1357,7 +1357,7 @@ type serverChatListener struct {
 	newMessage              chan chat1.IncomingMessage
 	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
-	joinedConv              chan chat1.ConversationLocal
+	joinedConv              chan chat1.InboxUIItem
 	leftConv                chan chat1.ConversationID
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
@@ -1405,7 +1405,7 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
-func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
+func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
 	n.joinedConv <- conv
 }
 func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
@@ -1417,7 +1417,7 @@ func newServerChatListener() *serverChatListener {
 		newMessage:              make(chan chat1.IncomingMessage, 100),
 		threadsStale:            make(chan []chat1.ConversationStaleUpdate, 100),
 		inboxStale:              make(chan struct{}, 100),
-		joinedConv:              make(chan chat1.ConversationLocal, 100),
+		joinedConv:              make(chan chat1.InboxUIItem, 100),
 		leftConv:                make(chan chat1.ConversationID, 100),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
@@ -1441,7 +1441,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("send a text message")
 		arg := chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Body:             "hi",
@@ -1495,7 +1494,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		require.NoError(t, err)
 		arg = chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Body:             "hi",
@@ -1519,7 +1517,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("edit the message")
 		earg := chat1.PostEditNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
@@ -1542,7 +1539,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("delete the message")
 		darg := chat1.PostDeleteNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
@@ -2055,7 +2051,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), ncres.Conv.GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}
@@ -2122,7 +2118,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}
@@ -2174,7 +2170,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener2.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}

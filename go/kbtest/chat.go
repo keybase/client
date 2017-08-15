@@ -722,8 +722,8 @@ func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
-	ConvRes  *chat1.ConversationLocal
-	InboxRes *chat1.GetInboxLocalRes
+	ConvRes  *chat1.InboxUIItem
+	InboxRes *chat1.UnverifiedInboxUIItems
 }
 
 type NonblockThreadResult struct {
@@ -782,7 +782,7 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	c.inboxCb <- NonblockInboxResult{
 		ConvRes: &arg.Conv,
-		ConvID:  arg.Conv.Info.Id,
+		ConvID:  arg.Conv.GetConvID(),
 	}
 	return nil
 }
