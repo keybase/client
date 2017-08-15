@@ -124,6 +124,7 @@ const ConnectedRow = pausableConnect(
   dispatch => ({
     onSelectConversation: (key: ConversationIDKey) => {
       dispatch(setInboxFilter(''))
+      // TODO: Scroll to selected conversation.
       dispatch(selectConversation(key, true))
     },
   })
