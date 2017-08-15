@@ -326,9 +326,14 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	defer fsource.Close()
 	src := c.G().XStreams.ExportReader(fsource)
 
+	vis := chat1.TLFVisibility_PRIVATE
+	if header.clientHeader.TlfPublic {
+		vis = chat1.TLFVisibility_PUBLIC
+	}
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
-		ClientHeader:   header.clientHeader,
+		TlfName:        header.clientHeader.TlfName,
+		Visibility:     vis,
 		Attachment: chat1.LocalSource{
 			Filename: info.Name(),
 			Size:     int(info.Size()),
@@ -400,9 +405,14 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	}
 	rl = append(rl, header.rateLimits...)
 
+	vis := chat1.TLFVisibility_PRIVATE
+	if header.clientHeader.TlfPublic {
+		vis = chat1.TLFVisibility_PUBLIC
+	}
 	arg := chat1.PostFileAttachmentLocalArg{
 		ConversationID: header.conversationID,
-		ClientHeader:   header.clientHeader,
+		TlfName:        header.clientHeader.TlfName,
+		Visibility:     vis,
 		Attachment: chat1.LocalFileSource{
 			Filename: opts.Filename,
 		},
