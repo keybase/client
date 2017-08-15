@@ -1,10 +1,14 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Avatar, Box, Text, Icon} from '../../../common-adapters'
+import {Avatar, Box, Text, Icon, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
-class TeamRow extends PureComponent<void, {}, void> {
+type TeamProps = {
+  teamname: string,
+}
+
+class TeamRow extends PureComponent<void, TeamProps, void> {
   render() {
     return (
       <Box style={teamRowContainerStyle}>
@@ -13,14 +17,6 @@ class TeamRow extends PureComponent<void, {}, void> {
       </Box>
     )
   }
-}
-
-type ChannelProps = {
-  isSelected: boolean,
-  channelname: string,
-  isMuted: boolean,
-  showBold: boolean,
-  hasUnread: boolean,
 }
 
 const MutedIcon = ({isSelected}) => (
@@ -40,26 +36,37 @@ const UnreadIcon = () => (
   </Box>
 )
 
+type ChannelProps = {
+  isSelected?: boolean,
+  channelname: string,
+  isMuted?: boolean,
+  showBold?: boolean,
+  hasUnread?: boolean,
+  onSelectConversation: () => void,
+}
+
 class ChannelRow extends PureComponent<void, ChannelProps, void> {
   render() {
     return (
-      <Box style={channelRowContainerStyle}>
-        <Box
-          style={{
-            ...channelBackgroundStyle,
-            ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
-          }}
-        >
-          <Text
-            type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-            style={{color: this.props.isSelected ? globalColors.white : globalColors.black_75}}
+      <ClickableBox onClick={this.props.onSelectConversation}>
+        <Box style={channelRowContainerStyle}>
+          <Box
+            style={{
+              ...channelBackgroundStyle,
+              ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
+            }}
           >
-            {this.props.channelname}
-          </Text>
-          {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
-          {this.props.hasUnread && <UnreadIcon />}
+            <Text
+              type={this.props.isSelected ? 'BodySemibold' : 'Body'}
+              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_75}}
+            >
+              {this.props.channelname}
+            </Text>
+            {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
+            {this.props.hasUnread && <UnreadIcon />}
+          </Box>
         </Box>
-      </Box>
+      </ClickableBox>
     )
   }
 }

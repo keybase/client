@@ -70,7 +70,7 @@ class Inbox extends PureComponent<void, Props, void> {
     return (
       <Row
         conversationIDKey={row.conversationIDKey}
-        key={row.conversationIDKey}
+        key={row.conversationIDKey || row.teamname}
         isActiveRoute={true}
         teamname={row.teamname}
         channelname={row.channelname}

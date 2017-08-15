@@ -57,6 +57,10 @@ const mocks = [
   },
 ]
 
+const commonChannel = {
+  onSelectConversation: action('onSelectConversation'),
+}
+
 const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
@@ -67,15 +71,33 @@ const load = () => {
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
         <TeamRow teamname="Keybase" />
-        <ChannelRow teamname="Keybase" channelname="#general" />
-        <ChannelRow teamname="Keybase" channelname="#random" showBold={true} />
-        <ChannelRow teamname="Keybase" channelname="#zzz" showBold={true} hasUnread={true} />
-        <ChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} />
+        <ChannelRow teamname="Keybase" channelname="#general" {...commonChannel} />
+        <ChannelRow teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
+        <ChannelRow
+          teamname="Keybase"
+          channelname="#zzz"
+          showBold={true}
+          hasUnread={true}
+          {...commonChannel}
+        />
+        <ChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
         <TeamRow teamname="techtonica" />
-        <ChannelRow teamname="techtonica" channelname="#general" isSelected={true} />
-        <ChannelRow teamname="techtonica" channelname="#ignore-selected-below" />
-        <ChannelRow teamname="techtonica" channelname="#random" isSelected={true} isMuted={true} />
-        <ChannelRow teamname="techtonica" channelname="#happy-hour" isSelected={true} hasUnread={true} />
+        <ChannelRow teamname="techtonica" channelname="#general" isSelected={true} {...commonChannel} />
+        <ChannelRow teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
+        <ChannelRow
+          teamname="techtonica"
+          channelname="#random"
+          isSelected={true}
+          isMuted={true}
+          {...commonChannel}
+        />
+        <ChannelRow
+          teamname="techtonica"
+          channelname="#happy-hour"
+          isSelected={true}
+          hasUnread={true}
+          {...commonChannel}
+        />
       </Box>
     ))
 }

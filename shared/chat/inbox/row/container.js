@@ -120,21 +120,29 @@ const makeSelector = conversationIDKey => {
   }
 }
 
+const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname}) => {
+  if (conversationIDKey) {
+    const selector = makeSelector(conversationIDKey)
+    return (state: TypedState) => selector(state)
+  } else {
+    return {teamname}
+  }
+}
+
+const mapDispatchToProps = dispatch => ({
+  _onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+})
+
 const ConnectedRow = compose(
   // $FlowIssue
-  pausableConnect(
-    (state: TypedState, {conversationIDKey, teamname, channelname}) => {
-      if (conversationIDKey) {
-        const selector = makeSelector(conversationIDKey)
-        return (state: TypedState) => selector(state)
-      } else {
-        return {teamname}
-      }
-    },
-    dispatch => ({
-      onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
-    })
-  ),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
   branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
 )(SimpleRow)

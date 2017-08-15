@@ -310,7 +310,7 @@ type Props = {
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
-  onSelectConversation: (key: ConversationIDKey) => void,
+  onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: List<string>,
   rekeyInfo: any,
@@ -327,12 +327,8 @@ type Props = {
 class Row extends PureComponent<void, Props, void> {
   render() {
     const props = this.props
-    console.log('aaaa', props)
     return (
-      <ClickableBox
-        onClick={() => props.onSelectConversation(props.conversationIDKey)}
-        style={{backgroundColor: props.backgroundColor}}
-      >
+      <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
           {props.teamname
             ? <TeamAvatar teamname={props.teamname} />
