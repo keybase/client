@@ -2,8 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  username: string,
-  onOpenOlderConversation: () => void,
+  onShowNewTeamDialog: () => void,
 }
 
 export default class CreateTeamNotice extends Component<void, Props, void> {}

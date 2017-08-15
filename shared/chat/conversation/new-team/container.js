@@ -18,7 +18,6 @@ type NewTeamDialogRouteProps = RouteProps<
   },
   {}
 >
-type OwnProps = NewTeamDialogRouteProps & {}
 
 const mapStateToProps = (state: TypedState) => ({
   conversationIDKey: getSelectedConversation(state),

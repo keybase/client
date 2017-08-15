@@ -1,6 +1,5 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import * as Creators from '../../../../actions/chat/creators'
 import CreateTeamNotice from '.'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
@@ -34,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onShowNewTeamDialog: () => dispatchProps.onShowNewTeamDialog(),
+  onShowNewTeamDialog: () => dispatchProps.onShowNewTeamDialog(stateProps.selectedConversationIDKey),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(CreateTeamNotice)
