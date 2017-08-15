@@ -78,7 +78,7 @@ func (f *File) ReadAt(p []byte, off int64) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	if int(readBytes) < n {
+	if int(readBytes) < len(p) {
 		// ReadAt is more strict than Read.
 		return 0, errors.Errorf("Could only read %d bytes", readBytes)
 	}
@@ -110,7 +110,7 @@ func (f *File) Seek(offset int64, whence int) (n int64, err error) {
 		return 0, errors.Errorf("Cannot seek to offset %d", newOffset)
 	}
 
-	_ = atomic.SwapInt64(&f.offset, offset)
+	_ = atomic.SwapInt64(&f.offset, newOffset)
 	return newOffset, nil
 }
 

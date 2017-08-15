@@ -136,6 +136,8 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 
 	parts := strings.Split(filename, "/")
 	n := fs.root
+	// Iterate through each of the parent directories of the file, but
+	// not the file itself.
 	for i := 0; i < len(parts)-1; i++ {
 		p := parts[i]
 		var ei libkbfs.EntryInfo
@@ -164,7 +166,9 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 
 	offset := int64(0)
 	if flag&os.O_APPEND != 0 {
-		// TODO: worry about overflow.
+		if ei.Size >= uint64(1<<63) {
+			return nil, errors.New("offset too large")
+		}
 		offset = int64(ei.Size)
 	}
 
@@ -204,7 +208,7 @@ func (fs *FS) Remove(filename string) error {
 
 // Join implements the billy.Filesystem interface for FS.
 func (fs *FS) Join(elem ...string) string {
-	return path.Join(elem...)
+	return path.Clean(path.Join(elem...))
 }
 
 // TempFile implements the billy.Filesystem interface for FS.
