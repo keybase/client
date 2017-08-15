@@ -43,6 +43,34 @@ protocol chatUi {
     boolean offline;
   }
 
+  record UIMessageValid {
+    MessageID messageID;
+    union { null, OutboxID } outboxID;
+    MessageBody messageBody;
+    string senderUsername;
+    string senderDeviceName;
+    string senderDeviceType;
+  }
+
+  enum MessageUnboxedState {
+    VALID_1,
+    ERROR_2,
+    OUTBOX_3,
+    PLACEHOLDER_4
+  }
+
+  variant UIMessage switch (MessageUnboxedState state) {
+    case VALID: UIMessageValid;
+    case ERROR: MessageUnboxedError;
+    case OUTBOX: OutboxRecord;
+    case PLACEHOLDER: MessageUnboxedPlaceholder;
+  }
+
+  record UIMessages {
+    array<UIMessage> messages;
+    union { null, Pagination } pagination;
+  }
+
   void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
   void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
   void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
@@ -59,6 +87,6 @@ protocol chatUi {
   void chatInboxConversation(int sessionID, InboxUIItem conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
-  void chatThreadCached(int sessionID, union { null, ThreadView } thread) oneway;
-  void chatThreadFull(int sessionID, ThreadView thread) oneway;
+  void chatThreadCached(int sessionID, union { null, UIMessages } thread) oneway;
+  void chatThreadFull(int sessionID, UIMessages thread) oneway;
 }

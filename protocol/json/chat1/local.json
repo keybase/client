@@ -813,16 +813,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MessageUnboxedState",
-      "symbols": [
-        "VALID_1",
-        "ERROR_2",
-        "OUTBOX_3",
-        "PLACEHOLDER_4"
-      ]
-    },
-    {
       "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [

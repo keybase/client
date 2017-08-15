@@ -55,6 +55,13 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
 }
 
 
+export const ChatUiMessageUnboxedState = {
+  valid: 1,
+  error: 2,
+  outbox: 3,
+  placeholder: 4,
+}
+
 export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
@@ -171,13 +178,6 @@ export const LocalMessageUnboxedErrorType = {
   badversionCritical: 1,
   badversion: 2,
   identify: 3,
-}
-
-export const LocalMessageUnboxedState = {
-  valid: 1,
-  error: 2,
-  outbox: 3,
-  placeholder: 4,
 }
 
 export const LocalOutboxErrorType = {
@@ -1838,6 +1838,26 @@ export type TyperInfo = {
   deviceType: string,
 }
 
+export type UIMessage =
+    { state: 1, valid: ?UIMessageValid }
+  | { state: 2, error: ?MessageUnboxedError }
+  | { state: 3, outbox: ?OutboxRecord }
+  | { state: 4, placeholder: ?MessageUnboxedPlaceholder }
+
+export type UIMessageValid = {
+  messageID: MessageID,
+  outboxID?: ?OutboxID,
+  messageBody: MessageBody,
+  senderUsername: string,
+  senderDeviceName: string,
+  senderDeviceType: string,
+}
+
+export type UIMessages = {
+  messages?: ?Array<UIMessage>,
+  pagination?: ?Pagination,
+}
+
 export type UnreadFirstNumLimit = {
   NumRead: int,
   AtLeast: int,
@@ -1915,11 +1935,11 @@ export type chatUiChatInboxUnverifiedRpcParam = Exact<{
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
-  thread?: ?ThreadView
+  thread?: ?UIMessages
 }>
 
 export type chatUiChatThreadFullRpcParam = Exact<{
-  thread: ThreadView
+  thread: UIMessages
 }>
 
 export type localCancelPostRpcParam = Exact<{
@@ -2428,14 +2448,14 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatThreadCached'?: (
     params: Exact<{
       sessionID: int,
-      thread?: ?ThreadView
+      thread?: ?UIMessages
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.chatUi.chatThreadFull'?: (
     params: Exact<{
       sessionID: int,
-      thread: ThreadView
+      thread: UIMessages
     }>,
     response: CommonResponseHandler
   ) => void,

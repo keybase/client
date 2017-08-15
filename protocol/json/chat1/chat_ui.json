@@ -155,6 +155,107 @@
           "name": "offline"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageValid",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MessageUnboxedState",
+      "symbols": [
+        "VALID_1",
+        "ERROR_2",
+        "OUTBOX_3",
+        "PLACEHOLDER_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMessage",
+      "switch": {
+        "type": "MessageUnboxedState",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VALID",
+            "def": false
+          },
+          "body": "UIMessageValid"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "MessageUnboxedError"
+        },
+        {
+          "label": {
+            "name": "OUTBOX",
+            "def": false
+          },
+          "body": "OutboxRecord"
+        },
+        {
+          "label": {
+            "name": "PLACEHOLDER",
+            "def": false
+          },
+          "body": "MessageUnboxedPlaceholder"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessages",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
     }
   ],
   "messages": {
@@ -328,7 +429,7 @@
           "name": "thread",
           "type": [
             null,
-            "ThreadView"
+            "UIMessages"
           ]
         }
       ],
@@ -343,7 +444,7 @@
         },
         {
           "name": "thread",
-          "type": "ThreadView"
+          "type": "UIMessages"
         }
       ],
       "response": null,
