@@ -31,7 +31,12 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   _renderItem = ({item, index}) => {
     return index
       ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
-      : <ChatFilterRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
+      : <ChatFilterRow
+          isLoading={this.props.isLoading}
+          filter={this.props.filter}
+          onNewChat={this.props.onNewChat}
+          onSetFilter={this.props.onSetFilter}
+        />
   }
 
   _keyExtractor = (item, index) => item
