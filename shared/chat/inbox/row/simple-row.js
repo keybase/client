@@ -327,6 +327,7 @@ type Props = {
 class Row extends PureComponent<void, Props, void> {
   render() {
     const props = this.props
+    console.log('aaaa', props)
     return (
       <ClickableBox
         onClick={() => props.onSelectConversation(props.conversationIDKey)}

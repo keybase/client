@@ -7,6 +7,7 @@ import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
 import throttle from 'lodash/throttle'
+import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -79,9 +80,25 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
 
   const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, teamname: null})))
   const sids = I.List(smallIds.map(s => ({conversationIDKey: s, teamname: null})))
-  // TODO teams
 
-  return pids.concat(sids)
+  const teams = I.List(
+    flatten(
+      Object.keys(bigTeamToChannels).sort().map(team => {
+        const channels = bigTeamToChannels[team]
+        return [
+          {
+            teamname: team,
+          },
+        ].concat(
+          Object.keys(channels)
+            .sort()
+            .map(channel => ({channelname: channel, conversationIDKey: channels[channel].id, teamname: team}))
+        )
+      })
+    )
+  )
+
+  return pids.concat(sids).concat(teams)
 })
 
 const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({

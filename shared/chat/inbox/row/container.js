@@ -1,4 +1,5 @@
 // @flow
+import React from 'react'
 import * as I from 'immutable'
 import pausableConnect from '../../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
@@ -12,6 +13,8 @@ import {
 } from '../../../constants/chat'
 import {selectConversation} from '../../../actions/chat/creators'
 import SimpleRow from './simple-row'
+import {TeamRow, ChannelRow} from './team-row'
+import {compose, renderComponent, branch} from 'recompose'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -117,15 +120,23 @@ const makeSelector = conversationIDKey => {
   }
 }
 
-// $FlowIssue
-const ConnectedRow = pausableConnect(
-  (state: TypedState, {conversationIDKey}) => {
-    const selector = makeSelector(conversationIDKey)
-    return (state: TypedState) => selector(state)
-  },
-  dispatch => ({
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
-  })
+const ConnectedRow = compose(
+  // $FlowIssue
+  pausableConnect(
+    (state: TypedState, {conversationIDKey, teamname, channelname}) => {
+      if (conversationIDKey) {
+        const selector = makeSelector(conversationIDKey)
+        return (state: TypedState) => selector(state)
+      } else {
+        return {teamname}
+      }
+    },
+    dispatch => ({
+      onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+    })
+  ),
+  branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
+  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
 )(SimpleRow)
 
 export default ConnectedRow

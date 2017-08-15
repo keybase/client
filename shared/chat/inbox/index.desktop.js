@@ -67,7 +67,15 @@ class Inbox extends PureComponent<void, Props, void> {
 
   _itemRenderer = index => {
     const row = this.props.rows.get(index)
-    return <Row conversationIDKey={row.conversationIDKey} key={row.conversationIDKey} isActiveRoute={true} />
+    return (
+      <Row
+        conversationIDKey={row.conversationIDKey}
+        key={row.conversationIDKey}
+        isActiveRoute={true}
+        teamname={row.teamname}
+        channelname={row.channelname}
+      />
+    )
   }
 
   _onScroll = debounce(() => {
@@ -98,10 +106,8 @@ class Inbox extends PureComponent<void, Props, void> {
             ref={this._setRef}
             style={listStyle}
             useTranslate3d={true}
-            useStaticSize={true}
             itemRenderer={this._itemRenderer}
             length={this.props.rows.count()}
-            type="uniform"
           />
         </div>
       </div>
