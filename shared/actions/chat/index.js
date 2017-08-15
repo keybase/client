@@ -286,7 +286,16 @@ function* _updateThread({
   const newMessages = ((thread && thread.messages) || [])
     .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
     .reverse()
-  newMessages.unshift(_offerTeamCreationMessage(conversationIDKey))
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  // If we're a multi-user chat that's not a team, offer to make a team.
+  if (
+    inbox &&
+    inbox.info &&
+    inbox.info.membersType !== ChatTypes.CommonConversationMembersType.team &&
+    inbox.get('participants').size > 2
+  ) {
+    newMessages.unshift(_offerTeamCreationMessage(conversationIDKey))
+  }
   const pagination = _threadToPagination(thread)
   yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
 }
