@@ -7,17 +7,8 @@ import {chatTab} from '../../../constants/tabs'
 import {createNewTeam, selectConversation} from '../../../actions/chat/creators'
 import {getSelectedConversation} from '../../../constants/chat'
 
-import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
-
-type NewTeamDialogRouteProps = RouteProps<
-  {
-    conversationIDKey: ConversationIDKey,
-    participants: string,
-  },
-  {}
->
 
 const mapStateToProps = (state: TypedState) => ({
   conversationIDKey: getSelectedConversation(state),
