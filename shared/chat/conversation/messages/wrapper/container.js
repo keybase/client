@@ -7,7 +7,7 @@ import {connect} from 'react-redux'
 import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
-import {onUserClick} from '../../../../actions/profile'
+import {showUserProfile} from '../../../../actions/profile'
 import {getProfile} from '../../../../actions/tracker'
 import {isMobile} from '../../../../constants/platform'
 
@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _onRetryText: (conversationIDKey: Constants.ConversationIDKey, outboxID: Constants.OutboxIDKey) =>
     dispatch(Creators.retryMessage(conversationIDKey, outboxID)),
   _onUsernameClick: (username: string) => {
-    isMobile ? dispatch(onUserClick(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
 })
 
@@ -90,6 +90,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     _message: stateProps._message,
     _onAction: ownProps.onAction,
     _onShowEditor: ownProps.onShowEditor,
+    _onUsernameClick: dispatchProps._onUsernameClick,
     author: stateProps.author,
     failureDescription,
     includeHeader,

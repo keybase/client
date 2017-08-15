@@ -274,6 +274,10 @@ func (m *ChatRemoteMock) inConversation(conv *chat1.Conversation) bool {
 	return true
 }
 
+func (m *ChatRemoteMock) RemoteNotificationSuccessful(ctx context.Context, arg chat1.RemoteNotificationSuccessfulArg) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	var ibfull chat1.InboxViewFull
@@ -566,6 +570,15 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 func (m *ChatRemoteMock) SetAppNotificationSettings(ctx context.Context,
 	arg chat1.SetAppNotificationSettingsArg) (res chat1.SetAppNotificationSettingsRes, err error) {
 	return res, errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) SetGlobalAppNotificationSettings(ctx context.Context,
+	arg chat1.GlobalAppNotificationSettings) error {
+	return errors.New("not implemented")
+}
+
+func (m *ChatRemoteMock) GetGlobalAppNotificationSettings(ctx context.Context) (chat1.GlobalAppNotificationSettings, error) {
+	return chat1.GlobalAppNotificationSettings{}, errors.New("not implemented")
 }
 
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, arg chat1.TlfFinalizeArg) error {

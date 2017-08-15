@@ -194,14 +194,17 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 type baseInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	types.InboxSource
 
 	getChatInterface func() chat1.RemoteInterface
 	offline          bool
 }
 
-func newBaseInboxSource(g *globals.Context, getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
+func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
+	getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
+		InboxSource:      ibs,
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false),
 		getChatInterface: getChatInterface,
 	}
@@ -273,6 +276,25 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	return rquery, info, nil
 }
 
+func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, *chat1.RateLimit, error) {
+	ib, rl, err := b.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return false, rl, err
+	}
+	if len(ib.ConvsUnverified) == 0 {
+		return false, rl, fmt.Errorf("conversation not found: %s", convID)
+	}
+	conv := ib.ConvsUnverified[0]
+	switch conv.ReaderInfo.Status {
+	case chat1.ConversationMemberStatus_ACTIVE:
+		return true, rl, nil
+	default:
+		return false, rl, nil
+	}
+}
+
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (types.NameInfo, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
@@ -291,11 +313,12 @@ type RemoteInboxSource struct {
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
 
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
-	return &RemoteInboxSource{
-		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false),
-		baseInboxSource: newBaseInboxSource(g, ri),
+	s := &RemoteInboxSource{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false),
 	}
+	s.baseInboxSource = newBaseInboxSource(g, s, ri)
+	return s
 }
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
@@ -406,11 +429,12 @@ var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
-	return &HybridInboxSource{
-		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false),
-		baseInboxSource: newBaseInboxSource(g, getChatInterface),
+	s := &HybridInboxSource{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false),
 	}
+	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
+	return s
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,

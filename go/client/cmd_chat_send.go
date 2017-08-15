@@ -21,7 +21,7 @@ import (
 )
 
 type CmdChatSend struct {
-	g                *libkb.GlobalContext
+	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
@@ -33,7 +33,9 @@ type CmdChatSend struct {
 }
 
 func NewCmdChatSendRunner(g *libkb.GlobalContext) *CmdChatSend {
-	return &CmdChatSend{g: g}
+	return &CmdChatSend{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (c *CmdChatSend) SetTeamChatForTest(n string) {
@@ -58,6 +60,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "[conversation [message]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
+			cl.SetNoStandalone()
 		},
 		Flags: append(getConversationResolverFlags(),
 			mustGetChatFlags("set-headline", "clear-headline", "nonblock")...,
@@ -66,7 +69,29 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	return chatSend(context.TODO(), c.g, ChatSendArg{
+	err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
+	if err != nil {
+		return err
+	}
+	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
+	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	}
+
+	// TODO: Right now this command cannot be run in standalone at
+	// all, even though team chats should work, but there is a bug
+	// in finding existing conversations.
+	if c.G().Standalone {
+		switch c.resolvingRequest.MembersType {
+		case chat1.ConversationMembersType_TEAM:
+			c.G().StartStandaloneChat()
+		default:
+			err = CantRunInStandaloneError{}
+			return err
+		}
+	}
+
+	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		message:          c.message,
 		setHeadline:      c.setHeadline,
@@ -83,7 +108,6 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
-	c.team = ctx.Bool("team")
 
 	var tlfName string
 	// Get the TLF name from the first position arg
@@ -92,10 +116,6 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
-	}
-	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
-	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
-		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
 	}
 
 	nActions := 0

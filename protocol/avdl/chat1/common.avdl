@@ -49,6 +49,16 @@ protocol common {
     ATMENTION_1
   }
 
+  // Global notification settings (on by default)
+  enum GlobalAppNotificationSetting {
+    NEWMESSAGES_0,
+    PLAINTEXTMOBILE_1,
+    PLAINTEXTDESKTOP_2
+  }
+  record GlobalAppNotificationSettings {
+    map<GlobalAppNotificationSetting, bool> settings;
+  }
+
   enum ConversationStatus {
     // Default status of the conversation
     UNFILED_0,

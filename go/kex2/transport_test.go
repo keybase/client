@@ -211,8 +211,17 @@ func genDeviceID(t *testing.T) (ret DeviceID) {
 	return ret
 }
 
+type testLogCtx struct {
+	t *testing.T
+}
+
+func (t testLogCtx) Debug(format string, args ...interface{}) {
+	t.t.Logf(format, args...)
+}
+
 func genNewConn(t *testing.T, mr MessageRouter, s Secret, d DeviceID, rt time.Duration) net.Conn {
-	ret, err := NewConn(context.TODO(), mr, s, d, rt)
+	logCtx := testLogCtx{t}
+	ret, err := NewConn(context.TODO(), logCtx, mr, s, d, rt)
 	if err != nil {
 		t.Fatal(err)
 	}

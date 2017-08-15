@@ -186,7 +186,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	// operations.
 	if g.Env.GetStandalone() {
 		if cl.IsNoStandalone() {
-			err = fmt.Errorf("Can't run command in standalone mode")
+			err = client.CantRunInStandaloneError{}
 			return err
 		}
 		svc := service.NewService(g, false /* isDaemon */)
@@ -198,6 +198,13 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
+
+		// StandaloneChatConnector is an interface with only one
+		// method: StartStandaloneChat. This way we can pass Service
+		// object while not exposing anything but that one function.
+		g.StandaloneChatConnector = svc
+		g.Standalone = true
+
 		if pflerr, ok := err.(libkb.PIDFileLockError); ok {
 			err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
 				pflerr.Filename)

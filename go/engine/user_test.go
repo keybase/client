@@ -4,12 +4,13 @@
 package engine
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestLoadUserPlusKeysHasKeys(t *testing.T) {
@@ -62,7 +63,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 		}
 	}
 
-	if err := doRevokeDevice(tc, fu, paper.ID, false); err != nil {
+	if err := doRevokeDevice(tc, fu, paper.ID, false, false); err != nil {
 		t.Fatal(err)
 	}
 	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)

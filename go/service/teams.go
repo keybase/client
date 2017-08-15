@@ -111,8 +111,13 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	memberBody := strings.Join(lines, "\n")
 	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
 		user, memberBody)
+
+	// Ensure we have chat available, since TeamAddMember may also be
+	// coming from a standalone launch.
+	h.G().ExternalG().StartStandaloneChat()
+
 	gregorCli := h.gregor.GetClient()
-	if err = chat.SendTextByName(ctx, h.G(), team, chat1.ConversationMembersType_TEAM,
+	if err = chat.SendTextByName(ctx, h.G(), team, &chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli); err != nil {
 		return false
 	}
@@ -177,6 +182,11 @@ func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamI
 
 func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
 	return teams.TeamTree(ctx, h.G().ExternalG(), arg)
+}
+
+func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) error {
+	ui := h.getTeamsUI(arg.SessionID)
+	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

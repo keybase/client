@@ -12,7 +12,7 @@
         name: flow
         entry: sh
         language: system
-        files: \.js$
+        files: \.(js|flow)$
         args: [-c, cd shared && node_modules/.bin/flow]
 -   repo: https://github.com/keybase/pre-commit-golang.git
     sha: 06cb541d5ec2ec6adc218f7862098c55b5b24fc1

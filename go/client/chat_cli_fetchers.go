@@ -36,6 +36,7 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 
 	conversation, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
+		MustNotExist:      false,
 		Interactive:       hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})

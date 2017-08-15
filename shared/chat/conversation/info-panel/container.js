@@ -7,7 +7,7 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
-import {onUserClick} from '../../../actions/profile'
+import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
 
@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  onShowProfile: (username: string) => dispatch(onUserClick(username)),
+  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -62,9 +62,12 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...dispatchProps,
   onAddParticipant: () =>
     dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
-  onMuteConversation: (muted: boolean) =>
-    stateProps.selectedConversationIDKey &&
-    dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
+  onMuteConversation: stateProps.selectedConversationIDKey &&
+    !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
+    ? (muted: boolean) =>
+        stateProps.selectedConversationIDKey &&
+        dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted)
+    : null,
   onShowBlockConversationDialog: () =>
     dispatchProps.onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,

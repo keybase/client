@@ -173,6 +173,8 @@ type DevicesTab = 'settingsTabs:devicesTab'
 export const devicesTab = 'settingsTabs:devicesTab'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
+type PassphraseTab = 'settingsTabs:passphrase'
+export const passphraseTab = 'settingsTabs:passphrase'
 
 export type Tab =
   | LandingTab
@@ -185,6 +187,7 @@ export type Tab =
   | AboutTab
   | DevicesTab
   | ScreenprotectorTab
+  | PassphraseTab
 
 export type Actions =
   | InvitesRefresh
@@ -202,3 +205,5 @@ export function waiting(waiting: boolean): TypedAction<'settings:waitingForRespo
     payload: waiting,
   }
 }
+
+export const securityGroup = 'security'

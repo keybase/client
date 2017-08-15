@@ -107,7 +107,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
 		Ctx:           nctx,
-		ProvisionCtx:  e.G(),
+		LogCtx:        newKex2LogContext(e.G()),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      deviceID,
 		Secret:        e.secret,

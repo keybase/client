@@ -17,17 +17,18 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			newCmdTeamCreate(cl, g),
-			newCmdTeamListMemberships(cl, g),
 			newCmdTeamAddMember(cl, g),
 			newCmdTeamRemoveMember(cl, g),
 			newCmdTeamEditMember(cl, g),
-			newCmdTeamLeave(cl, g),
-			newCmdTeamRename(cl, g),
+			newCmdTeamListMemberships(cl, g),
 			newCmdTeamShowTree(cl, g),
-			newCmdTeamAcceptInvite(cl, g),
+			newCmdTeamRename(cl, g),
 			newCmdTeamRequestAccess(cl, g),
-			newCmdTeamIgnoreRequest(cl, g),
 			newCmdTeamListRequests(cl, g),
+			newCmdTeamIgnoreRequest(cl, g),
+			newCmdTeamAcceptInvite(cl, g),
+			newCmdTeamLeave(cl, g),
+			newCmdTeamDelete(cl, g),
 		},
 	}
 }

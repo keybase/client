@@ -7,7 +7,7 @@ import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {getProfile} from '../../../actions/tracker'
 import {isMobile} from '../../../constants/platform'
-import {onUserClick} from '../../../actions/profile'
+import {showUserProfile} from '../../../actions/profile'
 import {Box} from '../../../common-adapters'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -42,7 +42,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClick: (username: string) => {
-    isMobile ? dispatch(onUserClick(username)) : dispatch(getProfile(username, true, true))
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
 })
 

@@ -96,7 +96,8 @@ type Conn struct {
 	writeErr error
 	closed   bool
 
-	ctx context.Context
+	ctx  context.Context
+	lctx LogContext
 }
 
 const sessionIDText = "Kex v2 Session ID"
@@ -105,7 +106,7 @@ const sessionIDText = "Kex v2 Session ID"
 // both ends of the connection, regardless of which order the two started
 // their conntection. Will communicate with the other end via the given message router.
 // You can specify an optional timeout to cancel any reads longer than that timeout.
-func NewConn(ctx context.Context, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
+func NewConn(ctx context.Context, lctx LogContext, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
 	mac := hmac.New(sha256.New, []byte(s[:]))
 	mac.Write([]byte(sessionIDText))
 	tmp := mac.Sum(nil)
@@ -120,6 +121,7 @@ func NewConn(ctx context.Context, r MessageRouter, s Secret, d DeviceID, readTim
 		readTimeout: readTimeout,
 		writeSeqno:  0,
 		ctx:         ctx,
+		lctx:        lctx,
 	}
 	return ret, nil
 }
@@ -276,6 +278,7 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	var om outerMsg
 	err = dec.Decode(&om)
 	if err != nil {
+		c.lctx.Debug("Conn#decryptIncomingMessage: decoding failure: %s", err.Error())
 		return 0, err
 	}
 	var plaintext []byte
@@ -332,6 +335,7 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 
 	// Any empty buffer signals an EOF condition
 	if len(c.bufferedMsgs[0]) == 0 {
+		c.lctx.Debug("conn#readBufferedMsgsIntoBytes: empty buffer signaling EOF condition")
 		return 0, io.EOF
 	}
 
@@ -347,6 +351,7 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 			if n == 0 {
 				var err error
 				if p == 0 {
+					c.lctx.Debug("conn#readBufferedMsgsIntoBytes: empty buffer signaling EOF condition (after consume loop)")
 					err = io.EOF
 				}
 				return p, err
@@ -448,6 +453,7 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	if n == 0 {
 		switch {
 		case c.getClosed():
+			c.lctx.Debug("conn#Read: EOF since connection was closed")
 			err = io.EOF
 		case poll > 0:
 			err = ErrTimedOut
@@ -547,6 +553,8 @@ func (c *Conn) Close() error {
 
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
+
+	c.lctx.Debug("Conn#Close: all subsequent writes are EOFs")
 
 	// set closed so that the read loop will bail out above
 	c.setClosed()

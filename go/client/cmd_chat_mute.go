@@ -73,6 +73,7 @@ func (c *CmdChatMute) Run() error {
 
 	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
+		MustNotExist:      false,
 		Interactive:       false,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})

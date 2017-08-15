@@ -92,7 +92,7 @@ func newCmdTeamRename(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Usage:        "Change the name of a subteam.",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdTeamRenameRunner(g), "teamrename", c)
+			cl.ChooseCommand(NewCmdTeamRenameRunner(g), "rename", c)
 		},
 		Description: "Rename a subteam.",
 	}

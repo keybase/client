@@ -52,10 +52,8 @@ func newProvisioner(arg ProvisionerArg) *provisioner {
 }
 
 func (p *provisioner) debug(fmtString string, args ...interface{}) {
-	if p.arg.ProvisionCtx != nil {
-		if log := p.arg.ProvisionCtx.GetLog(); log != nil {
-			log.Debug(fmtString, args...)
-		}
+	if p.arg.LogCtx != nil {
+		p.arg.LogCtx.Debug(fmtString, args...)
 	}
 }
 
@@ -120,7 +118,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 	// If not, we'll just have to wait for a message on p.arg.SecretChannel
 	// and use the provisionee's channel.
 	if len(p.arg.Secret) != 0 {
-		if conn, err = NewConn(p.arg.Ctx, p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
+		if conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, p.arg.Secret, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		prot := keybase1.Kex2ProvisionerProtocol(p)
@@ -143,7 +141,7 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if len(sec) != SecretLen {
 			return ErrBadSecret
 		}
-		if p.conn, err = NewConn(p.arg.Ctx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
+		if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
 		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil)

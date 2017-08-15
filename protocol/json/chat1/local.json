@@ -2628,6 +2628,47 @@
         }
       ],
       "response": "SetAppNotificationSettingsLocalRes"
+    },
+    "setGlobalAppNotificationSettingsLocal": {
+      "request": [
+        {
+          "name": "settings",
+          "type": {
+            "type": "map",
+            "values": "bool",
+            "keys": "string"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getGlobalAppNotificationSettingsLocal": {
+      "request": [],
+      "response": "GlobalAppNotificationSettings"
+    },
+    "unboxMobilePushNotification": {
+      "request": [
+        {
+          "name": "payload",
+          "type": "string"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "pushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "chat.1"

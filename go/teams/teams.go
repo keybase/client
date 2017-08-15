@@ -379,6 +379,119 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	return t.postChangeItem(ctx, section, libkb.LinkTypeLeave, nil, sigPayloadArgs)
 }
 
+func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) error {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return err
+	}
+
+	uv := me.ToUserVersion()
+	role, err := t.MemberRole(ctx, uv)
+	if err != nil {
+		return err
+	}
+
+	if role != keybase1.TeamRole_OWNER {
+		return libkb.AppStatusError{
+			Code: int(keybase1.StatusCode_SCTeamSelfNotOwner),
+			Name: "SELF_NOT_ONWER",
+			Desc: "You must be an owner to delete a team",
+		}
+	}
+
+	confirmed, err := ui.ConfirmRootTeamDelete(ctx, keybase1.ConfirmRootTeamDeleteArg{TeamName: t.Name().String()})
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return errors.New("team delete not confirmed")
+	}
+
+	teamSection := SCTeamSection{
+		ID: SCTeamID(t.ID),
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for team delete root")
+	}
+
+	sigMultiItem, err := t.sigTeamItem(ctx, teamSection, libkb.LinkTypeDeleteRoot, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
+	return t.postMulti(payload)
+}
+
+func (t *Team) deleteSubteam(ctx context.Context) error {
+
+	// subteam delete consists of two links:
+	// 1. delete_subteam in parent chain
+	// 2. delete_up_pointer in subteam chain
+
+	parentID := t.chain().GetParentID()
+	parentTeam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
+		ID:          *parentID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	admin, err := parentTeam.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	subteamName := SCTeamName(t.Data.Name.String())
+
+	parentSection := SCTeamSection{
+		ID: SCTeamID(parentTeam.ID),
+		Subteam: &SCSubteam{
+			ID:   SCTeamID(t.ID),
+			Name: subteamName, // weird this is required
+		},
+		Admin: admin,
+	}
+
+	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
+	if err != nil {
+		return err
+	}
+	if mr == nil {
+		return errors.New("No merkle root available for team delete subteam")
+	}
+
+	sigParent, err := parentTeam.sigTeamItem(ctx, parentSection, libkb.LinkTypeDeleteSubteam, mr)
+	if err != nil {
+		return err
+	}
+
+	subSection := SCTeamSection{
+		ID:   SCTeamID(t.ID),
+		Name: &subteamName, // weird this is required
+		Parent: &SCTeamParent{
+			ID:      SCTeamID(parentTeam.ID),
+			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
+			SeqType: keybase1.SeqType_SEMIPRIVATE,
+		},
+		Admin: admin,
+	}
+	sigSub, err := t.sigTeamItem(ctx, subSection, libkb.LinkTypeDeleteUpPointer, mr)
+	if err != nil {
+		return err
+	}
+
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = []interface{}{sigParent, sigSub}
+	return t.postMulti(payload)
+}
+
 func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
 	return t.chain().HasActiveInvite(name, typ)
 }
@@ -391,7 +504,7 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	// if a user version was previously loaded, then there is a keybase user for username, but
 	// without a PUK or without any keys.
 	if uv.Uid.Exists() {
-		return t.inviteKeybaseMember(ctx, uv.Uid, role, resolvedUsername)
+		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
@@ -412,17 +525,17 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 	return t.postInvite(ctx, invite, role)
 }
 
-func (t *Team) inviteKeybaseMember(ctx context.Context, uid keybase1.UID, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
-	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uid)
+func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername) (keybase1.TeamAddMemberResult, error) {
+	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
 	invite := SCTeamInvite{
 		Type: "keybase",
-		Name: uid.String(),
+		Name: uv.PercentForm(),
 		ID:   NewInviteID(),
 	}
 	if err := t.postInvite(ctx, invite, role); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uid, Username: resolvedUsername.String()}}, nil
+	return keybase1.TeamAddMemberResult{Invited: true, User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
 }
 
 func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
@@ -617,6 +730,12 @@ func usesPerTeamKeys(linkType libkb.LinkType) bool {
 	case libkb.LinkTypeLeave:
 		return false
 	case libkb.LinkTypeInvite:
+		return false
+	case libkb.LinkTypeDeleteRoot:
+		return false
+	case libkb.LinkTypeDeleteSubteam:
+		return false
+	case libkb.LinkTypeDeleteUpPointer:
 		return false
 	}
 
@@ -827,10 +946,7 @@ func (t *Team) postMulti(payload libkb.JSONPayload) error {
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // ForceMerkleRootUpdate will call LookupTeam on MerkleClient to

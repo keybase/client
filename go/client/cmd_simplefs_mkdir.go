@@ -29,6 +29,7 @@ func NewCmdSimpleFSMkdir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		Usage:        "create directory",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSMkdir{Contextified: libkb.NewContextified(g)}, "mkdir", c)
+			cl.SetNoStandalone()
 		},
 	}
 }

@@ -23,7 +23,7 @@ func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	return cli.Command{
 		Name:         "edit-member",
 		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
-		Usage:        "change a user's role on a team",
+		Usage:        "Change a user's role on a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "edit-member", c)

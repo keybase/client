@@ -40,6 +40,9 @@ const (
 	SigchainV2TypeTeamRenameSubteam    SigchainV2Type = 39
 	SigchainV2TypeTeamInvite           SigchainV2Type = 40
 	SigchainV2TypeTeamRenameUpPointer  SigchainV2Type = 41
+	SigchainV2TypeTeamDeleteRoot       SigchainV2Type = 42
+	SigchainV2TypeTeamDeleteSubteam    SigchainV2Type = 43
+	SigchainV2TypeTeamDeleteUpPointer  SigchainV2Type = 44
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -97,7 +100,7 @@ func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
 		return false
 	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
 		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamInvite:
+		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamDeleteSubteam, SigchainV2TypeTeamInvite:
 			return true
 		default:
 			// disallow stubbing of other including unknown links
@@ -259,6 +262,12 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamInvite
 	case LinkTypeRenameUpPointer:
 		ret = SigchainV2TypeTeamRenameUpPointer
+	case LinkTypeDeleteRoot:
+		ret = SigchainV2TypeTeamDeleteRoot
+	case LinkTypeDeleteSubteam:
+		ret = SigchainV2TypeTeamDeleteSubteam
+	case LinkTypeDeleteUpPointer:
+		ret = SigchainV2TypeTeamDeleteUpPointer
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

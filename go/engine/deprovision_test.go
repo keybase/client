@@ -361,7 +361,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 
 	// Revoke the current device! This will cause an error when deprovision
 	// tries to revoke the device again, but deprovision should carry on.
-	err = doRevokeDevice(tc, fu, tc.G.Env.GetDeviceID(), true /* force */)
+	err = doRevokeDevice(tc, fu, tc.G.Env.GetDeviceID(), true /* force */, false /* forceLast */)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

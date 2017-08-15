@@ -2,7 +2,7 @@
 import React from 'react'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Badge, ClickableBox, Text, HeaderHoc} from '../../common-adapters'
+import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
 import {isAndroid} from '../../constants/platform'
 import {
   devMenuTab,
@@ -11,6 +11,7 @@ import {
   devicesTab,
   notificationsTab,
   screenprotectorTab,
+  passphraseTab,
 } from '../../constants/settings'
 import {compose, defaultProps} from 'recompose'
 
@@ -37,33 +38,40 @@ export function SettingsItem({
 
 function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) {
   return (
-    <Box style={styleNavBox}>
-      <SettingsItem
-        text="Devices"
-        badgeNumber={badgeNumbers[devicesTab]}
-        onClick={() => onTabChange(devicesTab)}
-      />
-      <SettingsItem
-        text="Notifications"
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => onTabChange(notificationsTab)}
-      />
-      <SettingsItem text="About" badgeNumber={badgeNumbers[aboutTab]} onClick={() => onTabChange(aboutTab)} />
-      <SettingsItem
-        text="Feedback"
-        badgeNumber={badgeNumbers[feedbackTab]}
-        onClick={() => onTabChange(feedbackTab)}
-      />
-      {isAndroid &&
+    <NativeScrollView style={{width: '100%', height: '100%'}}>
+      <Box style={styleNavBox}>
         <SettingsItem
-          text="Screen Protector"
-          badgeNumber={0}
-          onClick={() => onTabChange(screenprotectorTab)}
-        />}
-      <SettingsItem text="Sign out" badgeNumber={0} onClick={onLogout} />
-      {__DEV__ &&
-        <SettingsItem text="😎 &nbsp; Dev Menu" badgeNumber={0} onClick={() => onTabChange(devMenuTab)} />}
-    </Box>
+          text="Devices"
+          badgeNumber={badgeNumbers[devicesTab]}
+          onClick={() => onTabChange(devicesTab)}
+        />
+        <SettingsItem
+          text="Notifications"
+          badgeNumber={badgeNumbers[notificationsTab]}
+          onClick={() => onTabChange(notificationsTab)}
+        />
+        <SettingsItem text="Passphrase" badgeNumber={0} onClick={() => onTabChange(passphraseTab)} />
+        <SettingsItem
+          text="About"
+          badgeNumber={badgeNumbers[aboutTab]}
+          onClick={() => onTabChange(aboutTab)}
+        />
+        <SettingsItem
+          text="Feedback"
+          badgeNumber={badgeNumbers[feedbackTab]}
+          onClick={() => onTabChange(feedbackTab)}
+        />
+        {isAndroid &&
+          <SettingsItem
+            text="Screen Protector"
+            badgeNumber={0}
+            onClick={() => onTabChange(screenprotectorTab)}
+          />}
+        <SettingsItem text="Sign out" badgeNumber={0} onClick={onLogout} />
+        {__DEV__ &&
+          <SettingsItem text="😎 &nbsp; Dev Menu" badgeNumber={0} onClick={() => onTabChange(devMenuTab)} />}
+      </Box>
+    </NativeScrollView>
   )
 }
 const styleNavBox = {

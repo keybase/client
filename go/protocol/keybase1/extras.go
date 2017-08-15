@@ -332,6 +332,10 @@ func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
 
+func (s Seqno) String() string {
+	return fmt.Sprintf("%d", s)
+}
+
 func UIDFromString(s string) (UID, error) {
 	if len(s) != hex.EncodedLen(UID_LEN) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
@@ -411,6 +415,20 @@ func MakeTestTeamID(n uint32) TeamID {
 	s := hex.EncodeToString(b)
 	c := 2*TEAMID_LEN - len(TEAMID_SUFFIX_HEX) - len(s)
 	s += strings.Repeat("0", c) + TEAMID_SUFFIX_HEX
+	tid, err := TeamIDFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return tid
+}
+
+// Used by unit tests.
+func MakeTestSubTeamID(n uint32) TeamID {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint32(b, n)
+	s := hex.EncodeToString(b)
+	c := 2*TEAMID_LEN - len(SUB_TEAMID_SUFFIX_HEX) - len(s)
+	s += strings.Repeat("0", c) + SUB_TEAMID_SUFFIX_HEX
 	tid, err := TeamIDFromString(s)
 	if err != nil {
 		panic(err)

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -44,7 +45,13 @@ func newCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 				g.Log.Errorf("Error finding updater path: %s", err)
 				return
 			}
-			g.Log.Errorf("\nTo update, you can run:\n\n\t%s check", updaterPath)
+
+			cmd := exec.Command(updaterPath, "check")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				g.Log.Errorf("Error running %q: %s", updaterPath, err)
+			}
 		},
 	}
 }

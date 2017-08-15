@@ -18,7 +18,7 @@ import {
   TlfKeysTLFIdentifyBehavior,
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
-import {call, put, take, select, race} from 'redux-saga/effects'
+import {call, put, all, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
@@ -598,6 +598,28 @@ function _unboxedToMessage(
             type: 'Edit',
           }
         }
+        case ChatTypes.CommonMessageType.join: {
+          const message = new HiddenString('_*has joined the channel*_')
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: 0,
+            message,
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
+        case ChatTypes.CommonMessageType.leave: {
+          const message = new HiddenString('_*has left the channel*_')
+          return {
+            type: 'Text',
+            ...common,
+            editedCount: 0,
+            message,
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+          }
+        }
         default:
           const unhandled: Constants.UnhandledMessage = {
             ...common,
@@ -969,27 +991,30 @@ function* _updateTempSearchConversation(
   const searchResultMap = yield select(searchResultMapSelector)
   const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
   const me = yield select(usernameSelector)
-
   const inboxSearch = yield select(inboxSearchSelector)
+
+  const actionsToPut = []
+
   if (action.type === 'chat:stageUserForSearch') {
     const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
-    yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
-    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
-    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
+    actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
+    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
+    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
     if (!nextTempSearchConv.isEmpty()) {
-      yield put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true))
+      actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
     } else {
-      yield put(Creators.selectConversation(null, false))
+      actionsToPut.push(put(Creators.selectConversation(null, false)))
     }
 
-    yield put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray()))
-    yield put(Creators.setInboxFilter(nextTempSearchConv.toArray()))
+    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
+    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   }
 
   // Always clear the search results when you select/unselect
-  yield put(Creators.clearSearchResults())
+  actionsToPut.push(put(Creators.clearSearchResults()))
+  yield all(actionsToPut)
 }
 
 function* _exitSearch() {

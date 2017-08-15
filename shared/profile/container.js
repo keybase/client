@@ -4,7 +4,7 @@ import Profile from './index'
 import React, {PureComponent} from 'react'
 import {
   addProof,
-  onUserClick,
+  showUserProfile,
   onClickAvatar,
   onClickFollowers,
   onClickFollowing,
@@ -131,7 +131,7 @@ export default pausableConnect(
       dispatch(onUnfollow(username))
     },
     onUserClick: username => {
-      dispatch(onUserClick(username))
+      dispatch(showUserProfile(username))
     },
     onViewProof: (proof: Proof) => {
       dispatch(openProofUrl(proof))

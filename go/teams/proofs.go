@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -25,8 +26,9 @@ type proofTermBookends struct {
 }
 
 type proof struct {
-	a proofTerm
-	b proofTerm
+	a      proofTerm
+	b      proofTerm
+	reason string
 }
 
 type proofIndex struct {
@@ -75,7 +77,7 @@ func newProofSet() *proofSetT {
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
 // proof set with the new proofs needed, but the original arugment p will
 // be mutated.
-func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proofSetT {
+func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm, reason string) *proofSetT {
 	idx := newProofIndex(a.leafID, b.leafID)
 	set := p.proofs[idx]
 	for i := len(set) - 1; i >= 0; i-- {
@@ -87,16 +89,14 @@ func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm) *proof
 			return p
 		}
 	}
-	p.proofs[idx] = append(p.proofs[idx], proof{a, b})
+	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
 	return p
 }
 
 func (p *proofSetT) AllProofs() []proof {
 	var ret []proof
 	for _, v := range p.proofs {
-		for _, proof := range v {
-			ret = append(ret, proof)
-		}
+		ret = append(ret, v...)
 	}
 	sort.Slice(ret, func(i, j int) bool {
 		cmp := ret[i].a.leafID.Compare(ret[j].a.leafID)
@@ -131,23 +131,14 @@ func (p *proofSetT) AllProofs() []proof {
 
 // lookupMerkleTreeChain loads the path up to the merkle tree and back down that corresponds
 // to this proof. It will contact the API server.  Returns the sigchain tail on success.
-func (p proof) lookupMerkleTreeChain(ctx context.Context, g *libkb.GlobalContext) (ret *libkb.MerkleTriple, err error) {
-	leaf, err := g.MerkleClient.LookupLeafAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
-	if err != nil {
-		return nil, err
-	}
-	if p.a.leafID.IsUser() {
-		ret = leaf.Public
-	} else {
-		ret = leaf.Private
-	}
-	return ret, nil
+func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (ret *libkb.MerkleTriple, err error) {
+	return world.merkleLookupTripleAtHashMeta(ctx, p.a.leafID, p.b.sigMeta.PrevMerkleRootSigned.HashMeta)
 }
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
 // data that comes back fits the proof and previously checked sighcain links.
-func (p proof) check(ctx context.Context, g *libkb.GlobalContext) error {
-	triple, err := p.lookupMerkleTreeChain(ctx, g)
+func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext) error {
+	triple, err := p.lookupMerkleTreeChain(ctx, world)
 	if err != nil {
 		return err
 	}
@@ -172,7 +163,7 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext) error {
 	// we're toast.
 	if !ok && p.a.leafID.IsUser() {
 		g.Log.CDebugf(ctx, "proof#check: missed load for %s at %d; trying a force repoll", p.a.leafID.String(), laterSeqno)
-		lm, err := forceLinkMapRefreshForUser(ctx, g, p.a.leafID.AsUserOrBust())
+		lm, err := world.forceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
 		if err != nil {
 			return err
 		}
@@ -184,13 +175,14 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext) error {
 	}
 
 	if !triple.LinkID.Export().Eq(linkID) {
+		g.Log.CDebugf(ctx, "proof error: %s", spew.Sdump(p))
 		return NewProofError(p, fmt.Sprintf("hash mismatch: %s != %s", triple.LinkID, linkID))
 	}
 	return nil
 }
 
 // check the entire proof set, failing if any one proof fails.
-func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext) (err error) {
+func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext) (err error) {
 	defer g.CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
 
 	var total int
@@ -204,7 +196,7 @@ func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext) (err erro
 			if i%100 == 0 {
 				g.Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
 			}
-			err = proof.check(ctx, g)
+			err = proof.check(ctx, g, world)
 			if err != nil {
 				return err
 			}

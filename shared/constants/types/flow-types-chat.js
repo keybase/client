@@ -77,6 +77,12 @@ export const CommonConversationStatus = {
   reported: 5,
 }
 
+export const CommonGlobalAppNotificationSetting = {
+  newmessages: 0,
+  plaintextmobile: 1,
+  plaintextdesktop: 2,
+}
+
 export const CommonInboxResType = {
   versionhit: 0,
   full: 1,
@@ -308,6 +314,18 @@ export function localGetConversationForCLILocalRpcChannelMap (configKeys: Array<
 
 export function localGetConversationForCLILocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>): Promise<localGetConversationForCLILocalResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getConversationForCLILocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localGetGlobalAppNotificationSettingsLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>) {
+  engineRpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localGetGlobalAppNotificationSettingsLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.getGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localGetGlobalAppNotificationSettingsLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetGlobalAppNotificationSettingsLocalResult) => void}>): Promise<localGetGlobalAppNotificationSettingsLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.getGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function localGetInboxAndUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>) {
@@ -586,6 +604,30 @@ export function localSetConversationStatusLocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.SetConversationStatusLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localSetGlobalAppNotificationSettingsLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: localSetGlobalAppNotificationSettingsLocalRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localSetGlobalAppNotificationSettingsLocalRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: localSetGlobalAppNotificationSettingsLocalRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.setGlobalAppNotificationSettingsLocal', request)
+}
+
+export function localSetGlobalAppNotificationSettingsLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localSetGlobalAppNotificationSettingsLocalRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.setGlobalAppNotificationSettingsLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localUnboxMobilePushNotificationRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>) {
+  engineRpcOutgoing('chat.1.local.unboxMobilePushNotification', request)
+}
+
+export function localUnboxMobilePushNotificationRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.unboxMobilePushNotification', request)
+}
+
+export function localUnboxMobilePushNotificationRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUnboxMobilePushNotificationResult) => void} & {param: localUnboxMobilePushNotificationRpcParam}>): Promise<localUnboxMobilePushNotificationResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.unboxMobilePushNotification', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localUpdateTypingRpc (request: Exact<requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}>) {
   engineRpcOutgoing('chat.1.local.updateTyping', request)
 }
@@ -596,6 +638,18 @@ export function localUpdateTypingRpcChannelMap (configKeys: Array<string>, reque
 
 export function localUpdateTypingRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.updateTyping', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteGetGlobalAppNotificationSettingsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetGlobalAppNotificationSettingsResult) => void}>) {
+  engineRpcOutgoing('chat.1.remote.getGlobalAppNotificationSettings', request)
+}
+
+export function remoteGetGlobalAppNotificationSettingsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetGlobalAppNotificationSettingsResult) => void}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
+}
+
+export function remoteGetGlobalAppNotificationSettingsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetGlobalAppNotificationSettingsResult) => void}>): Promise<remoteGetGlobalAppNotificationSettingsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.getGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
@@ -790,6 +844,18 @@ export function remotePublishSetConversationStatusRpcPromise (request: $Exact<re
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.publishSetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteRemoteNotificationSuccessfulRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.remoteNotificationSuccessful', request)
+}
+
+export function remoteRemoteNotificationSuccessfulRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteRemoteNotificationSuccessfulRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.remoteNotificationSuccessful', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
   engineRpcOutgoing('chat.1.remote.s3Sign', request)
 }
@@ -824,6 +890,18 @@ export function remoteSetConversationStatusRpcChannelMap (configKeys: Array<stri
 
 export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>): Promise<remoteSetConversationStatusResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.SetConversationStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteSetGlobalAppNotificationSettingsRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteSetGlobalAppNotificationSettingsRpcParam}>) {
+  engineRpcOutgoing('chat.1.remote.setGlobalAppNotificationSettings', request)
+}
+
+export function remoteSetGlobalAppNotificationSettingsRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteSetGlobalAppNotificationSettingsRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.setGlobalAppNotificationSettings', request)
+}
+
+export function remoteSetGlobalAppNotificationSettingsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteSetGlobalAppNotificationSettingsRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.setGlobalAppNotificationSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteSyncAllRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSyncAllResult) => void} & {param: remoteSyncAllRpcParam}>) {
@@ -1329,6 +1407,15 @@ export type GetThreadQuery = {
 export type GetThreadRemoteRes = {
   thread: ThreadViewBoxed,
   rateLimit?: ?RateLimit,
+}
+
+export type GlobalAppNotificationSetting =
+    0 // NEWMESSAGES_0
+  | 1 // PLAINTEXTMOBILE_1
+  | 2 // PLAINTEXTDESKTOP_2
+
+export type GlobalAppNotificationSettings = {
+  settings: {[key: string]: bool},
 }
 
 export type Hash = bytes
@@ -2249,6 +2336,17 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localSetGlobalAppNotificationSettingsLocalRpcParam = Exact<{
+  settings: {[key: string]: bool}
+}>
+
+export type localUnboxMobilePushNotificationRpcParam = Exact<{
+  payload: string,
+  convID: string,
+  membersType: ConversationMembersType,
+  pushIDs?: ?Array<string>
+}>
+
 export type localUpdateTypingRpcParam = Exact<{
   conversationID: ConversationID,
   typing: boolean
@@ -2341,6 +2439,11 @@ export type remotePublishSetConversationStatusRpcParam = Exact<{
   status: ConversationStatus
 }>
 
+export type remoteRemoteNotificationSuccessfulRpcParam = Exact<{
+  authToken: gregor1.SessionToken,
+  companionPushIDs?: ?Array<string>
+}>
+
 export type remoteS3SignRpcParam = Exact<{
   version: int,
   payload: bytes
@@ -2354,6 +2457,10 @@ export type remoteSetAppNotificationSettingsRpcParam = Exact<{
 export type remoteSetConversationStatusRpcParam = Exact<{
   conversationID: ConversationID,
   status: ConversationStatus
+}>
+
+export type remoteSetGlobalAppNotificationSettingsRpcParam = Exact<{
+  settings: GlobalAppNotificationSettings
 }>
 
 export type remoteSyncAllRpcParam = Exact<{
@@ -2399,6 +2506,7 @@ type localFindConversationsLocalResult = FindConversationsLocalRes
 type localGenerateOutboxIDResult = OutboxID
 type localGetCachedThreadResult = GetThreadLocalRes
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
+type localGetGlobalAppNotificationSettingsLocalResult = GlobalAppNotificationSettings
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
 type localGetInboxNonblockLocalResult = NonblockFetchRes
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
@@ -2421,6 +2529,8 @@ type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes
 type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
+type localUnboxMobilePushNotificationResult = string
+type remoteGetGlobalAppNotificationSettingsResult = GlobalAppNotificationSettings
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
@@ -2450,6 +2560,7 @@ export type rpc =
   | localGenerateOutboxIDRpc
   | localGetCachedThreadRpc
   | localGetConversationForCLILocalRpc
+  | localGetGlobalAppNotificationSettingsLocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxNonblockLocalRpc
   | localGetInboxSummaryForCLILocalRpc
@@ -2473,7 +2584,10 @@ export type rpc =
   | localRetryPostRpc
   | localSetAppNotificationSettingsLocalRpc
   | localSetConversationStatusLocalRpc
+  | localSetGlobalAppNotificationSettingsLocalRpc
+  | localUnboxMobilePushNotificationRpc
   | localUpdateTypingRpc
+  | remoteGetGlobalAppNotificationSettingsRpc
   | remoteGetInboxRemoteRpc
   | remoteGetInboxVersionRpc
   | remoteGetMessagesRemoteRpc
@@ -2490,9 +2604,11 @@ export type rpc =
   | remotePostRemoteRpc
   | remotePublishReadMessageRpc
   | remotePublishSetConversationStatusRpc
+  | remoteRemoteNotificationSuccessfulRpc
   | remoteS3SignRpc
   | remoteSetAppNotificationSettingsRpc
   | remoteSetConversationStatusRpc
+  | remoteSetGlobalAppNotificationSettingsRpc
   | remoteSyncAllRpc
   | remoteSyncChatRpc
   | remoteSyncInboxRpc

@@ -117,27 +117,22 @@ func (g *gregorMessageOrderer) cleanupAfterTimeoutLocked(uid gregor1.UID, vers c
 func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	newVers chat1.InboxVers) (res chan struct{}) {
 	res = make(chan struct{})
-	// Grab latest inbox version if we can
-	vers, err := g.latestInboxVersion(ctx, uid)
-	if err != nil {
-		g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s", err.Error())
-		close(res)
-		return res
-	}
-
-	// Check for an in-order update
-	if newVers <= vers+1 {
-		close(res)
-		return
-	}
-
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
 	go func() {
+		defer close(res)
 		g.Lock()
+		vers, err := g.latestInboxVersion(ctx, uid)
+		if err != nil {
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s", err.Error())
+			vers = newVers - 1
+		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
+		if len(waiters) == 0 {
+			return
+		}
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -150,7 +145,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-		close(res)
 	}()
 	return res
 }
@@ -418,7 +412,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %s", err.Error())
 				return
 			}
-
 			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s",
 				nm.ConvID, nm.Message.ClientHeader.Sender)
 			if nm.Message.ClientHeader.OutboxID != nil {
@@ -774,23 +767,23 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	return nil
 }
 
-func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
-		return errors.New("nil system in out of band message")
+		return false, errors.New("nil system in out of band message")
 	}
 
 	switch obm.System().String() {
 	case types.PushActivity:
-		return g.Activity(ctx, obm)
+		return true, g.Activity(ctx, obm)
 	case types.PushTLFFinalize:
-		return g.TlfFinalize(ctx, obm)
+		return true, g.TlfFinalize(ctx, obm)
 	case types.PushTLFResolve:
-		return g.TlfResolve(ctx, obm)
+		return true, g.TlfResolve(ctx, obm)
 	case types.PushTyping:
-		return g.Typing(ctx, obm)
+		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
-		return g.MembershipUpdate(ctx, obm)
+		return true, g.MembershipUpdate(ctx, obm)
 	}
 
-	return nil
+	return false, nil
 }

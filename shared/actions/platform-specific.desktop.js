@@ -23,10 +23,26 @@ function configurePush() {
   throw new Error('Configure Push not needed on this platform')
 }
 
+function setNoPushPermissions(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+
 function showMainWindow(): AsyncAction {
   return () => {
     ipcRenderer && ipcRenderer.send('showMain')
   }
 }
 
-export {requestPushPermissions, showMainWindow, configurePush, saveAttachmentDialog, showShareActionSheet}
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+  throw new Error('Display new message notification not available on this platform')
+}
+
+export {
+  requestPushPermissions,
+  showMainWindow,
+  configurePush,
+  saveAttachmentDialog,
+  showShareActionSheet,
+  setNoPushPermissions,
+  displayNewMessageNotification,
+}

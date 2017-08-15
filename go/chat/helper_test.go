@@ -6,6 +6,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,4 +62,53 @@ func TestRecentConversationParticipants(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, maxUsers-1, len(res))
 	require.Equal(t, refList, res)
+}
+
+func TestSendTextByName(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctx, world, ri2, _, _, _ := setupTest(t, 1)
+		defer world.Cleanup()
+
+		u := world.GetUsers()[0]
+		tc := world.Tcs[u.Username]
+		uid := u.User.GetUID().ToBytes()
+		var name string
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			name = createTeam(tc.TestContext)
+		default:
+			name = u.Username
+		}
+
+		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
+		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inbox.Convs))
+		tv, _, err := tc.Context().ConvSource.Pull(ctx, inbox.Convs[0].GetConvID(), uid, &chat1.GetThreadQuery{
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(tv.Messages))
+
+		t.Logf("sending into new topic name")
+		topicName := "MIKE"
+		err = SendTextByName(ctx, tc.Context(), name, &topicName,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2)
+		require.NoError(t, err)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Equal(t, 2, len(inbox.Convs))
+		default:
+			// No second topic name on KBFS chats
+			require.Equal(t, 1, len(inbox.Convs))
+		}
+	})
 }

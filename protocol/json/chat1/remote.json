@@ -913,6 +913,35 @@
         }
       ],
       "response": "SetAppNotificationSettingsRes"
+    },
+    "setGlobalAppNotificationSettings": {
+      "request": [
+        {
+          "name": "settings",
+          "type": "GlobalAppNotificationSettings"
+        }
+      ],
+      "response": null
+    },
+    "getGlobalAppNotificationSettings": {
+      "request": [],
+      "response": "GlobalAppNotificationSettings"
+    },
+    "remoteNotificationSuccessful": {
+      "request": [
+        {
+          "name": "authToken",
+          "type": "gregor1.SessionToken"
+        },
+        {
+          "name": "companionPushIDs",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

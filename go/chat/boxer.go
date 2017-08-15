@@ -91,6 +91,10 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
 		return true
 	}
+	switch err.(type) {
+	case libkb.DeletedError:
+		return true
+	}
 	return false
 }
 
