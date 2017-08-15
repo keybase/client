@@ -218,9 +218,6 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, triggeredPrefetch bool) (err error) {
 	didUpdateCh := make(chan struct{})
-	// TODO: Currently this is wrong; we need to pipe the real value through
-	// the caches.
-	finishedPrefetch := false
 	defer func() {
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
@@ -229,7 +226,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		dbc := brq.config.DiskBlockCache()
 		if dbc != nil {
 			go func() {
-				err := dbc.UpdateMetadata(ctx, ptr.ID, triggeredPrefetch, finishedPrefetch)
+				// Leave FinishedPrefetch unchanged at this point.
+				err := dbc.UpdateMetadata(ctx, ptr.ID, &triggeredPrefetch, nil)
 				close(didUpdateCh)
 				switch err.(type) {
 				case nil:
@@ -258,7 +256,6 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	// To prevent any other Gets from prefetching, we must let the cache know
 	// at this point that we've prefetched.
 	triggeredPrefetch = true
-	finishedPrefetch = false
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, triggeredPrefetch)
 	switch err.(type) {
@@ -300,9 +297,10 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		// Prefetches are done. Update the disk cache metadata.
 		dbc := brq.config.DiskBlockCache()
 		if dbc != nil {
-			// TODO: set finishedPrefetch to true here once it correctly
-			// represents the doneness of the prefetching.
-			err := dbc.UpdateMetadata(ctx, ptr.ID, true, false)
+			triggeredPrefetch := true
+			finishedPrefetch := true
+			err := dbc.UpdateMetadata(ctx, ptr.ID, &triggeredPrefetch,
+				&finishedPrefetch)
 			if err != nil {
 				brq.log.CWarningf(ctx, "Error updating metadata after "+
 					"prefetch: %+v", err)
@@ -354,8 +352,9 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		triggeredPrefetch)
 }
 
-// Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context,
+// RequestWithPrefetch implements the BlockRetriever interface for
+// blockRetrievalQueue.
+func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime,
 	prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error {
@@ -364,13 +363,17 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	select {
 	case <-brq.doneCh:
 		ch <- io.EOF
-		prefetchErrCh <- struct{}{}
+		if prefetchErrCh != nil {
+			prefetchErrCh <- struct{}{}
+		}
 		return ch
 	default:
 	}
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
-		prefetchErrCh <- struct{}{}
+		if prefetchErrCh != nil {
+			prefetchErrCh <- struct{}{}
+		}
 		return ch
 	}
 
@@ -378,7 +381,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
 	if err == nil {
 		ch <- nil
-		prefetchErrCh <- struct{}{}
+		if prefetchErrCh != nil {
+			prefetchErrCh <- struct{}{}
+		}
 		return ch
 	}
 
@@ -448,6 +453,14 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	}
 }
 
+// Request implements the BlockRetriever interface for blockRetrievalQueue.
+func (brq *blockRetrievalQueue) Request(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) <-chan error {
+	return brq.RequestWithPrefetch(ctx, priority, kmd, ptr, block, lifetime,
+		nil, nil)
+}
+
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -488,6 +501,12 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
 		req.doneCh <- err
+		// Notify any relevant prefetch channels.
+		if err == nil && r.prefetchDoneCh != nil {
+			r.prefetchDoneCh <- struct{}{}
+		} else if err != nil && r.prefetchErrCh != nil {
+			r.prefetchErrCh <- struct{}{}
+		}
 	}
 }
 

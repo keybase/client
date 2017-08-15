@@ -92,15 +92,15 @@ func (p *blockPrefetcher) run() {
 		case req := <-p.progressCh:
 			ctx, cancel := context.WithTimeout(context.Background(),
 				prefetchTimeout)
-			errCh := p.retriever.Request(ctx, req.priority, req.kmd, req.ptr,
-				req.block, TransientEntry)
+			errCh := p.retriever.RequestWithPrefetch(ctx, req.priority,
+				req.kmd, req.ptr, req.block, TransientEntry, req.doneCh,
+				req.errCh)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
 				defer cancel()
 				select {
 				case err := <-errCh:
-					req.errCh <- struct{}{}
 					if err != nil {
 						p.log.CDebugf(ctx, "Done prefetch for block %s. "+
 							"Error: %+v", req.ptr.ID, err)
@@ -110,14 +110,12 @@ func (p *blockPrefetcher) run() {
 					// p.doneCh accurately represents whether we still have
 					// requests pending.
 					cancel()
-					req.errCh <- struct{}{}
 					<-errCh
 				}
 				// TODO: doneCh should only receive once the Request's
 				// prefetches are done. If no prefetches are triggered but the
 				// request has child blocks, `errCh` should instead be assigned
 				// to.
-				req.doneCh <- struct{}{}
 			}()
 		case <-p.shutdownCh:
 			return

@@ -943,7 +943,7 @@ type DiskBlockCache interface {
 		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		triggeredPrefetch, finishedPrefetch bool) error
+		triggeredPrefetch, finishedPrefetch *bool) error
 	// GetMetadata gets metadata for a given block in the disk cache without
 	// changing it.
 	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (
@@ -2237,12 +2237,15 @@ type RekeyFSM interface {
 type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	// RequestWithPrefetch retrieves blocks asynchronously and accepts channels
+	// to notify when child blocks are done prefetching.
+	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		triggeredPrefetch bool,
-		prefetchDoneCh, prefetchErrCh chan<- struct{}) error
+		triggeredPrefetch bool) error
 }
