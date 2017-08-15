@@ -1041,24 +1041,25 @@ function* _exitSearch() {
 
 function* _createNewTeam(action: Constants.CreateNewTeam) {
   const {payload: {conversationIDKey, name}} = action
-  console.warn(conversationIDKey, name)
+  const me = yield select(usernameSelector)
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
     yield call(teamsTeamCreateRpcPromise, {
-      param: {name},
+      param: {name: {parts: [name]}},
     })
     const participants = inbox.get('participants').toArray()
-    console.warn({participants})
     for (const username of participants) {
-      yield call(teamsTeamAddMemberRpcPromise, {
-        param: {
-          email: '',
-          name,
-          role: TeamsTeamRole.writer,
-          sendChatNotification: true,
-          username,
-        },
-      })
+      if (username !== me) {
+        yield call(teamsTeamAddMemberRpcPromise, {
+          param: {
+            email: '',
+            name,
+            role: TeamsTeamRole.writer,
+            sendChatNotification: false,
+            username,
+          },
+        })
+      }
     }
   }
 }

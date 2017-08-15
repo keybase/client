@@ -1,12 +1,15 @@
 // @flow
 import NewTeamDialog from './'
 import {connect} from 'react-redux'
+import {compose, withState, withHandlers} from 'recompose'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
+import {createNewTeam} from '../../../actions/chat/creators'
+import {getSelectedConversation} from '../../../constants/chat'
 
 import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
-import type {BlockConversation, ConversationIDKey} from '../../../constants/chat'
+import type {ConversationIDKey} from '../../../constants/chat'
 
 type NewTeamDialogRouteProps = RouteProps<
   {
@@ -17,38 +20,23 @@ type NewTeamDialogRouteProps = RouteProps<
 >
 type OwnProps = NewTeamDialogRouteProps & {}
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const {conversationIDKey, participants} = routeProps
-  return {
-    conversationIDKey,
-    participants,
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  conversationIDKey: getSelectedConversation(state),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBlock: (conversationIDKey: ConversationIDKey, reportUser: boolean) =>
-    dispatch(
-      ({
-        payload: {blocked: true, conversationIDKey, reportUser},
-        type: 'chat:blockConversation',
-      }: BlockConversation)
-    ),
-  onBack: () => dispatch(navigateUp()),
   navToRootChat: () => dispatch(navigateTo([], [chatTab])),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-  onBlockAndReport: () => {
-    dispatchProps.onBlock(stateProps.conversationIDKey, true)
-    dispatchProps.navToRootChat()
-  },
-  onBlock: () => {
-    dispatchProps.onBlock(stateProps.conversationIDKey, false)
-    dispatchProps.navToRootChat()
+  onBack: () => dispatch(navigateUp()),
+  onCreateTeam: (conversationIDKey: ConversationIDKey, name: string) => {
+    console.warn(conversationIDKey, name)
+    dispatch(createNewTeam(conversationIDKey, name))
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NewTeamDialog)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withState('name', 'onNameChange', props => props.name),
+  withHandlers({
+    onSubmit: ({conversationIDKey, name, onCreateTeam}) => () => onCreateTeam(conversationIDKey, name),
+  })
+)(NewTeamDialog)
