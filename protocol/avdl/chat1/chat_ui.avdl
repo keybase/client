@@ -21,7 +21,7 @@ protocol chatUi {
 
   record InboxUIItem {
     string convID;
-   boolean isEmpty;
+    boolean isEmpty;
     string name;
     string snippet;
     string channel;
