@@ -143,6 +143,9 @@ type gregorHandler struct {
 	conn      *rpc.Connection
 	uri       *rpc.FMPURI
 
+	// connectHappened will be closed after gregor connection established
+	connectHappened chan struct{}
+
 	cli               rpc.GenericClient
 	pingCli           rpc.GenericClient
 	sessionID         gregor1.SessionID
@@ -196,6 +199,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		badger:            nil,
 		broadcastCh:       make(chan gregor1.Message, 10000),
 		forceSessionCheck: false,
+		connectHappened:   make(chan struct{}),
 	}
 	return gh
 }
@@ -243,9 +247,22 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
-		g.chatLog.Debug(context.Background(), "GetClient: shutdown, using errorClient for chat1.RemoteClient")
-		return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+		select {
+		case <-g.connectHappened:
+			if g.IsShutdown() || g.cli == nil {
+				g.chatLog.Debug(context.Background(), "GetClient: connectHappened, but still shutdown, using OfflineClient for chat1.RemoteClient")
+				return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+
+			}
+			g.chatLog.Debug(context.Background(), "GetClient: successfully waited for connection")
+			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
+		case <-time.After(2 * time.Second):
+			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited 2s for connectHappened)")
+			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
+		}
 	}
+
+	g.chatLog.Debug(context.Background(), "GetClient: not shutdown, making new remote client")
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
 }
 
@@ -333,6 +350,14 @@ func (g *gregorHandler) setReachability(r *reachability) {
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
+	defer func() {
+		close(g.connectHappened)
+		g.connectHappened = make(chan struct{})
+	}()
 
 	// Create client interface to gregord; the user needs to be logged in for this
 	// to work
@@ -1334,10 +1359,8 @@ func (g *gregorHandler) pingLoop() {
 	}
 }
 
+// connMutex must be locked before calling this
 func (g *gregorHandler) connectTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-
 	ctx := context.Background()
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")
@@ -1376,10 +1399,8 @@ func (g *gregorHandler) connectTLS() error {
 	return nil
 }
 
+// connMutex must be locked before calling this
 func (g *gregorHandler) connectNoTLS() error {
-	g.connMutex.Lock()
-	defer g.connMutex.Unlock()
-
 	ctx := context.Background()
 	if g.conn != nil {
 		g.chatLog.Debug(ctx, "skipping connect, conn is not nil")

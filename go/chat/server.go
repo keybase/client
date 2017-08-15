@@ -114,12 +114,15 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
 	if h.isOfflineError(err) {
-		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err.Error())
+		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
 
-		// Reconnect Gregor if we think we are online
+		// Reconnect Gregor if we think we are offline
+		h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
 		if _, err := h.serverConn.Reconnect(ctx); err != nil {
-			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err.Error())
+			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err)
+		} else {
+			h.Debug(ctx, "handleOfflineError: success reconnecting")
 		}
 
 		return nil
@@ -133,6 +136,11 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "GetInboxNonblockLocal: result obtained offline")
+		}
+	}()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -365,6 +373,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
 				NewConversationRetry(h.G(), arg.ConversationID, ThreadLoad))
+		}
+	}()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "GetThreadNonblock: result obtained offline")
 		}
 	}()
 	if err := h.assertLoggedIn(ctx); err != nil {
@@ -1880,6 +1893,11 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversationByID(%s)", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "JoinConversationByIDLocal: result obtained offline")
+		}
+	}()
 
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
@@ -1902,6 +1920,11 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversation(%s)",
 		arg.TopicName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "JoinConversationLocal: result obtained offline")
+		}
+	}()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
 		return res, err
@@ -1966,6 +1989,11 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 		&identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("LeaveConversation(%s)", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "LeaveConversationLocal: result obtained offline")
+		}
+	}()
 	uid, err := h.assertLoggedInUID(ctx)
 	if err != nil {
 		return res, err
@@ -1988,6 +2016,11 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversations(%s)",
 		arg.TlfName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
+		}
+	}()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -2017,6 +2050,11 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("SetAppNotificationSettings(%s)",
 		arg.ConvID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "SetAppNotificationSettingsLocal: result obtained offline")
+		}
+	}()
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
