@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -795,8 +796,12 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+	var inbox chat1.UnverifiedInboxUIItems
+	if err := json.Unmarshal([]byte(arg.Inbox), &inbox); err != nil {
+		return err
+	}
 	c.inboxCb <- NonblockInboxResult{
-		InboxRes: &arg.Inbox,
+		InboxRes: &inbox,
 	}
 	return nil
 }
