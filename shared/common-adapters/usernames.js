@@ -84,10 +84,6 @@ function matchesFilter(name: string, filter: string): boolean {
 }
 
 const sortNamesWithFilter = (names: Array<string>, filter: ?string): Array<string> => {
-  if (!filter) {
-    return names
-  }
-
   const matches = names.filter(n => matchesFilter.test(n, filter))
   const nonMatches = names.filter(n => !matchesFilter.test(n, filter))
   return matches.concat(nonMatches)

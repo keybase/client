@@ -22,7 +22,8 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
-  return i.get('participants').toArray().some(n => matchesFilter(n, filter))
+  const names = i.get('participants').toArray()
+  return names.some(n => matchesFilter(n, filter))
 }
 
 const filteredInbox = createImmutableEqualSelector(
