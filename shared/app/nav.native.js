@@ -14,7 +14,7 @@ import {
   NativeStatusBar,
 } from '../common-adapters/index.native'
 import {NavigationActions} from 'react-navigation'
-import CardStackTransitioner from 'react-navigation/src/views/CardStackTransitioner'
+import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import {chatTab, loginTab, profileTab, folderTab, settingsTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'

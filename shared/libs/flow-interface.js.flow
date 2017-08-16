@@ -57,7 +57,7 @@ declare module 'react-native/Libraries/StyleSheet/StyleSheetTypes' {
 declare module 'react-navigation' {
   declare var exports: any
 }
-declare module 'react-navigation/src/views/CardStackTransitioner' {
+declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
   declare var exports: any
 }
 declare module 'react-redux' {
