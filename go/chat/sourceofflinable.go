@@ -73,13 +73,11 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 	return offline
 }
 
+// makeConnectedChan creates a buffered channel for Connected to signal that
+// a connection happened.  The buffer size is 10 just to be extra-safe that
+// a send on the channel won't block during its lifetime (a buffer size of
+// 1 should be all that is required).
 func makeConnectedChan() chan bool {
-	// connectedBuffer is the sourceOfflinable connected channel buffer size.
-	// It is 10 just to be extra-safe that sends to the channel in
-	// Connected will not block in the case of more than one Connect call
-	// happening during the lifetime of the connected channel (which shouldn't
-	// happen).
-	const connectedBuffer = 10
 	return make(chan bool, 10)
 
 }
