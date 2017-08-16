@@ -135,7 +135,6 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		KeyQuery:   e.arg.Query,
 		ExactMatch: e.arg.ExactMatch,
 	}
-
 	key, skb, err := e.G().Keyrings.GetSecretKeyAndSKBWithPrompt(ctx.SecretKeyPromptArg(ska, "key export"))
 	if err != nil {
 		if _, ok := err.(libkb.NoSecretKeyError); ok {
@@ -143,8 +142,8 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 			// the result be empty
 			return nil
 		}
+		return err
 	}
-
 	fp := libkb.GetPGPFingerprintFromGenericKey(key)
 	if fp == nil {
 		return libkb.BadKeyError{Msg: "no fingerprint found"}
@@ -158,19 +157,17 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		return libkb.BadKeyError{Msg: "Expected a PGP key"}
 	}
 
-	var raw []byte
+	raw := skb.RawUnlockedKey()
+	if raw == nil {
+		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
+	}
 
 	if e.encrypted {
-		raw, err = e.encryptKey(ctx, skb)
+		// Make encrypted PGP key bundle using provided passphrase.
+		// Key will be reimported from bytes so we don't mutate SKB.
+		raw, err = e.encryptKey(ctx, raw)
 		if err != nil {
 			return err
-		}
-	} else {
-		// User wanted un-encrypted key. Just pass raw bytes
-		raw = skb.RawUnlockedKey()
-
-		if raw == nil {
-			return libkb.BadKeyError{Msg: "can't get raw representation of key"}
 		}
 	}
 
@@ -200,10 +197,8 @@ func getPGPPassphrase(g *libkb.GlobalContext, ui libkb.SecretUI) (keybase1.GetPa
 	return pRes, nil
 }
 
-func (e *PGPKeyExportEngine) encryptKey(ctx *Context, skb *libkb.SKB) (raw []byte, err error) {
-	// Make encrypted PGP key bundle using provided passphrase.
-	// Reimport key so we don't mutate key entity stored in SKB.
-	entity, _, err := libkb.ReadOneKeyFromBytes(skb.RawUnlockedKey())
+func (e *PGPKeyExportEngine) encryptKey(ctx *Context, raw []byte) ([]byte, error) {
+	entity, _, err := libkb.ReadOneKeyFromBytes(raw)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +221,7 @@ func (e *PGPKeyExportEngine) encryptKey(ctx *Context, skb *libkb.SKB) (raw []byt
 		return nil, err
 	}
 
-	raw = buf.Bytes()
-	return raw, nil
+	return buf.Bytes(), nil
 }
 
 func (e *PGPKeyExportEngine) loadMe() (err error) {
