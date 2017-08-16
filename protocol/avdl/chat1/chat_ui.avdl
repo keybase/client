@@ -98,6 +98,6 @@ protocol chatUi {
   void chatInboxConversation(int sessionID, InboxUIItem conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
-  void chatThreadCached(int sessionID, union { null, UIMessages } thread) oneway;
-  void chatThreadFull(int sessionID, UIMessages thread) oneway;
+  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
+  void chatThreadFull(int sessionID, string thread) oneway;
 }

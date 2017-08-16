@@ -539,32 +539,32 @@ func (o ChatInboxFailedArg) DeepCopy() ChatInboxFailedArg {
 }
 
 type ChatThreadCachedArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Thread    *UIMessages `codec:"thread,omitempty" json:"thread,omitempty"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Thread    *string `codec:"thread,omitempty" json:"thread,omitempty"`
 }
 
 func (o ChatThreadCachedArg) DeepCopy() ChatThreadCachedArg {
 	return ChatThreadCachedArg{
 		SessionID: o.SessionID,
-		Thread: (func(x *UIMessages) *UIMessages {
+		Thread: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
 		})(o.Thread),
 	}
 }
 
 type ChatThreadFullArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Thread    UIMessages `codec:"thread" json:"thread"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Thread    string `codec:"thread" json:"thread"`
 }
 
 func (o ChatThreadFullArg) DeepCopy() ChatThreadFullArg {
 	return ChatThreadFullArg{
 		SessionID: o.SessionID,
-		Thread:    o.Thread.DeepCopy(),
+		Thread:    o.Thread,
 	}
 }
 

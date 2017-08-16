@@ -470,7 +470,7 @@
           "name": "thread",
           "type": [
             null,
-            "UIMessages"
+            "string"
           ]
         }
       ],
@@ -485,7 +485,7 @@
         },
         {
           "name": "thread",
-          "type": "UIMessages"
+          "type": "string"
         }
       ],
       "response": null,

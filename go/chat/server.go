@@ -479,16 +479,27 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			return
 		default:
 		}
-		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
-		var pthread *chat1.UIMessages
+		start := time.Now()
+		var pthread *string
 		if resThread != nil {
+			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
+			var jsonPt []byte
+			var err error
 			pt := h.presentThreadView(*resThread)
-			pthread = &pt
+			if jsonPt, err = json.Marshal(pt); err != nil {
+				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
+				return
+			}
+			sJSONPt := string(jsonPt)
+			pthread = &sJSONPt
+		} else {
+			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
 		}
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    pthread,
 		})
+		h.Debug(ctx, "GetThreadNonblock: cached thread sent: %v", time.Now().Sub(start))
 	}()
 
 	wg.Add(1)
@@ -507,13 +518,21 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
 		// Acquire lock and send up actual response
+		start := time.Now()
+		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		h.Debug(ctx, "GetThreadNonblock: full thread sent")
+		uires := h.presentThreadView(remoteThread)
+		var jsonUIRes []byte
+		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
+			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
+			return
+		}
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
-			Thread:    h.presentThreadView(remoteThread),
+			Thread:    string(jsonUIRes),
 		})
+		h.Debug(ctx, "GetThreadNonblock: full thread sent: %v", time.Now().Sub(start))
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()
