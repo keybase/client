@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   const showTeamOffer =
     inbox &&
     inbox.info &&
-    inbox.membersType !== CommonConversationMembersType.team &&
+    inbox.info.membersType !== CommonConversationMembersType.team &&
     inbox.get('participants').size > 2
 
   return {
