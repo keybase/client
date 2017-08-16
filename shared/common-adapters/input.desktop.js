@@ -123,6 +123,7 @@ class Input extends Component<void, Props, State> {
 
   _onFocus = () => {
     this.setState({focused: true})
+    this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {

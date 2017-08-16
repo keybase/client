@@ -17,6 +17,7 @@ export type Props = {
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
+  onFocus?: () => void,
   onKeyDown?: (event: Object) => void,
   rowsMax?: number,
   maxLength?: number,

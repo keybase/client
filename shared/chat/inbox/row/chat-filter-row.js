@@ -63,6 +63,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
           value={this.props.filter}
           hintText="Jump to..."
           onChangeText={this.props.onSetFilter}
+          onFocus={this._startEditing}
           onBlur={this._stopEditing}
         />,
       ]
