@@ -45,12 +45,21 @@ protocol chatUi {
 
   record UIMessageValid {
     MessageID messageID;
+    MessageType messageType;
     gregor1.Time ctime;
-    union { null, OutboxID } outboxID;
+    union { null, string } outboxID;
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+  }
+
+  record UIMessageOutbox {
+    OutboxState state;
+    string outboxID;
+    MessageType messageType;
+    string body;
+    gregor1.Time ctime;
   }
 
   enum MessageUnboxedState {
@@ -63,7 +72,7 @@ protocol chatUi {
   variant UIMessage switch (MessageUnboxedState state) {
     case VALID: UIMessageValid;
     case ERROR: MessageUnboxedError;
-    case OUTBOX: OutboxRecord;
+    case OUTBOX: UIMessageOutbox;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
   }
 

@@ -147,8 +147,9 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 
 type UIMessageValid struct {
 	MessageID        MessageID    `codec:"messageID" json:"messageID"`
+	MessageType      MessageType  `codec:"messageType" json:"messageType"`
 	Ctime            gregor1.Time `codec:"ctime" json:"ctime"`
-	OutboxID         *OutboxID    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxID         *string      `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	MessageBody      MessageBody  `codec:"messageBody" json:"messageBody"`
 	SenderUsername   string       `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string       `codec:"senderDeviceName" json:"senderDeviceName"`
@@ -157,19 +158,38 @@ type UIMessageValid struct {
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
 	return UIMessageValid{
-		MessageID: o.MessageID.DeepCopy(),
-		Ctime:     o.Ctime.DeepCopy(),
-		OutboxID: (func(x *OutboxID) *OutboxID {
+		MessageID:   o.MessageID.DeepCopy(),
+		MessageType: o.MessageType.DeepCopy(),
+		Ctime:       o.Ctime.DeepCopy(),
+		OutboxID: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
 		})(o.OutboxID),
 		MessageBody:      o.MessageBody.DeepCopy(),
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
+	}
+}
+
+type UIMessageOutbox struct {
+	State       OutboxState  `codec:"state" json:"state"`
+	OutboxID    string       `codec:"outboxID" json:"outboxID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	Body        string       `codec:"body" json:"body"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
+}
+
+func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
+	return UIMessageOutbox{
+		State:       o.State.DeepCopy(),
+		OutboxID:    o.OutboxID,
+		MessageType: o.MessageType.DeepCopy(),
+		Body:        o.Body,
+		Ctime:       o.Ctime.DeepCopy(),
 	}
 }
 
@@ -209,7 +229,7 @@ type UIMessage struct {
 	State__       MessageUnboxedState        `codec:"state" json:"state"`
 	Valid__       *UIMessageValid            `codec:"valid,omitempty" json:"valid,omitempty"`
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
-	Outbox__      *OutboxRecord              `codec:"outbox,omitempty" json:"outbox,omitempty"`
+	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
 }
 
@@ -259,7 +279,7 @@ func (o UIMessage) Error() (res MessageUnboxedError) {
 	return *o.Error__
 }
 
-func (o UIMessage) Outbox() (res OutboxRecord) {
+func (o UIMessage) Outbox() (res UIMessageOutbox) {
 	if o.State__ != MessageUnboxedState_OUTBOX {
 		panic("wrong case accessed")
 	}
@@ -293,7 +313,7 @@ func NewUIMessageWithError(v MessageUnboxedError) UIMessage {
 	}
 }
 
-func NewUIMessageWithOutbox(v OutboxRecord) UIMessage {
+func NewUIMessageWithOutbox(v UIMessageOutbox) UIMessage {
 	return UIMessage{
 		State__:  MessageUnboxedState_OUTBOX,
 		Outbox__: &v,
@@ -324,7 +344,7 @@ func (o UIMessage) DeepCopy() UIMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Error__),
-		Outbox__: (func(x *OutboxRecord) *OutboxRecord {
+		Outbox__: (func(x *UIMessageOutbox) *UIMessageOutbox {
 			if x == nil {
 				return nil
 			}

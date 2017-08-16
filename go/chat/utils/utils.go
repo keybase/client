@@ -593,6 +593,57 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	return res
 }
 
+func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
+	state, err := rawMsg.State()
+	if err != nil {
+		res = chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
+			ErrType:   chat1.MessageUnboxedErrorType_MISC,
+			ErrMsg:    err.Error(),
+			MessageID: rawMsg.GetMessageID(),
+		})
+		return res
+	}
+	switch state {
+	case chat1.MessageUnboxedState_VALID:
+		var strOutboxID *string
+		if rawMsg.Valid().ClientHeader.OutboxID != nil {
+			so := rawMsg.Valid().ClientHeader.OutboxID.String()
+			strOutboxID = &so
+		}
+		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
+			MessageID:        rawMsg.GetMessageID(),
+			MessageType:      rawMsg.GetMessageType(),
+			Ctime:            rawMsg.Valid().ServerHeader.Ctime,
+			OutboxID:         strOutboxID,
+			MessageBody:      rawMsg.Valid().MessageBody,
+			SenderUsername:   rawMsg.Valid().SenderUsername,
+			SenderDeviceName: rawMsg.Valid().SenderDeviceName,
+			SenderDeviceType: rawMsg.Valid().SenderDeviceType,
+		})
+	case chat1.MessageUnboxedState_OUTBOX:
+		var body string
+		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
+		switch typ {
+		case chat1.MessageType_TEXT:
+			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+		case chat1.MessageType_EDIT:
+			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
+		}
+		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
+			State:       rawMsg.Outbox().State,
+			OutboxID:    rawMsg.Outbox().OutboxID.String(),
+			MessageType: typ,
+			Body:        body,
+			Ctime:       rawMsg.Outbox().Ctime,
+		})
+	case chat1.MessageUnboxedState_ERROR:
+		res = chat1.NewUIMessageWithError(rawMsg.Error())
+	case chat1.MessageUnboxedState_PLACEHOLDER:
+		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
+	}
+	return res
+}
+
 type ConvLocalByConvID []chat1.ConversationLocal
 
 func (c ConvLocalByConvID) Len() int      { return len(c) }

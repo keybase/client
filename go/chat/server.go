@@ -395,6 +395,14 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
+func (h *Server) presentThreadView(tv chat1.ThreadView) (res chat1.UIMessages) {
+	res.Pagination = tv.Pagination
+	for _, msg := range tv.Messages {
+		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
+	}
+	return res
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -472,9 +480,14 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		default:
 		}
 		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
+		var pthread *chat1.UIMessages
+		if resThread != nil {
+			pt := h.presentThreadView(*resThread)
+			pthread = &pt
+		}
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
-			Thread:    resThread,
+			Thread:    pthread,
 		})
 	}()
 
@@ -499,7 +512,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		h.Debug(ctx, "GetThreadNonblock: full thread sent")
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
-			Thread:    remoteThread,
+			Thread:    h.presentThreadView(remoteThread),
 		})
 
 		// This means we transmitted with success, so cancel local thread

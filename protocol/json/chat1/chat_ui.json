@@ -165,13 +165,17 @@
           "name": "messageID"
         },
         {
+          "type": "MessageType",
+          "name": "messageType"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
         {
           "type": [
             null,
-            "OutboxID"
+            "string"
           ],
           "name": "outboxID"
         },
@@ -190,6 +194,32 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageOutbox",
+      "fields": [
+        {
+          "type": "OutboxState",
+          "name": "state"
+        },
+        {
+          "type": "string",
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        },
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
         }
       ]
     },
@@ -230,7 +260,7 @@
             "name": "OUTBOX",
             "def": false
           },
-          "body": "OutboxRecord"
+          "body": "UIMessageOutbox"
         },
         {
           "label": {

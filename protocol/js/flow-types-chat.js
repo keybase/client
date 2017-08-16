@@ -1265,7 +1265,7 @@ export type InboxViewFull = {
 }
 
 export type IncomingMessage = {
-  message: MessageUnboxed,
+  message: UIMessage,
   convID: ConversationID,
   displayDesktopNotification: boolean,
   conv?: ?InboxUIItem,
@@ -1841,13 +1841,22 @@ export type TyperInfo = {
 export type UIMessage =
     { state: 1, valid: ?UIMessageValid }
   | { state: 2, error: ?MessageUnboxedError }
-  | { state: 3, outbox: ?OutboxRecord }
+  | { state: 3, outbox: ?UIMessageOutbox }
   | { state: 4, placeholder: ?MessageUnboxedPlaceholder }
+
+export type UIMessageOutbox = {
+  state: OutboxState,
+  outboxID: string,
+  messageType: MessageType,
+  body: string,
+  ctime: gregor1.Time,
+}
 
 export type UIMessageValid = {
   messageID: MessageID,
+  messageType: MessageType,
   ctime: gregor1.Time,
-  outboxID?: ?OutboxID,
+  outboxID?: ?string,
   messageBody: MessageBody,
   senderUsername: string,
   senderDeviceName: string,

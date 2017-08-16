@@ -16,7 +16,7 @@ protocol NotifyChat {
   }
 
   record IncomingMessage {
-    MessageUnboxed message;
+    UIMessage message;
     ConversationID convID;
     boolean displayDesktopNotification;
     union { null, InboxUIItem } conv;
