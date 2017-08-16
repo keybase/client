@@ -33,6 +33,13 @@
           "name": "membersType"
         },
         {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
           "type": "gregor1.Time",
           "name": "time"
         }
@@ -104,6 +111,13 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
         },
         {
           "type": "gregor1.Time",

@@ -10,6 +10,7 @@ protocol chatUi {
     TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
   }
 
@@ -29,6 +30,7 @@ protocol chatUi {
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;
+    union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
 
     // Finalized convo stuff
