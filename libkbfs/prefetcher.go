@@ -112,10 +112,6 @@ func (p *blockPrefetcher) run() {
 					cancel()
 					<-errCh
 				}
-				// TODO: doneCh should only receive once the Request's
-				// prefetches are done. If no prefetches are triggered but the
-				// request has child blocks, `errCh` should instead be assigned
-				// to.
 			}()
 		case <-p.shutdownCh:
 			return

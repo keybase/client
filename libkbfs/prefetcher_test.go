@@ -125,8 +125,9 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	continueChIndBlock1 <- nil
 	continueChIndBlock2 <- nil
 
-	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
+	t.Log("Wait for the prefetch to finish.")
 	<-prefetchErrCh
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(
@@ -137,7 +138,6 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	testPrefetcherCheckGet(
 		t, config.BlockCache(), ptrs[1].BlockPointer, indBlock2, false,
 		TransientEntry)
-	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
@@ -179,6 +179,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 
 	t.Log("Wait for the prefetch to finish.")
 	<-prefetchErrCh
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(
@@ -189,7 +190,6 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	testPrefetcherCheckGet(
 		t, config.BlockCache(), ptrs[1].BlockPointer, indBlock2, false,
 		TransientEntry)
-	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
@@ -238,6 +238,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	continueChFileA <- context.Canceled
 	t.Log("Wait for the prefetch to finish.")
 	<-prefetchErrCh
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
 	testPrefetcherCheckGet(
@@ -257,7 +258,6 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	block, err = config.BlockCache().Get(dirB.Children["d"].BlockPointer)
 	require.EqualError(t, err,
 		NoSuchBlockError{dirB.Children["d"].BlockPointer.ID}.Error())
-	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherAlreadyCached(t *testing.T) {
@@ -325,8 +325,12 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 
 	t.Log("Release the prefetch for fileB.")
 	continueChFileB <- nil
-	t.Log("Wait for the prefetch to finish.")
+	t.Log("Wait for the prefetch to finish. This time, the prefetchErrCh " +
+		" returns immediately, so we need to shutdown the prefetcher to find " +
+		" out when we're done.")
 	<-prefetchErrCh
+	<-q.Prefetcher().Shutdown()
+	q.TogglePrefetcher(context.Background(), true)
 
 	testPrefetcherCheckGet(
 		t, cache, dirA.Children["b"].BlockPointer, fileB, false,
