@@ -45,7 +45,6 @@ type MessageKeyKind =
   | 'messageIDError'
   | 'messageIDText'
   | 'messageIDUnhandled'
-  | 'offerTeamCreation'
   | 'outboxIDAttachment'
   | 'outboxIDText'
   | 'tempAttachment'
@@ -1056,8 +1055,6 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
       return 'timestamp'
     case 'supersedes':
       return 'supersedes'
-    case 'offerTeamCreation':
-      return 'offerTeamCreation'
   }
   throw new Error(`Invalid messageKeyKind passed key: ${key}`)
 }

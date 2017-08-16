@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import Attachment from './attachment/container'
-import CreateTeamNotice from '../notices/create-team-notice/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
@@ -57,8 +56,6 @@ const factory = (
           prevMessageKey={prevMessageKey}
         />
       )
-    case 'offerTeamCreation':
-      return <CreateTeamNotice />
     case 'supersedes':
       return <ProfileResetNotice />
     case 'timestamp':

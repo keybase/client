@@ -446,13 +446,6 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
   return `unknown error type ${typ}`
 }
 
-function _offerTeamCreationMessage(conversationIDKey: Constants.ConversationIDKey): Constants.Message {
-  return {
-    key: Constants.messageKey(conversationIDKey, 'offerTeamCreation', 0),
-    type: 'Unhandled',
-  }
-}
-
 function _unboxedToMessage(
   message: ChatTypes.MessageUnboxed,
   yourName,
