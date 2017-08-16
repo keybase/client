@@ -8,9 +8,27 @@ class FollowButton extends Component<void, Props, void> {
     const {following, onFollow, onUnfollow, style, waiting, ...otherProps} = this.props
 
     if (following) {
-      return <Button type="Following" label="Following" onClick={onUnfollow} style={style} disabled={waiting} {...otherProps} />
+      return (
+        <Button
+          type="Following"
+          label="Following"
+          onClick={onUnfollow}
+          style={style}
+          disabled={waiting}
+          {...otherProps}
+        />
+      )
     } else {
-      return <Button type="Follow" label="Follow" onClick={onFollow} style={style} disabled={waiting} {...otherProps} />
+      return (
+        <Button
+          type="Follow"
+          label="Follow"
+          onClick={onFollow}
+          style={style}
+          disabled={waiting}
+          {...otherProps}
+        />
+      )
     }
   }
 }
