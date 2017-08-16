@@ -213,7 +213,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		uires, err := h.presentUnverifiedInbox(ctx, chat1.GetInboxLocalRes{
 			ConversationsUnverified: lres.InboxRes.ConvsUnverified,
 			Pagination:              lres.InboxRes.Pagination,
-			Offline:                 h.G().InboxSource.IsOffline(),
+			Offline:                 h.G().InboxSource.IsOffline(ctx),
 		})
 		if err != nil {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
