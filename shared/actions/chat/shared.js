@@ -49,6 +49,16 @@ function messageOutboxIDSelector(
     .find(m => m.outboxID === outboxID)
 }
 
+function pendingMessageOutboxIDSelector(
+  state: TypedState,
+  conversationIDKey: Constants.ConversationIDKey,
+  outboxID: Constants.OutboxIDKey
+) {
+  return conversationStateSelector(state, conversationIDKey)
+    .get('messages')
+    .find(m => m.outboxID === outboxID && m.state === 'pending')
+}
+
 function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
@@ -157,6 +167,7 @@ export {
   messageOutboxIDSelector,
   messageSelector,
   metaDataSelector,
+  pendingMessageOutboxIDSelector,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,
