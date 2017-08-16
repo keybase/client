@@ -1483,7 +1483,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1507,8 +1507,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, genOutboxID, *unboxed.Valid().OutboxID, "mismatch outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1530,7 +1530,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1551,7 +1551,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")

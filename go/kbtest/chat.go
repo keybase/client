@@ -450,6 +450,19 @@ func (m *ChatRemoteMock) promoteWriter(ctx context.Context, sender gregor1.UID, 
 	return res
 }
 
+func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBody {
+	return chat1.MessageBody{
+		MessageType__:        typ,
+		Text__:               &chat1.MessageText{},
+		Edit__:               &chat1.MessageEdit{},
+		Attachment__:         &chat1.MessageAttachment{},
+		Delete__:             &chat1.MessageDelete{},
+		Attachmentuploaded__: &chat1.MessageAttachmentUploaded{},
+		Join__:               &chat1.MessageJoin{},
+		Leave__:              &chat1.MessageLeave{},
+	}
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -475,6 +488,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 			Message: utils.PresentMessageUnboxed(chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 				ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 				ServerHeader: *inserted.ServerHeader,
+				MessageBody:  m.createBogusBody(inserted.GetMessageType()),
 			})),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
