@@ -34,6 +34,7 @@ import (
 
 const GregorRequestTimeout time.Duration = 30 * time.Second
 const GregorConnectionRetryInterval time.Duration = 2 * time.Second
+const GregorGetClientTimeout time.Duration = 4 * time.Second
 
 type IdentifyUIHandler struct {
 	libkb.Contextified
@@ -256,8 +257,8 @@ func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 			}
 			g.chatLog.Debug(context.Background(), "GetClient: successfully waited for connection")
 			return chat1.RemoteClient{Cli: chat.NewRemoteClient(g.G(), g.cli)}
-		case <-time.After(2 * time.Second):
-			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited 2s for connectHappened)")
+		case <-time.After(GregorGetClientTimeout):
+			g.chatLog.Debug(context.Background(), "GetClient: shutdown, using OfflineClient for chat1.RemoteClient (waited %s for connectHappened)", GregorGetClientTimeout)
 			return chat1.RemoteClient{Cli: chat.OfflineClient{}}
 		}
 	}
