@@ -394,6 +394,10 @@
           "type": "boolean"
         },
         {
+          "name": "exportEncrypted",
+          "type": "boolean"
+        },
+        {
           "name": "pushSecret",
           "type": "boolean"
         }

@@ -334,24 +334,26 @@ func (o PGPExportByKIDArg) DeepCopy() PGPExportByKIDArg {
 }
 
 type PGPKeyGenArg struct {
-	SessionID   int           `codec:"sessionID" json:"sessionID"`
-	PrimaryBits int           `codec:"primaryBits" json:"primaryBits"`
-	SubkeyBits  int           `codec:"subkeyBits" json:"subkeyBits"`
-	CreateUids  PGPCreateUids `codec:"createUids" json:"createUids"`
-	AllowMulti  bool          `codec:"allowMulti" json:"allowMulti"`
-	DoExport    bool          `codec:"doExport" json:"doExport"`
-	PushSecret  bool          `codec:"pushSecret" json:"pushSecret"`
+	SessionID       int           `codec:"sessionID" json:"sessionID"`
+	PrimaryBits     int           `codec:"primaryBits" json:"primaryBits"`
+	SubkeyBits      int           `codec:"subkeyBits" json:"subkeyBits"`
+	CreateUids      PGPCreateUids `codec:"createUids" json:"createUids"`
+	AllowMulti      bool          `codec:"allowMulti" json:"allowMulti"`
+	DoExport        bool          `codec:"doExport" json:"doExport"`
+	ExportEncrypted bool          `codec:"exportEncrypted" json:"exportEncrypted"`
+	PushSecret      bool          `codec:"pushSecret" json:"pushSecret"`
 }
 
 func (o PGPKeyGenArg) DeepCopy() PGPKeyGenArg {
 	return PGPKeyGenArg{
-		SessionID:   o.SessionID,
-		PrimaryBits: o.PrimaryBits,
-		SubkeyBits:  o.SubkeyBits,
-		CreateUids:  o.CreateUids.DeepCopy(),
-		AllowMulti:  o.AllowMulti,
-		DoExport:    o.DoExport,
-		PushSecret:  o.PushSecret,
+		SessionID:       o.SessionID,
+		PrimaryBits:     o.PrimaryBits,
+		SubkeyBits:      o.SubkeyBits,
+		CreateUids:      o.CreateUids.DeepCopy(),
+		AllowMulti:      o.AllowMulti,
+		DoExport:        o.DoExport,
+		ExportEncrypted: o.ExportEncrypted,
+		PushSecret:      o.PushSecret,
 	}
 }
 

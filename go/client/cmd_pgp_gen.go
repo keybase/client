@@ -30,6 +30,7 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 		g := libkb.PGPGenArg{}
 		g.PGPUids = ctx.StringSlice("pgp-uid")
 		v.arg.DoExport = !ctx.Bool("no-export")
+		v.arg.ExportEncrypted = !ctx.Bool("unencrypted")
 		v.arg.AllowMulti = ctx.Bool("multi")
 		if ctx.Bool("debug") {
 			g.PrimaryBits = SmallKey
@@ -169,6 +170,10 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "no-export",
 				Usage: "Disable exporting of new keys to GPG keychain.",
 			},
+			cli.BoolFlag{
+				Name:  "unencrypted",
+				Usage: "When exporting to GPG keychain, do not encrypt key.",
+			},
 		},
 		Description: `"keybase pgp gen" generates a new PGP key for this account.
    In all cases, it signs the public key with an exising device key,
@@ -180,11 +185,10 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
    (LKS) protocol. (For more information, try 'keybase help keyring').
 
    Also, by default, the public **and secret** halves of the new PGP key
-   are exported to the local GnuPG keyring, if one is found. The key
-   will not have a passphrase protecting it. If having a passphrase
-   on this key is important to you, run 'gpg edit-key' to supply one.
-   You can specify "--no-export" to stop the export of the newly generated
-   key to the GnuPG keyring.
+   are exported to the local GnuPG keyring, if one is found. Unless
+   "--unencrypted" argument is provided, you will be asked to provide a
+   passphrase to encrypt key in GnuPG keyring. You can specify "--no-export"
+   to stop the export of the newly generated key to the GnuPG keyring.
 
    On subsequent secret key accesses --- say for PGP decryption or
    for signing --- access to the local GnuPG keyring is not required.

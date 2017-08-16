@@ -6383,6 +6383,7 @@ export type pgpPgpKeyGenRpcParam = Exact<{
   createUids: PGPCreateUids,
   allowMulti: boolean,
   doExport: boolean,
+  exportEncrypted: boolean,
   pushSecret: boolean
 }>
 

@@ -202,6 +202,12 @@ func TestPGPExportEncryption(t *testing.T) {
 		t.Fatal("Key is not encrypted")
 	}
 
+	for _, subkey := range entity.Subkeys {
+		if !subkey.PrivateKey.Encrypted {
+			t.Fatal("Subkey is not encrypted")
+		}
+	}
+
 	if err := entity.PrivateKey.Decrypt([]byte(pgpPassphrase)); err != nil {
 		t.Fatal("Decryption with passphrase failed")
 	}
@@ -232,5 +238,11 @@ func TestPGPExportEncryption(t *testing.T) {
 
 	if entity.PrivateKey.Encrypted {
 		t.Fatal("Key is encrypted")
+	}
+
+	for _, subkey := range entity.Subkeys {
+		if subkey.PrivateKey.Encrypted {
+			t.Fatal("Subkey is encrypted")
+		}
 	}
 }
