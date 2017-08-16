@@ -1,6 +1,7 @@
 // @flow
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import isEqualWith from 'lodash/isEqualWith'
+import * as I from 'immutable'
 
 import type {TypedState} from './reducer'
 import type {SearchQuery} from './search'
@@ -48,6 +49,8 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) 
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
+const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+
 export {
   amIBeingFollowed,
   amIFollowing,
@@ -57,6 +60,7 @@ export {
   chatSearchResultTerm,
   chatSearchResultArray,
   createShallowEqualSelector,
+  createImmutableEqualSelector,
   inboxSearchSelector,
   loggedInSelector,
   previousConversationSelector,

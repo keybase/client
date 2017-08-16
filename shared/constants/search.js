@@ -1,6 +1,7 @@
 // @flow
-import {List} from 'immutable'
+import {List, OrderedSet} from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
+import {createSelector} from 'reselect'
 
 import type {NoErrorTypedAction} from '../constants/types/flux'
 import type {IconType} from '../common-adapters/icon'
@@ -64,19 +65,73 @@ export type SearchResult = {|
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<
   'search:search',
-  {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
+  {
+    term: string,
+    service: Service,
+    pendingActionTypeToFire: TypeToFire,
+    finishedActionTypeToFire: TypeToFire,
+    searchKey: string,
+  }
 >
 
-export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
+export type AddResultsToUserInput = NoErrorTypedAction<
+  'search:addResultsToUserInput',
+  {
+    searchKey: string,
+    searchResults: Array<SearchResultId>,
+  }
+>
+
+export type RemoveResultsToUserInput = NoErrorTypedAction<
+  'search:removeResultsToUserInput',
+  {
+    searchKey: string,
+    searchResults: Array<SearchResultId>,
+  }
+>
+
+export type SetUserInputItems = NoErrorTypedAction<
+  'search:setUserInputItems',
+  {searchKey: string, searchResults: Array<SearchResultId>}
+>
+
+export type UserInputItemsUpdated = NoErrorTypedAction<
+  'search:userInputItemsUpdated',
+  {searchKey: string, userInputItemIds: Array<SearchResultId>}
+>
+
+export type AddClickedFromUserInput = NoErrorTypedAction<
+  'search:addClickedFromUserInput',
+  {
+    searchKey: string,
+  }
+>
+
+export type ClearSearchResults = NoErrorTypedAction<
+  'search:clearSearchResults',
+  {
+    searchKey: string,
+  }
+>
+
+export type UpdateSelectedSearchResult = NoErrorTypedAction<
+  'search:updateSelectedSearchResult',
+  {
+    searchKey: string,
+    id: ?SearchResultId,
+  }
+>
+
+export type SearchSuggestions = NoErrorTypedAction<
   'search:searchSuggestions',
-  {actionTypeToFire: TypeToFire, maxUsers: number}
+  {maxUsers: number, searchKey: string}
 >
 
 export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
 
-export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
-  TypeToFire,
-  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service}
+export type FinishedSearch = NoErrorTypedAction<
+  'search:finishedSearch',
+  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service, searchKey: string}
 >
 
 // Generic so others can make their own version
@@ -176,6 +231,33 @@ function platformToLogo16(service: Service): IconType {
   }[service]
 }
 
+// TODO delete these unused helpers
+const isAddResultsToUserInputWithSearchKey = (searchKey: string) => (action: any) =>
+  action.type === 'search:addResultsToUserInput' && action.payload && action.payload.searchKey === searchKey
+
+const isRemoveResultsToUserInputWithSearchKey = (searchKey: string) => (action: any) =>
+  action.type === 'search:removeResultsToUserInput' &&
+  action.payload &&
+  action.payload.searchKey === searchKey
+
+const isSetUserInputItemsWithSearchKey = (searchKey: string) => (action: any) =>
+  action.type === 'search:setUserInputItems' && action.payload && action.payload.searchKey === searchKey
+
+const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
+  action.type === 'search:userInputItemsUpdated' && action.payload && action.payload.searchKey === searchKey
+
+const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['searchKeyToResults', searchKey])
+
+const getSearchResultIdsArray = createSelector(_getSearchResultIds, ids => ids && ids.toArray())
+
+const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['searchKeyToUserInputItemIds', searchKey], OrderedSet())
+const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
+
+const getClearSearchInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['searchKeyToClearSearchInput', searchKey], 0)
+
 export {
   serviceIdToService,
   followStateHelper,
@@ -184,4 +266,12 @@ export {
   platformToLogo32,
   platformToLogo24,
   platformToLogo16,
+  getClearSearchInput,
+  getSearchResultIdsArray,
+  getUserInputItemIds,
+  getUserInputItemIdsOrderedSet,
+  isAddResultsToUserInputWithSearchKey,
+  isRemoveResultsToUserInputWithSearchKey,
+  isSetUserInputItemsWithSearchKey,
+  isUserInputItemsUpdated,
 }

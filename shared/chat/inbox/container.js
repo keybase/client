@@ -1,9 +1,10 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
-import {createSelectorCreator, defaultMemoize} from 'reselect'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
 import throttle from 'lodash/throttle'
@@ -14,26 +15,17 @@ const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
-const passesFilter = (i: Constants.InboxState, filter: I.List<string>): boolean => {
-  if (filter.isEmpty()) {
-    return true
-  }
-
-  return filter.isSubset(i.get('participants'))
-}
-
 const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow, getFilter],
-  (inbox, supersededByState, alwaysShow, filter) => {
+  [getInbox, getSupersededByState, getAlwaysShow],
+  (inbox, supersededByState, alwaysShow) => {
     const ids = []
     // Building a list using forEach for performance reason, only call i.conversationIDKey once
     inbox.forEach(i => {
       const id = i.conversationIDKey
-      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
+      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id)) {
         ids.push(id)
       }
     })

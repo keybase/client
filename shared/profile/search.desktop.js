@@ -1,69 +1,27 @@
 // @flow
 import React from 'react'
-import ServiceFilter from '../search/services-filter'
-import ResultsList from '../search/results-list'
-import UserInput from '../search/user-input'
+import SearchResultsList from '../search/results-list/container'
+import UserInput from '../search/user-input/container.js'
 import {Box, Icon, ProgressIndicator, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './search'
 
-const Search = (props: Props) => (
+const Search = (props: Props) =>
   <Box style={styleCatcher} onClick={props.onClose}>
     <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
           <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
-            <UserInput
-              ref={props.setInputRef}
-              autoFocus={true}
-              onChangeText={props.onChangeText}
-              onClickAddButton={props.onClickAddButton}
-              onAddSelectedUser={props.onAddSelectedUser}
-              onMoveSelectUp={props.onMoveSelectUp}
-              onMoveSelectDown={props.onMoveSelectDown}
-              onRemoveUser={props.onRemoveUser}
-              placeholder={props.placeholder}
-              userItems={props.userItems}
-              usernameText={props.searchText}
-              onCancel={props.onClose}
-            />
-          </Box>
-          <Box style={{marginTop: globalMargins.small}}>
-            <Icon style={styleSearchIcon} type="iconfont-close" onClick={props.onClose} />
+            <UserInput searchKey="profileSearch" onExitSearch={props.onClose} />
           </Box>
         </Box>
       </Box>
-      {props.showServiceFilter &&
-        <Box style={styleServiceRow}>
-          <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-          <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-        </Box>}
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
-        {props.showSearchPending
-          ? <Box style={styleSpinner}>
-              <ProgressIndicator style={{width: globalMargins.large}} />
-            </Box>
-          : <ResultsList
-              items={props.searchResultIds}
-              onClick={props.onClick}
-              onMouseOver={props.onMouseOverSearchResult}
-              selectedId={props.selectedSearchId}
-              showSearchSuggestions={props.showSearchSuggestions}
-            />}
+        <SearchResultsList searchKey="profileSearch" />
       </Box>
     </Box>
   </Box>
-)
-
-const styleCatcher = {
-  ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.transparent,
-  height: '100%',
-  position: 'absolute',
-  width: '100%',
-  zIndex: 20,
-}
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
@@ -75,6 +33,15 @@ const styleSearchContainer = {
   minWidth: 400,
   position: 'absolute',
   top: 10,
+  zIndex: 20,
+}
+
+const styleCatcher = {
+  ...globalStyles.flexBoxCenter,
+  backgroundColor: globalColors.transparent,
+  height: '100%',
+  position: 'absolute',
+  width: '100%',
   zIndex: 20,
 }
 

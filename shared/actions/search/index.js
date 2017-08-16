@@ -1,4 +1,5 @@
 // @flow
+import _ from 'lodash'
 import * as Constants from '../../constants/search'
 import * as Creators from './creators'
 import * as EntityAction from '../entities'
@@ -8,12 +9,14 @@ import {
 } from '../../constants/types/flow-types'
 import trim from 'lodash/trim'
 import keyBy from 'lodash/keyBy'
-import {call, put, select} from 'redux-saga/effects'
+import {call, all, put, select} from 'redux-saga/effects'
 import * as Selectors from '../../constants/selectors'
 import * as Saga from '../../util/saga'
 import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
+import {OrderedSet, List, Map} from 'immutable'
+import {searchResultMapSelector} from '../../constants/selectors'
 
 import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -168,17 +171,16 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-function* search<T>({
-  payload: {term, service, pendingActionTypeToFire, finishedActionTypeToFire},
-}: Constants.Search<T>) {
+function* search<T>({payload: {term, service, finishedActionTypeToFire, searchKey}}: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
-    yield put(Creators.finishedSearch(finishedActionTypeToFire, cachedResults, term, service))
+    yield put(Creators.finishedSearch(searchKey, cachedResults, term, service))
+    yield put(EntityAction.replaceEntity(['searchKeyToResults'], {[searchKey]: cachedResults}))
     return
   }
 
-  yield put(Creators.pendingSearch(pendingActionTypeToFire, true))
+  yield put(EntityAction.replaceEntity(['searchKeyToPending'], {[searchKey]: true}))
 
   try {
     yield call(onIdlePromise, 1e3)
@@ -201,15 +203,19 @@ function* search<T>({
 
     const ids = rows.map(r => r.id)
     yield put(EntityAction.mergeEntity(['searchQueryToResult'], {[searchQuery]: ids}))
-    yield put(Creators.finishedSearch(finishedActionTypeToFire, ids, term, service))
+    yield put(Creators.finishedSearch(searchKey, ids, term, service))
+    yield all([
+      put(EntityAction.replaceEntity(['searchKeyToResults'], {[searchKey]: ids})),
+      put(EntityAction.replaceEntity(['searchKeyToShowSearchSuggestion'], {[searchKey]: true})),
+    ])
   } catch (error) {
     console.warn('error in searching', error)
   } finally {
-    yield put(Creators.pendingSearch(pendingActionTypeToFire, false))
+    yield put(EntityAction.replaceEntity(['searchKeyToPending'], {[searchKey]: false}))
   }
 }
 
-function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constants.SearchSuggestions<T>) {
+function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSuggestions) {
   let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
@@ -223,12 +229,85 @@ function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constant
   const ids = rows.map(r => r.id)
 
   yield put(EntityAction.mergeEntity(['searchResults'], keyBy(rows, 'id')))
-  yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase', true))
+  yield all([
+    put(EntityAction.replaceEntity(['searchKeyToResults'], {[searchKey]: ids})),
+    put(EntityAction.replaceEntity(['searchKeyToShowSearchSuggestion'], {[searchKey]: true})),
+  ])
+  yield put(Creators.finishedSearch(searchKey, ids, '', 'Keybase', true))
+}
+
+function* updateSelectedSearchResult({payload: {searchKey, id}}: Constants.UpdateSelectedSearchResult) {
+  yield put(EntityAction.replaceEntity(['searchKeyToSelectedId'], {[searchKey]: id}))
+}
+
+function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants.AddResultsToUserInput) {
+  const searchResultMap = yield select(searchResultMapSelector)
+  const maybeUpgradedUsers = searchResults.map(u =>
+    Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
+  )
+  yield put.resolve(
+    EntityAction.mergeEntity(['searchKeyToUserInputItemIds'], {[searchKey]: OrderedSet(maybeUpgradedUsers)})
+  )
+  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
+  yield put(Creators.userInputItemsUpdated(searchKey, ids))
+}
+
+function* removeResultsToUserInput({
+  payload: {searchKey, searchResults},
+}: Constants.RemoveResultsToUserInput) {
+  yield put.resolve(EntityAction.subtractEntity(['searchKeyToUserInputItemIds', searchKey], searchResults))
+  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
+  yield put(Creators.userInputItemsUpdated(searchKey, ids))
+}
+
+function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.SetUserInputItems) {
+  const ids = yield select(Constants.getUserInputItemIds, {searchKey})
+  if (!_.isEqual(ids, searchResults)) {
+    yield put.resolve(
+      EntityAction.replaceEntity(['searchKeyToUserInputItemIds'], {[searchKey]: OrderedSet(searchResults)})
+    )
+    yield put(Creators.userInputItemsUpdated(searchKey, searchResults))
+  }
+}
+
+function* clearSearchResults({payload: {searchKey}}: Constants.ClearSearchResults) {
+  yield put(EntityAction.replaceEntity(['searchKeyToResults'], {[searchKey]: null}))
+  yield put(
+    EntityAction.replaceEntity(
+      ['searchKeyToSearchResultQuery'],
+      Map({
+        [searchKey]: null,
+      })
+    )
+  )
+}
+
+function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
+  yield put(
+    EntityAction.replaceEntity(
+      ['searchKeyToSearchResultQuery'],
+      Map({
+        [searchKey]: {text: searchResultTerm, service},
+      })
+    )
+  )
+}
+
+function* clearSearchInput({payload: {searchKey}}: Constants.UserInputItemsUpdated) {
+  const clearSearchInput = yield select(Constants.getClearSearchInput, {searchKey})
+  yield put(EntityAction.replaceEntity(['searchKeyToClearSearchInput'], {[searchKey]: clearSearchInput + 1}))
 }
 
 function* searchSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:search', search)
   yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
+  yield Saga.safeTakeLatest('search:updateSelectedSearchResult', updateSelectedSearchResult)
+  yield Saga.safeTakeLatest('search:addResultsToUserInput', addResultsToUserInput)
+  yield Saga.safeTakeLatest('search:removeResultsToUserInput', removeResultsToUserInput)
+  yield Saga.safeTakeLatest('search:setUserInputItems', setUserInputItems)
+  yield Saga.safeTakeLatest('search:clearSearchResults', clearSearchResults)
+  yield Saga.safeTakeLatest('search:finishedSearch', finishedSearch)
+  yield Saga.safeTakeLatest('search:userInputItemsUpdated', clearSearchInput)
 }
 
 export default searchSaga

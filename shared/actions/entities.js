@@ -1,5 +1,5 @@
 // @flow
-import type {Delete, Merge, Replace, EntityType} from '../constants/entities'
+import type {Delete, Merge, Replace, Subtract, EntityType} from '../constants/entities'
 
 const deleteEntity: (keyPath: Array<string>, ids: Array<string>) => Delete = (keyPath, ids) => ({
   payload: {ids, keyPath},
@@ -22,4 +22,12 @@ const replaceEntity: (keyPath: Array<string>, entities: {[id: string]: EntityTyp
   type: 'entity:replace',
 })
 
-export {deleteEntity, mergeEntity, replaceEntity}
+const subtractEntity: (keyPath: Array<string>, entities: Array<EntityType>) => Subtract = (
+  keyPath,
+  entities
+) => ({
+  payload: {entities, keyPath},
+  type: 'entity:subtract',
+})
+
+export {deleteEntity, mergeEntity, replaceEntity, subtractEntity}

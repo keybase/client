@@ -1,34 +1,36 @@
 // @flow
 import React from 'react'
 import Header from './header/container'
-import SearchHeader from '../search-header'
+import _SearchHeader from '../../search/user-input/container'
+import {compose, withState, lifecycle} from 'recompose'
 import * as ChatConstants from '../../constants/chat'
-import * as SearchConstants from '../../constants/search'
 
 type Props = {
   inSearch: boolean,
-  onChangeSearchText: (searchText: string) => void,
-  searchText: string,
-  selectedSearchId: ?SearchConstants.SearchResultId,
   selectedConversationIDKey: ?ChatConstants.ConversationIDKey,
-  onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
   onBack: () => void,
-  onAddNewParticipant: (clicked: boolean) => void,
-  addNewParticipant: boolean,
+  onExitSearch: () => void,
 }
+
+const SearchHeader = compose(
+  withState('focusInputCounter', 'setCounter', 0),
+  lifecycle({
+    componentWillReceiveProps(nextProps: Props & {setCounter: (fn: (n: number) => number) => void}) {
+      if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
+        nextProps.setCounter((n: number) => n + 1)
+      }
+    },
+  })
+)(_SearchHeader)
 
 export default (props: Props) =>
   props.inSearch
     ? <SearchHeader
-        onChangeSearchText={props.onChangeSearchText}
-        searchText={props.searchText}
+        searchKey="chatSearch"
+        onExitSearch={props.onExitSearch}
         selectedConversationIDKey={props.selectedConversationIDKey}
-        selectedSearchId={props.selectedSearchId}
-        onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
-        onAddNewParticipant={props.onAddNewParticipant}
-        addNewParticipant={props.addNewParticipant}
       />
     : <Header
         infoPanelOpen={props.infoPanelOpen}

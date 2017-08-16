@@ -2,6 +2,7 @@
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import * as Creators from './creators'
 import * as SearchCreators from '../search/creators'
 import * as Inbox from './inbox'
@@ -11,7 +12,7 @@ import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {Map} from 'immutable'
+import {Map, Set} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
@@ -29,13 +30,7 @@ import {chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
-import {
-  usernameSelector,
-  inboxSearchSelector,
-  previousConversationSelector,
-  searchResultMapSelector,
-} from '../../constants/selectors'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
+import {usernameSelector, inboxSearchSelector, previousConversationSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {ChangedFocus} from '../../constants/app'
@@ -452,15 +447,15 @@ function _unboxedToMessage(
   if (message && message.state === ChatTypes.LocalMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.OutboxRecord = message.outbox
-    const messageState: Constants.MessageState = payload &&
-      payload.state &&
-      payload.state.state === ChatTypes.LocalOutboxStateType.error
-      ? 'failed'
-      : 'pending'
+    const messageState: Constants.MessageState =
+      payload && payload.state && payload.state.state === ChatTypes.LocalOutboxStateType.error
+        ? 'failed'
+        : 'pending'
     const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
-    const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
-      ? _decodeFailureDescription(payload.state.error.typ)
-      : null
+    const failureDescription =
+      messageState === 'failed' // prettier-ignore $FlowIssue
+        ? _decodeFailureDescription(payload.state.error.typ)
+        : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = messageBody.text
     const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
@@ -716,9 +711,10 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
-      ? publicFolderWithUsers
-      : privateFolderWithUsers
+    const helper =
+      inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
+        ? publicFolderWithUsers
+        : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
     yield put(openInKBFS(path))
   } else {
@@ -733,11 +729,9 @@ function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-  for (const username of action.payload.existingParticipants) {
-    yield put(Creators.stageUserForSearch(username))
-  }
+  yield put(SearchCreators.addResultsToUserInput('chatSearch', action.payload.existingParticipants))
   yield put(Creators.selectConversation(null, false))
-  yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
+  yield put(SearchCreators.searchSuggestions('chatSearch'))
 }
 
 function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, any> {
@@ -799,6 +793,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     if (inSearch) {
       const me = yield select(usernameSelector)
       yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
+      yield put(SearchCreators.setUserInputItems('chatSearch', participants.filter(u => u !== me)))
     }
   }
 
@@ -984,42 +979,28 @@ function* _updateTyping({
   }
 }
 
-function* _updateTempSearchConversation(
-  action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
-) {
-  const {payload: {user}} = action
-  const searchResultMap = yield select(searchResultMapSelector)
-  const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
+// TODO this is kinda confusing. I think there is duplicated state...
+function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUpdated) {
+  const {payload: {userInputItemIds}} = action
   const me = yield select(usernameSelector)
-  const inboxSearch = yield select(inboxSearchSelector)
 
   const actionsToPut = []
-
-  if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
-    actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
-    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
-  } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
-    if (!nextTempSearchConv.isEmpty()) {
-      actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
-    } else {
-      actionsToPut.push(put(Creators.selectConversation(null, false)))
-    }
-
-    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
+  if (userInputItemIds.length) {
+    actionsToPut.push(put(Creators.startConversation(userInputItemIds.concat(me), false, true)))
+  } else {
+    actionsToPut.push(put(Creators.selectConversation(null, false)))
+    actionsToPut.push(put(SearchCreators.searchSuggestions('chatSearch')))
   }
 
+  console.log('here', actionsToPut)
   // Always clear the search results when you select/unselect
-  actionsToPut.push(put(Creators.clearSearchResults()))
+  actionsToPut.push(put(SearchCreators.clearSearchResults('chatSearch')))
   yield all(actionsToPut)
 }
 
 function* _exitSearch() {
   const inboxSearch = yield select(inboxSearchSelector)
-  yield put(Creators.clearSearchResults())
+  yield put(SearchCreators.clearSearchResults('chatSearch'))
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
@@ -1067,8 +1048,10 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
-  yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
-  yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
+  yield Saga.safeTakeLatest(
+    SearchConstants.isUserInputItemsUpdated('chatSearch'),
+    _updateTempSearchConversation
+  )
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
 }
 

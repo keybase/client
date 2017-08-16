@@ -1,5 +1,5 @@
 // @flow
-import {Map, Record, List} from 'immutable'
+import {Map, Record, List, OrderedSet} from 'immutable'
 import * as SearchConstants from './search'
 
 import type {KBRecord} from './types/more'
@@ -18,20 +18,38 @@ export type Replace = NoErrorTypedAction<
   'entity:replace',
   {keyPath: Array<string>, entities: {[id: string]: EntityType}}
 >
+export type Subtract = NoErrorTypedAction<
+  'entity:subtract',
+  {keyPath: Array<string>, entities: Array<EntityType>}
+>
 
-export type Actions = Delete | Merge | Replace
+export type Actions = Delete | Merge | Replace | Subtract
 
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: Map<string, boolean>,
+  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: Map<string, boolean>,
+  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchInput: Map<string, number>,
 }>
 
 const StateRecord = Record({
   devices: Map(),
   searchResults: Map(),
   searchQueryToResult: Map(),
+  searchKeyToResults: Map(),
+  searchKeyToPending: Map(),
+  searchKeyToSelectedId: Map(),
+  searchKeyToShowSearchSuggestion: Map(),
+  searchKeyToUserInputItemIds: Map(),
+  searchKeyToSearchResultQuery: Map(),
+  searchKeyToClearSearchInput: Map(),
 })
 
 export {StateRecord}

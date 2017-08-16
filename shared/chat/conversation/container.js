@@ -83,7 +83,9 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     }
   }
 
-  const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
+  const {inSearch, searchPending, searchShowingSuggestions} = state.chat
+  const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+
   return {
     conversationErrorText,
     conversationIsError,
@@ -157,7 +159,6 @@ export default compose(
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
   withState('searchText', 'onChangeSearchText', ''),
-  withState('addNewParticipant', 'onAddNewParticipant', false),
   selectedSearchIdHoc,
   withHandlers({
     onAddNewParticipant: props => () => props.onAddNewParticipant(true),

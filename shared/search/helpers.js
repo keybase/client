@@ -13,7 +13,7 @@ type OwnProps = {
   searchResultIds: Array<Constants.SearchResultId>,
   selectedSearchId: ?Constants.SearchResultId,
   onUpdateSelectedSearchResult: (id: ?Constants.SearchResultId) => void,
-  onAddSelectedUser: (id: Constants.SearchResultId) => void,
+  onAddUser: (id: Constants.SearchResultId) => void,
   searchResultTerm: string,
 }
 
@@ -60,9 +60,10 @@ const onChangeSelectedSearchResultHoc = compose(
     ) => {
       const index = selectedSearchId ? searchResultIds.indexOf(selectedSearchId) : -1
 
-      const nextIndex = index === -1
-        ? 0
-        : direction === 'down' ? Math.min(index + 1, searchResultIds.length - 1) : Math.max(index - 1, 0)
+      const nextIndex =
+        index === -1
+          ? 0
+          : direction === 'down' ? Math.min(index + 1, searchResultIds.length - 1) : Math.max(index - 1, 0)
       const nextSelectedSearchId = searchResultIds[nextIndex]
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
@@ -79,7 +80,7 @@ const onChangeSelectedSearchResultHoc = compose(
         props._searchDebounced.flush()
         // See whether the current search result term matches the last one submitted
         if (lastSearchTerm === props.searchResultTerm) {
-          props.selectedSearchId && props.onAddSelectedUser(props.selectedSearchId)
+          props.selectedSearchId && props.onAddUser(props.selectedSearchId)
           props.onChangeSearchText('')
         }
       },

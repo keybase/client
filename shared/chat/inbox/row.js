@@ -55,7 +55,7 @@ const makeGetUnreadCounts = conversationIDKey => state =>
   state.chat.get('conversationUnreadCounts').get(conversationIDKey)
 const makeGetParticipants = conversationIDKey => state =>
   participantFilter(
-    state.chat.get('pendingConversations').get(conversationIDKey),
+    state.chat.getIn(['pendingConversations', conversationIDKey], I.List()),
     state.config.username || ''
   )
 const getNowOverride = state => state.chat.get('nowOverride')

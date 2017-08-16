@@ -35,7 +35,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
         SearchCreators.search(term, 'profile:pendingSearchResults', 'profile:updateSearchResults', service)
       )
     } else {
-      dispatch(SearchCreators.searchSuggestions('profile:updateSearchResults'))
+      dispatch(SearchCreators.searchSuggestions('profileSearch'))
     }
   },
   onAddSelectedUser: username => {

@@ -44,15 +44,23 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {
-      dispatch(SearchCreators.search(term, 'chat:pendingSearchResults', 'chat:updateSearchResults', service))
+      dispatch(
+        SearchCreators.search(
+          term,
+          'chat:pendingSearchResults',
+          'chat:updateSearchResults',
+          'chatSearch',
+          service
+        )
+      )
     } else {
-      dispatch(SearchCreators.searchSuggestions('chat:updateSearchResults'))
+      dispatch(SearchCreators.searchSuggestions('chatSearch'))
     }
   },
   onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
-const SearchHeader = props => (
+const SearchHeader = props =>
   <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
     <UserInput
       ref={props.setInputRef}
@@ -75,7 +83,6 @@ const SearchHeader = props => (
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
   </Box>
-)
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
