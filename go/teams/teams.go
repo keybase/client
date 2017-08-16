@@ -200,13 +200,11 @@ func (t *Team) readerKeyMask(
 
 	m2, ok := t.Data.ReaderKeyMasks[application]
 	if !ok {
-		return res, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no mask found for application %v", application)}
+		return res, NewKeyMaskNotFoundErrorForApplication(application)
 	}
 	mask, ok := m2[generation]
 	if !ok {
-		return res, libkb.NotFoundError{
-			Msg: fmt.Sprintf("no mask found for application %v, generation %v", application, generation)}
+		return res, NewKeyMaskNotFoundErrorForApplicationAndGeneration(application, generation)
 	}
 	return keybase1.ReaderKeyMask{
 		Application: application,
