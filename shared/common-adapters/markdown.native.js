@@ -145,7 +145,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <EmojiIfExists
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 16}
+            size={options.bigEmoji ? 32 : 15}
             key={key}
             allowFontScaling={allowFontScaling}
           />
@@ -154,7 +154,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <Emoji
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 16}
+            size={options.bigEmoji ? 32 : 15}
             key={key}
             allowFontScaling={allowFontScaling}
           />
