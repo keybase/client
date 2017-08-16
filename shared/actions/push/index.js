@@ -49,45 +49,43 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    const data = {
-      ...payload,
-      ...(payload.data || {}),
-    }
-    if (data.type === 'chat.newmessageSilent') {
+    if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
       try {
         const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {
-            convID: data.c,
-            membersType: data.t,
-            payload: data.m,
-            pushIDs: data.p,
+            convID: payload.c,
+            membersType: payload.t,
+            payload: payload.m,
+            pushIDs: payload.p,
           },
         })
-        yield call(displayNewMessageNotification, unboxRes, data.c, data.b)
+        yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b)
       } catch (err) {
         console.info('failed to unbox silent notification', err)
       }
-    } else if (data.type === 'chat.newmessage') {
+    } else if (payload.type === 'chat.newmessage') {
+      const {convID} = payload
       // Check for conversation ID so we know where to navigate to
-      if (!data.convID) {
+      if (!convID) {
         console.error('Push chat notification payload missing conversation ID')
         return
       }
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(navigateTo([chatTab, data.convID]))
-    } else if (data.type === 'follow') {
-      if (!data.username) {
+      yield put(navigateTo([chatTab, convID]))
+    } else if (payload.type === 'follow') {
+      const {username} = payload
+      if (!username) {
         console.error('Follow notification payload missing username', JSON.stringify(payload))
         return
       }
-      console.info('Push notification: follow received, follower= ', data.username)
+      console.info('Push notification: follow received, follower= ', username)
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(showUserProfile(data.username))
+      yield put(showUserProfile(username))
     } else {
       console.error('Push notification payload missing or unknown type')
     }
