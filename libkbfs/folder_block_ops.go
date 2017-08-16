@@ -378,7 +378,7 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// correctly according to the new on-demand fetch priority.
 		fbo.config.BlockOps().BlockRetriever().CacheAndPrefetch(ctx,
 			ptr, block, kmd, defaultOnDemandRequestPriority, lifetime,
-			triggeredPrefetch)
+			triggeredPrefetch, nil, nil)
 		return block, nil
 	}
 
