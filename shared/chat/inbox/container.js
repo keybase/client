@@ -11,6 +11,8 @@ import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
+import {matchesFilter} from '../../common-adapters/usernames'
+
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -20,14 +22,7 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
-  if (!filter) {
-    return true
-  }
-
-  const names = i.get('participants').toArray()
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
-  return names.some(n => n.toLowerCase().indexOf(filter.toLowerCase()) >= 0)
+  return i.get('participants').toArray().some(n => matchesFilter(n, filter))
 }
 
 const filteredInbox = createImmutableEqualSelector(

@@ -72,6 +72,27 @@ const nonInlineStyle = {
 }
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
+// TODO: team and channels
+function matchesFilter(name: string, filter: string): boolean {
+  if (!filter) {
+    return true
+  }
+
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
+  return name.toLowerCase().indexOf(filter.toLowerCase()) >= 0
+}
+
+const sortNamesWithFilter = (names: Array<string>, filter: ?string): Array<string> => {
+  if (!filter) {
+    return names
+  }
+
+  const matches = names.filter(n => matchesFilter.test(n, filter))
+  const nonMatches = names.filter(n => !matchesFilter.test(n, filter))
+  return matches.concat(nonMatches)
+}
+
 class Usernames extends Component<void, Props, void> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -82,10 +103,6 @@ class Usernames extends Component<void, Props, void> {
     })
   }
 
-  _joinUsernames(usernames: Array<string>) {
-    return usernames.join(this.props.plainDivider || ', ')
-  }
-
   render() {
     const containerStyle = this.props.inline ? inlineStyle : nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
@@ -93,15 +110,7 @@ class Usernames extends Component<void, Props, void> {
 
     if (this.props.plainText) {
       // TODO: Apply filter when plainText is not set, if needed.
-      let usernames = rwers.map(u => u.username)
-      if (this.props.filter) {
-        // TODO team and channels
-        const regexp = new RegExp(this.props.filter, 'i')
-        const matches = usernames.filter(n => n.match(regexp))
-        const nonMatches = usernames.filter(n => !n.match(regexp))
-        usernames = matches.concat(nonMatches)
-      }
-      const usernamesStr = this._joinUsernames(usernames)
+      const names = sortNamesWithFilter(rwers.map(u => u.username), this.props.filter)
       return (
         <Text
           type={this.props.type}
@@ -111,7 +120,7 @@ class Usernames extends Component<void, Props, void> {
           {...(this.props.inline ? inlineProps : {})}
         >
           {this.props.prefix}
-          {usernamesStr}
+          {names.join(this.props.plainDivider || ', ')}
           {this.props.suffix}
         </Text>
       )
@@ -148,6 +157,6 @@ class Usernames extends Component<void, Props, void> {
   }
 }
 
-export {usernameText}
+export {usernameText, matchesFilter}
 
 export default Usernames
