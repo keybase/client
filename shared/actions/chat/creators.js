@@ -669,7 +669,7 @@ function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.U
 }
 
 function updateThread(
-  thread: ChatTypes.ThreadView,
+  thread: ChatTypes.UIMessages,
   yourName: string,
   yourDeviceName: string,
   conversationIDKey: string

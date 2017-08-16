@@ -611,14 +611,15 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			strOutboxID = &so
 		}
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
-			MessageID:        rawMsg.GetMessageID(),
-			MessageType:      rawMsg.GetMessageType(),
-			Ctime:            rawMsg.Valid().ServerHeader.Ctime,
-			OutboxID:         strOutboxID,
-			MessageBody:      rawMsg.Valid().MessageBody,
-			SenderUsername:   rawMsg.Valid().SenderUsername,
-			SenderDeviceName: rawMsg.Valid().SenderDeviceName,
-			SenderDeviceType: rawMsg.Valid().SenderDeviceType,
+			MessageID:             rawMsg.GetMessageID(),
+			Ctime:                 rawMsg.Valid().ServerHeader.Ctime,
+			OutboxID:              strOutboxID,
+			MessageBody:           rawMsg.Valid().MessageBody,
+			SenderUsername:        rawMsg.Valid().SenderUsername,
+			SenderDeviceName:      rawMsg.Valid().SenderDeviceName,
+			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
+			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
+			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

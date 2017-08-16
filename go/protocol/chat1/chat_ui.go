@@ -146,21 +146,21 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 }
 
 type UIMessageValid struct {
-	MessageID        MessageID    `codec:"messageID" json:"messageID"`
-	MessageType      MessageType  `codec:"messageType" json:"messageType"`
-	Ctime            gregor1.Time `codec:"ctime" json:"ctime"`
-	OutboxID         *string      `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	MessageBody      MessageBody  `codec:"messageBody" json:"messageBody"`
-	SenderUsername   string       `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName string       `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType string       `codec:"senderDeviceType" json:"senderDeviceType"`
+	MessageID             MessageID     `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time  `codec:"ctime" json:"ctime"`
+	OutboxID              *string       `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody   `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string        `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string        `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string        `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool          `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
 	return UIMessageValid{
-		MessageID:   o.MessageID.DeepCopy(),
-		MessageType: o.MessageType.DeepCopy(),
-		Ctime:       o.Ctime.DeepCopy(),
+		MessageID: o.MessageID.DeepCopy(),
+		Ctime:     o.Ctime.DeepCopy(),
 		OutboxID: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -172,6 +172,14 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
 		SenderDeviceType: o.SenderDeviceType,
+		Superseded:       o.Superseded,
+		SenderDeviceRevokedAt: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SenderDeviceRevokedAt),
 	}
 }
 

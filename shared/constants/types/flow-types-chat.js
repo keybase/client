@@ -1854,13 +1854,14 @@ export type UIMessageOutbox = {
 
 export type UIMessageValid = {
   messageID: MessageID,
-  messageType: MessageType,
   ctime: gregor1.Time,
   outboxID?: ?string,
   messageBody: MessageBody,
   senderUsername: string,
   senderDeviceName: string,
   senderDeviceType: string,
+  superseded: boolean,
+  senderDeviceRevokedAt?: ?gregor1.Time,
 }
 
 export type UIMessages = {

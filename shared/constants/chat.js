@@ -747,7 +747,7 @@ export type ShareAttachment = NoErrorTypedAction<
 export type UpdateThread = NoErrorTypedAction<
   'chat:updateThread',
   {
-    thread: ChatTypes.ThreadView,
+    thread: ChatTypes.UIMessages,
     yourName: string,
     yourDeviceName: string,
     conversationIDKey: string,

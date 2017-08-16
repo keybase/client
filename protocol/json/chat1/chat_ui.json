@@ -165,10 +165,6 @@
           "name": "messageID"
         },
         {
-          "type": "MessageType",
-          "name": "messageType"
-        },
-        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -194,6 +190,17 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        },
+        {
+          "type": "boolean",
+          "name": "superseded"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "senderDeviceRevokedAt"
         }
       ]
     },
