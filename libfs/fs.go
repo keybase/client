@@ -6,6 +6,7 @@ package libfs
 
 import (
 	"context"
+	"math/rand"
 	"os"
 	"path"
 	"strings"
@@ -14,7 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
-	billy "github.com/src-d/go-billy"
+	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 // FS is a wrapper around a KBFS subdirectory that implements the
@@ -243,6 +244,17 @@ func (fs *FS) lookupOrCreateEntry(
 	return nil, libkbfs.EntryInfo{}, errors.New("Too many levels of symlinks")
 }
 
+func translateErr(err error) error {
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		return os.ErrNotExist
+	case libkbfs.NameExistsError:
+		return os.ErrExist
+	default:
+		return err
+	}
+}
+
 // OpenFile implements the billy.Filesystem interface for FS.
 func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 	f billy.File, err error) {
@@ -250,6 +262,7 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		fs.ctx, "OpenFile %s, flag=%d, perm=%o", filename, flag, perm)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "OpenFile done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, ei, err := fs.lookupOrCreateEntry(filename, flag, perm)
@@ -301,6 +314,7 @@ func (fs *FS) Stat(filename string) (fi os.FileInfo, err error) {
 	fs.log.CDebugf(fs.ctx, "Stat %s", filename)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Stat done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, ei, err := fs.lookupOrCreateEntry(filename, os.O_RDONLY, 0)
@@ -320,6 +334,7 @@ func (fs *FS) Rename(oldpath, newpath string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Rename %s -> %s", oldpath, newpath)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Rename done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	oldParent, _, oldBase, err := fs.lookupParent(oldpath)
@@ -341,6 +356,7 @@ func (fs *FS) Remove(filename string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Remove %s", filename)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Remove done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	parent, _, base, err := fs.lookupParent(filename)
@@ -366,8 +382,10 @@ func (fs *FS) Join(elem ...string) string {
 
 // TempFile implements the billy.Filesystem interface for FS.
 func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
+	r := rand.Int63()
+	return fs.OpenFile(path.Join(dir, prefix+string(r)), os.O_CREATE|os.O_EXCL, 0600)
 	// We'd have to turn off journaling to support TempFile fully.
-	return nil, errors.New("TempFile is not currently supported")
+	//return nil, errors.New("TempFile is not currently supported")
 }
 
 // ReadDir implements the billy.Filesystem interface for FS.
@@ -375,6 +393,7 @@ func (fs *FS) ReadDir(p string) (fis []os.FileInfo, err error) {
 	fs.log.CDebugf(fs.ctx, "ReadDir %s", p)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "ReadDir done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, err := fs.lookupOrCreateEntry(p, os.O_RDONLY, 0)
@@ -403,6 +422,7 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 	fs.log.CDebugf(fs.ctx, "MkdirAll %s", filename)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, leftover, err := fs.lookupParentWithDepth(filename, true, 0)
@@ -427,6 +447,7 @@ func (fs *FS) Lstat(filename string) (fi os.FileInfo, err error) {
 	fs.log.CDebugf(fs.ctx, "Lstat %s", filename)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Lstat done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, base, err := fs.lookupParent(filename)
@@ -451,6 +472,7 @@ func (fs *FS) Symlink(target, link string) (err error) {
 	fs.log.CDebugf(fs.ctx, "Symlink target=%s link=%s", target, link)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Symlink done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, base, err := fs.lookupParent(link)
@@ -467,6 +489,7 @@ func (fs *FS) Readlink(link string) (target string, err error) {
 	fs.log.CDebugf(fs.ctx, "Readlink %s", link)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Readlink done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, base, err := fs.lookupParent(link)
@@ -490,6 +513,7 @@ func (fs *FS) Chmod(name string, mode os.FileMode) (err error) {
 	fs.log.CDebugf(fs.ctx, "Chmod %s %s", name, mode)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chmod done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, err := fs.lookupOrCreateEntry(name, os.O_RDONLY, 0)
@@ -522,6 +546,7 @@ func (fs *FS) Chtimes(name string, atime time.Time, mtime time.Time) (
 		name, mtime, atime)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chtimes done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	n, _, err := fs.lookupOrCreateEntry(name, os.O_RDONLY, 0)
@@ -537,6 +562,7 @@ func (fs *FS) Chroot(p string) (newFS billy.Filesystem, err error) {
 	fs.log.CDebugf(fs.ctx, "Chroot %s", p)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "Chroot done: %+v", err)
+		err = translateErr(err)
 	}()
 
 	// lookupOrCreateEntry doesn't handle "..", so we don't have to
@@ -566,4 +592,9 @@ func (fs *FS) Root() string {
 // SyncAll syncs any outstanding buffered writes to the KBFS journal.
 func (fs *FS) SyncAll() error {
 	return fs.config.KBFSOps().SyncAll(fs.ctx, fs.root.GetFolderBranch())
+}
+
+// Config returns the underlying Config object of this FS.
+func (fs *FS) Config() libkbfs.Config {
+	return fs.config
 }

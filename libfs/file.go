@@ -65,6 +65,10 @@ func (f *File) Read(p []byte) (n int, err error) {
 		return 0, err
 	}
 
+	if readBytes == 0 {
+		return 0, io.EOF
+	}
+
 	f.updateOffset(origOffset, readBytes)
 	return int(readBytes), nil
 }
