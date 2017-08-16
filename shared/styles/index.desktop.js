@@ -3,6 +3,7 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
+import isArray from 'lodash/isArray'
 
 const windowStyle = {
   minWidth: 600,
@@ -163,13 +164,28 @@ function backgroundURL(...to: Array<string>): string {
 }
 
 const hairlineWidth = 1
+const styleSheetCreate = (obj: Object) => obj
+const collapseStyles = (styles: Array<Object> | Object) => {
+  if (isArray) {
+    return styles.reduce((map, item) => {
+      map = {...map, ...item}
+      return map
+    }, {})
+  } else {
+    return styles
+  }
+}
+const lineHeight = (h: number) => `${h}px`
 
 export {
   backgroundURL,
+  collapseStyles,
   globalColors,
   globalMargins,
   globalStyles,
+  lineHeight,
   hairlineWidth,
+  styleSheetCreate,
   transition,
   transitionColor,
   windowStyle,

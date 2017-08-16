@@ -632,7 +632,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('inboxUntrustedState', action.payload.inboxUntrustedState)
     }
     case 'chat:inboxFilter': {
-      return state.set('inboxFilter', List(action.payload.filter))
+      return state.set('inboxFilter', action.payload.filter)
     }
     case 'chat:inboxSearch': {
       return state.set('inboxSearch', List(action.payload.search))

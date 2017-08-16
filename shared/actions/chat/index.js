@@ -999,7 +999,6 @@ function* _updateTempSearchConversation(
     const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
     actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
     actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
     if (!nextTempSearchConv.isEmpty()) {
@@ -1009,7 +1008,6 @@ function* _updateTempSearchConversation(
     }
 
     actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   }
 
   // Always clear the search results when you select/unselect
@@ -1021,7 +1019,6 @@ function* _exitSearch() {
   const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
-  yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
   if (inboxSearch.count() === 0) {
     yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
