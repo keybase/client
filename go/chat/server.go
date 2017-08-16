@@ -83,15 +83,23 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 	return h.uiSource.GetStreamUICli()
 }
 
-func (h *Server) isOfflineError(err error) bool {
+type offlineErrorKind int
+
+const (
+	offlineErrorKindOnline offlineErrorKind = 0
+	offlineErrorKindOfflineBasic
+	offlineErrorKindOfflineReconnect
+)
+
+func (h *Server) isOfflineError(err error) offlineErrorKind {
 	// Check type
 	switch terr := err.(type) {
 	case net.Error:
-		return true
+		return offlineErrorKindOfflineReconnect
 	case libkb.APINetError:
-		return true
+		return offlineErrorKindOfflineBasic
 	case OfflineError:
-		return true
+		return offlineErrorKindOfflineBasic
 	case TransientUnboxingError:
 		return h.isOfflineError(terr.Inner())
 	}
@@ -102,29 +110,31 @@ func (h *Server) isOfflineError(err error) bool {
 	case context.Canceled:
 		fallthrough
 	case ErrChatServerTimeout:
-		return true
+		return offlineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:
-		return true
+		return offlineErrorKindOfflineBasic
 	}
 
-	return false
+	return offlineErrorKindOnline
 }
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
 
-	if h.isOfflineError(err) {
+	errKind := h.isOfflineError(err)
+	if errKind != offlineErrorKindOnline {
 		h.Debug(ctx, "handleOfflineError: setting offline: err: %s", err)
 		res.SetOffline()
-
-		// Reconnect Gregor if we think we are offline
-		h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
-		if _, err := h.serverConn.Reconnect(ctx); err != nil {
-			h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err)
-		} else {
-			h.Debug(ctx, "handleOfflineError: success reconnecting")
+		switch errKind {
+		case offlineErrorKindOfflineReconnect:
+			// Reconnect Gregor if we think we are offline (and told to reconnect)
+			h.Debug(ctx, "handleOfflineError: reconnecting to gregor")
+			if _, err := h.serverConn.Reconnect(ctx); err != nil {
+				h.Debug(ctx, "handleOfflineError: error reconnecting: %s", err)
+			} else {
+				h.Debug(ctx, "handleOfflineError: success reconnecting")
+			}
 		}
-
 		return nil
 	}
 
