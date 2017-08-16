@@ -18,7 +18,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
     inbox &&
     inbox.info &&
     inbox.info.membersType !== CommonConversationMembersType.team &&
-    inbox.get('participants').size > 2
+    inbox.get('participants').count() > 2
 
   return {
     moreToLoad,
