@@ -15,10 +15,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
   const showTeamOffer =
-    inbox &&
-    inbox.info &&
-    inbox.info.membersType !== CommonConversationMembersType.team &&
-    inbox.get('participants').count() > 2
+    inbox && inbox.membersType !== CommonConversationMembersType.team && inbox.get('participants').count() > 2
 
   return {
     moreToLoad,

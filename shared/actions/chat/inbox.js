@@ -133,6 +133,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
           return new Constants.InboxStateRecord({
             conversationIDKey: c.convID,
             info: null,
+            membersType: c.membersType,
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
             snippet: ' ',
             state: 'untrusted',
@@ -376,6 +377,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     conversationIDKey,
     name: c.name,
     isEmpty: c.isEmpty,
+    membersType: c.membersType,
     participants: parts || [],
     snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
