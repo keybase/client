@@ -20,6 +20,7 @@ export type Props = {
   containerStyle?: Object,
   inline?: boolean,
   users: UserList,
+  filter?: string,
   redColor?: string,
   title?: string,
   prefix?: ?string,

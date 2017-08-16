@@ -82,12 +82,26 @@ class Usernames extends Component<void, Props, void> {
     })
   }
 
+  _joinUsernames(usernames: Array<string>) {
+    return usernames.join(this.props.plainDivider || ', ')
+  }
+
   render() {
     const containerStyle = this.props.inline ? inlineStyle : nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     if (this.props.plainText) {
+      // TODO: Apply filter when plainText is not set, if needed.
+      let usernames = rwers.map(u => u.username)
+      if (this.props.filter) {
+        // TODO team and channels
+        const regexp = new RegExp(this.props.filter, 'i')
+        const matches = usernames.filter(n => n.match(regexp))
+        const nonMatches = usernames.filter(n => !n.match(regexp))
+        usernames = matches.concat(nonMatches)
+      }
+      const usernamesStr = this._joinUsernames(usernames)
       return (
         <Text
           type={this.props.type}
@@ -97,7 +111,7 @@ class Usernames extends Component<void, Props, void> {
           {...(this.props.inline ? inlineProps : {})}
         >
           {this.props.prefix}
-          {rwers.map(u => u.username).join(this.props.plainDivider || ', ')}
+          {usernamesStr}
           {this.props.suffix}
         </Text>
       )
