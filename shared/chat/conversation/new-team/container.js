@@ -2,7 +2,7 @@
 import NewTeamDialog from './'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {navigateTo, navigateUp} from '../../../actions/route-tree'
+import {navigateTo} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {createNewTeam, selectConversation} from '../../../actions/chat/creators'
 import {getSelectedConversation} from '../../../constants/chat'
@@ -14,7 +14,7 @@ const mapStateToProps = (state: TypedState) => ({
   conversationIDKey: getSelectedConversation(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   navToRootChat: () => dispatch(navigateTo([], [chatTab])),
   onBack: () => dispatch(navigateUp()),
   onCreateTeam: (conversationIDKey: ConversationIDKey, name: string) => {
@@ -25,7 +25,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('name', 'onNameChange', props => props.name),
+  withState('name', 'onNameChange', ''),
   withHandlers({
     onSubmit: ({conversationIDKey, name, onCreateTeam}) => () => onCreateTeam(conversationIDKey, name),
   })

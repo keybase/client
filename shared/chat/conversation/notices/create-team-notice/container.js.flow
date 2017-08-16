@@ -7,7 +7,7 @@ export type StateProps = {|
 |}
 
 export type DispatchProps = {|
-  onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => void,
+  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => void,
 |}
 
 export default class CreateTeamNotice extends Component<void, {}, void> {}

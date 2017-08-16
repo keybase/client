@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(
       navigateAppend([
         {
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  onShowNewTeamDialog: () => dispatchProps.onShowNewTeamDialog(stateProps.selectedConversationIDKey),
+  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(CreateTeamNotice)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamNotice)

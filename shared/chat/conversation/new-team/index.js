@@ -7,7 +7,7 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import type {Props} from './'
 
 const Contents = ({name, onNameChange, onSubmit}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
+  <Box style={globalStyles.flexBoxColumn}>
     <Box style={styleContainer}>
       <Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
