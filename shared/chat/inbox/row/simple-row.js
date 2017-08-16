@@ -307,6 +307,7 @@ class TeamAvatar extends PureComponent<void, {teamname: string}, void> {
 type Props = {
   backgroundColor: string,
   conversationIDKey: ConversationIDKey,
+  filter: string,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -355,14 +356,16 @@ class Row extends PureComponent<void, Props, void> {
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
-            <BottomLine
-              backgroundColor={props.backgroundColor}
-              participantNeedToRekey={props.participantNeedToRekey}
-              showBold={props.showBold}
-              snippet={props.snippet}
-              subColor={props.subColor}
-              youNeedToRekey={props.youNeedToRekey}
-            />
+            {props.filter
+              ? null
+              : <BottomLine
+                  backgroundColor={props.backgroundColor}
+                  participantNeedToRekey={props.participantNeedToRekey}
+                  showBold={props.showBold}
+                  snippet={props.snippet}
+                  subColor={props.subColor}
+                  youNeedToRekey={props.youNeedToRekey}
+                />}
           </Box>
         </Box>
       </ClickableBox>
