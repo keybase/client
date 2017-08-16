@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"context"
-	"sync"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
@@ -427,10 +426,9 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 		t, config.BlockCache(), rootPtr, rootDir, true, TransientEntry)
 }
 
-func notifyContinueCh(ch chan<- error, wg *sync.WaitGroup) {
+func notifyContinueCh(ch chan<- error) {
 	go func() {
 		ch <- nil
-		wg.Done()
 	}()
 }
 
@@ -481,32 +479,30 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		bg.setBlockToReturn(dirBfileDptrs[1].BlockPointer, dirBfileDblock2)
 
 	var block Block = &DirBlock{}
-	prefetchDoneCh := make(chan struct{}, 3)
-	prefetchErrCh := make(chan struct{}, 3)
+	prefetchDoneCh := make(chan struct{}, 1)
 	ch := q.RequestWithPrefetch(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
-		prefetchDoneCh, prefetchErrCh)
+		prefetchDoneCh, nil)
 	continueChRootDir <- nil
 	err := <-ch
 	require.NoError(t, err)
 	require.Equal(t, rootDir, block)
 
 	t.Log("Release all the blocks.")
-	continueChFileC <- nil
-	continueChDirB <- nil
-	// After this, the prefetch worker can either pick up the third child of
-	// dir1 (continueCh2), or the first child of dir2 (continueCh5).
-	// TODO: The prefetcher should have a "global" prefetch priority
-	// reservation system that goes down with each next set of prefetches.
-	wg := &sync.WaitGroup{}
-	wg.Add(4)
-	notifyContinueCh(continueChFileA, wg)
-	notifyContinueCh(continueChDirBfileD, wg)
-	notifyContinueCh(continueChDirBfileDblock1, wg)
-	notifyContinueCh(continueChDirBfileDblock2, wg)
-	wg.Wait()
-	t.Log("Shutdown the prefetcher and wait until it's done prefetching.")
-	<-q.Prefetcher().Shutdown()
+	go func() {
+		continueChFileC <- nil
+		continueChDirB <- nil
+		// After this, the prefetch worker can either pick up the third child of
+		// dir1 (continueCh2), or the first child of dir2 (continueCh5).
+		// TODO: The prefetcher should have a "global" prefetch priority
+		// reservation system that goes down with each next set of prefetches.
+		notifyContinueCh(continueChFileA)
+		notifyContinueCh(continueChDirBfileD)
+		notifyContinueCh(continueChDirBfileDblock1)
+		notifyContinueCh(continueChDirBfileDblock2)
+	}()
+	t.Log("Wait for prefetching to complete.")
+	<-prefetchDoneCh
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir, true,
