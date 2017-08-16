@@ -41,9 +41,14 @@ protocol metadata {
          KeyBundle ReaderBundle;
   }
 
+  record LockContext {
+    long    requireLockID;
+    boolean releaseAfterSuccess;
+  }
+
   ChallengeInfo getChallenge();
   int authenticate(string signature);
-  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags);
+  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);
@@ -58,6 +63,8 @@ protocol metadata {
   PingResponse ping2();
   bytes getLatestFolderHandle(string folderID);
   KeyBundleResponse getKeyBundles(string folderID, string writerBundleID, string readerBundleID);
+  void lock(string folderID, long lockID);
+  void releaseLock(string folderID, long lockID); // unfortunate naming conflict on "unlock" with login.avdl
 
   // Merkle tree specific commands
   // todo: we probably also want a method which will return a minmum set of interior nodes

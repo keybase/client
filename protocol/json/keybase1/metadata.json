@@ -113,6 +113,20 @@
           "lint": "ignore"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LockContext",
+      "fields": [
+        {
+          "type": "long",
+          "name": "requireLockID"
+        },
+        {
+          "type": "boolean",
+          "name": "releaseAfterSuccess"
+        }
+      ]
     }
   ],
   "messages": {
@@ -149,6 +163,13 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockContext",
+          "type": [
+            null,
+            "LockContext"
+          ]
         }
       ],
       "response": null
@@ -369,6 +390,32 @@
         }
       ],
       "response": "KeyBundleResponse"
+    },
+    "lock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "long"
+        }
+      ],
+      "response": null
+    },
+    "releaseLock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "long"
+        }
+      ],
+      "response": null
     },
     "getMerkleRoot": {
       "request": [

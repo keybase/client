@@ -121,6 +121,18 @@ func (o KeyBundleResponse) DeepCopy() KeyBundleResponse {
 	}
 }
 
+type LockContext struct {
+	RequireLockID       int64 `codec:"requireLockID" json:"requireLockID"`
+	ReleaseAfterSuccess bool  `codec:"releaseAfterSuccess" json:"releaseAfterSuccess"`
+}
+
+func (o LockContext) DeepCopy() LockContext {
+	return LockContext{
+		RequireLockID:       o.RequireLockID,
+		ReleaseAfterSuccess: o.ReleaseAfterSuccess,
+	}
+}
+
 type GetChallengeArg struct {
 }
 
@@ -143,6 +155,7 @@ type PutMetadataArg struct {
 	ReaderKeyBundle KeyBundle         `codec:"readerKeyBundle" json:"readerKeyBundle"`
 	WriterKeyBundle KeyBundle         `codec:"writerKeyBundle" json:"writerKeyBundle"`
 	LogTags         map[string]string `codec:"logTags" json:"logTags"`
+	LockContext     *LockContext      `codec:"lockContext,omitempty" json:"lockContext,omitempty"`
 }
 
 func (o PutMetadataArg) DeepCopy() PutMetadataArg {
@@ -159,6 +172,13 @@ func (o PutMetadataArg) DeepCopy() PutMetadataArg {
 			}
 			return ret
 		})(o.LogTags),
+		LockContext: (func(x *LockContext) *LockContext {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LockContext),
 	}
 }
 
@@ -406,6 +426,30 @@ func (o GetKeyBundlesArg) DeepCopy() GetKeyBundlesArg {
 	}
 }
 
+type LockArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+	LockID   int64  `codec:"lockID" json:"lockID"`
+}
+
+func (o LockArg) DeepCopy() LockArg {
+	return LockArg{
+		FolderID: o.FolderID,
+		LockID:   o.LockID,
+	}
+}
+
+type ReleaseLockArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+	LockID   int64  `codec:"lockID" json:"lockID"`
+}
+
+func (o ReleaseLockArg) DeepCopy() ReleaseLockArg {
+	return ReleaseLockArg{
+		FolderID: o.FolderID,
+		LockID:   o.LockID,
+	}
+}
+
 type GetMerkleRootArg struct {
 	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
 	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
@@ -468,6 +512,8 @@ type MetadataInterface interface {
 	Ping2(context.Context) (PingResponse, error)
 	GetLatestFolderHandle(context.Context, string) ([]byte, error)
 	GetKeyBundles(context.Context, GetKeyBundlesArg) (KeyBundleResponse, error)
+	Lock(context.Context, LockArg) error
+	ReleaseLock(context.Context, ReleaseLockArg) error
 	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
@@ -735,6 +781,38 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"lock": {
+				MakeArg: func() interface{} {
+					ret := make([]LockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LockArg)(nil), args)
+						return
+					}
+					err = i.Lock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"releaseLock": {
+				MakeArg: func() interface{} {
+					ret := make([]ReleaseLockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ReleaseLockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ReleaseLockArg)(nil), args)
+						return
+					}
+					err = i.ReleaseLock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getMerkleRoot": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMerkleRootArg, 1)
@@ -894,6 +972,16 @@ func (c MetadataClient) GetLatestFolderHandle(ctx context.Context, folderID stri
 
 func (c MetadataClient) GetKeyBundles(ctx context.Context, __arg GetKeyBundlesArg) (res KeyBundleResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getKeyBundles", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) Lock(ctx context.Context, __arg LockArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.lock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c MetadataClient) ReleaseLock(ctx context.Context, __arg ReleaseLockArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.releaseLock", []interface{}{__arg}, nil)
 	return
 }
 

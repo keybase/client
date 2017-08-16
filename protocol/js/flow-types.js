@@ -2262,6 +2262,18 @@ export function metadataGetMetadataRpcPromise (request: $Exact<requestCommon & {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function metadataLockRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataLockRpcParam}>) {
+  engineRpcOutgoing('keybase.1.metadata.lock', request)
+}
+
+export function metadataLockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataLockRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
+}
+
+export function metadataLockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataLockRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function metadataPing2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>) {
   engineRpcOutgoing('keybase.1.metadata.ping2', request)
 }
@@ -2332,6 +2344,18 @@ export function metadataRegisterForUpdatesRpcChannelMap (configKeys: Array<strin
 
 export function metadataRegisterForUpdatesRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function metadataReleaseLockRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam}>) {
+  engineRpcOutgoing('keybase.1.metadata.releaseLock', request)
+}
+
+export function metadataReleaseLockRpcChannelMap (configKeys: Array<string>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam}>): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
+}
+
+export function metadataReleaseLockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam}>): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.releaseLock', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function metadataTruncateLockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>) {
@@ -4315,6 +4339,11 @@ export type LoadTeamArg = {
   staleOK: boolean,
 }
 
+export type LockContext = {
+  requireLockID: long,
+  releaseAfterSuccess: boolean,
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -6281,6 +6310,11 @@ export type metadataGetMetadataRpcParam = Exact<{
   logTags: {[key: string]: string}
 }>
 
+export type metadataLockRpcParam = Exact<{
+  folderID: string,
+  lockID: long
+}>
+
 export type metadataPruneBranchRpcParam = Exact<{
   folderID: string,
   branchID: string,
@@ -6296,13 +6330,19 @@ export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
-  logTags: {[key: string]: string}
+  logTags: {[key: string]: string},
+  lockContext?: ?LockContext
 }>
 
 export type metadataRegisterForUpdatesRpcParam = Exact<{
   folderID: string,
   currRevision: long,
   logTags: {[key: string]: string}
+}>
+
+export type metadataReleaseLockRpcParam = Exact<{
+  folderID: string,
+  lockID: long
 }>
 
 export type metadataTruncateLockRpcParam = Exact<{
@@ -7153,12 +7193,14 @@ export type rpc =
   | metadataGetMerkleRootRpc
   | metadataGetMerkleRootSinceRpc
   | metadataGetMetadataRpc
+  | metadataLockRpc
   | metadataPing2Rpc
   | metadataPingRpc
   | metadataPruneBranchRpc
   | metadataPutKeysRpc
   | metadataPutMetadataRpc
   | metadataRegisterForUpdatesRpc
+  | metadataReleaseLockRpc
   | metadataTruncateLockRpc
   | metadataTruncateUnlockRpc
   | metadataUpdateFolderNeedsRekeyRpc
