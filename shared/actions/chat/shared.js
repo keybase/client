@@ -73,36 +73,6 @@ function tmpFileName(
   return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
 }
 
-function* clientHeader(
-  messageType: ChatTypes.MessageType,
-  conversationIDKey: Constants.ConversationIDKey
-): Generator<any, ?ChatTypes.MessageClientHeader, any> {
-  const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-    if (convo) {
-      return convo.get('info')
-    }
-    return null
-  }
-
-  const info = yield select(infoSelector)
-
-  if (!info) {
-    console.warn('No info to postmessage!')
-    return
-  }
-
-  return {
-    conv: info.triple,
-    tlfName: info.tlfName,
-    tlfPublic: info.visibility === ChatTypes.CommonTLFVisibility.public,
-    messageType,
-    supersedes: 0,
-    sender: null,
-    senderDevice: null,
-  }
-}
-
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
@@ -178,7 +148,6 @@ function* getPostingIdentifyBehavior(
 
 export {
   alwaysShowSelector,
-  clientHeader,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,

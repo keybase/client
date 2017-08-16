@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -722,8 +723,8 @@ func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
-	ConvRes  *chat1.ConversationLocal
-	InboxRes *chat1.GetInboxLocalRes
+	ConvRes  *chat1.InboxUIItem
+	InboxRes *chat1.UnverifiedInboxUIItems
 }
 
 type NonblockThreadResult struct {
@@ -782,7 +783,7 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
 	c.inboxCb <- NonblockInboxResult{
 		ConvRes: &arg.Conv,
-		ConvID:  arg.Conv.Info.Id,
+		ConvID:  arg.Conv.GetConvID(),
 	}
 	return nil
 }
@@ -795,8 +796,12 @@ func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedA
 }
 
 func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
+	var inbox chat1.UnverifiedInboxUIItems
+	if err := json.Unmarshal([]byte(arg.Inbox), &inbox); err != nil {
+		return err
+	}
 	c.inboxCb <- NonblockInboxResult{
-		InboxRes: &arg.Inbox,
+		InboxRes: &inbox,
 	}
 	return nil
 }

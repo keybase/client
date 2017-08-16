@@ -625,3 +625,8 @@ func (s TopicNameState) Bytes() []byte {
 func (s TopicNameState) Eq(o TopicNameState) bool {
 	return bytes.Equal(s.Bytes(), o.Bytes())
 }
+
+func (i InboxUIItem) GetConvID() ConversationID {
+	bConvID, _ := hex.DecodeString(i.ConvID)
+	return ConversationID(bConvID)
+}

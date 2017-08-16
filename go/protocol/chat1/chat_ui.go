@@ -4,9 +4,145 @@
 package chat1
 
 import (
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
+
+type UnverifiedInboxUIItem struct {
+	ConvID      string                  `codec:"convID" json:"convID"`
+	Name        string                  `codec:"name" json:"name"`
+	Visibility  TLFVisibility           `codec:"visibility" json:"visibility"`
+	Status      ConversationStatus      `codec:"status" json:"status"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	Time        gregor1.Time            `codec:"time" json:"time"`
+}
+
+func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
+	return UnverifiedInboxUIItem{
+		ConvID:      o.ConvID,
+		Name:        o.Name,
+		Visibility:  o.Visibility.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
+	}
+}
+
+type UnverifiedInboxUIItems struct {
+	Items      []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Pagination *Pagination             `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline    bool                    `codec:"offline" json:"offline"`
+}
+
+func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
+	return UnverifiedInboxUIItems{
+		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
+	}
+}
+
+type InboxUIItem struct {
+	ConvID       string                    `codec:"convID" json:"convID"`
+	IsEmpty      bool                      `codec:"isEmpty" json:"isEmpty"`
+	Name         string                    `codec:"name" json:"name"`
+	Snippet      string                    `codec:"snippet" json:"snippet"`
+	Channel      string                    `codec:"channel" json:"channel"`
+	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	Participants []string                  `codec:"participants" json:"participants"`
+	Status       ConversationStatus        `codec:"status" json:"status"`
+	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
+	Time         gregor1.Time              `codec:"time" json:"time"`
+	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes   []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
+	SupersededBy []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
+}
+
+func (o InboxUIItem) DeepCopy() InboxUIItem {
+	return InboxUIItem{
+		ConvID:     o.ConvID,
+		IsEmpty:    o.IsEmpty,
+		Name:       o.Name,
+		Snippet:    o.Snippet,
+		Channel:    o.Channel,
+		Visibility: o.Visibility.DeepCopy(),
+		Participants: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Participants),
+		Status:      o.Status.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
+		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FinalizeInfo),
+		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Supersedes),
+		SupersededBy: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.SupersededBy),
+	}
+}
+
+type InboxUIItems struct {
+	Items      []InboxUIItem `codec:"items" json:"items"`
+	Pagination *Pagination   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline    bool          `codec:"offline" json:"offline"`
+}
+
+func (o InboxUIItems) DeepCopy() InboxUIItems {
+	return InboxUIItems{
+		Items: (func(x []InboxUIItem) []InboxUIItem {
+			var ret []InboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
+	}
+}
 
 type ChatAttachmentUploadOutboxIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
@@ -115,20 +251,20 @@ func (o ChatAttachmentDownloadDoneArg) DeepCopy() ChatAttachmentDownloadDoneArg 
 }
 
 type ChatInboxUnverifiedArg struct {
-	SessionID int              `codec:"sessionID" json:"sessionID"`
-	Inbox     GetInboxLocalRes `codec:"inbox" json:"inbox"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Inbox     string `codec:"inbox" json:"inbox"`
 }
 
 func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 	return ChatInboxUnverifiedArg{
 		SessionID: o.SessionID,
-		Inbox:     o.Inbox.DeepCopy(),
+		Inbox:     o.Inbox,
 	}
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int               `codec:"sessionID" json:"sessionID"`
-	Conv      ConversationLocal `codec:"conv" json:"conv"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Conv      InboxUIItem `codec:"conv" json:"conv"`
 }
 
 func (o ChatInboxConversationArg) DeepCopy() ChatInboxConversationArg {

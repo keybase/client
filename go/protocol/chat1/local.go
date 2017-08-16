@@ -3231,7 +3231,6 @@ func (o PostLocalNonblockArg) DeepCopy() PostLocalNonblockArg {
 
 type PostTextNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Conv             ConversationIDTriple         `codec:"conv" json:"conv"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Body             string                       `codec:"body" json:"body"`
@@ -3243,7 +3242,6 @@ type PostTextNonblockArg struct {
 func (o PostTextNonblockArg) DeepCopy() PostTextNonblockArg {
 	return PostTextNonblockArg{
 		ConversationID: o.ConversationID.DeepCopy(),
-		Conv:           o.Conv.DeepCopy(),
 		TlfName:        o.TlfName,
 		TlfPublic:      o.TlfPublic,
 		Body:           o.Body,
@@ -3261,7 +3259,6 @@ func (o PostTextNonblockArg) DeepCopy() PostTextNonblockArg {
 
 type PostDeleteNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Conv             ConversationIDTriple         `codec:"conv" json:"conv"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
@@ -3273,7 +3270,6 @@ type PostDeleteNonblockArg struct {
 func (o PostDeleteNonblockArg) DeepCopy() PostDeleteNonblockArg {
 	return PostDeleteNonblockArg{
 		ConversationID: o.ConversationID.DeepCopy(),
-		Conv:           o.Conv.DeepCopy(),
 		TlfName:        o.TlfName,
 		TlfPublic:      o.TlfPublic,
 		Supersedes:     o.Supersedes.DeepCopy(),
@@ -3291,7 +3287,6 @@ func (o PostDeleteNonblockArg) DeepCopy() PostDeleteNonblockArg {
 
 type PostEditNonblockArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Conv             ConversationIDTriple         `codec:"conv" json:"conv"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
 	Supersedes       MessageID                    `codec:"supersedes" json:"supersedes"`
@@ -3304,7 +3299,6 @@ type PostEditNonblockArg struct {
 func (o PostEditNonblockArg) DeepCopy() PostEditNonblockArg {
 	return PostEditNonblockArg{
 		ConversationID: o.ConversationID.DeepCopy(),
-		Conv:           o.Conv.DeepCopy(),
 		TlfName:        o.TlfName,
 		TlfPublic:      o.TlfPublic,
 		Supersedes:     o.Supersedes.DeepCopy(),
@@ -3407,7 +3401,8 @@ func (o GetMessagesLocalArg) DeepCopy() GetMessagesLocalArg {
 type PostAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
 	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
@@ -3419,7 +3414,8 @@ func (o PostAttachmentLocalArg) DeepCopy() PostAttachmentLocalArg {
 	return PostAttachmentLocalArg{
 		SessionID:      o.SessionID,
 		ConversationID: o.ConversationID.DeepCopy(),
-		ClientHeader:   o.ClientHeader.DeepCopy(),
+		TlfName:        o.TlfName,
+		Visibility:     o.Visibility.DeepCopy(),
 		Attachment:     o.Attachment.DeepCopy(),
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
@@ -3442,7 +3438,8 @@ func (o PostAttachmentLocalArg) DeepCopy() PostAttachmentLocalArg {
 type PostFileAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
 	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
@@ -3454,7 +3451,8 @@ func (o PostFileAttachmentLocalArg) DeepCopy() PostFileAttachmentLocalArg {
 	return PostFileAttachmentLocalArg{
 		SessionID:      o.SessionID,
 		ConversationID: o.ConversationID.DeepCopy(),
-		ClientHeader:   o.ClientHeader.DeepCopy(),
+		TlfName:        o.TlfName,
+		Visibility:     o.Visibility.DeepCopy(),
 		Attachment:     o.Attachment.DeepCopy(),
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {

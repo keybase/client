@@ -13,30 +13,30 @@ protocol NotifyChat {
     FAILED_MESSAGE_5,
     MEMBERS_UPDATE_6,
     SET_APP_NOTIFICATION_SETTINGS_7
-  } 
+  }
 
   record IncomingMessage {
     MessageUnboxed message;
     ConversationID convID;
     boolean displayDesktopNotification;
-    union { null, ConversationLocal } conv;
+    union { null, InboxUIItem } conv;
     union { null, Pagination } pagination;
   }
 
   record ReadMessageInfo {
     ConversationID convID;
     MessageID msgID;
-    union { null, ConversationLocal } conv;
+    union { null, InboxUIItem } conv;
   }
 
   record NewConversationInfo {
-    ConversationLocal conv;
+    InboxUIItem conv;
   }
 
   record SetStatusInfo {
     ConversationID convID;
     ConversationStatus status;
-    union { null, ConversationLocal } conv;
+    union { null, InboxUIItem } conv;
   }
 
   record SetAppNotificationSettingsInfo {
@@ -98,14 +98,14 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo,
-    union { null, ConversationLocal } conv);
+    union { null, InboxUIItem } conv);
 
   @notify("")
   @lint("ignore")
   void ChatTLFResolve(keybase1.UID uid, ConversationID convID, ConversationResolveInfo resolveInfo);
 
   @notify("")
-  @lint("ignore") 
+  @lint("ignore")
   void ChatInboxStale(keybase1.UID uid);
 
   @notify("")
@@ -118,10 +118,10 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatJoinedConversation(keybase1.UID uid, ConversationLocal conv);
+  void ChatJoinedConversation(keybase1.UID uid, InboxUIItem conv);
 
   @notify("")
   @lint("ignore")
-  void ChatLeftConversation(keybase1.UID uid, ConversationID convID); 
+  void ChatLeftConversation(keybase1.UID uid, ConversationID convID);
 
 }

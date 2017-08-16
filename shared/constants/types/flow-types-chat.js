@@ -1230,6 +1230,28 @@ export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
 
+export type InboxUIItem = {
+  convID: string,
+  isEmpty: boolean,
+  name: string,
+  snippet: string,
+  channel: string,
+  visibility: TLFVisibility,
+  participants?: ?Array<string>,
+  status: ConversationStatus,
+  membersType: ConversationMembersType,
+  time: gregor1.Time,
+  finalizeInfo?: ?ConversationFinalizeInfo,
+  supersedes?: ?Array<ConversationMetadata>,
+  supersededBy?: ?Array<ConversationMetadata>,
+}
+
+export type InboxUIItems = {
+  items?: ?Array<InboxUIItem>,
+  pagination?: ?Pagination,
+  offline: boolean,
+}
+
 export type InboxVers = uint64
 
 export type InboxView =
@@ -1246,7 +1268,7 @@ export type IncomingMessage = {
   message: MessageUnboxed,
   convID: ConversationID,
   displayDesktopNotification: boolean,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
   pagination?: ?Pagination,
 }
 
@@ -1479,7 +1501,7 @@ export type NameQuery = {
 }
 
 export type NewConversationInfo = {
-  conv: ConversationLocal,
+  conv: InboxUIItem,
 }
 
 export type NewConversationLocalRes = {
@@ -1528,7 +1550,7 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
 
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
   uid: keybase1.UID,
-  conv: ConversationLocal
+  conv: InboxUIItem
 }>
 
 export type NotifyChatChatLeftConversationRpcParam = Exact<{
@@ -1540,7 +1562,7 @@ export type NotifyChatChatTLFFinalizeRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID,
   finalizeInfo: ConversationFinalizeInfo,
-  conv?: ?ConversationLocal
+  conv?: ?InboxUIItem
 }>
 
 export type NotifyChatChatTLFResolveRpcParam = Exact<{
@@ -1633,7 +1655,7 @@ export type RateLimit = {
 export type ReadMessageInfo = {
   convID: ConversationID,
   msgID: MessageID,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
 }
 
 export type ReadMessagePayload = {
@@ -1705,7 +1727,7 @@ export type SetConversationStatusRes = {
 export type SetStatusInfo = {
   convID: ConversationID,
   status: ConversationStatus,
-  conv?: ?ConversationLocal,
+  conv?: ?InboxUIItem,
 }
 
 export type SetStatusPayload = {
@@ -1834,6 +1856,21 @@ export type UnreadUpdateFull = {
   updates?: ?Array<UnreadUpdate>,
 }
 
+export type UnverifiedInboxUIItem = {
+  convID: string,
+  name: string,
+  visibility: TLFVisibility,
+  status: ConversationStatus,
+  membersType: ConversationMembersType,
+  time: gregor1.Time,
+}
+
+export type UnverifiedInboxUIItems = {
+  items?: ?Array<UnverifiedInboxUIItem>,
+  pagination?: ?Pagination,
+  offline: boolean,
+}
+
 export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
@@ -1865,7 +1902,7 @@ export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
-  conv: ConversationLocal
+  conv: InboxUIItem
 }>
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
@@ -1874,7 +1911,7 @@ export type chatUiChatInboxFailedRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxUnverifiedRpcParam = Exact<{
-  inbox: GetInboxLocalRes
+  inbox: string
 }>
 
 export type chatUiChatThreadCachedRpcParam = Exact<{
@@ -2007,7 +2044,8 @@ export type localNewConversationLocalRpcParam = Exact<{
 
 export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  clientHeader: MessageClientHeader,
+  tlfName: string,
+  visibility: TLFVisibility,
   attachment: LocalSource,
   preview?: ?MakePreviewRes,
   title: string,
@@ -2017,7 +2055,6 @@ export type localPostAttachmentLocalRpcParam = Exact<{
 
 export type localPostDeleteNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   supersedes: MessageID,
@@ -2028,7 +2065,6 @@ export type localPostDeleteNonblockRpcParam = Exact<{
 
 export type localPostEditNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   supersedes: MessageID,
@@ -2040,7 +2076,8 @@ export type localPostEditNonblockRpcParam = Exact<{
 
 export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  clientHeader: MessageClientHeader,
+  tlfName: string,
+  visibility: TLFVisibility,
   attachment: LocalFileSource,
   preview?: ?MakePreviewRes,
   title: string,
@@ -2064,7 +2101,6 @@ export type localPostLocalRpcParam = Exact<{
 
 export type localPostTextNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  conv: ConversationIDTriple,
   tlfName: string,
   tlfPublic: boolean,
   body: string,
@@ -2370,14 +2406,14 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxUnverified'?: (
     params: Exact<{
       sessionID: int,
-      inbox: GetInboxLocalRes
+      inbox: string
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.chatUi.chatInboxConversation'?: (
     params: Exact<{
       sessionID: int,
-      conv: ConversationLocal
+      conv: InboxUIItem
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -2423,7 +2459,7 @@ export type incomingCallMapType = Exact<{
       uid: keybase1.UID,
       convID: ConversationID,
       finalizeInfo: ConversationFinalizeInfo,
-      conv?: ?ConversationLocal
+      conv?: ?InboxUIItem
     }> /* ,
     response: {} // Notify call
     */
@@ -2462,7 +2498,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatJoinedConversation'?: (
     params: Exact<{
       uid: keybase1.UID,
-      conv: ConversationLocal
+      conv: InboxUIItem
     }> /* ,
     response: {} // Notify call
     */

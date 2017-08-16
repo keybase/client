@@ -1,20 +1,62 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID); 
-  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway; 
-  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;     
-  void chatAttachmentUploadDone(int sessionID); 
 
-  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;  
-  void chatAttachmentPreviewUploadDone(int sessionID);  
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
-  void chatAttachmentDownloadStart(int sessionID); 
-  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;     
-  void chatAttachmentDownloadDone(int sessionID);  
+  record UnverifiedInboxUIItem {
+    string convID;
+    string name;
+    TLFVisibility visibility;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    gregor1.Time time;
+  }
 
-  void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
-  void chatInboxConversation(int sessionID, ConversationLocal conv);
+  record UnverifiedInboxUIItems {
+    array<UnverifiedInboxUIItem> items;
+    union { null, Pagination } pagination;
+    boolean offline;
+  }
+
+  record InboxUIItem {
+    string convID;
+    boolean isEmpty;
+    string name;
+    string snippet;
+    string channel;
+    TLFVisibility visibility;
+    array<string> participants;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    gregor1.Time time;
+
+    // Finalized convo stuff
+    union{ null, ConversationFinalizeInfo } finalizeInfo;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
+  }
+
+  record InboxUIItems {
+    array<InboxUIItem> items;
+    union { null, Pagination } pagination;
+    boolean offline;
+  }
+
+  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
+  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
+  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
+  void chatAttachmentUploadDone(int sessionID);
+
+  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;
+  void chatAttachmentPreviewUploadDone(int sessionID);
+
+  void chatAttachmentDownloadStart(int sessionID);
+  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
+  void chatAttachmentDownloadDone(int sessionID);
+
+  void chatInboxUnverified(int sessionID, string inbox);
+  void chatInboxConversation(int sessionID, InboxUIItem conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
   void chatThreadCached(int sessionID, union { null, ThreadView } thread) oneway;

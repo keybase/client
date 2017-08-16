@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -511,6 +512,87 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 	return h.Sum(nil), nil
 }
 
+func GetConvMtime(conv chat1.Conversation) gregor1.Time {
+	timeTyps := []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
+	var summaries []chat1.MessageSummary
+	for _, typ := range timeTyps {
+		summary, err := conv.GetMaxMessage(typ)
+		if err == nil {
+			summaries = append(summaries, summary)
+		}
+	}
+	if len(summaries) == 0 {
+		return conv.ReaderInfo.Mtime
+	}
+	sort.Sort(ByMsgSummaryCtime(summaries))
+	return summaries[len(summaries)-1].Ctime
+}
+
+func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
+	var msgs []chat1.MessageUnboxed
+	for _, typ := range typs {
+		msg, err := conv.GetMaxMessage(typ)
+		if err == nil && msg.IsValid() {
+			msgs = append(msgs, msg)
+		}
+	}
+	if len(msgs) == 0 {
+		return res, errors.New("no message found")
+	}
+	sort.Sort(ByMsgUnboxedCtime(msgs))
+	return msgs[len(msgs)-1], nil
+}
+
+func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
+	timeTyps := []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
+	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
+	if err != nil {
+		return conv.ReaderInfo.Mtime
+	}
+	return msg.Valid().ServerHeader.Ctime
+}
+
+func GetConvSnippet(conv chat1.ConversationLocal) string {
+	timeTyps := []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
+	msg, err := PickLatestMessageUnboxed(conv, timeTyps)
+	if err != nil {
+		return ""
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_TEXT:
+		return msg.Valid().MessageBody.Text().Body
+	case chat1.MessageType_ATTACHMENT:
+		return msg.Valid().MessageBody.Attachment().Object.Title
+	}
+	return ""
+}
+
+func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+	res.ConvID = rawConv.GetConvID().String()
+	res.Name = rawConv.Info.TlfName
+	res.Snippet = GetConvSnippet(rawConv)
+	res.Channel = GetTopicName(rawConv)
+	res.Participants = rawConv.Info.WriterNames
+	res.Status = rawConv.Info.Status
+	res.MembersType = rawConv.GetMembersType()
+	res.Visibility = rawConv.Info.Visibility
+	res.Time = GetConvMtimeLocal(rawConv)
+	res.FinalizeInfo = rawConv.GetFinalizeInfo()
+	res.SupersededBy = rawConv.SupersededBy
+	res.Supersedes = rawConv.Supersedes
+	res.IsEmpty = rawConv.IsEmpty
+	return res
+}
+
 type ConvLocalByConvID []chat1.ConversationLocal
 
 func (c ConvLocalByConvID) Len() int      { return len(c) }
@@ -541,6 +623,22 @@ func (c ByConvID) Len() int      { return len(c) }
 func (c ByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ByConvID) Less(i, j int) bool {
 	return c[i].Less(c[j])
+}
+
+type ByMsgSummaryCtime []chat1.MessageSummary
+
+func (c ByMsgSummaryCtime) Len() int      { return len(c) }
+func (c ByMsgSummaryCtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByMsgSummaryCtime) Less(i, j int) bool {
+	return c[i].Ctime.Before(c[j].Ctime)
+}
+
+type ByMsgUnboxedCtime []chat1.MessageUnboxed
+
+func (c ByMsgUnboxedCtime) Len() int      { return len(c) }
+func (c ByMsgUnboxedCtime) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c ByMsgUnboxedCtime) Less(i, j int) bool {
+	return c[i].Valid().ServerHeader.Ctime.Before(c[j].Valid().ServerHeader.Ctime)
 }
 
 func GetTopicName(conv chat1.ConversationLocal) string {

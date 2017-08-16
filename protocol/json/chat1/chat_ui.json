@@ -1,7 +1,162 @@
 {
   "protocol": "chatUi",
-  "imports": [],
-  "types": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "participants"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    }
+  ],
   "messages": {
     "chatAttachmentUploadOutboxID": {
       "request": [
@@ -128,7 +283,7 @@
         },
         {
           "name": "inbox",
-          "type": "GetInboxLocalRes"
+          "type": "string"
         }
       ],
       "response": null
@@ -141,7 +296,7 @@
         },
         {
           "name": "conv",
-          "type": "ConversationLocal"
+          "type": "InboxUIItem"
         }
       ],
       "response": null

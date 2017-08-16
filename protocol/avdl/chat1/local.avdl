@@ -513,9 +513,9 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
-  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, ConversationIDTriple conv, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postEditNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes, string body, union { null, OutboxID } outboxID, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
   @lint("ignore")
@@ -595,7 +595,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -604,7 +604,7 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
