@@ -21,8 +21,8 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
     inbox.get('participants').size > 2
 
   return {
-    showTeamOffer,
     moreToLoad,
+    showTeamOffer,
   }
 }
 
