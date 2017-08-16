@@ -66,7 +66,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			return s.offline
 		case <-time.After(4 * time.Second):
 			s.Debug(ctx, "IsOffline: timed out")
-			return false
+			return true
 		}
 	}
 
