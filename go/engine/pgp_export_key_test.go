@@ -133,12 +133,29 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	return xcount, nil
 }
 
+type PGPTestSecretUI struct {
+	libkb.TestSecretUI
+	Prompts []string
+}
+
+func (t *PGPTestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CalledGetPassphrase = true
+	t.Prompts = append(t.Prompts, p.Prompt)
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
+}
+
 func TestPGPExportEncryption(t *testing.T) {
 	tc := SetupEngineTest(t, "pgpsave")
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
-	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+
+	pgpPassphrase := "hello_pgp" + u.Passphrase
+	secui := &PGPTestSecretUI{}
+	secui.Passphrase = pgpPassphrase
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, _, key := armorKey(t, tc, u.Email)
@@ -167,6 +184,11 @@ func TestPGPExportEncryption(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if len(secui.Prompts) != 2 {
+		t.Error("Expected two prompts in SecretUI (PGP passphrase and confirmation)")
+	}
+	secui.Prompts = []string{}
+
 	entity, _, err := libkb.ReadOneKeyFromString(xe.Results()[0].Key)
 	if err != nil {
 		t.Fatal(err)
@@ -180,7 +202,7 @@ func TestPGPExportEncryption(t *testing.T) {
 		t.Fatal("Key is not encrypted")
 	}
 
-	if err := entity.PrivateKey.Decrypt([]byte(u.Passphrase)); err != nil {
+	if err := entity.PrivateKey.Decrypt([]byte(pgpPassphrase)); err != nil {
 		t.Fatal("Decryption with passphrase failed")
 	}
 
@@ -193,6 +215,10 @@ func TestPGPExportEncryption(t *testing.T) {
 	xe = NewPGPKeyExportEngine(arg, tc.G)
 	if err := RunEngine(xe, ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	if len(secui.Prompts) != 0 {
+		t.Error("Expected no prompts in SecretUI")
 	}
 
 	entity, _, err = libkb.ReadOneKeyFromString(xe.Results()[0].Key)
