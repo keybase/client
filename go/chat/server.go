@@ -479,7 +479,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			return
 		default:
 		}
-		start := time.Now()
 		var pthread *string
 		if resThread != nil {
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
@@ -499,7 +498,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			SessionID: arg.SessionID,
 			Thread:    pthread,
 		})
-		h.Debug(ctx, "GetThreadNonblock: cached thread sent: %v", time.Now().Sub(start))
 	}()
 
 	wg.Add(1)
@@ -518,7 +516,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
 		// Acquire lock and send up actual response
-		start := time.Now()
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
@@ -532,7 +529,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			SessionID: arg.SessionID,
 			Thread:    string(jsonUIRes),
 		})
-		h.Debug(ctx, "GetThreadNonblock: full thread sent: %v", time.Now().Sub(start))
 
 		// This means we transmitted with success, so cancel local thread
 		cancel()
