@@ -261,7 +261,7 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 
 	if e.arg.ExportEncrypted {
 		e.G().Log.Debug("Encrypting key with passphrase before exporting")
-		pRes, err := GetPGPPassphrase(e.G(), ctx.SecretUI)
+		pRes, err := GetPGPExportPassphrase(e.G(), ctx.SecretUI)
 		if err != nil {
 			return err
 		}

@@ -181,7 +181,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	return nil
 }
 
-func GetPGPPassphrase(g *libkb.GlobalContext, ui libkb.SecretUI) (keybase1.GetPassphraseRes, error) {
+func GetPGPExportPassphrase(g *libkb.GlobalContext, ui libkb.SecretUI) (keybase1.GetPassphraseRes, error) {
 	desc := "Enter passphrase to protect your PGP key. Secure passphrases have at least 8 characters."
 	pRes, err := libkb.GetSecret(g, ui, "PGP key passphrase", desc, "", false)
 	if err != nil {
@@ -207,7 +207,7 @@ func (e *PGPKeyExportEngine) encryptKey(ctx *Context, raw []byte) ([]byte, error
 		return nil, libkb.BadKeyError{Msg: "No secret part in PGP key."}
 	}
 
-	pRes, err := GetPGPPassphrase(e.G(), ctx.SecretUI)
+	pRes, err := GetPGPExportPassphrase(e.G(), ctx.SecretUI)
 	if err != nil {
 		return nil, err
 	}
