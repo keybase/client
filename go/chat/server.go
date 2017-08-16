@@ -290,6 +290,8 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.MarkAsReadLocalRes{}, err
 	}
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+
 	// Don't send remote mark as read if we somehow get this in the background.
 	if h.G().AppState.State() != keybase1.AppState_FOREGROUND {
 		h.Debug(ctx, "MarkAsReadLocal: not marking as read, app state not foreground: %v",
@@ -298,6 +300,20 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 			Offline: h.G().Syncer.IsConnected(ctx),
 		}, nil
 	}
+
+	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
+	_, readRes, _, err := storage.NewInbox(h.G(), uid).Read(ctx, &chat1.GetInboxQuery{
+		ConvID: &arg.ConversationID,
+	}, nil)
+	if err == nil && len(readRes) > 0 && readRes[0].GetConvID().Eq(arg.ConversationID) &&
+		readRes[0].ReaderInfo.ReadMsgid == readRes[0].ReaderInfo.MaxMsgid {
+		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
+			arg.ConversationID)
+		return chat1.MarkAsReadLocalRes{
+			Offline: h.G().Syncer.IsConnected(ctx),
+		}, nil
+	}
+
 	rres, err := h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
 		ConversationID: arg.ConversationID,
 		MsgID:          arg.MsgID,
