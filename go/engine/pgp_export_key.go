@@ -10,6 +10,7 @@ package engine
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -135,48 +136,13 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		ExactMatch: e.arg.ExactMatch,
 	}
 
-	var passphrase string
-
-	skb, err := e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
+	key, skb, err := e.G().Keyrings.GetSecretKeyAndSKBWithPrompt(ctx.SecretKeyPromptArg(ska, "key export"))
 	if err != nil {
-		return nil
-	}
-
-	skb.SetUID(e.me.GetUID())
-	secretStore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
-
-	unlockDesc, err := skb.HumanDescription(e.me)
-	if err != nil {
-		return nil
-	}
-
-	unlocker := func(pw string, storeSecret bool) (ret libkb.GenericKey, err error) {
-		var secretStorer libkb.SecretStorer
-		if storeSecret {
-			secretStorer = secretStore
+		if _, ok := err.(libkb.NoSecretKeyError); ok {
+			// if no secret key found, don't return an error, just let
+			// the result be empty
+			return nil
 		}
-		if e.encrypted {
-			// save passphrase to encrypt key later
-			passphrase = pw
-		}
-		if skb.RawUnlockedKey() != nil {
-			e.G().Log.Debug("exportSecret: Key is already unlocked, unlocking again to verify passphrase.")
-		}
-		return skb.UnlockSecretKey(ctx.LoginContext, pw, nil, nil, secretStorer)
-	}
-
-	reason := "key unlock for export "
-	if !e.encrypted {
-		reason += "(not encrypted)"
-	} else {
-		reason += "(encrypted with passphrase)"
-	}
-
-	keyUnlocker := libkb.NewKeyUnlocker(e.G(), 4, reason, unlockDesc, libkb.PassphraseTypeKeybase, (secretStore != nil), ctx.SecretUI, unlocker)
-
-	key, err := keyUnlocker.Run()
-	if err != nil {
-		return err
 	}
 
 	fp := libkb.GetPGPFingerprintFromGenericKey(key)
@@ -194,36 +160,18 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 
 	var raw []byte
 
-	if !e.encrypted {
+	if e.encrypted {
+		raw, err = e.encryptKey(ctx, skb)
+		if err != nil {
+			return err
+		}
+	} else {
 		// User wanted un-encrypted key. Just pass raw bytes
 		raw = skb.RawUnlockedKey()
 
 		if raw == nil {
 			return libkb.BadKeyError{Msg: "can't get raw representation of key"}
 		}
-	} else {
-		// Make encrypted PGP key bundle using user's passphrase
-		// provided at the beginning. Reimport key so we don't mutate
-		// key entity stored in SKB.
-		entity, _, err := libkb.ReadOneKeyFromBytes(skb.RawUnlockedKey())
-		if err != nil {
-			return err
-		}
-
-		if entity.PrivateKey == nil {
-			return libkb.BadKeyError{Msg: "No secret part in PGP key."}
-		}
-
-		if err = entity.PrivateKey.Encrypt([]byte(passphrase), nil); err != nil {
-			return err
-		}
-
-		var buf bytes.Buffer
-		if err = entity.SerializePrivate(&buf); err != nil {
-			return err
-		}
-
-		raw = buf.Bytes()
 	}
 
 	ret, err := libkb.PGPKeyRawToArmored(raw, true)
@@ -234,6 +182,52 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	e.pushRes(*fp, ret, "")
 
 	return nil
+}
+
+func getPGPPassphrase(g *libkb.GlobalContext, ui libkb.SecretUI) (keybase1.GetPassphraseRes, error) {
+	desc := "Enter passphrase to protect your PGP key. Secure passphrase should have at least 8 characters."
+	pRes, err := libkb.GetSecret(g, ui, "PGP key passphrase", desc, "", false)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
+
+	desc = "Please reenter your passphrase for confirmation"
+	pRes2, err := libkb.GetSecret(g, ui, "PGP key passphrase", desc, "", false)
+	if pRes.Passphrase != pRes2.Passphrase {
+		return keybase1.GetPassphraseRes{}, errors.New("Passphrase mismatch")
+	}
+
+	return pRes, nil
+}
+
+func (e *PGPKeyExportEngine) encryptKey(ctx *Context, skb *libkb.SKB) (raw []byte, err error) {
+	// Make encrypted PGP key bundle using provided passphrase.
+	// Reimport key so we don't mutate key entity stored in SKB.
+	entity, _, err := libkb.ReadOneKeyFromBytes(skb.RawUnlockedKey())
+	if err != nil {
+		return nil, err
+	}
+
+	if entity.PrivateKey == nil {
+		return nil, libkb.BadKeyError{Msg: "No secret part in PGP key."}
+	}
+
+	pRes, err := getPGPPassphrase(e.G(), ctx.SecretUI)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = entity.PrivateKey.Encrypt([]byte(pRes.Passphrase), nil); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	if err = entity.SerializePrivate(&buf); err != nil {
+		return nil, err
+	}
+
+	raw = buf.Bytes()
+	return raw, nil
 }
 
 func (e *PGPKeyExportEngine) loadMe() (err error) {
