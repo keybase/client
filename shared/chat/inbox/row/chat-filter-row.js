@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Icon, Box, LoadingLine, Input, Text} from '../../../common-adapters'
+import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
@@ -66,7 +66,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
       ]
     } else {
       children = (
-        <Box style={styleFilterContainer} onClick={this._startEditing}>
+        <ClickableBox style={styleFilterContainer} onClick={this._startEditing}>
           <Icon
             type="iconfont-search"
             style={{
@@ -78,7 +78,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
           <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
             Jump to chat
           </Text>
-        </Box>
+        </ClickableBox>
       )
     }
     return (
@@ -108,7 +108,6 @@ class _ChatFilterRow extends Component<void, Props, State> {
 
 const styleFilterContainer = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   alignItems: 'center',
   backgroundColor: globalColors.lightGrey,
   borderRadius: 19,
