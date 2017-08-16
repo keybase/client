@@ -25,7 +25,15 @@ const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
 
   const names = i.get('participants').toArray()
   // TODO team and channels
-  const regexp = new RegExp(filter, 'i')
+  let regexp
+  try {
+    regexp = new RegExp(filter, 'i')
+  } catch (e) {
+    // TODO: Handle this better.
+    console.log('Error when parsing "' + filter + '": ' + e)
+    return true
+  }
+
   return names.some(n => n.match(regexp))
 }
 
